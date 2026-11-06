@@ -1,0 +1,15 @@
+{
+  "schema": "tbdy.next.modal.capture.v1",
+  "source_mode": "SYNTHETIC",
+  "source_identity": "synthetic-case-001",
+  "table": {
+    "table_key": "Modal Participating Mass Ratios",
+    "fields": ["Case", "Mode", "UX", "UY", "SumUX", "SumUY"],
+    "row_count": 3,
+    "rows": [
+      {"Case": "Modal", "Mode": "1", "UX": "0.79", "UY": "0.81", "SumUX": "0.79", "SumUY": "0.81"},
+      {"Case": "Modal", "Mode": "2", "UX": "0.17", "UY": "0.15", "SumUX": "0.96", "SumUY": "0.96"},
+      {"Case": "Other", "Mode": "1", "UX": "0.60", "UY": "0.60", "SumUX": "0.60", "SumUY": "0.60"}
+    ]
+  }
+}
