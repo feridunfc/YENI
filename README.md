@@ -4,11 +4,11 @@ Small, project-owned Turkish structural-engineering application. The older `TBDY
 
 ## VS01 — Modal effective-mass ratio (numerical subcondition)
 
-1. Inspect an ETABS 23.2.0 *readonly preflight* JSON. **Table listed** does not mean **table schema verified**.
-2. Import a **complete** `Modal Participating Mass Ratios` capture in `tbdy.next.modal.capture.v1` format.
-3. Review source columns and validate all rows, the selected modal case, contiguous modes, and cumulative fractions.
+1. From the Windows UI, attach to an already-running ETABS 23.2.0 instance.
+2. Read the **complete** `Modal Participating Mass Ratios` table via the project-owned adapter. Offline JSON imports are optional.
+3. Validate real source fields, all rows, selected modal case, contiguous modes, and cumulative fractions.
 4. Evaluate the 95% mass-ratio subcondition of TBDY 2018 §4.8.1.2; this is **not** a complete seismic engineering verdict.
-5. Write local, auditable stage receipts with source SHA-256; do not issue global engineering release.
+5. Show live X/Y results and old CLI results in the UI; write local receipts with source SHA-256. Never issue global engineering release.
 
 ## Installation and tests
 
@@ -17,13 +17,32 @@ python -m pip install -e .
 python -m unittest discover -s tests -v
 ```
 
-## Web interface
+## Windows / PyCharm — direct ETABS web connection
 
-```bash
-python -m tbdy_next.cli serve --host 127.0.0.1 --port 8765 --out .receipts
+ETABS 23.2.0 must already be running with an analyzed, locked model. This
+application never saves the model or starts analysis. Run from the repository
+root with the project interpreter:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -e .
+.\.venv\Scripts\python.exe -m pip install comtypes
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+.\.venv\Scripts\python.exe -m tbdy_next.cli serve --host 127.0.0.1 --port 8765 --out .receipts
 ```
 
-Open `http://127.0.0.1:8765`. In Codespaces, forward port 8765 using a **private** port-forward setting. The navigation reserves 16 future workspaces, but **only Modal Analiz (VS01) is active**; the others are visibly marked as planned. The working modal screen exposes source discovery, schema review, numerical assessment, receipts, Model Tree, and Result Tree. No live ETABS connection or model modification is performed.
+Open `http://127.0.0.1:8765`, choose **Modal analiz**, then press **ETABS'a
+bağlan ve hesapla**. No JSON file selection is required. The local server
+reads only `Modal Participating Mass Ratios` from the active ETABS instance,
+restores any temporary output-case selection, validates the rows, performs the
+same VS01 numerical check as the CLI, and saves the input + stage receipts
+under `.receipts/RUN-*`. Existing CLI results appear in the UI automatically.
+
+The web server only listens on localhost; actual COM access is lazy and occurs
+only after clicking the live button. Windows COM live acceptance is separate
+from mock-based CI verification. In Codespaces/Linux the live button does not
+connect to ETABS. Only **Modal analiz (VS01)** is implemented; the other 15
+navigation tabs remain planned. The 95% result is a numerical subcondition,
+not a global seismic-design release.
 
 ## Command-line usage
 

@@ -26,8 +26,11 @@ flowchart LR
 - `schema.py`: table-column discovery and suggested, **unapproved**, aliases.
 - `modal.py`: pure, unitless TBDY 2018 §4.8.1.2 95% numerical subcondition.
 - `receipts.py`: immutable local input archive and append-only per-run stage records.
+- `etabs_modal.py`: project-owned, narrowly scoped ETABS v23 modal-row capture adapter.
+- `live_etabs.py`: Windows-only COM lifecycle and single-process serial acquisition; never passes COM objects across HTTP request threads.
+- `history.py`: reads and recalculates locally sealed input/receipt pairs for presentation, without opening ETABS.
 - `cli.py`: bounded commands for VS01.
-- `web.py` + `static/index.html`: localhost-only interactive UI and status/tree/history views. Web and CLI call the same validation and calculation functions.
+- `web.py` + `static/index.html` + `static/history.js`: localhost-only interactive UI, live single-click trigger, source/result tree and saved history. Live UI and CLI call the same `source.py` + `modal.py` validators.
 
 ## State meanings
 

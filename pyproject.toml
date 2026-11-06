@@ -16,4 +16,4 @@ tbdy-next = "tbdy_next.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-"tbdy_next" = ["static/*.html"]
+"tbdy_next" = ["static/*.html", "static/*.js"]

@@ -9,6 +9,7 @@
 .app{display:grid;grid-template-columns:240px minmax(450px,1fr) 300px;min-height:100vh}aside{background:var(--nav);color:#e8eff6;padding:22px 15px}.logo{font-weight:800;font-size:18px;letter-spacing:-.4px;padding:0 12px 6px}.tagline{font-size:11px;color:#acc0d3;padding:0 12px 18px}.navtitle{padding:16px 12px 7px;color:#8fa8bf;font-size:10px;text-transform:uppercase;letter-spacing:1.1px}.navitem{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;background:transparent;color:#c8d6e4;border:0;border-radius:7px;text-align:left;cursor:pointer;font:inherit;font-size:12px}.navitem:hover{background:#223f58}.navitem.active{background:#2f536e;color:#fff}.navitem span:first-child{font-variant-numeric:tabular-nums;opacity:.7;font-size:11px}.navitem .signal{margin-left:auto;color:#8fa8bf;font-size:9px}.navitem .signal.live{color:#65d3b1}main{padding:25px 30px 35px;min-width:0}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;margin-bottom:20px}.eyebrow{color:var(--muted);text-transform:uppercase;font-size:10px;letter-spacing:1.3px;font-weight:700}h1{margin:5px 0 4px;font-size:25px;letter-spacing:-.7px}h2{font-size:16px;margin:0 0 8px;letter-spacing:-.3px}h3{font-size:13px;margin:0 0 8px}.muted{color:var(--muted)}.small{font-size:12px}.chip{background:#f0f4f9;border:1px solid var(--border);padding:5px 9px;border-radius:50px;font-size:10px;font-weight:700;color:var(--muted);white-space:nowrap}.stages{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}.step{background:white;border:1px solid var(--border);border-radius:10px;padding:12px 14px}.step em{display:block;font-size:10px;color:var(--muted);font-style:normal;text-transform:uppercase}.step strong{font-size:13px}.box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:19px;margin-bottom:14px;box-shadow:0 2px 9px rgba(36,51,69,.025)}.box header{margin-bottom:13px;display:flex;justify-content:space-between;gap:10px}.twocol{display:grid;grid-template-columns:1fr 1fr;gap:14px}.drop{border:1px dashed #b5c8d8;background:#f9fbfd;border-radius:9px;padding:12px}.drop input{display:block;width:100%;margin:6px 0;font:12px system-ui}.actions{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}button.go{border:0;background:var(--accent);color:white;font:600 12px system-ui;border-radius:6px;padding:10px 13px;cursor:pointer}button.go:hover{background:#164569}button.go:disabled{opacity:.5;cursor:wait}.field{border:1px solid var(--border);border-radius:6px;padding:8px;width:128px;font:13px system-ui}pre{white-space:pre-wrap;word-break:break-word;font-size:11px;background:#eef3f8;padding:13px;border-radius:8px;max-height:300px;overflow:auto;border:1px solid #dae4ee}.section-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px}.statline{display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid #e8edf3;padding:7px 0;font-size:12px}.statline:last-child{border:none}.statline strong{font-variant-numeric:tabular-nums}.good{color:var(--ok)}.bad{color:var(--red)}.warn{color:var(--warn)}.rail{background:white;border-left:1px solid var(--border);padding:25px 17px}.tree{list-style:none;margin:4px 0 22px;padding:0}.tree li{padding:7px 9px 7px 19px;margin:2px 0;border-left:2px solid #d7e0ea;font-size:12px;color:var(--muted);word-break:break-word}.tree li:first-child{border-color:#388db0;color:var(--ink);font-weight:700}.empty{font-style:italic;color:var(--muted);padding:6px 2px}.stamp{padding:9px 10px;border:1px solid var(--border);border-radius:7px;margin:7px 0;font-size:11px}.stamp strong{display:block;letter-spacing:.2px}.footer{color:var(--muted);font-size:11px;margin-top:20px}.hidden{display:none}.notbuilt{padding:55px 30px;text-align:center;border:1px dashed #c7d5e2;border-radius:10px;background:white}
 @media(max-width:1160px){.app{grid-template-columns:200px 1fr}.rail{grid-column:2;border-top:1px solid var(--border);border-left:0}.twocol{grid-template-columns:1fr}}
 @media(max-width:650px){.app{display:block}aside{padding:12px}.navlist{display:flex;overflow:auto;gap:3px}.navitem{flex:0 0 145px}.navtitle{display:none}.logo{font-size:15px}.tagline{padding-bottom:6px}main{padding:16px}.rail{padding:18px}.stages{grid-template-columns:1fr}.top{display:block}}
+.live-panel{border:1px solid #a9d8c7;background:linear-gradient(125deg,#f5fdf9,#fff)}.live-label{font-size:11px;text-transform:uppercase;font-weight:750;letter-spacing:1px;color:#22745e}.live-action{font-size:14px!important;padding:12px 17px!important;background:#22745e!important}.live-action:hover{background:#185846!important}.offline summary{cursor:pointer;color:#597186;font-weight:650;padding:8px 0}.live-status{font-size:12px;min-height:22px}.offline{margin:10px 0 16px}.offline .twocol{margin-top:14px}.micro{font-size:11px;color:var(--muted);margin:6px 0}
 </style>
 </head>
 <body>
@@ -18,11 +19,17 @@
 <div class="top"><div><div class="eyebrow">Dikey Dilim 01 · Etkin Modal Kütle</div><h1 id="heading">Modal analiz</h1><div class="muted small" id="subhead">Kaynağı keşfet → şemayı doğrula → sayısal kontrolü yap → kayıt oluştur</div></div><div class="chip">ENGINEERING RELEASE · NOT_READY</div></div>
 <div id="activecontent">
 <div class="stages"><div class="step"><em>Aşama 1</em><strong id="step1">Kaynak keşfi bekleniyor</strong></div><div class="step"><em>Aşama 2</em><strong id="step2">Şema doğrulaması bekleniyor</strong></div><div class="step"><em>Aşama 3</em><strong id="step3">Hesap bekleniyor</strong></div></div>
+<section class="box live-panel" id="live-modal-panel"><header><div><div class="live-label">01 · Canlı ETABS bağlantısı</div><h2>ETABS'a bağlan → modal veriyi al → kontrol et</h2><div class="muted small">ETABS 23.2.0 Windows oturumunda açık ve analiz edilmiş model kullanılır. Dosya seçimi gerekmez.</div></div></header>
+<div class="actions"><label for="case" class="small">Modal vaka</label><input class="field" id="liveCase" value="Modal" maxlength="120" aria-label="ETABS modal vaka adı"><button class="go live-action" type="button" id="liveModalBtn">ETABS'a bağlan ve hesapla</button></div>
+<div class="live-status" id="liveModalStatus" role="status" aria-live="polite">Henüz canlı bağlantı başlatılmadı.</div><p class="micro">Model kaydı veya analiz başlatılmaz. Yalnız modal tablo okunur; görüntüleme vaka seçimi değişirse geri yüklenir. Sonuçlar yerel .receipts altında tutulur.</p></section>
+<details class="offline"><summary>İsteğe bağlı: önceki JSON / çevrimdışı veriyi içeri al</summary>
 <div class="twocol">
 <section class="box"><header><div><h2>01 · ETABS kaynak keşfi</h2><div class="muted small">Ön test JSON'unda gerçek tablo anahtarları; henüz sonuç satırı değil</div></div></header><div class="drop"><label for="preflight">Preflight JSON seç</label><input type="file" id="preflight" accept=".json,application/json"></div><div class="actions"><button class="go" id="discoverBtn">Kaynağı incele</button></div></section>
 <section class="box"><header><div><h2>02 · Modal tablo / şema</h2><div class="muted small">Tam tablo satırları ve seçilen modal vaka</div></div></header><div class="drop"><label for="capture">Modal capture JSON seç</label><input type="file" id="capture" accept=".json,application/json"></div><div class="actions"><label class="small" for="case">Vaka</label><input class="field" type="text" id="case" value="Modal" maxlength="120"><button class="go" id="schemaBtn">Şemayı incele</button><button class="go" id="modalBtn">Doğrula + hesapla</button></div></section>
-</div>
-<section class="box"><header><div><h2>03 · İnceleme ve sonuç</h2><div class="muted small">Gözlenen veriyle yetkili mühendislik kararı birbirinden ayrı tutulur</div></div></header><div id="result"><div class="empty">İlk dosyanızı seçin. Bu dilimde ETABS modeline doğrudan bağlanılmaz.</div></div></section>
+</div></details>
+<section class="box"><header><div><h2>03 · İnceleme ve sonuç</h2><div class="muted small">Gözlenen veriyle yetkili mühendislik kararı birbirinden ayrı tutulur</div></div></header><div id="result"><div class="empty">Canlı ETABS'a bağlanıp hesaplamak için üstteki yeşil düğmeyi kullanın. Önceki CLI sonuçları da aşağıdaki kayıt panelinde otomatik gösterilir.</div></div></section>
+<section class="box" id="saved-modal-panel"><header><div><h2>04 · Kaydedilmiş gerçek modal hesaplar</h2><div class="muted small">CLI ile hesaplanan sonuçlar yeniden dosya yüklemeden görüntülenir; sentetik olanlar ayrıca işaretlenir.</div></div><button class="go" id="refreshSaved">Yenile</button></header>
+<div id="saved-modal-body" class="muted small">Yerel çalışma kayıtları okunuyor…</div><div id="saved-modal-history" class="actions"></div></section>
 <section class="box"><header><div><h2>Aşama kayıtları</h2><div class="muted small">Yerel `.receipts` altında kaynak kopyası, hash ve aşama sonucu tutulur</div></div></header><div id="runlist" class="muted small">Henüz kayıt bulunamadı.</div></section>
 </div>
 <div id="plannedcontent" class="hidden notbuilt"><h2 id="plannedtitle"></h2><p>Bu hesap henüz etkinleştirilmedi. Sıradaki dikey dilim ancak kaynak → şema → postprocess → mühendislik kontrolü → rapor zinciri çalışınca açılır.</p><p class="muted small">Burada sahte PASS, hazırmış gibi gösterilen formül veya boş hesap ekranı yok.</p></div>
@@ -46,6 +53,33 @@ async function loadRuns(){try{const res=await fetch('/api/runs');const data=awai
 document.getElementById('discoverBtn').onclick=()=>upload('preflight','/api/discovery','Kaynak keşfi');
 document.getElementById('schemaBtn').onclick=()=>upload('capture','/api/modal-schema','Şema inceleme');
 document.getElementById('modalBtn').onclick=()=>upload('capture','/api/modal?case='+encodeURIComponent(document.getElementById('case').value),'Modal kontrol');
+async function connectLive(){
+  const button=document.getElementById('liveModalBtn');
+  const status=document.getElementById('liveModalStatus');
+  const name=document.getElementById('liveCase').value.trim();
+  if(!name){status.textContent='Modal vaka adını girin.';status.className='live-status bad';return}
+  button.disabled=true;status.className='live-status';status.textContent='ETABS oturumu ve modal tablo okunuyor…';
+  try {
+    const res=await fetch('/api/live-modal?case='+encodeURIComponent(name),{method:'POST',cache:'no-store'});
+    const data=await res.json();
+    if(!res.ok){throw new Error(data.result?.reason||data.reason||`HTTP ${res.status}`)}
+    showResult('Canlı ETABS',data);
+    const x=data.result;
+    document.getElementById('step1').textContent=`LIVE_ETABS · ${data.source_rows} satır`;
+    document.getElementById('step2').textContent=`SCHEMA_VALID · ${data.case_row_count} mod`;
+    document.getElementById('step3').textContent=x.status;
+    setTree('modeltree',[`Model: ${data.model_name||'ETABS'}`,`Vaka: ${name}`,`Modal tablo: ${data.source_rows} satır`]);
+    const pct=r=>`${(Number(r)*100).toFixed(2).replace('.',',')}%`;
+    setTree('resulttree',['VS01 · Modal kütle',`X: ${pct(x.sum_ux)}`,`Y: ${pct(x.sum_uy)}`,`Kritik mod sayısı: ${x.governing_mode_count}`,`Alt kontrol: ${x.status}`,'Engineering release: NOT_READY']);
+    status.textContent=`${data.model_name||'ETABS'} · ${data.case_row_count} mod · X ${pct(x.sum_ux)} / Y ${pct(x.sum_uy)} · ${x.status}`;
+    status.className='live-status good';
+    await loadRuns();
+    if(typeof window.refreshModalHistory==='function')await window.refreshModalHistory();
+  }catch(ex){status.textContent='Canlı ETABS bağlantısı/hesabı başarısız: '+ex.message;status.className='live-status bad';err(ex.message)}
+  finally {button.disabled=false}
+}
+document.getElementById('liveModalBtn').onclick=connectLive;
 loadRuns();
 </script>
+<script src="/history.js"></script>
 </body></html>
