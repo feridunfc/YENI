@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tbdy-next-engine"
+version = "0.1.0"
+description = "Independent, vertical-slice-first Turkish structural engineering engine"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+tbdy-next = "tbdy_next.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"tbdy_next" = ["static/*.html"]

@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+build/
+dist/
+.receipts/
+*.edb
+*.EDB
+*live_snapshot*.json
+*readonly_preflight*.json
+
+*.source
+*modal_live_capture*.json
+*phase2_capture*.json

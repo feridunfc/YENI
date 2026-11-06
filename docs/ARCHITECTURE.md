@@ -1,0 +1,47 @@
+# TBDY Next Engine — product-owned architecture
+
+This is a **new implementation**, not a rename of the prior runtime. Every adopted idea is reshaped to one small interface and documented in `REUSE_REGISTER.md`. Do **not** add another global 94-node runtime, GAP bureaucracy, or a second competing formula engine for VS01.
+
+## Implemented stage graph
+
+```mermaid
+flowchart LR
+  P[ETABS preflight JSON] --> D[Discover source keys]
+  D --> DR[Local discovery receipt]
+  C[Complete modal table JSON] --> S[Schema review]
+  S --> V[Row/case/mode validation]
+  V --> N[95% numerical subcondition]
+  S --> SR[Local schema receipt]
+  V --> VR[Local validation receipt]
+  N --> NR[Local result receipt]
+  DR --> T[Read-only UI trees/history]
+  SR --> T
+  VR --> T
+  NR --> T
+```
+
+## Module ownership
+
+- `source.py`: preflight discovery and factual modal row validation. No engineering verdict.
+- `schema.py`: table-column discovery and suggested, **unapproved**, aliases.
+- `modal.py`: pure, unitless TBDY 2018 §4.8.1.2 95% numerical subcondition.
+- `receipts.py`: immutable local input archive and append-only per-run stage records.
+- `cli.py`: bounded commands for VS01.
+- `web.py` + `static/index.html`: localhost-only interactive UI and status/tree/history views. Web and CLI call the same validation and calculation functions.
+
+## State meanings
+
+| State | Meaning |
+| --- | --- |
+| DISCOVERED | Table key is listed by an attached ETABS session. |
+| SCHEMA_FIELDS_PRESENT | Expected column names are listed; full row contents have not necessarily been checked. |
+| SCHEMA_VALID | Full imported table passes VS01 row, modal-case, and cumulative-ratio validation. |
+| MEETS_NUMERICAL_CRITERION | Selected modal case reaches 0.95 in both X and Y with recognized significant modes. **Not engineering PASS.** |
+| DOES_NOT_MEET_NUMERICAL_CRITERION | Captured table is valid, but the selected case does not meet the numerical threshold. |
+| REJECTED | Data or contract was invalid; receipt is retained locally. |
+
+## Expansion discipline
+
+One slice at a time: observe real ETABS schema -> validate fields and complete rows -> compute derived quantities -> apply one bounded rule -> persist result -> add UI panel. Every stage has tests and a local receipt. When existing schema is insufficient, perform a **targeted** live-ETABS or offline capture—not a full restart of schema/census research.
+
+VS02: full modal case/source-basis interpretation; VS03: spectral response/base shear; VS04: column axial; later: second-order/PMM, shear, SCWB. No placeholders are promoted to executed checks.
