@@ -285,3 +285,14 @@ are checked; no profile or combo approves itself. Refer to
 and [legacy branch audit](docs/LEGACY_BRANCH_AUDIT_20261107.md).
 
 Main is unchanged; VS05 is an unmerged engineering working branch.
+
+## VS05-ARCH-D3 — Source receipt → typed candidate facts → FCR
+
+`tools/audit_vs05_archived_run.py` now verifies the original VS04
+archived source/receipt chain and derives candidate Story/Column/Beam
+identities, X/Y case-only roles and a frozen bounded BASE_SHEAR/STORY_DRIFT
+CheckInstance population. Unknown walls/Areas/Null frames and raw nested
+combinations remain explicit gaps, and the FCR cannot emit code PASS.
+The output is a same-run-ID **sidecar**, not a modification of accepted
+VS04 receipts or a new live execution.
+See [VS05 D3 scope](docs/VS05_D3_ARCHIVED_SOURCE_BRIDGE.md).
