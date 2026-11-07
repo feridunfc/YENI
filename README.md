@@ -120,3 +120,15 @@ Windows/PyCharm: açık ETABS'ta `kompakt_b.EDB` modeliyle arayüzü açın ve
 şema hatalarını görüntüleyin; **Tam JSON dışa aktar** ile gerçek veriyi ayrıca
 incelemeye gönderin. `main` henüz VS03'ü içermiyor; geliştirme dalı
 `work/vs03-material-torsion-20261107`.
+
+## VS04 — Actual analysis source table acquisition (no new compliance check)
+
+The **VS04 · 3 analiz tablosunun şemasını al** button captures all rows and
+field metadata for ETABS `Modal Periods And Frequencies`, `Base Reactions`, and
+`Story Drifts`, under one existing Windows COM session. It restores the original
+display case selection, keeps the previous eight results intact, and records a
+separate `vs04-schema` receipt in the same run. Source and schema fingerprints
+appear in JSON and complete raw tables in the printable HTML. No case naming,
+analysis generation, code compliance, or numerical readiness is inferred.
+
+See [VS04 source/acceptance protocol](docs/VS04_ANALYSIS_SOURCE_SCHEMA.md).

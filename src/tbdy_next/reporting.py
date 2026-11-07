@@ -85,6 +85,16 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         if new_checks != receipt["payload"]:
             raise ReportUnavailable("VS03 source/receipt mismatch")
         checks.extend(new_checks["checks"])
+    vs04 = None
+    vs04_receipt = None
+    if "analysis_sources" in source:
+        from .analysis_sources import review_analysis_sources
+        vs04_receipt = _read_receipt(directory, "vs04-schema")
+        if vs04_receipt is None or vs04_receipt.get("input_sha256") != modal["input_sha256"]:
+            raise ReportUnavailable("Missing or invalid VS04 source schema receipt")
+        vs04 = review_analysis_sources(source["analysis_sources"])
+        if vs04 != vs04_receipt["payload"]:
+            raise ReportUnavailable("VS04 source/receipt mismatch")
 
     frame_rows = ((geometry_source or {}).get("tables", {}).get("FRAME_ASSIGNMENTS", {})
                   .get("rows", []) or [])
@@ -116,7 +126,8 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         "modal_case": modal["case"],
         "engineering_release": "NOT_READY",
         "formal_compliance": "NOT_PROVEN",
-        "scope": "modal 95% + 4 RC geometry screens" + (" + concrete fck + A1 X/Y observed classification" if new_checks else ""),
+        "scope": "modal 95% + 4 RC geometry screens" + (" + concrete fck + A1 X/Y observed classification" if new_checks else "") + (" + VS04 source schema observation (no new checks)" if vs04 else ""),
+        "vs04": vs04,
         "vs03": new_checks,
         "checks": checks,
         "modal_source_table": {
@@ -139,6 +150,7 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
             "input_sha256": modal["input_sha256"],
             "modal_receipt_sha256": modal["receipt_sha256"],
             "geometry_receipt_sha256": quick["receipt_sha256"],
+            "vs04_schema_receipt_sha256": vs04_receipt["receipt_sha256"] if vs04_receipt else None,
             "note": "These are local source/receipt fingerprints, not third-party authorization.",
         },
         "source_snapshot": source,  # Full raw 7 tables + exact material facts for independent review.
@@ -212,6 +224,30 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
         check_sections.append('<section class="percheck"><h2>' + _val(check.get("title")) +
                               '</h2><p>Kaynak bazlı alt kontrol; formal compliance NOT_PROVEN</p>' +
                               _table(extra_cols, check.get("items", [])) + '</section>')
+    vs04_sections = []
+    if report.get("vs04"):
+        v = report["vs04"]
+        source_tables = ((report.get("source_snapshot") or {}).get("analysis_sources") or {}).get("tables") or {}
+        overview = [dict(t) for t in (v.get("tables") or [])]
+        vs04_sections.append('<section class="percheck"><h2>VS04 · Analiz kaynak şeması (henüz onaysız)</h2>'
+                            '<p>Sayısal deprem kontrolleri çalıştırılmadı. Formal uygunluk NOT_PROVEN; '
+                            'analiz nesli ve kombinasyon rolleri onaylanmamıştır.</p>'
+                            + _table((("table_key","ETABS tablosu"),("status","Kaynak durumu"),
+                                      ("row_count","Satır"),("fields","Alanlar"),
+                                      ("schema_sha256","Şema SHA-256"),("reason_codes","Engeller")), overview)
+                            + "</section>")
+        for record in overview:
+            key = record.get("table_key")
+            raw = source_tables.get(key) if isinstance(source_tables, Mapping) else None
+            if not isinstance(raw, Mapping):
+                continue
+            fields = raw.get("fields") or []
+            rows = raw.get("rows") or []
+            if isinstance(fields, list) and isinstance(rows, list) and len(fields) == len(set(fields)):
+                columns = tuple((name,name) for name in fields if isinstance(name,str))
+                vs04_sections.append('<section class="percheck"><h2>VS04 ham ETABS kaynağı · '
+                                    + _val(key) + "</h2>"
+                                    + _table(columns, rows, "modal-grid") + "</section>")
     modal_table = report["modal_source_table"]
     fields = modal_table.get("fields") or []
     modal_cols = tuple((field, field) for field in fields)
@@ -271,6 +307,7 @@ Bu rapor tam TBDY/TS500 uygunluk kararı değildir. Yalnız raporda tanımlanan 
 <strong>Modal receipt SHA-256:</strong> {_val(report['source_provenance']['modal_receipt_sha256'])}<br>
 <strong>Geometri receipt SHA-256:</strong> {_val(report['source_provenance']['geometry_receipt_sha256'])}</p>
 {modal_section}
+{''.join(vs04_sections)}
 {''.join(check_sections)}
 <p class="muted">Tüm ham kaynak tabloları, bütün eleman satırları ve malzeme tür kanıtları JSON dışa aktarımında bulunur.
 Bu rapor, arşivlenen kayıtları aynı algoritmalarla tekrar doğrulayarak üretilmiştir.</p>

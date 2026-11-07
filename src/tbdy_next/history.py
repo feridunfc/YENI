@@ -192,8 +192,18 @@ def quick_history(root: Path, *, limit: int = 15) -> list[dict[str, Any]]:
             extra = evaluate_next_capture(source["next_capture"], source.get("geometry_capture"))
             if extra != extra_receipt["payload"]:
                 continue
+        vs04 = None
+        if "analysis_sources" in source:
+            from .analysis_sources import review_analysis_sources
+            vs04_receipt = _read_receipt(directory, "vs04-schema")
+            if vs04_receipt is None or vs04_receipt.get("input_sha256") != modal["input_sha256"]:
+                continue
+            vs04 = review_analysis_sources(source["analysis_sources"])
+            if vs04 != vs04_receipt["payload"]:
+                continue
         output.append({"run_id": directory.name, "captured_at_utc": modal["captured_at_utc"],
                        "source_mode": modal["source_mode"], "model_name": modal["model_name"],
-                       "geometry": rechecked, "extra_checks": extra, "modal": modal["result"],
+                       "geometry": rechecked, "extra_checks": extra, "vs04_schema": vs04,
+                       "modal": modal["result"],
                        "engineering_release": "NOT_READY"})
     return sorted(output, key=lambda x: (x["captured_at_utc"], x["run_id"]), reverse=True)[:limit]

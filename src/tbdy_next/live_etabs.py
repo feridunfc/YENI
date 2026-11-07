@@ -54,7 +54,7 @@ def read_modal_from_running_etabs(case: str) -> dict:
             comtypes.CoUninitialize()
 
 
-def read_quick_suite_from_running_etabs(case: str) -> dict:
+def read_quick_suite_from_running_etabs(case: str, *, with_vs04: bool = False) -> dict:
     """Read modal + six exact geometry tables under one Windows COM session."""
     if sys.platform != "win32":
         raise ModalCaptureError("Canlı ETABS bağlantısı yalnız Windows üzerinde kullanılabilir.")
@@ -77,6 +77,9 @@ def read_quick_suite_from_running_etabs(case: str) -> dict:
             payload["capture_metadata"]["live_connection"] = "ATTACHED_EXISTING_SESSION"
             payload["geometry_capture"] = capture_geometry(sap)
             payload["next_capture"] = capture_next_facts(sap, x_case="RSX", y_case="RSY")
+            if with_vs04:
+                from .analysis_sources import capture_analysis_sources
+                payload["analysis_sources"] = capture_analysis_sources(sap, modal_case=case)
             return payload
         finally:
             sap = None

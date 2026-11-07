@@ -4,6 +4,7 @@
   let definitions = [];
   let latest = null;
   let latestExtra = null;
+  let latestVs04 = null;
   const nav = document.getElementById('nav');
   const byId = id => document.getElementById(id);
   const exportActions = document.createElement('div');
@@ -43,7 +44,7 @@
     selectedRunId = chooseRun.value;
     const chosen = cachedHistory.find(r => r.run_id === selectedRunId);
     if (chosen) {
-      useReport(chosen.geometry, chosen.extra_checks);
+      useReport(chosen.geometry, chosen.extra_checks, chosen.vs04_schema);
       if (typeof showResult === 'function') {
         showResult('Kaydedilmiş modal hesap', {run_id: chosen.run_id, result: chosen.modal});
       }
@@ -147,6 +148,27 @@
       table.append(tbody); scroll.append(table); details.append(scroll); section.append(details); host.append(section);
     }
   }
+  function renderVs04() {
+    const host = byId('vs04Report');
+    if (!host) return;
+    host.replaceChildren();
+    if (!latestVs04) {
+      host.append(make('p', 'VS04 kaynak kaydı henüz yok. Üç ETABS tablosunun gerçek şemasını toplamak için VS04 düğmesini kullanın.', 'muted small'));
+      return;
+    }
+    host.append(make('p', 'VS04: ' + latestVs04.status + ' · ' +
+      (latestVs04.captured_table_count || 0) + '/3 tablo yapısal olarak gözlendi. ' +
+      'Alanların mühendislik anlamı onaylanmadı; hesap PASS üretilmedi.', 'warn'));
+    for (const entry of latestVs04.tables || []) {
+      const details = make('details');
+      details.append(make('summary', entry.table_key + ' · ' + entry.status + ' · ' + (entry.row_count ?? '—') + ' satır'));
+      const summary = {fields:entry.fields, field_metadata:entry.field_metadata,
+        schema_sha256:entry.schema_sha256, source_sha256:entry.source_sha256,
+        reason_codes:entry.reason_codes};
+      details.append(make('pre',JSON.stringify(summary,null,2)));
+      host.append(details);
+    }
+  }
   function buildTree() {
     if (!nav || !Array.isArray(definitions)) return;
     nav.replaceChildren();
@@ -191,9 +213,11 @@
       byId('quickStatus').textContent = 'Kontrol ağacı yüklenemedi: ' + error.message;
     }
   }
-  function useReport(report, extra) {
+  function useReport(report, extra, vs04) {
     latest = report;
     latestExtra = extra || null;
+    latestVs04 = vs04 || null;
+    renderVs04();
     renderExtras(active);
     renderQuick(report, 7);
     renderQuick(report, 11);
@@ -214,7 +238,7 @@
       }
       const first = cachedHistory[0] || null;
       if (first) {
-        useReport(first.geometry, first.extra_checks);
+        useReport(first.geometry, first.extra_checks, first.vs04_schema);
         setExportRun(first.run_id);
         byId('quickStatus').textContent = `Son canlı tarama: ${first.model_name || 'ETABS'} · ${first.captured_at_utc}`;
       }
@@ -222,24 +246,24 @@
       byId('quickStatus').textContent = 'Geçmiş kontrol kaydı okunamadı: ' + error.message;
     }
   }
-  async function runSuite() {
-    const button = byId('quickSuiteBtn');
+  async function runSuite(withVs04 = false) {
+    const button = byId(withVs04 ? 'vs04SourceBtn' : 'quickSuiteBtn');
     const status = byId('quickStatus');
     const modal = byId('liveCase').value.trim();
     if (!modal) {status.textContent = 'Modal vaka zorunludur.'; return;}
-    button.disabled = true; status.textContent = 'ETABS modal, geometri, beton ve kat düzensizliği tabloları alınıyor…';
+    button.disabled = true; status.textContent = withVs04 ? 'VS04: ETABS analiz kaynaklarının üç tam tablosu ve alan/birim bilgileri okunuyor…' : 'ETABS modal, geometri, beton ve kat düzensizliği tabloları alınıyor…';
     try {
-      const response = await fetch('/api/live-suite?case=' + encodeURIComponent(modal), {method:'POST',cache:'no-store'});
+      const response = await fetch((withVs04 ? '/api/live-vs04?case=' : '/api/live-suite?case=') + encodeURIComponent(modal), {method:'POST',cache:'no-store'});
       const body = await response.json();
       if (!response.ok) throw new Error(body.result?.reason || body.reason || `HTTP ${response.status}`);
       if (typeof showResult === 'function') showResult('Canlı ETABS · 8 kontrol', body);
       if (typeof window.showModalFullTable === 'function') window.showModalFullTable(body.run_id);
-      useReport(body.geometry, body.extra_checks);
+      useReport(body.geometry, body.extra_checks, body.vs04_schema);
       setExportRun(body.run_id, `${body.model_name || 'ETABS'} · yeni canlı çalışma`);
       byId('step1').textContent = `LIVE_ETABS · ${body.source_rows} modal satır`;
       byId('step2').textContent = body.geometry?.status || 'Şema bekleniyor';
       byId('step3').textContent = body.result.status;
-      status.textContent = `Model: ${body.model_name} · Modal: ${body.result.status} · Geometri: ${body.geometry?.status}`;
+      status.textContent = `Model: ${body.model_name} · Modal: ${body.result.status} · Geometri: ${body.geometry?.status}` + (withVs04 ? ` · VS04: ${body.vs04_schema?.status || 'NOT_PROVEN'}` : '');
       await loadRuns();
       // Calling refreshModalHistory would overwrite the newly selected run's UI;
       // the same run is already in the receipt history and can be refreshed there.
@@ -249,7 +273,8 @@
     } finally {button.disabled = false;}
   }
   window.renderQuickChecksForTab = tab => {renderQuick(latest, tab);renderExtras(tab);};
-  byId('quickSuiteBtn')?.addEventListener('click', runSuite);
+  byId('quickSuiteBtn')?.addEventListener('click', () => runSuite(false));
+  byId('vs04SourceBtn')?.addEventListener('click', () => runSuite(true));
   loadRegistry();
   loadQuickHistory();
 })();

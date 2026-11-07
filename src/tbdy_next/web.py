@@ -20,6 +20,7 @@ from .modal import evaluate_modal_mass
 from .history import modal_history, modal_source_table, quick_history
 from .quick_checks import check_registry, evaluate_geometry_capture
 from .next_checks import evaluate_next_capture
+from .analysis_sources import review_analysis_sources
 from .reporting import ReportUnavailable, build_complete_report, build_printable_html
 from .receipts import ReceiptRun
 from .schema import review_modal_schema
@@ -93,7 +94,7 @@ def make_handler(output_root: Path, *, live_capture=None):
                 self.end_headers()
                 self.wfile.write(contents)
             elif url.path == "/api/health":
-                self.reply(200, {"status": "READY_FOR_VS03_SOURCE_REVIEW", "implemented_slices": ["MODAL_MASS_RATIO", "MATERIAL_FCK_25", "A1_X_Y_SOURCE_CLASSIFICATION"], "engineering_release": "NOT_READY"})
+                self.reply(200, {"status": "READY_FOR_VS04_SCHEMA_CAPTURE", "implemented_slices": ["MODAL_MASS_RATIO", "MATERIAL_FCK_25", "A1_X_Y_SOURCE_CLASSIFICATION"], "source_only_slices": ["VS04_ANALYSIS_SOURCE_SCHEMA"], "engineering_release": "NOT_READY"})
             elif url.path == "/api/runs":
                 self.reply(200, {"runs": _runs(output_root)})
             elif url.path == "/api/check-registry":
@@ -165,7 +166,7 @@ def make_handler(output_root: Path, *, live_capture=None):
 
         def do_POST(self) -> None:
             url = urlsplit(self.path)
-            if url.path in ("/api/live-modal", "/api/live-suite"):
+            if url.path in ("/api/live-modal", "/api/live-suite", "/api/live-vs04"):
                 # Browser can POST to loopback from a foreign page; reject any
                 # declared cross-site origin before touching the ETABS session.
                 origin = self.headers.get("Origin")
@@ -193,9 +194,10 @@ def make_handler(output_root: Path, *, live_capture=None):
                     if live_capture is not None:
                         payload = live_capture(case)
                     else:
-                        if url.path == "/api/live-suite":
+                        if url.path in ("/api/live-suite", "/api/live-vs04"):
                             from .live_etabs import read_quick_suite_from_running_etabs
-                            payload = read_quick_suite_from_running_etabs(case)
+                            payload = read_quick_suite_from_running_etabs(
+                                case, with_vs04=(url.path == "/api/live-vs04"))
                         else:
                             from .live_etabs import read_modal_from_running_etabs
                             payload = read_modal_from_running_etabs(case)
@@ -210,6 +212,9 @@ def make_handler(output_root: Path, *, live_capture=None):
                 if not isinstance(payload, dict) or payload.get("source_mode") != "LIVE_ETABS":
                     self.reply(422, {"status": "CAPTURE_REJECTED", "reason": "LIVE_SOURCE_MODE_REQUIRED"})
                     return
+                if url.path == "/api/live-vs04" and "analysis_sources" not in payload:
+                    self.reply(422, {"status": "CAPTURE_REJECTED", "reason": "VS04_CAPTURE_MISSING"})
+                    return
                 raw = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
                 input_sha = sha256(raw).hexdigest()
                 run = ReceiptRun(output_root)
@@ -217,13 +222,17 @@ def make_handler(output_root: Path, *, live_capture=None):
                 try:
                     result = _calculate_modal(payload, case=case, run=run, input_sha=input_sha)
                     geometry = None
-                    if url.path == "/api/live-suite":
+                    if url.path in ("/api/live-suite", "/api/live-vs04"):
                         geometry = evaluate_geometry_capture(payload.get("geometry_capture"))
                         run.record("quick-geometry", geometry, input_sha256=input_sha)
                     extra = None
-                    if url.path == "/api/live-suite" and "next_capture" in payload:
+                    if url.path in ("/api/live-suite", "/api/live-vs04") and "next_capture" in payload:
                         extra = evaluate_next_capture(payload["next_capture"], payload.get("geometry_capture"))
                         run.record("quick-extra", extra, input_sha256=input_sha)
+                    vs04 = None
+                    if "analysis_sources" in payload:
+                        vs04 = review_analysis_sources(payload["analysis_sources"])
+                        run.record("vs04-schema", vs04, input_sha256=input_sha)
                     meta = payload.get("capture_metadata") or {}
                     run.record("live-capture", {
                         "status": "SOURCE_CAPTURED", "source_mode": "LIVE_ETABS",
@@ -237,6 +246,7 @@ def make_handler(output_root: Path, *, live_capture=None):
                         "case_row_count": meta.get("case_row_count"),
                         "source_rows": payload["table"]["row_count"],
                         "source_mode": "LIVE_ETABS", "geometry": geometry, "extra_checks": extra,
+                        "vs04_schema": vs04,
                         "engineering_release": "NOT_READY",
                     })
                 except (ValueError, TypeError, KeyError) as exc:
