@@ -39,6 +39,11 @@ def fixture():
         new_table["field_metadata"]["units_by_field"][field] = ""
     new_table["field_metadata"]["units_by_field"]["I"] = "sec"
     basis["source"]["table_reads"]["Functions - Response Spectrum - TSC-2018"] = new_table
+    # VS04-F's historical fixture calls the function SYNTHETIC, while
+    # VS04-I uses the observed RESP_YATAY identity. They are unrelated
+    # independent synthetic fixtures: reconcile the *test inputs* only.
+    for case in basis["source"]["table_reads"]["Load Case Definitions - Response Spectrum"]["rows"]:
+        case["Function"] = "RESP_YATAY"
     modal["numeric_source_review"]["numeric_regulatory_checks_executed"] = 0
     all_results = evaluate_analysis_numerics(numeric_source())["results"]
     modal["numeric_source_review"]["results"] += [all_results[1], all_results[2]]
