@@ -150,7 +150,7 @@ def review_spectrum_reconstruction(
         g = modal_info["source"]
         if (e.get("schema") != "tbdy.next.vs04e.basis-source-probe.v1"
                 or g.get("schema") != "tbdy.next.vs04g.diaphragm-modal-probe.v1"
-                or e.get("units_before") != e.get("units_after") != 6):
+                or e.get("units_before") != e.get("units_after")):
             # the precise units check is repeated below; do not bypass it
             raise ValueError("SOURCE_SCHEMA_OR_UNIT_STATE_INVALID")
         if (e.get("units_before") != 6 or

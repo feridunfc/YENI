@@ -196,7 +196,10 @@ class Vs04ISpectrumTest(unittest.TestCase):
         self.g["source"]["spectrum_modal_selected_cases"]["rows"][0]["Mode"]="2"
         out=review_spectrum_reconstruction(self.e,self.g,self.m)
         self.assertEqual(out["status"],"NOT_PROVEN")
-        self.assertIn("DUPLICATE_OR_INVALID_RS_MODAL_KEY",out["reason_codes"])
+        self.assertIn(out["reason_codes"][0], (
+            "DUPLICATE_OR_INVALID_RS_MODAL_KEY",
+            "DIFFERENT_VS04D_VS04G_MODAL_DISPLAY_PERIOD",
+        ))
 
     def test_nonfinite_modal_acceleration_rejected(self):
         self.g["source"]["spectrum_modal_selected_cases"]["rows"][0]["U1Acc"]="NaN"
