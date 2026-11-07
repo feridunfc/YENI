@@ -224,3 +224,12 @@ bindings and computes **only** the Eq (4.19) minimum term on candidate
 seismic mass, I, and SDS. It **does not** compute or approve design VtE,
 pre-beta Vtx, gammaE or beta_tE. See
 [VS04-J engineering and source contract](docs/VS04_J_BASE_SHEAR_SCREENING.md).
+
+## VS04 single-action UI and product integration hold
+
+The primary web UI now uses one live calculation action and the existing
+/api/live-vs04 route, with eight bounded checks, VS04 schema, source
+arithmetic and readiness in one archived run. VS04-F through VS04-J
+are NOT integrated into this live route; they are offline evidence tools.
+Read docs/VS04_EMERGENCY_PRODUCT_AUDIT_20261107.md before any merge.
+ENGINEERING_RELEASE=NOT_READY; MERGE=HOLD.

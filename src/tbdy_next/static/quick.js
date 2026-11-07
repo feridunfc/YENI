@@ -14,7 +14,7 @@
   exportActions.id = 'quickExportActions';
   const exportTitle = document.createElement('span');
   exportTitle.className = 'muted small';
-  exportTitle.textContent = 'Tam rapor / JSON: önce beş kontrolü çalıştırın.';
+  exportTitle.textContent = 'Tam rapor / JSON: ETABS'tan oku ve hesapla.';
   const chooseRun = document.createElement('select');
   chooseRun.className = 'field';
   chooseRun.style.width = 'auto';
@@ -128,7 +128,7 @@
     if (!host || (tab !== 1 && tab !== 9)) return;
     host.replaceChildren();
     if (!latestExtra) {
-      host.append(make('p', 'VS03 kaydı henüz yok; canlı ETABS ile 8 kontrolü çalıştırın.', 'muted small'));
+      host.append(make('p', 'VS03 kaydı henüz yok; yukarıdaki tek canlı hesap düğmesini kullanın.', 'muted small'));
       return;
     }
     for (const check of (latestExtra.checks || []).filter(c =>
@@ -155,7 +155,7 @@
     if (!host) return;
     host.replaceChildren();
     if (!latestVs04) {
-      host.append(make('p', 'VS04 kaynak kaydı henüz yok. Üç ETABS tablosunun gerçek şemasını toplamak için VS04 düğmesini kullanın.', 'muted small'));
+      host.append(make('p', 'VS04 kaynak kaydı henüz yok. Yukarıdaki tek canlı hesap düğmesini kullanın.', 'muted small'));
       return;
     }
     host.append(make('p', 'VS04: ' + latestVs04.status + ' · ' +
@@ -278,35 +278,75 @@
       byId('quickStatus').textContent = 'Geçmiş kontrol kaydı okunamadı: ' + error.message;
     }
   }
-  async function runSuite(withVs04 = false) {
-    const button = byId(withVs04 ? 'vs04SourceBtn' : 'quickSuiteBtn');
+  async function runSuite() {
+    const button = byId('runAllBtn');
     const status = byId('quickStatus');
+    const liveStatus = byId('liveModalStatus');
     const modal = byId('liveCase').value.trim();
-    if (!modal) {status.textContent = 'Modal vaka zorunludur.'; return;}
-    button.disabled = true; status.textContent = withVs04 ? 'VS04: ETABS analiz kaynaklarının üç tam tablosu ve alan/birim bilgileri okunuyor…' : 'ETABS modal, geometri, beton ve kat düzensizliği tabloları alınıyor…';
+    if (!modal) {
+      const message = 'Modal vaka adı zorunludur.';
+      status.textContent = message;
+      liveStatus.textContent = message;
+      return;
+    }
+    button.disabled = true;
+    liveStatus.className = 'live-status';
+    liveStatus.textContent = 'ETABS okunuyor; şema, birim, 8 mevcut kontrol ve VS04 kaynak kanıtları işleniyor…';
+    status.textContent = liveStatus.textContent;
     try {
-      const response = await fetch((withVs04 ? '/api/live-vs04?case=' : '/api/live-suite?case=') + encodeURIComponent(modal), {method:'POST',cache:'no-store'});
+      // One user gesture -> one existing backend transaction -> one run_id.
+      const response = await fetch('/api/live-vs04?case=' + encodeURIComponent(modal),
+                                   {method: 'POST', cache: 'no-store'});
       const body = await response.json();
-      if (!response.ok) throw new Error(body.result?.reason || body.reason || `HTTP ${response.status}`);
-      if (typeof showResult === 'function') showResult('Canlı ETABS · 8 kontrol', body);
+      if (!response.ok) throw new Error(body.result?.reason || body.reason || 'HTTP ' + response.status);
+      if (body.engineering_release !== 'NOT_READY' || !body.vs04_schema || !body.vs04_numerics
+          || !body.vs04_readiness || !body.geometry || !body.extra_checks || !body.run_id) {
+        throw new Error('INCOMPLETE_OR_UNVERIFIED_UNIFIED_RUN_CONTRACT');
+      }
+      if (typeof showResult === 'function') showResult('Canlı ETABS · Birleşik tarama', body);
       if (typeof window.showModalFullTable === 'function') window.showModalFullTable(body.run_id);
-      useReport(body.geometry, body.extra_checks, body.vs04_schema, body.vs04_numerics, body.vs04_readiness);
-      setExportRun(body.run_id, `${body.model_name || 'ETABS'} · yeni canlı çalışma`);
-      byId('step1').textContent = `LIVE_ETABS · ${body.source_rows} modal satır`;
-      byId('step2').textContent = body.geometry?.status || 'Şema bekleniyor';
-      byId('step3').textContent = body.result.status;
-      status.textContent = `Model: ${body.model_name} · Modal: ${body.result.status} · Geometri: ${body.geometry?.status}` + (withVs04 ? ` · VS04: ${body.vs04_schema?.status || 'NOT_PROVEN'}` : '');
+      useReport(body.geometry, body.extra_checks, body.vs04_schema,
+                body.vs04_numerics, body.vs04_readiness);
+      setExportRun(body.run_id, (body.model_name || 'ETABS') + ' · birleşik canlı çalışma');
+      byId('step1').textContent = 'ETABS KAYNAĞI · ' + body.source_rows + ' modal satır';
+      byId('step2').textContent = 'ŞEMA · ' + body.vs04_schema.status;
+      byId('step3').textContent = 'HESAP · ' + body.result.status + ' / RELEASE NOT_READY';
+      if (typeof setTree === 'function') {
+        setTree('modeltree', [
+          'ETABS: ' + (body.model_name || 'model adı gözlenmedi'),
+          'Modal vaka: ' + modal,
+          '3 analiz tablosu: ' + body.vs04_schema.captured_table_count + '/3',
+          'Tek run_id: ' + body.run_id
+        ]);
+        const checks = [
+          'Modal kütle: ' + body.result.status,
+          ...(body.geometry.checks || []).map(c => c.check_id + ': ' + c.status),
+          ...(body.extra_checks.checks || []).map(c => c.check_id + ': ' + c.status),
+          'VS04 kaynak aritmetiği: ' + body.vs04_numerics.observed_component_count + '/5',
+          'Normatif kanıt kapıları: ' + body.vs04_readiness.proven_check_count
+            + '/' + body.vs04_readiness.expected_check_count,
+          'Yönetmelik uygunluğu: NOT_PROVEN',
+          'ENGINEERING RELEASE: NOT_READY'
+        ];
+        setTree('resulttree', checks);
+      }
+      liveStatus.textContent = 'Kayıt: ' + body.run_id
+        + ' · 8 mevcut kontrol değerlendirildi · VS04: ' + body.vs04_schema.status
+        + ' · TBDY genel uygunluk: NOT_PROVEN';
+      status.textContent = liveStatus.textContent;
+      liveStatus.className = 'live-status warn';
       await loadRuns();
-      // Calling refreshModalHistory would overwrite the newly selected run's UI;
-      // the same run is already in the receipt history and can be refreshed there.
     } catch (error) {
-      status.textContent = 'Hızlı tarama çalıştırılamadı: ' + error.message;
-      status.className = 'live-status bad';
-    } finally {button.disabled = false;}
+      const message = 'Birleşik tarama tamamlanamadı: ' + error.message;
+      status.textContent = message;
+      liveStatus.textContent = message;
+      liveStatus.className = 'live-status bad';
+    } finally {
+      button.disabled = false;
+    }
   }
   window.renderQuickChecksForTab = tab => {renderQuick(latest, tab);renderExtras(tab);};
-  byId('quickSuiteBtn')?.addEventListener('click', () => runSuite(false));
-  byId('vs04SourceBtn')?.addEventListener('click', () => runSuite(true));
+  byId('runAllBtn')?.addEventListener('click', runSuite);
   loadRegistry();
   loadQuickHistory();
 })();
