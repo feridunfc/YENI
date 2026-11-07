@@ -3,6 +3,7 @@
   'use strict';
   let definitions = [];
   let latest = null;
+  let latestExtra = null;
   const nav = document.getElementById('nav');
   const byId = id => document.getElementById(id);
   const exportActions = document.createElement('div');
@@ -34,7 +35,7 @@
     selectedRunId = runId;
     jsonButton.disabled = false;
     printButton.disabled = false;
-    exportTitle.textContent = 'Kayıtlı beş kontrolün tamamı: kaynak veriler + tüm eleman satırları.';
+    exportTitle.textContent = 'Kayıtlı kontrollerin tamamı: kaynak veriler + tüm eleman satırları.';
   }
   jsonButton.disabled = true;
   printButton.disabled = true;
@@ -42,7 +43,7 @@
     selectedRunId = chooseRun.value;
     const chosen = cachedHistory.find(r => r.run_id === selectedRunId);
     if (chosen) {
-      useReport(chosen.geometry);
+      useReport(chosen.geometry, chosen.extra_checks);
       if (typeof showResult === 'function') {
         showResult('Kaydedilmiş modal hesap', {run_id: chosen.run_id, result: chosen.modal});
       }
@@ -119,6 +120,33 @@
       details.append(make('pre', JSON.stringify(report.observed_schemas, null, 2))); host.append(details);
     }
   }
+  function renderExtras(tab) {
+    const host = byId('extraTabPanel');
+    if (!host || (tab !== 1 && tab !== 9)) return;
+    host.replaceChildren();
+    if (!latestExtra) {
+      host.append(make('p', 'VS03 kaydı henüz yok; canlı ETABS ile 8 kontrolü çalıştırın.', 'muted small'));
+      return;
+    }
+    for (const check of (latestExtra.checks || []).filter(c =>
+           definitions.some(def => def.check_id === c.check_id && def.tab_id === tab))) {
+      const section = make('section', undefined, 'quick-check');
+      section.dataset.checkPanel = check.check_id;
+      section.append(make('h3', `${check.title} · ${check.status}`),
+                     make('p', `İncelenen: ${check.expected_count}; Hesaplanan: ${check.evaluated_count}; Belirsiz: ${check.not_proven_count}. Formal uygunluk: NOT_PROVEN.`, 'muted small'));
+      const details = make('details'); details.open = check.unmet_count > 0;
+      details.append(make('summary', `${(check.items || []).length} kaynak satırı`));
+      const scroll = make('div', undefined, 'modal-table-scroll');
+      const table = make('table', undefined, 'modal-source-table');
+      const thead = make('thead'); const tr = make('tr');
+      const fields = ['story','direction','source_case','material_name','fck_mpa','eta_bi','value','limit','status','reason'];
+      for (const k of fields) {const th=make('th',k); th.scope='col'; tr.append(th);}
+      thead.append(tr); table.append(thead);
+      const tbody = make('tbody');
+      for (const item of (check.items || [])) {const row=make('tr');for(const k of fields)row.append(make('td',item[k]??'—'));tbody.append(row);}
+      table.append(tbody); scroll.append(table); details.append(scroll); section.append(details); host.append(section);
+    }
+  }
   function buildTree() {
     if (!nav || !Array.isArray(definitions)) return;
     nav.replaceChildren();
@@ -158,12 +186,15 @@
       definitions = data.checks;
       buildTree();
       renderQuick(latest, active);
+      renderExtras(active);
     } catch (error) {
       byId('quickStatus').textContent = 'Kontrol ağacı yüklenemedi: ' + error.message;
     }
   }
-  function useReport(report) {
+  function useReport(report, extra) {
     latest = report;
+    latestExtra = extra || null;
+    renderExtras(active);
     renderQuick(report, 7);
     renderQuick(report, 11);
     if (active === 12) renderQuick(report, 12);
@@ -183,7 +214,7 @@
       }
       const first = cachedHistory[0] || null;
       if (first) {
-        useReport(first.geometry);
+        useReport(first.geometry, first.extra_checks);
         setExportRun(first.run_id);
         byId('quickStatus').textContent = `Son canlı tarama: ${first.model_name || 'ETABS'} · ${first.captured_at_utc}`;
       }
@@ -196,14 +227,14 @@
     const status = byId('quickStatus');
     const modal = byId('liveCase').value.trim();
     if (!modal) {status.textContent = 'Modal vaka zorunludur.'; return;}
-    button.disabled = true; status.textContent = 'ETABS modal ve altı geometri tablosu alınıyor…';
+    button.disabled = true; status.textContent = 'ETABS modal, geometri, beton ve kat düzensizliği tabloları alınıyor…';
     try {
       const response = await fetch('/api/live-suite?case=' + encodeURIComponent(modal), {method:'POST',cache:'no-store'});
       const body = await response.json();
       if (!response.ok) throw new Error(body.result?.reason || body.reason || `HTTP ${response.status}`);
-      if (typeof showResult === 'function') showResult('Canlı ETABS · 5 kontrol', body);
+      if (typeof showResult === 'function') showResult('Canlı ETABS · 8 kontrol', body);
       if (typeof window.showModalFullTable === 'function') window.showModalFullTable(body.run_id);
-      useReport(body.geometry);
+      useReport(body.geometry, body.extra_checks);
       setExportRun(body.run_id, `${body.model_name || 'ETABS'} · yeni canlı çalışma`);
       byId('step1').textContent = `LIVE_ETABS · ${body.source_rows} modal satır`;
       byId('step2').textContent = body.geometry?.status || 'Şema bekleniyor';
@@ -217,7 +248,7 @@
       status.className = 'live-status bad';
     } finally {button.disabled = false;}
   }
-  window.renderQuickChecksForTab = tab => renderQuick(latest, tab);
+  window.renderQuickChecksForTab = tab => {renderQuick(latest, tab);renderExtras(tab);};
   byId('quickSuiteBtn')?.addEventListener('click', runSuite);
   loadRegistry();
   loadQuickHistory();

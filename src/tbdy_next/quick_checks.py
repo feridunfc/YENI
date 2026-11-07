@@ -38,7 +38,8 @@ GEOMETRY_CHECKS = tuple(c for c in CHECKS if c.category == "GEOMETRY_SCREENING")
 
 
 def check_registry() -> list[dict[str, Any]]:
-    return [c.as_dict() for c in CHECKS]
+    from .next_checks import EXTRA_CHECKS
+    return [c.as_dict() for c in (*CHECKS, *EXTRA_CHECKS)]
 
 
 def _numeric(raw: object) -> Decimal:

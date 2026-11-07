@@ -183,8 +183,17 @@ def quick_history(root: Path, *, limit: int = 15) -> list[dict[str, Any]]:
                 continue
         except (OSError, UnicodeError, ValueError, TypeError, KeyError):
             continue
+        extra = None
+        if "next_capture" in source:
+            from .next_checks import evaluate_next_capture
+            extra_receipt = _read_receipt(directory, "quick-extra")
+            if extra_receipt is None or extra_receipt.get("input_sha256") != modal["input_sha256"]:
+                continue
+            extra = evaluate_next_capture(source["next_capture"], source.get("geometry_capture"))
+            if extra != extra_receipt["payload"]:
+                continue
         output.append({"run_id": directory.name, "captured_at_utc": modal["captured_at_utc"],
                        "source_mode": modal["source_mode"], "model_name": modal["model_name"],
-                       "geometry": rechecked, "modal": modal["result"],
+                       "geometry": rechecked, "extra_checks": extra, "modal": modal["result"],
                        "engineering_release": "NOT_READY"})
     return sorted(output, key=lambda x: (x["captured_at_utc"], x["run_id"]), reverse=True)[:limit]
