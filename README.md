@@ -177,3 +177,13 @@ source fields/rows for *candidate* seismic-mass, story-geometry, response-
 spectrum and case-definition tables from the already-open ETABS model. No
 source key is auto-approved by fuzzy matching. Review the
 [VS04-E source and normative dependency contract](docs/VS04_E_NORMATIVE_BASIS.md).
+
+## VS04-F — Exact ETABS source binding review
+
+After VS04-E raw table probe, execute `tools/review_vs04f_basis.py` against
+its original local `VS04E_BASIS_PROBE_*.json`. The offline source compiler
+reconciles story/group/joint masses, binds response-spectrum and Ritz case
+identities, validates story heights, and retains `Response Spectrum Modal Info`
+API errors. It **cannot** grant TBDY compliance, spectrum scale validity,
+full drift approval, or analysis generation lineage. See
+[VS04-F source binding contract](docs/VS04_F_SOURCE_BINDINGS.md).
