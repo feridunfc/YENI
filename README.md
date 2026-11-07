@@ -215,3 +215,12 @@ knots analytically, and the 200 modal source accelerations via actual corner
 periods and higher-precision modal circular frequencies. It never promotes
 source arithmetic to building code PASS or engineering release. See
 [VS04-I protocol](docs/VS04_I_SPECTRUM_RECONSTRUCTION.md).
+
+## VS04-J — Conditional equivalent base-shear floor source screening
+
+Run `tools/review_vs04j_base_shear.py` with the original VS04-E / VS04-G
+and VS04-D replay JSON files. This independently revalidates source
+bindings and computes **only** the Eq (4.19) minimum term on candidate
+seismic mass, I, and SDS. It **does not** compute or approve design VtE,
+pre-beta Vtx, gammaE or beta_tE. See
+[VS04-J engineering and source contract](docs/VS04_J_BASE_SHEAR_SCREENING.md).
