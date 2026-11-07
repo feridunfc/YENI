@@ -47,12 +47,23 @@ def _rounding_bound(*literals: Any) -> Decimal:
     bounds = []
     for text in literals:
         value = _number(text)
-        bounds.append(Decimal(1).scaleb(value.as_tuple().exponent) / 2)
+        # ETABS serializes exact zero as "0". Treating it as a rounded
+        # integer +/-0.5 ton would permit thousands of fake mass units
+        # when the analysis model contains many zero-mass mesh nodes.
+        if value == 0:
+            bounds.append(Decimal(0))
+        else:
+            bounds.append(Decimal(1).scaleb(value.as_tuple().exponent) / 2)
     return sum(bounds, Decimal(0))
 
 
 def _close_display(actual: Decimal, expected: Decimal, *raw_values: str) -> bool:
-    return abs(actual - expected) <= _rounding_bound(*raw_values)
+    # Both conditions: bounded source display rounding AND a strict
+    # 0.01% aggregate reconciliation ceiling. Never sum half-units for
+    # the 6151+ zero-mass nodes in the actual ETABS source.
+    tol=min(_rounding_bound(*raw_values),
+            max(abs(expected),abs(actual)) * Decimal("0.0001"))
+    return abs(actual - expected) <= tol
 
 
 def _get(probe: Mapping[str, Any], key: str, required: tuple[str, ...],
@@ -253,7 +264,8 @@ def _cases(probe: Mapping[str, Any]) -> dict:
                        "modal_combination":"CQC","directional_combination":"SRSS",
                        "case_factors":factors},
                 cautions=["I_FIELD_UNITS_METADATA_IS_SEC_BUT_PARAMETER_IS_DIMENSIONLESS"
-                          ] if meta.get("units_by_field",{}).get("I")!=" " else [] )
+                          ] if meta.get("units_by_field",{}).get("I")=="sec" else
+                         ["I_PARAMETER_UNITS_NOT_EXPLICITLY_QUALIFIED"] )
     except (ValueError, KeyError, TypeError) as exc:
         return _out("RESPONSE_SPECTRUM_CASE_BINDINGS",reasons=[str(exc)])
 

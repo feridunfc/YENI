@@ -157,6 +157,18 @@ class SourceBindingsTest(unittest.TestCase):
         f["source"]["table_reads"]["Mass Summary by Story"]["field_metadata"]["units_by_field"]["UX"]="kN"
         self.assertEqual(review_basis_linkage(f)["components"][0]["status"],"NOT_PROVEN")
 
+    def test_zero_mass_mesh_nodes_cannot_hide_missing_mass(self):
+        f=deepcopy(self.fixture)
+        joints=f["source"]["table_reads"]["Assembled Joint Masses"]
+        for i in range(120):
+            joints["rows"].append({"PointElm":"Z"+str(i),"Story":"+3.00",
+                                  "UX":"0","UY":"0","UZ":"0"})
+        joints["row_count"]=len(joints["rows"])
+        joints["rows"][0]["UX"]="20.5"
+        result=review_basis_linkage(f)["components"][0]
+        self.assertEqual(result["status"],"NOT_PROVEN")
+        self.assertIn("MASS_JOINT_STORY_GROUP_DISAGREEMENT",result["reason_codes"])
+
     def test_bogus_spectrum_case_direction_blocks(self):
         f=deepcopy(self.fixture)
         f["source"]["table_reads"]["Load Case Definitions - Response Spectrum"]["rows"][0]["LoadName"]="U2"
