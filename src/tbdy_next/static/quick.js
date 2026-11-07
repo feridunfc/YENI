@@ -41,7 +41,15 @@
   chooseRun.addEventListener('change', () => {
     selectedRunId = chooseRun.value;
     const chosen = cachedHistory.find(r => r.run_id === selectedRunId);
-    if (chosen) useReport(chosen.geometry);
+    if (chosen) {
+      useReport(chosen.geometry);
+      if (typeof showResult === 'function') {
+        showResult('Kaydedilmiş modal hesap', {run_id: chosen.run_id, result: chosen.modal});
+      }
+      if (typeof window.showModalFullTable === 'function') {
+        window.showModalFullTable(chosen.run_id);
+      }
+    }
   });
   jsonButton.addEventListener('click', () => {
     if (!selectedRunId) return;
