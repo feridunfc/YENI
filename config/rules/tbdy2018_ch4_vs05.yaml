@@ -1,0 +1,89 @@
+# TBDY 2018 Chapter 4 — VS05 bounded rule cards
+#
+# Metadata only. No YAML-driven automatic PASS. The Python kernel is the
+# executable reference until full ETABS model-generation and case evidence
+# is independently reviewed.
+schema: tbdy.next.vs05.rule-cards.v1
+scope: directional_earthquake_ch4
+release: NOT_READY
+formal_compliance: NOT_PROVEN
+checks:
+  - id: base_shear_X
+    section: "4.7.1.1 + 4.8.4.1"
+    equation_refs: ["4.19", "4.31"]
+    direction: X
+    applicability:
+      modal_method_valid: required
+      basement_upper_lower_boundary: independently_qualified
+      directional_Tp_method_and_limit: independently_qualified
+      seismic_mass_mt: independently_qualified
+    typed_inputs:
+      seismic_mass_kg: kg
+      sar_dd2_at_tp_m_s2: m/s2
+      qualified_tp_s: s
+      importance_I: dimensionless
+      sds_dd2: dimensionless
+      vtx_pre_beta_kn: kN
+      applied_beta: dimensionless
+      irregularities_A1_B2_B3: explicitly_all_classified
+    algorithm:
+      vte_kn: "max(mt*SaR(Tp), 0.04*mt*I*SDS*g)/1000"
+      gammaE: "0.90 if any A1/B2/B3 exists; 0.80 if all absent"
+      beta_required: "max(1, gammaE*VtE/Vtx_pre_beta)"
+      criterion: "beta_applied >= beta_required"
+    result:
+      applicability: separately_reported
+      execution: separately_reported
+      numerical_condition: meets_or_does_not_meet
+      formal_compliance: NOT_PROVEN
+      engineering_release: NOT_READY
+    must_not_infer:
+      - "ETABS Base Reactions maximum is approved unscaled Vtx"
+      - "A1 alone proves absence of B2 or B3"
+      - "Total Group=All mass is qualified mt"
+      - "All physically observed source facts belong to same analysis generation"
+
+  - id: base_shear_Y
+    like: base_shear_X
+    equation_refs: ["4.19", "4.31"]
+    direction: Y
+    case: RSY
+
+  - id: effective_drift_X
+    section: "4.9.1.1-4.9.1.4"
+    equation_refs: ["4.32", "4.33", "4.34a", "4.34b"]
+    direction: X
+    applicability:
+      complete_physical_member_census: required
+      actual_member_end_displacements: required
+      displacement_basis_without_minimum_VtE_floor: required
+      displacement_basis_without_Tp_period_cap: required
+      DD3_DD2_spectrum_same_Tp: required
+      wall_connection_and_flexible_capacity: independently_qualified
+    typed_inputs:
+      physical_story_height: m
+      u_upper: m
+      u_lower: m
+      R: dimensionless
+      importance_I: dimensionless
+      Sae_dd3_Tp: m/s2
+      Sae_dd2_Tp: m/s2
+      wall_connection: ADHERED_BRITTLE_or_DOCUMENTED_FLEXIBLE
+      material: RC_or_STEEL
+    algorithm:
+      delta_i: "max_over_all_physical_members(abs(u_upper-u_lower))"
+      effective_delta_i: "(R/I)*delta_i"
+      lambda: "Sae_DD3(Tp)/Sae_DD2(Tp)"
+      kappa: "RC=1; STEEL=0.5"
+      limit: "0.008*kappa unless flexible wall and capacity proven then 0.016*kappa"
+      criterion: "lambda*effective_delta_i/h_i <= limit"
+    must_not_infer:
+      - "ETABS Drift and Drift/ display prove reduced physical displacement"
+      - "Displayed maximum source row proves complete member coverage"
+      - "Flexible-wall connection is approved without test-based capacity"
+
+  - id: effective_drift_Y
+    like: effective_drift_X
+    equation_refs: ["4.32", "4.33", "4.34a", "4.34b"]
+    direction: Y
+    case: RSY

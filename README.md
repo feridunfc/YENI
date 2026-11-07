@@ -255,3 +255,12 @@ source through G/H/I 200-row evidence. The output remains source-only,
 not an approved TBDY design check. Historical v1 receipts remain
 readable. See
 [VS04 E/F/G evidence closure and source-only merge gate](docs/VS04_EFG_SOURCE_DIAGNOSTIC_AND_MERGE_GATE.md).
+
+## VS05 - Source-qualified TBDY base shear and drift kernels (unmerged)
+
+A new normative calculation workstream lives in branch
+work/vs05-normative-base-shear-drift-20261107.
+The source-qualified formulas and rule cards are described in
+[VS05 engineering contract](docs/VS05_NORMATIVE_RULE_CONTRACT.md).
+This does NOT create production building-level TBDY PASS. The accepted
+VS04 source and receipt contracts remain intact.
