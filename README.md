@@ -245,3 +245,13 @@ remain NOT_PROVEN. See
 [VS04 one-run source integration and Windows gate](docs/VS04_SINGLE_RUN_EJ_INTEGRATION.md).
 
 `MERGE=HOLD`, `ENGINEERING_RELEASE=NOT_READY` until Windows live E2E.
+
+## VS04 source result repair: E/F/G selected-case diagnostic (v2)
+
+For new live runs, the v2 source-pipeline contract preserves the
+original E=14/15, F=3/4, G=4/5 observed counts and independently
+reconciles only the selection-dependent Response Spectrum Modal Info
+source through G/H/I 200-row evidence. The output remains source-only,
+not an approved TBDY design check. Historical v1 receipts remain
+readable. See
+[VS04 E/F/G evidence closure and source-only merge gate](docs/VS04_EFG_SOURCE_DIAGNOSTIC_AND_MERGE_GATE.md).

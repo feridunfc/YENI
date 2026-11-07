@@ -89,6 +89,7 @@ def read_quick_suite_from_running_etabs(case: str, *, with_vs04: bool = False) -
                 payload["vs04_basis_probe"] = capture_basis_probe(sap)
                 payload["vs04_diaphragm_probe"] = capture_diaphragm_modal_probe(sap)
                 payload["analysis_sources"]["pipeline_stage_required"] = True
+                payload["analysis_sources"]["pipeline_contract_version"] = "v2"
                 payload["capture_metadata"]["vs04_same_session_capture"] = True
             return payload
         finally:

@@ -30,7 +30,9 @@ def live_payload(case: str) -> dict:
     analysis["numeric_stage_required"]=True
     analysis["readiness_stage_required"]=True
     analysis["pipeline_stage_required"]=True
+    analysis["pipeline_contract_version"]="v2"
     payload["analysis_sources"]=analysis
+    payload.setdefault("capture_metadata", {})["vs04_same_session_capture"]=True
     payload["vs04_basis_probe"]=base_fixtures()[0]["source"]
     payload["vs04_diaphragm_probe"]=diaphragm_fixture()["source"]
     return payload
@@ -71,6 +73,12 @@ class Vs04SingleRunIntegration(unittest.TestCase):
         self.assertEqual(live["engineering_release"],"NOT_READY")
         pipeline=live["vs04_pipeline"]
         self.assertEqual(pipeline["source_component_count"],6)
+        self.assertEqual(pipeline["pipeline_contract_version"],"v2")
+        self.assertIsNotNone(pipeline["modal_display_selection_reconciliation"])
+        self.assertEqual(pipeline["regulatory_checks_executed"],0)
+        self.assertTrue(all(c["reason_codes"] or
+                            c["status"] != "NOT_PROVEN"
+                            for c in pipeline["checks"]))
         self.assertEqual([r["check_id"] for r in pipeline["checks"]],
             ["BASIS_PROBE","BASIS_LINKAGE","DIAPHRAGM_PROBE",
              "DIAPHRAGM_LINKAGE","SPECTRUM_RECONSTRUCTION","BASE_SHEAR_SCREENING"])
@@ -85,12 +93,16 @@ class Vs04SingleRunIntegration(unittest.TestCase):
         report=json.loads(self._get("/api/export-checks?run_id="+rid))
         self.assertEqual(len(report["checks"]),8)
         self.assertEqual(report["vs04_pipeline"],pipeline)
+        self.assertEqual(report["vs04_source_summary"]["pipeline_contract_version"],"v2")
+        self.assertIn("VS04 E–J six source-only stages",report["scope"])
         self.assertIsNotNone(report["source_provenance"]["vs04_pipeline_receipt_sha256"])
         self.assertEqual(report["formal_compliance"],"NOT_PROVEN")
         html=self._get("/report/print?run_id="+rid)
         self.assertIn("VS04 E–J",html)
         self.assertIn("BASE_SHEAR_SCREENING",html)
         self.assertIn("NOT_PROVEN",html)
+        self.assertIn("Özgün kapsama",html)
+        self.assertIn("Seçim bağımlılığı",html)
         self.assertEqual(self.calls,["Modal"],"Export must never call ETABS twice")
         history=json.loads(self._get("/api/quick-history"))
         record=next(x for x in history["runs"] if x["run_id"]==rid)

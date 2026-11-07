@@ -160,17 +160,45 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         "geometry_not_proven": sum(int(x.get("not_proven_count", 0)) for x in geo_checks),
         "geometry_not_applicable": sum(int(x.get("not_applicable_count", 0)) for x in geo_checks),
     }
+    source_scope = ("modal 95% + 4 RC geometry screens"
+                    + (" + concrete fck + A1 X/Y observed classification" if new_checks else "")
+                    + (" + VS04-D analysis schema and five source arithmetic observations"
+                       if vs04 else ""))
+    if vs04_pipeline and vs04_pipeline.get("pipeline_contract_version") == "v2":
+        source_scope += (
+            " + VS04 E–J six source-only stages "
+            "(initial E/F/G coverage retained; selected-case modal "
+            "source reconciled when proven) "
+            "+ five NOT_PROVEN regulatory evidence gates"
+        )
+    elif vs04:
+        source_scope += " (E–J historical source evidence if recorded)"
     return {
         "schema": "tbdy.next.complete.engineering.report.v1",
         "run_id": run_id,
-        "title": f"TBDY Next Engine — Complete {len(checks)}-check source-bound screening",
+        "title": (f"TBDY Next Engine — {len(checks)} bounded checks"
+                  + (" + VS04 E–J source evidence" if vs04_pipeline else "")
+                  + " (not full TBDY design)"),
         "model": modal["model_name"],
         "captured_at_utc": modal["captured_at_utc"],
         "source_mode": modal["source_mode"],
         "modal_case": modal["case"],
         "engineering_release": "NOT_READY",
         "formal_compliance": "NOT_PROVEN",
-        "scope": "modal 95% + 4 RC geometry screens" + (" + concrete fck + A1 X/Y observed classification" if new_checks else "") + (" + VS04 source schema observation (no new checks)" if vs04 else ""),
+        "scope": source_scope,
+        "vs04_source_summary": ({
+            "pipeline_contract_version": vs04_pipeline.get("pipeline_contract_version"),
+            "source_observed_count": vs04_pipeline.get("source_observed_count", 0),
+            "source_diagnostic_resolved_count": vs04_pipeline.get(
+                "source_diagnostic_resolved_count", 0),
+            "source_unresolved_count": vs04_pipeline.get("source_unresolved_count", 0),
+            "conditional_component_count": vs04_pipeline.get(
+                "conditional_component_count", 0),
+            "source_component_count": vs04_pipeline.get("source_component_count", 0),
+            "regulatory_checks_executed": 0,
+            "formal_compliance": "NOT_PROVEN",
+        } if vs04_pipeline and vs04_pipeline.get("pipeline_contract_version") == "v2"
+            else None),
         "vs04": vs04,
         "vs04_numerics": vs04_numerics,
         "vs04_readiness": vs04_readiness,
@@ -280,7 +308,7 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
         source_tables = ((report.get("source_snapshot") or {}).get("analysis_sources") or {}).get("tables") or {}
         overview = [dict(t) for t in (v.get("tables") or [])]
         vs04_sections.append('<section class="percheck"><h2>VS04 · Analiz kaynak şeması (henüz onaysız)</h2>'
-                            '<p>Sayısal deprem kontrolleri çalıştırılmadı. Formal uygunluk NOT_PROVEN; '
+                            '<p>Kaynak aritmetiği/koşullu hesaplar yönetmelik uygunluğu değildir. Formal uygunluk NOT_PROVEN; '
                             'analiz nesli ve kombinasyon rolleri onaylanmamıştır.</p>'
                             + _table((("table_key","ETABS tablosu"),("status","Kaynak durumu"),
                                       ("row_count","Satır"),("fields","Alanlar"),
@@ -328,14 +356,42 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
     pipeline = report.get("vs04_pipeline")
     if pipeline:
         source_cols = (("check_id", "Kaynak denetimi"), ("title", "Bileşen"),
-                       ("source_status", "Gözlenen kaynak durumu"),
-                       ("status", "Kanıt durumu"), ("reason_codes", "Engeller"),
+                       ("source_status", "İlk kaynak durumu"),
+                       ("status", "Bağlanmış kaynak durumu"),
+                       ("execution_status", "Çalıştırılma"),
+                       ("coverage", "Özgün kapsama / seçilmiş vaka"),
+                       ("reason_codes", "Okuma teşhisi / gerekçe"),
+                       ("missing_evidence", "Normatif eksik kanıt"),
                        ("formal_compliance", "TBDY uygunluğu"))
         vs04_sections.append('<section class="percheck"><h2>VS04 E–J · Tek çalışma kaynak zinciri</h2>'
                              '<p>Bu altı aşama, mevcut sekiz normatif alt kontrolün yerine geçmez. '
                              'Kütle mutabakatı, spektrum ve taban kesmesi taraması kaynak/koşul '
                              'düzeyindedir. Tam VtE, βtE ve etkin kat ötelenmesi NOT_PROVEN.</p>'
                              + _table(source_cols, pipeline.get("checks", [])) + '</section>')
+        diag = pipeline.get("modal_display_selection_reconciliation")
+        if diag:
+            resolved = (diag.get("status") ==
+                        "SOURCE_DISPLAY_SELECTION_DEPENDENCY_RECONCILED")
+            diag_summary = (
+                'İlk tablo okuması hatalı kalmıştır; özgün E/F/G sayaçları değişmez. '
+                'RSX/RSY seçimiyle alınan 200 satır H/I kaynak kontrolleriyle '
+                'eşleşmiştir. Yalnız kaynak bağımlılığı açıklanır.'
+                if resolved else
+                'İlk okuma ve seçilmiş vaka kaynakları henüz uzlaştırılamadı. '
+                'Eksik kaynak kanıtı açık kalır.'
+            )
+            vs04_sections.append(
+                '<section class="percheck"><h2>VS04 E/F/G · Seçim bağımlılığı</h2>'
+                '<p>' + _val(diag_summary) +
+                ' TBDY uygunluğu NOT_PROVEN.</p>'
+                + _table((("table_key", "ETABS tablo kimliği"),
+                          ("status", "Kaynak teşhis durumu"),
+                          ("original_read_still_failed", "İlk okuma hâlâ hatalı"),
+                          ("selected_case_row_count", "RSX/RSY satırları"),
+                          ("reason_codes", "Gerekçeler"),
+                          ("analysis_generation_proven", "Analiz nesli kanıtı")),
+                         [diag]) + '</section>'
+            )
         conditional = (pipeline.get("stages") or {}).get("vs04_j") or {}
         if conditional.get("conditional_eq_4_19_minimum_term_kn") is not None:
             vs04_sections.append('<section class="percheck"><h2>VS04-J · Koşullu taban kesmesi alt terimi</h2>'
