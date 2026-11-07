@@ -206,3 +206,12 @@ reconciles the real 5 semi-rigid diaphragm definitions, 91 area and
 rows against the previous accepted modal period display (optional).
 `tools/review_vs04h_diaphragm.py` writes a source-only review without
 raw rows, never promotes source consistency to regulatory compliance.
+
+## VS04-I — Independent source spectrum reconstruction
+
+After VS04-H, run tools/review_vs04i_spectrum.py offline with the earlier
+VS04-E, VS04-G and VS04-D replay files. It checks the 26 TSC2018 function
+knots analytically, and the 200 modal source accelerations via actual corner
+periods and higher-precision modal circular frequencies. It never promotes
+source arithmetic to building code PASS or engineering release. See
+[VS04-I protocol](docs/VS04_I_SPECTRUM_RECONSTRUCTION.md).
