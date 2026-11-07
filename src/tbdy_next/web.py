@@ -23,6 +23,7 @@ from .next_checks import evaluate_next_capture
 from .analysis_sources import review_analysis_sources
 from .analysis_numerics import evaluate_analysis_numerics
 from .normative_basis import review_normative_readiness
+from .live_source_pipeline import evaluate_single_run_source_pipeline
 from .reporting import ReportUnavailable, build_complete_report, build_printable_html
 from .receipts import ReceiptRun
 from .schema import review_modal_schema
@@ -96,7 +97,7 @@ def make_handler(output_root: Path, *, live_capture=None):
                 self.end_headers()
                 self.wfile.write(contents)
             elif url.path == "/api/health":
-                self.reply(200, {"status": "PARTIAL_UNIFIED_VS04_SCREENING", "implemented_slices": ["MODAL_MASS_RATIO", "MATERIAL_FCK_25", "A1_X_Y_SOURCE_CLASSIFICATION"], "source_only_slices": ["VS04_ANALYSIS_SOURCE_SCHEMA", "VS04_ANALYSIS_NUMERIC_SOURCE", "VS04_E_NORMATIVE_READINESS"], "live_web_f_to_j_integrated": False, "single_primary_action": "/api/live-vs04", "formal_compliance": "NOT_PROVEN", "engineering_release": "NOT_READY"})
+                self.reply(200, {"status": "PARTIAL_UNIFIED_VS04_SCREENING", "implemented_slices": ["MODAL_MASS_RATIO", "MATERIAL_FCK_25", "A1_X_Y_SOURCE_CLASSIFICATION"], "source_only_slices": ["VS04_ANALYSIS_SOURCE_SCHEMA", "VS04_ANALYSIS_NUMERIC_SOURCE", "VS04_E_NORMATIVE_READINESS"], "live_web_f_to_j_integrated": True, "single_primary_action": "/api/live-vs04", "formal_compliance": "NOT_PROVEN", "engineering_release": "NOT_READY"})
             elif url.path == "/api/runs":
                 self.reply(200, {"runs": _runs(output_root)})
             elif url.path == "/api/check-registry":
@@ -217,6 +218,13 @@ def make_handler(output_root: Path, *, live_capture=None):
                 if url.path == "/api/live-vs04" and "analysis_sources" not in payload:
                     self.reply(422, {"status": "CAPTURE_REJECTED", "reason": "VS04_CAPTURE_MISSING"})
                     return
+                if url.path == "/api/live-vs04" and (
+                        payload["analysis_sources"].get("pipeline_stage_required") is True
+                        and not all(isinstance(payload.get(k), dict) for k in
+                                    ("vs04_basis_probe", "vs04_diaphragm_probe"))):
+                    self.reply(422, {"status": "CAPTURE_REJECTED",
+                                     "reason": "VS04_REQUIRED_SAME_SESSION_SOURCES_MISSING"})
+                    return
                 raw = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
                 input_sha = sha256(raw).hexdigest()
                 run = ReceiptRun(output_root)
@@ -234,6 +242,7 @@ def make_handler(output_root: Path, *, live_capture=None):
                     vs04 = None
                     vs04_numerics = None
                     vs04_readiness = None
+                    vs04_pipeline = None
                     if "analysis_sources" in payload:
                         vs04 = review_analysis_sources(payload["analysis_sources"])
                         run.record("vs04-schema", vs04, input_sha256=input_sha)
@@ -241,6 +250,9 @@ def make_handler(output_root: Path, *, live_capture=None):
                         run.record("vs04-numerics", vs04_numerics, input_sha256=input_sha)
                         vs04_readiness = review_normative_readiness(payload["analysis_sources"])
                         run.record("vs04-readiness", vs04_readiness, input_sha256=input_sha)
+                        if payload["analysis_sources"].get("pipeline_stage_required") is True:
+                            vs04_pipeline = evaluate_single_run_source_pipeline(payload)
+                            run.record("vs04-pipeline", vs04_pipeline, input_sha256=input_sha)
                     meta = payload.get("capture_metadata") or {}
                     run.record("live-capture", {
                         "status": "SOURCE_CAPTURED", "source_mode": "LIVE_ETABS",
@@ -256,6 +268,8 @@ def make_handler(output_root: Path, *, live_capture=None):
                         "source_mode": "LIVE_ETABS", "geometry": geometry, "extra_checks": extra,
                         "vs04_schema": vs04, "vs04_numerics": vs04_numerics,
                         "vs04_readiness": vs04_readiness,
+                        "vs04_pipeline": vs04_pipeline,
+                        "formal_compliance": "NOT_PROVEN",
                         "engineering_release": "NOT_READY",
                     })
                 except (ValueError, TypeError, KeyError) as exc:

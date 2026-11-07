@@ -91,6 +91,8 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
     vs04_numeric_receipt = None
     vs04_readiness = None
     vs04_readiness_receipt = None
+    vs04_pipeline = None
+    vs04_pipeline_receipt = None
     if "analysis_sources" in source:
         from .analysis_sources import review_analysis_sources
         vs04_receipt = _read_receipt(directory, "vs04-schema")
@@ -123,6 +125,20 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
             vs04_readiness = review_normative_readiness(source["analysis_sources"])
             if vs04_readiness != vs04_readiness_receipt["payload"]:
                 raise ReportUnavailable("VS04-E readiness source/receipt mismatch")
+        vs04_pipeline_receipt = _read_receipt(directory, "vs04-pipeline")
+        pipeline_required = source["analysis_sources"].get("pipeline_stage_required") is True
+        if pipeline_required and (vs04_pipeline_receipt is None or
+                                  vs04_pipeline_receipt.get("input_sha256") != modal["input_sha256"]):
+            raise ReportUnavailable("VS04 E-J required source pipeline receipt missing")
+        if vs04_pipeline_receipt is not None:
+            from .live_source_pipeline import evaluate_single_run_source_pipeline
+            if vs04_pipeline_receipt.get("input_sha256") != modal["input_sha256"]:
+                raise ReportUnavailable("VS04 E-J pipeline input hash mismatch")
+            vs04_pipeline = evaluate_single_run_source_pipeline(source)
+            if (vs04_pipeline != vs04_pipeline_receipt["payload"] or
+                    vs04_pipeline.get("status") !=
+                    "SOURCE_PIPELINE_EVALUATED_PENDING_ENGINEERING_REVIEW"):
+                raise ReportUnavailable("VS04 E-J source/receipt content mismatch")
 
     frame_rows = ((geometry_source or {}).get("tables", {}).get("FRAME_ASSIGNMENTS", {})
                   .get("rows", []) or [])
@@ -158,6 +174,7 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         "vs04": vs04,
         "vs04_numerics": vs04_numerics,
         "vs04_readiness": vs04_readiness,
+        "vs04_pipeline": vs04_pipeline,
         "vs03": new_checks,
         "checks": checks,
         "modal_source_table": {
@@ -183,6 +200,7 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
             "vs04_schema_receipt_sha256": vs04_receipt["receipt_sha256"] if vs04_receipt else None,
             "vs04_numerics_receipt_sha256": vs04_numeric_receipt["receipt_sha256"] if vs04_numeric_receipt else None,
             "vs04_readiness_receipt_sha256": vs04_readiness_receipt["receipt_sha256"] if vs04_readiness_receipt else None,
+            "vs04_pipeline_receipt_sha256": vs04_pipeline_receipt["receipt_sha256"] if vs04_pipeline_receipt else None,
             "note": "These are local source/receipt fingerprints, not third-party authorization.",
         },
         "source_snapshot": source,  # Full raw 7 tables + exact material facts for independent review.
@@ -307,6 +325,39 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
                                      tuple(result.get("items", [{}])[0].keys())
                                      if result.get("items") else ("reason",))),
                                      result.get("items") or []) + '</section>')
+    pipeline = report.get("vs04_pipeline")
+    if pipeline:
+        source_cols = (("check_id", "Kaynak denetimi"), ("title", "Bileşen"),
+                       ("source_status", "Gözlenen kaynak durumu"),
+                       ("status", "Kanıt durumu"), ("reason_codes", "Engeller"),
+                       ("formal_compliance", "TBDY uygunluğu"))
+        vs04_sections.append('<section class="percheck"><h2>VS04 E–J · Tek çalışma kaynak zinciri</h2>'
+                             '<p>Bu altı aşama, mevcut sekiz normatif alt kontrolün yerine geçmez. '
+                             'Kütle mutabakatı, spektrum ve taban kesmesi taraması kaynak/koşul '
+                             'düzeyindedir. Tam VtE, βtE ve etkin kat ötelenmesi NOT_PROVEN.</p>'
+                             + _table(source_cols, pipeline.get("checks", [])) + '</section>')
+        conditional = (pipeline.get("stages") or {}).get("vs04_j") or {}
+        if conditional.get("conditional_eq_4_19_minimum_term_kn") is not None:
+            vs04_sections.append('<section class="percheck"><h2>VS04-J · Koşullu taban kesmesi alt terimi</h2>'
+                                 '<p>m, I ve SDS kaynak adaylarına dayalıdır; mühendislik '
+                                 'kabulü veya VtE sonucu değildir.</p>'
+                                 + _table((("source_mass_candidate_ton", "Aday kütle (ton)"),
+                                           ("candidate_importance_factor", "Aday I"),
+                                           ("candidate_SDS", "Aday SDS"),
+                                           ("conditional_eq_4_19_minimum_term_kn",
+                                            "Koşullu alt terim (kN)")),
+                                          [conditional]) + '</section>')
+    a1_warnings = [
+        c for c in extras if c.get("check_id") in ("a1_torsion_x", "a1_torsion_y")
+        and any(item.get("status") == "A1_OBSERVED" for item in c.get("items", []))
+    ]
+    if a1_warnings:
+        vs04_sections.append('<section class="percheck"><h2>A1 burulma düzensizliği — KAYNAK UYARISI</h2>'
+                             '<p>En az bir kat/yönde ηbi &gt; 1,2 gözlendi. Dışmerkezlik '
+                             'uygulaması ve tüm TBDY kapsamı doğrulanmadan nihai '
+                             'uygunluk kararı verilemez.</p>'
+                             + _table((("check_id", "Yön"), ("status", "Kaynak sınıflaması")),
+                                      a1_warnings) + '</section>')
     modal_table = report["modal_source_table"]
     fields = modal_table.get("fields") or []
     modal_cols = tuple((field, field) for field in fields)

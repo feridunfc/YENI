@@ -195,6 +195,7 @@ def quick_history(root: Path, *, limit: int = 15) -> list[dict[str, Any]]:
         vs04 = None
         vs04_numerics = None
         vs04_readiness = None
+        vs04_pipeline = None
         if "analysis_sources" in source:
             from .analysis_sources import review_analysis_sources
             vs04_receipt = _read_receipt(directory, "vs04-schema")
@@ -227,11 +228,26 @@ def quick_history(root: Path, *, limit: int = 15) -> list[dict[str, Any]]:
                 vs04_readiness = review_normative_readiness(source["analysis_sources"])
                 if vs04_readiness != readiness_receipt["payload"]:
                     continue
+            pipeline_receipt = _read_receipt(directory, "vs04-pipeline")
+            required = source["analysis_sources"].get("pipeline_stage_required") is True
+            if required and (pipeline_receipt is None or
+                             pipeline_receipt.get("input_sha256") != modal["input_sha256"]):
+                continue
+            if pipeline_receipt is not None:
+                from .live_source_pipeline import evaluate_single_run_source_pipeline
+                if pipeline_receipt.get("input_sha256") != modal["input_sha256"]:
+                    continue
+                vs04_pipeline = evaluate_single_run_source_pipeline(source)
+                if (vs04_pipeline != pipeline_receipt["payload"] or
+                        vs04_pipeline.get("status") !=
+                        "SOURCE_PIPELINE_EVALUATED_PENDING_ENGINEERING_REVIEW"):
+                    continue
         output.append({"run_id": directory.name, "captured_at_utc": modal["captured_at_utc"],
                        "source_mode": modal["source_mode"], "model_name": modal["model_name"],
                        "geometry": rechecked, "extra_checks": extra, "vs04_schema": vs04,
                        "vs04_numerics": vs04_numerics,
                        "vs04_readiness": vs04_readiness,
+                       "vs04_pipeline": vs04_pipeline,
                        "modal": modal["result"],
                        "engineering_release": "NOT_READY"})
     return sorted(output, key=lambda x: (x["captured_at_utc"], x["run_id"]), reverse=True)[:limit]

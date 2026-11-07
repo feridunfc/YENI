@@ -82,6 +82,14 @@ def read_quick_suite_from_running_etabs(case: str, *, with_vs04: bool = False) -
                 payload["analysis_sources"] = capture_analysis_sources(sap, modal_case=case)
                 payload["analysis_sources"]["numeric_stage_required"] = True
                 payload["analysis_sources"]["readiness_stage_required"] = True
+                # VS04-E/G source tables share this exact locked SapModel,
+                # thread and COM session. Never open a second ETABS instance.
+                from .basis_probe import capture_basis_probe
+                from .diaphragm_probe import capture_diaphragm_modal_probe
+                payload["vs04_basis_probe"] = capture_basis_probe(sap)
+                payload["vs04_diaphragm_probe"] = capture_diaphragm_modal_probe(sap)
+                payload["analysis_sources"]["pipeline_stage_required"] = True
+                payload["capture_metadata"]["vs04_same_session_capture"] = True
             return payload
         finally:
             sap = None

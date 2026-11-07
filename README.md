@@ -233,3 +233,15 @@ arithmetic and readiness in one archived run. VS04-F through VS04-J
 are NOT integrated into this live route; they are offline evidence tools.
 Read docs/VS04_EMERGENCY_PRODUCT_AUDIT_20261107.md before any merge.
 ENGINEERING_RELEASE=NOT_READY; MERGE=HOLD.
+
+## VS04 E–J integrated one-click source chain
+
+The one main ETABS calculation action captures the six additional E–J source
+stages under the **same locked SapModel COM session**, archived input hash
+and `run_id`. The `vs04-pipeline` receipt is rechecked before JSON/HTML
+exports or history. Conditional base-shear output and A1 findings are visible,
+but formal TBDY VtE, beta, drift, source generation and applied eccentricity
+remain NOT_PROVEN. See
+[VS04 one-run source integration and Windows gate](docs/VS04_SINGLE_RUN_EJ_INTEGRATION.md).
+
+`MERGE=HOLD`, `ENGINEERING_RELEASE=NOT_READY` until Windows live E2E.

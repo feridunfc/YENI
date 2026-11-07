@@ -7,6 +7,7 @@
   let latestVs04 = null;
   let latestVs04Numerics = null;
   let latestVs04Readiness = null;
+  let latestVs04Pipeline = null;
   const nav = document.getElementById('nav');
   const byId = id => document.getElementById(id);
   const exportActions = document.createElement('div');
@@ -46,7 +47,7 @@
     selectedRunId = chooseRun.value;
     const chosen = cachedHistory.find(r => r.run_id === selectedRunId);
     if (chosen) {
-      useReport(chosen.geometry, chosen.extra_checks, chosen.vs04_schema, chosen.vs04_numerics, chosen.vs04_readiness);
+      useReport(chosen.geometry, chosen.extra_checks, chosen.vs04_schema, chosen.vs04_numerics, chosen.vs04_readiness, chosen.vs04_pipeline);
       if (typeof showResult === 'function') {
         showResult('Kaydedilmiş modal hesap', {run_id: chosen.run_id, result: chosen.modal});
       }
@@ -137,7 +138,11 @@
       section.dataset.checkPanel = check.check_id;
       section.append(make('h3', `${check.title} · ${check.status}`),
                      make('p', `İncelenen: ${check.expected_count}; Hesaplanan: ${check.evaluated_count}; Belirsiz: ${check.not_proven_count}. Formal uygunluk: NOT_PROVEN.`, 'muted small'));
-      const details = make('details'); details.open = check.unmet_count > 0;
+      const warnings = (check.items || []).filter(item => item.status === 'A1_OBSERVED');
+      if (warnings.length) section.append(make('p',
+        'A1 BURULMA DÜZENSİZLİĞİ GÖZLENDİ · ' + warnings.length +
+        ' kat-yön kaydı; dışmerkezlik ve TBDY kapsamı onaylanmadan uygunluk PASS değildir.', 'warn'));
+      const details = make('details'); details.open = check.unmet_count > 0 || warnings.length > 0;
       details.append(make('summary', `${(check.items || []).length} kaynak satırı`));
       const scroll = make('div', undefined, 'modal-table-scroll');
       const table = make('table', undefined, 'modal-source-table');
@@ -185,6 +190,26 @@
         details.append(make('pre', JSON.stringify({
           code_ref:gate.code_ref, missing_evidence:gate.missing_evidence,
           source_only_hints:gate.source_only_hints
+        }, null, 2)));
+        host.append(details);
+      }
+    }
+    if (latestVs04Pipeline) {
+      host.append(make('h3', 'VS04 E–J · Tek run_id kaynak zinciri · ' + latestVs04Pipeline.status));
+      host.append(make('p', 'Kaynak gözlemi: ' + latestVs04Pipeline.source_observed_count +
+        '/' + latestVs04Pipeline.source_component_count +
+        ' · TBDY uygunluğu NOT_PROVEN · Mühendislik release NOT_READY.', 'warn'));
+      for (const check of latestVs04Pipeline.checks || []) {
+        const details = make('details');
+        details.append(make('summary', check.title + ' · ' + check.source_status +
+          ' · Kanıt statüsü: ' + check.status));
+        const source = latestVs04Pipeline.stages?.[check.stage_key] || {};
+        details.append(make('pre', JSON.stringify({
+          check_id: check.check_id, applicability: check.applicability,
+          compliance: check.formal_compliance, reason_codes: check.reason_codes,
+          source_status: check.source_status, source_facts: source.source_facts,
+          conditional_eq_4_19_minimum_term_kn: source.conditional_eq_4_19_minimum_term_kn,
+          missing_authorities: source.missing_authorities, mandatory_holds: source.mandatory_holds
         }, null, 2)));
         host.append(details);
       }
@@ -243,12 +268,13 @@
       byId('quickStatus').textContent = 'Kontrol ağacı yüklenemedi: ' + error.message;
     }
   }
-  function useReport(report, extra, vs04, vs04Numerics, vs04Readiness) {
+  function useReport(report, extra, vs04, vs04Numerics, vs04Readiness, vs04Pipeline) {
     latest = report;
     latestExtra = extra || null;
     latestVs04 = vs04 || null;
     latestVs04Numerics = vs04Numerics || null;
     latestVs04Readiness = vs04Readiness || null;
+    latestVs04Pipeline = vs04Pipeline || null;
     renderVs04();
     renderExtras(active);
     renderQuick(report, 7);
@@ -270,7 +296,7 @@
       }
       const first = cachedHistory[0] || null;
       if (first) {
-        useReport(first.geometry, first.extra_checks, first.vs04_schema, first.vs04_numerics, first.vs04_readiness);
+        useReport(first.geometry, first.extra_checks, first.vs04_schema, first.vs04_numerics, first.vs04_readiness, first.vs04_pipeline);
         setExportRun(first.run_id);
         byId('quickStatus').textContent = `Son canlı tarama: ${first.model_name || 'ETABS'} · ${first.captured_at_utc}`;
       }
@@ -306,7 +332,7 @@
       if (typeof showResult === 'function') showResult('Canlı ETABS · Birleşik tarama', body);
       if (typeof window.showModalFullTable === 'function') window.showModalFullTable(body.run_id);
       useReport(body.geometry, body.extra_checks, body.vs04_schema,
-                body.vs04_numerics, body.vs04_readiness);
+                body.vs04_numerics, body.vs04_readiness, body.vs04_pipeline);
       setExportRun(body.run_id, (body.model_name || 'ETABS') + ' · birleşik canlı çalışma');
       byId('step1').textContent = 'ETABS KAYNAĞI · ' + body.source_rows + ' modal satır';
       byId('step2').textContent = 'ŞEMA · ' + body.vs04_schema.status;
@@ -318,11 +344,19 @@
           '3 analiz tablosu: ' + body.vs04_schema.captured_table_count + '/3',
           'Tek run_id: ' + body.run_id
         ]);
+        const a1Warning = (body.extra_checks.checks || [])
+          .filter(c => c.check_id === 'a1_torsion_x' || c.check_id === 'a1_torsion_y')
+          .flatMap(c => c.items || []).filter(item => item.status === 'A1_OBSERVED');
         const checks = [
           'Modal kütle: ' + body.result.status,
+          ...(a1Warning.length ? ['A1 BURULMA DÜZENSİZLİĞİ GÖZLENDİ: '
+             + a1Warning.length + ' kat-yön kaydı · TBDY uygunluğu NOT_PROVEN'] : []),
           ...(body.geometry.checks || []).map(c => c.check_id + ': ' + c.status),
           ...(body.extra_checks.checks || []).map(c => c.check_id + ': ' + c.status),
           'VS04 kaynak aritmetiği: ' + body.vs04_numerics.observed_component_count + '/5',
+          ...(body.vs04_pipeline ? (body.vs04_pipeline.checks || []).map(c =>
+            c.check_id + ': ' + c.source_status + ' · FORMAL NOT_PROVEN') :
+            ['VS04 E–J tek çalışma zinciri: henüz toplanmadı']),
           'Normatif kanıt kapıları: ' + body.vs04_readiness.proven_check_count
             + '/' + body.vs04_readiness.expected_check_count,
           'Yönetmelik uygunluğu: NOT_PROVEN',
