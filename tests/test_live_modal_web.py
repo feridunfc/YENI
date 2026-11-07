@@ -181,10 +181,14 @@ class TestLiveModalFromUI(unittest.TestCase):
     def test_ui_has_direct_connection_no_mandatory_file_selection(self):
         with urlopen(self.base+'/',timeout=5) as response:
             html=response.read().decode('utf-8')
-        self.assertIn('id="liveModalBtn"',html)
-        self.assertIn("/api/live-modal?case=",html)
-        self.assertIn('İsteğe bağlı:',html)
+        self.assertIn('id="runAllBtn"',html)
+        self.assertNotIn('id="liveModalBtn"',html)
+        self.assertIn('Geliştirici / çevrimdışı kaynak testi',html)
         self.assertIn('/history.js',html)
+        with urlopen(self.base+'/quick.js',timeout=5) as response:
+            js=response.read().decode('utf-8')
+        self.assertIn("/api/live-vs04?case=",js)
+        self.assertNotIn("/api/live-modal?case=",js)
 
 if __name__=='__main__':
     unittest.main()

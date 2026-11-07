@@ -96,7 +96,7 @@ def make_handler(output_root: Path, *, live_capture=None):
                 self.end_headers()
                 self.wfile.write(contents)
             elif url.path == "/api/health":
-                self.reply(200, {"status": "PARTIAL_UNIFIED_VS04_SCREENING", "implemented_slices": ["MODAL_MASS_RATIO", "MATERIAL_FCK_25", "A1_X_Y_SOURCE_CLASSIFICATION"], "source_only_slices": ["VS04_ANALYSIS_SOURCE_SCHEMA", "VS04_ANALYSIS_NUMERIC_SOURCE", "VS04_E_NORMATIVE_READINESS"], "live_web_f_to_j_integrated": false, "single_primary_action": "/api/live-vs04", "formal_compliance": "NOT_PROVEN", "engineering_release": "NOT_READY"})
+                self.reply(200, {"status": "PARTIAL_UNIFIED_VS04_SCREENING", "implemented_slices": ["MODAL_MASS_RATIO", "MATERIAL_FCK_25", "A1_X_Y_SOURCE_CLASSIFICATION"], "source_only_slices": ["VS04_ANALYSIS_SOURCE_SCHEMA", "VS04_ANALYSIS_NUMERIC_SOURCE", "VS04_E_NORMATIVE_READINESS"], "live_web_f_to_j_integrated": False, "single_primary_action": "/api/live-vs04", "formal_compliance": "NOT_PROVEN", "engineering_release": "NOT_READY"})
             elif url.path == "/api/runs":
                 self.reply(200, {"runs": _runs(output_root)})
             elif url.path == "/api/check-registry":

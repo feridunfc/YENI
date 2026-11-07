@@ -348,7 +348,8 @@ class LiveQuickSuiteWeb(unittest.TestCase):
     def test_ui_contains_combined_button_and_registry_tree(self):
         with urlopen(self.base + '/', timeout=4) as response:
             html = response.read().decode('utf-8')
-        self.assertIn('id="quickSuiteBtn"', html)
+        self.assertIn('id="runAllBtn"', html)
+        self.assertNotIn('id="quickSuiteBtn"', html)
         self.assertIn('id="geometrycontent"', html)
         self.assertIn('/quick.js', html)
         with urlopen(self.base + '/quick.js', timeout=4) as response:
