@@ -33,10 +33,10 @@ def base_facts():
         "model_generation_id":"synthetic-model-generation-1",
         "qualified_tp_s":"0.5",
         "seismic_mass_kg":"100000",
-        "sar_dd2_at_tp_m_s2":"2.0",
+        "sar_dd2_at_tp_m_s2":"0.2",
         "importance_I":"1.5",
         "sds_dd2":"1.0",
-        "vtx_pre_beta_kn":"400",
+        "vtx_pre_beta_kn":"40",
         "a1_b2_b3":{"A1":"PRESENT","B2":"ABSENT","B3":"ABSENT"},
         "applied_beta":"1.324",
     }
@@ -64,15 +64,26 @@ class Vs05SourceGatedNormativeTests(unittest.TestCase):
         r=directional_base_shear_check(base_facts(),approved_shape(BASE_PROOFS))
         self.assertEqual(r["status"],"MEETS_NUMERICAL_CRITERION")
         self.assertEqual(r["execution"],"EXECUTED_NUMERIC_FORMULA")
-        self.assertEqual(Decimal(r["calculation"]["minimum_base_shear_kn"]),Decimal("588.399"))
-        self.assertEqual(Decimal(r["calculation"]["spectral_base_shear_kn"]),Decimal("200"))
-        self.assertEqual(Decimal(r["calculation"]["equivalent_base_shear_kn"]),Decimal("588.399"))
+        self.assertEqual(Decimal(r["calculation"]["minimum_base_shear_kn"]),Decimal("58.8399"))
+        self.assertEqual(Decimal(r["calculation"]["spectral_base_shear_kn"]),Decimal("20"))
+        self.assertEqual(Decimal(r["calculation"]["equivalent_base_shear_kn"]),Decimal("58.8399"))
         self.assertEqual(Decimal(r["calculation"]["gamma_E"]),Decimal("0.90"))
         self.assertEqual(Decimal(r["calculation"]["required_scale_factor"]),
                          Decimal("1.32389775"))
         self.assertEqual(Decimal(r["calculation"]["applied_beta"]),Decimal("1.324"))
         self.assertEqual(r["formal_compliance"],"NOT_PROVEN")
         self.assertEqual(r["engineering_release"],"NOT_READY")
+
+    def test_spectral_term_governing_is_independent_of_minimum(self):
+        data=base_facts()
+        data["sar_dd2_at_tp_m_s2"]="2.0"
+        data["vtx_pre_beta_kn"]="400"
+        r=directional_base_shear_check(data,approved_shape(BASE_PROOFS))
+        self.assertEqual(r["status"],"MEETS_NUMERICAL_CRITERION")
+        self.assertEqual(Decimal(r["calculation"]["spectral_base_shear_kn"]),Decimal("200"))
+        self.assertEqual(Decimal(r["calculation"]["minimum_base_shear_kn"]),Decimal("58.8399"))
+        self.assertEqual(Decimal(r["calculation"]["equivalent_base_shear_kn"]),Decimal("200"))
+        self.assertEqual(Decimal(r["calculation"]["required_scale_factor"]),Decimal("1"))
 
     def test_underapplied_beta_is_real_negative_numeric_condition(self):
         data=base_facts()
