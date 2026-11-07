@@ -14,7 +14,7 @@
   exportActions.id = 'quickExportActions';
   const exportTitle = document.createElement('span');
   exportTitle.className = 'muted small';
-  exportTitle.textContent = 'Tam rapor / JSON: ETABS'tan oku ve hesapla.';
+  exportTitle.textContent = 'Tam rapor / JSON: ETABS verisini okuyup hesaplayın.';
   const chooseRun = document.createElement('select');
   chooseRun.className = 'field';
   chooseRun.style.width = 'auto';

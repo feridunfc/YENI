@@ -27,11 +27,12 @@
 .quick-check{padding:13px 0;border-bottom:1px solid #e0e8ee}.quick-check:last-child{border-bottom:0}
 .quick-check details summary{cursor:pointer;color:var(--accent);margin:8px 0;font-weight:650}
 .quick-check pre{max-height:240px}.quick-check h3{margin:0}
+.app aside .aside-check-tree li{color:#c8d6e4;border-left-color:#58708b}.app aside .aside-check-tree li:first-child{color:#ffffff;border-color:#65d3b1}
 </style>
 </head>
 <body>
 <div class="app">
-<aside><div class="logo">TBDY Next Engine</div><div class="tagline">ETABS → Kanıt → TBDY kontrolü → Rapor · VS04</div><div class="navtitle">Model / Analiz / Tasarım</div><nav class="navlist" id="nav"></nav></aside>
+<aside><div class="logo">TBDY Next Engine</div><div class="tagline">ETABS → Kanıt → TBDY kontrolü → Rapor · VS04</div><div class="navtitle">Model / Analiz / Tasarım</div><nav class="navlist" id="nav"></nav><div class="navtitle">Kontrol ağacı / Result Tree</div><ul class="tree aside-check-tree" id="resulttree"><li>Hesap bekleniyor · NOT_PROVEN</li></ul></aside>
 <main>
 <div class="top"><div><div class="eyebrow">Birleşik canlı mühendislik taraması · VS04</div><h1 id="heading">Modal analiz</h1><div class="muted small" id="subhead">ETABS → şema/birim/kimlik → uygulanabilirlik → bağımsız kontrol → CheckResult → rapor</div></div><div class="chip">ENGINEERING RELEASE · NOT_READY</div></div>
 <div id="activecontent">
@@ -56,7 +57,7 @@
 <div id="plannedcontent" class="hidden notbuilt"><h2 id="plannedtitle"></h2><p>Bu hesap henüz etkinleştirilmedi. Sıradaki dikey dilim ancak kaynak → şema → postprocess → mühendislik kontrolü → rapor zinciri çalışınca açılır.</p><p class="muted small">Burada sahte PASS, hazırmış gibi gösterilen formül veya boş hesap ekranı yok.</p></div>
 <div class="footer">Her kontrol tek, izlenebilir sonuç üretir. Sayısal alt koşulun sağlanması bina uygunluk onayı değildir.</div>
 </main>
-<aside class="rail"><div class="section-label">Model Tree</div><ul class="tree" id="modeltree"><li>Kaynak henüz yüklenmedi</li></ul><div class="section-label">Result Tree</div><ul class="tree" id="resulttree"><li>VS01 · Modal kütle</li><li>İlk sonuç bekleniyor</li></ul><div class="section-label">Doğrulama geçmişi</div><div id="trail" class="muted small">Yeni kayıt yok.</div></aside>
+<aside class="rail"><div class="section-label">Model Tree</div><ul class="tree" id="modeltree"><li>Kaynak henüz yüklenmedi</li></ul><div class="section-label">Doğrulama geçmişi</div><div id="trail" class="muted small">Yeni kayıt yok.</div></aside>
 </div>
 <script>
 const tabs=['Geometri','Malzeme','Kesitler','Atamalar','Yükler ve kütle','Analiz vakaları','Deprem esasları','Modal analiz','Kat/sistem sonuçları','Düzensizlikler','Döşemeler','Kirişler','Kolonlar','Perdeler','Birleşimler','Temeller'];

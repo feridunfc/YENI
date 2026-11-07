@@ -57,6 +57,9 @@ class OneButtonProductPath(unittest.TestCase):
             self.assertNotIn(old,html)
         self.assertIn('id="liveCase"',html)
         self.assertIn('ETABS’tan Oku ve Hesapla',html)
+        self.assertEqual(html.count('id="resulttree"'),1)
+        self.assertLess(html.index('id="resulttree"'),html.index('<main>'),
+                        "CheckResult tree must be in the left sidebar")
         self.assertIn("engineering",html.lower())
         self.assertIn("runAllBtn",js)
         self.assertIn("/api/live-vs04?case=",js)
