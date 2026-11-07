@@ -170,6 +170,80 @@ class NumericalSourceTests(unittest.TestCase):
         self.assertEqual(evaluate_analysis_numerics(self.source)["observed_component_count"], 0)
 
 
+class Vs04RealDisplayFormatTests(unittest.TestCase):
+    """Live-observed rendering patterns; actual eigen rows remain unprovided."""
+
+    def test_fourteen_live_short_period_formats_are_rounding_consistent(self):
+        from decimal import Decimal
+        observed = [
+            ("83", "0.033", "30.628", "192.4411"),
+            ("84", "0.032", "31.567", "198.3402"),
+            ("85", "0.029", "34.916", "219.3814"),
+            ("88", "0.025", "40.502", "254.4835"),
+            ("89", "0.021", "46.533", "292.3781"),
+            ("90", "0.021", "48.276", "303.3263"),
+            ("91", "0.018", "54.533", "342.6434"),
+            ("92", "0.017", "57.378", "360.5154"),
+            ("93", "0.016", "64.505", "405.2968"),
+            ("95", "0.012", "81.911", "514.6626"),
+            ("96", "0.012", "86.01", "540.4196"),
+            ("98", "0.008", "130.042", "817.0804"),
+            ("99", "0.005", "221.99", "1394.8061"),
+            ("100", "0.004", "228.588", "1436.2635"),
+        ]
+        for mode, t, f, w in observed:
+            with self.subTest(mode=mode):
+                payload = numeric_source()
+                table = payload["tables"][TABLES[0]]
+                row = table["rows"][0]
+                row.update(Period=t, Frequency=f, CircFreq=w,
+                           Eigenvalue=str((Decimal(w)**2).quantize(Decimal("0.01"))))
+                table["rows"], table["row_count"] = [row], 1
+                result = evaluate_analysis_numerics(payload)["results"][0]
+                self.assertEqual(result["status"], "SOURCE_ARITHMETIC_OBSERVED")
+                self.assertEqual(result["items"][0]["comparison_basis"],
+                                 "EXACT_DISPLAY_PRECISION_INTERVAL")
+        # The eigenvalue above was synthesized to test the interval algorithm,
+        # NOT taken from ETABS. No live numerical acceptance follows from this.
+
+    def test_six_live_drift_fraction_displays(self):
+        observations = (
+            ("X","0.000776","1/1289"),
+            ("X","0.000797","1/1255"),
+            ("X","0.000509","1/1963"),
+            ("Y","0.001196","1/836"),
+            ("Y","0.00118","1/848"),
+            ("Y","0.000387","1/2587"),
+        )
+        for direction, drift, shown in observations:
+            with self.subTest(direction=direction, shown=shown):
+                payload = numeric_source()
+                row = next(r for r in payload["tables"][TABLES[2]]["rows"]
+                           if r["Direction"] == direction)
+                row["Drift"],row["Drift/"] = drift,shown
+                result = evaluate_analysis_numerics(payload)["results"][3 if direction=="X" else 4]
+                self.assertEqual(result["status"], "SOURCE_ARITHMETIC_OBSERVED")
+                self.assertEqual(result["items"][0]["reciprocal_display_encoding"],
+                                 "UNITY_OVER_DENOMINATOR")
+                self.assertFalse(result["items"][0]["ratio_units_approved"])
+
+    def test_invalid_fraction_and_spurious_tolerance_are_rejected(self):
+        for bad in ("2/1289","1/0","1/01289","1/100"," 1/1289 ",
+                    "1/1289/2","1/inf"):
+            with self.subTest(bad=bad):
+                payload = numeric_source()
+                payload["tables"][TABLES[2]]["rows"][0].update(
+                    Drift="0.000776", **{"Drift/":bad})
+                self.assertEqual(evaluate_analysis_numerics(payload)["results"][3]["status"],
+                                 "NOT_PROVEN")
+        payload = numeric_source()
+        payload["tables"][TABLES[0]]["rows"][0].update(
+            Period="0.005",Frequency="221.99",
+            CircFreq="1436.2635",Eigenvalue="2062852.84")
+        self.assertEqual(evaluate_analysis_numerics(payload)["results"][0]["status"],
+                         "NOT_PROVEN")
+
+
 class Vs04NumericalReportTests(unittest.TestCase):
     def setUp(self):
         self.tmp = TemporaryDirectory()

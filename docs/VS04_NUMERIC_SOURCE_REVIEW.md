@@ -28,15 +28,22 @@ arithmetic/quantity components in a separate immutable receipt.
 ```text
 Modal:  f = 1/T; omega = 2*pi*f; eigenvalue = omega**2
 Base:   independently qualified FX or FY source component, not Vt/VtE
-Drift:  Drift * Drift/ = 1 (display scalar identity only, if parsable)
+Drift:  observed Drift × denominator(Drift/) ≈ 1 with displayed precision
+        e.g. Drift/ = "1/1289" means displayed 1/N, N=1289 (not 1/1289
+        as an arithmetic multiplier).
 ```
 
-Modal identities use explicit observed units, finite positive quantities, exact
-case/mode IDs, no duplicate/omitted modes and 1% tolerance for formatted
-source values. That tolerance is a screening criterion, not a precision proof.
-If displayed values round too coarsely, the mode is NOT_PROVEN rather than
-silently repaired. No positive source consistency can be inferred if the
-selected modal-case rows are absent.
+Modal identities use explicit observed units, finite positive quantities,
+exact case/mode IDs and no duplicate/omitted modes. After real replay,
+modes 83-100 included 14 conflicts with the obsolete fixed 1% tolerance
+because ETABS rendered very short periods to three decimal places (e.g.,
+T=0.005 s and f=221.99 Hz at mode 99). The revised comparator uses
+**half of the exact displayed decimal quantum** to construct precision
+intervals for T, f, omega and eigenvalue. It requires the admissible frequency
+intervals from all four observations to intersect. This is not a blanket
+tolerance increase: contradictory f, omega and eigen remain NOT_PROVEN.
+The actual 14 Eigenvalue cells were not provided in the pasted diagnostic,
+so their live replay conclusion remains PENDING.
 
 Base reactions bind by exact case and `LinRespSpec + Max` and require **one**
 row per requested X/Y case. Missing/ambiguous rows, wrong field units or
@@ -46,9 +53,15 @@ vector. No auto-scaling of response-spectrum results or minimum-base-shear
 TBDY rule is performed.
 
 Story drifts bind by exact story/case/direction/step/label/coordinate grain.
-Only finite nonzero positive `Drift` and `Drift/` scalars with a consistent
-reciprocal product may receive SOURCE_ARITHMETIC_OBSERVED. Duplicate identities,
-unrecognized representations or blank required identities become NOT_PROVEN.
+Actual ETABS 23.2 `Drift/` cells displayed `1/1289`, `1/1255`,
+`1/1963` (X) and `1/836`, `1/848`, `1/2587` (Y), rather than plain
+floating-point denominators. The parser accepts this **exact unity-over-
+positive-integer syntax**, compares `1/N` to the rounding interval of the
+observed positive `Drift`, and also preserves the previous numeric denominator
+representation. Arbitrary fractions, invalid/zero denominators, duplicate
+identities, and mismatching rounded values become NOT_PROVEN. The textual
+representation does not itself prove the physical meaning or normative units
+of the ETABS field.
 **This cannot determine physical drift, relative drift ratio, effective drift,
 lambda, R/I, or code compliance; no story-population completeness is proven.**
 
@@ -72,7 +85,8 @@ No source data, project paths or raw ETABS tables are committed to GitHub.
 | VS04 source acquisition (Windows) | OBSERVED 3/3; 193 rows |
 | Source-only arithmetic unit tests | CI REQUIRED |
 | Five arithmetic/source components wired to UI and JSON/HTML | CANDIDATE |
-| Real 193-row numerical replay | NOT_PROVEN until local VS04_RAW supplied |
+| First actual RAW replay (previous algorithm) | 2/5 components; 14 modal rows rejected and 6 Drift/ fields could not parse |
+| Corrected RAW replay | PENDING; local VS04_RAW is required again |
 | Source-to-analysis generation qualification | NOT_PROVEN |
 | R/D, spectrum case-role, scaling, mass, minimum base shear | NOT_PROVEN |
 | TBDY effective story drift / λ / R/I / applicability | NOT_PROVEN |

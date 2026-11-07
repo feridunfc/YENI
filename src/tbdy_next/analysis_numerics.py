@@ -9,6 +9,7 @@ analysis generation, spectrum scaling, or story-drift code requirements.
 from __future__ import annotations
 
 from decimal import Decimal, InvalidOperation, localcontext
+import re
 from typing import Any, Mapping
 
 from .analysis_sources import TABLES, review_analysis_sources
@@ -76,6 +77,46 @@ def _within(actual: Decimal, expected: Decimal) -> bool:
     return abs(actual - expected) <= max(_ABS_TOL, abs(expected) * _REL_TOL)
 
 
+def _display_interval(value: Decimal, literal: Any) -> tuple[Decimal, Decimal]:
+    """Decimal display rounding interval at the precision actually printed.
+
+    Only exact, observed value formatting determines the interval. A synthetic
+    tolerance percentage cannot upgrade inconsistent source rows.
+    """
+    if not isinstance(literal, str) or not literal.strip():
+        raise ValueError("SOURCE_PRECISION_LITERAL_MISSING")
+    quantum = Decimal(1).scaleb(value.as_tuple().exponent)
+    half = quantum / Decimal(2)
+    return value - half, value + half
+
+
+def _intersect(*bounds: tuple[Decimal, Decimal]) -> tuple[Decimal, Decimal]:
+    low = max(bounds[0] for bounds in bounds)
+    high = min(bounds[1] for bounds in bounds)
+    if low > high:
+        raise ValueError("DISPLAY_PRECISION_INTERVALS_DISJOINT")
+    return low, high
+
+
+def _display_denominator(raw: Any) -> tuple[Decimal, str]:
+    """ETABS observed '1/1289' is a label for inverse drift denominator.
+
+    Maintain the prior plain-numeric denominator display compatibility.
+    Unrecognized expressions are rejected, not evaluated.
+    """
+    if not isinstance(raw, str):
+        raise ValueError("DRIFT_RECIPROCAL_DISPLAY_INVALID")
+    value = raw.strip()
+    if value != raw or not value:
+        raise ValueError("DRIFT_RECIPROCAL_DISPLAY_INVALID")
+    fraction = re.fullmatch(r"1/([1-9][0-9]*)", value)
+    if fraction:
+        return Decimal(fraction.group(1)), "UNITY_OVER_DENOMINATOR"
+    if "/" in value:
+        raise ValueError("DRIFT_RECIPROCAL_FORMAT_UNRECOGNIZED")
+    return _number(value, positive=True), "NUMERIC_DENOMINATOR"
+
+
 def _summary(code: str, *, rows: list[dict] | None = None, reasons: list[str] | None = None,
              captured: int = 0) -> dict:
     rows = rows or []
@@ -138,10 +179,25 @@ def _periods(source: Mapping[str, Any]) -> dict:
                     relative_error_omega=str(abs(omega - expected_w) / expected_w),
                     relative_error_eigen=str(abs(eigen - expected_eigen) / expected_eigen),
                 )
-                if not all((_within(f, expected_f),
-                            _within(omega, expected_w),
-                            _within(eigen, expected_eigen))):
-                    raise ValueError("PERIOD_FREQUENCY_EIGEN_INCONSISTENT_OR_ROUNDED")
+                # ETABS renders high modes as T=0.005 s while frequency,
+                # circular frequency and eigenvalue retain substantially
+                # greater precision. Build one coherent admissible frequency
+                # interval from all four printed quantities.
+                t_low, t_high = _display_interval(t, row["Period"])
+                f_low, f_high = _display_interval(f, row["Frequency"])
+                w_low, w_high = _display_interval(omega, row["CircFreq"])
+                e_low, e_high = _display_interval(eigen, row["Eigenvalue"])
+                if min(t_low, f_low, w_low, e_low) <= 0:
+                    raise ValueError("DISPLAY_ROUNDING_INTERVAL_NOT_POSITIVE")
+                _intersect(
+                    (Decimal(1) / t_high, Decimal(1) / t_low),
+                    (f_low, f_high),
+                    (w_low / (2 * _PI), w_high / (2 * _PI)),
+                    (e_low.sqrt() / (2 * _PI), e_high.sqrt() / (2 * _PI)),
+                )
+                item["comparison_basis"] = "EXACT_DISPLAY_PRECISION_INTERVAL"
+                item["period_display_quantum_sec"] = str(
+                    Decimal(1).scaleb(t.as_tuple().exponent))
             item["status"] = "SOURCE_ARITHMETIC_OBSERVED"
         except (ValueError, InvalidOperation, OverflowError) as exc:
             item["reason"] = str(exc)
@@ -224,14 +280,22 @@ def _story_drifts(source: Mapping[str, Any], direction: str) -> dict:
             seen.add(grain)
             if not row["Story"].strip() or not row["Label"].strip():
                 raise ValueError("STORY_DRIFT_PHYSICAL_GRAIN_MISSING")
-            drift = _number(row["Drift"])
-            recip = _number(row["Drift/"])
-            if drift <= 0 or recip <= 0:
+            drift = _number(row["Drift"], positive=True)
+            denominator, encoding = _display_denominator(row["Drift/"])
+            if denominator <= 0:
                 raise ValueError("ZERO_OR_NEGATIVE_DRIFT_NO_RECIPROCAL")
-            product = drift * recip
-            item["observed_reciprocal_product"] = str(product)
-            if not _within(product, Decimal(1)):
+            # Check one exact displayed reciprocal against the observed
+            # Drift rounding interval. Do not infer absolute displacement,
+            # geometric story height or approved TBDY drift-ratio semantics.
+            d_low, d_high = _display_interval(drift, row["Drift"])
+            if d_low <= 0:
+                raise ValueError("DRIFT_DISPLAY_INTERVAL_NOT_POSITIVE")
+            if not d_low <= Decimal(1) / denominator <= d_high:
                 raise ValueError("DRIFT_RECIPROCAL_DISPLAY_MISMATCH")
+            item["observed_reciprocal_product"] = str(drift * denominator)
+            item["display_denominator"] = str(denominator)
+            item["reciprocal_display_encoding"] = encoding
+            item["comparison_basis"] = "EXACT_DISPLAY_PRECISION_INTERVAL"
             item["status"] = "SOURCE_ARITHMETIC_OBSERVED"
         except (KeyError, ValueError) as exc:
             item["reason"] = str(exc)
