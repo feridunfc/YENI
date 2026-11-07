@@ -12,6 +12,7 @@ from pathlib import Path
 
 from tbdy_next.analysis_sources import review_analysis_sources
 from tbdy_next.analysis_numerics import evaluate_analysis_numerics
+from tbdy_next.normative_basis import review_normative_readiness
 
 MAX_RAW_BYTES = 32 * 1024 * 1024
 
@@ -31,12 +32,14 @@ def replay_raw_file(input_file: Path, out_file: Path) -> dict:
         raise ValueError("VS04_RAW top level must be a JSON object")
     schema = review_analysis_sources(source)
     numeric = evaluate_analysis_numerics(source)
+    normative = review_normative_readiness(source)
     output = {
         "schema": "tbdy.next.vs04.offline-source-replay.v1",
         "input_sha256": sha256(data).hexdigest(),
         "input_size_bytes": len(data),
         "source_schema_review": schema,
         "numeric_source_review": numeric,
+        "normative_readiness": normative,
         "formal_compliance": "NOT_PROVEN",
         "engineering_release": "NOT_READY",
         "source_raw_included": False,
@@ -66,6 +69,12 @@ def main(argv=None) -> int:
         print(comp["component"], "|", comp["status"],
               "|", comp["observed_row_count"], "/", comp["expected_row_count"],
               "|", ",".join(comp["reason_codes"]))
+    readiness = result["normative_readiness"]
+    print("Normative regulatory checks:", readiness["regulatory_checks_executed"],
+          "/", readiness["expected_check_count"])
+    for gate in readiness["checks"]:
+        print("NOT_PROVEN", gate["check_id"], "| missing:",
+              ",".join(gate["missing_evidence"]))
     print("Output:", args.out.resolve())
     print("Engineering release: NOT_READY")
     return 0

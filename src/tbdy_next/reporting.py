@@ -89,6 +89,8 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
     vs04_receipt = None
     vs04_numerics = None
     vs04_numeric_receipt = None
+    vs04_readiness = None
+    vs04_readiness_receipt = None
     if "analysis_sources" in source:
         from .analysis_sources import review_analysis_sources
         vs04_receipt = _read_receipt(directory, "vs04-schema")
@@ -109,6 +111,18 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
             vs04_numerics = evaluate_analysis_numerics(source["analysis_sources"])
             if vs04_numerics != vs04_numeric_receipt["payload"]:
                 raise ReportUnavailable("VS04 numerical source/receipt mismatch")
+        vs04_readiness_receipt = _read_receipt(directory, "vs04-readiness")
+        readiness_required = source["analysis_sources"].get("readiness_stage_required") is True
+        if readiness_required and (vs04_readiness_receipt is None or
+                                   vs04_readiness_receipt.get("input_sha256") != modal["input_sha256"]):
+            raise ReportUnavailable("VS04-E required readiness receipt unavailable")
+        if vs04_readiness_receipt is not None:
+            from .normative_basis import review_normative_readiness
+            if vs04_readiness_receipt.get("input_sha256") != modal["input_sha256"]:
+                raise ReportUnavailable("VS04-E readiness input hash mismatch")
+            vs04_readiness = review_normative_readiness(source["analysis_sources"])
+            if vs04_readiness != vs04_readiness_receipt["payload"]:
+                raise ReportUnavailable("VS04-E readiness source/receipt mismatch")
 
     frame_rows = ((geometry_source or {}).get("tables", {}).get("FRAME_ASSIGNMENTS", {})
                   .get("rows", []) or [])
@@ -143,6 +157,7 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         "scope": "modal 95% + 4 RC geometry screens" + (" + concrete fck + A1 X/Y observed classification" if new_checks else "") + (" + VS04 source schema observation (no new checks)" if vs04 else ""),
         "vs04": vs04,
         "vs04_numerics": vs04_numerics,
+        "vs04_readiness": vs04_readiness,
         "vs03": new_checks,
         "checks": checks,
         "modal_source_table": {
@@ -167,6 +182,7 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
             "geometry_receipt_sha256": quick["receipt_sha256"],
             "vs04_schema_receipt_sha256": vs04_receipt["receipt_sha256"] if vs04_receipt else None,
             "vs04_numerics_receipt_sha256": vs04_numeric_receipt["receipt_sha256"] if vs04_numeric_receipt else None,
+            "vs04_readiness_receipt_sha256": vs04_readiness_receipt["receipt_sha256"] if vs04_readiness_receipt else None,
             "note": "These are local source/receipt fingerprints, not third-party authorization.",
         },
         "source_snapshot": source,  # Full raw 7 tables + exact material facts for independent review.
@@ -264,6 +280,16 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
                 vs04_sections.append('<section class="percheck"><h2>VS04 ham ETABS kaynağı · '
                                     + _val(key) + "</h2>"
                                     + _table(columns, rows, "modal-grid") + "</section>")
+    readiness = report.get("vs04_readiness")
+    if readiness:
+        cols = (("check_id", "Beklenen normatif hesap"),("code_ref", "TBDY"),
+                ("status", "Kanıt durumu"),("missing_evidence", "Eksik bağımlılıklar"),
+                ("source_only_hints", "Gözlenen ancak yetersiz kaynak"))
+        vs04_sections.append('<section class="percheck"><h2>VS04-E · TBDY normatif kanıt kapıları</h2>'
+                             '<p>Kaynak aritmetiği ile yönetmelik denetimi farklıdır. '
+                             'Buradaki 5 beklenen kontrol henüz çalıştırılmamıştır; '
+                             'bina uygunluğu NOT_PROVEN ve release NOT_READY.</p>'
+                             + _table(cols, readiness.get("checks", [])) + '</section>')
     numeric = report.get("vs04_numerics")
     if numeric:
         numeric_cols = (("component", "Kaynak niceliği"), ("status", "Kaynak durumu"),

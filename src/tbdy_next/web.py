@@ -22,6 +22,7 @@ from .quick_checks import check_registry, evaluate_geometry_capture
 from .next_checks import evaluate_next_capture
 from .analysis_sources import review_analysis_sources
 from .analysis_numerics import evaluate_analysis_numerics
+from .normative_basis import review_normative_readiness
 from .reporting import ReportUnavailable, build_complete_report, build_printable_html
 from .receipts import ReceiptRun
 from .schema import review_modal_schema
@@ -95,7 +96,7 @@ def make_handler(output_root: Path, *, live_capture=None):
                 self.end_headers()
                 self.wfile.write(contents)
             elif url.path == "/api/health":
-                self.reply(200, {"status": "READY_FOR_VS04_SCHEMA_CAPTURE", "implemented_slices": ["MODAL_MASS_RATIO", "MATERIAL_FCK_25", "A1_X_Y_SOURCE_CLASSIFICATION"], "source_only_slices": ["VS04_ANALYSIS_SOURCE_SCHEMA"], "engineering_release": "NOT_READY"})
+                self.reply(200, {"status": "READY_FOR_VS04_SCHEMA_CAPTURE", "implemented_slices": ["MODAL_MASS_RATIO", "MATERIAL_FCK_25", "A1_X_Y_SOURCE_CLASSIFICATION"], "source_only_slices": ["VS04_ANALYSIS_SOURCE_SCHEMA", "VS04_ANALYSIS_NUMERIC_SOURCE", "VS04_E_NORMATIVE_READINESS"], "engineering_release": "NOT_READY"})
             elif url.path == "/api/runs":
                 self.reply(200, {"runs": _runs(output_root)})
             elif url.path == "/api/check-registry":
@@ -232,11 +233,14 @@ def make_handler(output_root: Path, *, live_capture=None):
                         run.record("quick-extra", extra, input_sha256=input_sha)
                     vs04 = None
                     vs04_numerics = None
+                    vs04_readiness = None
                     if "analysis_sources" in payload:
                         vs04 = review_analysis_sources(payload["analysis_sources"])
                         run.record("vs04-schema", vs04, input_sha256=input_sha)
                         vs04_numerics = evaluate_analysis_numerics(payload["analysis_sources"])
                         run.record("vs04-numerics", vs04_numerics, input_sha256=input_sha)
+                        vs04_readiness = review_normative_readiness(payload["analysis_sources"])
+                        run.record("vs04-readiness", vs04_readiness, input_sha256=input_sha)
                     meta = payload.get("capture_metadata") or {}
                     run.record("live-capture", {
                         "status": "SOURCE_CAPTURED", "source_mode": "LIVE_ETABS",
@@ -251,6 +255,7 @@ def make_handler(output_root: Path, *, live_capture=None):
                         "source_rows": payload["table"]["row_count"],
                         "source_mode": "LIVE_ETABS", "geometry": geometry, "extra_checks": extra,
                         "vs04_schema": vs04, "vs04_numerics": vs04_numerics,
+                        "vs04_readiness": vs04_readiness,
                         "engineering_release": "NOT_READY",
                     })
                 except (ValueError, TypeError, KeyError) as exc:

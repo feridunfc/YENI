@@ -6,6 +6,7 @@
   let latestExtra = null;
   let latestVs04 = null;
   let latestVs04Numerics = null;
+  let latestVs04Readiness = null;
   const nav = document.getElementById('nav');
   const byId = id => document.getElementById(id);
   const exportActions = document.createElement('div');
@@ -45,7 +46,7 @@
     selectedRunId = chooseRun.value;
     const chosen = cachedHistory.find(r => r.run_id === selectedRunId);
     if (chosen) {
-      useReport(chosen.geometry, chosen.extra_checks, chosen.vs04_schema, chosen.vs04_numerics);
+      useReport(chosen.geometry, chosen.extra_checks, chosen.vs04_schema, chosen.vs04_numerics, chosen.vs04_readiness);
       if (typeof showResult === 'function') {
         showResult('Kaydedilmiş modal hesap', {run_id: chosen.run_id, result: chosen.modal});
       }
@@ -173,6 +174,21 @@
         host.append(details);
       }
     }
+    if (latestVs04Readiness) {
+      host.append(make('h3', 'VS04-E · Normatif kanıt kapıları · ' + latestVs04Readiness.status));
+      host.append(make('p', 'TBDY normatif hesap: ' + latestVs04Readiness.regulatory_checks_executed +
+        ' / ' + latestVs04Readiness.expected_check_count +
+        ' · Uygunluk NOT_PROVEN. Kaynak aritmetiği yönetmelik kabulü değildir.', 'warn'));
+      for (const gate of latestVs04Readiness.checks || []) {
+        const details = make('details');
+        details.append(make('summary', gate.check_id + ' · ' + gate.status));
+        details.append(make('pre', JSON.stringify({
+          code_ref:gate.code_ref, missing_evidence:gate.missing_evidence,
+          source_only_hints:gate.source_only_hints
+        }, null, 2)));
+        host.append(details);
+      }
+    }
     for (const entry of latestVs04.tables || []) {
       const details = make('details');
       details.append(make('summary', entry.table_key + ' · ' + entry.status + ' · ' + (entry.row_count ?? '—') + ' satır'));
@@ -227,11 +243,12 @@
       byId('quickStatus').textContent = 'Kontrol ağacı yüklenemedi: ' + error.message;
     }
   }
-  function useReport(report, extra, vs04, vs04Numerics) {
+  function useReport(report, extra, vs04, vs04Numerics, vs04Readiness) {
     latest = report;
     latestExtra = extra || null;
     latestVs04 = vs04 || null;
     latestVs04Numerics = vs04Numerics || null;
+    latestVs04Readiness = vs04Readiness || null;
     renderVs04();
     renderExtras(active);
     renderQuick(report, 7);
@@ -253,7 +270,7 @@
       }
       const first = cachedHistory[0] || null;
       if (first) {
-        useReport(first.geometry, first.extra_checks, first.vs04_schema, first.vs04_numerics);
+        useReport(first.geometry, first.extra_checks, first.vs04_schema, first.vs04_numerics, first.vs04_readiness);
         setExportRun(first.run_id);
         byId('quickStatus').textContent = `Son canlı tarama: ${first.model_name || 'ETABS'} · ${first.captured_at_utc}`;
       }
@@ -273,7 +290,7 @@
       if (!response.ok) throw new Error(body.result?.reason || body.reason || `HTTP ${response.status}`);
       if (typeof showResult === 'function') showResult('Canlı ETABS · 8 kontrol', body);
       if (typeof window.showModalFullTable === 'function') window.showModalFullTable(body.run_id);
-      useReport(body.geometry, body.extra_checks, body.vs04_schema, body.vs04_numerics);
+      useReport(body.geometry, body.extra_checks, body.vs04_schema, body.vs04_numerics, body.vs04_readiness);
       setExportRun(body.run_id, `${body.model_name || 'ETABS'} · yeni canlı çalışma`);
       byId('step1').textContent = `LIVE_ETABS · ${body.source_rows} modal satır`;
       byId('step2').textContent = body.geometry?.status || 'Şema bekleniyor';

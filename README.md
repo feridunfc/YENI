@@ -164,3 +164,16 @@ The new `VS04_REPLAY_LATEST.json` has source-schema diagnostics, five
 component-level source-math results, and input SHA-256, but excludes the complete
 raw source rows. Share this replay first; real source data is still necessary
 for independent row-by-row acceptance. Full engineering release stays NOT_READY.
+
+## VS04-E — Normative readiness and targeted ETABS basis inventory
+
+The five planned TBDY rule instances are compiled with **all missing input
+requirements shown**, rather than treating a 5/5 source-arithmetic result as
+formal compliance. Eq (4.19), (4.31), (4.33), and (4.34) are implemented as
+unit-checked, **formula-only** kernels. No additional check becomes PASS.
+
+`tools/probe_vs04e_basis_windows.py` captures a read-only index and bounded
+source fields/rows for *candidate* seismic-mass, story-geometry, response-
+spectrum and case-definition tables from the already-open ETABS model. No
+source key is auto-approved by fuzzy matching. Review the
+[VS04-E source and normative dependency contract](docs/VS04_E_NORMATIVE_BASIS.md).
