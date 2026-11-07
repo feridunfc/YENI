@@ -63,3 +63,27 @@ Browser PDF output uses the print command; it is not a separate regulatory repor
 Future check slices must extend this shared report boundary, not create shadow
 PASS/FAIL calculators. Sensitive model/source data stay on the local computer
 until a person explicitly downloads and shares the export.
+
+
+## VS03 candidate source-to-report extension
+
+```text
+One COM session / existing ETABS model
+  ├─ VS01: Modal Participating Mass Ratios → 95% numerical result
+  ├─ VS02: 6 geometry tables + PropMaterial.GetTypeOAPI → 4 RC geometry screens
+  └─ VS03: Material Properties - Concrete Data → used concrete fck ≥ 25 MPa
+          Story Max Over Avg Drifts (RSX/RSY) → A1 X/Y observed classification
+                         ↓
+Source fields + explicit unit validation → result per material/story/direction
+                         ↓
+One archived input.source → modal/quick-geometry/quick-extra receipts
+                         ↓
+Same /api/export-checks JSON and /report/print HTML, no second calculator
+```
+
+For VS03, `next_capture.py` only fetches the two extra tables and restores display
+selection; `next_checks.py` performs the typed numerical boundaries. Unknown
+fields, units, cases, or story rows are `NOT_PROVEN`, not PASS. A1 applicability,
+seismic direction role, eccentricity basis and whole-building engineering release
+remain `NOT_PROVEN` until live-source review. Previous five-check exports
+remain valid. No pre-existing codebase is a runtime dependency.
