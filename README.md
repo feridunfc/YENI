@@ -132,3 +132,17 @@ appear in JSON and complete raw tables in the printable HTML. No case naming,
 analysis generation, code compliance, or numerical readiness is inferred.
 
 See [VS04 source/acceptance protocol](docs/VS04_ANALYSIS_SOURCE_SCHEMA.md).
+
+## VS04 — bounded analysis-source arithmetic (review candidate)
+
+For a VS04 web run, the same signed source archive now produces a second receipt,
+`vs04-numerics`. It checks exactly the observed ETABS modal T/f/omega/eigen
+identities, separately records X/Y Base Reactions components (without asserting
+concurrent vectors or spectrum scaling), and tests algebraic `Drift × Drift/`
+consistency for exactly selected X/Y rows (without approving the drift units or
+TBDY effective-drift semantics). Five **source components**, zero new formal
+regulatory checks. The existing eight accepted VS01–VS03 checks remain unchanged.
+
+HTML and JSON show the complete source arithmetic and its blockers. Missing,
+changed, or forged receipts reject the export for newly captured VS04 runs.
+See [VS04 numerical source protocol](docs/VS04_NUMERIC_SOURCE_REVIEW.md).

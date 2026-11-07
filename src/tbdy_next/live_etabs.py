@@ -80,6 +80,7 @@ def read_quick_suite_from_running_etabs(case: str, *, with_vs04: bool = False) -
             if with_vs04:
                 from .analysis_sources import capture_analysis_sources
                 payload["analysis_sources"] = capture_analysis_sources(sap, modal_case=case)
+                payload["analysis_sources"]["numeric_stage_required"] = True
             return payload
         finally:
             sap = None

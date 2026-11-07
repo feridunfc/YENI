@@ -87,6 +87,8 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         checks.extend(new_checks["checks"])
     vs04 = None
     vs04_receipt = None
+    vs04_numerics = None
+    vs04_numeric_receipt = None
     if "analysis_sources" in source:
         from .analysis_sources import review_analysis_sources
         vs04_receipt = _read_receipt(directory, "vs04-schema")
@@ -95,6 +97,18 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         vs04 = review_analysis_sources(source["analysis_sources"])
         if vs04 != vs04_receipt["payload"]:
             raise ReportUnavailable("VS04 source/receipt mismatch")
+        vs04_numeric_receipt = _read_receipt(directory, "vs04-numerics")
+        expected = source["analysis_sources"].get("numeric_stage_required") is True
+        if expected and (vs04_numeric_receipt is None or
+                         vs04_numeric_receipt.get("input_sha256") != modal["input_sha256"]):
+            raise ReportUnavailable("VS04 required numerical source receipt unavailable")
+        if vs04_numeric_receipt is not None:
+            from .analysis_numerics import evaluate_analysis_numerics
+            if vs04_numeric_receipt.get("input_sha256") != modal["input_sha256"]:
+                raise ReportUnavailable("VS04 numerical source input hash mismatch")
+            vs04_numerics = evaluate_analysis_numerics(source["analysis_sources"])
+            if vs04_numerics != vs04_numeric_receipt["payload"]:
+                raise ReportUnavailable("VS04 numerical source/receipt mismatch")
 
     frame_rows = ((geometry_source or {}).get("tables", {}).get("FRAME_ASSIGNMENTS", {})
                   .get("rows", []) or [])
@@ -128,6 +142,7 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         "formal_compliance": "NOT_PROVEN",
         "scope": "modal 95% + 4 RC geometry screens" + (" + concrete fck + A1 X/Y observed classification" if new_checks else "") + (" + VS04 source schema observation (no new checks)" if vs04 else ""),
         "vs04": vs04,
+        "vs04_numerics": vs04_numerics,
         "vs03": new_checks,
         "checks": checks,
         "modal_source_table": {
@@ -151,6 +166,7 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
             "modal_receipt_sha256": modal["receipt_sha256"],
             "geometry_receipt_sha256": quick["receipt_sha256"],
             "vs04_schema_receipt_sha256": vs04_receipt["receipt_sha256"] if vs04_receipt else None,
+            "vs04_numerics_receipt_sha256": vs04_numeric_receipt["receipt_sha256"] if vs04_numeric_receipt else None,
             "note": "These are local source/receipt fingerprints, not third-party authorization.",
         },
         "source_snapshot": source,  # Full raw 7 tables + exact material facts for independent review.
@@ -248,6 +264,23 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
                 vs04_sections.append('<section class="percheck"><h2>VS04 ham ETABS kaynağı · '
                                     + _val(key) + "</h2>"
                                     + _table(columns, rows, "modal-grid") + "</section>")
+    numeric = report.get("vs04_numerics")
+    if numeric:
+        numeric_cols = (("component", "Kaynak niceliği"), ("status", "Kaynak durumu"),
+                        ("expected_row_count", "Görüntülenen satır"),
+                        ("observed_row_count", "Aritmetik gözlem"),
+                        ("reason_codes", "Engeller"))
+        vs04_sections.append('<section class="percheck"><h2>VS04 · Sayısal kaynak tutarlılığı</h2>'
+                             '<p>Yalnız kaynak aritmetiği: normatif kontrol sayısı 0. '
+                             'Drift/ fiziksel anlamı ve analiz nesli henüz onaylanmamıştır.</p>'
+                             + _table(numeric_cols, numeric.get("results", [])) + '</section>')
+        for result in numeric.get("results", []):
+            vs04_sections.append('<section class="percheck"><h2>VS04 · '
+                                 + _val(result.get("component")) + '</h2>'
+                                 + _table(tuple((k, k) for k in (
+                                     tuple(result.get("items", [{}])[0].keys())
+                                     if result.get("items") else ("reason",))),
+                                     result.get("items") or []) + '</section>')
     modal_table = report["modal_source_table"]
     fields = modal_table.get("fields") or []
     modal_cols = tuple((field, field) for field in fields)

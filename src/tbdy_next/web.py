@@ -21,6 +21,7 @@ from .history import modal_history, modal_source_table, quick_history
 from .quick_checks import check_registry, evaluate_geometry_capture
 from .next_checks import evaluate_next_capture
 from .analysis_sources import review_analysis_sources
+from .analysis_numerics import evaluate_analysis_numerics
 from .reporting import ReportUnavailable, build_complete_report, build_printable_html
 from .receipts import ReceiptRun
 from .schema import review_modal_schema
@@ -230,9 +231,12 @@ def make_handler(output_root: Path, *, live_capture=None):
                         extra = evaluate_next_capture(payload["next_capture"], payload.get("geometry_capture"))
                         run.record("quick-extra", extra, input_sha256=input_sha)
                     vs04 = None
+                    vs04_numerics = None
                     if "analysis_sources" in payload:
                         vs04 = review_analysis_sources(payload["analysis_sources"])
                         run.record("vs04-schema", vs04, input_sha256=input_sha)
+                        vs04_numerics = evaluate_analysis_numerics(payload["analysis_sources"])
+                        run.record("vs04-numerics", vs04_numerics, input_sha256=input_sha)
                     meta = payload.get("capture_metadata") or {}
                     run.record("live-capture", {
                         "status": "SOURCE_CAPTURED", "source_mode": "LIVE_ETABS",
@@ -246,7 +250,7 @@ def make_handler(output_root: Path, *, live_capture=None):
                         "case_row_count": meta.get("case_row_count"),
                         "source_rows": payload["table"]["row_count"],
                         "source_mode": "LIVE_ETABS", "geometry": geometry, "extra_checks": extra,
-                        "vs04_schema": vs04,
+                        "vs04_schema": vs04, "vs04_numerics": vs04_numerics,
                         "engineering_release": "NOT_READY",
                     })
                 except (ValueError, TypeError, KeyError) as exc:
