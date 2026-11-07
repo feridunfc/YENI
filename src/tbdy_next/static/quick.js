@@ -5,6 +5,56 @@
   let latest = null;
   const nav = document.getElementById('nav');
   const byId = id => document.getElementById(id);
+  const exportActions = document.createElement('div');
+  exportActions.className = 'actions';
+  exportActions.id = 'quickExportActions';
+  const exportTitle = document.createElement('span');
+  exportTitle.className = 'muted small';
+  exportTitle.textContent = 'Tam rapor / JSON: önce beş kontrolü çalıştırın.';
+  const chooseRun = document.createElement('select');
+  chooseRun.className = 'field';
+  chooseRun.style.width = 'auto';
+  chooseRun.setAttribute('aria-label', 'Raporlanacak kayıt');
+  const jsonButton = document.createElement('button');
+  jsonButton.className = 'go'; jsonButton.type = 'button';
+  jsonButton.textContent = 'Tam JSON dışa aktar';
+  const printButton = document.createElement('button');
+  printButton.className = 'go'; printButton.type = 'button';
+  printButton.textContent = 'Mühendislik raporu / PDF';
+  let selectedRunId = '';
+  function setExportRun(runId, caption) {
+    if (!/^RUN-[a-f0-9]{32}$/.test(runId || '')) return;
+    if (![...chooseRun.options].some(o => o.value === runId)) {
+      const option = document.createElement('option');
+      option.value = runId;
+      option.textContent = caption || runId;
+      chooseRun.prepend(option);
+    }
+    chooseRun.value = runId;
+    selectedRunId = runId;
+    jsonButton.disabled = false;
+    printButton.disabled = false;
+    exportTitle.textContent = 'Kayıtlı beş kontrolün tamamı: kaynak veriler + tüm eleman satırları.';
+  }
+  jsonButton.disabled = true;
+  printButton.disabled = true;
+  chooseRun.addEventListener('change', () => {
+    selectedRunId = chooseRun.value;
+    const chosen = cachedHistory.find(r => r.run_id === selectedRunId);
+    if (chosen) useReport(chosen.geometry);
+  });
+  jsonButton.addEventListener('click', () => {
+    if (!selectedRunId) return;
+    window.location.assign('/api/export-checks?run_id=' + encodeURIComponent(selectedRunId));
+  });
+  printButton.addEventListener('click', () => {
+    if (!selectedRunId) return;
+    window.open('/report/print?run_id=' + encodeURIComponent(selectedRunId), '_blank', 'noopener');
+  });
+  exportActions.append(exportTitle, chooseRun, jsonButton, printButton);
+  const reportStatus = byId('quickStatus');
+  reportStatus?.insertAdjacentElement('afterend', exportActions);
+  let cachedHistory = [];
   function make(tag, value, css) {
     const e = document.createElement(tag);
     if (value !== undefined) e.textContent = String(value);
@@ -115,9 +165,20 @@
       const response = await fetch('/api/quick-history', {cache:'no-store'});
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
-      const first = Array.isArray(data.runs) && data.runs.length ? data.runs[0] : null;
-      if (first) useReport(first.geometry);
-      if (first) byId('quickStatus').textContent = `Son canlı tarama: ${first.model_name || 'ETABS'} · ${first.captured_at_utc}`;
+      cachedHistory = Array.isArray(data.runs) ? data.runs : [];
+      chooseRun.replaceChildren();
+      for (const entry of cachedHistory) {
+        const option = document.createElement('option');
+        option.value = entry.run_id;
+        option.textContent = `${entry.model_name || 'ETABS'} · ${entry.captured_at_utc.replace('T', ' ').slice(0, 19)} · ${entry.run_id.slice(-6)}`;
+        chooseRun.append(option);
+      }
+      const first = cachedHistory[0] || null;
+      if (first) {
+        useReport(first.geometry);
+        setExportRun(first.run_id);
+        byId('quickStatus').textContent = `Son canlı tarama: ${first.model_name || 'ETABS'} · ${first.captured_at_utc}`;
+      }
     } catch (error) {
       byId('quickStatus').textContent = 'Geçmiş kontrol kaydı okunamadı: ' + error.message;
     }
@@ -135,6 +196,7 @@
       if (typeof showResult === 'function') showResult('Canlı ETABS · 5 kontrol', body);
       if (typeof window.showModalFullTable === 'function') window.showModalFullTable(body.run_id);
       useReport(body.geometry);
+      setExportRun(body.run_id, `${body.model_name || 'ETABS'} · yeni canlı çalışma`);
       byId('step1').textContent = `LIVE_ETABS · ${body.source_rows} modal satır`;
       byId('step2').textContent = body.geometry?.status || 'Şema bekleniyor';
       byId('step3').textContent = body.result.status;

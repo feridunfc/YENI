@@ -48,3 +48,18 @@ flowchart LR
 One slice at a time: observe real ETABS schema -> validate fields and complete rows -> compute derived quantities -> apply one bounded rule -> persist result -> add UI panel. Every stage has tests and a local receipt. When existing schema is insufficient, perform a **targeted** live-ETABS or offline capture—not a full restart of schema/census research.
 
 VS02: full modal case/source-basis interpretation; VS03: spectral response/base shear; VS04: column axial; later: second-order/PMM, shear, SCWB. No placeholders are promoted to executed checks.
+
+## Full report contract (VS02)
+
+`reporting.py` is a pure presentation/export boundary. It reuses the canonical
+VS01 modal evaluator and VS02 geometry evaluator to compare results to the
+existing archived receipts; it never evaluates a new formula. The complete
+report includes all registered check instances, 100% of their element rows,
+source table/field metadata, full raw source snapshot, material type facts and
+receipt hashes. `GET /api/export-checks?run_id=...` returns full JSON;
+`GET /report/print?run_id=...` returns print-ready standalone HTML. Both
+require an exact existing verified five-check run ID. No ETABS API is called.
+Browser PDF output uses the print command; it is not a separate regulatory report.
+Future check slices must extend this shared report boundary, not create shadow
+PASS/FAIL calculators. Sensitive model/source data stay on the local computer
+until a person explicitly downloads and shares the export.

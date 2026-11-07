@@ -19,6 +19,7 @@ from urllib.parse import parse_qs, urlsplit
 from .modal import evaluate_modal_mass
 from .history import modal_history, modal_source_table, quick_history
 from .quick_checks import check_registry, evaluate_geometry_capture
+from .reporting import ReportUnavailable, build_complete_report, build_printable_html
 from .receipts import ReceiptRun
 from .schema import review_modal_schema
 from .source import SourceError, parse_modal_capture, review_preflight
@@ -100,6 +101,36 @@ def make_handler(output_root: Path, *, live_capture=None):
                 self.reply(200, {"runs": quick_history(output_root), "engineering_release": "NOT_READY"})
             elif url.path == "/api/modal-history":
                 self.reply(200, {"runs": modal_history(output_root), "engineering_release": "NOT_READY"})
+            elif url.path in ("/api/export-checks", "/report/print"):
+                ids = parse_qs(url.query).get("run_id", [])
+                if len(ids) != 1 or _RUN_ID_PATTERN.fullmatch(ids[0]) is None:
+                    self.reply(400, {"error": "EXACT_RUN_ID_REQUIRED"})
+                    return
+                try:
+                    report = build_complete_report(output_root, ids[0])
+                    if url.path == "/api/export-checks":
+                        data = (json.dumps(report, ensure_ascii=False, indent=2,
+                                           sort_keys=True) + "\n").encode("utf-8")
+                        mime = "application/json; charset=utf-8"
+                        disposition = f'attachment; filename="TBDY_NEXT_{ids[0]}_all_checks.json"'
+                    else:
+                        data = build_printable_html(report).encode("utf-8")
+                        mime = "text/html; charset=utf-8"
+                        disposition = f'inline; filename="TBDY_NEXT_{ids[0]}_report.html"'
+                except (ReportUnavailable, OSError, UnicodeError, TypeError, ValueError, KeyError):
+                    self.reply(404, {"error": "VERIFIED_FIVE_CHECK_REPORT_NOT_FOUND"})
+                    return
+                self.send_response(200)
+                self.send_header("Content-Type", mime)
+                self.send_header("Cache-Control", "no-store")
+                self.send_header("X-Content-Type-Options", "nosniff")
+                self.send_header("Content-Disposition", disposition)
+                self.send_header("X-Frame-Options", "DENY")
+                if url.path == "/report/print":
+                    self.send_header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'")
+                self.send_header("Content-Length", str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
             elif url.path == "/api/modal-table":
                 ids = parse_qs(url.query).get("run_id", [])
                 if len(ids) != 1 or _RUN_ID_PATTERN.fullmatch(ids[0]) is None:

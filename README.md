@@ -87,3 +87,12 @@ Unknown types, missing section bindings, unrecognized shapes, and conflict rows
 remain **NOT_PROVEN**. The inventory denominator retains each identified beam/column.
 This is a pure project-owned adaptation of prior TBDY material-population semantics,
 not a runtime import or whole-building code compliance claim.
+
+## VS02 — Full reports and audit JSON
+
+After **5 kontrolü birlikte çalıştır** succeeds, open **Modal Analiz → 05 · Hızlı geometri kontrolleri**. Two controls appear for the selected, previously recorded run:
+
+- **Tam JSON dışa aktar**: downloadable `TBDY_NEXT_RUN-..._all_checks.json`. Contains all five check results, all element-by-element geometry results (including NOT_APPLICABLE and NOT_PROVEN), the complete ETABS modal source table, the six geometry source tables with original rows/fields, material type facts, and receipt/source hashes. It is meant for independent verification and may include model path or other sensitive project details. Review before sharing.
+- **Mühendislik raporu / PDF**: standalone, printable HTML containing the full check summary, complete per-element tables, the full modal table, source census, materials, and source fingerprints. Print or save to PDF using your browser's **Ctrl+P** command.
+
+The dropdown switches between stored full five-check runs. Exports read `.receipts/RUN-...` only; **no new ETABS connection, recalculation authority, model mutation or upload occurs**. Existing modal and geometry evaluators revalidate the archived data and receipts. An incomplete or tampered run does not produce a report. `ENGINEERING_RELEASE=NOT_READY` and `FORMAL_COMPLIANCE=NOT_PROVEN` remain explicit.
