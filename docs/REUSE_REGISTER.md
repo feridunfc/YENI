@@ -11,3 +11,9 @@ The old repositories are references, not Python dependencies and not bundled sou
 | `cli.py` | None | Brand-new bounded orchestration | Legacy API and 16-tab UI |
 
 No source file from the private reference repositories is copied into the public repository. Reuse percentages are not guessed: future migrations will record the actual before/after code diff when code is imported.
+
+
+VS03 reviewed selective reuse (all code owned by `tbdy_next`):
+- `feridunfc/TBDY/tbdy_engine/regulatory/concrete_material_min_strength.py` → fck ≥25 MPa boundary and conditional used-concrete applicability; new `next_checks.py`.
+- `feridunfc/TBDY/tbdy_engine/regulatory/seismic_response.py` → A1 coefficient threshold ηbi>1.2 and classification semantics; new `next_checks.py`.
+- `feridunfc/TBDY/tbdy_engine/catalogs/table_registry.yaml` → observed source column candidates for material and story max/avg drift tables; new `next_capture.py`, candidate schema validated at runtime.

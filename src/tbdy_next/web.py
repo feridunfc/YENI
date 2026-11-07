@@ -19,6 +19,7 @@ from urllib.parse import parse_qs, urlsplit
 from .modal import evaluate_modal_mass
 from .history import modal_history, modal_source_table, quick_history
 from .quick_checks import check_registry, evaluate_geometry_capture
+from .next_checks import evaluate_next_capture
 from .reporting import ReportUnavailable, build_complete_report, build_printable_html
 from .receipts import ReceiptRun
 from .schema import review_modal_schema
@@ -92,7 +93,7 @@ def make_handler(output_root: Path, *, live_capture=None):
                 self.end_headers()
                 self.wfile.write(contents)
             elif url.path == "/api/health":
-                self.reply(200, {"status": "READY_FOR_VS01", "implemented_slices": ["MODAL_MASS_RATIO"], "engineering_release": "NOT_READY"})
+                self.reply(200, {"status": "READY_FOR_VS03_SOURCE_REVIEW", "implemented_slices": ["MODAL_MASS_RATIO", "MATERIAL_FCK_25", "A1_X_Y_SOURCE_CLASSIFICATION"], "engineering_release": "NOT_READY"})
             elif url.path == "/api/runs":
                 self.reply(200, {"runs": _runs(output_root)})
             elif url.path == "/api/check-registry":
@@ -219,6 +220,10 @@ def make_handler(output_root: Path, *, live_capture=None):
                     if url.path == "/api/live-suite":
                         geometry = evaluate_geometry_capture(payload.get("geometry_capture"))
                         run.record("quick-geometry", geometry, input_sha256=input_sha)
+                    extra = None
+                    if url.path == "/api/live-suite" and "next_capture" in payload:
+                        extra = evaluate_next_capture(payload["next_capture"], payload.get("geometry_capture"))
+                        run.record("quick-extra", extra, input_sha256=input_sha)
                     meta = payload.get("capture_metadata") or {}
                     run.record("live-capture", {
                         "status": "SOURCE_CAPTURED", "source_mode": "LIVE_ETABS",
@@ -231,7 +236,7 @@ def make_handler(output_root: Path, *, live_capture=None):
                         "model_name": ntpath.basename(str(meta.get("model_filename", ""))),
                         "case_row_count": meta.get("case_row_count"),
                         "source_rows": payload["table"]["row_count"],
-                        "source_mode": "LIVE_ETABS", "geometry": geometry,
+                        "source_mode": "LIVE_ETABS", "geometry": geometry, "extra_checks": extra,
                         "engineering_release": "NOT_READY",
                     })
                 except (ValueError, TypeError, KeyError) as exc:

@@ -63,9 +63,9 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
     definitions = check_registry()
     mapping = {item["check_id"]: item for item in definitions}
     geo_checks = geometry.get("checks", [])
-    if not isinstance(geo_checks, list) or len(geo_checks) != len(mapping) - 1:
+    if not isinstance(geo_checks, list) or len(geo_checks) != 4:
         raise ReportUnavailable("Incomplete geometry check population")
-    if {check.get("check_id") for check in geo_checks} != set(mapping) - {"modal_mass_95"}:
+    if {check.get("check_id") for check in geo_checks} != {"column_rect_min", "beam_width_min", "beam_depth_min", "beam_depth_width"}:
         raise ReportUnavailable("Check IDs differ from current registry")
     # Never promote a numerical subcondition to an overall regulatory PASS.
     modal_check = {
@@ -75,6 +75,17 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         "formal_compliance": "NOT_PROVEN",
     }
     checks = [modal_check] + geo_checks
+    new_checks = None
+    if "next_capture" in source:
+        from .next_checks import evaluate_next_capture
+        receipt = _read_receipt(directory, "quick-extra")
+        if receipt is None or receipt.get("input_sha256") != modal["input_sha256"]:
+            raise ReportUnavailable("Missing VS03 receipt for captured VS03 sources")
+        new_checks = evaluate_next_capture(source["next_capture"], geometry_source)
+        if new_checks != receipt["payload"]:
+            raise ReportUnavailable("VS03 source/receipt mismatch")
+        checks.extend(new_checks["checks"])
+
     frame_rows = ((geometry_source or {}).get("tables", {}).get("FRAME_ASSIGNMENTS", {})
                   .get("rows", []) or [])
     frame_types = dict(sorted(Counter(str(row.get("Type", "UNKNOWN")) for row in frame_rows).items()))
@@ -98,14 +109,15 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
     return {
         "schema": "tbdy.next.complete.engineering.report.v1",
         "run_id": run_id,
-        "title": "TBDY Next Engine — Complete five-check source-bound screening",
+        "title": f"TBDY Next Engine — Complete {len(checks)}-check source-bound screening",
         "model": modal["model_name"],
         "captured_at_utc": modal["captured_at_utc"],
         "source_mode": modal["source_mode"],
         "modal_case": modal["case"],
         "engineering_release": "NOT_READY",
         "formal_compliance": "NOT_PROVEN",
-        "scope": "modal 95% numerical subcondition + 4 reinforced-concrete geometry screens",
+        "scope": "modal 95% + 4 RC geometry screens" + (" + concrete fck + A1 X/Y observed classification" if new_checks else ""),
+        "vs03": new_checks,
         "checks": checks,
         "modal_source_table": {
             "table_key": source_table.get("table_key"), "fields": source_table.get("fields"),
@@ -159,7 +171,7 @@ def _table(columns: tuple[tuple[str, str], ...], rows: list[Mapping[str, Any]], 
 def build_printable_html(report: Mapping[str, Any]) -> str:
     """Self-contained print-ready HTML. All five checks and every member row."""
     checks = report["checks"]
-    modal, geometry = checks[0], checks[1:]
+    modal, geometry, extras = checks[0], checks[1:5], checks[5:]
     summary_cols = (
         ("check_id", "Kontrol"), ("status", "Sayısal durum"),
         ("expected_count", "Eleman-kontrol"), ("evaluated_count", "Hesaplanan"),
@@ -171,7 +183,7 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
          "expected_count": 1, "evaluated_count": 1, "met_count": int(modal["status"] == "MEETS_NUMERICAL_CRITERION"),
          "unmet_count": int(modal["status"] != "MEETS_NUMERICAL_CRITERION"),
          "not_applicable_count": 0, "not_proven_count": 0},
-        *geometry,
+        *geometry, *extras,
     ]
     section_cols = (
         ("story", "Kat"), ("element_id", "UniqueName"), ("section", "Atanan kesit"),
@@ -191,6 +203,15 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
                 f"Kapsam dışı: {_val(check.get('not_applicable_count'))}, "
                 f"Çözümlenemeyen: {_val(check.get('not_proven_count'))}</p>")
         check_sections.append(f'<section class="percheck">{desc}{_table(section_cols, check.get("items", []))}</section>')
+    extra_cols = (("story", "Kat"), ("direction", "Yön"),
+                  ("source_case", "Vaka"), ("material_name", "Malzeme"),
+                  ("fck_mpa", "fck MPa"), ("eta_bi", "ηbi"),
+                  ("value", "Değer"), ("limit", "Sınır"),
+                  ("status", "Durum"), ("reason", "Neden"))
+    for check in extras:
+        check_sections.append('<section class="percheck"><h2>' + _val(check.get("title")) +
+                              '</h2><p>Kaynak bazlı alt kontrol; formal compliance NOT_PROVEN</p>' +
+                              _table(extra_cols, check.get("items", [])) + '</section>')
     modal_table = report["modal_source_table"]
     fields = modal_table.get("fields") or []
     modal_cols = tuple((field, field) for field in fields)
@@ -229,7 +250,7 @@ th {{background:#e8eff7;font-weight:650}} tr:nth-child(even) td {{background:#f7
 </style></head><body>
 <div class="toolstrip">Tarayıcıdan <strong>Ctrl+P</strong> → PDF olarak kaydet / yazdır.</div>
 <h1>TBDY Next Engine — Mühendislik Kontrol Raporu</h1>
-<p class="muted">Beş sayısal alt kontrol · Tam eleman sonuçları · ETABS kaynak verisi</p>
+<p class="muted">{_val(len(checks))} sayısal alt kontrol · Tam eleman sonuçları · ETABS kaynak verisi</p>
 <div class="warning"><strong>FORMAL COMPLIANCE = NOT_PROVEN · ENGINEERING RELEASE = NOT_READY.</strong>
 Bu rapor tam TBDY/TS500 uygunluk kararı değildir. Yalnız raporda tanımlanan sayısal alt kontroller çalıştırılmıştır.</div>
 <div class="grid">

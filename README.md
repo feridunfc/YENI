@@ -40,8 +40,7 @@ under `.receipts/RUN-*`. Existing CLI results appear in the UI automatically.
 The web server only listens on localhost; actual COM access is lazy and occurs
 only after clicking the live button. Windows COM live acceptance is separate
 from mock-based CI verification. In Codespaces/Linux the live button does not
-connect to ETABS. Only **Modal analiz (VS01)** is implemented; the other 15
-navigation tabs remain planned. The 95% result is a numerical subcondition,
+connect to ETABS. **Modal Analiz (VS01)**, **Kirişler/Kolonlar (VS02)** ve **Malzeme/Düzensizlikler (VS03 adayı)** kontrolleri etkin; diğer çalışma alanları planlıdır. The 95% result is a numerical subcondition,
 not a global seismic-design release.
 
 ## Command-line usage
@@ -96,3 +95,28 @@ After **5 kontrolü birlikte çalıştır** succeeds, open **Modal Analiz → 05
 - **Mühendislik raporu / PDF**: standalone, printable HTML containing the full check summary, complete per-element tables, the full modal table, source census, materials, and source fingerprints. Print or save to PDF using your browser's **Ctrl+P** command.
 
 The dropdown switches between stored full five-check runs. Exports read `.receipts/RUN-...` only; **no new ETABS connection, recalculation authority, model mutation or upload occurs**. Existing modal and geometry evaluators revalidate the archived data and receipts. An incomplete or tampered run does not produce a report. `ENGINEERING_RELEASE=NOT_READY` and `FORMAL_COMPLIANCE=NOT_PROVEN` remain explicit.
+
+
+## VS03 — Beton malzeme ve A1 X/Y kaynak bazlı alt kontrolleri (canlı kabul bekliyor)
+
+Yeni *YENI* uygulaması aynı Windows ETABS oturumunda iki yeni tablo okur:
+`Material Properties - Concrete Data` (`Material`, `Fc`) ve
+`Story Max Over Avg Drifts` (`Story`, `OutputCase`, `Direction`, `MaxDrift`, `AvgDrift`, `Ratio`).
+Malzeme hesabı yalnız daha önce `PropMaterial.GetTypeOAPI` ile **beton** olduğu
+belirlenen ve modelde kullanılan malzemelere uygulanır; bilinen kaynaktan gelen
+`Fc` değerleri, alan birimi doğrulandığında MPa'ya çevrilerek **fck ≥ 25 MPa**
+alt koşuluyla karşılaştırılır. X/Y kat oranlarında **1,20 üzeri A1 gözlendi**
+şeklinde sınıflandırılır; bina uygunluk kararı değildir.
+
+VS03 için ön testte gerçek `RSX` ve `RSY` vakaları gözlenmiştir; bu iki vaka
+geçici seçilir, seçim her durumda geri yüklenir. Yeni tabloların **bu modeldeki
+alan/satır kabulü henüz yapılmadı**. Alan, birim veya vaka örtüşmüyorsa kontrol
+`NOT_PROVEN` bırakılır ve raporda şema bilgisi görünür. Eski beş kontrollü
+raporlar bozulmaz; yeni sekiz kontrollü canlı kayıtlar bütün kaynak satırları,
+malzeme değerleri ve kat bazlı A1 sınıflandırmalarıyla JSON/HTML'e aktarılır.
+
+Windows/PyCharm: açık ETABS'ta `kompakt_b.EDB` modeliyle arayüzü açın ve
+**8 kontrolü birlikte çalıştır (VS03)** düğmesini kullanın. Kontrol sonucu ve
+şema hatalarını görüntüleyin; **Tam JSON dışa aktar** ile gerçek veriyi ayrıca
+incelemeye gönderin. `main` henüz VS03'ü içermiyor; geliştirme dalı
+`work/vs03-material-torsion-20261107`.

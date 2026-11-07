@@ -61,6 +61,7 @@ def read_quick_suite_from_running_etabs(case: str) -> dict:
     if not isinstance(case, str) or not case or case != case.strip() or len(case) > 120:
         raise ModalCaptureError("Geçerli bir modal vaka adı gerekli.")
     from .etabs_geometry import capture_geometry
+    from .next_capture import capture_next_facts
     import comtypes
     import comtypes.client
     with _CAPTURE_LOCK:
@@ -75,6 +76,7 @@ def read_quick_suite_from_running_etabs(case: str) -> dict:
             payload = capture_modal(sap, case)
             payload["capture_metadata"]["live_connection"] = "ATTACHED_EXISTING_SESSION"
             payload["geometry_capture"] = capture_geometry(sap)
+            payload["next_capture"] = capture_next_facts(sap, x_case="RSX", y_case="RSY")
             return payload
         finally:
             sap = None
