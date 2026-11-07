@@ -17,7 +17,8 @@ from typing import Any, Mapping
 from urllib.parse import parse_qs, urlsplit
 
 from .modal import evaluate_modal_mass
-from .history import modal_history, modal_source_table
+from .history import modal_history, modal_source_table, quick_history
+from .quick_checks import check_registry, evaluate_geometry_capture
 from .receipts import ReceiptRun
 from .schema import review_modal_schema
 from .source import SourceError, parse_modal_capture, review_preflight
@@ -93,6 +94,10 @@ def make_handler(output_root: Path, *, live_capture=None):
                 self.reply(200, {"status": "READY_FOR_VS01", "implemented_slices": ["MODAL_MASS_RATIO"], "engineering_release": "NOT_READY"})
             elif url.path == "/api/runs":
                 self.reply(200, {"runs": _runs(output_root)})
+            elif url.path == "/api/check-registry":
+                self.reply(200, {"checks": check_registry(), "implemented_check_count": len(check_registry())})
+            elif url.path == "/api/quick-history":
+                self.reply(200, {"runs": quick_history(output_root), "engineering_release": "NOT_READY"})
             elif url.path == "/api/modal-history":
                 self.reply(200, {"runs": modal_history(output_root), "engineering_release": "NOT_READY"})
             elif url.path == "/api/modal-table":
@@ -105,6 +110,15 @@ def make_handler(output_root: Path, *, live_capture=None):
                     self.reply(404, {"error": "VERIFIED_MODAL_TABLE_NOT_FOUND"})
                     return
                 self.reply(200, {"table": table})
+            elif url.path == "/quick.js":
+                source = resources.files("tbdy_next").joinpath("static/quick.js").read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/javascript; charset=utf-8")
+                self.send_header("Cache-Control", "no-store")
+                self.send_header("X-Content-Type-Options", "nosniff")
+                self.send_header("Content-Length", str(len(source)))
+                self.end_headers()
+                self.wfile.write(source)
             elif url.path == "/history.js":
                 source = resources.files("tbdy_next").joinpath("static/history.js").read_bytes()
                 self.send_response(200)
@@ -119,7 +133,7 @@ def make_handler(output_root: Path, *, live_capture=None):
 
         def do_POST(self) -> None:
             url = urlsplit(self.path)
-            if url.path == "/api/live-modal":
+            if url.path in ("/api/live-modal", "/api/live-suite"):
                 # Browser can POST to loopback from a foreign page; reject any
                 # declared cross-site origin before touching the ETABS session.
                 origin = self.headers.get("Origin")
@@ -147,8 +161,12 @@ def make_handler(output_root: Path, *, live_capture=None):
                     if live_capture is not None:
                         payload = live_capture(case)
                     else:
-                        from .live_etabs import read_modal_from_running_etabs
-                        payload = read_modal_from_running_etabs(case)
+                        if url.path == "/api/live-suite":
+                            from .live_etabs import read_quick_suite_from_running_etabs
+                            payload = read_quick_suite_from_running_etabs(case)
+                        else:
+                            from .live_etabs import read_modal_from_running_etabs
+                            payload = read_modal_from_running_etabs(case)
                 except Exception as exc:
                     self.reply(503, {
                         "status": "CAPTURE_REJECTED", "reason": f"{type(exc).__name__}: {exc}",
@@ -166,6 +184,10 @@ def make_handler(output_root: Path, *, live_capture=None):
                 run.archive_input(raw, expected_sha256=input_sha)
                 try:
                     result = _calculate_modal(payload, case=case, run=run, input_sha=input_sha)
+                    geometry = None
+                    if url.path == "/api/live-suite":
+                        geometry = evaluate_geometry_capture(payload.get("geometry_capture"))
+                        run.record("quick-geometry", geometry, input_sha256=input_sha)
                     meta = payload.get("capture_metadata") or {}
                     run.record("live-capture", {
                         "status": "SOURCE_CAPTURED", "source_mode": "LIVE_ETABS",
@@ -178,7 +200,8 @@ def make_handler(output_root: Path, *, live_capture=None):
                         "model_name": ntpath.basename(str(meta.get("model_filename", ""))),
                         "case_row_count": meta.get("case_row_count"),
                         "source_rows": payload["table"]["row_count"],
-                        "source_mode": "LIVE_ETABS", "engineering_release": "NOT_READY",
+                        "source_mode": "LIVE_ETABS", "geometry": geometry,
+                        "engineering_release": "NOT_READY",
                     })
                 except (ValueError, TypeError, KeyError) as exc:
                     result = {"status": "REJECTED", "reason": str(exc), "engineering_release": "NOT_READY"}

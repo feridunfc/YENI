@@ -159,3 +159,32 @@ def modal_source_table(root: Path, run_id: str) -> dict[str, Any] | None:
         }
     except (OSError, UnicodeError, ValueError, TypeError, KeyError):
         return None
+
+
+def quick_history(root: Path, *, limit: int = 15) -> list[dict[str, Any]]:
+    """Recover only intact quick-suite receipts for locally archived source data."""
+    from .quick_checks import evaluate_geometry_capture
+    root = Path(root)
+    if not root.is_dir():
+        return []
+    output: list[dict[str, Any]] = []
+    for directory in root.glob("RUN-*"):
+        modal = _read_modal_run(directory)
+        quick = _read_receipt(directory, "quick-geometry")
+        if modal is None or quick is None or quick.get("input_sha256") != modal["input_sha256"]:
+            continue
+        try:
+            source = json.loads((directory / "input.source").read_text(encoding="utf-8"))
+            geometry = source.get("geometry_capture")
+            if geometry is None:
+                continue
+            rechecked = evaluate_geometry_capture(geometry)
+            if rechecked != quick["payload"]:
+                continue
+        except (OSError, UnicodeError, ValueError, TypeError, KeyError):
+            continue
+        output.append({"run_id": directory.name, "captured_at_utc": modal["captured_at_utc"],
+                       "source_mode": modal["source_mode"], "model_name": modal["model_name"],
+                       "geometry": rechecked, "modal": modal["result"],
+                       "engineering_release": "NOT_READY"})
+    return sorted(output, key=lambda x: (x["captured_at_utc"], x["run_id"]), reverse=True)[:limit]

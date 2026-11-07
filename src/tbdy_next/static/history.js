@@ -83,7 +83,7 @@
       section.replaceChildren(title, caption, scroll);
     } catch (error) {
       if (version === tableRequestVersion && section.isConnected) {
-        section.replaceChildren(node('p', `${error.message}`, 'bad'));
+        section.replaceChildren(node('p', `Tam kaynak tablosu gösterilemedi: ${error.message}`, 'bad'));
       }
     }
   }

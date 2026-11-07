@@ -54,3 +54,36 @@ python -m tbdy_next.cli check-modal --input tests/fixtures/modal_meets.json --ca
 The repository includes **synthetic fixtures only**. Real project files, EDB models, and ETABS snapshots are excluded from git and must remain local/private. VS01 does not establish engineering release. Real modal tables and all used fields require targeted source review before a complete engineering check can be claimed.
 
 Architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Selective reference reuse: [`docs/REUSE_REGISTER.md`](docs/REUSE_REGISTER.md).
+
+## VS02 — Five checks with one live ETABS acquisition
+
+The **5 kontrolü birlikte çalıştır** button reads the existing modal case
+plus six geometry tables from the same Windows ETABS COM session. It validates
+actual field metadata, the `SectProp` assignment and the `UniqueName + Story`
+join across frame summary, beam/column connectivity, and concrete rectangular
+section definitions. Dimensions `t2` (width) and `t3` (depth) are read in meters
+and converted to millimeters **only if the observed source field metadata
+confirms `m` and present-units enum is 6**.
+
+Five implemented checks: modal mass 95% numerical subcondition, rectangular
+column minimum 300 mm, beam web width 250 mm, beam depth 300 mm, beam h/b ≤3.5.
+Geometry checks are **numerical screenings**, not full TBDY compliance: seismic
+ductility/applicability, beam/frame exceptions, beam slab-thickness condition,
+and attached column/wall width are not inferred. Unmatched elements or missing
+units are shown as `NOT_PROVEN`, never silently skipped.
+
+The left navigation tree is automatically populated from the actual five check
+definitions. Five-check outputs and original complete source rows stay under
+`.receipts` only, not in the public GitHub repository.
+
+## Used-material scope (VS02 candidate)
+
+The RC member geometry screen uses an exact member/section/material join:
+`Frame Assignments - Summary.UniqueName` → `Frame Assignments - Section Properties.SectProp` →
+`Frame Section Property Definitions - Summary.Material` → `PropMaterial.GetTypeOAPI`.
+The ETABS material type code **2** identifies concrete; a different documented
+material type is **NOT_APPLICABLE** to these concrete-only screens, not a failure.
+Unknown types, missing section bindings, unrecognized shapes, and conflict rows
+remain **NOT_PROVEN**. The inventory denominator retains each identified beam/column.
+This is a pure project-owned adaptation of prior TBDY material-population semantics,
+not a runtime import or whole-building code compliance claim.

@@ -67,11 +67,11 @@ def _set_cases(db: Any, values: tuple[str, ...]) -> None:
         raise ModalCaptureError(f"SetLoadCasesSelectedForDisplay: ret_code={code}")
 
 
-def _read_table(db: Any) -> tuple[tuple[str, ...], list[dict[str, str]], int, str]:
+def _read_table(db: Any, table_key: str = TABLE_KEY) -> tuple[tuple[str, ...], list[dict[str, str]], int, str]:
     """Handle only known ETABS display-array projections; reject unrecognized ABI."""
     attempts = (
-        ("seven_list", (TABLE_KEY, [], "", 0, [], 0, [])),
-        ("seven_string", (TABLE_KEY, "", "", 0, [], 0, [])),
+        ("seven_list", (table_key, [], "", 0, [], 0, [])),
+        ("seven_string", (table_key, "", "", 0, [], 0, [])),
     )
     diagnostics = []
     for name, args in attempts:
@@ -98,7 +98,7 @@ def _read_table(db: Any) -> tuple[tuple[str, ...], list[dict[str, str]], int, st
             return fields, rows, count_raw, name
         except (ModalCaptureError, TypeError, ValueError, AttributeError) as exc:
             diagnostics.append(f"{name}: {type(exc).__name__}: {exc}")
-    raise ModalCaptureError("Modal tablo alınamadı; " + " | ".join(diagnostics))
+    raise ModalCaptureError(f"ETABS tablo {table_key!r} alınamadı; " + " | ".join(diagnostics))
 
 
 def _model_name(sap: Any) -> str:

@@ -20,28 +20,38 @@
 .modal-source-table thead th{position:sticky;top:0;background:#eaf0f7;color:#314960;z-index:1;border-bottom:2px solid #c7d5e2}
 .modal-source-table tbody tr:nth-child(even){background:#f7f9fc}
 .modal-source-table tbody tr:hover{background:#eef5fb}
+/* Auto-counted check catalog tree: no invented child counts. */
+.nav-group{margin:3px 0}.nav-children{margin:2px 0 6px 29px;border-left:1px solid #36536b;padding-left:8px;display:grid;gap:1px}
+.nav-child{border:0;text-align:left;background:transparent;color:#aec3d4;padding:6px 7px;border-radius:4px;font-size:11px;cursor:pointer}
+.nav-child:hover,.nav-child:focus{background:#315169;color:#fff}
+.quick-check{padding:13px 0;border-bottom:1px solid #e0e8ee}.quick-check:last-child{border-bottom:0}
+.quick-check details summary{cursor:pointer;color:var(--accent);margin:8px 0;font-weight:650}
+.quick-check pre{max-height:240px}.quick-check h3{margin:0}
 </style>
 </head>
 <body>
 <div class="app">
-<aside><div class="logo">TBDY Next Engine</div><div class="tagline">Bağımsız mühendislik çalışma alanı · VS01</div><div class="navtitle">Model / Analiz / Tasarım</div><nav class="navlist" id="nav"></nav></aside>
+<aside><div class="logo">TBDY Next Engine</div><div class="tagline">Bağımsız mühendislik çalışma alanı · VS01–VS02</div><div class="navtitle">Model / Analiz / Tasarım</div><nav class="navlist" id="nav"></nav></aside>
 <main>
 <div class="top"><div><div class="eyebrow">Dikey Dilim 01 · Etkin Modal Kütle</div><h1 id="heading">Modal analiz</h1><div class="muted small" id="subhead">Kaynağı keşfet → şemayı doğrula → sayısal kontrolü yap → kayıt oluştur</div></div><div class="chip">ENGINEERING RELEASE · NOT_READY</div></div>
 <div id="activecontent">
 <div class="stages"><div class="step"><em>Aşama 1</em><strong id="step1">Kaynak keşfi bekleniyor</strong></div><div class="step"><em>Aşama 2</em><strong id="step2">Şema doğrulaması bekleniyor</strong></div><div class="step"><em>Aşama 3</em><strong id="step3">Hesap bekleniyor</strong></div></div>
-<section class="box live-panel" id="live-modal-panel"><header><div><div class="live-label">01 · Canlı ETABS bağlantısı</div><h2>ETABS'a bağlan → modal veriyi al → kontrol et</h2><div class="muted small">ETABS 23.2.0 Windows oturumunda açık ve analiz edilmiş model kullanılır. Dosya seçimi gerekmez.</div></div></header>
-<div class="actions"><label for="case" class="small">Modal vaka</label><input class="field" id="liveCase" value="Modal" maxlength="120" aria-label="ETABS modal vaka adı"><button class="go live-action" type="button" id="liveModalBtn">ETABS'a bağlan ve hesapla</button></div>
-<div class="live-status" id="liveModalStatus" role="status" aria-live="polite">Henüz canlı bağlantı başlatılmadı.</div><p class="micro">Model kaydı veya analiz başlatılmaz. Yalnız modal tablo okunur; görüntüleme vaka seçimi değişirse geri yüklenir. Sonuçlar yerel .receipts altında tutulur.</p></section>
+<section class="box live-panel" id="live-modal-panel"><header><div><div class="live-label">01 · Canlı ETABS bağlantısı</div><h2>ETABS'a bağlan → modal veriyi al → kontrol et</h2><div class="muted small">ETABS 23.2.0 Windows oturumunda açık ve analiz edilmiş model kullanılır. Dosya seçimi gerekmez; geometri tabloları gerçek şemaya göre birleştirilir.</div></div></header>
+<div class="actions"><label for="case" class="small">Modal vaka</label><input class="field" id="liveCase" value="Modal" maxlength="120" aria-label="ETABS modal vaka adı"><button class="go live-action" type="button" id="liveModalBtn">Yalnız modal hesapla</button><button class="go live-action" type="button" id="quickSuiteBtn">5 kontrolü birlikte çalıştır</button></div>
+<div class="live-status" id="liveModalStatus" role="status" aria-live="polite">Henüz canlı bağlantı başlatılmadı.</div><p class="micro">Model kaydı veya analiz başlatılmaz. Beşli taramada modal tablo ve altı geometri tablosu okunur; görüntüleme vaka seçimi değişirse geri yüklenir. Sonuçlar yerel .receipts altında tutulur.</p></section>
 <details class="offline"><summary>İsteğe bağlı: önceki JSON / çevrimdışı veriyi içeri al</summary>
 <div class="twocol">
 <section class="box"><header><div><h2>01 · ETABS kaynak keşfi</h2><div class="muted small">Ön test JSON'unda gerçek tablo anahtarları; henüz sonuç satırı değil</div></div></header><div class="drop"><label for="preflight">Preflight JSON seç</label><input type="file" id="preflight" accept=".json,application/json"></div><div class="actions"><button class="go" id="discoverBtn">Kaynağı incele</button></div></section>
 <section class="box"><header><div><h2>02 · Modal tablo / şema</h2><div class="muted small">Tam tablo satırları ve seçilen modal vaka</div></div></header><div class="drop"><label for="capture">Modal capture JSON seç</label><input type="file" id="capture" accept=".json,application/json"></div><div class="actions"><label class="small" for="case">Vaka</label><input class="field" type="text" id="case" value="Modal" maxlength="120"><button class="go" id="schemaBtn">Şemayı incele</button><button class="go" id="modalBtn">Doğrula + hesapla</button></div></section>
 </div></details>
 <section class="box"><header><div><h2>03 · İnceleme ve sonuç</h2><div class="muted small">Gözlenen veriyle yetkili mühendislik kararı birbirinden ayrı tutulur</div></div></header><div id="result"><div class="empty">Canlı ETABS'a bağlanıp hesaplamak için üstteki yeşil düğmeyi kullanın. Önceki CLI sonuçları da aşağıdaki kayıt panelinde otomatik gösterilir.</div></div></section>
+<section class="box" id="quick-panel"><header><div><h2>05 · Hızlı geometri kontrolleri</h2><div class="muted small">Kolon 1 + kiriş 3; tablolardaki tüm elemanlar için sayısal tarama. Yönetmelik kapsam onayı değildir.</div></div></header>
+<div id="quickStatus" class="muted small">Henüz birleşik ETABS taraması yapılmadı.</div><div id="quickReport" class="muted small">Sayısal kontroller için yukarıdaki 5 kontrol düğmesini kullanın.</div></section>
 <section class="box" id="saved-modal-panel"><header><div><h2>04 · Kaydedilmiş gerçek modal hesaplar</h2><div class="muted small">CLI ile hesaplanan sonuçlar yeniden dosya yüklemeden görüntülenir; sentetik olanlar ayrıca işaretlenir.</div></div><button class="go" id="refreshSaved">Yenile</button></header>
 <div id="saved-modal-body" class="muted small">Yerel çalışma kayıtları okunuyor…</div><div id="saved-modal-history" class="actions"></div></section>
 <section class="box"><header><div><h2>Aşama kayıtları</h2><div class="muted small">Yerel `.receipts` altında kaynak kopyası, hash ve aşama sonucu tutulur</div></div></header><div id="runlist" class="muted small">Henüz kayıt bulunamadı.</div></section>
 </div>
+<div id="geometrycontent" class="hidden"><section class="box"><h2 id="geometryTitle">Geometri kontrolleri</h2><p class="muted small">Son canlı ETABS taramasından eleman bazında sonuçlar. Yeni hesap için Modal Analiz sekmesindeki 5 kontrol düğmesini kullanın.</p><div id="geomTabPanel">Henüz hesap yok.</div></section></div>
 <div id="plannedcontent" class="hidden notbuilt"><h2 id="plannedtitle"></h2><p>Bu hesap henüz etkinleştirilmedi. Sıradaki dikey dilim ancak kaynak → şema → postprocess → mühendislik kontrolü → rapor zinciri çalışınca açılır.</p><p class="muted small">Burada sahte PASS, hazırmış gibi gösterilen formül veya boş hesap ekranı yok.</p></div>
 <div class="footer">Her kontrol tek, izlenebilir sonuç üretir. Sayısal alt koşulun sağlanması bina uygunluk onayı değildir.</div>
 </main>
@@ -50,8 +60,8 @@
 <script>
 const tabs=['Geometri','Malzeme','Kesitler','Atamalar','Yükler ve kütle','Analiz vakaları','Deprem esasları','Modal analiz','Kat/sistem sonuçları','Düzensizlikler','Döşemeler','Kirişler','Kolonlar','Perdeler','Birleşimler','Temeller'];
 const nav=document.getElementById('nav');let active=7;
-function selectTab(i){active=i;for(const [idx,b] of [...nav.children].entries())b.classList.toggle('active',idx===i);document.getElementById('heading').textContent=tabs[i];document.getElementById('activecontent').classList.toggle('hidden',i!==7);document.getElementById('plannedcontent').classList.toggle('hidden',i===7);document.getElementById('plannedtitle').textContent=`${String(i+1).padStart(2,'0')} · ${tabs[i]} — PLANLANDI`;}
-tabs.forEach((t,i)=>{const b=document.createElement('button');b.className='navitem'+(i===7?' active':'');b.innerHTML=`<span>${String(i+1).padStart(2,'0')}</span><span></span><span class="signal ${i===7?'live':''}">${i===7?'VS01':'PLAN'}</span>`;b.children[1].textContent=t;b.onclick=()=>selectTab(i);nav.append(b)});
+function selectTab(i){active=i;for(const b of nav.querySelectorAll('[data-nav-tab]'))b.classList.toggle('active',Number(b.dataset.navTab)===i);document.getElementById('heading').textContent=tabs[i];document.getElementById('activecontent').classList.toggle('hidden',i!==7);document.getElementById('geometrycontent').classList.toggle('hidden',i!==11&&i!==12);document.getElementById('plannedcontent').classList.toggle('hidden',i===7||i===11||i===12);document.getElementById('geometryTitle').textContent=tabs[i]+' · geometrik alt kontroller';document.getElementById('plannedtitle').textContent=`${String(i+1).padStart(2,'0')} · ${tabs[i]} — PLANLANDI`;if(typeof window.renderQuickChecksForTab==='function')window.renderQuickChecksForTab(i);}
+tabs.forEach((t,i)=>{const b=document.createElement('button');b.className='navitem'+(i===7?' active':'');b.innerHTML=`<span>${String(i+1).padStart(2,'0')}</span><span></span><span class="signal ${i===7?'live':''}">${i===7?'VS01':'PLAN'}</span>`;b.children[1].textContent=t;b.dataset.navTab=String(i);b.onclick=()=>selectTab(i);nav.append(b)});
 const result=document.getElementById('result');
 function textnode(tag,content,cls){const el=document.createElement(tag);el.textContent=String(content);if(cls)el.className=cls;return el}
 function setTree(id,values){const ul=document.getElementById(id);ul.replaceChildren();values.forEach(v=>ul.append(textnode('li',v)))}
@@ -93,4 +103,5 @@ document.getElementById('liveModalBtn').onclick=connectLive;
 loadRuns();
 </script>
 <script src="/history.js"></script>
+<script src="/quick.js"></script>
 </body></html>
