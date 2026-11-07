@@ -264,3 +264,12 @@ The source-qualified formulas and rule cards are described in
 [VS05 engineering contract](docs/VS05_NORMATIVE_RULE_CONTRACT.md).
 This does NOT create production building-level TBDY PASS. The accepted
 VS04 source and receipt contracts remain intact.
+
+## VS05: Candidate Engineering DAG / RegulatoryCompiler / FCR
+
+The exact user-supplied R1-C **94 nodes / 140 edges** research graph is
+preserved as a DENIED candidate catalog, not a new full global runtime.
+`src/tbdy_next/compiled_dag.py` validates the graph, freezes explicit
+candidate CheckInstances into a deterministic execution plan and reconciles
+all missing instances into fail-closed FCR, with no untrusted PASS.
+See [VS05 candidate DAG and FCR contract](docs/VS05_DAG_COMPILER_FCR_FOUNDATION.md).
