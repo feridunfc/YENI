@@ -120,3 +120,138 @@ Windows/PyCharm: açık ETABS'ta `kompakt_b.EDB` modeliyle arayüzü açın ve
 şema hatalarını görüntüleyin; **Tam JSON dışa aktar** ile gerçek veriyi ayrıca
 incelemeye gönderin. `main` henüz VS03'ü içermiyor; geliştirme dalı
 `work/vs03-material-torsion-20261107`.
+
+## VS04 — Actual analysis source table acquisition (no new compliance check)
+
+The **VS04 · 3 analiz tablosunun şemasını al** button captures all rows and
+field metadata for ETABS `Modal Periods And Frequencies`, `Base Reactions`, and
+`Story Drifts`, under one existing Windows COM session. It restores the original
+display case selection, keeps the previous eight results intact, and records a
+separate `vs04-schema` receipt in the same run. Source and schema fingerprints
+appear in JSON and complete raw tables in the printable HTML. No case naming,
+analysis generation, code compliance, or numerical readiness is inferred.
+
+See [VS04 source/acceptance protocol](docs/VS04_ANALYSIS_SOURCE_SCHEMA.md).
+
+## VS04 — bounded analysis-source arithmetic (review candidate)
+
+For a VS04 web run, the same signed source archive now produces a second receipt,
+`vs04-numerics`. It checks exactly the observed ETABS modal T/f/omega/eigen
+identities, separately records X/Y Base Reactions components (without asserting
+concurrent vectors or spectrum scaling), and tests algebraic `Drift × Drift/`
+consistency for exactly selected X/Y rows (without approving the drift units or
+TBDY effective-drift semantics). Five **source components**, zero new formal
+regulatory checks. The existing eight accepted VS01–VS03 checks remain unchanged.
+
+HTML and JSON show the complete source arithmetic and its blockers. Missing,
+changed, or forged receipts reject the export for newly captured VS04 runs.
+See [VS04 numerical source protocol](docs/VS04_NUMERIC_SOURCE_REVIEW.md).
+
+### Recheck a locally captured VS04_RAW file without ETABS
+
+The `tools/replay_vs04_raw.py` script replays the same pure source math
+against the private RAW JSON. It does not connect to ETABS, touch the
+analytical model or claim normatively approved drift/base-shear calculations.
+
+```powershell
+cd C:\Users\efeya\PycharmProjects\YENI_VS04
+$raw = (Get-ChildItem ".receipts\VS04\VS04_RAW_*.json" | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName
+if (-not $raw) { throw "VS04_RAW is missing" }
+.\.venv\Scripts\python.exe tools\replay_vs04_raw.py --input "$raw" --out ".receipts\VS04\VS04_REPLAY_LATEST.json"
+```
+
+The new `VS04_REPLAY_LATEST.json` has source-schema diagnostics, five
+component-level source-math results, and input SHA-256, but excludes the complete
+raw source rows. Share this replay first; real source data is still necessary
+for independent row-by-row acceptance. Full engineering release stays NOT_READY.
+
+## VS04-E — Normative readiness and targeted ETABS basis inventory
+
+The five planned TBDY rule instances are compiled with **all missing input
+requirements shown**, rather than treating a 5/5 source-arithmetic result as
+formal compliance. Eq (4.19), (4.31), (4.33), and (4.34) are implemented as
+unit-checked, **formula-only** kernels. No additional check becomes PASS.
+
+`tools/probe_vs04e_basis_windows.py` captures a read-only index and bounded
+source fields/rows for *candidate* seismic-mass, story-geometry, response-
+spectrum and case-definition tables from the already-open ETABS model. No
+source key is auto-approved by fuzzy matching. Review the
+[VS04-E source and normative dependency contract](docs/VS04_E_NORMATIVE_BASIS.md).
+
+## VS04-F — Exact ETABS source binding review
+
+After VS04-E raw table probe, execute `tools/review_vs04f_basis.py` against
+its original local `VS04E_BASIS_PROBE_*.json`. The offline source compiler
+reconciles story/group/joint masses, binds response-spectrum and Ritz case
+identities, validates story heights, and retains `Response Spectrum Modal Info`
+API errors. It **cannot** grant TBDY compliance, spectrum scale validity,
+full drift approval, or analysis generation lineage. See
+[VS04-F source binding contract](docs/VS04_F_SOURCE_BINDINGS.md).
+
+## VS04-G — Targeted diaphragm + selected spectrum-modal source probe
+
+After the VS04-F real-source replay, capture only the exact diaphragm definition,
+area/joint assignment tables and the response-spectrum modal output under
+original and temporarily selected RSX/RSY display cases. See
+[VS04-G source capture and safety protocol](docs/VS04_G_DIAPHRAGM_MODAL_EVIDENCE.md).
+This is a read-only structural model capture with a fully restored display
+selection, **not** a TBDY compliance calculation. The 8 accepted checks stay
+unchanged and `engineering_release` remains `NOT_READY`.
+
+## VS04-H — Offline diaphragm/mode source linkage
+
+The [VS04-H source-review protocol](docs/VS04_H_DIAPHRAGM_LINKAGE.md)
+reconciles the real 5 semi-rigid diaphragm definitions, 91 area and
+325 point-object assignment rows, and 100+100 RSX/RSY modal source
+rows against the previous accepted modal period display (optional).
+`tools/review_vs04h_diaphragm.py` writes a source-only review without
+raw rows, never promotes source consistency to regulatory compliance.
+
+## VS04-I — Independent source spectrum reconstruction
+
+After VS04-H, run tools/review_vs04i_spectrum.py offline with the earlier
+VS04-E, VS04-G and VS04-D replay files. It checks the 26 TSC2018 function
+knots analytically, and the 200 modal source accelerations via actual corner
+periods and higher-precision modal circular frequencies. It never promotes
+source arithmetic to building code PASS or engineering release. See
+[VS04-I protocol](docs/VS04_I_SPECTRUM_RECONSTRUCTION.md).
+
+## VS04-J — Conditional equivalent base-shear floor source screening
+
+Run `tools/review_vs04j_base_shear.py` with the original VS04-E / VS04-G
+and VS04-D replay JSON files. This independently revalidates source
+bindings and computes **only** the Eq (4.19) minimum term on candidate
+seismic mass, I, and SDS. It **does not** compute or approve design VtE,
+pre-beta Vtx, gammaE or beta_tE. See
+[VS04-J engineering and source contract](docs/VS04_J_BASE_SHEAR_SCREENING.md).
+
+## VS04 single-action UI and product integration hold
+
+The primary web UI now uses one live calculation action and the existing
+/api/live-vs04 route, with eight bounded checks, VS04 schema, source
+arithmetic and readiness in one archived run. VS04-F through VS04-J
+are NOT integrated into this live route; they are offline evidence tools.
+Read docs/VS04_EMERGENCY_PRODUCT_AUDIT_20261107.md before any merge.
+ENGINEERING_RELEASE=NOT_READY; MERGE=HOLD.
+
+## VS04 E–J integrated one-click source chain
+
+The one main ETABS calculation action captures the six additional E–J source
+stages under the **same locked SapModel COM session**, archived input hash
+and `run_id`. The `vs04-pipeline` receipt is rechecked before JSON/HTML
+exports or history. Conditional base-shear output and A1 findings are visible,
+but formal TBDY VtE, beta, drift, source generation and applied eccentricity
+remain NOT_PROVEN. See
+[VS04 one-run source integration and Windows gate](docs/VS04_SINGLE_RUN_EJ_INTEGRATION.md).
+
+`MERGE=HOLD`, `ENGINEERING_RELEASE=NOT_READY` until Windows live E2E.
+
+## VS04 source result repair: E/F/G selected-case diagnostic (v2)
+
+For new live runs, the v2 source-pipeline contract preserves the
+original E=14/15, F=3/4, G=4/5 observed counts and independently
+reconciles only the selection-dependent Response Spectrum Modal Info
+source through G/H/I 200-row evidence. The output remains source-only,
+not an approved TBDY design check. Historical v1 receipts remain
+readable. See
+[VS04 E/F/G evidence closure and source-only merge gate](docs/VS04_EFG_SOURCE_DIAGNOSTIC_AND_MERGE_GATE.md).

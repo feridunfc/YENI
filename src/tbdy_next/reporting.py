@@ -85,6 +85,60 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         if new_checks != receipt["payload"]:
             raise ReportUnavailable("VS03 source/receipt mismatch")
         checks.extend(new_checks["checks"])
+    vs04 = None
+    vs04_receipt = None
+    vs04_numerics = None
+    vs04_numeric_receipt = None
+    vs04_readiness = None
+    vs04_readiness_receipt = None
+    vs04_pipeline = None
+    vs04_pipeline_receipt = None
+    if "analysis_sources" in source:
+        from .analysis_sources import review_analysis_sources
+        vs04_receipt = _read_receipt(directory, "vs04-schema")
+        if vs04_receipt is None or vs04_receipt.get("input_sha256") != modal["input_sha256"]:
+            raise ReportUnavailable("Missing or invalid VS04 source schema receipt")
+        vs04 = review_analysis_sources(source["analysis_sources"])
+        if vs04 != vs04_receipt["payload"]:
+            raise ReportUnavailable("VS04 source/receipt mismatch")
+        vs04_numeric_receipt = _read_receipt(directory, "vs04-numerics")
+        expected = source["analysis_sources"].get("numeric_stage_required") is True
+        if expected and (vs04_numeric_receipt is None or
+                         vs04_numeric_receipt.get("input_sha256") != modal["input_sha256"]):
+            raise ReportUnavailable("VS04 required numerical source receipt unavailable")
+        if vs04_numeric_receipt is not None:
+            from .analysis_numerics import evaluate_analysis_numerics
+            if vs04_numeric_receipt.get("input_sha256") != modal["input_sha256"]:
+                raise ReportUnavailable("VS04 numerical source input hash mismatch")
+            vs04_numerics = evaluate_analysis_numerics(source["analysis_sources"])
+            if vs04_numerics != vs04_numeric_receipt["payload"]:
+                raise ReportUnavailable("VS04 numerical source/receipt mismatch")
+        vs04_readiness_receipt = _read_receipt(directory, "vs04-readiness")
+        readiness_required = source["analysis_sources"].get("readiness_stage_required") is True
+        if readiness_required and (vs04_readiness_receipt is None or
+                                   vs04_readiness_receipt.get("input_sha256") != modal["input_sha256"]):
+            raise ReportUnavailable("VS04-E required readiness receipt unavailable")
+        if vs04_readiness_receipt is not None:
+            from .normative_basis import review_normative_readiness
+            if vs04_readiness_receipt.get("input_sha256") != modal["input_sha256"]:
+                raise ReportUnavailable("VS04-E readiness input hash mismatch")
+            vs04_readiness = review_normative_readiness(source["analysis_sources"])
+            if vs04_readiness != vs04_readiness_receipt["payload"]:
+                raise ReportUnavailable("VS04-E readiness source/receipt mismatch")
+        vs04_pipeline_receipt = _read_receipt(directory, "vs04-pipeline")
+        pipeline_required = source["analysis_sources"].get("pipeline_stage_required") is True
+        if pipeline_required and (vs04_pipeline_receipt is None or
+                                  vs04_pipeline_receipt.get("input_sha256") != modal["input_sha256"]):
+            raise ReportUnavailable("VS04 E-J required source pipeline receipt missing")
+        if vs04_pipeline_receipt is not None:
+            from .live_source_pipeline import evaluate_single_run_source_pipeline
+            if vs04_pipeline_receipt.get("input_sha256") != modal["input_sha256"]:
+                raise ReportUnavailable("VS04 E-J pipeline input hash mismatch")
+            vs04_pipeline = evaluate_single_run_source_pipeline(source)
+            if (vs04_pipeline != vs04_pipeline_receipt["payload"] or
+                    vs04_pipeline.get("status") !=
+                    "SOURCE_PIPELINE_EVALUATED_PENDING_ENGINEERING_REVIEW"):
+                raise ReportUnavailable("VS04 E-J source/receipt content mismatch")
 
     frame_rows = ((geometry_source or {}).get("tables", {}).get("FRAME_ASSIGNMENTS", {})
                   .get("rows", []) or [])
@@ -106,17 +160,49 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         "geometry_not_proven": sum(int(x.get("not_proven_count", 0)) for x in geo_checks),
         "geometry_not_applicable": sum(int(x.get("not_applicable_count", 0)) for x in geo_checks),
     }
+    source_scope = ("modal 95% + 4 RC geometry screens"
+                    + (" + concrete fck + A1 X/Y observed classification" if new_checks else "")
+                    + (" + VS04-D analysis schema and five source arithmetic observations"
+                       if vs04 else ""))
+    if vs04_pipeline and vs04_pipeline.get("pipeline_contract_version") == "v2":
+        source_scope += (
+            " + VS04 E–J six source-only stages "
+            "(initial E/F/G coverage retained; selected-case modal "
+            "source reconciled when proven) "
+            "+ five NOT_PROVEN regulatory evidence gates"
+        )
+    elif vs04:
+        source_scope += " (E–J historical source evidence if recorded)"
     return {
         "schema": "tbdy.next.complete.engineering.report.v1",
         "run_id": run_id,
-        "title": f"TBDY Next Engine — Complete {len(checks)}-check source-bound screening",
+        "title": (f"TBDY Next Engine — {len(checks)} bounded checks"
+                  + (" + VS04 E–J source evidence" if vs04_pipeline else "")
+                  + " (not full TBDY design)"),
         "model": modal["model_name"],
         "captured_at_utc": modal["captured_at_utc"],
         "source_mode": modal["source_mode"],
         "modal_case": modal["case"],
         "engineering_release": "NOT_READY",
         "formal_compliance": "NOT_PROVEN",
-        "scope": "modal 95% + 4 RC geometry screens" + (" + concrete fck + A1 X/Y observed classification" if new_checks else ""),
+        "scope": source_scope,
+        "vs04_source_summary": ({
+            "pipeline_contract_version": vs04_pipeline.get("pipeline_contract_version"),
+            "source_observed_count": vs04_pipeline.get("source_observed_count", 0),
+            "source_diagnostic_resolved_count": vs04_pipeline.get(
+                "source_diagnostic_resolved_count", 0),
+            "source_unresolved_count": vs04_pipeline.get("source_unresolved_count", 0),
+            "conditional_component_count": vs04_pipeline.get(
+                "conditional_component_count", 0),
+            "source_component_count": vs04_pipeline.get("source_component_count", 0),
+            "regulatory_checks_executed": 0,
+            "formal_compliance": "NOT_PROVEN",
+        } if vs04_pipeline and vs04_pipeline.get("pipeline_contract_version") == "v2"
+            else None),
+        "vs04": vs04,
+        "vs04_numerics": vs04_numerics,
+        "vs04_readiness": vs04_readiness,
+        "vs04_pipeline": vs04_pipeline,
         "vs03": new_checks,
         "checks": checks,
         "modal_source_table": {
@@ -139,6 +225,10 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
             "input_sha256": modal["input_sha256"],
             "modal_receipt_sha256": modal["receipt_sha256"],
             "geometry_receipt_sha256": quick["receipt_sha256"],
+            "vs04_schema_receipt_sha256": vs04_receipt["receipt_sha256"] if vs04_receipt else None,
+            "vs04_numerics_receipt_sha256": vs04_numeric_receipt["receipt_sha256"] if vs04_numeric_receipt else None,
+            "vs04_readiness_receipt_sha256": vs04_readiness_receipt["receipt_sha256"] if vs04_readiness_receipt else None,
+            "vs04_pipeline_receipt_sha256": vs04_pipeline_receipt["receipt_sha256"] if vs04_pipeline_receipt else None,
             "note": "These are local source/receipt fingerprints, not third-party authorization.",
         },
         "source_snapshot": source,  # Full raw 7 tables + exact material facts for independent review.
@@ -212,6 +302,118 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
         check_sections.append('<section class="percheck"><h2>' + _val(check.get("title")) +
                               '</h2><p>Kaynak bazlı alt kontrol; formal compliance NOT_PROVEN</p>' +
                               _table(extra_cols, check.get("items", [])) + '</section>')
+    vs04_sections = []
+    if report.get("vs04"):
+        v = report["vs04"]
+        source_tables = ((report.get("source_snapshot") or {}).get("analysis_sources") or {}).get("tables") or {}
+        overview = [dict(t) for t in (v.get("tables") or [])]
+        vs04_sections.append('<section class="percheck"><h2>VS04 · Analiz kaynak şeması (henüz onaysız)</h2>'
+                            '<p>Kaynak aritmetiği/koşullu hesaplar yönetmelik uygunluğu değildir. Formal uygunluk NOT_PROVEN; '
+                            'analiz nesli ve kombinasyon rolleri onaylanmamıştır.</p>'
+                            + _table((("table_key","ETABS tablosu"),("status","Kaynak durumu"),
+                                      ("row_count","Satır"),("fields","Alanlar"),
+                                      ("schema_sha256","Şema SHA-256"),("reason_codes","Engeller")), overview)
+                            + "</section>")
+        for record in overview:
+            key = record.get("table_key")
+            raw = source_tables.get(key) if isinstance(source_tables, Mapping) else None
+            if not isinstance(raw, Mapping):
+                continue
+            fields = raw.get("fields") or []
+            rows = raw.get("rows") or []
+            if isinstance(fields, list) and isinstance(rows, list) and len(fields) == len(set(fields)):
+                columns = tuple((name,name) for name in fields if isinstance(name,str))
+                vs04_sections.append('<section class="percheck"><h2>VS04 ham ETABS kaynağı · '
+                                    + _val(key) + "</h2>"
+                                    + _table(columns, rows, "modal-grid") + "</section>")
+    readiness = report.get("vs04_readiness")
+    if readiness:
+        cols = (("check_id", "Beklenen normatif hesap"),("code_ref", "TBDY"),
+                ("status", "Kanıt durumu"),("missing_evidence", "Eksik bağımlılıklar"),
+                ("source_only_hints", "Gözlenen ancak yetersiz kaynak"))
+        vs04_sections.append('<section class="percheck"><h2>VS04-E · TBDY normatif kanıt kapıları</h2>'
+                             '<p>Kaynak aritmetiği ile yönetmelik denetimi farklıdır. '
+                             'Buradaki 5 beklenen kontrol henüz çalıştırılmamıştır; '
+                             'bina uygunluğu NOT_PROVEN ve release NOT_READY.</p>'
+                             + _table(cols, readiness.get("checks", [])) + '</section>')
+    numeric = report.get("vs04_numerics")
+    if numeric:
+        numeric_cols = (("component", "Kaynak niceliği"), ("status", "Kaynak durumu"),
+                        ("expected_row_count", "Görüntülenen satır"),
+                        ("observed_row_count", "Aritmetik gözlem"),
+                        ("reason_codes", "Engeller"))
+        vs04_sections.append('<section class="percheck"><h2>VS04 · Sayısal kaynak tutarlılığı</h2>'
+                             '<p>Yalnız kaynak aritmetiği: normatif kontrol sayısı 0. '
+                             'Drift/ fiziksel anlamı ve analiz nesli henüz onaylanmamıştır.</p>'
+                             + _table(numeric_cols, numeric.get("results", [])) + '</section>')
+        for result in numeric.get("results", []):
+            vs04_sections.append('<section class="percheck"><h2>VS04 · '
+                                 + _val(result.get("component")) + '</h2>'
+                                 + _table(tuple((k, k) for k in (
+                                     tuple(result.get("items", [{}])[0].keys())
+                                     if result.get("items") else ("reason",))),
+                                     result.get("items") or []) + '</section>')
+    pipeline = report.get("vs04_pipeline")
+    if pipeline:
+        source_cols = (("check_id", "Kaynak denetimi"), ("title", "Bileşen"),
+                       ("source_status", "İlk kaynak durumu"),
+                       ("status", "Bağlanmış kaynak durumu"),
+                       ("execution_status", "Çalıştırılma"),
+                       ("coverage", "Özgün kapsama / seçilmiş vaka"),
+                       ("reason_codes", "Okuma teşhisi / gerekçe"),
+                       ("missing_evidence", "Normatif eksik kanıt"),
+                       ("formal_compliance", "TBDY uygunluğu"))
+        vs04_sections.append('<section class="percheck"><h2>VS04 E–J · Tek çalışma kaynak zinciri</h2>'
+                             '<p>Bu altı aşama, mevcut sekiz normatif alt kontrolün yerine geçmez. '
+                             'Kütle mutabakatı, spektrum ve taban kesmesi taraması kaynak/koşul '
+                             'düzeyindedir. Tam VtE, βtE ve etkin kat ötelenmesi NOT_PROVEN.</p>'
+                             + _table(source_cols, pipeline.get("checks", [])) + '</section>')
+        diag = pipeline.get("modal_display_selection_reconciliation")
+        if diag:
+            resolved = (diag.get("status") ==
+                        "SOURCE_DISPLAY_SELECTION_DEPENDENCY_RECONCILED")
+            diag_summary = (
+                'İlk tablo okuması hatalı kalmıştır; özgün E/F/G sayaçları değişmez. '
+                'RSX/RSY seçimiyle alınan 200 satır H/I kaynak kontrolleriyle '
+                'eşleşmiştir. Yalnız kaynak bağımlılığı açıklanır.'
+                if resolved else
+                'İlk okuma ve seçilmiş vaka kaynakları henüz uzlaştırılamadı. '
+                'Eksik kaynak kanıtı açık kalır.'
+            )
+            vs04_sections.append(
+                '<section class="percheck"><h2>VS04 E/F/G · Seçim bağımlılığı</h2>'
+                '<p>' + _val(diag_summary) +
+                ' TBDY uygunluğu NOT_PROVEN.</p>'
+                + _table((("table_key", "ETABS tablo kimliği"),
+                          ("status", "Kaynak teşhis durumu"),
+                          ("original_read_still_failed", "İlk okuma hâlâ hatalı"),
+                          ("selected_case_row_count", "RSX/RSY satırları"),
+                          ("reason_codes", "Gerekçeler"),
+                          ("analysis_generation_proven", "Analiz nesli kanıtı")),
+                         [diag]) + '</section>'
+            )
+        conditional = (pipeline.get("stages") or {}).get("vs04_j") or {}
+        if conditional.get("conditional_eq_4_19_minimum_term_kn") is not None:
+            vs04_sections.append('<section class="percheck"><h2>VS04-J · Koşullu taban kesmesi alt terimi</h2>'
+                                 '<p>m, I ve SDS kaynak adaylarına dayalıdır; mühendislik '
+                                 'kabulü veya VtE sonucu değildir.</p>'
+                                 + _table((("source_mass_candidate_ton", "Aday kütle (ton)"),
+                                           ("candidate_importance_factor", "Aday I"),
+                                           ("candidate_SDS", "Aday SDS"),
+                                           ("conditional_eq_4_19_minimum_term_kn",
+                                            "Koşullu alt terim (kN)")),
+                                          [conditional]) + '</section>')
+    a1_warnings = [
+        c for c in extras if c.get("check_id") in ("a1_torsion_x", "a1_torsion_y")
+        and any(item.get("status") == "A1_OBSERVED" for item in c.get("items", []))
+    ]
+    if a1_warnings:
+        vs04_sections.append('<section class="percheck"><h2>A1 burulma düzensizliği — KAYNAK UYARISI</h2>'
+                             '<p>En az bir kat/yönde ηbi &gt; 1,2 gözlendi. Dışmerkezlik '
+                             'uygulaması ve tüm TBDY kapsamı doğrulanmadan nihai '
+                             'uygunluk kararı verilemez.</p>'
+                             + _table((("check_id", "Yön"), ("status", "Kaynak sınıflaması")),
+                                      a1_warnings) + '</section>')
     modal_table = report["modal_source_table"]
     fields = modal_table.get("fields") or []
     modal_cols = tuple((field, field) for field in fields)
@@ -271,6 +473,7 @@ Bu rapor tam TBDY/TS500 uygunluk kararı değildir. Yalnız raporda tanımlanan 
 <strong>Modal receipt SHA-256:</strong> {_val(report['source_provenance']['modal_receipt_sha256'])}<br>
 <strong>Geometri receipt SHA-256:</strong> {_val(report['source_provenance']['geometry_receipt_sha256'])}</p>
 {modal_section}
+{''.join(vs04_sections)}
 {''.join(check_sections)}
 <p class="muted">Tüm ham kaynak tabloları, bütün eleman satırları ve malzeme tür kanıtları JSON dışa aktarımında bulunur.
 Bu rapor, arşivlenen kayıtları aynı algoritmalarla tekrar doğrulayarak üretilmiştir.</p>

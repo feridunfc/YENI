@@ -4,6 +4,10 @@
   let definitions = [];
   let latest = null;
   let latestExtra = null;
+  let latestVs04 = null;
+  let latestVs04Numerics = null;
+  let latestVs04Readiness = null;
+  let latestVs04Pipeline = null;
   const nav = document.getElementById('nav');
   const byId = id => document.getElementById(id);
   const exportActions = document.createElement('div');
@@ -11,7 +15,7 @@
   exportActions.id = 'quickExportActions';
   const exportTitle = document.createElement('span');
   exportTitle.className = 'muted small';
-  exportTitle.textContent = 'Tam rapor / JSON: önce beş kontrolü çalıştırın.';
+  exportTitle.textContent = 'Tam rapor / JSON: ETABS verisini okuyup hesaplayın.';
   const chooseRun = document.createElement('select');
   chooseRun.className = 'field';
   chooseRun.style.width = 'auto';
@@ -43,7 +47,7 @@
     selectedRunId = chooseRun.value;
     const chosen = cachedHistory.find(r => r.run_id === selectedRunId);
     if (chosen) {
-      useReport(chosen.geometry, chosen.extra_checks);
+      useReport(chosen.geometry, chosen.extra_checks, chosen.vs04_schema, chosen.vs04_numerics, chosen.vs04_readiness, chosen.vs04_pipeline, chosen);
       if (typeof showResult === 'function') {
         showResult('Kaydedilmiş modal hesap', {run_id: chosen.run_id, result: chosen.modal});
       }
@@ -125,7 +129,7 @@
     if (!host || (tab !== 1 && tab !== 9)) return;
     host.replaceChildren();
     if (!latestExtra) {
-      host.append(make('p', 'VS03 kaydı henüz yok; canlı ETABS ile 8 kontrolü çalıştırın.', 'muted small'));
+      host.append(make('p', 'VS03 kaydı henüz yok; yukarıdaki tek canlı hesap düğmesini kullanın.', 'muted small'));
       return;
     }
     for (const check of (latestExtra.checks || []).filter(c =>
@@ -134,7 +138,11 @@
       section.dataset.checkPanel = check.check_id;
       section.append(make('h3', `${check.title} · ${check.status}`),
                      make('p', `İncelenen: ${check.expected_count}; Hesaplanan: ${check.evaluated_count}; Belirsiz: ${check.not_proven_count}. Formal uygunluk: NOT_PROVEN.`, 'muted small'));
-      const details = make('details'); details.open = check.unmet_count > 0;
+      const warnings = (check.items || []).filter(item => item.status === 'A1_OBSERVED');
+      if (warnings.length) section.append(make('p',
+        'A1 BURULMA DÜZENSİZLİĞİ GÖZLENDİ · ' + warnings.length +
+        ' kat-yön kaydı; dışmerkezlik ve TBDY kapsamı onaylanmadan uygunluk PASS değildir.', 'warn'));
+      const details = make('details'); details.open = check.unmet_count > 0 || warnings.length > 0;
       details.append(make('summary', `${(check.items || []).length} kaynak satırı`));
       const scroll = make('div', undefined, 'modal-table-scroll');
       const table = make('table', undefined, 'modal-source-table');
@@ -145,6 +153,94 @@
       const tbody = make('tbody');
       for (const item of (check.items || [])) {const row=make('tr');for(const k of fields)row.append(make('td',item[k]??'—'));tbody.append(row);}
       table.append(tbody); scroll.append(table); details.append(scroll); section.append(details); host.append(section);
+    }
+  }
+  function renderVs04() {
+    const host = byId('vs04Report');
+    if (!host) return;
+    host.replaceChildren();
+    if (!latestVs04) {
+      host.append(make('p', 'VS04 kaynak kaydı henüz yok. Yukarıdaki tek canlı hesap düğmesini kullanın.', 'muted small'));
+      return;
+    }
+    host.append(make('p', 'VS04: ' + latestVs04.status + ' · ' +
+      (latestVs04.captured_table_count || 0) + '/3 tablo yapısal olarak gözlendi. ' +
+      'Alanların mühendislik anlamı onaylanmadı; hesap PASS üretilmedi.', 'warn'));
+    if (latestVs04Numerics) {
+      host.append(make('h3', 'VS04 · Kaynak aritmetiği — ' + latestVs04Numerics.status));
+      host.append(make('p', 'Normatif kontrol: 0 · Uygunluk: NOT_PROVEN · Analiz nesli: NOT_PROVEN.', 'muted small'));
+      for (const check of latestVs04Numerics.results || []) {
+        const details = make('details');
+        details.append(make('summary', check.component + ' · ' + check.status + ' · ' +
+           check.observed_row_count + '/' + check.expected_row_count));
+        details.append(make('pre', JSON.stringify({
+          reason_codes: check.reason_codes, items: check.items
+        }, null, 2)));
+        host.append(details);
+      }
+    }
+    if (latestVs04Readiness) {
+      host.append(make('h3', 'VS04-E · Normatif kanıt kapıları · ' + latestVs04Readiness.status));
+      host.append(make('p', 'TBDY normatif hesap: ' + latestVs04Readiness.regulatory_checks_executed +
+        ' / ' + latestVs04Readiness.expected_check_count +
+        ' · Uygunluk NOT_PROVEN. Kaynak aritmetiği yönetmelik kabulü değildir.', 'warn'));
+      for (const gate of latestVs04Readiness.checks || []) {
+        const details = make('details');
+        details.append(make('summary', gate.check_id + ' · ' + gate.status));
+        details.append(make('pre', JSON.stringify({
+          code_ref:gate.code_ref, missing_evidence:gate.missing_evidence,
+          source_only_hints:gate.source_only_hints
+        }, null, 2)));
+        host.append(details);
+      }
+    }
+    if (latestVs04Pipeline) {
+      host.append(make('h3', 'VS04 E–J · Tek run_id kaynak zinciri · ' + latestVs04Pipeline.status));
+      const v2 = latestVs04Pipeline.pipeline_contract_version === 'v2';
+      const counts = v2 ? (' · Seçim bağımlılığı açıklanan: ' +
+        latestVs04Pipeline.source_diagnostic_resolved_count +
+        ' · Açık kaynak: ' + latestVs04Pipeline.source_unresolved_count +
+        ' · Koşullu: ' + latestVs04Pipeline.conditional_component_count) : '';
+      host.append(make('p', 'Doğrudan kaynak gözlemi: ' + latestVs04Pipeline.source_observed_count +
+        '/' + latestVs04Pipeline.source_component_count + counts +
+        ' · TBDY uygunluğu NOT_PROVEN · Mühendislik release NOT_READY.', 'warn'));
+      const diag = latestVs04Pipeline.modal_display_selection_reconciliation;
+      if (diag) {
+        host.append(make('h3','E/F/G · Response Spectrum Modal Info seçim teşhisi'));
+        host.append(make('p',diag.status === 'SOURCE_DISPLAY_SELECTION_DEPENDENCY_RECONCILED' ?
+           'İlk okuma hatası korunmuştur. RSX/RSY seçimiyle 200 modal satır doğrulandı; kaynak bağlamı açıklanmış, normatif PASS verilmemiştir.' :
+           'İlk okuma ve seçilmiş vaka kaynakları uzlaştırılamadı. Kaynak kanıtı açık kalır.', 'warn'));
+        const details = make('details');
+        details.append(make('summary', diag.status));
+        details.append(make('pre', JSON.stringify(diag, null, 2)));
+        host.append(details);
+      }
+      for (const check of latestVs04Pipeline.checks || []) {
+        const details = make('details');
+        details.append(make('summary', check.title + ' · ' + check.source_status +
+          ' · Kanıt statüsü: ' + check.status));
+        const source = latestVs04Pipeline.stages?.[check.stage_key] || {};
+        details.append(make('pre', JSON.stringify({
+          check_id: check.check_id, applicability: check.applicability,
+          compliance: check.formal_compliance, reason_codes: check.reason_codes,
+          missing_evidence: check.missing_evidence,
+          execution_status: check.execution_status, coverage: check.coverage,
+          source_identity: check.source_identity,
+          source_status: check.source_status, source_facts: source.source_facts,
+          conditional_eq_4_19_minimum_term_kn: source.conditional_eq_4_19_minimum_term_kn,
+          missing_authorities: source.missing_authorities, mandatory_holds: source.mandatory_holds
+        }, null, 2)));
+        host.append(details);
+      }
+    }
+    for (const entry of latestVs04.tables || []) {
+      const details = make('details');
+      details.append(make('summary', entry.table_key + ' · ' + entry.status + ' · ' + (entry.row_count ?? '—') + ' satır'));
+      const summary = {fields:entry.fields, field_metadata:entry.field_metadata,
+        schema_sha256:entry.schema_sha256, source_sha256:entry.source_sha256,
+        reason_codes:entry.reason_codes};
+      details.append(make('pre',JSON.stringify(summary,null,2)));
+      host.append(details);
     }
   }
   function buildTree() {
@@ -191,9 +287,50 @@
       byId('quickStatus').textContent = 'Kontrol ağacı yüklenemedi: ' + error.message;
     }
   }
-  function useReport(report, extra) {
+  function renderUnifiedTrees(data) {
+    if (!data || typeof setTree !== 'function') return;
+    const result = data.result || data.modal || {};
+    const extra = data.extra_checks || {};
+    const v = data.vs04_schema || {};
+    const source = data.vs04_numerics || {};
+    const ledger = data.vs04_readiness || {};
+    const pipeline = data.vs04_pipeline || null;
+    const a1Observed = (extra.checks || [])
+      .filter(c => c.check_id === 'a1_torsion_x' || c.check_id === 'a1_torsion_y')
+      .flatMap(c => c.items || []).filter(item => item.status === 'A1_OBSERVED');
+    setTree('modeltree', [
+      'ETABS: ' + (data.model_name || 'kaynak model'),
+      'Modal vaka: ' + (data.case || 'Modal'),
+      '3 analiz tablosu: ' + (v.captured_table_count ?? '—') + '/3',
+      'Tek run_id: ' + (data.run_id || '—')
+    ]);
+    setTree('resulttree', [
+      'Modal kütle: ' + (result.status || 'NOT_PROVEN'),
+      ...(a1Observed.length ? ['A1 BURULMA GÖZLENDİ: ' + a1Observed.length +
+        ' kat-yön · yönetmelik uygunluğu NOT_PROVEN'] : []),
+      ...((data.geometry || {}).checks || []).map(c => c.check_id + ': ' + c.status),
+      ...(extra.checks || []).map(c => c.check_id + ': ' + c.status),
+      'VS04 kaynak aritmetiği: ' + (source.observed_component_count ?? '—') + '/5',
+      ...(pipeline ? (pipeline.checks || []).map(c =>
+        c.check_id + ': ' + c.status +
+        ((c.reason_codes || []).length ? ' · ' + c.reason_codes.join(', ') : '') +
+        ' · FORMAL NOT_PROVEN') :
+        ['VS04 E–J kaynak zinciri: henüz toplanmadı']),
+      'Normatif kanıt kapıları: ' + (ledger.proven_check_count ?? '—')
+        + '/' + (ledger.expected_check_count ?? '—'),
+      'Yönetmelik uygunluğu: NOT_PROVEN',
+      'ENGINEERING RELEASE: NOT_READY'
+    ]);
+  }
+  function useReport(report, extra, vs04, vs04Numerics, vs04Readiness, vs04Pipeline, fullRun) {
     latest = report;
     latestExtra = extra || null;
+    latestVs04 = vs04 || null;
+    latestVs04Numerics = vs04Numerics || null;
+    latestVs04Readiness = vs04Readiness || null;
+    latestVs04Pipeline = vs04Pipeline || null;
+    renderUnifiedTrees(fullRun);
+    renderVs04();
     renderExtras(active);
     renderQuick(report, 7);
     renderQuick(report, 11);
@@ -214,7 +351,7 @@
       }
       const first = cachedHistory[0] || null;
       if (first) {
-        useReport(first.geometry, first.extra_checks);
+        useReport(first.geometry, first.extra_checks, first.vs04_schema, first.vs04_numerics, first.vs04_readiness, first.vs04_pipeline, first);
         setExportRun(first.run_id);
         byId('quickStatus').textContent = `Son canlı tarama: ${first.model_name || 'ETABS'} · ${first.captured_at_utc}`;
       }
@@ -223,33 +360,56 @@
     }
   }
   async function runSuite() {
-    const button = byId('quickSuiteBtn');
+    const button = byId('runAllBtn');
     const status = byId('quickStatus');
+    const liveStatus = byId('liveModalStatus');
     const modal = byId('liveCase').value.trim();
-    if (!modal) {status.textContent = 'Modal vaka zorunludur.'; return;}
-    button.disabled = true; status.textContent = 'ETABS modal, geometri, beton ve kat düzensizliği tabloları alınıyor…';
+    if (!modal) {
+      const message = 'Modal vaka adı zorunludur.';
+      status.textContent = message;
+      liveStatus.textContent = message;
+      return;
+    }
+    button.disabled = true;
+    liveStatus.className = 'live-status';
+    liveStatus.textContent = 'ETABS okunuyor; şema, birim, 8 mevcut kontrol ve VS04 kaynak kanıtları işleniyor…';
+    status.textContent = liveStatus.textContent;
     try {
-      const response = await fetch('/api/live-suite?case=' + encodeURIComponent(modal), {method:'POST',cache:'no-store'});
+      // One user gesture -> one existing backend transaction -> one run_id.
+      const response = await fetch('/api/live-vs04?case=' + encodeURIComponent(modal),
+                                   {method: 'POST', cache: 'no-store'});
       const body = await response.json();
-      if (!response.ok) throw new Error(body.result?.reason || body.reason || `HTTP ${response.status}`);
-      if (typeof showResult === 'function') showResult('Canlı ETABS · 8 kontrol', body);
+      if (!response.ok) throw new Error(body.result?.reason || body.reason || 'HTTP ' + response.status);
+      if (body.engineering_release !== 'NOT_READY' || !body.vs04_schema || !body.vs04_numerics
+          || !body.vs04_readiness || !body.geometry || !body.extra_checks || !body.run_id
+          || body.vs04_pipeline?.pipeline_contract_version !== 'v2') {
+        throw new Error('INCOMPLETE_OR_UNVERIFIED_UNIFIED_RUN_CONTRACT');
+      }
+      if (typeof showResult === 'function') showResult('Canlı ETABS · Birleşik tarama', body);
       if (typeof window.showModalFullTable === 'function') window.showModalFullTable(body.run_id);
-      useReport(body.geometry, body.extra_checks);
-      setExportRun(body.run_id, `${body.model_name || 'ETABS'} · yeni canlı çalışma`);
-      byId('step1').textContent = `LIVE_ETABS · ${body.source_rows} modal satır`;
-      byId('step2').textContent = body.geometry?.status || 'Şema bekleniyor';
-      byId('step3').textContent = body.result.status;
-      status.textContent = `Model: ${body.model_name} · Modal: ${body.result.status} · Geometri: ${body.geometry?.status}`;
+      useReport(body.geometry, body.extra_checks, body.vs04_schema,
+                body.vs04_numerics, body.vs04_readiness, body.vs04_pipeline, body);
+      setExportRun(body.run_id, (body.model_name || 'ETABS') + ' · birleşik canlı çalışma');
+      byId('step1').textContent = 'ETABS KAYNAĞI · ' + body.source_rows + ' modal satır';
+      byId('step2').textContent = 'ŞEMA · ' + body.vs04_schema.status;
+      byId('step3').textContent = 'HESAP · ' + body.result.status + ' / RELEASE NOT_READY';
+      liveStatus.textContent = 'Kayıt: ' + body.run_id
+        + ' · 8 mevcut kontrol değerlendirildi · VS04: ' + body.vs04_schema.status
+        + ' · TBDY genel uygunluk: NOT_PROVEN';
+      status.textContent = liveStatus.textContent;
+      liveStatus.className = 'live-status warn';
       await loadRuns();
-      // Calling refreshModalHistory would overwrite the newly selected run's UI;
-      // the same run is already in the receipt history and can be refreshed there.
     } catch (error) {
-      status.textContent = 'Hızlı tarama çalıştırılamadı: ' + error.message;
-      status.className = 'live-status bad';
-    } finally {button.disabled = false;}
+      const message = 'Birleşik tarama tamamlanamadı: ' + error.message;
+      status.textContent = message;
+      liveStatus.textContent = message;
+      liveStatus.className = 'live-status bad';
+    } finally {
+      button.disabled = false;
+    }
   }
   window.renderQuickChecksForTab = tab => {renderQuick(latest, tab);renderExtras(tab);};
-  byId('quickSuiteBtn')?.addEventListener('click', runSuite);
+  byId('runAllBtn')?.addEventListener('click', runSuite);
   loadRegistry();
   loadQuickHistory();
 })();
