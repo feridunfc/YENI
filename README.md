@@ -146,3 +146,21 @@ regulatory checks. The existing eight accepted VS01–VS03 checks remain unchang
 HTML and JSON show the complete source arithmetic and its blockers. Missing,
 changed, or forged receipts reject the export for newly captured VS04 runs.
 See [VS04 numerical source protocol](docs/VS04_NUMERIC_SOURCE_REVIEW.md).
+
+### Recheck a locally captured VS04_RAW file without ETABS
+
+The `tools/replay_vs04_raw.py` script replays the same pure source math
+against the private RAW JSON. It does not connect to ETABS, touch the
+analytical model or claim normatively approved drift/base-shear calculations.
+
+```powershell
+cd C:\Users\efeya\PycharmProjects\YENI_VS04
+$raw = (Get-ChildItem ".receipts\VS04\VS04_RAW_*.json" | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName
+if (-not $raw) { throw "VS04_RAW is missing" }
+.\.venv\Scripts\python.exe tools\replay_vs04_raw.py --input "$raw" --out ".receipts\VS04\VS04_REPLAY_LATEST.json"
+```
+
+The new `VS04_REPLAY_LATEST.json` has source-schema diagnostics, five
+component-level source-math results, and input SHA-256, but excludes the complete
+raw source rows. Share this replay first; real source data is still necessary
+for independent row-by-row acceptance. Full engineering release stays NOT_READY.
