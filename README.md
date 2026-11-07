@@ -187,3 +187,13 @@ identities, validates story heights, and retains `Response Spectrum Modal Info`
 API errors. It **cannot** grant TBDY compliance, spectrum scale validity,
 full drift approval, or analysis generation lineage. See
 [VS04-F source binding contract](docs/VS04_F_SOURCE_BINDINGS.md).
+
+## VS04-G — Targeted diaphragm + selected spectrum-modal source probe
+
+After the VS04-F real-source replay, capture only the exact diaphragm definition,
+area/joint assignment tables and the response-spectrum modal output under
+original and temporarily selected RSX/RSY display cases. See
+[VS04-G source capture and safety protocol](docs/VS04_G_DIAPHRAGM_MODAL_EVIDENCE.md).
+This is a read-only structural model capture with a fully restored display
+selection, **not** a TBDY compliance calculation. The 8 accepted checks stay
+unchanged and `engineering_release` remains `NOT_READY`.
