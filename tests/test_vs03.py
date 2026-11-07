@@ -146,7 +146,8 @@ class NextCapture(unittest.TestCase):
 
     def test_failed_table_restores_selection(self):
         sap=NextSap(broken=True)
-        with self.assertRaises(RuntimeError): capture_next_facts(sap)
+        capture = capture_next_facts(sap)
+        self.assertEqual(capture['a1_table']['status'], 'CAPTURE_ERROR')
         self.assertEqual(sap.DatabaseTables.cases,('LC_DL',))
 
 class Vs03ReportIntegration(unittest.TestCase):

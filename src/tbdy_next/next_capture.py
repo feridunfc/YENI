@@ -14,6 +14,20 @@ MATERIAL_TABLE = "Material Properties - Concrete Data"
 A1_TABLE = "Story Max Over Avg Drifts"
 
 
+def _safe_source_table(db: Any, name: str) -> dict:
+    # Failure of a *new* VS03 source must not erase the already-working VS01/02
+    # numerical results. Keep the failed source and its diagnostics as NO_DATA.
+    try:
+        record = _read_one(db, name)
+        record["field_metadata"] = _metadata(db, name)
+        return record
+    except Exception as exc:
+        return {"status": "CAPTURE_ERROR", "table_key": name,
+                "fields": [], "rows": [], "row_count": 0,
+                "error": f"{type(exc).__name__}: {exc}",
+                "field_metadata": {"status": "METADATA_UNAVAILABLE"}}
+
+
 def capture_next_facts(sap: Any, *, x_case: str = "RSX", y_case: str = "RSY") -> dict:
     if (not isinstance(x_case, str) or not isinstance(y_case, str)
             or not x_case.strip() or not y_case.strip() or x_case == y_case
@@ -22,8 +36,7 @@ def capture_next_facts(sap: Any, *, x_case: str = "RSX", y_case: str = "RSY") ->
     db = sap.DatabaseTables
     before_units = sap.GetPresentUnits()
     # Material definitions are independent from selected output cases.
-    material = _read_one(db, MATERIAL_TABLE)
-    material["field_metadata"] = _metadata(db, MATERIAL_TABLE)
+    material = _safe_source_table(db, MATERIAL_TABLE)
     original = _selected_cases(db)
     wanted = (x_case, y_case)
     changed = original != wanted
@@ -35,8 +48,7 @@ def capture_next_facts(sap: Any, *, x_case: str = "RSX", y_case: str = "RSY") ->
             _set_cases(db, wanted)
             if _selected_cases(db) != wanted:
                 raise ModalCaptureError("A1 display-case selection mismatch")
-        a1 = _read_one(db, A1_TABLE)
-        a1["field_metadata"] = _metadata(db, A1_TABLE)
+        a1 = _safe_source_table(db, A1_TABLE)
     finally:
         if changed:
             try:
