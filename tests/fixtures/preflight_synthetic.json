@@ -1,0 +1,19 @@
+{
+  "schema": "tbdy.next.etabs.readonly.preflight.v1",
+  "status": "DISCOVERY_OK",
+  "analysis_generation_proven": false,
+  "observations": {
+    "available_tables": {
+      "count": 2,
+      "ret_code": 0,
+      "status": "OK",
+      "tables": [
+        {"key": "Modal Participating Mass Ratios"},
+        {"key": "Base Reactions"}
+      ]
+    },
+    "load_cases": {"count": 2, "names": ["Modal", "RSX"], "ret_code": 0, "status": "OK"},
+    "load_combinations": {"count": 1, "names": ["G+Q"], "ret_code": 0, "status": "OK"},
+    "etabs_version": {"raw": ["23.2.0", 0.0, 0]}
+  }
+}

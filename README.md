@@ -1,26 +1,98 @@
-# TBDY Next Engine — fresh owned implementation
+# TBDY Next Engine
 
-A new, small, independently maintained structural engineering product. The old **TBDY**, **Column-Engine** and **R1-C** repositories are reference material, **not runtime dependencies**. New names and boundaries are based on what this product actually executes.
+Small, project-owned Turkish structural-engineering application. The older `TBDY`, `Column-Engine`, and R1-C codebases are **references only**; none are runtime dependencies. Each iteration implements **one bounded vertical slice** and records which stage was actually verified.
 
-## First vertical slice
+## VS01 — Modal effective-mass ratio (numerical subcondition)
 
-1. Read a real ETABS 23.2.0 *readonly preflight* JSON; identify the modal table key. **Discovery is not schema verification.**
-2. Import a complete `Modal Participating Mass Ratios` table in `tbdy.next.modal.capture.v1` JSON format.
-3. Validate columns, row count, selected case, mode order, and cumulative mass fractions.
-4. Evaluate **only** the TBDY 2018 4.8.1.2 numerical mass-ratio subcondition (>=95%).
-5. Save immutable stage receipts under a local output directory; no engineering release is claimed.
+1. From the Windows UI, attach to an already-running ETABS 23.2.0 instance.
+2. Read the **complete** `Modal Participating Mass Ratios` table via the project-owned adapter. Offline JSON imports are optional.
+3. Validate real source fields, all rows, selected modal case, contiguous modes, and cumulative fractions.
+4. Evaluate the 95% mass-ratio subcondition of TBDY 2018 §4.8.1.2; this is **not** a complete seismic engineering verdict.
+5. Show live X/Y results and old CLI results in the UI; write local receipts with source SHA-256. Never issue global engineering release.
 
-## Run
+## Installation and tests
 
 ```bash
 python -m pip install -e .
 python -m unittest discover -s tests -v
+```
+
+## Windows / PyCharm — direct ETABS web connection
+
+ETABS 23.2.0 must already be running with an analyzed, locked model. This
+application never saves the model or starts analysis. Run from the repository
+root with the project interpreter:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -e .
+.\.venv\Scripts\python.exe -m pip install comtypes
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+.\.venv\Scripts\python.exe -m tbdy_next.cli serve --host 127.0.0.1 --port 8765 --out .receipts
+```
+
+Open `http://127.0.0.1:8765`, choose **Modal analiz**, then press **ETABS'a
+bağlan ve hesapla**. No JSON file selection is required. The local server
+reads only `Modal Participating Mass Ratios` from the active ETABS instance,
+restores any temporary output-case selection, validates the rows, performs the
+same VS01 numerical check as the CLI, and saves the input + stage receipts
+under `.receipts/RUN-*`. Existing CLI results appear in the UI automatically.
+
+The web server only listens on localhost; actual COM access is lazy and occurs
+only after clicking the live button. Windows COM live acceptance is separate
+from mock-based CI verification. In Codespaces/Linux the live button does not
+connect to ETABS. Only **Modal analiz (VS01)** is implemented; the other 15
+navigation tabs remain planned. The 95% result is a numerical subcondition,
+not a global seismic-design release.
+
+## Command-line usage
+
+```bash
 python -m tbdy_next.cli inspect-preflight --input path/to/etabs_readonly_preflight.json --out .receipts
 python -m tbdy_next.cli check-modal --input tests/fixtures/modal_meets.json --case Modal --out .receipts
 ```
 
-Fixtures are synthetic. Never publish an EDB or real project capture to this public repository. Genuine captured tables stay in local private output directories.
+The repository includes **synthetic fixtures only**. Real project files, EDB models, and ETABS snapshots are excluded from git and must remain local/private. VS01 does not establish engineering release. Real modal tables and all used fields require targeted source review before a complete engineering check can be claimed.
 
-## Architecture and provenance
+Architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Selective reference reuse: [`docs/REUSE_REGISTER.md`](docs/REUSE_REGISTER.md).
 
-See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and [`docs/REUSE_REGISTER.md`](docs/REUSE_REGISTER.md). No legacy module imports, no mandatory 94-node scaffolding, and no `PASS` for incomplete engineering authority.
+## VS02 — Five checks with one live ETABS acquisition
+
+The **5 kontrolü birlikte çalıştır** button reads the existing modal case
+plus six geometry tables from the same Windows ETABS COM session. It validates
+actual field metadata, the `SectProp` assignment and the `UniqueName + Story`
+join across frame summary, beam/column connectivity, and concrete rectangular
+section definitions. Dimensions `t2` (width) and `t3` (depth) are read in meters
+and converted to millimeters **only if the observed source field metadata
+confirms `m` and present-units enum is 6**.
+
+Five implemented checks: modal mass 95% numerical subcondition, rectangular
+column minimum 300 mm, beam web width 250 mm, beam depth 300 mm, beam h/b ≤3.5.
+Geometry checks are **numerical screenings**, not full TBDY compliance: seismic
+ductility/applicability, beam/frame exceptions, beam slab-thickness condition,
+and attached column/wall width are not inferred. Unmatched elements or missing
+units are shown as `NOT_PROVEN`, never silently skipped.
+
+The left navigation tree is automatically populated from the actual five check
+definitions. Five-check outputs and original complete source rows stay under
+`.receipts` only, not in the public GitHub repository.
+
+## Used-material scope (VS02 candidate)
+
+The RC member geometry screen uses an exact member/section/material join:
+`Frame Assignments - Summary.UniqueName` → `Frame Assignments - Section Properties.SectProp` →
+`Frame Section Property Definitions - Summary.Material` → `PropMaterial.GetTypeOAPI`.
+The ETABS material type code **2** identifies concrete; a different documented
+material type is **NOT_APPLICABLE** to these concrete-only screens, not a failure.
+Unknown types, missing section bindings, unrecognized shapes, and conflict rows
+remain **NOT_PROVEN**. The inventory denominator retains each identified beam/column.
+This is a pure project-owned adaptation of prior TBDY material-population semantics,
+not a runtime import or whole-building code compliance claim.
+
+## VS02 — Full reports and audit JSON
+
+After **5 kontrolü birlikte çalıştır** succeeds, open **Modal Analiz → 05 · Hızlı geometri kontrolleri**. Two controls appear for the selected, previously recorded run:
+
+- **Tam JSON dışa aktar**: downloadable `TBDY_NEXT_RUN-..._all_checks.json`. Contains all five check results, all element-by-element geometry results (including NOT_APPLICABLE and NOT_PROVEN), the complete ETABS modal source table, the six geometry source tables with original rows/fields, material type facts, and receipt/source hashes. It is meant for independent verification and may include model path or other sensitive project details. Review before sharing.
+- **Mühendislik raporu / PDF**: standalone, printable HTML containing the full check summary, complete per-element tables, the full modal table, source census, materials, and source fingerprints. Print or save to PDF using your browser's **Ctrl+P** command.
+
+The dropdown switches between stored full five-check runs. Exports read `.receipts/RUN-...` only; **no new ETABS connection, recalculation authority, model mutation or upload occurs**. Existing modal and geometry evaluators revalidate the archived data and receipts. An incomplete or tampered run does not produce a report. `ENGINEERING_RELEASE=NOT_READY` and `FORMAL_COMPLIANCE=NOT_PROVEN` remain explicit.
