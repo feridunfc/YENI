@@ -273,3 +273,15 @@ preserved as a DENIED candidate catalog, not a new full global runtime.
 candidate CheckInstances into a deterministic execution plan and reconciles
 all missing instances into fail-closed FCR, with no untrusted PASS.
 See [VS05 candidate DAG and FCR contract](docs/VS05_DAG_COMPILER_FCR_FOUNDATION.md).
+
+## VS05-ARCH-D2 — ModelProfile / ComboBook candidate compiler
+
+A typed source-bounded candidate ModelProfile and nested ComboBook
+parser can compile a limited directional base-shear and physical-story
+drift candidate denominator into the D1 RegulatoryCompiler/FCR. Exact
+case references, nested operators, source SHA and member/story IDs
+are checked; no profile or combo approves itself. Refer to
+[VS05 ARCH-D2 contract](docs/VS05_D2_MODEL_PROFILE_COMBO_CONTRACT.md)
+and [legacy branch audit](docs/LEGACY_BRANCH_AUDIT_20261107.md).
+
+Main is unchanged; VS05 is an unmerged engineering working branch.
