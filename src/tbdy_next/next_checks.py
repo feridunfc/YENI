@@ -110,9 +110,34 @@ def _material_items(source: Mapping[str, Any], geometry: Mapping[str, Any]) -> l
     return output
 
 
+
+def _a1_live_binding(source: Mapping[str, Any]) -> tuple[list[dict] | None, tuple[str, str] | None, str | None]:
+    """Resolve only *observed* ETABS v23 A1 column pairs and verified drift units.
+
+    The real 23.2 table uses 'Max Drift' / 'Avg Drift'; previously observed
+    compact aliases are supported only as an exact, unambiguous pair. No fuzzy
+    header normalization or silent unit fallback is permitted.
+    """
+    rows = _table(source, "a1_table", {
+        "Story", "OutputCase", "CaseType", "StepType", "Direction", "Ratio",
+    })
+    if rows is None:
+        return None, None, "A1_SOURCE_SCHEMA_NOT_VERIFIED"
+    columns = set(source["a1_table"]["fields"])
+    pairs = (("Max Drift", "Avg Drift"), ("MaxDrift", "AvgDrift"))
+    matches = [pair for pair in pairs if set(pair).issubset(columns)]
+    if len(matches) != 1:
+        return None, None, "A1_DRIFT_FIELD_PAIR_MISSING_OR_AMBIGUOUS"
+    pair = matches[0]
+    units = source["a1_table"]["field_metadata"].get("units_by_field")
+    if (not isinstance(units, Mapping) or units.get(pair[0]) != "m"
+            or units.get(pair[1]) != "m" or units.get("Ratio") != ""):
+        return None, None, "A1_SOURCE_UNITS_NOT_VERIFIED"
+    return rows, pair, None
+
 def _a1_items(source: Mapping[str, Any], geometry: Mapping[str, Any], direction: str) -> list[dict]:
     case = source.get("x_case") if direction == "X" else source.get("y_case")
-    rows = _table(source, "a1_table", {"Story", "OutputCase", "Direction", "MaxDrift", "AvgDrift", "Ratio"})
+    rows, drift_fields, source_reason = _a1_live_binding(source)
     geometry_rows = ((geometry.get("tables") or {}).get("FRAME_ASSIGNMENTS") or {}).get("rows") or []
     stories = {str(row.get("Story", "")).strip() for row in geometry_rows
                if str(row.get("Type", "")).strip().casefold() in {"beam", "column"}}
@@ -126,7 +151,7 @@ def _a1_items(source: Mapping[str, Any], geometry: Mapping[str, Any], direction:
         item = {"story": story, "direction": direction, "source_case": case,
                 "status": "NOT_PROVEN", "eta_bi": None, "limit": "1.2", "unit": "ratio"}
         if rows is None:
-            item["reason"] = "A1_SOURCE_SCHEMA_NOT_VERIFIED"
+            item["reason"] = source_reason or "A1_SOURCE_SCHEMA_NOT_VERIFIED"
         elif not isinstance(case, str) or not case:
             item["reason"] = "DIRECTION_CASE_NOT_DEFINED"
         elif source.get("case_selection_restored") is not True:
@@ -141,12 +166,17 @@ def _a1_items(source: Mapping[str, Any], geometry: Mapping[str, Any], direction:
                 parsed = []
                 for r in matching:
                     try:
-                        maximum = _num(r["MaxDrift"], positive=True)
-                        average = _num(r["AvgDrift"], positive=True)
+                        # A1 sample is the MAX response spectrum step, not an
+                        # arbitrary static case, min-step, or other case family.
+                        if r["CaseType"] != "LinRespSpec" or r["StepType"] != "Max":
+                            raise ValueError("case/step semantics not accepted")
+                        assert drift_fields is not None
+                        maximum = _num(r[drift_fields[0]], positive=True)
+                        average = _num(r[drift_fields[1]], positive=True)
                         eta = _num(r["Ratio"], positive=True)
                         if (eta < 1 or maximum < average
                                 or (average >= Decimal("0.000001")
-                                    and abs(maximum/average-eta) > max(Decimal("0.03"),eta*Decimal("0.03")))):
+                                    and abs(maximum/average-eta) > max(Decimal("0.01"),eta*Decimal("0.01")))):
                             raise ValueError("ratio/source drift conflict")
                         parsed.append(eta)
                     except (KeyError, ValueError):

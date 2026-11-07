@@ -20,17 +20,17 @@ from test_quick_suite import geometry, fake_live_suite
 
 def source():
     cols = ["Material", "Fc"]
-    fields = ["Story", "OutputCase", "Direction", "MaxDrift", "AvgDrift", "Ratio"]
+    fields = ["Story", "OutputCase", "CaseType", "StepType", "Direction", "Max Drift", "Avg Drift", "Ratio"]
     rows = [
-        {"Story": "+3", "OutputCase": "RSX", "Direction": "X", "MaxDrift": "0.00125", "AvgDrift": "0.001", "Ratio": "1.25"},
-        {"Story": "+3", "OutputCase": "RSY", "Direction": "Y", "MaxDrift": "0.00118", "AvgDrift": "0.001", "Ratio": "1.18"},
-        {"Story": "+6", "OutputCase": "RSX", "Direction": "X", "MaxDrift": "0.00112", "AvgDrift": "0.001", "Ratio": "1.12"},
-        {"Story": "+6", "OutputCase": "RSY", "Direction": "Y", "MaxDrift": "0.00131", "AvgDrift": "0.001", "Ratio": "1.31"},
+        {"Story": "+3", "OutputCase": "RSX", "CaseType": "LinRespSpec", "StepType": "Max", "Direction": "X", "Max Drift": "0.00125", "Avg Drift": "0.001", "Ratio": "1.25"},
+        {"Story": "+3", "OutputCase": "RSY", "CaseType": "LinRespSpec", "StepType": "Max", "Direction": "Y", "Max Drift": "0.00118", "Avg Drift": "0.001", "Ratio": "1.18"},
+        {"Story": "+6", "OutputCase": "RSX", "CaseType": "LinRespSpec", "StepType": "Max", "Direction": "X", "Max Drift": "0.00112", "Avg Drift": "0.001", "Ratio": "1.12"},
+        {"Story": "+6", "OutputCase": "RSY", "CaseType": "LinRespSpec", "StepType": "Max", "Direction": "Y", "Max Drift": "0.00131", "Avg Drift": "0.001", "Ratio": "1.31"},
     ]
     def table(key, fields, rows, units):
         return {"status": "CAPTURED", "table_key": key, "fields": fields,
                 "row_count": len(rows), "rows": rows,
-                "field_metadata": {"status": "OK", "field_keys": fields,
+                "field_metadata": {"status": "OK", "field_keys": list(fields),
                                    "units_by_field": units}}
     return {"schema": "tbdy.next.vs03.capture.v1", "units_before": 6, "units_after": 6,
             "case_selection_restored": True, "x_case": "RSX", "y_case": "RSY",
@@ -38,7 +38,7 @@ def source():
                                     [{"Material": "C35/45", "Fc": "35000"}],
                                     {"Material": "", "Fc": "kN/m2"}),
             "a1_table": table("Story Max Over Avg Drifts", fields, rows,
-                              {k: "" for k in fields})}
+                              {k: ("m" if k in ("Max Drift", "Avg Drift") else "") for k in fields})}
 
 
 def geo():
@@ -107,6 +107,82 @@ class Vs03Math(unittest.TestCase):
     def test_source_missing_is_unknown(self):
         self.assertEqual(evaluate_next_capture(None,geo())['status'],'SOURCE_SCHEMA_REVIEW_REQUIRED')
 
+
+    def test_observed_etabs_23_2_spaced_drift_fields_are_accepted(self):
+        result = evaluate_next_capture(source(), geo())
+        self.assertEqual(result['status'], 'NUMERICAL_CLASSIFIED')
+        self.assertEqual(result['checks'][1]['items'][0]['eta_bi'], '1.25')
+        self.assertEqual(result['checks'][2]['items'][0]['eta_bi'], '1.18')
+
+    def test_cross_direction_values_do_not_govern_a1(self):
+        case = source()
+        # Same load case's orthogonal drift may be larger, but must never
+        # contaminate RSX-X or RSY-Y classifications.
+        case['a1_table']['rows'].append({
+            'Story': '+3', 'OutputCase': 'RSX', 'CaseType': 'LinRespSpec',
+            'StepType': 'Max', 'Direction': 'Y',
+            'Max Drift': '0.0019', 'Avg Drift': '0.001', 'Ratio': '1.9',
+        })
+        case['a1_table']['row_count'] += 1
+        result = evaluate_next_capture(case, geo())
+        self.assertEqual(result['checks'][1]['items'][0]['eta_bi'], '1.25')
+        self.assertEqual(result['checks'][2]['items'][0]['eta_bi'], '1.18')
+
+    def test_a1_field_units_missing_or_wrong_hold_unknown(self):
+        for change in ('Max Drift', 'Avg Drift', 'Ratio'):
+            with self.subTest(change=change):
+                case = source()
+                case['a1_table']['field_metadata']['units_by_field'][change] = 'cm'
+                status = evaluate_next_capture(case, geo())['checks'][1]['items'][0]
+                self.assertEqual(status['status'], 'NOT_PROVEN')
+                self.assertEqual(status['reason'], 'A1_SOURCE_UNITS_NOT_VERIFIED')
+
+    def test_a1_mixed_alias_pair_is_not_automatically_approved(self):
+        case = source()
+        table = case['a1_table']
+        table['fields'][table['fields'].index('Max Drift')] = 'MaxDrift'
+        for row in table['rows']:
+            row['MaxDrift'] = row.pop('Max Drift')
+        units = table['field_metadata']['units_by_field']
+        units['MaxDrift'] = units.pop('Max Drift')
+        table['field_metadata']['field_keys'][table['field_metadata']['field_keys'].index('Max Drift')] = 'MaxDrift'
+        status = evaluate_next_capture(case, geo())['checks'][1]['items'][0]
+        self.assertEqual(status['status'], 'NOT_PROVEN')
+        self.assertEqual(status['reason'], 'A1_DRIFT_FIELD_PAIR_MISSING_OR_AMBIGUOUS')
+
+    def test_a1_compact_pair_preserves_backward_compatibility(self):
+        case = source()
+        table = case['a1_table']
+        for original, compact in (('Max Drift', 'MaxDrift'), ('Avg Drift', 'AvgDrift')):
+            table['fields'][table['fields'].index(original)] = compact
+            table['field_metadata']['field_keys'][table['field_metadata']['field_keys'].index(original)] = compact
+            unit_map = table['field_metadata']['units_by_field']
+            unit_map[compact] = unit_map.pop(original)
+            for row in table['rows']:
+                row[compact] = row.pop(original)
+        self.assertEqual(evaluate_next_capture(case, geo())['status'], 'NUMERICAL_CLASSIFIED')
+
+    def test_a1_requires_max_step_and_response_spectrum_case(self):
+        for field, bad in (('StepType', 'Min'), ('CaseType', 'LinStatic')):
+            with self.subTest(field=field):
+                case = source()
+                case['a1_table']['rows'][0][field] = bad
+                item = evaluate_next_capture(case, geo())['checks'][1]['items'][0]
+                self.assertEqual(item['status'], 'NOT_PROVEN')
+                self.assertEqual(item['reason'], 'A1_ROW_INVALID_OR_RATIO_CONFLICT')
+
+    def test_a1_rejects_ambiguous_complete_alias_pairs(self):
+        case = source()
+        table = case['a1_table']
+        for field in ('MaxDrift', 'AvgDrift'):
+            table['fields'].append(field)
+            table['field_metadata']['field_keys'].append(field)
+            table['field_metadata']['units_by_field'][field] = 'm'
+        for row in table['rows']:
+            row['MaxDrift'], row['AvgDrift'] = row['Max Drift'], row['Avg Drift']
+        item = evaluate_next_capture(case, geo())['checks'][1]['items'][0]
+        self.assertEqual(item['status'], 'NOT_PROVEN')
+        self.assertEqual(item['reason'], 'A1_DRIFT_FIELD_PAIR_MISSING_OR_AMBIGUOUS')
 
 class NextDb:
     def __init__(self, broken=False):
