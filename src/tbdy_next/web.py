@@ -17,7 +17,7 @@ from typing import Any, Mapping
 from urllib.parse import parse_qs, urlsplit
 
 from .modal import evaluate_modal_mass
-from .history import modal_history
+from .history import modal_history, modal_source_table
 from .receipts import ReceiptRun
 from .schema import review_modal_schema
 from .source import SourceError, parse_modal_capture, review_preflight
@@ -95,6 +95,16 @@ def make_handler(output_root: Path, *, live_capture=None):
                 self.reply(200, {"runs": _runs(output_root)})
             elif url.path == "/api/modal-history":
                 self.reply(200, {"runs": modal_history(output_root), "engineering_release": "NOT_READY"})
+            elif url.path == "/api/modal-table":
+                ids = parse_qs(url.query).get("run_id", [])
+                if len(ids) != 1 or _RUN_ID_PATTERN.fullmatch(ids[0]) is None:
+                    self.reply(400, {"error": "EXACT_RUN_ID_REQUIRED"})
+                    return
+                table = modal_source_table(output_root, ids[0])
+                if table is None:
+                    self.reply(404, {"error": "VERIFIED_MODAL_TABLE_NOT_FOUND"})
+                    return
+                self.reply(200, {"table": table})
             elif url.path == "/history.js":
                 source = resources.files("tbdy_next").joinpath("static/history.js").read_bytes()
                 self.send_response(200)

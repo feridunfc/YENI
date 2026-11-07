@@ -113,3 +113,49 @@ def modal_history(root: Path, *, limit: int = 20) -> list[dict[str, Any]]:
             results.append(entry)
     results.sort(key=lambda x: (x["captured_at_utc"], x["run_id"]), reverse=True)
     return results[:limit]
+
+
+def modal_source_table(root: Path, run_id: str) -> dict[str, Any] | None:
+    """Show all stored source rows for one verified run, not a truncated preview.
+
+    The archived input, modal receipt and schema receipt must still agree.
+    This function is presentation-only and never computes a second verdict.
+    """
+    if not isinstance(run_id, str) or _RUN.fullmatch(run_id) is None:
+        return None
+    directory = Path(root) / run_id
+    entry = _read_modal_run(directory)
+    if entry is None:
+        return None
+    try:
+        source_file = directory / "input.source"
+        if source_file.is_symlink() or source_file.stat().st_size > _MAX_SOURCE_BYTES:
+            return None
+        raw = source_file.read_bytes()
+        if sha256(raw).hexdigest() != entry["input_sha256"]:
+            return None
+        source = json.loads(raw)
+        table = source["table"]
+        fields = table["fields"]
+        rows = table["rows"]
+        # parse_modal_capture has checked the selected case and row shape; retain
+        # the original column ordering and *all* captured rows for inspection.
+        if (not isinstance(fields, list) or not isinstance(rows, list)
+                or table["row_count"] != len(rows)
+                or any(not isinstance(row, dict) or set(row) != set(fields) for row in rows)):
+            return None
+        return {
+            "run_id": run_id,
+            "table_key": table["table_key"],
+            "case": entry["case"],
+            "model_name": entry["model_name"],
+            "source_mode": entry["source_mode"],
+            "fields": fields,
+            "rows": rows,
+            "row_count": len(rows),
+            "case_row_count": entry["case_row_count"],
+            "input_sha256": entry["input_sha256"],
+            "engineering_release": "NOT_READY",
+        }
+    except (OSError, UnicodeError, ValueError, TypeError, KeyError):
+        return None

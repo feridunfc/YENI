@@ -37,6 +37,57 @@
     line.append(node('span', key), node('strong', value));
     container.append(line);
   }
+  let tableRequestVersion = 0;
+  async function showModalFullTable(runId) {
+    const host = document.getElementById('result');
+    if (!host || !runId) return;
+    const version = ++tableRequestVersion;
+    const divider = node('hr', undefined, 'modal-table-divider');
+    const section = node('section', undefined, 'modal-table-section');
+    section.append(node('p', 'Tam modal tablo yükleniyor…', 'muted small'));
+    host.append(divider, section);
+    try {
+      const response = await fetch('/api/modal-table?run_id=' + encodeURIComponent(runId), {cache: 'no-store'});
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const payload = await response.json();
+      const record = payload.table;
+      if (!record || !Array.isArray(record.fields) || !Array.isArray(record.rows)
+          || record.rows.length !== record.row_count) throw new Error('Eksik veya tutarsız tablo');
+      if (version !== tableRequestVersion || !section.isConnected) return;
+      const title = node('div', undefined, 'modal-table-title');
+      title.append(node('h3', 'ETABS modal kaynak tablosu — tam veri'),
+                   node('strong', `${record.row_count} satır · ${record.fields.length} sütun`, 'small'));
+      const caption = node('p', `${record.table_key} · Vaka: ${record.case} · ${record.source_mode}. `
+        + 'Tüm kaydedilen satırlar ve orijinal sütunlar; yalnız seçilen vakadaki modal oranlar hesaplandı.', 'muted small');
+      const scroll = node('div', undefined, 'modal-table-scroll');
+      scroll.setAttribute('role', 'region');
+      scroll.setAttribute('aria-label', 'Tam modal kaynak tablosu');
+      scroll.tabIndex = 0;
+      const table = node('table', undefined, 'modal-source-table');
+      const thead = node('thead');
+      const header = node('tr');
+      for (const field of record.fields) {
+        const cell = node('th', field);
+        cell.setAttribute('scope', 'col');
+        header.append(cell);
+      }
+      thead.append(header);
+      const tbody = node('tbody');
+      for (const row of record.rows) {
+        const line = node('tr');
+        for (const field of record.fields) line.append(node('td', row[field] ?? ''));
+        tbody.append(line);
+      }
+      table.append(thead, tbody);
+      scroll.append(table);
+      section.replaceChildren(title, caption, scroll);
+    } catch (error) {
+      if (version === tableRequestVersion && section.isConnected) {
+        section.replaceChildren(node('p', `${error.message}`, 'bad'));
+      }
+    }
+  }
+  window.showModalFullTable = showModalFullTable;
   function showRun(entry) {
     const result = entry.result || {};
     const source = entry.source_mode === 'LIVE_ETABS' ? 'CANLI ETABS' : entry.source_mode === 'OFFLINE_ETABS' ? 'OFFLINE ETABS' : 'SENTETİK';
@@ -59,6 +110,7 @@
 
     // Also populate the original result surface / result tree on initial load.
     if (typeof showResult === 'function') showResult('Kaydedilmiş modal hesap', {result});
+    showModalFullTable(entry.run_id);
     document.getElementById('step1').textContent = `${source} · ${entry.raw_row_count} satır`;
     document.getElementById('step2').textContent = `SCHEMA_VALID · ${entry.case_row_count} mod`;
     document.getElementById('step3').textContent = result.status || 'Hesap bekleniyor';

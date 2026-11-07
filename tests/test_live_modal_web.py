@@ -127,6 +127,57 @@ class TestLiveModalFromUI(unittest.TestCase):
         self.assertTrue((path/'input.source').is_file())
         self.assertEqual(modal_history(Path(self.temp.name)),[])
 
+
+    def test_full_table_endpoint_returns_all_fields_and_rows(self):
+        status, body = self.send()
+        self.assertEqual(status, 200)
+        run_id = body['run_id']
+        with urlopen(self.base + '/api/modal-table?run_id=' + run_id, timeout=5) as response:
+            table = json.loads(response.read())['table']
+        self.assertEqual(table['run_id'], run_id)
+        self.assertEqual(table['table_key'], 'Modal Participating Mass Ratios')
+        self.assertEqual(table['fields'], ['Case', 'Mode', 'UX', 'UY', 'SumUX', 'SumUY'])
+        self.assertEqual(table['row_count'], 3)
+        self.assertEqual(len(table['rows']), 3)
+        self.assertEqual(table['case_row_count'], 2)
+        self.assertEqual(table['rows'][2]['Case'], 'Other')
+        self.assertEqual(table['engineering_release'], 'NOT_READY')
+
+    def test_full_table_endpoint_rejects_unknown_and_invalid_runs(self):
+        for path, expected in [
+            ('/api/modal-table', 400),
+            ('/api/modal-table?run_id=../../x', 400),
+            ('/api/modal-table?run_id=RUN-' + '0'*32, 404),
+        ]:
+            with self.subTest(path=path):
+                try:
+                    urlopen(self.base + path, timeout=5)
+                    self.fail('Expected HTTP error')
+                except HTTPError as error:
+                    self.assertEqual(error.code, expected)
+
+    def test_full_table_endpoint_rejects_modified_source(self):
+        status, body = self.send()
+        self.assertEqual(status, 200)
+        run_id = body['run_id']
+        source = Path(self.temp.name) / run_id / 'input.source'
+        text = source.read_text(encoding='utf-8')
+        source.write_text(text.replace('0.96', '0.99', 1), encoding='utf-8')
+        with self.assertRaises(HTTPError) as raised:
+            urlopen(self.base + '/api/modal-table?run_id=' + run_id, timeout=5)
+        self.assertEqual(raised.exception.code, 404)
+
+    def test_full_table_ui_is_below_numerical_note(self):
+        with urlopen(self.base + '/', timeout=5) as response:
+            html = response.read().decode('utf-8')
+        self.assertIn('modal-table-divider', html)
+        self.assertIn('window.showModalFullTable(data.run_id)', html)
+        with urlopen(self.base + '/history.js', timeout=5) as response:
+            script = response.read().decode('utf-8')
+        self.assertIn("node('hr', undefined, 'modal-table-divider')", script)
+        self.assertIn('showModalFullTable(entry.run_id)', script)
+        self.assertIn('for (const row of record.rows)', script)
+
     def test_ui_has_direct_connection_no_mandatory_file_selection(self):
         with urlopen(self.base+'/',timeout=5) as response:
             html=response.read().decode('utf-8')
