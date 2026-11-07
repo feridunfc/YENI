@@ -197,3 +197,12 @@ original and temporarily selected RSX/RSY display cases. See
 This is a read-only structural model capture with a fully restored display
 selection, **not** a TBDY compliance calculation. The 8 accepted checks stay
 unchanged and `engineering_release` remains `NOT_READY`.
+
+## VS04-H — Offline diaphragm/mode source linkage
+
+The [VS04-H source-review protocol](docs/VS04_H_DIAPHRAGM_LINKAGE.md)
+reconciles the real 5 semi-rigid diaphragm definitions, 91 area and
+325 point-object assignment rows, and 100+100 RSX/RSY modal source
+rows against the previous accepted modal period display (optional).
+`tools/review_vs04h_diaphragm.py` writes a source-only review without
+raw rows, never promotes source consistency to regulatory compliance.
