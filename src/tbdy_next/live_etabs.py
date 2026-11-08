@@ -91,6 +91,18 @@ def read_quick_suite_from_running_etabs(case: str, *, with_vs04: bool = False) -
                 payload["analysis_sources"]["pipeline_stage_required"] = True
                 payload["analysis_sources"]["pipeline_contract_version"] = "v2"
                 payload["capture_metadata"]["vs04_same_session_capture"] = True
+                # VS05 STORY_DRIFT: reuse the ALREADY ACTIVE SapModel and
+                # existing generic table gateway.  No second COM attach.
+                try:
+                    from tools.etabs_source_gateway_windows import capture as capture_tables
+                    payload["vs05_delta_source"] = capture_tables(
+                        sap, action="capture", preset="delta",
+                        cases=(case, "RSX", "RSY"))
+                except Exception as exc:
+                    # Do not lose accepted VS04 checks if an optional
+                    # VS05 table is unavailable.  Persist a BLOCKED check.
+                    payload["vs05_delta_capture_error"] = (
+                        f"{type(exc).__name__}: {exc}")
             return payload
         finally:
             sap = None

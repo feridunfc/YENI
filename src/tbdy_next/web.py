@@ -253,6 +253,14 @@ def make_handler(output_root: Path, *, live_capture=None):
                         if payload["analysis_sources"].get("pipeline_stage_required") is True:
                             vs04_pipeline = evaluate_single_run_source_pipeline(payload)
                             run.record("vs04-pipeline", vs04_pipeline, input_sha256=input_sha)
+                    story_drift = None
+                    if ("vs05_delta_source" in payload or
+                            "vs05_delta_capture_error" in payload):
+                        from .story_drift_binding import bind_story_drift
+                        story_drift = bind_story_drift(
+                            payload.get("vs05_delta_source"),
+                            capture_error=payload.get("vs05_delta_capture_error"))
+                        run.record("vs05-story-drift", story_drift, input_sha256=input_sha)
                     meta = payload.get("capture_metadata") or {}
                     run.record("live-capture", {
                         "status": "SOURCE_CAPTURED", "source_mode": "LIVE_ETABS",
@@ -269,6 +277,8 @@ def make_handler(output_root: Path, *, live_capture=None):
                         "vs04_schema": vs04, "vs04_numerics": vs04_numerics,
                         "vs04_readiness": vs04_readiness,
                         "vs04_pipeline": vs04_pipeline,
+                        **({"story_drift": story_drift}
+                           if story_drift is not None else {}),
                         "formal_compliance": "NOT_PROVEN",
                         "engineering_release": "NOT_READY",
                     })

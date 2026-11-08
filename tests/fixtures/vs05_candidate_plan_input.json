@@ -1,0 +1,46 @@
+{
+  "schema": "tbdy.next.vs05.candidate-plan-input.v1",
+  "context": "SYNTHETIC_ARCHITECTURE_FIXTURE_ONLY_NOT_BUILDING_PLAN",
+  "model_profile": {
+    "schema": "tbdy.next.vs05.model_profile.candidate.v1",
+    "profile_id": "VS05_ARCH_DEMO",
+    "version": "0",
+    "source_model_sha256": "SYNTHETIC_NEVER_APPROVED",
+    "approval_reference": "NOT_APPROVED"
+  },
+  "combo_book": {
+    "schema": "tbdy.next.vs05.combo_book.candidate.v1",
+    "book_id": "VS05_DEMO_COMBOS",
+    "version": "0",
+    "combo_definition_sha256": "SYNTHETIC_NEVER_APPROVED",
+    "approval_reference": "NOT_APPROVED"
+  },
+  "expected_instances": [
+    {
+      "check_instance_id": "BASE_SHEAR:X",
+      "node_id": "BASE_SHEAR",
+      "subject_id": "X",
+      "grain": "GLOBAL_DIRECTION"
+    },
+    {
+      "check_instance_id": "BASE_SHEAR:Y",
+      "node_id": "BASE_SHEAR",
+      "subject_id": "Y",
+      "grain": "GLOBAL_DIRECTION"
+    },
+    {
+      "check_instance_id": "STORY_DRIFT:X:+4.50",
+      "node_id": "STORY_DRIFT",
+      "subject_id": "X:+4.50",
+      "grain": "STORY_DIRECTION"
+    },
+    {
+      "check_instance_id": "STORY_DRIFT:Y:+4.50",
+      "node_id": "STORY_DRIFT",
+      "subject_id": "Y:+4.50",
+      "grain": "STORY_DIRECTION"
+    }
+  ],
+  "caller_outcomes": [],
+  "note": "This demo enumerates four hypothetical CheckInstances only; real model/profile approval and physical story census are unproven."
+}

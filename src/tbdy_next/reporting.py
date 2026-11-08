@@ -36,6 +36,34 @@ def _load_source(directory: Path, expected_sha: str) -> dict[str, Any]:
     return decoded
 
 
+def _vs05_check_inventory(checks: list[dict], story_drift: dict | None) -> dict:
+    """Keep the eight historical checks and the STORY_DRIFT source check distinct."""
+    entries = [{"check_id": c["check_id"], "evaluation": "BOUNDED_EXISTING"}
+               for c in checks]
+    if story_drift is not None:
+        if story_drift.get("check_id") != "STORY_DRIFT":
+            raise ValueError("UNEXPECTED_STORY_DRIFT_CHECK_ID")
+        entries.append({"check_id": "STORY_DRIFT", "evaluation": "SOURCE_NUMERICAL",
+                        "status": story_drift["status"],
+                        "formal_compliance": "NOT_PROVEN"})
+    ids = [e["check_id"] for e in entries]
+    if len(ids) != len(set(ids)):
+        raise ValueError("DUPLICATE_REPORTED_CHECK_ID")
+    return {"entries": entries, "count": len(entries)}
+
+
+def _vs05_summary_row(drift: dict) -> dict:
+    """Numerical coverage does not imply normative checks met or failed."""
+    expected = drift["expected_story_case_direction_count"]
+    evaluated = drift["evaluated_story_case_direction_count"]
+    if type(expected) is not int or type(evaluated) is not int or not (0 <= evaluated <= expected):
+        raise ValueError("STORY_DRIFT_INVALID_COVERAGE")
+    return {"check_id": "STORY_DRIFT", "status": drift["status"],
+            "expected_count": expected, "evaluated_count": evaluated,
+            "met_count": 0, "unmet_count": 0, "not_applicable_count": 0,
+            "not_proven_count": expected}
+
+
 def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
     """One complete report for an exact existing five-check run.
 
@@ -140,6 +168,23 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
                     "SOURCE_PIPELINE_EVALUATED_PENDING_ENGINEERING_REVIEW"):
                 raise ReportUnavailable("VS04 E-J source/receipt content mismatch")
 
+    # VS05 STORY_DRIFT is a candidate source-numeric check in this SAME
+    # immutable run; verify the stage receipt by re-evaluating source.
+    story_drift = None
+    story_drift_receipt = _read_receipt(directory, "vs05-story-drift")
+    if ("vs05_delta_source" in source or
+            "vs05_delta_capture_error" in source):
+        if (story_drift_receipt is None or
+                story_drift_receipt.get("input_sha256") != modal["input_sha256"]):
+            raise ReportUnavailable("VS05 STORY_DRIFT receipt missing or foreign")
+        from .story_drift_binding import bind_story_drift
+        story_drift = bind_story_drift(
+            source.get("vs05_delta_source"),
+            capture_error=source.get("vs05_delta_capture_error"))
+        if story_drift != story_drift_receipt["payload"]:
+            raise ReportUnavailable("VS05 STORY_DRIFT source/receipt mismatch")
+    elif story_drift_receipt is not None:
+        raise ReportUnavailable("Orphan VS05 STORY_DRIFT receipt")
     frame_rows = ((geometry_source or {}).get("tables", {}).get("FRAME_ASSIGNMENTS", {})
                   .get("rows", []) or [])
     frame_types = dict(sorted(Counter(str(row.get("Type", "UNKNOWN")) for row in frame_rows).items()))
@@ -173,10 +218,16 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         )
     elif vs04:
         source_scope += " (E–J historical source evidence if recorded)"
+    inventory = _vs05_check_inventory(checks, story_drift)
+    if story_drift is not None:
+        source_scope += (" + STORY_DRIFT ETABS-derived source numerical "
+                         + str(story_drift["evaluated_story_case_direction_count"])
+                         + "/" + str(story_drift["expected_story_case_direction_count"])
+                         + " records (TBDY NOT_PROVEN)")
     return {
         "schema": "tbdy.next.complete.engineering.report.v1",
         "run_id": run_id,
-        "title": (f"TBDY Next Engine — {len(checks)} bounded checks"
+        "title": (f"TBDY Next Engine — {inventory['count']} bounded checks"
                   + (" + VS04 E–J source evidence" if vs04_pipeline else "")
                   + " (not full TBDY design)"),
         "model": modal["model_name"],
@@ -186,6 +237,7 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         "engineering_release": "NOT_READY",
         "formal_compliance": "NOT_PROVEN",
         "scope": source_scope,
+        "check_inventory": inventory,
         "vs04_source_summary": ({
             "pipeline_contract_version": vs04_pipeline.get("pipeline_contract_version"),
             "source_observed_count": vs04_pipeline.get("source_observed_count", 0),
@@ -203,6 +255,7 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         "vs04_numerics": vs04_numerics,
         "vs04_readiness": vs04_readiness,
         "vs04_pipeline": vs04_pipeline,
+        **({"story_drift": story_drift} if story_drift is not None else {}),
         "vs03": new_checks,
         "checks": checks,
         "modal_source_table": {
@@ -229,6 +282,7 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
             "vs04_numerics_receipt_sha256": vs04_numeric_receipt["receipt_sha256"] if vs04_numeric_receipt else None,
             "vs04_readiness_receipt_sha256": vs04_readiness_receipt["receipt_sha256"] if vs04_readiness_receipt else None,
             "vs04_pipeline_receipt_sha256": vs04_pipeline_receipt["receipt_sha256"] if vs04_pipeline_receipt else None,
+            "story_drift_receipt_sha256": story_drift_receipt["receipt_sha256"] if story_drift_receipt else None,
             "note": "These are local source/receipt fingerprints, not third-party authorization.",
         },
         "source_snapshot": source,  # Full raw 7 tables + exact material facts for independent review.
@@ -275,6 +329,9 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
          "not_applicable_count": 0, "not_proven_count": 0},
         *geometry, *extras,
     ]
+    drift_summary = report.get("story_drift")
+    if isinstance(drift_summary, Mapping):
+        summary_rows.append(_vs05_summary_row(drift_summary))
     section_cols = (
         ("story", "Kat"), ("element_id", "UniqueName"), ("section", "Atanan kesit"),
         ("material_name", "Malzeme"), ("material_classification", "Malzeme sınıfı"),
@@ -403,6 +460,26 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
                                            ("conditional_eq_4_19_minimum_term_kn",
                                             "Koşullu alt terim (kN)")),
                                           [conditional]) + '</section>')
+    drift_check = report.get("story_drift")
+    if isinstance(drift_check, Mapping):
+        drift_cols = (("story", "Kat"), ("case", "Analiz vakası"),
+                      ("direction", "Yön"), ("height_m", "h (m)"),
+                      ("etabs_story_drift_ratio", "ETABS Drift"),
+                      ("etabs_derived_delta_mm", "Δ adayı (mm)"),
+                      ("etabs_reconciliation_residual_mm", "Fark (mm)"))
+        vs04_sections.append(
+            '<section class="percheck"><h2>STORY_DRIFT · Kat ötelemesi kaynak hesabı</h2>'
+            '<p>Durum: ' + _val(drift_check.get("status")) +
+            '; hesaplanan: ' + _val(drift_check.get("evaluated_story_case_direction_count")) +
+            ' / ' + _val(drift_check.get("expected_story_case_direction_count")) +
+            '. Bu sonuçlar ETABS Drift × kat yüksekliğinden üretilmiştir.'
+            ' Eşzamanlı olmayan RSX/RSY düğüm maksimumları çıkarılmamıştır.'
+            ' TBDY uygunluğu NOT_PROVEN.</p>' +
+            _table(drift_cols, drift_check.get("items", [])) +
+            '<h3>Eksik kat/vaka/yön sonuçları</h3>' +
+            _table((("story", "Kat"), ("case", "Vaka"), ("direction", "Yön")),
+                   drift_check.get("missing_story_case_direction", [])) +
+            '</section>')
     a1_warnings = [
         c for c in extras if c.get("check_id") in ("a1_torsion_x", "a1_torsion_y")
         and any(item.get("status") == "A1_OBSERVED" for item in c.get("items", []))
@@ -452,7 +529,7 @@ th {{background:#e8eff7;font-weight:650}} tr:nth-child(even) td {{background:#f7
 </style></head><body>
 <div class="toolstrip">Tarayıcıdan <strong>Ctrl+P</strong> → PDF olarak kaydet / yazdır.</div>
 <h1>TBDY Next Engine — Mühendislik Kontrol Raporu</h1>
-<p class="muted">{_val(len(checks))} sayısal alt kontrol · Tam eleman sonuçları · ETABS kaynak verisi</p>
+<p class="muted">{_val((report.get('check_inventory') or {}).get('count', len(checks)))} kapsamı sınırlı kontrol · STORY_DRIFT kaynak numeriği dahilse TBDY uygunluğu yine NOT_PROVEN · ETABS kaynak verisi</p>
 <div class="warning"><strong>FORMAL COMPLIANCE = NOT_PROVEN · ENGINEERING RELEASE = NOT_READY.</strong>
 Bu rapor tam TBDY/TS500 uygunluk kararı değildir. Yalnız raporda tanımlanan sayısal alt kontroller çalıştırılmıştır.</div>
 <div class="grid">

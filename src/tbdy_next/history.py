@@ -242,12 +242,27 @@ def quick_history(root: Path, *, limit: int = 15) -> list[dict[str, Any]]:
                         vs04_pipeline.get("status") !=
                         "SOURCE_PIPELINE_EVALUATED_PENDING_ENGINEERING_REVIEW"):
                     continue
+        story_drift = None
+        stage = _read_receipt(directory, "vs05-story-drift")
+        if ("vs05_delta_source" in source or
+                "vs05_delta_capture_error" in source):
+            if stage is None or stage.get("input_sha256") != modal["input_sha256"]:
+                continue
+            from .story_drift_binding import bind_story_drift
+            story_drift = bind_story_drift(
+                source.get("vs05_delta_source"),
+                capture_error=source.get("vs05_delta_capture_error"))
+            if story_drift != stage["payload"]:
+                continue
+        elif stage is not None:
+            continue
         output.append({"run_id": directory.name, "captured_at_utc": modal["captured_at_utc"],
                        "source_mode": modal["source_mode"], "model_name": modal["model_name"],
                        "geometry": rechecked, "extra_checks": extra, "vs04_schema": vs04,
                        "vs04_numerics": vs04_numerics,
                        "vs04_readiness": vs04_readiness,
                        "vs04_pipeline": vs04_pipeline,
+                       **({"story_drift": story_drift} if story_drift is not None else {}),
                        "modal": modal["result"],
                        "engineering_release": "NOT_READY"})
     return sorted(output, key=lambda x: (x["captured_at_utc"], x["run_id"]), reverse=True)[:limit]

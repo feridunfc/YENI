@@ -1,0 +1,904 @@
+{
+  "schema": "tbdy.next.vs05.candidate-engineering-dag.v1",
+  "status": "STATIC_RESEARCH_CANDIDATE",
+  "authority": "NONE",
+  "source_file": "TBDY_DAG_94_Dugum(1).mmd",
+  "source_research_date": "2026-11-06",
+  "source_research_stage": "R1-C / R1-B / R1-D candidate",
+  "node_count": 94,
+  "edge_count": 140,
+  "nodes": [
+    {
+      "node_id": "ANALYSIS_BASIS_GATE",
+      "node_type": "SOURCE_GATE",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "ANALYSIS_GENERATION_GATE",
+        "COMBINATION_DEFINITION_GATE"
+      ]
+    },
+    {
+      "node_id": "ANALYSIS_GENERATION_GATE",
+      "node_type": "SOURCE_GATE",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "MODEL_PROFILE_GATE"
+      ]
+    },
+    {
+      "node_id": "AREA_CENSUS_GATE",
+      "node_type": "SOURCE_GATE",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "MODEL_PROFILE_GATE"
+      ]
+    },
+    {
+      "node_id": "ASSIGNMENT_GATE",
+      "node_type": "SOURCE_GATE",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "AREA_CENSUS_GATE",
+        "FRAME_CENSUS_GATE"
+      ]
+    },
+    {
+      "node_id": "BASE_SHEAR",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "ANALYSIS_BASIS_GATE",
+        "DESIGN_SPECTRUM",
+        "MODAL_MASS"
+      ]
+    },
+    {
+      "node_id": "BEAM_AXIAL",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "BEAM_DEMAND"
+      ]
+    },
+    {
+      "node_id": "BEAM_BALANCED_REBAR",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "BEAM_REBAR"
+      ]
+    },
+    {
+      "node_id": "BEAM_CRACK",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "BEAM_REBAR"
+      ]
+    },
+    {
+      "node_id": "BEAM_DEFLECTION",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "ANALYSIS_BASIS_GATE"
+      ]
+    },
+    {
+      "node_id": "BEAM_DEMAND",
+      "node_type": "DERIVATION",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "ANALYSIS_BASIS_GATE",
+        "FORCE_CONCURRENCE_GATE"
+      ]
+    },
+    {
+      "node_id": "BEAM_FLEXURE",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "BEAM_DEMAND",
+        "BEAM_GEOMETRY"
+      ]
+    },
+    {
+      "node_id": "BEAM_GEOMETRY",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "MATERIAL_SECTION_GATE"
+      ]
+    },
+    {
+      "node_id": "BEAM_HANGER_REBAR",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "BEAM_SHEAR"
+      ]
+    },
+    {
+      "node_id": "BEAM_REBAR",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "BEAM_FLEXURE"
+      ]
+    },
+    {
+      "node_id": "BEAM_SECTION_CAPACITY",
+      "node_type": "DERIVATION",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "BEAM_REBAR"
+      ]
+    },
+    {
+      "node_id": "BEAM_SHEAR",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "BEAM_DEMAND",
+        "BEAM_REBAR"
+      ]
+    },
+    {
+      "node_id": "BEAM_SHEAR_REBAR",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "BEAM_SHEAR"
+      ]
+    },
+    {
+      "node_id": "BEAM_TORSION",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "BEAM_DEMAND"
+      ]
+    },
+    {
+      "node_id": "COLUMN_AXIAL",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "COLUMN_DEMAND"
+      ]
+    },
+    {
+      "node_id": "COLUMN_DEMAND",
+      "node_type": "DERIVATION",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "BASE_SHEAR",
+        "FORCE_CONCURRENCE_GATE",
+        "GLOBAL_SECOND_ORDER"
+      ]
+    },
+    {
+      "node_id": "COLUMN_FRICTION_SHEAR",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "COLUMN_DEMAND"
+      ]
+    },
+    {
+      "node_id": "COLUMN_LOCAL_SECOND_ORDER",
+      "node_type": "DERIVATION",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "COLUMN_SLENDERNESS",
+        "GLOBAL_SECOND_ORDER"
+      ]
+    },
+    {
+      "node_id": "COLUMN_PMM",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "COLUMN_DEMAND",
+        "COLUMN_LOCAL_SECOND_ORDER",
+        "COLUMN_SECTION_CAPACITY"
+      ]
+    },
+    {
+      "node_id": "COLUMN_REBAR",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "COLUMN_SECTION_CAPACITY"
+      ]
+    },
+    {
+      "node_id": "COLUMN_SECTION_CAPACITY",
+      "node_type": "DERIVATION",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "MATERIAL_SECTION_GATE"
+      ]
+    },
+    {
+      "node_id": "COLUMN_SHEAR",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "COLUMN_DEMAND",
+        "COLUMN_REBAR"
+      ]
+    },
+    {
+      "node_id": "COLUMN_SHEAR_REBAR",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "COLUMN_SHEAR"
+      ]
+    },
+    {
+      "node_id": "COLUMN_SLENDERNESS",
+      "node_type": "DERIVATION",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "ANALYSIS_BASIS_GATE",
+        "MATERIAL_SECTION_GATE"
+      ]
+    },
+    {
+      "node_id": "COMBINATION_DEFINITION_GATE",
+      "node_type": "SOURCE_GATE",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "LOAD_PATTERN_GATE"
+      ]
+    },
+    {
+      "node_id": "DESIGN_SPECTRUM",
+      "node_type": "DERIVATION",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "SEISMIC_DESIGN_BASIS"
+      ]
+    },
+    {
+      "node_id": "DIAPHRAGM_TRANSFER",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "ANALYSIS_BASIS_GATE",
+        "ASSIGNMENT_GATE"
+      ]
+    },
+    {
+      "node_id": "FORCE_CONCURRENCE_GATE",
+      "node_type": "SOURCE_GATE",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "ANALYSIS_GENERATION_GATE",
+        "COMBINATION_DEFINITION_GATE",
+        "FRAME_CENSUS_GATE"
+      ]
+    },
+    {
+      "node_id": "FOUNDATION_ISOLATED_FLEXURE",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "FOUNDATION_SOURCE_GATE"
+      ]
+    },
+    {
+      "node_id": "FOUNDATION_ISOLATED_PUNCHING",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "FOUNDATION_ISOLATED_FLEXURE"
+      ]
+    },
+    {
+      "node_id": "FOUNDATION_RAFT_FLEXURE",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "FOUNDATION_SOURCE_GATE"
+      ]
+    },
+    {
+      "node_id": "FOUNDATION_RAFT_PUNCHING",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "FOUNDATION_RAFT_FLEXURE"
+      ]
+    },
+    {
+      "node_id": "FOUNDATION_RAFT_SHEAR",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "FOUNDATION_RAFT_FLEXURE"
+      ]
+    },
+    {
+      "node_id": "FOUNDATION_SOIL_PRESSURE",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "FOUNDATION_SOURCE_GATE"
+      ]
+    },
+    {
+      "node_id": "FOUNDATION_SOURCE_GATE",
+      "node_type": "SOURCE_GATE",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "COMBINATION_DEFINITION_GATE",
+        "MODEL_PROFILE_GATE"
+      ]
+    },
+    {
+      "node_id": "FOUNDATION_STRIP_CANTILEVER",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "FOUNDATION_STRIP_FLEXURE"
+      ]
+    },
+    {
+      "node_id": "FOUNDATION_STRIP_FLEXURE",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "FOUNDATION_SOURCE_GATE"
+      ]
+    },
+    {
+      "node_id": "FOUNDATION_STRIP_SHEAR",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "FOUNDATION_STRIP_FLEXURE"
+      ]
+    },
+    {
+      "node_id": "FOUNDATION_TIE_BEAM",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "FOUNDATION_SOURCE_GATE"
+      ]
+    },
+    {
+      "node_id": "FRAME_CENSUS_GATE",
+      "node_type": "SOURCE_GATE",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "MODEL_PROFILE_GATE"
+      ]
+    },
+    {
+      "node_id": "GLOBAL_OVERTURNING",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "BASE_SHEAR"
+      ]
+    },
+    {
+      "node_id": "GLOBAL_SECOND_ORDER",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "BASE_SHEAR",
+        "STORY_DRIFT"
+      ]
+    },
+    {
+      "node_id": "JOINT_CENSUS_GATE",
+      "node_type": "SOURCE_GATE",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "MODEL_PROFILE_GATE"
+      ]
+    },
+    {
+      "node_id": "JOINT_SHEAR",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "BEAM_SECTION_CAPACITY",
+        "COLUMN_SECTION_CAPACITY",
+        "JOINT_TOPOLOGY_CHECK"
+      ]
+    },
+    {
+      "node_id": "JOINT_TOPOLOGY_CHECK",
+      "node_type": "SOURCE_GATE",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "FRAME_CENSUS_GATE",
+        "JOINT_CENSUS_GATE"
+      ]
+    },
+    {
+      "node_id": "LINK_BEAM_COUPLING",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "ANALYSIS_BASIS_GATE",
+        "ASSIGNMENT_GATE"
+      ]
+    },
+    {
+      "node_id": "LOAD_PATTERN_GATE",
+      "node_type": "SOURCE_GATE",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "MODEL_PROFILE_GATE"
+      ]
+    },
+    {
+      "node_id": "MATERIAL_SECTION_GATE",
+      "node_type": "SOURCE_GATE",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "FRAME_CENSUS_GATE"
+      ]
+    },
+    {
+      "node_id": "MODAL_MASS",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "MODAL_PERIOD"
+      ]
+    },
+    {
+      "node_id": "MODAL_PERIOD",
+      "node_type": "DERIVATION",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "ANALYSIS_BASIS_GATE"
+      ]
+    },
+    {
+      "node_id": "MODEL_PROFILE_GATE",
+      "node_type": "SOURCE_GATE",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "SOURCE_SHA_GATE"
+      ]
+    },
+    {
+      "node_id": "NONSTRUCTURAL_SEISMIC",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "SEISMIC_DESIGN_BASIS"
+      ]
+    },
+    {
+      "node_id": "PLAN_PROTRUSIONS_A3",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "AREA_CENSUS_GATE"
+      ]
+    },
+    {
+      "node_id": "RIBBED_SLAB_DEFLECTION",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "RIBBED_SLAB_FLEXURE"
+      ]
+    },
+    {
+      "node_id": "RIBBED_SLAB_FLEXURE",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "SLAB_FLEXURE"
+      ]
+    },
+    {
+      "node_id": "SCWB",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "BEAM_SECTION_CAPACITY",
+        "COLUMN_DEMAND",
+        "COLUMN_SECTION_CAPACITY",
+        "JOINT_TOPOLOGY_CHECK"
+      ]
+    },
+    {
+      "node_id": "SEISMIC_DESIGN_BASIS",
+      "node_type": "DERIVATION",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "MODEL_PROFILE_GATE"
+      ]
+    },
+    {
+      "node_id": "SEISMIC_GAP",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "ANALYSIS_BASIS_GATE"
+      ]
+    },
+    {
+      "node_id": "SLAB_DEFLECTION",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "ANALYSIS_BASIS_GATE"
+      ]
+    },
+    {
+      "node_id": "SLAB_DISCONTINUITY_A2",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "AREA_CENSUS_GATE",
+        "ASSIGNMENT_GATE"
+      ]
+    },
+    {
+      "node_id": "SLAB_FLEXURE",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "ANALYSIS_BASIS_GATE",
+        "SLAB_LOAD_RECONCILIATION"
+      ]
+    },
+    {
+      "node_id": "SLAB_LOAD_RECONCILIATION",
+      "node_type": "SOURCE_GATE",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "COMBINATION_DEFINITION_GATE",
+        "LOAD_PATTERN_GATE"
+      ]
+    },
+    {
+      "node_id": "SLAB_PUNCHING",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "ANALYSIS_BASIS_GATE",
+        "SLAB_FLEXURE"
+      ]
+    },
+    {
+      "node_id": "SLAB_REBAR",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "SLAB_FLEXURE"
+      ]
+    },
+    {
+      "node_id": "SLAB_STRESS",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "ANALYSIS_BASIS_GATE"
+      ]
+    },
+    {
+      "node_id": "SLAB_THICKNESS",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "AREA_CENSUS_GATE",
+        "MATERIAL_SECTION_GATE"
+      ]
+    },
+    {
+      "node_id": "SOFT_STORY_B2",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "STORY_DRIFT"
+      ]
+    },
+    {
+      "node_id": "SOURCE_SHA_GATE",
+      "node_type": "SOURCE_GATE",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": []
+    },
+    {
+      "node_id": "STORY_CUT_GATE",
+      "node_type": "SOURCE_GATE",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "ANALYSIS_GENERATION_GATE",
+        "ASSIGNMENT_GATE",
+        "COMBINATION_DEFINITION_GATE"
+      ]
+    },
+    {
+      "node_id": "STORY_DRIFT",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "ANALYSIS_BASIS_GATE",
+        "SEISMIC_DESIGN_BASIS"
+      ]
+    },
+    {
+      "node_id": "STORY_PHI",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "ANALYSIS_BASIS_GATE",
+        "COMBINATION_DEFINITION_GATE",
+        "STORY_CUT_GATE"
+      ]
+    },
+    {
+      "node_id": "TORSION_A1",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "STORY_DRIFT"
+      ]
+    },
+    {
+      "node_id": "VERTICAL_DISCONTINUITY_B3",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "AREA_CENSUS_GATE",
+        "FRAME_CENSUS_GATE",
+        "JOINT_CENSUS_GATE"
+      ]
+    },
+    {
+      "node_id": "WAFFLE_SLAB_DEFLECTION",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "WAFFLE_SLAB_FLEXURE"
+      ]
+    },
+    {
+      "node_id": "WAFFLE_SLAB_FLEXURE",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "SLAB_FLEXURE"
+      ]
+    },
+    {
+      "node_id": "WALL_AXIAL",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "WALL_DEMAND"
+      ]
+    },
+    {
+      "node_id": "WALL_DEMAND",
+      "node_type": "DERIVATION",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "ANALYSIS_BASIS_GATE",
+        "STORY_CUT_GATE"
+      ]
+    },
+    {
+      "node_id": "WALL_FLEXURE",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "WALL_DEMAND",
+        "WALL_GEOMETRY_CHECK"
+      ]
+    },
+    {
+      "node_id": "WALL_FRICTION_SHEAR",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "WALL_SHEAR"
+      ]
+    },
+    {
+      "node_id": "WALL_GEOMETRY_CHECK",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "ASSIGNMENT_GATE",
+        "MATERIAL_SECTION_GATE"
+      ]
+    },
+    {
+      "node_id": "WALL_GROUP_AXIAL",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "WALL_GROUP_FLEXURE"
+      ]
+    },
+    {
+      "node_id": "WALL_GROUP_FLEXURE",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "STORY_CUT_GATE",
+        "WALL_DEMAND"
+      ]
+    },
+    {
+      "node_id": "WALL_GROUP_REBAR",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "WALL_GROUP_FLEXURE"
+      ]
+    },
+    {
+      "node_id": "WALL_GROUP_SHEAR",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "WALL_GROUP_FLEXURE"
+      ]
+    },
+    {
+      "node_id": "WALL_OVERTURNING",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "GLOBAL_OVERTURNING",
+        "STORY_CUT_GATE"
+      ]
+    },
+    {
+      "node_id": "WALL_RATIO",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "AREA_CENSUS_GATE",
+        "SEISMIC_DESIGN_BASIS"
+      ]
+    },
+    {
+      "node_id": "WALL_REBAR",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "WALL_FLEXURE"
+      ]
+    },
+    {
+      "node_id": "WALL_SHEAR",
+      "node_type": "DESIGN_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "WALL_DEMAND",
+        "WALL_REBAR"
+      ]
+    },
+    {
+      "node_id": "WALL_STRONG_CHECK",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "WALL_FLEXURE"
+      ]
+    },
+    {
+      "node_id": "WEAK_STORY_B1",
+      "node_type": "REGULATORY_CHECK",
+      "execution_authority": "DENIED",
+      "compliance_status": "NOT_PROVEN",
+      "depends_on": [
+        "AREA_CENSUS_GATE",
+        "FRAME_CENSUS_GATE",
+        "MATERIAL_SECTION_GATE"
+      ]
+    }
+  ],
+  "note": "Candidate only: 94 nodes are not executable engineering kernels. None may be promoted to code PASS or plan execution on basis of this catalog."
+}

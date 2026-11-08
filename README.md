@@ -255,3 +255,44 @@ source through G/H/I 200-row evidence. The output remains source-only,
 not an approved TBDY design check. Historical v1 receipts remain
 readable. See
 [VS04 E/F/G evidence closure and source-only merge gate](docs/VS04_EFG_SOURCE_DIAGNOSTIC_AND_MERGE_GATE.md).
+
+## VS05 - Source-qualified TBDY base shear and drift kernels (unmerged)
+
+A new normative calculation workstream lives in branch
+work/vs05-normative-base-shear-drift-20261107.
+The source-qualified formulas and rule cards are described in
+[VS05 engineering contract](docs/VS05_NORMATIVE_RULE_CONTRACT.md).
+This does NOT create production building-level TBDY PASS. The accepted
+VS04 source and receipt contracts remain intact.
+
+## VS05: Candidate Engineering DAG / RegulatoryCompiler / FCR
+
+The exact user-supplied R1-C **94 nodes / 140 edges** research graph is
+preserved as a DENIED candidate catalog, not a new full global runtime.
+`src/tbdy_next/compiled_dag.py` validates the graph, freezes explicit
+candidate CheckInstances into a deterministic execution plan and reconciles
+all missing instances into fail-closed FCR, with no untrusted PASS.
+See [VS05 candidate DAG and FCR contract](docs/VS05_DAG_COMPILER_FCR_FOUNDATION.md).
+
+## VS05-ARCH-D2 — ModelProfile / ComboBook candidate compiler
+
+A typed source-bounded candidate ModelProfile and nested ComboBook
+parser can compile a limited directional base-shear and physical-story
+drift candidate denominator into the D1 RegulatoryCompiler/FCR. Exact
+case references, nested operators, source SHA and member/story IDs
+are checked; no profile or combo approves itself. Refer to
+[VS05 ARCH-D2 contract](docs/VS05_D2_MODEL_PROFILE_COMBO_CONTRACT.md)
+and [legacy branch audit](docs/LEGACY_BRANCH_AUDIT_20261107.md).
+
+Main is unchanged; VS05 is an unmerged engineering working branch.
+
+## VS05-ARCH-D3 — Source receipt → typed candidate facts → FCR
+
+`tools/audit_vs05_archived_run.py` now verifies the original VS04
+archived source/receipt chain and derives candidate Story/Column/Beam
+identities, X/Y case-only roles and a frozen bounded BASE_SHEAR/STORY_DRIFT
+CheckInstance population. Unknown walls/Areas/Null frames and raw nested
+combinations remain explicit gaps, and the FCR cannot emit code PASS.
+The output is a same-run-ID **sidecar**, not a modification of accepted
+VS04 receipts or a new live execution.
+See [VS05 D3 scope](docs/VS05_D3_ARCHIVED_SOURCE_BRIDGE.md).

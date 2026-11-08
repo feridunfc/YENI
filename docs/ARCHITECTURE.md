@@ -87,3 +87,15 @@ fields, units, cases, or story rows are `NOT_PROVEN`, not PASS. A1 applicability
 seismic direction role, eccentricity basis and whole-building engineering release
 remain `NOT_PROVEN` until live-source review. Previous five-check exports
 remain valid. No pre-existing codebase is a runtime dependency.
+
+## VS05 architectural reconciliation (candidate foundation)
+
+The earlier warning against creating a second global 94-node VS01 engine
+continues to apply. The 94-node source is now imported only as
+`STATIC_RESEARCH_CANDIDATE` with all execution authority DENIED.
+`RegulatoryCompiler` and FCR can freeze an explicitly declared candidate
+CheckInstance denominator for architectural tests; they are not yet wired
+to the production single-button ETABS run, and do not assert 94 executed
+checks or approved complete building coverage. Independent
+`ApprovedModelProfile`, `ComboBook` and source-generation approval are
+required before promoting any real building design result.
