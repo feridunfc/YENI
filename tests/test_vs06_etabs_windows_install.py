@@ -6,7 +6,6 @@ and source-gateway regression tests.
 from __future__ import annotations
 
 from pathlib import Path
-import sys
 import tomllib
 import unittest
 
@@ -26,11 +25,6 @@ class WindowsEtabsInstallContract(unittest.TestCase):
         from tools.etabs_source_gateway_windows import resolve_keys, SourceError
         self.assertTrue(callable(resolve_keys))
         self.assertTrue(issubclass(SourceError, ValueError))
-        if sys.platform != "win32":
-            import comtypes
-            # comtypes is never required on Linux; if incidentally installed,
-            # it must not be a precondition for source inspection.
-            self.assertTrue(comtypes is not None)
 
 
 if __name__ == "__main__":
