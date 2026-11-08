@@ -87,7 +87,9 @@ def make_handler(output_root: Path, *, live_capture=None):
 
         def do_GET(self) -> None:
             url = urlsplit(self.path)
-            if url.path in ("/", "/index.html"):
+            if url.path in ("/api/column-history", "/api/column-bank", "/api/export-column-bank", "/report/column-bank"):
+                self.column_get(url)
+            elif url.path in ("/", "/index.html"):
                 contents = resources.files("tbdy_next").joinpath("static/index.html").read_bytes()
                 self.send_response(200)
                 self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -168,8 +170,8 @@ def make_handler(output_root: Path, *, live_capture=None):
                     self.reply(404, {"error": "VERIFIED_MODAL_TABLE_NOT_FOUND"})
                     return
                 self.reply(200, {"table": table})
-            elif url.path == "/quick.js":
-                source = resources.files("tbdy_next").joinpath("static/quick.js").read_bytes()
+            elif url.path in ("/quick.js", "/column.js"):
+                source = resources.files("tbdy_next").joinpath("static" + url.path).read_bytes()
                 self.send_response(200)
                 self.send_header("Content-Type", "text/javascript; charset=utf-8")
                 self.send_header("Cache-Control", "no-store")
@@ -188,6 +190,59 @@ def make_handler(output_root: Path, *, live_capture=None):
                 self.wfile.write(source)
             else:
                 self.reply(404, {"error": "NOT_FOUND"})
+
+        def column_get(self, url) -> None:
+            """Read only, explicitly selected archive; never join the live run."""
+            import sqlite3
+            from .column_engine.store import column_bank_history, read_column_bank, verified_database
+            from .reporting import build_column_bank_html
+            if url.path == "/api/column-history":
+                self.reply(200, {"runs": column_bank_history(output_root), "engineering_release": "NOT_READY"})
+                return
+            query = parse_qs(url.query, keep_blank_values=True)
+            allowed = {"run_id", "member", "case", "offset"} if url.path == "/api/column-bank" else {"run_id", "format"} if url.path == "/api/export-column-bank" else {"run_id"}
+            if (set(query) - allowed or any(len(v) != 1 for v in query.values())
+                    or not _RUN_ID_PATTERN.fullmatch(query.get("run_id", [""])[0])):
+                self.reply(400, {"error": "COLUMN_QUERY_INVALID"})
+                return
+            run_id = query["run_id"][0]
+            fmt = query.get("format", ["json"])[0]
+            offset = query.get("offset", ["0"])[0]
+            if fmt not in ("json", "sqlite") or not offset.isdecimal() or len(offset) > 9:
+                self.reply(400, {"error": "COLUMN_QUERY_INVALID"})
+                return
+            try:
+                if url.path == "/api/export-column-bank" and fmt == "sqlite":
+                    database, _ = verified_database(output_root, run_id)
+                    data, mime, extension = database.read_bytes(), "application/vnd.sqlite3", "sqlite"
+                else:
+                    report = read_column_bank(output_root, run_id,
+                        member_id=query.get("member", [None])[0], output_case=query.get("case", [None])[0],
+                        offset=int(offset), full=url.path == "/api/export-column-bank")
+                    if url.path == "/api/column-bank":
+                        self.reply(200, report)
+                        return
+                    if url.path == "/report/column-bank":
+                        data = build_column_bank_html(report).encode("utf-8")
+                        mime, extension = "text/html; charset=utf-8", "html"
+                    else:
+                        data = (json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False) + "\n").encode("utf-8")
+                        mime, extension = "application/json; charset=utf-8", "json"
+            except (OSError, ValueError, KeyError, TypeError, sqlite3.Error):
+                self.reply(404, {"error": "VERIFIED_COLUMN_BANK_NOT_FOUND"})
+                return
+            self.send_response(200)
+            self.send_header("Content-Type", mime)
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.send_header("X-Frame-Options", "DENY")
+            disposition = "inline" if extension == "html" else "attachment"
+            self.send_header("Content-Disposition", f'{disposition}; filename="YENI_{run_id}_columns.{extension}"')
+            if extension == "html":
+                self.send_header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
 
         def do_POST(self) -> None:
             url = urlsplit(self.path)

@@ -22,10 +22,29 @@ def main(argv: list[str] | None = None) -> int:
     service.add_argument("--host", default="127.0.0.1")
     service.add_argument("--port", type=int, default=8765)
     service.add_argument("--out", type=Path, default=Path(".receipts"))
+    columns = actions.add_parser("import-column-bank", help="Verify an offline native column ZIP; no ETABS call")
+    columns.add_argument("--input", type=Path, required=True)
+    columns.add_argument("--historical-db", type=Path)
+    columns.add_argument("--out", type=Path, default=Path(".receipts"))
     args = parser.parse_args(argv)
     if args.action == "serve":
         from .web import serve
         serve(host=args.host, port=args.port, output_root=args.out)
+        return 0
+    if args.action == "import-column-bank":
+        import sqlite3
+        from zipfile import BadZipFile
+        from .column_engine.store import save_column_bank
+        try:
+            result = save_column_bank(args.input, args.out, historical_db=args.historical_db)
+        except (OSError, EOFError, ValueError, KeyError, TypeError, BadZipFile, sqlite3.Error) as exc:
+            print(json.dumps({"status": "REJECTED", "reason": str(exc),
+                              "engineering_release": "NOT_READY"}, ensure_ascii=False))
+            return 2
+        summary = {k: result[k] for k in ("run_id", "source_kind", "selected_column_count",
+            "observed_column_count", "force_row_count", "recorded_output_count", "formal_compliance", "engineering_release")}
+        summary["static_replay_scalar_comparisons"] = result["static_replay"]["scalar_comparisons"]
+        print(json.dumps(summary, indent=2, ensure_ascii=False))
         return 0
     source_sha = artifact_sha256(args.input)
     run = ReceiptRun(args.out)

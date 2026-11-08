@@ -98,6 +98,20 @@
 <details class="box"><summary>Analiz kaynakları ve hesap dayanakları</summary><div id="vs04Report">Seçili çalışmanın kaynak dayanakları burada gösterilir.</div></details>
 </div>
 <div id="geometrycontent" class="hidden"><section class="box"><h2 id="geometryTitle">Geometri kontrolleri</h2><p class="muted small">Son canlı ETABS taramasından eleman bazında sonuçlar. Yeni hesap için Modal Analiz sekmesindeki tek hesap düğmesini kullanın.</p><div id="geomTabPanel">Henüz hesap yok.</div></section></div>
+<div id="columncontent" class="hidden"><section class="box" id="columnBankPanel">
+<h2>Kolon kuvvetleri · çevrimdışı kaynak bankası</h2>
+<p class="muted small">Bu panel seçtiğiniz arşivi gösterir. Canlı ETABS kaydıyla model ve analiz kimliği henüz eşleştirilmemiştir. Tasarım kabulü: <strong>NOT_PROVEN</strong>.</p>
+<div class="actions"><label for="columnRun">Arşiv</label><select id="columnRun" class="field" style="width:100%;max-width:580px"></select><button type="button" class="go" id="columnRefresh">Arşivleri yenile</button></div>
+<div id="columnStatus" class="live-status" role="status" aria-live="polite">Kolon arşivi seçilmedi.</div>
+<div id="columnSummary"></div><div id="columnExports" class="actions"></div>
+<div class="actions"><label for="columnMember">Kolon</label><select id="columnMember" class="field"></select><label for="columnCase">Vaka / birleşim</label><select id="columnCase" class="field" style="width:230px"></select></div>
+<div id="columnContext" class="muted small"></div>
+<p class="micro">Native işaretler korunur. N=P işaret dönüşümü veya spektral bileşenler için eşzamanlılık kabulü uygulanmaz. Kuvvetler kN, momentler kN·m, istasyonlar m.</p>
+<div id="columnForces" class="modal-table-scroll"></div>
+<div class="actions"><button type="button" id="columnPrevious" disabled>Önceki 200</button><span id="columnPage" class="small"></span><button type="button" id="columnNext" disabled>Sonraki 200</button></div>
+<details><summary>Statik birleşim hesabı ve kaynak kapsamı</summary><div id="columnReplay"></div><div id="columnCoverage" class="modal-table-scroll"></div></details>
+<details><summary>Sonraki kolon kontrollerinin girdileri</summary><div id="columnGaps"></div></details>
+</section></div>
 <div id="extraContent" class="hidden"><section class="box"><h2 id="extraTitle">Mühendislik kontrolleri</h2><div id="extraTabPanel"></div></section>
 <section class="box hidden" id="concreteUpperPanel" data-check-panel="concrete_fck_80"><h2>Beton üst dayanım sınırı</h2><div id="concreteUpperResult" aria-live="polite">Seçili kaydın beton dayanım kapsamı burada gösterilir.</div></section>
 <section class="box" id="vs06-b1-panel" data-check-panel="WEAK_STORY_B1">
@@ -142,7 +156,7 @@
 <script>
 const tabs=['Geometri','Malzeme','Kesitler','Atamalar','Yükler ve kütle','Analiz vakaları','Deprem esasları','Modal analiz','Kat/sistem sonuçları','Düzensizlikler','Döşemeler','Kirişler','Kolonlar','Perdeler','Birleşimler','Temeller'];
 const nav=document.getElementById('nav');let active=7;
-function selectTab(i){active=i;for(const b of nav.querySelectorAll('[data-nav-tab]'))b.classList.toggle('active',Number(b.dataset.navTab)===i);document.getElementById('heading').textContent=tabs[i];document.getElementById('activecontent').classList.toggle('hidden',i!==7);document.getElementById('geometrycontent').classList.toggle('hidden',i!==11&&i!==12);document.getElementById('systemcontent').classList.toggle('hidden',i!==8);document.getElementById('extraContent').classList.toggle('hidden',i!==1&&i!==9);document.getElementById('analysiscontent').classList.toggle('hidden',i!==5);document.getElementById('plannedcontent').classList.toggle('hidden',[1,5,7,8,9,11,12,13].includes(i));document.getElementById('extraTitle').textContent=tabs[i]+' · kontroller';document.getElementById('geometryTitle').textContent=tabs[i]+' · geometrik alt kontroller';document.getElementById('plannedtitle').textContent=`${String(i+1).padStart(2,'0')} · ${tabs[i]} — PLANLANDI`;if(typeof window.renderQuickChecksForTab==='function')window.renderQuickChecksForTab(i);}
+function selectTab(i){active=i;for(const b of nav.querySelectorAll('[data-nav-tab]'))b.classList.toggle('active',Number(b.dataset.navTab)===i);document.getElementById('heading').textContent=tabs[i];document.getElementById('activecontent').classList.toggle('hidden',i!==7);document.getElementById('geometrycontent').classList.toggle('hidden',i!==11&&i!==12);document.getElementById('columncontent').classList.toggle('hidden',i!==12);if(i===12&&typeof window.openColumnBank==='function')window.openColumnBank();document.getElementById('systemcontent').classList.toggle('hidden',i!==8);document.getElementById('extraContent').classList.toggle('hidden',i!==1&&i!==9);document.getElementById('analysiscontent').classList.toggle('hidden',i!==5);document.getElementById('plannedcontent').classList.toggle('hidden',[1,5,7,8,9,11,12,13].includes(i));document.getElementById('extraTitle').textContent=tabs[i]+' · kontroller';document.getElementById('geometryTitle').textContent=tabs[i]+' · geometrik alt kontroller';document.getElementById('plannedtitle').textContent=`${String(i+1).padStart(2,'0')} · ${tabs[i]} — PLANLANDI`;if(typeof window.renderQuickChecksForTab==='function')window.renderQuickChecksForTab(i);}
 tabs.forEach((t,i)=>{const b=document.createElement('button');b.className='navitem'+(i===7?' active':'');b.innerHTML=`<span>${String(i+1).padStart(2,'0')}</span><span></span><span class="signal ${i===7?'live':''}">${i===7?'VS01':'PLAN'}</span>`;b.children[1].textContent=t;b.dataset.navTab=String(i);b.onclick=()=>selectTab(i);nav.append(b)});
 const result=document.getElementById('result');
 function textnode(tag,content,cls){const el=document.createElement(tag);el.textContent=String(content);if(cls)el.className=cls;return el}
@@ -159,4 +173,5 @@ loadRuns();
 </script>
 <script src="/history.js"></script>
 <script src="/quick.js"></script>
+<script src="/column.js"></script>
 </body></html>

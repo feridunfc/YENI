@@ -21,6 +21,67 @@ class ReportUnavailable(ValueError):
     """No verified five-check result exists for this run."""
 
 
+def build_column_bank_html(report: Mapping[str, Any]) -> str:
+    """The existing report layer also presents an explicitly selected column archive."""
+    members = []
+    for row in report["members"]:
+        ctx, geom = row.get("context", {}), row.get("station_geometry", {})
+        frame, section, material = ctx.get("frame", {}), ctx.get("geometry") or {}, ctx.get("material") or {}
+        members.append({"member": row["frame_name"], "story": frame.get("story_label"),
+            "section": frame.get("section_assigned"), "rows": row["force_rows"],
+            "elements": row["analysis_elements"], "b2": section.get("T2_cm"), "b3": section.get("T3_cm"),
+            "fc": material.get("fc_MPa"), "fy": material.get("fy_MPa"),
+            "length": geom.get("object_i_j_length_m"), "j_offset": geom.get("offset_j_m"),
+            "face_span": geom.get("observed_output_face_span_m"), "j_is_joint": geom.get("last_station_is_joint_j"),
+            "status": row["force_status"], "reason": row["reason_codes"]})
+    replay = report["static_replay"]
+    content = '<h1>Kolon kuvvet bankası ve statik birleşim doğrulaması</h1><p>' + _val(report["run_id"]) + '</p>'
+    content += ('<p><strong>' + _val(report["observed_column_count"]) + '/' + _val(report["selected_column_count"]) +
+        ' seçili kolon · ' + _val(report["force_row_count"]) + ' kuvvet satırı · ' +
+        _val(report["recorded_output_count"]) + ' kayıtlı vaka/birleşim</strong></p>')
+    content += ('<p>Bu arşivin model ve analiz kimliği seçili başka bir YENI kaydına otomatik bağlanmaz. ' +
+        'Native P, V2, V3, T, M2, M3 işaretleri ve analiz elemanı/istasyon/adım kimlikleri korunur. ' +
+        'RS veya zarfın aynı satırındaki bileşenler eşzamanlı tasarım vektörü olarak onaylanmaz. ' +
+        'Mühendislik uygunluğu <strong>NOT_PROVEN / NOT_READY</strong>.</p>')
+    content += '<h2>Kolonlar ve kaynak kesitleri</h2>' + _table((
+        ("member", "Kolon"), ("story", "Kat"), ("section", "Kaynak kesiti"), ("b2", "b2 (cm)"),
+        ("b3", "b3 (cm)"), ("fc", "Fc (MPa)"), ("fy", "Fy (MPa)"), ("rows", "Satır"),
+        ("elements", "Analiz elemanları"), ("length", "I–J boyu (m)"), ("j_offset", "J offset (m)"),
+        ("face_span", "Çıktı yüzleri arası (m)"), ("j_is_joint", "Son çıktı J düğümünde"),
+        ("status", "Kaynak"), ("reason", "Açık neden")), members)
+    content += ('<p>Çıktı yüzleri arası mesafe, TS500 serbest veya etkili boy kabulü değildir. ' +
+        'Model donatı ayarları gerçek ya da seçilmiş tasarım kafesi yerine kullanılmaz.</p>')
+    content += '<h2>Vaka/birleşim kapsamı</h2>' + _table((
+        ("name", "Kaynak adı"), ("kind", "Tür"), ("case_type", "Native vaka türü"), ("operator", "Native işlem"),
+        ("row_count", "Satır"), ("members_with_rows", "Verili kolon"), ("expected_members", "Beklenen"),
+        ("step_types", "Adım türleri"), ("step_numbers", "Adım/mod numarası"), ("missing_members", "Eksikler")), report["case_coverage"])
+    content += ('<h2>Statik Linear Add yeniden hesabı</h2><p>' + _val(replay["matched_rows"]) +
+        ' satır / ' + _val(replay["scalar_comparisons"]) + ' skaler karşılaştırma. En büyük mutlak fark: ' +
+        _val(replay["maximum_absolute_difference"]) + '. Sayısal tolerans: ' +
+        _val(replay["absolute_tolerance_native"]) + ' + ' + _val(replay["relative_tolerance"]) +
+        ' × max(|hesap|, |kaynak|); ilgili native kN veya kN-m biriminde.</p>')
+    content += _table((("combination", "Birleşim"), ("status", "Kaynak aritmetiği"),
+        ("expected_rows", "Beklenen satır"), ("matched_rows", "Eşleşen"), ("mismatched_rows", "Farklı"),
+        ("unresolved_rows", "Çözümlenemeyen"), ("maximum_absolute_difference", "En büyük |Δ|"),
+        ("reason", "Kapsam / neden")), replay["combinations"])
+    historical = report.get("historical_reconciliation")
+    if historical:
+        content += '<h2>Tarihsel D7-B6 toplamları</h2>' + _table((
+            ("story", "Kat"), ("output_case", "Vaka"), ("column_count", "Kolon"),
+            ("native_signed_p_sum_kN", "Native ΣP (kN)"), ("historical_signed_p_kN", "Tarihsel ΣP (kN)"),
+            ("difference_kN", "Fark (kN)"), ("numeric_match", "Sayısal eşleşme")), historical["items"])
+        content += '<p>Bu karşılaştırma aynı fiziksel kesiti, analiz neslini veya kat φ yetkisini kanıtlamaz.</p>'
+    content += '<h2>Sonraki hesapların girdileri</h2>' + _table((
+        ("topic", "İş paketi"), ("available", "Kaynak / kullanılabilir yol"), ("remaining", "Tamamlanacak bağ")), report["engineering_gaps"])
+    content += ('<h2>İzlenebilirlik</h2><p>Kaynak ZIP SHA-256: ' + _val(report["source_archive_sha256"]) +
+        '<br>Veritabanı SHA-256: ' + _val(report.get("database_sha256")) +
+        '<br>Hesap SHA-256: ' + _val(report["result_sha256"]) + '</p>')
+    return ('<!doctype html><html lang="tr"><meta charset="utf-8"><title>YENI · Kolon kaynak raporu</title>' +
+        '<style>body{font:14px/1.5 system-ui;margin:32px;color:#243345}h1{font-size:23px}h2{margin-top:30px}' +
+        'table{border-collapse:collapse;width:100%;font-size:11px}th,td{border:1px solid #cfd8e3;padding:6px;text-align:left}' +
+        'th{background:#eaf0f6}p{overflow-wrap:anywhere}@media print{thead{display:table-header-group}tr{break-inside:avoid}}</style>' + content + '</html>')
+
+
 def _load_source(directory: Path, expected_sha: str) -> dict[str, Any]:
     source_file = directory / "input.source"
     if source_file.is_symlink() or not source_file.is_file():

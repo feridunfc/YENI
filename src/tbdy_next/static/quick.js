@@ -545,7 +545,7 @@
       button.append(make('span', String(index+1).padStart(2,'0')), make('span', title));
       const count = make('span', checks.length ? `${checks.length} KONTROL` : 'PLAN', 'signal' + (checks.length ? ' live' : ''));
       button.append(count); button.addEventListener('click', () => selectTab(index)); group.append(button);
-      if (checks.length) {
+      if (checks.length || index === 12) {
         const children = make('div', undefined, 'nav-children');
         for (const def of checks) {
           const child = make('button', undefined, 'nav-child');
@@ -563,6 +563,16 @@
             check?.scrollIntoView({block:'nearest', behavior:'smooth'});
           });
           children.append(child);
+        }
+        if (index === 12) {
+          const source = make('button', undefined, 'nav-child');
+          source.type = 'button'; source.dataset.sourcePanel = 'columnBankPanel';
+          source.append(make('span', 'Kuvvet bankası ve statik birleşimler', 'nav-child-label'),
+                        make('span', 'KAYNAK', 'check-state'));
+          source.addEventListener('click', () => {
+            selectTab(12); byId('columnBankPanel')?.scrollIntoView({block:'nearest', behavior:'smooth'});
+          });
+          children.append(source);
         }
         group.append(children);
       }
