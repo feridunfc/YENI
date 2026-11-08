@@ -149,12 +149,12 @@ class Vs06C2Numerics(unittest.TestCase):
                     ]},
                 "Beam Object Connectivity": {
                     "table_key": "Beam Object Connectivity", "status": "CAPTURED",
-                    "fields": ["UniqueName", "Length"],
-                    "field_metadata": {"status": "OK", "field_keys": ["UniqueName", "Length"],
+                    "fields": ["UniqueName", "Story", "Length"],
+                    "field_metadata": {"status": "OK", "field_keys": ["UniqueName", "Story", "Length"],
                                        "units_by_field": {"Length": "m"}},
                     "row_count": 2,
-                    "rows": [{"UniqueName": "B1", "Length": "5"},
-                             {"UniqueName": "B2", "Length": "4"}],
+                    "rows": [{"UniqueName": "B1", "Story": "S1", "Length": "5"},
+                             {"UniqueName": "B2", "Story": "S1", "Length": "4"}],
                 },
             },
         }
