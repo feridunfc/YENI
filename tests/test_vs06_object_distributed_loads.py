@@ -13,6 +13,7 @@ from tools.etabs_source_gateway_windows import (
 from test_etabs_source_gateway import FakeDb, FakeSap
 from test_vs06_c2_drift_scenario import scenario_report
 from tbdy_next.vs06_drift_scenario import evaluate_drift_scenario
+from tools.review_vs06_wall_capture import review_capture
 
 
 class DistributedDb(FakeDb):
@@ -91,6 +92,12 @@ class DistributedProbeTests(unittest.TestCase):
         self.assertEqual(Decimal(row["assumed_net_face_area_m2"]), Decimal("14"))
         self.assertTrue(row["source_census_complete"])
         self.assertEqual(row["original_distributed_table_status"], "CAPTURE_ERROR")
+        offline = review_capture(src)
+        self.assertEqual(offline["load_pattern"], "LC_WDL")
+        self.assertEqual(Decimal(offline["candidate_total_loaded_length_m"]), Decimal("5"))
+        self.assertEqual(len(offline["per_story"]), 1)
+        self.assertEqual(offline["per_story"][0]["story"], "+9.00")
+        self.assertEqual(Decimal(offline["per_story"][0]["assumed_net_face_area_m2"]), Decimal("14"))
 
     def test_partial_object_error_is_not_called_empty_load(self):
         sap = self.sap(partial=True)
