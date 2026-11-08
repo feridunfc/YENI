@@ -57,6 +57,37 @@ class B1SourceUploadWebTests(unittest.TestCase):
             self.post({"geometry":a,"wall_loads":b,"options":{}},
                       headers={"Origin":"https://untrusted.example"})
         self.assertEqual(cm.exception.code,403)
+        self.assertEqual(json.load(cm.exception)["error"],"CROSS_ORIGIN_DENIED")
+        self.assertEqual(list(self.root.iterdir()),[])
+
+    def test_cross_origin_invalid_json_never_reaches_source_parser(self):
+        # A non-JSON body must still return 403, not 422, and Windows must
+        # receive the HTTP response rather than WinError 10053/socket reset.
+        req = Request(
+            self.host+"/api/vs06-b1-preview",
+            data=b"not-json-at-all",
+            headers={"Origin":"https://untrusted.example",
+                     "Content-Type":"application/json"},
+            method="POST",
+        )
+        with self.assertRaises(HTTPError) as cm:
+            urlopen(req,timeout=10)
+        self.assertEqual(cm.exception.code,403)
+        self.assertEqual(json.load(cm.exception)["error"],"CROSS_ORIGIN_DENIED")
+        self.assertEqual(list(self.root.iterdir()),[])
+
+    def test_cross_site_header_rejected_even_with_local_origin(self):
+        req = Request(
+            self.host+"/api/vs06-b1-preview",
+            data=b"not-json-at-all",
+            headers={"Origin":self.host,"Sec-Fetch-Site":"cross-site",
+                     "Content-Type":"application/json"},
+            method="POST",
+        )
+        with self.assertRaises(HTTPError) as cm:
+            urlopen(req,timeout=10)
+        self.assertEqual(cm.exception.code,403)
+        self.assertEqual(json.load(cm.exception)["error"],"CROSS_ORIGIN_DENIED")
 
     def test_falsified_capture_rejected_without_result(self):
         a,b=sources()
