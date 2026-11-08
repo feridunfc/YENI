@@ -46,6 +46,8 @@ class Vs06C2Numerics(unittest.TestCase):
     def test_default_is_brittle_and_numeric_is_computed(self):
         data = evaluate_drift_scenario(scenario_report())
         self.assertEqual(data["scenario_input"]["wall_type"], "BRITTLE")
+        self.assertEqual(data["scenario_input"]["wall_load_pattern"], "LC_WDL")
+        self.assertEqual(data["scenario_input"]["wall_mode"], "LOAD_PATTERN_BEAM_CANDIDATE")
         self.assertEqual(data["limit"], "0.008")
         self.assertEqual(data["source_numeric_count"], 1)
         self.assertEqual(data["expected_story_direction_count"], 4)
@@ -92,14 +94,15 @@ class Vs06C2Numerics(unittest.TestCase):
     def test_reject_nonfinite_lambda_and_unknown_source_inputs(self):
         for values in ({"lambda": "NaN"}, {"r": "0"}, {"wall_type": "MAGIC"},
                        {"coverage_pct": "110"}, {"unexpected": "1"},
-                       {"opening_pct": "-2"}):
+                       {"opening_pct": "-2"}, {"wall_load_pattern": ""},
+                       {"wall_load_pattern": " LC_WDL"}, {"wall_load_pattern": "LC_WDL\\n"}):
             with self.subTest(values=values), self.assertRaises(DriftScenarioError):
                 options(values)
 
     def test_source_not_captured_preserves_numeric_scenario(self):
         r = evaluate_drift_scenario(scenario_report())
         self.assertEqual(r["wall_candidate_inventory"]["source_status"],
-                         "LC_WALL_SOURCE_NOT_CAPTURED")
+                         "LOAD_PATTERN_SOURCE_NOT_CAPTURED")
         self.assertIsNone(r["wall_candidate_inventory"]["assumed_net_face_area_m2"])
         self.assertEqual(r["source_numeric_count"], 1)
 
@@ -117,7 +120,7 @@ class Vs06C2Numerics(unittest.TestCase):
         self.assertEqual(result["formal_compliance"], "NOT_PROVEN")
         self.assertEqual(result["source_numeric_count"], 1)
 
-    def test_lc_wall_source_candidates_and_assumed_area(self):
+    def test_lc_wdl_source_candidates_and_assumed_area(self):
         report = scenario_report()
         geometry = {"tables": {"FRAME_ASSIGNMENTS": {
             "rows": [
@@ -134,10 +137,10 @@ class Vs06C2Numerics(unittest.TestCase):
                     "field_metadata": {"status": "OK", "field_keys": ["UniqueName", "LoadPat"]},
                     "row_count": 4,
                     "rows": [
-                        {"UniqueName": "B1", "LoadPat": "LC_WALL"},
-                        {"UniqueName": "B1", "LoadPat": "LC_WALL"},
-                        {"UniqueName": "B2", "LoadPat": "LIVE"},
-                        {"UniqueName": "C1", "LoadPat": "LC_WALL"},
+                        {"UniqueName": "B1", "LoadPat": "LC_WDL"},
+                        {"UniqueName": "B1", "LoadPat": "LC_WDL"},
+                        {"UniqueName": "B2", "LoadPat": "LC_WALL"},
+                        {"UniqueName": "C1", "LoadPat": "LC_WDL"},
                     ]},
                 "Beam Object Connectivity": {
                     "table_key": "Beam Object Connectivity", "status": "CAPTURED",
@@ -155,12 +158,25 @@ class Vs06C2Numerics(unittest.TestCase):
         r = evaluate_drift_scenario(report, {"wall_height_m": "3", "coverage_pct": "80",
                                              "opening_pct": "25", "thickness_m": "0.2"})
         c = r["wall_candidate_inventory"]
+        self.assertEqual(c["load_pattern"], "LC_WDL")
         self.assertEqual(c["candidate_beam_count"], 1)
         self.assertEqual(c["candidate_beams"], ["B1"])
         self.assertEqual(Decimal(c["candidate_total_length_m"]), Decimal("5"))
         self.assertEqual(Decimal(c["assumed_net_face_area_m2"]), Decimal("9"))
         self.assertEqual(Decimal(c["assumed_wall_volume_m3"]), Decimal("1.8"))
         self.assertEqual(r["formal_compliance"], "NOT_PROVEN")
+        # A different exact ETABS pattern resolves only the other beam.
+        alt = evaluate_drift_scenario(report, {"wall_load_pattern": "LC_WALL"})
+        candidate = alt["wall_candidate_inventory"]
+        self.assertEqual(candidate["load_pattern"], "LC_WALL")
+        self.assertEqual(candidate["candidate_beams"], ["B2"])
+        self.assertEqual(Decimal(candidate["candidate_total_length_m"]), Decimal("4"))
+        self.assertEqual(alt["formal_compliance"], "NOT_PROVEN")
+
+    def test_legacy_mode_name_defaults_to_real_lc_wdl_pattern(self):
+        legacy = options({"wall_mode": "LC_WALL_BEAM_CANDIDATE"})
+        self.assertEqual(legacy["wall_mode"], "LOAD_PATTERN_BEAM_CANDIDATE")
+        self.assertEqual(legacy["wall_load_pattern"], "LC_WDL")
 
     def test_scenario_determinism_does_not_mutate_archived_inputs(self):
         report = scenario_report()
@@ -231,7 +247,10 @@ class Vs06C2HttpIntegration(unittest.TestCase):
             js = response.read().decode("utf-8")
         self.assertEqual(html.count('id="runAllBtn"'), 1)
         self.assertIn('value="BRITTLE" selected', html)
-        self.assertIn('value="LC_WALL_BEAM_CANDIDATE" selected', html)
+        self.assertIn('value="LOAD_PATTERN_BEAM_CANDIDATE" selected', html)
+        self.assertIn('id="c2WallLoadPattern"', html)
+        self.assertIn('value="LC_WDL"', html)
+        self.assertIn("wall_load_pattern: 'c2WallLoadPattern'", js)
         self.assertIn('id="c2Calculate"', html)
         self.assertIn("vs06-drift-scenario?run_id=", js)
         self.assertIn("activeScenarioQuery", js)
