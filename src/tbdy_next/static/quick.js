@@ -248,6 +248,12 @@
       host.append(details);
     }
   }
+  function renderPhysicalExclusions(host, record) {
+    if (record?.excluded_stories?.length)
+      host.append(make('p', 'NOT_APPLICABLE · ' +
+        record.excluded_stories.map(r => r.story).join(', ') +
+        ': tam Frame/Area/Wall/Joint envanteriyle boş olduğu doğrulandı; hesap kapsamından çıkarıldı.', 'muted small'));
+  }
   function renderB2(tab) {
     const panel = byId('b2Panel');
     const host = byId('b2Result');
@@ -266,10 +272,19 @@
       ' · Komşuluk hesabı: ' + c.resolved + '/' + c.expected +
       ' · Çözülemeyen: ' + c.unresolved +
       ' · Resmî B2 sınıflandırması: NOT_PROVEN', 'muted small'));
+    if (b.physical_story_scope) {
+      const scope = b.physical_story_scope;
+      host.append(make('p', scope.source_inventory_complete ?
+        'Fiziksel kat: ' + scope.physical_story_count + '/' + scope.defined_story_count +
+        ' tanımlı kat · ' + (b.source_coverage_status || b.status) :
+        'Fiziksel kat envanteri doğrulanamadı; boş kat istisnası uygulanmadı. ' +
+        scope.reason_codes.join('; '), 'muted small'));
+    }
+    renderPhysicalExclusions(host, b);
     if (b.story_order) {
       const order = b.story_order;
       host.append(make('p', 'Üst düzlem noktasıyla desteklenen kat: ' +
-        order.point_elevation_confirmed_stories.length + '/' + b.stories.length +
+        order.point_elevation_confirmed_stories.filter(s => b.stories.some(r => r.story === s)).length + '/' + b.stories.length +
         ' · Ara kotlu nokta: ' + (order.intermediate_point_count ?? '—') +
         ' · Alt sınır noktası: ' + (order.lower_boundary_point_count ?? '—') +
         '. Ara noktalar kat kotunu veya yüksekliğini değiştirmez.', 'muted small'));
@@ -303,7 +318,7 @@
       ['adjacent_normalized_mean','Avg Driftⱼ / hⱼ'],['eta_ki_candidate','ηki adayı'],
       ['status','Sayısal durum'],['reason_codes','Açık neden']
     ]);
-    const notes = make('details'); notes.open = true;
+    const notes = make('details');
     notes.append(make('summary', 'Hesap kapsamı ve varsayımları'));
     const list = make('ul');
     for (const note of b.assumptions_notes) list.append(make('li', note));
@@ -341,7 +356,9 @@
         }
       }
       if (latestFullRun?.run_id === runId) {
-        latestFullRun = {...latestFullRun, soft_story_b2: latestB2};
+        latestFullRun = {...latestFullRun, soft_story_b2: latestB2,
+          ...(report.story_drift ? {story_drift: report.story_drift} : {})};
+        renderStoryDrift(report.story_drift || latestFullRun.story_drift || null);
         renderUnifiedTrees(latestFullRun);
       }
     } catch (error) {
@@ -485,6 +502,7 @@
       record.evaluated_story_case_direction_count + "/" +
       record.expected_story_case_direction_count +
       " · TBDY uygunluğu NOT_PROVEN", "warn"));
+    renderPhysicalExclusions(host, record);
     if (record.reason_codes?.length)
       host.append(make("p", "Açık: " + record.reason_codes.join(", "), "warn"));
     const table = make("table", undefined, "modal-source-table");
@@ -689,6 +707,7 @@
         data.conditional_within_count + '; sınırı aşan: ' +
         data.conditional_exceeds_count + '. Yönetmelik uygunluğu NOT_PROVEN.';
       host.append(make('p', 'TBDY 2018 Denk.(4.32)-(4.34) · kaynak: ETABS Story Drifts × h · R/I ve λ kullanıcı senaryosu.', 'muted small'));
+      renderPhysicalExclusions(host, data);
       if (data.flexible_capacity_warning)
         host.append(make('p', 'Esnek dolgu için gerekli bağlantı kapasitesi belgesi sağlanmadı; 0.016κ sınırı yalnız senaryodur.', 'warn'));
       const wall = data.wall_candidate_inventory || {};
@@ -769,6 +788,9 @@
         r.source_wall_load_rows+' gerçek atama; ηci,min='+number.eta_ci_min+
         ' · '+number.numeric_condition+' · resmî uygunluk NOT_PROVEN.';
       host.append(make('p','TBDY Tablo 3.6 · 3.6.2.3 · Aw + Ag + 0.15Ak. Ak yükten tuğla kalınlığı ve boşluk senaryosuyla tahmin edilmiştir.','muted small'));
+      host.append(make('p', 'Fiziksel kat kapsamı: ' + (r.physical_source_coverage || 'UNKNOWN') +
+        '. Sayısal komşuluk sayısı koşullu B1 aday hesabına aittir.', 'muted small'));
+      renderPhysicalExclusions(host, r);
       const data=[];
       for(const story of r.story_direction_areas){
         for(const d of ['X','Y']){

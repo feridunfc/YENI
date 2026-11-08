@@ -100,6 +100,30 @@ class B2SingleRunTests(unittest.TestCase):
         self.assertEqual(b2["evaluation"], "BLOCKED_SOURCE")
         self.assertIn("B2_SOURCE_TABLE_MISSING", self.get("/report/print?run_id=" + run_id).decode())
 
+    def test_verified_empty_story_projects_json_html_c2_and_preserves_every_receipt(self):
+        from test_vs07_physical_story_scope import physical_source
+        from tools.verify_vs07_b2_archived import verify
+        self.delta = physical_source()
+        run_id = self.create()
+        before = self.snapshot()
+        report = json.loads(self.get("/api/export-checks?run_id=" + run_id))
+        self.assertEqual(report["physical_story_scope"]["excluded_stories"], ["+13.00"])
+        self.assertEqual(report["soft_story_b2"]["comparison_coverage"]["expected"], 8)
+        self.assertEqual(report["story_drift"]["expected_story_case_direction_count"], 12)
+        self.assertEqual(report["declared_story_drift_source_record"]["expected_story_case_direction_count"], 16)
+        self.assertEqual(report["vs06_effective_drift_readiness"]["expected_story_direction_instances"], 8)
+        scenario = json.loads(self.get("/api/vs06-drift-scenario?run_id=" + run_id))
+        self.assertEqual(scenario["expected_story_direction_count"], 6)
+        self.assertEqual(scenario["source_numeric_count"], 6)
+        html = self.get("/report/print?run_id=" + run_id).decode()
+        for text in ("Fiziksel kat kapsamı", "VERIFIED_EMPTY_PHYSICAL_STORY", "SOURCE_COVERAGE_COMPLETE", "NOT_APPLICABLE"):
+            self.assertIn(text, html)
+        replay = verify(self.root, run_id)
+        self.assertEqual(replay["physical_story_count"], 3)
+        self.assertEqual(replay["source_coverage_status"], "SOURCE_COVERAGE_COMPLETE")
+        self.assertEqual(self.snapshot(), before)
+        self.assertEqual(self.calls, ["Modal"])
+
     def test_pre_delta_historical_run_stays_five_checks_with_new_registry(self):
         self.delta = None
         run_id = self.create()

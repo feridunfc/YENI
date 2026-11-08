@@ -284,6 +284,9 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
     # B1 is optional: missing/unsupported source cannot break VS01-VS06-C2.
     vs06_b1_result = None
     vs06_b1_source_status = None
+    from .physical_story_scope import review_physical_story_scope, scope_story_drift
+    physical_scope = (review_physical_story_scope(source.get("vs05_delta_source"))
+                      if "vs05_delta_source" in source else None)
     if ("vs06_b1_geometry_source" in source or "vs06_wall_load_source" in source
             or "vs06_b1_geometry_capture_error" in source):
         if (isinstance(source.get("vs06_b1_geometry_source"), Mapping) and
@@ -292,7 +295,8 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
             try:
                 vs06_b1_result = evaluate_b1_sources(
                     source["vs06_b1_geometry_source"],
-                    source["vs06_wall_load_source"])
+                    source["vs06_wall_load_source"], physical_scope=physical_scope,
+                    physical_scope_source=source.get("vs05_delta_source"))
                 vs06_b1_source_status = "SOURCE_BOUND_NUMERICAL"
             except (B1BridgeError, ValueError, TypeError, KeyError) as exc:
                 vs06_b1_source_status = "BLOCKED_SOURCE_BINDING: " + str(exc)
@@ -306,7 +310,13 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         from .soft_story_b2 import bind_soft_story_b2
         b2 = bind_soft_story_b2(
             source.get("vs05_delta_source"),
-            capture_error=source.get("vs05_delta_capture_error"))
+            capture_error=source.get("vs05_delta_capture_error"), physical_scope=physical_scope)
+
+    # Project only AFTER exact legacy receipt/ledger replay. Never overwrite
+    # archived source, receipts, or the historical candidate DAG denominator.
+    declared_story_drift = story_drift
+    if physical_scope is not None and story_drift is not None:
+        story_drift = scope_story_drift(story_drift, source["vs05_delta_source"], physical_scope)
 
     frame_rows = ((geometry_source or {}).get("tables", {}).get("FRAME_ASSIGNMENTS", {})
                   .get("rows", []) or [])
@@ -389,6 +399,9 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         "vs04_readiness": vs04_readiness,
         "vs04_pipeline": vs04_pipeline,
         **({"story_drift": story_drift} if story_drift is not None else {}),
+        **({"physical_story_scope": physical_scope} if physical_scope is not None else {}),
+        **({"declared_story_drift_source_record": declared_story_drift}
+           if story_drift != declared_story_drift else {}),
         **({"vs06_story_slot_ledger": vs06_slot_ledger}
            if vs06_slot_ledger is not None else {}),
         **({"vs06_physical_source_review": vs06_physical_source_review}
@@ -613,6 +626,20 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
                                            ("conditional_eq_4_19_minimum_term_kn",
                                             "Koşullu alt terim (kN)")),
                                           [conditional]) + '</section>')
+    physical_scope = report.get("physical_story_scope")
+    if isinstance(physical_scope, Mapping):
+        vs04_sections.append(
+            '<section class="percheck"><h2>Fiziksel kat kapsamı · B1 / B2 / STORY_DRIFT</h2>'
+            '<p>Durum: ' + _val(physical_scope["status"]) +
+            '; fiziksel kat: ' + _val(physical_scope["physical_story_count"]) +
+            ' / tanımlı kat: ' + _val(physical_scope["defined_story_count"]) +
+            '. NOT_APPLICABLE yalnız eksiksiz Frame/Area/Wall/Joint envanteriyle boşluğu '
+            'doğrulanan katlara uygulanır. Bu envanter resmî TBDY kabulü değildir.</p>' +
+            _table((("story", "Kat"), ("applicability", "Kapsam"), ("frames", "Frame"),
+                    ("areas", "Area"), ("walls", "Wall (Area alt kümesi)"), ("joints", "Joint"),
+                    ("reason", "Gerekçe")), physical_scope["stories"]) +
+            '<p>Açık neden: ' + _val(physical_scope["reason_codes"]) +
+            ' · Kapsam SHA: ' + _val(physical_scope["scope_sha256"]) + '</p></section>')
     drift_check = report.get("story_drift")
     if isinstance(drift_check, Mapping):
         drift_cols = (("story", "Kat"), ("case", "Analiz vakası"),
@@ -637,6 +664,8 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
     if isinstance(ledger, Mapping):
         vs04_sections.append(
             '<section class="percheck"><h2>VS06-A · STORY_DRIFT kaynak slot muhasebesi</h2>'
+            '<p>Arşiv kaydı: fiziksel boş kat istisnasından önceki tanımlı kat kapsamıdır. '
+            'Güncel uygulanabilir kapsam yukarıdaki STORY_DRIFT sonucundadır.</p>'
             '<p>Beklenen slot: ' + _val(ledger.get("expected_slot_count")) +
             '; kaynaktan hesaplanan: ' + _val(ledger.get("source_numeric_count")) +
             '; kaynağı eksik: ' + _val(ledger.get("source_missing_count")) +
@@ -652,6 +681,8 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
     if isinstance(physical, Mapping):
         vs04_sections.append(
             '<section class="percheck"><h2>VS06-B · Fiziksel kaynak ve spektral eşzamanlılık kanıtı</h2>'
+            '<p>Arşivdeki kolon ucu kanıt incelemesi; güncel tam nesne envanteri ve '
+            'boş kat istisnaları ayrı fiziksel kat kapsamı tablosundadır.</p>'
             '<p>Gözlenen kolon bağlantısı: ' + _val(physical.get("endpoint_linked_column_count")) +
             ' / ' + _val(physical.get("observed_column_count")) +
             '; bağımsız RSX/RSY nokta maksimumu: ' +
@@ -682,6 +713,8 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
     if isinstance(readiness, Mapping):
         vs04_sections.append(
             '<section class="percheck"><h2>VS06-C1 · TBDY 4.9 etkin göreli kat ötelemesi hesap hazırlığı</h2>'
+            '<p>Arşivdeki tanımlı kat muhasebesi korunmuştur; C2 senaryosu doğrulanmış '
+            'boş kat istisnalarını uygular.</p>'
             '<p>94 düğümlü mevcut DAG üzerinden beklenen kat/yön kontrolleri: ' +
             _val(readiness.get("expected_story_direction_instances")) +
             '; ETABS kaynak-nümerik aday bulunan: ' +
@@ -762,6 +795,7 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
             'kapı/pencere azaltması varsayımdır. Formel uygunluk NOT_PROVEN.</p>'
             '<p>ηci,min: ' + _val(b1_numeric.get("eta_ci_min")) +
             ' · Sayısal karar: ' + _val(b1_numeric.get("numeric_condition")) +
+            ' · Fiziksel kat kapsamı: ' + _val(b1.get("physical_source_coverage", "UNKNOWN")) +
             ' · Gevrek dolgu varsayılanı: ' +
             _val((b1.get("parameters") or {}).get("wall_type")) + '</p>' +
             _table((("story", "Kat"), ("direction", "Yön"),
@@ -798,10 +832,14 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
             '<p>Kaynak durumu: ' + _val(b2["status"]) + '; hesap: ' +
             _val(b2["numeric_condition"]) + '. Çözülen komşuluk: ' +
             _val(coverage["resolved"]) + '/' + _val(coverage["expected"]) +
-            '; çözülemeyen: ' + _val(coverage["unresolved"]) + '.</p>' +
+            '; çözülemeyen: ' + _val(coverage["unresolved"]) +
+            '; kapsam: ' + _val(b2.get("source_coverage_status", "UNKNOWN")) + '.</p>' +
+            _table((("story", "Kapsam dışı kat"), ("applicability", "Durum"),
+                    ("reason", "Gerekçe")), b2.get("excluded_stories", [])) +
             '<details><summary>Kat kotu ve ara nokta eşleştirmesi</summary>' +
             '<p>Yalnız üst düzlem noktaları kat kotunu destekler. Ara ve alt sınır '
-            'noktaları kat yüksekliğini değiştirmez; tam fiziksel sayım NOT_PROVEN.</p>' +
+            'noktaları kat yüksekliğini değiştirmez. Tam nesne sayımı ayrı fiziksel kat '
+            'kapsamı tablosunda gösterilir.</p>' +
             _table((("story", "Kat"), ("lower_elevation_m", "Alt kot (m)"),
                     ("upper_elevation_m", "Üst kot (m)"), ("at_level_points", "Üst düzlem noktası"),
                     ("intermediate_points", "Ara kotlu nokta"),

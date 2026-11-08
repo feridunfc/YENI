@@ -15,10 +15,10 @@ from hashlib import sha256
 import json
 from typing import Any, Mapping, Sequence
 
-from .archived_source_bridge import _source_table
 from .quick_checks import CheckDefinition
-from .story_delta import PRIMARY, SOURCE_SCHEMA, dec, story_heights
+from .story_delta import PRIMARY, SOURCE_SCHEMA, dec
 from .story_drift_binding import _verify_generic_capture
+from .story_geometry import StoryLevel, read_source_table as _read, read_story_levels as _levels
 
 CHECK = CheckDefinition(
     "SOFT_STORY_B2", "B2 yumuşak kat — koşullu kaynak hesabı", 9,
@@ -28,13 +28,6 @@ BASE = "Tower and Base Story Definitions"
 AVERAGES = "Story Max Over Avg Drifts"
 DRIFTS = "Story Drifts"
 LIMIT = Decimal("2")
-
-
-@dataclass(frozen=True)
-class StoryLevel:
-    story: str
-    elevation_m: Decimal
-    height_m: Decimal
 
 
 @dataclass(frozen=True)
@@ -159,79 +152,6 @@ def compare_adjacent(
     }
 
 
-def _read(source: Mapping[str, Any], name: str, fields: tuple[str, ...],
-          units: Mapping[str, str]) -> list[dict[str, str]]:
-    tables = source.get("table_reads")
-    if not isinstance(tables, Mapping) or not isinstance(tables.get(name), Mapping):
-        raise ValueError("B2_SOURCE_TABLE_MISSING:" + name)
-    if tables[name].get("table_key") != name:
-        raise ValueError("B2_SOURCE_TABLE_IDENTITY_CONFLICT:" + name)
-    return _source_table(tables, name, fields, units)
-
-
-def _levels(source: Mapping[str, Any]) -> tuple[list[StoryLevel], dict]:
-    heights = story_heights(source)
-    rows = _read(source, STORIES, ("Tower", "Story", "Height"), {"Height": "m"})
-    bases = _read(source, BASE, ("Tower", "BSName", "BSElev"), {"BSElev": "m"})
-    if len(bases) != 1 or any(r["Tower"] != bases[0]["Tower"] for r in rows):
-        raise ValueError("B2_SINGLE_TOWER_BASE_REQUIRED")
-    base = bases[0]
-    if (any(not base[k] or base[k] != base[k].strip() or base[k] == "None"
-            for k in ("Tower", "BSName")) or base["BSName"] in heights):
-        raise ValueError("B2_BASE_STORY_IDENTITY_INVALID")
-    if any(not r["Story"] or r["Story"] != r["Story"].strip() or r["Story"] == "None" for r in rows):
-        raise ValueError("B2_STORY_IDENTITY_INVALID")
-    z = dec(base["BSElev"], "B2_BASE_ELEVATION")
-    levels = []
-    # Reuse the observed ETABS top-to-bottom ordering convention from
-    # archived_source_bridge. This is a disclosed candidate, not a census.
-    for row in reversed(rows):
-        z += heights[row["Story"]]
-        levels.append(StoryLevel(row["Story"], z, heights[row["Story"]]))
-    point_levels = set()
-    point_counts = {s.story: {
-        "story": s.story, "lower_elevation_m": str(s.elevation_m - s.height_m),
-        "upper_elevation_m": str(s.elevation_m), "at_level_points": 0,
-        "intermediate_points": 0, "lower_boundary_points": 0,
-    } for s in levels}
-    point_table = (source.get("table_reads") or {}).get("Point Object Connectivity")
-    points_captured = isinstance(point_table, Mapping) and point_table.get("status") == "CAPTURED"
-    if points_captured:
-        points = _read(source, "Point Object Connectivity",
-                       ("UniqueName", "Story", "Z"), {"Z": "m"})
-        bounds = {s.story: (s.elevation_m - s.height_m, s.elevation_m) for s in levels}
-        tolerance = Decimal("0.000001")
-        for row in points:
-            if row["Story"] in bounds:
-                lower, upper = bounds[row["Story"]]
-                point_z = dec(row["Z"], "B2_POINT_Z")
-                # A point assigned to a story may lie inside its vertical span.
-                # Only points at its upper plane corroborate the story elevation;
-                # neither interior points nor lower-boundary points move a level.
-                if point_z < lower - tolerance or point_z > upper + tolerance:
-                    raise ValueError("B2_STORY_ORDER_POINT_ELEVATION_CONFLICT:" + row["Story"])
-                counts = point_counts[row["Story"]]
-                if abs(point_z - upper) <= tolerance:
-                    point_levels.add(row["Story"])
-                    counts["at_level_points"] += 1
-                elif abs(point_z - lower) <= tolerance:
-                    counts["lower_boundary_points"] += 1
-                else:
-                    counts["intermediate_points"] += 1
-    return levels, {
-        "basis": "OBSERVED_TOP_TO_BOTTOM_TABLE_ORDER_PLUS_BASE_AND_HEIGHTS",
-        "base_story": base["BSName"], "base_elevation_m": base["BSElev"],
-        "point_elevation_confirmed_stories": sorted(point_levels),
-        "stories_without_point_elevation_confirmation": [
-            s.story for s in levels if s.story not in point_levels],
-        "point_table_captured": points_captured,
-        "point_story_span_counts": list(point_counts.values()),
-        "intermediate_point_count": sum(r["intermediate_points"] for r in point_counts.values()),
-        "lower_boundary_point_count": sum(r["lower_boundary_points"] for r in point_counts.values()),
-        "full_physical_census_proven": False,
-    }
-
-
 def _finish(record: dict) -> dict:
     raw = (json.dumps(record, ensure_ascii=False, sort_keys=True,
                       separators=(",", ":"), allow_nan=False) + "\n").encode("utf-8")
@@ -239,7 +159,8 @@ def _finish(record: dict) -> dict:
 
 
 def bind_soft_story_b2(source: Mapping[str, Any] | None, *,
-                       capture_error: str | None = None) -> dict[str, Any]:
+                       capture_error: str | None = None,
+                       physical_scope: Mapping[str, Any] | None = None) -> dict[str, Any]:
     """One optional same-run derivation; malformed B2 never erases other checks."""
     if capture_error is not None and not isinstance(capture_error, str):
         capture_error = "B2_CAPTURE_ERROR_FIELD_NOT_TEXT"
@@ -271,7 +192,7 @@ def bind_soft_story_b2(source: Mapping[str, Any] | None, *,
             "ETABS Avg Drift / h, ortalama göreli kat ötelemesi oranı ADAYI olarak alınır; ortalama tanımı henüz normatif olarak doğrulanmamıştır.",
             "RSX/X ve RSY/Y aynı vaka ve Max izdüşümünde karşılaştırılır. ±%5 dışmerkezlik kolları ve TBDY 4.7 hesabı bu kayıttan kanıtlanmaz.",
             "Kat kotları, mevcut ETABS üstten alta tablo sırası ve temel kotuyla kurulur. Kat içi ara noktalar yükseklikleri değiştirmez; yalnız üst düzlem noktaları kotu destekler, kat aralığı dışındaki noktalar reddedilir.",
-            "Bodrum niteliği ve fiziksel kapsam onaylanmadığından tüm tanımlı katlar korunur; eksik bir kat atlanarak yeni komşuluk kurulmaz.",
+            "Yalnız eksiksiz nesne envanteriyle boşluğu doğrulanan katlar NOT_APPLICABLE olarak ayrılır. Bilinmeyen/eksik katlar korunur; bodrum uygulanabilirliği ayrıca onaylanmalıdır.",
             "ηki > 2,0 yalnız koşullu kaynak hesabında eşik aşımıdır; yönetmelik B2 VAR/YOK veya bina PASS kararı değildir. Yuvarlatılmış kaynak hassasiyeti korunur.",
         ],
     }
@@ -290,11 +211,30 @@ def bind_soft_story_b2(source: Mapping[str, Any] | None, *,
             raise ValueError("B2_CAPTURE_CONTEXT_INVALID")
         record["source_payload_sha256"] = source["payload_sha256"]
         levels, ordering = _levels(source)
+        from .physical_story_scope import review_physical_story_scope, verified_excluded_stories
+        scope = review_physical_story_scope(source) if physical_scope is None else physical_scope
+        if scope.get("source_payload_sha256") not in (None, source["payload_sha256"]):
+            raise ValueError("B2_FOREIGN_PHYSICAL_SCOPE")
+        excluded = verified_excluded_stories(scope, source)
+        names = {s.story for s in levels}
+        record.update(physical_story_scope=scope, declared_story_count=len(levels),
+                      excluded_stories=[r for r in scope["stories"] if r["story"] in excluded])
+        levels = [s for s in levels if s.story not in excluded]
+        if any(abs(b.elevation_m - a.elevation_m - b.height_m) > Decimal("0.000001")
+               for a, b in zip(levels, levels[1:])):
+            raise ValueError("B2_PHYSICAL_STORY_HEIGHT_GAP_NO_ADJACENCY_INVENTED")
+        if scope.get("source_inventory_complete"):
+            record["authority_gaps"][2] = "BASEMENT_CODE_APPLICABILITY_NOT_PROVEN"
+            ordering["full_physical_census_proven"] = True
         record.update(
             coverage_known=True, story_order=ordering,
             stories=[{"story": s.story, "elevation_m": str(s.elevation_m),
                       "height_m": str(s.height_m)} for s in levels])
-        names = {s.story for s in levels}
+        if not levels:
+            record.update(status="NOT_APPLICABLE", execution_status="NOT_APPLICABLE",
+                          source_coverage_status="NOT_APPLICABLE",
+                          reason_codes=["NO_PHYSICAL_STORY_AFTER_VERIFIED_EMPTY_EXCLUSIONS"])
+            return _finish(record)
         groups, table_errors, descriptors = {}, {}, {}
         for name, values, units in (
             (AVERAGES, ("Max Drift", "Avg Drift", "Ratio"), {"Max Drift": "m", "Avg Drift": "m"}),
@@ -377,6 +317,9 @@ def bind_soft_story_b2(source: Mapping[str, Any] | None, *,
                                        entry["status"], entry["reason"]))
                 record["source_rows"].append(entry)
         result = compare_adjacent(levels, means)
+        if scope.get("source_inventory_complete"):
+            for row in result["story_results"]:
+                row["applicability"] = "PHYSICAL_IN_SCOPE_BASEMENT_CODE_APPLICABILITY_NOT_PROVEN"
         record.update(result)
         numeric = sum(m.average_m is not None for m in means)
         record.update(
@@ -389,6 +332,8 @@ def bind_soft_story_b2(source: Mapping[str, Any] | None, *,
                 "missing": sum(m.source_status == "SOURCE_MISSING" for m in means),
                 "invalid": sum(m.source_status == "SOURCE_INVALID" for m in means),
             },
+            source_coverage_status=("SOURCE_COVERAGE_COMPLETE" if result["comparison_coverage"]["complete"]
+                                    and numeric == len(means) else "SOURCE_COVERAGE_PARTIAL"),
             reason_codes=sorted({m.reason for m in means if m.reason}),
         )
     except (ValueError, TypeError, KeyError, ArithmeticError) as exc:

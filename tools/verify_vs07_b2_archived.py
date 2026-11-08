@@ -18,7 +18,8 @@ def verify(root: Path, run_id: str, *, export_dir: Path | None = None) -> dict:
     sources = b2["source_coverage"]
     if b2["coverage_known"]:
         n = len(b2["stories"])
-        if (sources["expected"] != 2 * n
+        if (b2["declared_story_count"] != n + len(b2.get("excluded_stories", []))
+                or sources["expected"] != 2 * n
                 or sum(sources[k] for k in ("resolved", "missing", "invalid")) != 2 * n
                 or coverage["expected"] != 4 * max(n - 1, 0)
                 or coverage["resolved"] + coverage["unresolved"] != coverage["expected"]
@@ -47,6 +48,11 @@ def verify(root: Path, run_id: str, *, export_dir: Path | None = None) -> dict:
         "b2_source_status": b2["status"],
         "numeric_condition": b2["numeric_condition"],
         "source_coverage": sources, "comparison_coverage": coverage,
+        "source_coverage_status": b2.get("source_coverage_status", "UNKNOWN"),
+        "defined_story_count": b2.get("declared_story_count"),
+        "physical_story_count": (b2.get("physical_story_scope") or {}).get("physical_story_count"),
+        "excluded_stories": b2.get("excluded_stories", []),
+        "physical_scope_reason_codes": (b2.get("physical_story_scope") or {}).get("reason_codes", []),
         "threshold_exceeded_comparisons": b2["threshold_exceeded_comparisons"],
         "source_payload_sha256": b2["source_payload_sha256"],
         "result_sha256": b2["result_sha256"],

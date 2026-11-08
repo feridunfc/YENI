@@ -251,6 +251,11 @@ def evaluate_drift_scenario(report: Mapping[str, Any], inputs: Mapping[str, Any]
     instances = ready.get("check_instances")
     if not isinstance(source_rows, list) or not isinstance(instances, list):
         raise DriftScenarioError("DRIFT_SOURCE_OR_INSTANCES_INVALID")
+    from .physical_story_scope import verified_excluded_stories
+    scope = report.get("physical_story_scope")
+    excluded = verified_excluded_stories(scope, report.get("source_snapshot", {}).get("vs05_delta_source", {}))
+    if excluded:
+        instances = [r for r in instances if r["story"] not in excluded]
     index = {}
     for row in source_rows:
         key = (row.get("story"), row.get("case"), row.get("direction"))
@@ -301,7 +306,7 @@ def evaluate_drift_scenario(report: Mapping[str, Any], inputs: Mapping[str, Any]
                 conditional_numeric_condition=(
                     "CONDITIONAL_WITHIN_LIMIT" if utilization <= 1 else "CONDITIONAL_EXCEEDS_LIMIT"))
         rows.append(base)
-    if len(rows) != ready["expected_story_direction_instances"]:
+    if len(rows) != ready["expected_story_direction_instances"] - 2 * len(excluded):
         raise DriftScenarioError("DAG_STORY_DIRECTION_DENOMINATOR_CHANGED")
     if ready["dag_execution_authority"] != "DENIED" or ready["formal_compliance"] != "NOT_PROVEN":
         raise DriftScenarioError("DAG_AUTHORITY_VIOLATION")
@@ -334,6 +339,10 @@ def evaluate_drift_scenario(report: Mapping[str, Any], inputs: Mapping[str, Any]
                  "Results are not an authorized TBDY Pass/Fail; no independent spectrum/analysis generation and "
                  "physical member-end design displacements are proven."),
     }
+    if excluded:
+        result.update(physical_scope_sha256=scope["scope_sha256"],
+                      excluded_stories=[r for r in scope["stories"] if r["story"] in excluded],
+                      declared_story_direction_count=ready["expected_story_direction_instances"])
     result["scenario_sha256"] = sha256((json.dumps(result, sort_keys=True,
             ensure_ascii=False, separators=(",", ":"), allow_nan=False)+"\n").encode("utf-8")).hexdigest()
     return result

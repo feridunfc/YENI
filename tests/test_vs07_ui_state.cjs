@@ -106,15 +106,24 @@ function boot(history = [entry(1), entry(2), entry(3)]) {
   ui.ids.get('c2Calculate').trigger('click'); await flush();
   const delayedC2 = ui.take('/api/vs06-drift-scenario?run_id=' + run(1));
   await ui.select(2);
-  ui.take('/api/export-checks?run_id=' + run(2)).resolve({...report(2), soft_story_b2: b2});
+  const exclusion = {story: '+13.00', applicability: 'NOT_APPLICABLE'};
+  const scopedDrift = {status: 'SOURCE_COVERAGE_COMPLETE',
+    evaluated_story_case_direction_count: 12, expected_story_case_direction_count: 12,
+    items: [], excluded_stories: [exclusion]};
+  ui.take('/api/export-checks?run_id=' + run(2)).resolve({...report(2),
+    story_drift: scopedDrift, soft_story_b2: {...b2, excluded_stories: [exclusion]}});
   await flush();
   assert.match(ui.ids.get('b2Result').textContent, /B2_RUN_2_ONLY/);
+  assert.match(ui.ids.get('b2Result').textContent, /NOT_APPLICABLE.*\+13.00/);
+  assert.match(ui.ids.get('storyDriftReport').textContent, /12\/12/);
+  assert.match(ui.ids.get('storyDriftReport').textContent, /NOT_APPLICABLE.*\+13.00/);
   delayedReport.resolve({...report(1), soft_story_b2: {...b2, result_sha256: 'STALE_B2'}});
   delayedB1.resolve({...report(1), vs06_b1_result: b1});
   delayedC2.resolve({formal_compliance: 'NOT_PROVEN', engineering_release: 'NOT_READY',
     rows: [], scenario_sha256: 'STALE_C2'});
   await flush();
   assert.match(ui.ids.get('b2Result').textContent, /B2_RUN_2_ONLY/);
+  assert.match(ui.ids.get('storyDriftReport').textContent, /12\/12/);
   assert.doesNotMatch(ui.ids.get('b1Result').textContent, /B1_OLD_RUN/);
   assert.equal(ui.ids.get('c2Report').textContent, '');
   assert.equal(ui.ids.get('b1Json').disabled, true);

@@ -342,6 +342,79 @@ def resolve_keys(inventory: list[dict[str, Any]], *, preset: str | None = None,
     return sorted(found), sorted(set(unmatched)), sorted(set(optional_missed))
 
 
+def capture_physical_object_inventory(sap: Any, *, max_objects: int) -> dict[str, Any]:
+    """Same SapModel, read-only all-object identities and full connectivity.
+
+    FrameObj/AreaObj/PointObj.GetNameList have no selection or story filter.
+    AreaObj.GetPoints preserves ALL polygon vertices, including openings.
+    Missing/unknown API shapes remain errors, never an empty population.
+    """
+    output = {"schema": "tbdy.next.etabs.physical-object-inventory.v1",
+              "status": "CAPTURE_ERROR", "scope": "ALL_MODEL_OBJECTS",
+              "names_before": {}, "names_after": {}, "objects": {}, "table_reads": {},
+              "model_locked_before": False, "model_locked_after": False,
+              "reason_codes": []}
+
+    def names(api: Any) -> dict[str, Any]:
+        raw = api.GetNameList()
+        if not isinstance(raw, (tuple, list)) or len(raw) != 3:
+            raise SourceError("PHYSICAL_NAME_LIST_ABI_UNKNOWN")
+        count, values, ret = raw
+        if count == 0 and values is None:
+            values = []
+        if (type(count) is not int or not 0 <= count <= max_objects
+                or type(ret) is not int or ret != 0
+                or not isinstance(values, (tuple, list)) or len(values) != count
+                or any(not isinstance(x, str) or not x or x != x.strip() for x in values)
+                or len(set(values)) != count):
+            raise SourceError("PHYSICAL_NAME_LIST_INVALID")
+        return {"count": count, "names": sorted(values), "return_code": ret}
+
+    try:
+        output["model_locked_before"] = sap.GetModelIsLocked()
+        apis = {"Frame": sap.FrameObj, "Area": sap.AreaObj, "Joint": sap.PointObj}
+        for kind, api in apis.items():
+            output["names_before"][kind] = names(api)
+        if sum(x["count"] for x in output["names_before"].values()) > max_objects:
+            raise SourceError("PHYSICAL_OBJECT_LIMIT_EXCEEDED")
+        for key in ("Frame Assignments - Summary", "Area Assignments - Section Properties",
+                    "Wall Object Connectivity"):
+            table = read_table(sap.DatabaseTables, key, max_rows=max_objects)
+            table["field_metadata"] = field_schema(sap.DatabaseTables, key)
+            output["table_reads"][key] = table
+        for kind in ("Frame", "Area"):
+            rows = []
+            for name in output["names_before"][kind]["names"]:
+                raw = apis[kind].GetPoints(name)
+                if (not isinstance(raw, (tuple, list)) or len(raw) != 3
+                        or type(raw[-1]) is not int or raw[-1] != 0):
+                    raise SourceError("PHYSICAL_GET_POINTS_FAILED:" + kind + ":" + name)
+                if kind == "Frame":
+                    points = list(raw[:2])
+                else:
+                    count, values, _ = raw
+                    if (type(count) is not int or not 3 <= count <= max_objects
+                            or not isinstance(values, (tuple, list)) or len(values) != count):
+                        raise SourceError("PHYSICAL_AREA_POLYGON_INVALID:" + name)
+                    points = list(values)
+                if (any(not isinstance(x, str) or not x or x != x.strip() for x in points)
+                        or len(set(points)) != len(points)):
+                    raise SourceError("PHYSICAL_CONNECTIVITY_INVALID:" + kind + ":" + name)
+                rows.append({"name": name, "point_names": points, "return_code": 0})
+            output["objects"][kind] = rows
+        for kind, api in apis.items():
+            output["names_after"][kind] = names(api)
+        output["model_locked_after"] = sap.GetModelIsLocked()
+        if (output["names_before"] != output["names_after"]
+                or output["model_locked_before"] is not True
+                or output["model_locked_after"] is not True):
+            raise SourceError("PHYSICAL_OBJECT_POPULATION_OR_LOCK_CHANGED")
+        output["status"] = "CAPTURED"
+    except Exception as exc:
+        output["reason_codes"] = [type(exc).__name__ + ": " + str(exc)]
+    return output
+
+
 def capture(sap: Any, *, action: str, cases: tuple[str, ...] = (),
             preset: str | None = None, exact: tuple[str, ...] = (),
             matching: tuple[str, ...] = (), all_tables: bool = False,
@@ -410,6 +483,8 @@ def capture(sap: Any, *, action: str, cases: tuple[str, ...] = (),
         if beam_table is None:
             raise SourceError("FRAME_LOAD_PROBE_REQUIRES_BEAM_TABLE")
         frame_probe = capture_distributed_frame_loads_by_object(sap, beam_table)
+    physical_inventory = (capture_physical_object_inventory(sap, max_objects=max_rows)
+                          if action == "capture" and preset == "delta" else None)
     after_units = sap.GetPresentUnits()
     restored = selected_cases(db)
     if before_units != after_units or restored != original:
@@ -436,6 +511,8 @@ def capture(sap: Any, *, action: str, cases: tuple[str, ...] = (),
         "preset_optional_hints_not_found": optional_missed,
         "table_reads": result,
         **({"frame_load_object_probe": frame_probe} if frame_probe is not None else {}),
+        **({"physical_object_inventory": physical_inventory}
+           if physical_inventory is not None else {}),
         "source_only": True,
         "analysis_generation_proven": False,
         "engineering_release": "NOT_READY",

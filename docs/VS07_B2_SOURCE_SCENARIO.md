@@ -23,7 +23,7 @@ Sonuç B2 VAR/YOK veya bina PASS kararı değildir.
 
 Mühürlü vs05_delta_source içindeki Story Definitions, Tower and Base Story
 Definitions, Story Max Over Avg Drifts ve Story Drifts kullanılır.
-Yeni COM çağrısı yoktur. Kaynak SHA, gerçek alanlar/birimler, satır sayısı ve
+B2 matematiği COM çağırmaz. Kaynak SHA, gerçek alanlar/birimler, satır sayısı ve
 vaka/yön/Max kimliği doğrulanır. Aynı satırın Avg Drift, Max Drift ve Ratio
 uyumu ile Story Drifts × h / Max Drift çapraz kontrolü yapılır.
 Numaralı adım, yinelenmiş vaka/yön kaydı ve bilinmeyen şema reddedilir.
@@ -35,11 +35,39 @@ Z, ilgili [üst kot − h, üst kot] aralığında 10⁻⁶ m toleransıyla dene
 Yalnız üst düzlem noktaları kotu destekler; ara ve alt sınır noktaları ayrı
 sayılır. Aralık dışı nokta ve ters kat sırası reddedilir. Kotlar/yükseklikler
 noktalara uydurulmaz; destekleyici nokta yokluğu ayrıca açıkça gösterilir.
-Kat adı kot olarak ayrıştırılmaz. Tüm tanımlı katlar korunur; eksik orta
-kat atlanmaz, boş olduğu düşünülen üst kat otomatik dışlanmaz.
+Kat adı kot olarak ayrıştırılmaz. Tam nesne envanteri bulunmadıkça tüm tanımlı
+katlar korunur; eksik orta kat atlanmaz, varsayımla boş kat dışlanmaz.
 n kat için 2n kaynak yuvası ve 4(n−1) yönlü komşuluk ayrı sayılır.
 Sıfır payda çözümsüzdür. İlgisiz tablo hatası B2'yi, B2 hatası önceki
 kontrolleri kilitlemez. Eski kaynak ve receipt dosyaları değişmez.
+
+## Doğrulanmış boş kat istisnası
+
+Mevcut gateway'in aynı SapModel oturumunda FrameObj, AreaObj ve PointObj
+GetNameList sayımları başta/sonda eşit olmalıdır. FrameObj/AreaObj GetPoints
+tüm uçları ve çok köşeli alanların bütün köşelerini okur; Null çizgiler,
+açıklıklar ve Wall alt kümesi dahildir. Model çapındaki kimlikler, atama
+tabloları ve metre cinsinden Point Object Connectivity ile tam eşleşir.
+Katın (alt kot, üst kot] bandında nokta/eleman yoksa NOT_APPLICABLE üretilir;
+kat bandını kesen uzun/eğik eleman, Story etiketinden bağımsız olarak sayılır.
+Eksik bağlantı, kimlik çelişkisi veya boş kat üzerinde analiz satırı varsa
+kapsam UNKNOWN kalır. Alt sınırdaki çatı döşemesi üstteki boş katı doldurmaz.
+
+Tek physical_story_scope B1, B2, STORY_DRIFT ve C2 tarafından kullanılır;
+kapsam, mühürlü özgün kaynaktan yeniden hesaplanarak doğrulanır. B1'in ayrı
+geometri kaydında nokta/kot, tüm nesne kimlikleri ve kolon/perde uçları da
+eşleşmelidir. Eski B1 aday hesabı korunur; tam envanter yoksa fiziksel kapsam
+UNKNOWN olarak gösterilir. İç boş katın çıkarılması yeni yükseklik veya
+komşuluk icat etmez. Arşiv receipt'leri aynı kalır; uygulanabilir öteleme
+paydası ayrı türetilir, tanımlı katların eski muhasebesi ayrıca raporlanır.
+
+Eski kayıtta tam envanter yoksa bir kez **ETABS'tan Oku ve Hesapla** gerekir.
+Mevcut analizli, kilitli model okunur; RunAnalysis, model değişikliği veya
+yeni COM gateway yoktur. Örneğin 4 tanımlı katın üstteki biri doğrulanmış
+boşsa 3 fiziksel kat için B2 8/8, STORY_DRIFT 12/12 ve C2 6/6 olabilir.
+SOURCE_COVERAGE_COMPLETE sayısal kaynak kapsamıdır; eşik aşımları,
+NOT_PROVEN ve NOT_READY kaldırılmaz. ETABS 23 üzerinde yeni native API
+dönüşlerinin ve gerçek envanterin Windows kabulü ayrıca yapılmalıdır.
 
 ## Bağımsız sayısal örnek ve kabul
 
@@ -85,3 +113,6 @@ tamamlanmış sayılmaz; 68 kontrol için yapay hazır olma yüzdesi üretilmez.
 - [CSI RSA açıklaması](https://web.wiki.csiamerica.com/wiki/spaces/etabs/pages/1474589/Torsional%2BIrregularities%2Bcheck%2Bfor%2BResponse%2BSpectrum%2BAnalysis%2BRSA):
   ayrı tepki büyüklüklerinin maksimumları eşzamanlı işaretli değerler değildir.
   Bu kaynaktaki ASCE yordamı TBDY B2 hesabına aktarılmamıştır.
+- [CSI FrameObj.GetNameList](https://docs.csiamerica.com/help-files/etabs-api-2016/html/d0cc0291-3352-b32b-79a0-8815c631a3d8.htm)
+  ve [AreaObj.GetPoints](https://docs.csiamerica.com/help-files/etabs-api-2016/html/3b23b506-c43f-a79f-e626-b4d34fc27976.htm):
+  tüm nesne adları ve bütün alan köşeleri; sıfır dönüş kodu başarıdır.
