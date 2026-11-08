@@ -47,7 +47,7 @@ class B1SourceUploadWebTests(unittest.TestCase):
         self.assertEqual(r["formal_compliance"],"NOT_PROVEN")
         self.assertEqual(r["model"],a["model"])
         self.assertIn("b1 zayıf kat",obj["html"].lower())
-        self.assertIn("0.15",obj["html"])
+        self.assertIn("0,15",obj["html"])
         self.assertEqual(list(self.root.iterdir()),[],
                          "B1 preview must not write a new receipt or ETABS file")
 
