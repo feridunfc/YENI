@@ -83,97 +83,163 @@ def options(raw: Mapping[str, Any] | None) -> dict[str, str]:
 
 
 def _wall_candidates(report: Mapping[str, Any], opts: Mapping[str, str]) -> dict[str, Any]:
-    """Optional exact source, never infer masonry solely from applied gravity load.
+    """Observed exact load pattern; beam loaded spans, not blind full lengths.
 
-    The only used link is an exact load-pattern match on observed beam IDs.
-    With unknown ETABS field names/units, candidacy remains unavailable.
+    Consume the failed DatabaseTables attempt and, when available, the
+    read-only FrameObj.GetLoadDistributed probe from the SAME generic gateway.
+    Never treat an API failure as proof of an unloaded beam or absent wall.
     """
     base = {
-        "load_pattern": opts["wall_load_pattern"], "source_status": "NO_AUTO_WALL_CENSUS",
+        "load_pattern": opts["wall_load_pattern"],
+        "source_status": "NO_AUTO_WALL_CENSUS",
+        "source_method": None, "original_distributed_table_status": None,
         "candidate_beam_count": 0, "candidate_total_length_m": None,
-        "assumed_net_face_area_m2": None,
-        "assumed_wall_volume_m3": None, "candidate_beams": [],
-        "interpretation": "Gravity load does not certify physical infill existence or type.",
+        "assumed_net_face_area_m2": None, "assumed_wall_volume_m3": None,
+        "candidate_beams": [], "candidate_spans": [],
+        "source_census_complete": False, "source_load_rows_considered": 0,
+        "source_load_rows_matched": 0, "unresolved_beam_count": None,
+        "interpretation": "Wall gravity loading is not physical masonry proof.",
     }
-    manual_length = _positive(opts["manual_wall_length_m"],
-                              "MANUAL_WALL_LENGTH", zero=True)
-    def manual_inventory(reason: str) -> dict[str, Any]:
+    manual_length = _positive(opts["manual_wall_length_m"], "MANUAL_LENGTH", zero=True)
+    height = _positive(opts["wall_height_m"], "WALL_HEIGHT")
+    coverage = _positive(opts["coverage_pct"], "COVERAGE", zero=True) / 100
+    openings = _positive(opts["opening_pct"], "OPENING", zero=True) / 100
+    thickness = _positive(opts["thickness_m"], "THICKNESS")
+    def geometry(out: dict, length: Decimal) -> dict:
+        area = length * height * coverage * (1-openings)
+        return {**out, "candidate_total_length_m": str(length),
+                "assumed_net_face_area_m2": str(area),
+                "assumed_wall_volume_m3": str(area*thickness)}
+    def manual(reason: str) -> dict:
         if manual_length == 0:
             return {**base, "source_status": reason}
-        area = (manual_length * _positive(opts["wall_height_m"], "HEIGHT")
-                * _positive(opts["coverage_pct"], "COVERAGE", zero=True) / 100
-                * (Decimal(1)-_positive(opts["opening_pct"], "OPENING", zero=True)/100))
-        return {**base, "source_status": "USER_MANUAL_LENGTH_ASSUMPTION",
-                "candidate_total_length_m": str(manual_length),
-                "assumed_net_face_area_m2": str(area),
-                "assumed_wall_volume_m3": str(area * _positive(opts["thickness_m"], "THICKNESS")),
-                "interpretation": "Manual wall length, height, coverage and openings are scenario inputs, not ETABS-confirmed physical walls."}
+        return geometry({
+            **base, "source_status": "USER_MANUAL_LENGTH_ASSUMPTION",
+            "interpretation": "Explicit user dimensions, not ETABS wall assignment proof.",
+        }, manual_length)
     if opts["wall_mode"] != "LOAD_PATTERN_BEAM_CANDIDATE":
-        return manual_inventory("USER_MANUAL_WALL_LENGTH_NOT_GIVEN")
-    source = report.get("source_snapshot") or {}
-    capture = source.get("vs06_wall_load_source")
+        return manual("USER_MANUAL_WALL_LENGTH_NOT_GIVEN")
+    snapshot = report.get("source_snapshot") or {}
+    capture = snapshot.get("vs06_wall_load_source")
     if not isinstance(capture, Mapping):
-        return manual_inventory("LOAD_PATTERN_SOURCE_NOT_CAPTURED")
+        return manual("LOAD_PATTERN_SOURCE_NOT_CAPTURED")
     try:
         _verify_generic_capture(capture)
     except (ValueError, TypeError) as exc:
         raise DriftScenarioError("LOAD_PATTERN_CAPTURE_INTEGRITY_FAILURE") from exc
-    table = (capture.get("table_reads") or {}).get("Frame Loads Assignments - Distributed")
-    if not isinstance(table, Mapping) or table.get("status") != "CAPTURED":
-        return manual_inventory("LOAD_PATTERN_LOAD_TABLE_MISSING")
-    fields = table.get("fields")
-    meta = table.get("field_metadata") or {}
-    if (not isinstance(fields, list) or meta.get("status") != "OK" or
-            not {"UniqueName", "LoadPat"}.issubset(fields) or
-            not {"UniqueName", "LoadPat"}.issubset(meta.get("field_keys") or [])):
-        return manual_inventory("LOAD_PATTERN_FIELD_BINDING_UNREVIEWED")
-    rows = table.get("rows")
-    if not isinstance(rows, list) or table.get("row_count") != len(rows):
-        raise DriftScenarioError("LOAD_PATTERN_ROW_CENSUS_CORRUPT")
-    geometry = (source.get("geometry_capture") or {}).get("tables") or {}
-    frames = ((geometry.get("FRAME_ASSIGNMENTS") or {}).get("rows")) or []
-    beam_ids = {r.get("UniqueName") for r in frames if
-                isinstance(r, Mapping) and str(r.get("Type", "")).casefold() == "beam"}
-    ids = sorted({r.get("UniqueName") for r in rows
-                  if isinstance(r, Mapping) and r.get("LoadPat") == opts["wall_load_pattern"]
-                  and r.get("UniqueName") in beam_ids})
-    # Full beam lengths require separately observed, typed geometric Length
-    # metadata; load magnitude/distance alone never establishes wall height.
-    lengths = (capture.get("table_reads") or {}).get("Beam Object Connectivity")
-    length_by_id: dict[str, Decimal] = {}
-    if isinstance(lengths, Mapping) and lengths.get("status") == "CAPTURED":
-        lm = lengths.get("field_metadata") or {}
-        if ({"UniqueName", "Length"}.issubset(lengths.get("fields") or []) and
-                {"UniqueName", "Length"}.issubset(lm.get("field_keys") or []) and
-                (lm.get("units_by_field") or {}).get("Length") == "m"):
-            lr = lengths.get("rows")
-            if isinstance(lr, list) and lengths.get("row_count") == len(lr):
-                for item in lr:
-                    if not isinstance(item, Mapping):
-                        raise DriftScenarioError("BEAM_CONNECTIVITY_ROW_INVALID")
-                    name = item.get("UniqueName")
-                    if name in length_by_id:
-                        raise DriftScenarioError("DUPLICATE_BEAM_LENGTH")
-                    length_by_id[name] = _positive(str(item.get("Length")), "BEAM_LENGTH")
-    complete = bool(ids) and all(x in length_by_id for x in ids)
-    total = sum((length_by_id[x] for x in ids), Decimal(0)) if complete else None
-    area = (total * _positive(opts["wall_height_m"], "HEIGHT")
-            * _positive(opts["coverage_pct"], "COVERAGE", zero=True) / 100
-            * (Decimal(1)-_positive(opts["opening_pct"], "OPENING", zero=True)/100)
-            if total is not None else None)
-    thickness = _positive(opts["thickness_m"], "THICKNESS")
-    return {**base, "source_status": (
-                 "LOAD_PATTERN_BEAM_CANDIDATE_GEOMETRY" if complete
-                 else "LOAD_PATTERN_NO_MATCHING_BEAMS" if not ids
-                 else "LOAD_PATTERN_BEAMS_OBSERVED_LENGTH_UNQUALIFIED"),
-            "candidate_beam_count": len(ids),
-            "candidate_total_length_m": str(total) if total is not None else None,
-            "assumed_net_face_area_m2": str(area) if area is not None else None,
-            "assumed_wall_volume_m3": str(area * thickness) if area is not None else None,
-            "candidate_beams": ids,
-            "interpretation": ("Assumed face area = complete candidate beam length × user wall height × coverage × (1-openings). "
-                               "No proof of masonry location, infill continuity or B1 effective shear area.")}
+    reads = capture.get("table_reads") or {}
+    beam_table = reads.get("Beam Object Connectivity")
+    if (not isinstance(beam_table, Mapping)
+            or beam_table.get("status") != "CAPTURED"
+            or not {"UniqueName", "Story", "Length"}.issubset(beam_table.get("fields") or [])
+            or ((beam_table.get("field_metadata") or {}).get("units_by_field") or {}).get("Length") != "m"
+            or not isinstance(beam_table.get("rows"), list)
+            or beam_table.get("row_count") != len(beam_table["rows"])):
+        return manual("BEAM_CONNECTIVITY_TYPED_GEOMETRY_MISSING")
+    beams = {}
+    for row in beam_table["rows"]:
+        name = row.get("UniqueName")
+        if not isinstance(name, str) or not name or name in beams:
+            raise DriftScenarioError("DUPLICATE_OR_EMPTY_BEAM_ID")
+        beams[name] = {
+            "length": _positive(str(row.get("Length")), "BEAM_LENGTH"),
+            "story": row.get("Story"),
+        }
 
+    distributed = reads.get("Frame Loads Assignments - Distributed")
+    db_status = (distributed.get("status") if isinstance(distributed, Mapping)
+                 else "NOT_REQUESTED")
+    probe = capture.get("frame_load_object_probe")
+    if isinstance(distributed, Mapping) and db_status == "CAPTURED":
+        metadata = distributed.get("field_metadata") or {}
+        keys = {"UniqueName", "LoadPattern", "RelDistA", "RelDistB", "LoadType"}
+        if (not keys.issubset(distributed.get("fields") or [])
+                or not keys.issubset(metadata.get("field_keys") or [])
+                or metadata.get("status") != "OK"
+                or not isinstance(distributed.get("rows"), list)
+                or distributed.get("row_count") != len(distributed["rows"])):
+            return manual("ETABS_DISTRIBUTED_LOAD_FIELDS_NOT_RECONCILED")
+        rows = distributed["rows"]
+        method, complete, unresolved = ("DatabaseTables.GetTableForDisplayArray", True, 0)
+    elif isinstance(probe, Mapping):
+        if (probe.get("schema") != "tbdy.next.etabs.frame-object-distributed-load-probe.v1"
+                or probe.get("source_method") != "SapModel.FrameObj.GetLoadDistributed"
+                or probe.get("model_units_code") != 6
+                or probe.get("status") not in ("CAPTURED", "SOURCE_PARTIAL")
+                or probe.get("beam_count") != len(beams)
+                or not isinstance(probe.get("rows"), list)
+                or probe.get("load_row_count") != len(probe["rows"])
+                or probe.get("successful_beam_count", -1)
+                   + probe.get("unresolved_beam_count", -1) != len(beams)):
+            raise DriftScenarioError("OBJECT_DISTRIBUTED_LOAD_PROBE_CONTRACT_INVALID")
+        rows = probe["rows"]
+        method = probe["source_method"]
+        complete = probe["status"] == "CAPTURED"
+        unresolved = probe["unresolved_beam_count"]
+    else:
+        return manual("LOAD_PATTERN_DB_FAILED_OBJECT_PROBE_NOT_CAPTURED"
+                      if db_status == "CAPTURE_ERROR"
+                      else "LOAD_PATTERN_LOAD_TABLE_MISSING")
+
+    spans: dict[str, list[tuple[Decimal, Decimal]]] = {}
+    matched = 0
+    for row in rows:
+        if not isinstance(row, Mapping):
+            raise DriftScenarioError("DISTRIBUTED_LOAD_ROW_NOT_OBJECT")
+        if row.get("LoadPattern") != opts["wall_load_pattern"]:
+            continue
+        kind = row.get("LoadType", row.get("MyType"))
+        if kind not in ("Force", "1", 1):
+            continue
+        name = row.get("UniqueName")
+        if name not in beams:
+            continue
+        try:
+            a, b = Decimal(str(row.get("RelDistA"))), Decimal(str(row.get("RelDistB")))
+        except (InvalidOperation, TypeError, ValueError):
+            raise DriftScenarioError("DISTRIBUTED_LOAD_SPAN_MISSING") from None
+        if not a.is_finite() or not b.is_finite() or a < 0 or b > 1 or a > b:
+            raise DriftScenarioError("DISTRIBUTED_LOAD_SPAN_INVALID")
+        if a < b:
+            spans.setdefault(name, []).append((a, b))
+            matched += 1
+
+    items = []
+    total = Decimal(0)
+    for name in sorted(spans):
+        combined: list[list[Decimal]] = []
+        for a, b in sorted(spans[name]):
+            if combined and a <= combined[-1][1]:
+                combined[-1][1] = max(b, combined[-1][1])
+            else:
+                combined.append([a, b])
+        fraction = sum((end-start for start, end in combined), Decimal(0))
+        length = beams[name]["length"] * fraction
+        total += length
+        items.append({
+            "beam_id": name, "story": beams[name]["story"],
+            "beam_length_m": str(beams[name]["length"]),
+            "loaded_fraction": str(fraction), "candidate_loaded_length_m": str(length),
+            "interval_count": len(combined),
+        })
+    result = {
+        **base,
+        "source_status": (
+            "LOAD_PATTERN_OBSERVED_SOURCE_COMPLETE" if complete and items
+            else "LOAD_PATTERN_NOT_FOUND_IN_COMPLETE_CENSUS" if complete
+            else "LOAD_PATTERN_OBSERVED_PARTIAL_OBJECT_PROBE" if items
+            else "LOAD_PATTERN_OBJECT_PROBE_PARTIAL_NO_OBSERVATIONS"),
+        "source_method": method, "original_distributed_table_status": db_status,
+        "candidate_beam_count": len(items), "candidate_beams": [r["beam_id"] for r in items],
+        "candidate_spans": items, "source_census_complete": complete,
+        "source_load_rows_considered": len(rows), "source_load_rows_matched": matched,
+        "unresolved_beam_count": unresolved,
+        "interpretation": (
+            "Only actually loaded beam intervals are used, with overlapping "
+            "line loads unioned once. Wall height and masonry applicability "
+            "remain user engineering assumptions."),
+    }
+    return geometry(result, total) if items else result
 
 def evaluate_drift_scenario(report: Mapping[str, Any], inputs: Mapping[str, Any] | None = None) -> dict[str, Any]:
     opt = options(inputs)
