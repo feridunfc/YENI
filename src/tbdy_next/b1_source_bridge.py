@@ -353,7 +353,7 @@ def evaluate_b1_sources(
             "R_base_assumed":R_base,
         },
         "source_beam_count":len(beam_by_id),
-        "source_wall_load_rows":len(loads),
+        "source_wall_load_rows":sum(len(x) for x in loads.values()),
         "source_candidate_wall_beams":len(beam_details),
         "story_direction_areas":output_summaries,
         "beam_assumptions":beam_details,
