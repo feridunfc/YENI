@@ -120,7 +120,7 @@ class NormativeFormulaKernels(unittest.TestCase):
         self.assertEqual(out["expected_check_count"],5)
         self.assertEqual(out["proven_check_count"],0)
         self.assertEqual(out["regulatory_checks_executed"],0)
-        self.assertEqual(len(check_registry()),12)
+        self.assertEqual(len(check_registry()),14)
         self.assertEqual(out["engineering_release"],"NOT_READY")
         self.assertTrue(all(x["status"]=="NOT_PROVEN" for x in out["checks"]))
         self.assertIn("gammaE_from_A1_B2_B3",

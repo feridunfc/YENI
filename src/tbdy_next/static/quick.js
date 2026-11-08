@@ -361,6 +361,49 @@
     host.append(details);
     if (r.reason_codes.length) host.append(make('p', r.reason_codes.join('; '), 'warn'));
   }
+  function renderSourceControls(tab) {
+    const specs = [
+      ['concrete_fck_80', 1, 'concreteUpperPanel', 'concreteUpperResult',
+        [['material_name','Malzeme'], ['fck_mpa','Fc kaynak (MPa)'], ['limit','Üst sınır (MPa)'],
+         ['strength_scope_observation','Sayısal kapsam'], ['status','Alt koşul'], ['reason','Açık neden']]],
+      ['modal_combination_spacing', 7, 'modalSpacingPanel', 'modalSpacingResult',
+        [['direction','Yön'], ['source_case','Vaka'], ['modal_combination','Mod birleştirme'],
+         ['directional_combination','Yön birleştirme'], ['mode_count','Mod sayısı'],
+         ['maximum_period_ratio','En büyük kısa/uzun T'], ['spacing_status','SRSS ayrıklığı'],
+         ['method_condition','Seçilen yöntem koşulu'], ['reason','Açık neden']]]
+    ];
+    for (const [id, targetTab, panelId, resultId, columns] of specs) {
+      const panel = byId(panelId), host = byId(resultId);
+      if (!panel || !host) continue;
+      panel.classList.toggle('hidden', tab !== targetTab);
+      host.replaceChildren();
+      const check = latestCompleteReport?.source_controls?.checks?.find(c => c.check_id === id);
+      if (!check) {
+        host.append(make('p', 'Seçili kayıtta bu alt kontrol için kaynak henüz yok.', 'muted small'));
+        continue;
+      }
+      host.append(make('p', check.code_ref + ' · Hesaplanan ' + check.evaluated_count + '/' +
+        check.expected_count + ' · ' + check.status + ' · Resmî uygunluk NOT_PROVEN', 'muted small'));
+      b1Table(host, columns.map(c => c[1]), check.items.map(row => columns.map(c => row[c[0]])));
+      for (const item of check.items) {
+        if (!item.pairs?.length) continue;
+        const detail = make('details');
+        detail.append(make('summary', item.source_case + ' · ' + item.tested_adjacent_pair_count +
+          ' komşu çift / ' + item.all_distinct_pair_count + ' farklı çift · Ayrıklığı sağlamayan komşu: ' +
+          item.unmet_adjacent_pair_count));
+        b1Table(detail, ['Kısa T modu', 'Uzun T modu', 'Kısa T (s)', 'Uzun T (s)', 'Oran < 0,8', 'Alt koşul'],
+          item.pairs.map(p => [p.short_mode, p.long_mode, p.short_period_s, p.long_period_s, p.period_ratio, p.status]));
+        host.append(detail);
+      }
+      const notes = make('details'); notes.append(make('summary', 'Kapsam ve kaynak'));
+      const list = make('ul');
+      for (const note of check.assumptions_notes) list.append(make('li', note));
+      notes.append(list, make('p', check.unevaluated_requirements.join('; '), 'micro'),
+        make('p', 'Kaynak: ' + JSON.stringify(check.source_provenance) + ' · Hesap: ' + check.result_sha256, 'micro'));
+      host.append(notes);
+      if (check.reason_codes.length) host.append(make('p', check.reason_codes.join('; '), 'warn'));
+    }
+  }
   async function loadB2(runId) {
     const request = ++b2Request;
     const b1Version = b1Request;
@@ -368,6 +411,7 @@
     b2LoadNote = runId ? 'Seçili kaydın B2 hesabı okunuyor…' : 'Birleşik ETABS kaydı henüz seçilmedi.';
     renderB2(active);
     renderWallGeometry(active);
+    renderSourceControls(active);
     if (!runId) return;
     try {
       // Same report/evaluator as JSON and printable HTML. No browser arithmetic,
@@ -406,6 +450,7 @@
     }
     renderB2(active);
     renderWallGeometry(active);
+    renderSourceControls(active);
     updateCheckStates();
   }
   function checkState(checkId) {
@@ -435,6 +480,11 @@
       if (wall?.status === 'NOT_APPLICABLE') return ['Kapsam dışı', '', 'Kanıtlı beton dışı malzeme.'];
       return [wall?.evaluated_count ? (wall.not_proven_count ? 'Kısmi' : 'Koşullu') : 'Eksik',
         'review', wall?.numeric_condition || 'Perde geometri kaynağı yok.'];
+    }
+    if (checkId === 'concrete_fck_80' || checkId === 'modal_combination_spacing') {
+      const check = report?.source_controls?.checks?.find(c => c.check_id === checkId);
+      return [check?.evaluated_count ? (check.unmet_count ? 'Koşul aşımı' :
+        check.not_proven_count ? 'Kısmi' : 'Koşullu') : 'Eksik', 'review', check?.status || 'Kaynak yok.'];
     }
     if (checkId === 'modal_mass_95') record = run?.result || run?.modal;
     else record = (report?.checks || [
@@ -955,7 +1005,7 @@
     else if(b1Result)b1Download('B1_SOURCE_NUMERIC.html',
       b1Result.html,'text/html;charset=utf-8',true);
   });
-  window.renderQuickChecksForTab = tab => {renderQuick(latest, tab);renderExtras(tab);renderB2(tab);renderWallGeometry(tab);};
+  window.renderQuickChecksForTab = tab => {renderQuick(latest, tab);renderExtras(tab);renderB2(tab);renderWallGeometry(tab);renderSourceControls(tab);};
   byId('runAllBtn')?.addEventListener('click', runSuite);
   loadRegistry();
   loadQuickHistory();

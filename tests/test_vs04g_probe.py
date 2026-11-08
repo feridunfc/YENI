@@ -98,7 +98,7 @@ class Vs04GTests(unittest.TestCase):
         self.assertEqual(out["source_expected_count"],5)
         self.assertFalse(out["accidental_eccentricity_applied_proven"])
         self.assertEqual(out["formal_compliance"],"NOT_PROVEN")
-        self.assertEqual(len(check_registry()),12)
+        self.assertEqual(len(check_registry()),14)
 
     def test_failed_selected_modal_info_is_preserved_not_dropped(self):
         sap=FakeSap(modal_fails=True)

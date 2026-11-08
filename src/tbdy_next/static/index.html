@@ -61,6 +61,7 @@
 <section class="box"><header><div><h2>03 · İnceleme ve sonuç</h2><div class="muted small">Gözlenen veriyle yetkili mühendislik kararı birbirinden ayrı tutulur</div></div></header><div id="result"><div class="empty">Canlı ETABS'a bağlanıp hesaplamak için üstteki yeşil düğmeyi kullanın. Önceki CLI sonuçları da aşağıdaki kayıt panelinde otomatik gösterilir.</div></div></section>
 <section class="box" id="saved-modal-panel"><header><div><h2>04 · Kaydedilmiş gerçek modal hesaplar</h2><div class="muted small">CLI ile hesaplanan sonuçlar yeniden dosya yüklemeden görüntülenir; sentetik olanlar ayrıca işaretlenir.</div></div><button class="go" id="refreshSaved">Yenile</button></header>
 <div id="saved-modal-body" class="muted small">Yerel çalışma kayıtları okunuyor…</div><div id="saved-modal-history" class="actions"></div></section>
+<section class="box" id="modalSpacingPanel" data-check-panel="modal_combination_spacing"><h2>Yakın modlar · SRSS / CQC seçimi</h2><div id="modalSpacingResult" aria-live="polite">Seçili kaydın periyot ve yöntem karşılaştırması burada gösterilir.</div></section>
 <details class="box"><summary>Çalışma geçmişi ve aşama kayıtları</summary><div id="trail" class="muted small">Yeni kayıt yok.</div><div id="runlist" class="muted small">Henüz kayıt bulunamadı.</div></details>
 </div>
 <div id="systemcontent" class="hidden">
@@ -94,6 +95,7 @@
 </div>
 <div id="geometrycontent" class="hidden"><section class="box"><h2 id="geometryTitle">Geometri kontrolleri</h2><p class="muted small">Son canlı ETABS taramasından eleman bazında sonuçlar. Yeni hesap için Modal Analiz sekmesindeki tek hesap düğmesini kullanın.</p><div id="geomTabPanel">Henüz hesap yok.</div></section></div>
 <div id="extraContent" class="hidden"><section class="box"><h2 id="extraTitle">Mühendislik kontrolleri</h2><div id="extraTabPanel"></div></section>
+<section class="box hidden" id="concreteUpperPanel" data-check-panel="concrete_fck_80"><h2>Beton üst dayanım sınırı</h2><div id="concreteUpperResult" aria-live="polite">Seçili kaydın beton dayanım kapsamı burada gösterilir.</div></section>
 <section class="box" id="vs06-b1-panel" data-check-panel="WEAK_STORY_B1">
 <header><div><div class="eyebrow">VS06-D1 · TBDY 2018 Tablo 3.6, §3.6.2.3</div>
 <h2>B1 zayıf kat — koşullu kaynak hesabı</h2>

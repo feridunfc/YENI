@@ -40,7 +40,8 @@ def _vs05_check_inventory(checks: list[dict], story_drift: dict | None,
                           b1: Mapping[str, Any] | None = None,
                           b1_source_status: str | None = None,
                           b2: Mapping[str, Any] | None = None,
-                          wall_geometry: Mapping[str, Any] | None = None) -> dict:
+                          wall_geometry: Mapping[str, Any] | None = None,
+                          source_controls: Mapping[str, Any] | None = None) -> dict:
     """Separate historical checks and source-derived checks; no fake code PASS."""
     entries = [{"check_id": c["check_id"], "evaluation": "BOUNDED_EXISTING"}
                for c in checks]
@@ -110,6 +111,18 @@ def _vs05_check_inventory(checks: list[dict], story_drift: dict | None,
             "status": wall_geometry["numeric_condition"], "source_status": wall_geometry["status"],
             "expected_count": wall_geometry["expected_count"], "evaluated_count": wall_geometry["evaluated_count"],
             "formal_compliance": "NOT_PROVEN", "engineering_release": "NOT_READY"})
+    if source_controls is not None:
+        from .source_control_bundle import CHECKS as SOURCE_CHECKS
+        allowed = {c.check_id for c in SOURCE_CHECKS}
+        for check in source_controls["checks"]:
+            if (check.get("check_id") not in allowed or check.get("formal_compliance") != "NOT_PROVEN"
+                    or check.get("engineering_release") != "NOT_READY"):
+                raise ValueError("SOURCE_CONTROL_INVENTORY_CONTRACT_INVALID")
+            entries.append({"check_id": check["check_id"],
+                "evaluation": "CONDITIONAL_SOURCE_NUMERICAL" if check["evaluated_count"] else "BLOCKED_SOURCE",
+                "status": check["status"], "expected_count": check["expected_count"],
+                "evaluated_count": check["evaluated_count"], "formal_compliance": "NOT_PROVEN",
+                "engineering_release": "NOT_READY"})
     ids = [e["check_id"] for e in entries]
     if len(ids) != len(set(ids)):
         raise ValueError("DUPLICATE_REPORTED_CHECK_ID")
@@ -335,6 +348,11 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         from .wall_geometry import bind_wall_geometry
         wall_geometry = bind_wall_geometry(source, physical_scope=physical_scope)
 
+    from .source_control_bundle import bind_source_controls
+    source_controls = bind_source_controls(source)
+    if not source_controls["checks"]:
+        source_controls = None
+
     frame_rows = ((geometry_source or {}).get("tables", {}).get("FRAME_ASSIGNMENTS", {})
                   .get("rows", []) or [])
     frame_types = dict(sorted(Counter(str(row.get("Type", "UNKNOWN")) for row in frame_rows).items()))
@@ -369,7 +387,9 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
     elif vs04:
         source_scope += " (E–J historical source evidence if recorded)"
     inventory = _vs05_check_inventory(
-        checks, story_drift, vs06_b1_result, vs06_b1_source_status, b2, wall_geometry)
+        checks, story_drift, vs06_b1_result, vs06_b1_source_status, b2, wall_geometry, source_controls)
+    if source_controls is not None:
+        source_scope += " + VS09 concrete upper strength / modal method source subconditions (TBDY NOT_PROVEN)"
     if wall_geometry is not None:
         source_scope += " + WALL_GEOMETRY_CHECK observed panel subconditions (TBDY NOT_PROVEN)"
     if b2 is not None:
@@ -433,6 +453,7 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
            if vs06_b1_source_status is not None else {}),
         **({"soft_story_b2": b2} if b2 is not None else {}),
         **({"wall_geometry": wall_geometry} if wall_geometry is not None else {}),
+        **({"source_controls": source_controls} if source_controls is not None else {}),
         "vs03": new_checks,
         "checks": checks,
         "modal_source_table": {
@@ -511,6 +532,9 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
         summary_rows.append(_vs05_summary_row(drift_summary))
     b2 = report.get("soft_story_b2")
     wall_geometry = report.get("wall_geometry")
+    source_controls = report.get("source_controls")
+    if isinstance(source_controls, Mapping):
+        summary_rows.extend(source_controls["checks"])
     if isinstance(wall_geometry, Mapping):
         summary_rows.append({"check_id": "WALL_GEOMETRY_CHECK", "status": wall_geometry["status"],
             "expected_count": wall_geometry["expected_count"], "evaluated_count": wall_geometry["evaluated_count"],
@@ -914,6 +938,39 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
             '<p>Kaynak: ' + _val(wall_geometry["source_payload_sha256"]) +
             ' · Sonuç: ' + _val(wall_geometry["result_sha256"]) +
             ' · Kaynak teşhisi: ' + _val(wall_geometry["reason_codes"]) + '</p></section>')
+
+    if isinstance(source_controls, Mapping):
+        for check in source_controls["checks"]:
+            if check["check_id"] == "concrete_fck_80":
+                columns = (("material_name", "Malzeme"), ("fck_mpa", "Fc kaynak (MPa)"),
+                    ("limit", "Üst sınır (MPa)"), ("strength_scope_observation", "Sayısal kapsam"),
+                    ("status", "Alt koşul"), ("reason", "Açık neden"))
+            else:
+                columns = (("direction", "Yön"), ("source_case", "Vaka"), ("modal_case", "Modal vaka"),
+                    ("modal_combination", "Mod birleştirme"), ("directional_combination", "Yön birleştirme"),
+                    ("mode_count", "Mod sayısı"), ("maximum_period_ratio", "En büyük kısa/uzun oranı"),
+                    ("spacing_status", "SRSS ayrıklık koşulu"), ("method_condition", "Seçilen yöntem koşulu"),
+                    ("reason", "Açık neden"))
+            pair_tables = []
+            for item in check["items"]:
+                if item.get("pairs"):
+                    pair_tables.append('<details><summary>' + _val(item["source_case"]) +
+                        ' · ' + _val(item["tested_adjacent_pair_count"]) + ' komşu çift / ' +
+                        _val(item["all_distinct_pair_count"]) + ' farklı çift</summary>' +
+                        _table((("short_mode", "Kısa T modu"), ("long_mode", "Uzun T modu"),
+                            ("short_period_s", "Kısa T (s)"), ("long_period_s", "Uzun T (s)"),
+                            ("period_ratio", "Oran"), ("limit", "Kesin üst sınır (<)"),
+                            ("status", "SRSS ayrıklık koşulu")), item["pairs"]) + '</details>')
+            vs04_sections.append('<section class="percheck" data-check-panel="' +
+                escape(check["check_id"], quote=True) + '"><h2>' + _val(check["title"]) + '</h2><p>' +
+                _val(check["code_ref"]) + ' · Hesaplanan ' + _val(check["evaluated_count"]) + '/' +
+                _val(check["expected_count"]) + ' · ' + _val(check["status"]) +
+                '. Resmî uygunluk NOT_PROVEN.</p>' + _table(columns, check["items"]) +
+                ''.join(pair_tables) + '<h3>Kapsam ve açık koşullar</h3><ul>' +
+                ''.join('<li>' + _val(n) + '</li>' for n in check["assumptions_notes"]) + '</ul><p>' +
+                _val(check["unevaluated_requirements"]) + '</p><p>Kaynak: ' +
+                _val(check["source_provenance"]) + ' · Hesap: ' + _val(check["result_sha256"]) +
+                ' · Teşhis: ' + _val(check["reason_codes"]) + '</p></section>')
 
     a1_warnings = [
         c for c in extras if c.get("check_id") in ("a1_torsion_x", "a1_torsion_y")

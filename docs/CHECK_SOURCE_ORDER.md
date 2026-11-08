@@ -15,4 +15,10 @@
 kaynağını kullanarak üç geometrik alt koşulu UI/JSON/HTML'ye bağlar. Bu teslim,
 tablodaki perde dayanım, kuvvet, donatı ve birleşim kontrollerini tamamlamaz.
 
+**VS09 hazır kaynak paketi:** `concrete_fck_80` kullanılan betonda 80 MPa üst
+sınırını; `modal_combination_spacing` aynı mod nüfusunun SRSS ayrıklığı ve
+gözlenen CQC/SRSS seçimini tamamlar. C25 ve %95/%3 algoritmaları korunur.
+Kiriş/döşeme kalınlığı, gerçek serbest açıklık ve tasarım kuvveti gerektiren
+kontroller kendi eksik kaynakları alınana kadar sıradaki kaynak bağımlı dilimlerdir.
+
 **Açık ve net fark:** Kaynak toplamak ile kaynak doğrulamasını sonsuz kere tekrarlamak aynı iş değil. Şema bir kere alınır ve proje kapsamında aynı tablonun yapısı değişmedikçe yeniden keşif yapılmaz. Her check ancak kendi ihtiyacı olan en küçük kaynak paketini ister.

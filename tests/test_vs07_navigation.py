@@ -49,6 +49,7 @@ class NavigationTests(unittest.TestCase):
             "a1_torsion_x": 9, "a1_torsion_y": 9, "WEAK_STORY_B1": 9,
             "SOFT_STORY_B2": 9, "beam_width_min": 11, "beam_depth_min": 11,
             "beam_depth_width": 11, "column_rect_min": 12, "WALL_GEOMETRY_CHECK": 13,
+            "concrete_fck_80": 1, "modal_combination_spacing": 7,
         }
         self.assertEqual({key: row["tab_id"] for key, row in registry.items()}, expected)
         self.assertEqual(len(check_registry()), len(registry))
@@ -62,7 +63,8 @@ class NavigationTests(unittest.TestCase):
             with self.subTest(check=check["check_id"]):
                 self.assertEqual(self.page.ids[target], 1)
                 self.assertEqual(self.page.attrs[target]["data-check-panel"], check["check_id"])
-                region = {8: "systemcontent", 9: "extraContent", 13: "wallcontent"}[check["tab_id"]]
+                region = {1: "extraContent", 7: "activecontent", 8: "systemcontent",
+                          9: "extraContent", 13: "wallcontent"}[check["tab_id"]]
                 self.assertIn(region, [item[1] for item in self.page.ancestors[target]])
         for identity in ("b1R", "b1WallType"):
             self.assertIn("vs06-b1-panel", [item[1] for item in self.page.ancestors[identity]])
