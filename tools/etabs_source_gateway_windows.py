@@ -13,6 +13,7 @@ Self-contained except for comtypes on Windows live commands.
 from __future__ import annotations
 
 import argparse
+from collections.abc import Sequence
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from hashlib import sha256
@@ -212,8 +213,8 @@ def capture_distributed_frame_loads_by_object(
             if type(count) is not int or count < 0 or return_code(raw, "GetLoadDistributed") != 0:
                 raise SourceError("GET_LOAD_DISTRIBUTED_RET_OR_COUNT")
             arrays = raw[1:12]
-            if any(not isinstance(a, (tuple, list)) or len(a) != count
-                   for a in arrays):
+            if any(not isinstance(a, Sequence) or isinstance(a, (str, bytes))
+                   or len(a) != count for a in arrays):
                 raise SourceError("GET_LOAD_DISTRIBUTED_ARRAY_LENGTH_INVALID")
             parsed = []
             for i in range(count):
