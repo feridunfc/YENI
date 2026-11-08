@@ -151,9 +151,10 @@ class B1ActualSourceBindingTests(unittest.TestCase):
 
     def test_changed_model_rejected_even_if_sealed(self):
         g,l=sources()
+        l.pop("payload_sha256")
         l["model"]="DIFFERENT"
         with self.assertRaisesRegex(B1BridgeError,"MODEL_OR_UNITS_MISMATCH"):
-            evaluate_b1_sources(g,seal(l | {"payload_sha256":None}))
+            evaluate_b1_sources(g,seal(l))
 
     def test_loss_of_point_coordinate_unit_denied(self):
         g,l=sources()
