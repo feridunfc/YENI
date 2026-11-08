@@ -77,6 +77,27 @@
   <div class="actions"><button class="go" id="c2Calculate" type="button">Kaydedilmiş ETABS verisiyle hesapla</button></div>
   <div id="c2Status" class="live-status" role="status" aria-live="polite">Önce mevcut ETABS kaydını seçip hesabı çalıştırın.</div>
   <div id="c2Report"></div>
+</section>
+<section class="box" id="vs06-b1-panel">
+<header><div><div class="eyebrow">VS06-D1 · TBDY 2018 Tablo 3.6, §3.6.2.3</div>
+<h2>B1 zayıf kat — gerçek ETABS geometri + LC_WDL yükünden X/Y sayısal hesap</h2>
+<p class="muted small">Kaydedilmiş iki salt-okunur ETABS kaynak dosyasını seçin. Kolon/perde alanları gerçek kesit ve koordinatlardan alınır; tuğla kesit alanları yük şiddetinden yapılan, belgeli varsayımlardır.</p></div></header>
+<div class="twocol">
+ <div><label for="b1GeometryFile">B1_GEOMETRY kaynak JSON</label><input class="field" style="width:100%" id="b1GeometryFile" type="file" accept=".json,application/json"></div>
+ <div><label for="b1WallFile">LC_WDL_OBJECT kaynak JSON</label><input class="field" style="width:100%" id="b1WallFile" type="file" accept=".json,application/json"></div>
+ <div><label for="b1Gamma">Tuğla için varsayılan birim hacim ağırlığı (kN/m³)</label><input class="field" id="b1Gamma" type="number" step="any" value="10" min="1"></div>
+ <div><label for="b1GammaMin">İnceleme alt yoğunluk sınırı (kN/m³)</label><input class="field" id="b1GammaMin" type="number" step="any" value="6" min="1"></div>
+ <div><label for="b1GammaMax">İnceleme üst yoğunluk sınırı (kN/m³)</label><input class="field" id="b1GammaMax" type="number" step="any" value="20" min="1"></div>
+ <div><label for="b1Shear">Dolgu kayma modülü Gm varsayımı (MPa)</label><input class="field" id="b1Shear" type="number" step="any" value="500" min="1"></div>
+ <div><label for="b1Opening">Düşük yükte varsayılan açıklık oranı (0–1)</label><input class="field" id="b1Opening" type="number" step="0.05" min="0" max=".99" value="0.5"></div>
+ <div><label for="b1Cutoff">Açıklık hipotezi q/q_tam tetik oranı</label><input class="field" id="b1Cutoff" type="number" step="0.05" min=".05" max=".99" value="0.75"></div>
+</div>
+<p class="micro">Dolgu bağlantı tipi ve R katsayısı yukarıdaki C2 seçiminden alınır. Varsayılan: <strong>Gevrek dolgu</strong>. Ak için <strong>9 cm veya 19 cm</strong> kalınlık yüke göre tahmin edilir; kat yüksekliğinden kaynak kirişinin t3 kesit yüksekliği çıkarılır. Düşük kN/m için <strong>%50 açıklık</strong> alternatif kabulü yalnız senaryodur. Gm, gerçek tuğla/harç deney değerinin yerine geçmez.</p>
+<div class="actions"><button class="go" type="button" id="b1Calculate">Gerçek iki ETABS kaynağından B1 hesapla</button>
+<button type="button" id="b1Json" disabled>Sayısal B1 JSON indir</button>
+<button type="button" id="b1Html" disabled>Varsayımlı B1 HTML raporu aç</button></div>
+<div id="b1Status" class="live-status" role="status" aria-live="polite">Kaynak dosyaları seçilmedi.</div>
+<div id="b1Result"></div>
 </section></div>
 <div id="geometrycontent" class="hidden"><section class="box"><h2 id="geometryTitle">Geometri kontrolleri</h2><p class="muted small">Son canlı ETABS taramasından eleman bazında sonuçlar. Yeni hesap için Modal Analiz sekmesindeki tek hesap düğmesini kullanın.</p><div id="geomTabPanel">Henüz hesap yok.</div></section></div>
 <div id="extraContent" class="hidden"><section class="box"><h2 id="extraTitle">Yeni doğrulanan alt kontroller</h2><div id="extraTabPanel"></div></section></div>
