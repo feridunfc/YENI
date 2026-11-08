@@ -65,7 +65,7 @@ class GeometryChecks(unittest.TestCase):
         self.assertEqual(len(CHECKS), 5)
         self.assertEqual({tab: sum(c.tab_id == tab for c in CHECKS) for tab in (7, 11, 12)},
                          {7: 1, 11: 3, 12: 1})
-        self.assertEqual(len({r['check_id'] for r in check_registry()}), 11)
+        self.assertEqual(len({r['check_id'] for r in check_registry()}), 12)
 
     def test_full_assignment_join_all_elements_and_thresholds(self):
         out = evaluate_geometry_capture(geometry())
@@ -311,7 +311,7 @@ class LiveQuickSuiteWeb(unittest.TestCase):
     def test_tree_api_counts_come_from_implemented_check_registry(self):
         with urlopen(self.base + '/api/check-registry', timeout=4) as response:
             info = json.loads(response.read())
-        self.assertEqual(info['implemented_check_count'], 11)
+        self.assertEqual(info['implemented_check_count'], 12)
         self.assertEqual(sum(x['tab_id'] == 11 for x in info['checks']), 3)
         self.assertEqual(sum(x['tab_id'] == 12 for x in info['checks']), 1)
 

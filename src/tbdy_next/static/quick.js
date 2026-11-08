@@ -327,12 +327,47 @@
     host.append(make('p', 'Kaynak: ' + (b.source_payload_sha256 || '—') +
       ' · Hesap: ' + b.result_sha256 + ' · ENGINEERING_RELEASE=NOT_READY', 'muted small'));
   }
+  function renderWallGeometry(tab) {
+    const panel = byId('wallGeometryPanel'), host = byId('wallGeometryResult');
+    if (!panel || !host) return;
+    panel.classList.toggle('hidden', tab !== 13);
+    host.replaceChildren();
+    const r = latestCompleteReport?.wall_geometry;
+    if (!r) {
+      host.append(make('p', 'Seçili kayıtta perde geometrisi hesabı henüz yok.', 'muted small'));
+      return;
+    }
+    host.append(make('p', 'Hesaplanan panel: ' + r.evaluated_count + '/' + r.expected_count +
+      ' · Sayısal alt koşul: ' + r.subconditions_evaluated +
+      ' · Karşılanmayan alt koşul: ' + r.subconditions_unmet +
+      ' · Resmî uygunluk NOT_PROVEN', 'warn'));
+    const rows = r.items.map(row => {
+      const rules = Object.fromEntries(row.subconditions.map(s => [s.rule, s.status]));
+      return [row.story, row.element_id, row.section, row.story_height_m, row.panel_height_m,
+        row.panel_length_m, row.thickness_mm, row.panel_length_thickness_ratio,
+        row.ordinary_branch_minimum_mm, rules.panel_ratio, rules.thickness_250,
+        rules.thickness_h16, row.reason];
+    });
+    b1Table(host, ['Kat', 'Alan ID', 'Kesit', 'h kat (m)', 'h panel (m)', 'l panel (m)',
+      'bw (mm)', 'l panel / bw', 'Standart bw,min (mm)', 'Oran ≥ 6', 'bw ≥ 250', 'bw ≥ h/16', 'Açık neden'], rows);
+    const details = make('details'); details.append(make('summary', 'Kapsam, istisnalar ve kaynak'));
+    const notes = make('ul');
+    for (const note of r.assumptions_notes) notes.append(make('li', note));
+    details.append(notes);
+    b1Table(details, ['Madde', 'Durum', 'Eksik kanıt'],
+      r.unevaluated_requirements.map(x => [x.code_ref, x.status, x.reason]));
+    details.append(make('p', 'Kaynak: ' + (r.source_payload_sha256 || '—') +
+      ' · Sonuç: ' + r.result_sha256, 'micro'));
+    host.append(details);
+    if (r.reason_codes.length) host.append(make('p', r.reason_codes.join('; '), 'warn'));
+  }
   async function loadB2(runId) {
     const request = ++b2Request;
     const b1Version = b1Request;
     latestB2 = null;
     b2LoadNote = runId ? 'Seçili kaydın B2 hesabı okunuyor…' : 'Birleşik ETABS kaydı henüz seçilmedi.';
     renderB2(active);
+    renderWallGeometry(active);
     if (!runId) return;
     try {
       // Same report/evaluator as JSON and printable HTML. No browser arithmetic,
@@ -370,6 +405,7 @@
         byId('b1Status').textContent = 'Seçili kaydın B1 sonucu açılamadı: ' + error.message;
     }
     renderB2(active);
+    renderWallGeometry(active);
     updateCheckStates();
   }
   function checkState(checkId) {
@@ -393,6 +429,12 @@
       const coverage = latestB2.comparison_coverage;
       return [coverage.resolved ? (coverage.unresolved ? 'Kısmi' : 'Koşullu') : 'Eksik',
               'review', latestB2.numeric_condition];
+    }
+    if (checkId === 'WALL_GEOMETRY_CHECK') {
+      const wall = report?.wall_geometry;
+      if (wall?.status === 'NOT_APPLICABLE') return ['Kapsam dışı', '', 'Kanıtlı beton dışı malzeme.'];
+      return [wall?.evaluated_count ? (wall.not_proven_count ? 'Kısmi' : 'Koşullu') : 'Eksik',
+        'review', wall?.numeric_condition || 'Perde geometri kaynağı yok.'];
     }
     if (checkId === 'modal_mass_95') record = run?.result || run?.modal;
     else record = (report?.checks || [
@@ -913,7 +955,7 @@
     else if(b1Result)b1Download('B1_SOURCE_NUMERIC.html',
       b1Result.html,'text/html;charset=utf-8',true);
   });
-  window.renderQuickChecksForTab = tab => {renderQuick(latest, tab);renderExtras(tab);renderB2(tab);};
+  window.renderQuickChecksForTab = tab => {renderQuick(latest, tab);renderExtras(tab);renderB2(tab);renderWallGeometry(tab);};
   byId('runAllBtn')?.addEventListener('click', runSuite);
   loadRegistry();
   loadQuickHistory();

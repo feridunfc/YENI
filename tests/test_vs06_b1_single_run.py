@@ -55,7 +55,7 @@ class B1SingleRunReportTests(unittest.TestCase):
         self.assertEqual(b1["source_candidate_wall_beams"],2)
         self.assertEqual(b1["formal_compliance"],"NOT_PROVEN")
         self.assertEqual(b1["parameters"]["wall_type"],"BRITTLE")
-        self.assertEqual(report["check_inventory"]["count"], 6)
+        self.assertEqual(report["check_inventory"]["count"], 7)
         entry = next(x for x in report["check_inventory"]["entries"]
                      if x["check_id"] == "WEAK_STORY_B1")
         self.assertEqual(entry["evaluation"], "CONDITIONAL_SOURCE_NUMERICAL")
@@ -85,7 +85,7 @@ class B1SingleRunReportTests(unittest.TestCase):
         self.assertNotIn("vs06_b1_result",report)
         self.assertIn("BLOCKED_SOURCE_BINDING",report["vs06_b1_source_status"])
         self.assertEqual(report["engineering_release"],"NOT_READY")
-        self.assertEqual(report["check_inventory"]["count"],6)
+        self.assertEqual(report["check_inventory"]["count"],7)
         b1 = next(x for x in report["check_inventory"]["entries"]
                   if x["check_id"] == "WEAK_STORY_B1")
         self.assertEqual(b1["status"], "BLOCKED_SOURCE_BINDING")

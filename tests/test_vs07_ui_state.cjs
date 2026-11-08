@@ -56,6 +56,10 @@ const b1 = {formal_compliance: 'NOT_PROVEN', source_candidate_wall_beams: 1,
     eta_ci_min: '0.8', numeric_condition: 'SYNTHETIC_B1', paired_results: []},
   story_direction_areas: [], assumptions_notes: [], beam_assumptions: [],
   result_sha256: 'B1_OLD_RUN_MUST_NOT_RETURN'};
+const wall = {evaluated_count: 1, expected_count: 1, not_proven_count: 0,
+  subconditions_evaluated: 3, subconditions_unmet: 1, numeric_condition: 'SYNTHETIC_WALL',
+  items: [{element_id: 'W_SYNTHETIC', subconditions: []}], assumptions_notes: [],
+  unevaluated_requirements: [], reason_codes: [], result_sha256: 'WALL_RUN_2_ONLY'};
 const flush = async () => { for (let i = 0; i < 12; i++) await Promise.resolve(); };
 
 function boot(history = [entry(1), entry(2), entry(3)]) {
@@ -78,9 +82,10 @@ function boot(history = [entry(1), entry(2), entry(3)]) {
     })); },
     fetch(url) {
       calls.push(url);
-      const value = url === '/api/check-registry' ? {implemented_check_count: 2, checks: [
+      const value = url === '/api/check-registry' ? {implemented_check_count: 3, checks: [
         {check_id: 'WEAK_STORY_B1', title: 'B1', tab_id: 9, panel_id: 'vs06-b1-panel'},
-        {check_id: 'SOFT_STORY_B2', title: 'B2', tab_id: 9, panel_id: 'b2Panel'}
+        {check_id: 'SOFT_STORY_B2', title: 'B2', tab_id: 9, panel_id: 'b2Panel'},
+        {check_id: 'WALL_GEOMETRY_CHECK', title: 'Perde', tab_id: 13, panel_id: 'wallGeometryPanel'}
       ]} : url === '/api/quick-history' ? {runs: history} : undefined;
       if (value) return Promise.resolve({ok: true, json: async () => value});
       return new Promise(resolve => pending.push({url, resolve: body =>
@@ -111,19 +116,22 @@ function boot(history = [entry(1), entry(2), entry(3)]) {
     evaluated_story_case_direction_count: 12, expected_story_case_direction_count: 12,
     items: [], excluded_stories: [exclusion]};
   ui.take('/api/export-checks?run_id=' + run(2)).resolve({...report(2),
-    story_drift: scopedDrift, soft_story_b2: {...b2, excluded_stories: [exclusion]}});
+    story_drift: scopedDrift, wall_geometry: wall, soft_story_b2: {...b2, excluded_stories: [exclusion]}});
   await flush();
   assert.match(ui.ids.get('b2Result').textContent, /B2_RUN_2_ONLY/);
   assert.match(ui.ids.get('b2Result').textContent, /NOT_APPLICABLE.*\+13.00/);
   assert.match(ui.ids.get('storyDriftReport').textContent, /12\/12/);
   assert.match(ui.ids.get('storyDriftReport').textContent, /NOT_APPLICABLE.*\+13.00/);
-  delayedReport.resolve({...report(1), soft_story_b2: {...b2, result_sha256: 'STALE_B2'}});
+  assert.match(ui.ids.get('wallGeometryResult').textContent, /WALL_RUN_2_ONLY/);
+  delayedReport.resolve({...report(1), wall_geometry: {...wall, result_sha256: 'STALE_WALL'},
+    soft_story_b2: {...b2, result_sha256: 'STALE_B2'}});
   delayedB1.resolve({...report(1), vs06_b1_result: b1});
   delayedC2.resolve({formal_compliance: 'NOT_PROVEN', engineering_release: 'NOT_READY',
     rows: [], scenario_sha256: 'STALE_C2'});
   await flush();
   assert.match(ui.ids.get('b2Result').textContent, /B2_RUN_2_ONLY/);
   assert.match(ui.ids.get('storyDriftReport').textContent, /12\/12/);
+  assert.match(ui.ids.get('wallGeometryResult').textContent, /WALL_RUN_2_ONLY/);
   assert.doesNotMatch(ui.ids.get('b1Result').textContent, /B1_OLD_RUN/);
   assert.equal(ui.ids.get('c2Report').textContent, '');
   assert.equal(ui.ids.get('b1Json').disabled, true);
@@ -131,6 +139,7 @@ function boot(history = [entry(1), entry(2), entry(3)]) {
   ui.context.window.selectSavedEngineeringRun(entry(1), false);
   assert.equal(ui.chooser().value, run(2), 'Background modal history cannot replace selection');
   await ui.select(3);
+  assert.doesNotMatch(ui.ids.get('wallGeometryResult').textContent, /WALL_RUN_2_ONLY/);
   assert.doesNotMatch(ui.ids.get('b2Result').textContent, /B2_RUN_2_ONLY/);
   ui.take('/api/export-checks?run_id=' + run(3)).resolve(report(3)); await flush();
   assert.match(ui.ids.get('b2Result').textContent, /eski kayıtta/);
@@ -139,6 +148,11 @@ function boot(history = [entry(1), entry(2), entry(3)]) {
   ui.context.selectTab(9);
   assert.doesNotMatch(ui.ids.get('vs06-b1-panel').className, /hidden/);
   assert.doesNotMatch(ui.ids.get('b2Panel').className, /hidden/);
+  ui.context.selectTab(13);
+  assert.doesNotMatch(ui.ids.get('wallGeometryPanel').className, /hidden/);
+  assert.match(ui.ids.get('b2Panel').className, /hidden/);
+  ui.context.selectTab(9);
+  assert.match(ui.ids.get('wallGeometryPanel').className, /hidden/);
   assert.equal(ui.calls.some(url => url.includes('/api/live-')), false);
 
   const old = boot([]); await flush();
@@ -146,5 +160,5 @@ function boot(history = [entry(1), entry(2), entry(3)]) {
   await flush();
   assert.equal(old.chooser().value, run(3), 'Modal-only archive remains selectable');
   old.take('/api/export-checks?run_id=' + run(3)).resolve(report(3)); await flush();
-  console.log('UI controller: stale B1/B2/C2, shared history, historical selection and panel routing PASS');
+  console.log('UI controller: stale B1/B2/C2/wall, scoped drift, shared history and panel routing PASS');
 })().catch(error => { console.error(error); process.exitCode = 1; });

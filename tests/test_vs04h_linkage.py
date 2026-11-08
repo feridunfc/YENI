@@ -114,7 +114,7 @@ class Vs04HLinks(unittest.TestCase):
         self.assertFalse(result["diaphragm_mass_explained"])
         self.assertEqual(result["formal_compliance"],"NOT_PROVEN")
         self.assertEqual(result["engineering_release"],"NOT_READY")
-        self.assertEqual(len(check_registry()),11)
+        self.assertEqual(len(check_registry()),12)
 
     def test_no_modal_prior_still_reviews_source_only(self):
         result=review_vs04h_source(self.data)

@@ -106,7 +106,7 @@ class SourceBindingsTest(unittest.TestCase):
         self.assertEqual(r["normative_checks_executed"],0)
         self.assertEqual(r["seismic_mass_final_kg"],None)
         self.assertEqual(r["beta_tE_X"],None)
-        self.assertEqual(len(check_registry()),11)
+        self.assertEqual(len(check_registry()),12)
         self.assertEqual(r["engineering_release"],"NOT_READY")
         self.assertEqual(r["formal_compliance"],"NOT_PROVEN")
         self.assertTrue(all(x["formal_compliance"]=="NOT_PROVEN" for x in r["components"]))

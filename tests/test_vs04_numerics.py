@@ -92,7 +92,7 @@ class NumericalSourceTests(unittest.TestCase):
         self.assertEqual(result["numeric_regulatory_checks_executed"], 0)
         self.assertEqual(result["formal_compliance"], "NOT_PROVEN")
         self.assertEqual(result["engineering_release"], "NOT_READY")
-        self.assertEqual(len(check_registry()), 11)
+        self.assertEqual(len(check_registry()), 12)
 
     def test_numerical_results_deterministic(self):
         self.assertEqual(evaluate_analysis_numerics(self.source),

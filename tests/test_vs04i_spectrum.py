@@ -135,7 +135,7 @@ class Vs04ISpectrumTest(unittest.TestCase):
         self.assertEqual(out["regulatory_checks_executed"],0)
         self.assertFalse(out["accidental_eccentricity_applied_proven"])
         self.assertEqual(out["engineering_release"],"NOT_READY")
-        self.assertEqual(len(check_registry()),11)
+        self.assertEqual(len(check_registry()),12)
 
     def test_known_tbd_y_2018_values_are_algebraically_reproduced(self):
         sds=Decimal("0.52578")

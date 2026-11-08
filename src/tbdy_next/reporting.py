@@ -39,7 +39,8 @@ def _load_source(directory: Path, expected_sha: str) -> dict[str, Any]:
 def _vs05_check_inventory(checks: list[dict], story_drift: dict | None,
                           b1: Mapping[str, Any] | None = None,
                           b1_source_status: str | None = None,
-                          b2: Mapping[str, Any] | None = None) -> dict:
+                          b2: Mapping[str, Any] | None = None,
+                          wall_geometry: Mapping[str, Any] | None = None) -> dict:
     """Separate historical checks and source-derived checks; no fake code PASS."""
     entries = [{"check_id": c["check_id"], "evaluation": "BOUNDED_EXISTING"}
                for c in checks]
@@ -98,6 +99,17 @@ def _vs05_check_inventory(checks: list[dict], story_drift: dict | None,
             "comparison_coverage": b2["comparison_coverage"],
             "formal_compliance": "NOT_PROVEN", "engineering_release": "NOT_READY",
         })
+    if wall_geometry is not None:
+        if (wall_geometry.get("check_id") != "WALL_GEOMETRY_CHECK"
+                or wall_geometry.get("formal_compliance") != "NOT_PROVEN"
+                or wall_geometry.get("engineering_release") != "NOT_READY"):
+            raise ValueError("WALL_GEOMETRY_INVENTORY_CONTRACT_INVALID")
+        entries.append({"check_id": "WALL_GEOMETRY_CHECK",
+            "evaluation": "CONDITIONAL_SOURCE_NUMERICAL" if wall_geometry["evaluated_count"] else
+                          "NOT_APPLICABLE" if wall_geometry["status"] == "NOT_APPLICABLE" else "BLOCKED_SOURCE",
+            "status": wall_geometry["numeric_condition"], "source_status": wall_geometry["status"],
+            "expected_count": wall_geometry["expected_count"], "evaluated_count": wall_geometry["evaluated_count"],
+            "formal_compliance": "NOT_PROVEN", "engineering_release": "NOT_READY"})
     ids = [e["check_id"] for e in entries]
     if len(ids) != len(set(ids)):
         raise ValueError("DUPLICATE_REPORTED_CHECK_ID")
@@ -318,6 +330,11 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
     if physical_scope is not None and story_drift is not None:
         story_drift = scope_story_drift(story_drift, source["vs05_delta_source"], physical_scope)
 
+    wall_geometry = None
+    if "vs06_b1_geometry_source" in source or "vs06_b1_geometry_capture_error" in source:
+        from .wall_geometry import bind_wall_geometry
+        wall_geometry = bind_wall_geometry(source, physical_scope=physical_scope)
+
     frame_rows = ((geometry_source or {}).get("tables", {}).get("FRAME_ASSIGNMENTS", {})
                   .get("rows", []) or [])
     frame_types = dict(sorted(Counter(str(row.get("Type", "UNKNOWN")) for row in frame_rows).items()))
@@ -352,7 +369,9 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
     elif vs04:
         source_scope += " (E–J historical source evidence if recorded)"
     inventory = _vs05_check_inventory(
-        checks, story_drift, vs06_b1_result, vs06_b1_source_status, b2)
+        checks, story_drift, vs06_b1_result, vs06_b1_source_status, b2, wall_geometry)
+    if wall_geometry is not None:
+        source_scope += " + WALL_GEOMETRY_CHECK observed panel subconditions (TBDY NOT_PROVEN)"
     if b2 is not None:
         source_scope += " + SOFT_STORY_B2 assumed Avg Drift/h adjacent-source arithmetic (TBDY NOT_PROVEN)"
     if vs06_b1_result is not None:
@@ -413,6 +432,7 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         **({"vs06_b1_source_status": vs06_b1_source_status}
            if vs06_b1_source_status is not None else {}),
         **({"soft_story_b2": b2} if b2 is not None else {}),
+        **({"wall_geometry": wall_geometry} if wall_geometry is not None else {}),
         "vs03": new_checks,
         "checks": checks,
         "modal_source_table": {
@@ -490,6 +510,12 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
     if isinstance(drift_summary, Mapping):
         summary_rows.append(_vs05_summary_row(drift_summary))
     b2 = report.get("soft_story_b2")
+    wall_geometry = report.get("wall_geometry")
+    if isinstance(wall_geometry, Mapping):
+        summary_rows.append({"check_id": "WALL_GEOMETRY_CHECK", "status": wall_geometry["status"],
+            "expected_count": wall_geometry["expected_count"], "evaluated_count": wall_geometry["evaluated_count"],
+            "met_count": 0, "unmet_count": 0, "not_applicable_count": wall_geometry["not_applicable_count"],
+            "not_proven_count": wall_geometry["expected_count"] - wall_geometry["not_applicable_count"]})
     if isinstance(b2, Mapping):
         summary_rows.append({
             "check_id": "SOFT_STORY_B2", "status": b2["status"],
@@ -861,6 +887,33 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
             '</ul><p>Kaynak / hesap: ' + _val(b2["source_payload_sha256"]) +
             ' / ' + _val(b2["result_sha256"]) + '</p><p>Açık kaynak: ' +
             _val(b2["reason_codes"]) + '. ENGINEERING_RELEASE=NOT_READY.</p></section>')
+
+    if isinstance(wall_geometry, Mapping):
+        panel_rows = []
+        for row in wall_geometry["items"]:
+            panel_rows.append({**row, **{s["rule"]: s["status"] for s in row["subconditions"]}})
+        vs04_sections.append(
+            '<section class="percheck" data-check-panel="WALL_GEOMETRY_CHECK">'
+            '<h2>Perde kesit geometrisi — koşullu kaynak alt kontrolleri</h2>'
+            '<p>TBDY 2018 7.6.1.2 / 7.6.1.2(a). Hesaplanan panel: ' +
+            _val(wall_geometry["evaluated_count"]) + '/' + _val(wall_geometry["expected_count"]) +
+            '; sayısal alt koşul: ' + _val(wall_geometry["subconditions_evaluated"]) +
+            '; karşılanmayan alt koşul: ' + _val(wall_geometry["subconditions_unmet"]) +
+            '. Resmî uygunluk NOT_PROVEN.</p>' +
+            _table((("story", "Kat"), ("element_id", "ETABS alan ID"), ("section", "Kesit"),
+                    ("story_height_m", "h kat (m)"), ("panel_height_m", "h panel (m)"),
+                    ("panel_length_m", "l panel (m)"), ("thickness_mm", "bw (mm)"),
+                    ("panel_length_thickness_ratio", "l panel / bw"),
+                    ("ordinary_branch_minimum_mm", "Standart dal bw,min (mm)"),
+                    ("panel_ratio", "Oran ≥ 6"), ("thickness_250", "bw ≥ 250 mm"),
+                    ("thickness_h16", "bw ≥ h/16"), ("reason", "Açık neden")), panel_rows) +
+            '<h3>Uygulanabilirlik ve hesap sınırı</h3><ul>' +
+            ''.join('<li>' + _val(s) + '</li>' for s in wall_geometry["assumptions_notes"]) + '</ul>' +
+            _table((("code_ref", "Madde"), ("status", "Durum"), ("reason", "Eksik kanıt")),
+                   wall_geometry["unevaluated_requirements"]) +
+            '<p>Kaynak: ' + _val(wall_geometry["source_payload_sha256"]) +
+            ' · Sonuç: ' + _val(wall_geometry["result_sha256"]) +
+            ' · Kaynak teşhisi: ' + _val(wall_geometry["reason_codes"]) + '</p></section>')
 
     a1_warnings = [
         c for c in extras if c.get("check_id") in ("a1_torsion_x", "a1_torsion_y")
