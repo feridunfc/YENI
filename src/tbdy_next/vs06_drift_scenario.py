@@ -13,6 +13,7 @@ import json
 from typing import Any, Mapping
 
 from .normative_basis import eq_4_34_effective_drift
+from .story_drift_binding import _verify_generic_capture
 
 SCHEMA = "tbdy.next.vs06.c2.drift-scenario.v1"
 DEFAULTS = {
@@ -21,6 +22,7 @@ DEFAULTS = {
     "wall_mode": "LC_WALL_BEAM_CANDIDATE",
     "coverage_pct": "100", "wall_height_m": "2.8",
     "opening_pct": "0", "thickness_m": "0.19",
+    "manual_wall_length_m": "0",
 }
 ALLOWED = frozenset(DEFAULTS)
 CASES = {"X": "RSX", "Y": "RSY"}
@@ -67,6 +69,7 @@ def options(raw: Mapping[str, Any] | None) -> dict[str, str]:
     _positive(merged["opening_pct"], "OPENING", zero=True, maximum="100")
     _positive(merged["wall_height_m"], "HEIGHT", maximum="30")
     _positive(merged["thickness_m"], "THICKNESS", maximum="2")
+    _positive(merged["manual_wall_length_m"], "MANUAL_WALL_LENGTH", zero=True, maximum="100000")
     return merged
 
 
@@ -83,26 +86,38 @@ def _wall_candidates(report: Mapping[str, Any], opts: Mapping[str, str]) -> dict
         "assumed_wall_volume_m3": None, "candidate_beams": [],
         "interpretation": "Gravity load does not certify physical infill existence or type.",
     }
+    manual_length = _positive(opts["manual_wall_length_m"],
+                              "MANUAL_WALL_LENGTH", zero=True)
+    def manual_inventory(reason: str) -> dict[str, Any]:
+        if manual_length == 0:
+            return {**base, "source_status": reason}
+        area = (manual_length * _positive(opts["wall_height_m"], "HEIGHT")
+                * _positive(opts["coverage_pct"], "COVERAGE", zero=True) / 100
+                * (Decimal(1)-_positive(opts["opening_pct"], "OPENING", zero=True)/100))
+        return {**base, "source_status": "USER_MANUAL_LENGTH_ASSUMPTION",
+                "candidate_total_length_m": str(manual_length),
+                "assumed_net_face_area_m2": str(area),
+                "assumed_wall_volume_m3": str(area * _positive(opts["thickness_m"], "THICKNESS")),
+                "interpretation": "Manual wall length, height, coverage and openings are scenario inputs, not ETABS-confirmed physical walls."}
     if opts["wall_mode"] != "LC_WALL_BEAM_CANDIDATE":
-        return {**base, "source_status": "USER_MANUAL_WALL_ASSUMPTION"}
+        return manual_inventory("USER_MANUAL_WALL_LENGTH_NOT_GIVEN")
     source = report.get("source_snapshot") or {}
     capture = source.get("vs06_wall_load_source")
     if not isinstance(capture, Mapping):
-        return {**base, "source_status": "LC_WALL_SOURCE_NOT_CAPTURED"}
-    from tools.etabs_source_gateway_windows import verify
+        return manual_inventory("LC_WALL_SOURCE_NOT_CAPTURED")
     try:
-        verify(capture)
+        _verify_generic_capture(capture)
     except (ValueError, TypeError) as exc:
         raise DriftScenarioError("LC_WALL_CAPTURE_INTEGRITY_FAILURE") from exc
     table = (capture.get("table_reads") or {}).get("Frame Loads - Distributed")
     if not isinstance(table, Mapping) or table.get("status") != "CAPTURED":
-        return {**base, "source_status": "LC_WALL_LOAD_TABLE_MISSING"}
+        return manual_inventory("LC_WALL_LOAD_TABLE_MISSING")
     fields = table.get("fields")
     meta = table.get("field_metadata") or {}
     if (not isinstance(fields, list) or meta.get("status") != "OK" or
             not {"UniqueName", "LoadPat"}.issubset(fields) or
             not {"UniqueName", "LoadPat"}.issubset(meta.get("field_keys") or [])):
-        return {**base, "source_status": "LC_WALL_FIELD_BINDING_UNREVIEWED"}
+        return manual_inventory("LC_WALL_FIELD_BINDING_UNREVIEWED")
     rows = table.get("rows")
     if not isinstance(rows, list) or table.get("row_count") != len(rows):
         raise DriftScenarioError("LC_WALL_ROW_CENSUS_CORRUPT")
