@@ -118,6 +118,27 @@ def read_quick_suite_from_running_etabs(case: str, *, with_vs04: bool = False) -
                 except Exception as exc:
                     payload["vs06_wall_capture_error"] = (
                         f"{type(exc).__name__}: {exc}")
+                # VS06-D1: X/Y B1 geometry via the SAME generic source reader
+                # and already owned COM session, not a separate live workflow.
+                # B1 remains optional, old accepted checks survive a missing
+                # table while the exact cause is preserved.
+                try:
+                    from tools.etabs_source_gateway_windows import capture as capture_tables
+                    payload["vs06_b1_geometry_source"] = capture_tables(
+                        sap, action="capture",
+                        exact=(
+                            "Point Object Connectivity",
+                            "Column Object Connectivity",
+                            "Wall Object Connectivity",
+                            "Frame Assignments - Section Properties",
+                            "Frame Section Property Definitions - Concrete Rectangular",
+                            "Area Assignments - Section Properties",
+                            "Wall Property Definitions - Specified",
+                            "Story Definitions",
+                        ))
+                except Exception as exc:
+                    payload["vs06_b1_geometry_capture_error"] = (
+                        f"{type(exc).__name__}: {exc}")
             return payload
         finally:
             sap = None
