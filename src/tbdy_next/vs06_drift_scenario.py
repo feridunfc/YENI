@@ -118,7 +118,7 @@ def _wall_candidates(report: Mapping[str, Any], opts: Mapping[str, str]) -> dict
         _verify_generic_capture(capture)
     except (ValueError, TypeError) as exc:
         raise DriftScenarioError("LOAD_PATTERN_CAPTURE_INTEGRITY_FAILURE") from exc
-    table = (capture.get("table_reads") or {}).get("Frame Loads - Distributed")
+    table = (capture.get("table_reads") or {}).get("Frame Loads Assignments - Distributed")
     if not isinstance(table, Mapping) or table.get("status") != "CAPTURED":
         return manual_inventory("LOAD_PATTERN_LOAD_TABLE_MISSING")
     fields = table.get("fields")
