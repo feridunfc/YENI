@@ -19,14 +19,15 @@ class B1InputError(ValueError):
     pass
 
 
-def _number(value: Any, name: str, *, positive: bool = False) -> Decimal:
+def _number(value: Any, name: str, *, positive: bool = False,
+            allow_signed: bool = False) -> Decimal:
     if type(value) not in (str, int, Decimal):
         raise B1InputError(name + "_INVALID_DECIMAL_TYPE")
     try:
         d = Decimal(str(value))
     except (ValueError, InvalidOperation):
         raise B1InputError(name + "_INVALID_DECIMAL") from None
-    if not d.is_finite() or (d <= 0 if positive else d < 0):
+    if not d.is_finite() or (d <= 0 if positive else d < 0 and not allow_signed):
         raise B1InputError(name + "_OUT_OF_RANGE")
     return d
 
@@ -70,7 +71,7 @@ def evaluate_b1(
         label, active = row.get("story"), row.get("active")
         if not isinstance(label, str) or not label or label in names or type(active) is not bool:
             raise B1InputError("STORY_ID_OR_ACTIVITY_INVALID")
-        z = _number(row.get("elevation_m"), "ELEVATION")
+        z = _number(row.get("elevation_m"), "ELEVATION", allow_signed=True)
         if z in levels:
             raise B1InputError("DUPLICATE_STORY_ELEVATION")
         names.add(label)
@@ -142,8 +143,6 @@ def evaluate_b1(
     multiplier = Decimal("1.25") * min_eta if outcome == "B1_R_REDUCTION_REQUIRED" else None
     # An experimental test/explicit approval, not a user tick, must prove
     # flexible wall classification before a code result is authorized.
-    formal = (physical_census_proven and source_directional_area_proven
-              and (wall_type != "FLEXIBLE" or flex_connection_verified))
     result = {
         "schema": SCHEMA, "check_id": "WEAK_STORY_B1",
         "code_refs": ["TBDY 2018 Table 3.6", "TBDY 2018 3.6.2.3",
@@ -162,11 +161,8 @@ def evaluate_b1(
         "paired_results": pairs,
         "physical_census_approved": physical_census_proven,
         "directional_effective_area_approved": source_directional_area_proven,
-        "formal_compliance": (
-            "DOES_NOT_COMPLY" if formal and outcome == "REDESIGN_AND_REANALYZE"
-            else "B1_PRESENT_REDUCTION_REQUIRED" if formal and outcome == "B1_R_REDUCTION_REQUIRED"
-            else "MEETS_B1_CRITERION" if formal else "NOT_PROVEN"
-        ),
+        # Caller-supplied booleans are not independent source authority.
+        "formal_compliance": "NOT_PROVEN",
         "engineering_release": "NOT_READY",
         "note": "Numeric calculation is not a B1 design release. R reduction requires reanalysis with the updated R. LC_WDL full beam loads are only candidate infill faces; orient and assign each wall to a physical storey.",
     }
