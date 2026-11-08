@@ -103,6 +103,18 @@ def read_quick_suite_from_running_etabs(case: str, *, with_vs04: bool = False) -
                     # VS05 table is unavailable.  Persist a BLOCKED check.
                     payload["vs05_delta_capture_error"] = (
                         f"{type(exc).__name__}: {exc}")
+                # VS06-C2: OPTIONAL exact LoadPat=LC_WALL assignment evidence.
+                # Same existing COM session and general table reader; no
+                # new reader or ETABS model mutation. Unknown schema is
+                # preserved as source-only, never guessed into wall area.
+                try:
+                    from tools.etabs_source_gateway_windows import capture as capture_tables
+                    payload["vs06_wall_load_source"] = capture_tables(
+                        sap, action="capture",
+                        exact=("Frame Loads - Distributed", "Beam Object Connectivity"))
+                except Exception as exc:
+                    payload["vs06_wall_capture_error"] = (
+                        f"{type(exc).__name__}: {exc}")
             return payload
         finally:
             sap = None
