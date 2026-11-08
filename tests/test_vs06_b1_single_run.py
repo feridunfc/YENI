@@ -55,6 +55,13 @@ class B1SingleRunReportTests(unittest.TestCase):
         self.assertEqual(b1["source_candidate_wall_beams"],2)
         self.assertEqual(b1["formal_compliance"],"NOT_PROVEN")
         self.assertEqual(b1["parameters"]["wall_type"],"BRITTLE")
+        self.assertEqual(report["check_inventory"]["count"], 6)
+        entry = next(x for x in report["check_inventory"]["entries"]
+                     if x["check_id"] == "WEAK_STORY_B1")
+        self.assertEqual(entry["evaluation"], "CONDITIONAL_SOURCE_NUMERICAL")
+        self.assertEqual(entry["formal_compliance"], "NOT_PROVEN")
+        self.assertEqual(entry["evaluated_count"], 2)
+        self.assertEqual(entry["status"], b1["b1_numerical"]["numeric_condition"])
         with urlopen(self.base+"/report/print?run_id="+run_id) as response:
             html=response.read().decode("utf-8")
         self.assertIn("VS06-D1",html)
@@ -78,7 +85,13 @@ class B1SingleRunReportTests(unittest.TestCase):
         self.assertNotIn("vs06_b1_result",report)
         self.assertIn("BLOCKED_SOURCE_BINDING",report["vs06_b1_source_status"])
         self.assertEqual(report["engineering_release"],"NOT_READY")
-        self.assertEqual(report["check_inventory"]["count"],5)
+        self.assertEqual(report["check_inventory"]["count"],6)
+        b1 = next(x for x in report["check_inventory"]["entries"]
+                  if x["check_id"] == "WEAK_STORY_B1")
+        self.assertEqual(b1["status"], "BLOCKED_SOURCE_BINDING")
+        self.assertEqual(b1["evaluation"], "BLOCKED_SOURCE")
+        self.assertEqual(b1["evaluated_count"], 0)
+        self.assertEqual(b1["formal_compliance"], "NOT_PROVEN")
 
 
 if __name__=="__main__":
