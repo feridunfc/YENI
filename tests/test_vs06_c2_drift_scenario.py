@@ -95,7 +95,7 @@ class Vs06C2Numerics(unittest.TestCase):
         for values in ({"lambda": "NaN"}, {"r": "0"}, {"wall_type": "MAGIC"},
                        {"coverage_pct": "110"}, {"unexpected": "1"},
                        {"opening_pct": "-2"}, {"wall_load_pattern": ""},
-                       {"wall_load_pattern": " LC_WDL"}, {"wall_load_pattern": "LC_WDL\\n"}):
+                       {"wall_load_pattern": " LC_WDL"}, {"wall_load_pattern": "LC_WDL\n"}):
             with self.subTest(values=values), self.assertRaises(DriftScenarioError):
                 options(values)
 
