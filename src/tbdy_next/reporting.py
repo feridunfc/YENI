@@ -185,6 +185,19 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
             raise ReportUnavailable("VS05 STORY_DRIFT source/receipt mismatch")
     elif story_drift_receipt is not None:
         raise ReportUnavailable("Orphan VS05 STORY_DRIFT receipt")
+
+    # VS06-A is a read-only projection of the already-verified VS05 record.
+    # Never alter the historical receipt payload: exact replay is required.
+    vs06_slot_ledger = None
+    if (story_drift is not None and
+            story_drift.get("execution_status") == "EXECUTED_SOURCE_NUMERICAL"):
+        from .story_slot_ledger import build_story_slot_ledger
+        try:
+            vs06_slot_ledger = build_story_slot_ledger(
+                source["vs05_delta_source"], story_drift)
+        except (ValueError, TypeError, KeyError) as exc:
+            raise ReportUnavailable("VS06 slot ledger cannot be reconciled") from exc
+
     frame_rows = ((geometry_source or {}).get("tables", {}).get("FRAME_ASSIGNMENTS", {})
                   .get("rows", []) or [])
     frame_types = dict(sorted(Counter(str(row.get("Type", "UNKNOWN")) for row in frame_rows).items()))
@@ -256,6 +269,8 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         "vs04_readiness": vs04_readiness,
         "vs04_pipeline": vs04_pipeline,
         **({"story_drift": story_drift} if story_drift is not None else {}),
+        **({"vs06_story_slot_ledger": vs06_slot_ledger}
+           if vs06_slot_ledger is not None else {}),
         "vs03": new_checks,
         "checks": checks,
         "modal_source_table": {
@@ -480,6 +495,21 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
             _table((("story", "Kat"), ("case", "Vaka"), ("direction", "Yön")),
                    drift_check.get("missing_story_case_direction", [])) +
             '</section>')
+    ledger = report.get("vs06_story_slot_ledger")
+    if isinstance(ledger, Mapping):
+        vs04_sections.append(
+            '<section class="percheck"><h2>VS06-A · STORY_DRIFT kaynak slot muhasebesi</h2>'
+            '<p>Beklenen slot: ' + _val(ledger.get("expected_slot_count")) +
+            '; kaynaktan hesaplanan: ' + _val(ledger.get("source_numeric_count")) +
+            '; kaynağı eksik: ' + _val(ledger.get("source_missing_count")) +
+            '. Tüm satırlar muhasebeleştirilmiştir ancak fiziksel uygulanabilirlik ve '
+            'TBDY uygunluğu NOT_PROVEN. Eksik satırlar sıfır veya kapsam dışı sayılmamıştır.</p>' +
+            _table((("story", "Kat"), ("case", "Vaka"), ("direction", "Yön"),
+                    ("source_status", "Kaynak"), ("source_delta_mm", "Δ adayı (mm)"),
+                    ("physical_applicability", "Fiziksel uygulanabilirlik"),
+                    ("normative_status", "TBDY durumu"), ("reason_code", "Açık kanıt")),
+                   ledger.get("slots", [])) + '</section>')
+
     a1_warnings = [
         c for c in extras if c.get("check_id") in ("a1_torsion_x", "a1_torsion_y")
         and any(item.get("status") == "A1_OBSERVED" for item in c.get("items", []))
