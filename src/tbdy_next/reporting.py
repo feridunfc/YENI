@@ -613,9 +613,10 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
                     ("lambda", "Senaryo λ"), ("material", "Sistem"),
                     ("wall_type", "Dolgu bağlantısı"), ("coverage_pct", "Dolgu oranı %"),
                     ("wall_height_m", "Varsayılan duvar h (m)"),
-                    ("opening_pct", "Açıklık %"), ("wall_mode", "Duvar kaynak modu")),
+                    ("opening_pct", "Açıklık %"), ("wall_mode", "Duvar kaynak modu"),
+                    ("wall_load_pattern", "ETABS duvar yük deseni")),
                    [options]) +
-            '<p>LC_WALL gözlemi: ' + _val(wall.get("source_status")) +
+            '<p>Yük deseni ' + _val(wall.get("load_pattern")) + ' gözlemi: ' + _val(wall.get("source_status")) +
             ' · Aday kiriş: ' + _val(wall.get("candidate_beam_count")) +
             ' · Aday toplam uzunluk (m): ' + _val(wall.get("candidate_total_length_m")) +
             ' · Varsayımsal net dolgu yüzey alanı (m²): ' +
