@@ -274,7 +274,7 @@ class DeliveryTests(unittest.TestCase):
                 for text in ("CQC_SELECTED_SOURCE_ONLY", "Mod birleştirme", "NOT_PROVEN"):
                     self.assertIn(text, html)
                 registry = json.loads(get("/api/check-registry"))
-                self.assertEqual(registry["implemented_check_count"], 14)
+                self.assertEqual(registry["implemented_check_count"], 16)
                 self.assertEqual(json.loads(get("/api/export-checks?run_id=" + run_id)), report)
                 self.assertEqual(before, {p.relative_to(root).as_posix(): p.read_bytes() for p in root.rglob("*") if p.is_file()})
                 self.assertEqual(calls, ["Modal"])

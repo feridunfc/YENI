@@ -41,7 +41,8 @@ def _vs05_check_inventory(checks: list[dict], story_drift: dict | None,
                           b1_source_status: str | None = None,
                           b2: Mapping[str, Any] | None = None,
                           wall_geometry: Mapping[str, Any] | None = None,
-                          source_controls: Mapping[str, Any] | None = None) -> dict:
+                          source_controls: Mapping[str, Any] | None = None,
+                          earthquake_combinations: Mapping[str, Any] | None = None) -> dict:
     """Separate historical checks and source-derived checks; no fake code PASS."""
     entries = [{"check_id": c["check_id"], "evaluation": "BOUNDED_EXISTING"}
                for c in checks]
@@ -123,6 +124,19 @@ def _vs05_check_inventory(checks: list[dict], story_drift: dict | None,
                 "status": check["status"], "expected_count": check["expected_count"],
                 "evaluated_count": check["evaluated_count"], "formal_compliance": "NOT_PROVEN",
                 "engineering_release": "NOT_READY"})
+    if earthquake_combinations is not None:
+        from .earthquake_combinations import CHECKS as COMBINATION_CHECKS
+        allowed = {c.check_id for c in COMBINATION_CHECKS}
+        for check in earthquake_combinations["checks"]:
+            if (check.get("check_id") not in allowed or check.get("formal_compliance") != "NOT_PROVEN"
+                    or check.get("engineering_release") != "NOT_READY"):
+                raise ValueError("EARTHQUAKE_COMBINATION_INVENTORY_CONTRACT_INVALID")
+            entries.append({"check_id": check["check_id"],
+                "evaluation": "CONDITIONAL_SOURCE_NUMERICAL" if check["evaluated_count"] else
+                              "NOT_APPLICABLE" if check["status"] == "NOT_APPLICABLE" else "BLOCKED_SOURCE",
+                "status": check["status"], "expected_count": check["expected_count"],
+                "evaluated_count": check["evaluated_count"], "not_applicable_count": check["not_applicable_count"],
+                "formal_compliance": "NOT_PROVEN", "engineering_release": "NOT_READY"})
     ids = [e["check_id"] for e in entries]
     if len(ids) != len(set(ids)):
         raise ValueError("DUPLICATE_REPORTED_CHECK_ID")
@@ -352,6 +366,10 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
     source_controls = bind_source_controls(source)
     if not source_controls["checks"]:
         source_controls = None
+    earthquake_combinations = None
+    if "vs04_basis_probe" in source:
+        from .earthquake_combinations import bind_earthquake_combinations
+        earthquake_combinations = bind_earthquake_combinations(source)
 
     frame_rows = ((geometry_source or {}).get("tables", {}).get("FRAME_ASSIGNMENTS", {})
                   .get("rows", []) or [])
@@ -387,7 +405,10 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
     elif vs04:
         source_scope += " (E–J historical source evidence if recorded)"
     inventory = _vs05_check_inventory(
-        checks, story_drift, vs06_b1_result, vs06_b1_source_status, b2, wall_geometry, source_controls)
+        checks, story_drift, vs06_b1_result, vs06_b1_source_status, b2, wall_geometry, source_controls,
+        earthquake_combinations)
+    if earthquake_combinations is not None:
+        source_scope += " + VS10 orthogonal combination coefficients / observed directional coverage (TBDY NOT_PROVEN)"
     if source_controls is not None:
         source_scope += " + VS09 concrete upper strength / modal method source subconditions (TBDY NOT_PROVEN)"
     if wall_geometry is not None:
@@ -454,6 +475,7 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         **({"soft_story_b2": b2} if b2 is not None else {}),
         **({"wall_geometry": wall_geometry} if wall_geometry is not None else {}),
         **({"source_controls": source_controls} if source_controls is not None else {}),
+        **({"earthquake_combinations": earthquake_combinations} if earthquake_combinations is not None else {}),
         "vs03": new_checks,
         "checks": checks,
         "modal_source_table": {
@@ -535,6 +557,9 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
     source_controls = report.get("source_controls")
     if isinstance(source_controls, Mapping):
         summary_rows.extend(source_controls["checks"])
+    earthquake_combinations = report.get("earthquake_combinations")
+    if isinstance(earthquake_combinations, Mapping):
+        summary_rows.extend(earthquake_combinations["checks"])
     if isinstance(wall_geometry, Mapping):
         summary_rows.append({"check_id": "WALL_GEOMETRY_CHECK", "status": wall_geometry["status"],
             "expected_count": wall_geometry["expected_count"], "evaluated_count": wall_geometry["evaluated_count"],
@@ -939,19 +964,38 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
             ' · Sonuç: ' + _val(wall_geometry["result_sha256"]) +
             ' · Kaynak teşhisi: ' + _val(wall_geometry["reason_codes"]) + '</p></section>')
 
-    if isinstance(source_controls, Mapping):
-        for check in source_controls["checks"]:
+    for bundle in (source_controls, earthquake_combinations):
+        if not isinstance(bundle, Mapping):
+            continue
+        for check in bundle["checks"]:
             if check["check_id"] == "concrete_fck_80":
                 columns = (("material_name", "Malzeme"), ("fck_mpa", "Fc kaynak (MPa)"),
                     ("limit", "Üst sınır (MPa)"), ("strength_scope_observation", "Sayısal kapsam"),
                     ("status", "Alt koşul"), ("reason", "Açık neden"))
-            else:
+            elif check["check_id"] == "modal_combination_spacing":
                 columns = (("direction", "Yön"), ("source_case", "Vaka"), ("modal_case", "Modal vaka"),
                     ("modal_combination", "Mod birleştirme"), ("directional_combination", "Yön birleştirme"),
                     ("mode_count", "Mod sayısı"), ("maximum_period_ratio", "En büyük kısa/uzun oranı"),
                     ("spacing_status", "SRSS ayrıklık koşulu"), ("method_condition", "Seçilen yöntem koşulu"),
                     ("reason", "Açık neden"))
+            elif check["check_id"] == "earthquake_100_30":
+                columns = (("combination", "Birleşim"), ("operator", "İşlem"),
+                    ("coefficient_x", "X katsayısı"), ("coefficient_y", "Y katsayısı"),
+                    ("common_factor", "Ortak büyüklük"), ("minor_major_ratio", "Küçük / büyük"),
+                    ("dominant_direction", "Baskın yön"), ("status", "Alt koşul"), ("reason", "Kapsam / teşhis"))
+            else:
+                columns = (("common_factor", "Ortak büyüklük"), ("other_case_coefficients", "Diğer vaka katsayıları"),
+                    ("x_combinations", "X baskın birleşimler"), ("y_combinations", "Y baskın birleşimler"),
+                    ("missing_directions", "Gözlenmeyen yön"), ("observed_sign_patterns", "Gözlenen işaretler"),
+                    ("unresolved_combination", "Çözümlenemeyen birleşim"), ("status", "Kaynak kapsamı"),
+                    ("reason", "Açık neden"))
             pair_tables = []
+            alternatives = [{"envelope": item["combination"], **term}
+                for item in check["items"] for term in item.get("envelope_alternatives", [])]
+            if alternatives:
+                pair_tables.append('<details><summary>Zarf seçenekleri · toplama yapılmaz</summary>' +
+                    _table((("envelope", "Zarf"), ("ref", "Seçenek"), ("factor", "Çarpan"),
+                            ("ref_type", "Kaynak türü")), alternatives) + '</details>')
             for item in check["items"]:
                 if item.get("pairs"):
                     pair_tables.append('<details><summary>' + _val(item["source_case"]) +
@@ -964,7 +1008,8 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
             vs04_sections.append('<section class="percheck" data-check-panel="' +
                 escape(check["check_id"], quote=True) + '"><h2>' + _val(check["title"]) + '</h2><p>' +
                 _val(check["code_ref"]) + ' · Hesaplanan ' + _val(check["evaluated_count"]) + '/' +
-                _val(check["expected_count"]) + ' · ' + _val(check["status"]) +
+                _val(check["expected_count"]) + ' · Kapsam dışı: ' + _val(check["not_applicable_count"]) +
+                ' · ' + _val(check["status"]) +
                 '. Resmî uygunluk NOT_PROVEN.</p>' + _table(columns, check["items"]) +
                 ''.join(pair_tables) + '<h3>Kapsam ve açık koşullar</h3><ul>' +
                 ''.join('<li>' + _val(n) + '</li>' for n in check["assumptions_notes"]) + '</ul><p>' +

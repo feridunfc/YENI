@@ -21,4 +21,10 @@ gözlenen CQC/SRSS seçimini tamamlar. C25 ve %95/%3 algoritmaları korunur.
 Kiriş/döşeme kalınlığı, gerçek serbest açıklık ve tasarım kuvveti gerektiren
 kontroller kendi eksik kaynakları alınana kadar sıradaki kaynak bağımlı dilimlerdir.
 
+**VS10 hazır birleşim paketi:** `earthquake_100_30` seçili RS çiftinin tam 100/30
+katsayı oranını; `earthquake_direction_pairs` aynı diğer işaretli yükler ve ortak
+çarpanda iki baskın yönün kaynak kapsamını hesaplar. D4 grafiği yeniden kullanılır;
+24/24 oran ve 8/8 bağlam gözlenmiştir. Zarf, işaret bütünlüğü, tasarım seçimi ve
+eşzamanlı kuvvetler ayrı açık koşullardır. Ayrıntı: `VS10_EARTHQUAKE_COMBINATIONS.md`.
+
 **Açık ve net fark:** Kaynak toplamak ile kaynak doğrulamasını sonsuz kere tekrarlamak aynı iş değil. Şema bir kere alınır ve proje kapsamında aynı tablonun yapısı değişmedikçe yeniden keşif yapılmaz. Her check ancak kendi ihtiyacı olan en küçük kaynak paketini ister.

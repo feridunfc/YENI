@@ -42,6 +42,7 @@ def check_registry() -> list[dict[str, Any]]:
     from .soft_story_b2 import CHECK as B2_CHECK
     from .wall_geometry import CHECK as WALL_CHECK
     from .source_control_bundle import CHECKS as SOURCE_CHECKS, PANELS as SOURCE_PANELS
+    from .earthquake_combinations import CHECKS as COMBINATION_CHECKS, PANELS as COMBINATION_PANELS
     # Existing same-run derivations are navigable checks, not new evaluators.
     # Effective drift is a scenario of STORY_DRIFT, not a duplicate check ID.
     derived = (
@@ -54,8 +55,9 @@ def check_registry() -> list[dict[str, Any]]:
               "WEAK_STORY_B1": "vs06-b1-panel", "SOFT_STORY_B2": "b2Panel",
               "WALL_GEOMETRY_CHECK": "wallGeometryPanel"}
     panels.update(SOURCE_PANELS)
+    panels.update(COMBINATION_PANELS)
     return [{**c.as_dict(), **({"panel_id": panels[c.check_id]} if c.check_id in panels else {})}
-            for c in (*CHECKS, *EXTRA_CHECKS, *derived, B2_CHECK, WALL_CHECK, *SOURCE_CHECKS)]
+            for c in (*CHECKS, *EXTRA_CHECKS, *derived, B2_CHECK, WALL_CHECK, *SOURCE_CHECKS, *COMBINATION_CHECKS)]
 
 
 def _numeric(raw: object) -> Decimal:

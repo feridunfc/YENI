@@ -370,21 +370,42 @@
         [['direction','Yön'], ['source_case','Vaka'], ['modal_combination','Mod birleştirme'],
          ['directional_combination','Yön birleştirme'], ['mode_count','Mod sayısı'],
          ['maximum_period_ratio','En büyük kısa/uzun T'], ['spacing_status','SRSS ayrıklığı'],
-         ['method_condition','Seçilen yöntem koşulu'], ['reason','Açık neden']]]
+         ['method_condition','Seçilen yöntem koşulu'], ['reason','Açık neden']]],
+      ['earthquake_100_30', 5, 'earthquakeRatioPanel', 'earthquakeRatioResult',
+        [['combination','Birleşim'], ['operator','İşlem'], ['coefficient_x','X katsayısı'],
+         ['coefficient_y','Y katsayısı'], ['common_factor','Ortak büyüklük'], ['minor_major_ratio','Küçük / büyük'],
+         ['dominant_direction','Baskın yön'], ['status','Alt koşul'], ['reason','Kapsam / teşhis']]],
+      ['earthquake_direction_pairs', 5, 'earthquakePairPanel', 'earthquakePairResult',
+        [['common_factor','Ortak büyüklük'], ['other_case_coefficients','Diğer vaka katsayıları'],
+         ['x_combinations','X baskın'], ['y_combinations','Y baskın'], ['missing_directions','Gözlenmeyen yön'],
+         ['observed_sign_patterns','Gözlenen işaretler'], ['unresolved_combination','Çözümlenemeyen birleşim'],
+         ['status','Kaynak kapsamı'], ['reason','Açık neden']]]
     ];
     for (const [id, targetTab, panelId, resultId, columns] of specs) {
       const panel = byId(panelId), host = byId(resultId);
       if (!panel || !host) continue;
       panel.classList.toggle('hidden', tab !== targetTab);
       host.replaceChildren();
-      const check = latestCompleteReport?.source_controls?.checks?.find(c => c.check_id === id);
+      const check = [...(latestCompleteReport?.source_controls?.checks || []),
+        ...(latestCompleteReport?.earthquake_combinations?.checks || [])].find(c => c.check_id === id);
       if (!check) {
         host.append(make('p', 'Seçili kayıtta bu alt kontrol için kaynak henüz yok.', 'muted small'));
         continue;
       }
       host.append(make('p', check.code_ref + ' · Hesaplanan ' + check.evaluated_count + '/' +
-        check.expected_count + ' · ' + check.status + ' · Resmî uygunluk NOT_PROVEN', 'muted small'));
-      b1Table(host, columns.map(c => c[1]), check.items.map(row => columns.map(c => row[c[0]])));
+        check.expected_count + ' · Kapsam dışı ' + (check.not_applicable_count || 0) +
+        ' · ' + check.status + ' · Resmî uygunluk NOT_PROVEN', 'muted small'));
+      const display = value => Array.isArray(value) ? value.join('; ') :
+        value && typeof value === 'object' ? Object.entries(value).map(([key, v]) => key + ': ' + v).join('; ') : value;
+      b1Table(host, columns.map(c => c[1]), check.items.map(row => columns.map(c => display(row[c[0]]))));
+      const alternatives = check.items.filter(row => row.envelope_alternatives?.length);
+      if (alternatives.length) {
+        const detail = make('details'); detail.append(make('summary', 'Zarf seçenekleri · toplama yapılmaz'));
+        b1Table(detail, ['Zarf', 'Seçenek', 'Çarpan', 'Kaynak türü'],
+          alternatives.flatMap(row => row.envelope_alternatives.map(term =>
+            [row.combination, term.ref, term.factor, term.ref_type])));
+        host.append(detail);
+      }
       for (const item of check.items) {
         if (!item.pairs?.length) continue;
         const detail = make('details');
@@ -481,10 +502,12 @@
       return [wall?.evaluated_count ? (wall.not_proven_count ? 'Kısmi' : 'Koşullu') : 'Eksik',
         'review', wall?.numeric_condition || 'Perde geometri kaynağı yok.'];
     }
-    if (checkId === 'concrete_fck_80' || checkId === 'modal_combination_spacing') {
-      const check = report?.source_controls?.checks?.find(c => c.check_id === checkId);
+    if (['concrete_fck_80', 'modal_combination_spacing', 'earthquake_100_30', 'earthquake_direction_pairs'].includes(checkId)) {
+      const check = [...(report?.source_controls?.checks || []),
+        ...(report?.earthquake_combinations?.checks || [])].find(c => c.check_id === checkId);
       return [check?.evaluated_count ? (check.unmet_count ? 'Koşul aşımı' :
-        check.not_proven_count ? 'Kısmi' : 'Koşullu') : 'Eksik', 'review', check?.status || 'Kaynak yok.'];
+        check.not_proven_count ? 'Kısmi' : 'Koşullu') :
+        check?.status === 'NOT_APPLICABLE' ? 'Kapsam dışı' : 'Eksik', 'review', check?.status || 'Kaynak yok.'];
     }
     if (checkId === 'modal_mass_95') record = run?.result || run?.modal;
     else record = (report?.checks || [

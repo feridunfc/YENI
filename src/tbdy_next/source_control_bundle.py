@@ -84,12 +84,13 @@ def _finish(spec: CheckDefinition, rows: list[dict], *, notes: list[str],
             gaps: list[str], provenance: dict, reasons: list[str] | None = None) -> dict:
     met = sum(r["status"] == MET for r in rows)
     unmet = sum(r["status"] == UNMET for r in rows)
-    unknown = len(rows) - met - unmet
+    na = sum(r["status"] == "NOT_APPLICABLE" for r in rows)
+    unknown = len(rows) - met - unmet - na
     result = {**spec.as_dict(), "expected_count": len(rows), "evaluated_count": met + unmet,
         "met_count": met, "unmet_count": unmet, "not_proven_count": unknown,
-        "not_applicable_count": 0, "items": rows,
+        "not_applicable_count": na, "items": rows,
         "status": UNMET if unmet else "PARTIAL" if unknown and met else
-                  UNKNOWN if unknown or not rows else MET,
+                  UNKNOWN if unknown or not rows else MET if met else "NOT_APPLICABLE",
         "reason_codes": sorted(set((reasons or []) + [r["reason"] for r in rows if r.get("reason")])),
         "assumptions_notes": notes, "unevaluated_requirements": gaps,
         "source_provenance": provenance, "formal_compliance": UNKNOWN,
