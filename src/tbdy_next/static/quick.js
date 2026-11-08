@@ -318,9 +318,44 @@
         ['VS04 E–J kaynak zinciri: henüz toplanmadı']),
       'Normatif kanıt kapıları: ' + (ledger.proven_check_count ?? '—')
         + '/' + (ledger.expected_check_count ?? '—'),
+      ...(data.story_drift ? ['STORY_DRIFT: ' + data.story_drift.status +
+        ' · Δ hesabı: ' + data.story_drift.evaluated_story_case_direction_count +
+        '/' + data.story_drift.expected_story_case_direction_count] : []),
       'Yönetmelik uygunluğu: NOT_PROVEN',
       'ENGINEERING RELEASE: NOT_READY'
     ]);
+  }
+  function renderStoryDrift(record) {
+    const host = byId("vs04Report");
+    if (!host || !record) return;
+    host.append(make("h3", "STORY_DRIFT · " + record.status));
+    host.append(make("p", "Kaynak sayısal sonuç: " +
+      record.evaluated_story_case_direction_count + "/" +
+      record.expected_story_case_direction_count +
+      " · TBDY uygunluğu NOT_PROVEN", "warn"));
+    if (record.reason_codes?.length)
+      host.append(make("p", "Açık: " + record.reason_codes.join(", "), "warn"));
+    const table = make("table", undefined, "modal-source-table");
+    const head = make("thead"); const hr = make("tr");
+    for (const s of ["Kat", "Vaka", "Yön", "h (m)", "Drift", "Δ (mm)", "Fark (mm)"])
+      hr.append(make("th", s));
+    head.append(hr); table.append(head);
+    const body = make("tbody");
+    for (const r of (record.items || [])) {
+      const tr = make("tr");
+      for (const v of [r.story, r.case, r.direction, r.height_m,
+                       r.etabs_story_drift_ratio, r.etabs_derived_delta_mm,
+                       r.etabs_reconciliation_residual_mm])
+        tr.append(make("td", v ?? "—"));
+      body.append(tr);
+    }
+    table.append(body); const scroller = make("div", undefined, "modal-table-scroll");
+    scroller.append(table); host.append(scroller);
+    if (record.missing_story_case_direction?.length) {
+      const missing = record.missing_story_case_direction.map(x =>
+        x.story + "/" + x.case + "/" + x.direction).join(", ");
+      host.append(make("p", "Eksik kapsam: " + missing, "warn"));
+    }
   }
   function useReport(report, extra, vs04, vs04Numerics, vs04Readiness, vs04Pipeline, fullRun) {
     latest = report;
@@ -331,6 +366,7 @@
     latestVs04Pipeline = vs04Pipeline || null;
     renderUnifiedTrees(fullRun);
     renderVs04();
+    renderStoryDrift(fullRun?.story_drift || null);
     renderExtras(active);
     renderQuick(report, 7);
     renderQuick(report, 11);
