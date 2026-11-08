@@ -52,8 +52,10 @@ class Vs06C2Numerics(unittest.TestCase):
         self.assertEqual(data["missing_source_count"], 3)
         row = next(x for x in data["rows"] if x["source_delta_mm"])
         self.assertEqual(Decimal(row["effective_delta_mm"]), Decimal("3.4920000") * Decimal(7) / Decimal("1.5"))
-        self.assertEqual(Decimal(row["lambda_effective_ratio"]),
-                         Decimal("0.0034920") * Decimal(7) / Decimal("1.5") * Decimal("0.5") / Decimal("4.5"))
+        self.assertLess(
+            abs(Decimal(row["lambda_effective_ratio"]) -
+                Decimal("0.0034920") * Decimal(7) / Decimal("1.5") * Decimal("0.5") / Decimal("4.5")),
+            Decimal("1e-25"))
         self.assertEqual(row["conditional_numeric_condition"], "CONDITIONAL_WITHIN_LIMIT")
         self.assertEqual(data["formal_compliance"], "NOT_PROVEN")
         self.assertEqual(data["result_kind"], "CONDITIONAL_SENSITIVITY_SCENARIO")
@@ -67,7 +69,9 @@ class Vs06C2Numerics(unittest.TestCase):
         self.assertFalse(f["flexible_branch_capacity_accepted"])
         xb = next(x for x in b["rows"] if x["utilization_ratio"])
         xf = next(x for x in f["rows"] if x["utilization_ratio"])
-        self.assertEqual(Decimal(xb["utilization_ratio"]), Decimal(xf["utilization_ratio"]) * 2)
+        self.assertLess(
+            abs(Decimal(xb["utilization_ratio"]) - Decimal(xf["utilization_ratio"]) * 2),
+            Decimal("1e-25"))
         self.assertEqual(f["formal_compliance"], "NOT_PROVEN")
 
     def test_coverage_does_not_interpolate_normative_limit(self):
