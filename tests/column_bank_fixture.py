@@ -1,5 +1,6 @@
 """Synthetic native ZIP builder. No model data or production arithmetic oracle."""
 from collections import Counter
+from contextlib import closing
 import gzip
 from hashlib import sha256
 from io import BytesIO
@@ -132,8 +133,9 @@ def subset(full):
 
 
 def historical_db(path):
-    with sqlite3.connect(path) as db:
+    with closing(sqlite3.connect(path)) as db:
         db.executescript('CREATE TABLE wall_reactions (id); CREATE TABLE pier_forces (id); '
             'CREATE TABLE d7b3_column_console (story TEXT, output_case TEXT, column_P_kN REAL);')
         db.executemany('INSERT INTO d7b3_column_console VALUES (?,?,?)',
             [("SYNTHETIC_STORY", case, value) for case, value in (("G", -300), ("Q", -75), ("SUM", -540))])
+        db.commit()
