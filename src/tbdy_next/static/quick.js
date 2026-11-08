@@ -27,6 +27,7 @@
   printButton.className = 'go'; printButton.type = 'button';
   printButton.textContent = 'Mühendislik raporu / PDF';
   let selectedRunId = '';
+  let activeScenarioQuery = '';
   function setExportRun(runId, caption) {
     if (!/^RUN-[a-f0-9]{32}$/.test(runId || '')) return;
     if (![...chooseRun.options].some(o => o.value === runId)) {
@@ -37,6 +38,7 @@
     }
     chooseRun.value = runId;
     selectedRunId = runId;
+    activeScenarioQuery = '';
     jsonButton.disabled = false;
     printButton.disabled = false;
     exportTitle.textContent = 'Kayıtlı kontrollerin tamamı: kaynak veriler + tüm eleman satırları.';
@@ -45,6 +47,8 @@
   printButton.disabled = true;
   chooseRun.addEventListener('change', () => {
     selectedRunId = chooseRun.value;
+    activeScenarioQuery = '';
+    byId('c2Report')?.replaceChildren();
     const chosen = cachedHistory.find(r => r.run_id === selectedRunId);
     if (chosen) {
       useReport(chosen.geometry, chosen.extra_checks, chosen.vs04_schema, chosen.vs04_numerics, chosen.vs04_readiness, chosen.vs04_pipeline, chosen);
@@ -58,11 +62,11 @@
   });
   jsonButton.addEventListener('click', () => {
     if (!selectedRunId) return;
-    window.location.assign('/api/export-checks?run_id=' + encodeURIComponent(selectedRunId));
+    window.location.assign('/api/export-checks?run_id=' + encodeURIComponent(selectedRunId) + activeScenarioQuery);
   });
   printButton.addEventListener('click', () => {
     if (!selectedRunId) return;
-    window.open('/report/print?run_id=' + encodeURIComponent(selectedRunId), '_blank', 'noopener');
+    window.open('/report/print?run_id=' + encodeURIComponent(selectedRunId) + activeScenarioQuery, '_blank', 'noopener');
   });
   exportActions.append(exportTitle, chooseRun, jsonButton, printButton);
   const reportStatus = byId('quickStatus');
@@ -444,6 +448,88 @@
       button.disabled = false;
     }
   }
+  // C2: one read-only source-numeric scenario per selected archived run.
+  // Does not invoke COM, alter the original receipt or introduce a second live button.
+  const C2_FIELDS = {
+    r: 'c2R', i: 'c2I', lambda: 'c2Lambda', material: 'c2Material',
+    wall_type: 'c2WallType', flexible_proven: 'c2FlexibleProven',
+    wall_mode: 'c2WallMode', coverage_pct: 'c2Coverage',
+    wall_height_m: 'c2WallHeight', opening_pct: 'c2Opening', thickness_m: 'c2Thickness'
+  };
+  function c2Query() {
+    const query = new URLSearchParams();
+    for (const [key, id] of Object.entries(C2_FIELDS)) {
+      const el = byId(id);
+      query.set(key, key === 'flexible_proven' ? (el.checked ? 'true' : 'false') : el.value);
+    }
+    return '&' + query.toString();
+  }
+  async function calculateC2() {
+    const status = byId('c2Status');
+    const host = byId('c2Report');
+    const button = byId('c2Calculate');
+    if (!selectedRunId) {
+      status.textContent = 'Önce mevcut ETABS rapor kaydını seçin.';
+      return;
+    }
+    button.disabled = true;
+    host.replaceChildren();
+    status.textContent = 'ETABS arşivinden sayısal hesap yürütülüyor (yeni COM bağlantısı yok)…';
+    try {
+      const query = c2Query();
+      const url = '/api/vs06-drift-scenario?run_id=' + encodeURIComponent(selectedRunId) + query;
+      const response = await fetch(url, {cache:'no-store'});
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'HTTP ' + response.status);
+      if (data.formal_compliance !== 'NOT_PROVEN' || data.engineering_release !== 'NOT_READY'
+          || !Array.isArray(data.rows) || !data.scenario_sha256) {
+        throw new Error('VS06_SCENARIO_CONTRACT_INCOMPLETE');
+      }
+      activeScenarioQuery = query;
+      status.textContent = 'Koşullu hesap: ' + data.source_numeric_count + '/' +
+        data.expected_story_direction_count + ' kat/yön; sınır içinde: ' +
+        data.conditional_within_count + '; sınırı aşan: ' +
+        data.conditional_exceeds_count + '. Yönetmelik uygunluğu NOT_PROVEN.';
+      host.append(make('p', 'TBDY 2018 Denk.(4.32)-(4.34) · kaynak: ETABS Story Drifts × h · R/I ve λ kullanıcı senaryosu.', 'muted small'));
+      if (data.flexible_capacity_warning)
+        host.append(make('p', 'Esnek dolgu için gerekli bağlantı kapasitesi belgesi sağlanmadı; 0.016κ sınırı yalnız senaryodur.', 'warn'));
+      const wall = data.wall_candidate_inventory || {};
+      host.append(make('p', 'LC_WALL: ' + wall.source_status +
+        ' · Duvar adayı kiriş: ' + wall.candidate_beam_count +
+        ' · Tahmini dolgu uzunluğu (m): ' + (wall.candidate_total_length_m ?? '—') +
+        ' · Net dolgu yüzeyi (m²): ' + (wall.assumed_net_face_area_m2 ?? '—') +
+        '. Fiziksel duvar envanteri yerine geçmez.', 'muted small'));
+      const scroller = make('div', undefined, 'modal-table-scroll');
+      const table = make('table', undefined, 'modal-source-table');
+      const thead = make('thead');
+      const header = make('tr');
+      for (const h of ['Kat', 'Yön', 'Vaka', 'Δ kaynak (mm)', 'δ senaryo (mm)', 'λδ/h', 'Sınır', 'Kullanım', 'Koşullu sonuç']) {
+        const th = make('th', h);
+        header.append(th);
+      }
+      thead.append(header); table.append(thead);
+      const tbody = make('tbody');
+      for (const row of data.rows) {
+        const tr = make('tr');
+        for (const value of [row.story, row.direction, row.case,
+                             row.source_delta_mm, row.effective_delta_mm,
+                             row.lambda_effective_ratio, row.limit,
+                             row.utilization_ratio, row.conditional_numeric_condition])
+          tr.append(make('td', value ?? '—'));
+        tbody.append(tr);
+      }
+      table.append(tbody); scroller.append(table); host.append(scroller);
+      host.append(make('p', 'Senaryo SHA-256: ' + data.scenario_sha256 +
+        ' · Aynı seçenekler ile Tam JSON / Mühendislik raporu düğmeleri aynı hesap tablosunu dışa aktarır.', 'micro'));
+    } catch (err) {
+      activeScenarioQuery = '';
+      status.textContent = 'VS06-C2 sayısal hesap başarısız: ' + err.message;
+      host.replaceChildren();
+    } finally {
+      button.disabled = false;
+    }
+  }
+  byId('c2Calculate')?.addEventListener('click', calculateC2);
   window.renderQuickChecksForTab = tab => {renderQuick(latest, tab);renderExtras(tab);};
   byId('runAllBtn')?.addEventListener('click', runSuite);
   loadRegistry();
