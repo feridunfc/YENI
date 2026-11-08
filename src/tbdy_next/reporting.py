@@ -198,6 +198,17 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         except (ValueError, TypeError, KeyError) as exc:
             raise ReportUnavailable("VS06 slot ledger cannot be reconciled") from exc
 
+    # VS06-B is another read-only evidence projection. No change to original
+    # VS05 receipt, check inventory, or the existing one-button COM workflow.
+    vs06_physical_source_review = None
+    if vs06_slot_ledger is not None:
+        from .story_physical_source import review_story_physical_source
+        try:
+            vs06_physical_source_review = review_story_physical_source(
+                source["vs05_delta_source"], story_drift, vs06_slot_ledger)
+        except (ValueError, TypeError, KeyError) as exc:
+            raise ReportUnavailable("VS06 physical-source review cannot be reconciled") from exc
+
     frame_rows = ((geometry_source or {}).get("tables", {}).get("FRAME_ASSIGNMENTS", {})
                   .get("rows", []) or [])
     frame_types = dict(sorted(Counter(str(row.get("Type", "UNKNOWN")) for row in frame_rows).items()))
@@ -271,6 +282,8 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         **({"story_drift": story_drift} if story_drift is not None else {}),
         **({"vs06_story_slot_ledger": vs06_slot_ledger}
            if vs06_slot_ledger is not None else {}),
+        **({"vs06_physical_source_review": vs06_physical_source_review}
+           if vs06_physical_source_review is not None else {}),
         "vs03": new_checks,
         "checks": checks,
         "modal_source_table": {
@@ -509,6 +522,36 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
                     ("physical_applicability", "Fiziksel uygulanabilirlik"),
                     ("normative_status", "TBDY durumu"), ("reason_code", "Açık kanıt")),
                    ledger.get("slots", [])) + '</section>')
+
+    physical = report.get("vs06_physical_source_review")
+    if isinstance(physical, Mapping):
+        vs04_sections.append(
+            '<section class="percheck"><h2>VS06-B · Fiziksel kaynak ve spektral eşzamanlılık kanıtı</h2>'
+            '<p>Gözlenen kolon bağlantısı: ' + _val(physical.get("endpoint_linked_column_count")) +
+            ' / ' + _val(physical.get("observed_column_count")) +
+            '; bağımsız RSX/RSY nokta maksimumu: ' +
+            _val(physical.get("response_spectrum_independent_max_rows")) +
+            '; eşzamanlı tasarım deplasman çifti kanıtlanan: ' +
+            _val(physical.get("signed_concurrent_spectrum_design_pairs_proven")) +
+            '. Kolonların gözlenmesi tam bina sayımı değildir; yokluk kapsam dışılık '
+            'değildir. Fiziksel uygulanabilirlik ve yönetmelik uygunluğu NOT_PROVEN.</p>' +
+            '<h3>Kat bazında gözlenen bağlantılar</h3>' +
+            _table((("story", "Kat"), ("assigned_columns_observed", "Atanan kolon"),
+                    ("endpoint_linked_columns_observed", "Uçları eşlenen"),
+                    ("member_presence_evidence", "Kaynak bulgusu"),
+                    ("physical_story_applicability", "Uygulanabilirlik")),
+                   physical.get("observed_stories", [])) +
+            '<h3>Kat / spektral vaka / yön kanıt sınırı</h3>' +
+            _table((("story", "Kat"), ("case", "Vaka"), ("direction", "Yön"),
+                    ("source_status", "Ötelenme kaynağı"),
+                    ("member_presence_evidence", "Fiziksel kaynak"),
+                    ("physical_applicability", "Uygulanabilirlik"),
+                    ("signed_concurrent_spectrum_delta_available", "Eşzamanlı Δ"),
+                    ("regulatory_status", "Yönetmelik")),
+                   physical.get("slots", [])) +
+            '<h3>Çözümlenemeyen kolon uç bağlantıları</h3>' +
+            _table((("column", "Kolon"), ("story", "Kat"), ("reason", "Açık kanıt")),
+                   physical.get("unresolved_columns", [])) + '</section>')
 
     a1_warnings = [
         c for c in extras if c.get("check_id") in ("a1_torsion_x", "a1_torsion_y")
