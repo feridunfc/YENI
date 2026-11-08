@@ -531,6 +531,120 @@
     }
   }
   byId('c2Calculate')?.addEventListener('click', calculateC2);
+
+  let b1Result = null;
+  function b1Table(host, headers, rows) {
+    const scroll=make('div', undefined, 'modal-table-scroll');
+    const table=make('table', undefined, 'modal-source-table');
+    const thead=make('thead'), tr=make('tr');
+    for(const heading of headers)tr.append(make('th',heading));
+    thead.append(tr);table.append(thead);
+    const tbody=make('tbody');
+    for(const values of rows){
+      const row=make('tr');
+      for(const value of values)row.append(make('td',value===null||value===undefined?'—':String(value)));
+      tbody.append(row);
+    }
+    table.append(tbody);scroll.append(table);host.append(scroll);
+  }
+  function b1CurrentOptions(){
+    return {
+      wall_type:byId('c2WallType').value,
+      unit_weight_kN_m3:byId('b1Gamma').value,
+      unit_weight_min_kN_m3:byId('b1GammaMin').value,
+      unit_weight_max_kN_m3:byId('b1GammaMax').value,
+      opening_fraction:byId('b1Opening').value,
+      low_load_ratio_cutoff:byId('b1Cutoff').value,
+      shear_modulus_mpa:byId('b1Shear').value,
+      R_base:byId('c2R').value
+    };
+  }
+  async function calculateB1(){
+    const status=byId('b1Status'),host=byId('b1Result'),btn=byId('b1Calculate');
+    const a=byId('b1GeometryFile').files[0],b=byId('b1WallFile').files[0];
+    if(!a||!b){status.textContent='B1_GEOMETRY ve LC_WDL_OBJECT JSON kaynaklarının ikisini de seçin.';return;}
+    if(a.size+b.size>6*1024*1024){
+      status.textContent='B1 kaynakları toplamı 6 MB sınırını geçiyor; güvenli yükleme yapılamadı.';return;
+    }
+    btn.disabled=true;
+    byId('b1Json').disabled=true;
+    byId('b1Html').disabled=true;
+    b1Result=null;host.replaceChildren();
+    status.textContent='Gerçek kaynaklar X/Y eleman, LC_WDL ve B1 kuralına eşleniyor…';
+    try{
+      const [geometry,wall_loads]=await Promise.all([a.text(),b.text()]);
+      const payload={geometry:JSON.parse(geometry),wall_loads:JSON.parse(wall_loads),
+                     options:b1CurrentOptions()};
+      const response=await fetch('/api/vs06-b1-preview',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(payload),cache:'no-store'
+      });
+      const body=await response.json();
+      if(!response.ok)throw new Error(body.error||'B1_HTTP_'+response.status);
+      if(!body.result||!body.html||body.result.formal_compliance!=='NOT_PROVEN'
+         ||body.result.b1_numerical?.formal_compliance!=='NOT_PROVEN'){
+        throw new Error('B1_SOURCE_RESULT_CONTRACT_INVALID');
+      }
+      b1Result=body;
+      const r=body.result,number=r.b1_numerical;
+      status.textContent='B1 X/Y: '+r.source_candidate_wall_beams+' LC_WDL kiriş, '+
+        r.source_wall_load_rows+' gerçek atama; ηci,min='+number.eta_ci_min+
+        ' · '+number.numeric_condition+' · resmî uygunluk NOT_PROVEN.';
+      host.append(make('p','TBDY Tablo 3.6 · 3.6.2.3 · Aw + Ag + 0.15Ak. Ak yükten tuğla kalınlığı ve boşluk senaryosuyla tahmin edilmiştir.','muted small'));
+      const data=[];
+      for(const story of r.story_direction_areas){
+        for(const d of ['X','Y']){
+          const x=story[d];
+          data.push([story.story,d,story.column_count,x.wall_count,x.loaded_beam_count,
+            x.loaded_beam_length_m,x.column_Aw_m2,x.wall_Ag_m2,
+            x.infill_Ak_assumed_m2,x.infill_shear_stiffness_proxy_kN_m]);
+        }
+      }
+      b1Table(host,['Kat','Yön','Kolon','Perde','LC_WDL kiriş','L yüklü m',
+        'Aw m²','Ag m²','Ak varsayım m²','K_proxy kN/m'],data);
+      host.append(make('h3','B1 kat komşuluğu ve sayısal ηci'));
+      b1Table(host,['Alt','Üst','Yön','Ae alt','Ae üst','ηci','Sayısal karar'],
+        number.paired_results.map(p=>[p.lower_story,p.upper_story,p.direction,p.Ae_lower_m2,
+                                     p.Ae_upper_m2,p.eta_ci,p.numeric_condition]));
+      const notes=make('details');notes.append(make('summary','Varsayımlar ve tüm 9/19 cm duvar sınıflandırmaları'));
+      const ul=make('ol');
+      for(const item of r.assumptions_notes)ul.append(make('li',item));
+      notes.append(ul);
+      b1Table(notes,['ETABS kiriş','Kat','Yön','h_net m','q kN/m','t m',
+                     'Açıklık','Ak m²','K_proxy kN/m'],
+        r.beam_assumptions.map(x=>[x.beam_id,x.story,x.direction,x.clear_wall_height_m,
+          x.line_load_total_kN_m,x.thickness_m,x.assumed_opening_fraction,
+          x.assumed_Ak_m2,x.assumed_stiffness_proxy_kN_m]));
+      host.append(notes);
+      host.append(make('p','B1 sonuç SHA-256: '+r.result_sha256+
+        ' · Model nesli ve tuğla malzemesi ayrıca yetkilendirilmedi.','micro'));
+      byId('b1Json').disabled=false;byId('b1Html').disabled=false;
+    }catch(err){
+      b1Result=null;status.textContent='B1 sayısal kaynak hesabı reddedildi: '+err.message;
+      host.replaceChildren();
+    }finally{
+      btn.disabled=false;
+    }
+  }
+  function b1Download(filename,content,mime,openWindow){
+    const url=URL.createObjectURL(new Blob([content],{type:mime}));
+    if(openWindow){
+      window.open(url,'_blank','noopener');
+    }else{
+      const a=document.createElement('a');a.href=url;a.download=filename;
+      document.body.append(a);a.click();a.remove();
+    }
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+  }
+  byId('b1Calculate')?.addEventListener('click',calculateB1);
+  byId('b1Json')?.addEventListener('click',()=>{
+    if(b1Result)b1Download('B1_SOURCE_NUMERIC.json',
+      JSON.stringify(b1Result.result,null,2)+'\n','application/json;charset=utf-8',false);
+  });
+  byId('b1Html')?.addEventListener('click',()=>{
+    if(b1Result)b1Download('B1_SOURCE_NUMERIC.html',
+      b1Result.html,'text/html;charset=utf-8',true);
+  });
   window.renderQuickChecksForTab = tab => {renderQuick(latest, tab);renderExtras(tab);};
   byId('runAllBtn')?.addEventListener('click', runSuite);
   loadRegistry();
