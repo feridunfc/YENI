@@ -209,6 +209,23 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         except (ValueError, TypeError, KeyError) as exc:
             raise ReportUnavailable("VS06 physical-source review cannot be reconciled") from exc
 
+    # VS06-C1: compile the existing 94-node candidate graph into the
+    # expected STORY_DIRECTION denominator and blocked normative readiness.
+    # The source-verified VS05 receipt remains immutable.
+    vs06_effective_drift_readiness = None
+    if vs06_physical_source_review is not None:
+        from .compiled_dag import read_candidate_catalog
+        from .effective_drift_readiness import review_effective_drift_readiness
+        try:
+            catalog_path = (Path(__file__).resolve().parents[2] / "config" /
+                            "dag" / "tbdy_r1c_94_candidate.json")
+            catalog = read_candidate_catalog(catalog_path)
+            vs06_effective_drift_readiness = review_effective_drift_readiness(
+                source["vs05_delta_source"], story_drift, vs06_slot_ledger,
+                vs06_physical_source_review, catalog)
+        except (OSError, UnicodeError, ValueError, TypeError, KeyError) as exc:
+            raise ReportUnavailable("VS06-C1 effective drift readiness invalid") from exc
+
     frame_rows = ((geometry_source or {}).get("tables", {}).get("FRAME_ASSIGNMENTS", {})
                   .get("rows", []) or [])
     frame_types = dict(sorted(Counter(str(row.get("Type", "UNKNOWN")) for row in frame_rows).items()))
@@ -284,6 +301,8 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
            if vs06_slot_ledger is not None else {}),
         **({"vs06_physical_source_review": vs06_physical_source_review}
            if vs06_physical_source_review is not None else {}),
+        **({"vs06_effective_drift_readiness": vs06_effective_drift_readiness}
+           if vs06_effective_drift_readiness is not None else {}),
         "vs03": new_checks,
         "checks": checks,
         "modal_source_table": {
@@ -552,6 +571,32 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
             '<h3>Çözümlenemeyen kolon uç bağlantıları</h3>' +
             _table((("column", "Kolon"), ("story", "Kat"), ("reason", "Açık kanıt")),
                    physical.get("unresolved_columns", [])) + '</section>')
+
+    readiness = report.get("vs06_effective_drift_readiness")
+    if isinstance(readiness, Mapping):
+        vs04_sections.append(
+            '<section class="percheck"><h2>VS06-C1 · TBDY 4.9 etkin göreli kat ötelemesi hesap hazırlığı</h2>'
+            '<p>94 düğümlü mevcut DAG üzerinden beklenen kat/yön kontrolleri: ' +
+            _val(readiness.get("expected_story_direction_instances")) +
+            '; ETABS kaynak-nümerik aday bulunan: ' +
+            _val(readiness.get("source_numeric_primary_instances")) +
+            '; temel kaynak eksiği: ' +
+            _val(readiness.get("source_missing_primary_instances")) +
+            '; aday FCR NOT_PROVEN: ' +
+            _val(readiness.get("candidate_fcr_not_proven")) +
+            '. Denk. (4.32)–(4.34) formel hesabı henüz yürütülmedi. '
+            'Kaynak maksimumları eşzamanlı tasarım deplasmanı değildir. '
+            'Boş tanımlı kotlar kanıt olmadan kapsam dışı sayılamaz.</p>' +
+            _table((("check_instance_id", "DAG CheckInstance"),
+                    ("case", "ETABS vakası"), ("source_numeric_status", "Kaynak"),
+                    ("etabs_derived_delta_mm_candidate", "Kaynak Δ adayı (mm)"),
+                    ("member_presence_evidence", "Fiziksel kaynak"),
+                    ("physical_applicability", "Uygulanabilirlik"),
+                    ("formula_execution", "Denklem yürütümü"),
+                    ("regulatory_status", "TBDY durumu"),
+                    ("required_source_evidence", "Eksik normatif kanıt")),
+                   readiness.get("check_instances", [])) +
+            '</section>')
 
     a1_warnings = [
         c for c in extras if c.get("check_id") in ("a1_torsion_x", "a1_torsion_y")
