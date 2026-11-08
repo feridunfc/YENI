@@ -453,7 +453,7 @@
   const C2_FIELDS = {
     r: 'c2R', i: 'c2I', lambda: 'c2Lambda', material: 'c2Material',
     wall_type: 'c2WallType', flexible_proven: 'c2FlexibleProven',
-    wall_mode: 'c2WallMode', coverage_pct: 'c2Coverage',
+    wall_mode: 'c2WallMode', wall_load_pattern: 'c2WallLoadPattern', coverage_pct: 'c2Coverage',
     wall_height_m: 'c2WallHeight', opening_pct: 'c2Opening', thickness_m: 'c2Thickness',
     manual_wall_length_m: 'c2ManualLength'
   };
@@ -495,7 +495,7 @@
       if (data.flexible_capacity_warning)
         host.append(make('p', 'Esnek dolgu için gerekli bağlantı kapasitesi belgesi sağlanmadı; 0.016κ sınırı yalnız senaryodur.', 'warn'));
       const wall = data.wall_candidate_inventory || {};
-      host.append(make('p', 'LC_WALL: ' + wall.source_status +
+      host.append(make('p', 'Yük deseni ' + (wall.load_pattern || 'LC_WDL') + ': ' + wall.source_status +
         ' · Duvar adayı kiriş: ' + wall.candidate_beam_count +
         ' · Tahmini dolgu uzunluğu (m): ' + (wall.candidate_total_length_m ?? '—') +
         ' · Net dolgu yüzeyi (m²): ' + (wall.assumed_net_face_area_m2 ?? '—') +
