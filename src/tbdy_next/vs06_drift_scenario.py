@@ -19,7 +19,8 @@ SCHEMA = "tbdy.next.vs06.c2.drift-scenario.v1"
 DEFAULTS = {
     "r": "7", "i": "1.5", "lambda": "0.5", "material": "RC",
     "wall_type": "BRITTLE", "flexible_proven": "false",
-    "wall_mode": "LC_WALL_BEAM_CANDIDATE",
+    "wall_mode": "LOAD_PATTERN_BEAM_CANDIDATE",
+    "wall_load_pattern": "LC_WDL",
     "coverage_pct": "100", "wall_height_m": "2.8",
     "opening_pct": "0", "thickness_m": "0.19",
     "manual_wall_length_m": "0",
@@ -60,8 +61,16 @@ def options(raw: Mapping[str, Any] | None) -> dict[str, str]:
         raise DriftScenarioError("WALL_TYPE_NOT_SUPPORTED")
     if merged["flexible_proven"] not in ("true", "false"):
         raise DriftScenarioError("FLEXIBLE_CAPACITY_FLAG_INVALID")
-    if merged["wall_mode"] not in ("MANUAL", "LC_WALL_BEAM_CANDIDATE"):
+    if merged["wall_mode"] == "LC_WALL_BEAM_CANDIDATE":
+        # Preserve early C2 scenario clients; this old mode ID never
+        # chooses LC_WALL as an actual ETABS load pattern.
+        merged["wall_mode"] = "LOAD_PATTERN_BEAM_CANDIDATE"
+    if merged["wall_mode"] not in ("MANUAL", "LOAD_PATTERN_BEAM_CANDIDATE"):
         raise DriftScenarioError("WALL_MODE_INVALID")
+    pattern = merged["wall_load_pattern"]
+    if (not pattern or len(pattern) > 120 or pattern.strip() != pattern
+            or any(ord(ch) < 32 or ord(ch) == 127 for ch in pattern)):
+        raise DriftScenarioError("WALL_LOAD_PATTERN_INVALID")
     _positive(merged["r"], "R", maximum="20")
     _positive(merged["i"], "I", maximum="5")
     _positive(merged["lambda"], "LAMBDA", maximum="10")
@@ -80,7 +89,7 @@ def _wall_candidates(report: Mapping[str, Any], opts: Mapping[str, str]) -> dict
     With unknown ETABS field names/units, candidacy remains unavailable.
     """
     base = {
-        "load_pattern": "LC_WALL", "source_status": "NO_AUTO_WALL_CENSUS",
+        "load_pattern": opts["wall_load_pattern"], "source_status": "NO_AUTO_WALL_CENSUS",
         "candidate_beam_count": 0, "candidate_total_length_m": None,
         "assumed_net_face_area_m2": None,
         "assumed_wall_volume_m3": None, "candidate_beams": [],
@@ -99,34 +108,34 @@ def _wall_candidates(report: Mapping[str, Any], opts: Mapping[str, str]) -> dict
                 "assumed_net_face_area_m2": str(area),
                 "assumed_wall_volume_m3": str(area * _positive(opts["thickness_m"], "THICKNESS")),
                 "interpretation": "Manual wall length, height, coverage and openings are scenario inputs, not ETABS-confirmed physical walls."}
-    if opts["wall_mode"] != "LC_WALL_BEAM_CANDIDATE":
+    if opts["wall_mode"] != "LOAD_PATTERN_BEAM_CANDIDATE":
         return manual_inventory("USER_MANUAL_WALL_LENGTH_NOT_GIVEN")
     source = report.get("source_snapshot") or {}
     capture = source.get("vs06_wall_load_source")
     if not isinstance(capture, Mapping):
-        return manual_inventory("LC_WALL_SOURCE_NOT_CAPTURED")
+        return manual_inventory("LOAD_PATTERN_SOURCE_NOT_CAPTURED")
     try:
         _verify_generic_capture(capture)
     except (ValueError, TypeError) as exc:
-        raise DriftScenarioError("LC_WALL_CAPTURE_INTEGRITY_FAILURE") from exc
+        raise DriftScenarioError("LOAD_PATTERN_CAPTURE_INTEGRITY_FAILURE") from exc
     table = (capture.get("table_reads") or {}).get("Frame Loads - Distributed")
     if not isinstance(table, Mapping) or table.get("status") != "CAPTURED":
-        return manual_inventory("LC_WALL_LOAD_TABLE_MISSING")
+        return manual_inventory("LOAD_PATTERN_LOAD_TABLE_MISSING")
     fields = table.get("fields")
     meta = table.get("field_metadata") or {}
     if (not isinstance(fields, list) or meta.get("status") != "OK" or
             not {"UniqueName", "LoadPat"}.issubset(fields) or
             not {"UniqueName", "LoadPat"}.issubset(meta.get("field_keys") or [])):
-        return manual_inventory("LC_WALL_FIELD_BINDING_UNREVIEWED")
+        return manual_inventory("LOAD_PATTERN_FIELD_BINDING_UNREVIEWED")
     rows = table.get("rows")
     if not isinstance(rows, list) or table.get("row_count") != len(rows):
-        raise DriftScenarioError("LC_WALL_ROW_CENSUS_CORRUPT")
+        raise DriftScenarioError("LOAD_PATTERN_ROW_CENSUS_CORRUPT")
     geometry = (source.get("geometry_capture") or {}).get("tables") or {}
     frames = ((geometry.get("FRAME_ASSIGNMENTS") or {}).get("rows")) or []
     beam_ids = {r.get("UniqueName") for r in frames if
                 isinstance(r, Mapping) and str(r.get("Type", "")).casefold() == "beam"}
     ids = sorted({r.get("UniqueName") for r in rows
-                  if isinstance(r, Mapping) and r.get("LoadPat") == "LC_WALL"
+                  if isinstance(r, Mapping) and r.get("LoadPat") == opts["wall_load_pattern"]
                   and r.get("UniqueName") in beam_ids})
     # Full beam lengths require separately observed, typed geometric Length
     # metadata; load magnitude/distance alone never establishes wall height.
@@ -153,8 +162,10 @@ def _wall_candidates(report: Mapping[str, Any], opts: Mapping[str, str]) -> dict
             * (Decimal(1)-_positive(opts["opening_pct"], "OPENING", zero=True)/100)
             if total is not None else None)
     thickness = _positive(opts["thickness_m"], "THICKNESS")
-    return {**base, "source_status": ("LC_WALL_BEAM_CANDIDATE_GEOMETRY"
-                   if complete else "LC_WALL_BEAMS_OBSERVED_LENGTH_UNQUALIFIED"),
+    return {**base, "source_status": (
+                 "LOAD_PATTERN_BEAM_CANDIDATE_GEOMETRY" if complete
+                 else "LOAD_PATTERN_NO_MATCHING_BEAMS" if not ids
+                 else "LOAD_PATTERN_BEAMS_OBSERVED_LENGTH_UNQUALIFIED"),
             "candidate_beam_count": len(ids),
             "candidate_total_length_m": str(total) if total is not None else None,
             "assumed_net_face_area_m2": str(area) if area is not None else None,
