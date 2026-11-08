@@ -191,6 +191,44 @@ def make_handler(output_root: Path, *, live_capture=None):
 
         def do_POST(self) -> None:
             url = urlsplit(self.path)
+            if url.path == "/api/vs06-b1-preview":
+                # Read-only mathematical preview of two independently SHA-sealed
+                # ETABS captures. No COM call, no receipt mutation and no
+                # uploaded source echoed to an external service.
+                origin = self.headers.get("Origin")
+                host = self.headers.get("Host", "")
+                if (self.headers.get("Sec-Fetch-Site") == "cross-site"
+                        or (origin and origin != "http://" + host)):
+                    self.reply(403, {"error": "CROSS_ORIGIN_DENIED"})
+                    return
+                try:
+                    length = int(self.headers.get("Content-Length", ""))
+                except ValueError:
+                    length = -1
+                if length < 1 or length > MAX_UPLOAD_BYTES or self.headers.get("Transfer-Encoding"):
+                    self.reply(413, {"error": "VS06_B1_PREVIEW_SIZE_INVALID",
+                                     "max_bytes": MAX_UPLOAD_BYTES})
+                    return
+                try:
+                    raw = self.rfile.read(length)
+                    data = json.loads(raw.decode("utf-8"))
+                    if not isinstance(data, dict) or set(data) != {"geometry", "wall_loads", "options"}:
+                        raise ValueError("VS06_B1_PREVIEW_PAYLOAD_SHAPE")
+                    options = data["options"]
+                    if not isinstance(options, dict) or set(options) - {
+                        "wall_type", "unit_weight_kN_m3",
+                        "unit_weight_min_kN_m3", "unit_weight_max_kN_m3",
+                        "opening_fraction", "low_load_ratio_cutoff",
+                        "shear_modulus_mpa", "R_base"}:
+                        raise ValueError("VS06_B1_PREVIEW_OPTIONS_INVALID")
+                    from .b1_source_bridge import evaluate_b1_sources
+                    from tools.verify_vs06_b1_sources import render_b1_html
+                    result = evaluate_b1_sources(data["geometry"], data["wall_loads"], **options)
+                    self.reply(200, {"result": result, "html": render_b1_html(result)})
+                except (UnicodeError, ValueError, TypeError, KeyError, ArithmeticError) as exc:
+                    self.reply(422, {"error": str(exc),
+                                     "formal_compliance": "NOT_PROVEN"})
+                return
             if url.path in ("/api/live-modal", "/api/live-suite", "/api/live-vs04"):
                 # Browser can POST to loopback from a foreign page; reject any
                 # declared cross-site origin before touching the ETABS session.
