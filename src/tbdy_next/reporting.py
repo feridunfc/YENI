@@ -36,8 +36,10 @@ def _load_source(directory: Path, expected_sha: str) -> dict[str, Any]:
     return decoded
 
 
-def _vs05_check_inventory(checks: list[dict], story_drift: dict | None) -> dict:
-    """Keep the eight historical checks and the STORY_DRIFT source check distinct."""
+def _vs05_check_inventory(checks: list[dict], story_drift: dict | None,
+                          b1: Mapping[str, Any] | None = None,
+                          b1_source_status: str | None = None) -> dict:
+    """Separate historical checks and source-derived checks; no fake code PASS."""
     entries = [{"check_id": c["check_id"], "evaluation": "BOUNDED_EXISTING"}
                for c in checks]
     if story_drift is not None:
@@ -46,6 +48,40 @@ def _vs05_check_inventory(checks: list[dict], story_drift: dict | None) -> dict:
         entries.append({"check_id": "STORY_DRIFT", "evaluation": "SOURCE_NUMERICAL",
                         "status": story_drift["status"],
                         "formal_compliance": "NOT_PROVEN"})
+    if b1 is not None:
+        if (b1.get("check_id") != "WEAK_STORY_B1"
+                or b1.get("formal_compliance") != "NOT_PROVEN"
+                or not isinstance(b1.get("b1_numerical"), Mapping)
+                or b1["b1_numerical"].get("formal_compliance") != "NOT_PROVEN"
+                or b1_source_status != "SOURCE_BOUND_NUMERICAL"):
+            raise ValueError("B1_INVENTORY_SOURCE_CONTRACT_INVALID")
+        numerical = b1["b1_numerical"]
+        pairs = numerical.get("computed_story_direction_pairs")
+        expected = numerical.get("expected_story_direction_pairs")
+        if (type(pairs) is not int or type(expected) is not int
+                or pairs < 1 or pairs != expected):
+            raise ValueError("B1_INVENTORY_PAIR_COUNT_INVALID")
+        entries.append({
+            "check_id": "WEAK_STORY_B1",
+            "evaluation": "CONDITIONAL_SOURCE_NUMERICAL",
+            "status": numerical["numeric_condition"],
+            "source_status": b1_source_status,
+            "evaluated_count": pairs,
+            "expected_count": expected,
+            "formal_compliance": "NOT_PROVEN",
+            "engineering_release": "NOT_READY",
+        })
+    elif b1_source_status is not None:
+        # An attempted B1 source MUST remain visible even when it failed.
+        entries.append({
+            "check_id": "WEAK_STORY_B1",
+            "evaluation": "BLOCKED_SOURCE",
+            "status": "BLOCKED_SOURCE_BINDING",
+            "source_status": b1_source_status,
+            "evaluated_count": 0,
+            "formal_compliance": "NOT_PROVEN",
+            "engineering_release": "NOT_READY",
+        })
     ids = [e["check_id"] for e in entries]
     if len(ids) != len(set(ids)):
         raise ValueError("DUPLICATE_REPORTED_CHECK_ID")
@@ -280,7 +316,15 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         )
     elif vs04:
         source_scope += " (E–J historical source evidence if recorded)"
-    inventory = _vs05_check_inventory(checks, story_drift)
+    inventory = _vs05_check_inventory(
+        checks, story_drift, vs06_b1_result, vs06_b1_source_status)
+    if vs06_b1_result is not None:
+        pair_count = vs06_b1_result["b1_numerical"]["computed_story_direction_pairs"]
+        source_scope += (" + WEAK_STORY_B1 X/Y source numerical "
+                         + str(pair_count) + " physically observed-story pairs"
+                         + " (infill assumptions; TBDY NOT_PROVEN)")
+    elif vs06_b1_source_status is not None:
+        source_scope += " + WEAK_STORY_B1 source BLOCKED (no numeric result)"
     if story_drift is not None:
         source_scope += (" + STORY_DRIFT ETABS-derived source numerical "
                          + str(story_drift["evaluated_story_case_direction_count"])
