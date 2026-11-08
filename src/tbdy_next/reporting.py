@@ -799,6 +799,14 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
             _val(b2["numeric_condition"]) + '. Çözülen komşuluk: ' +
             _val(coverage["resolved"]) + '/' + _val(coverage["expected"]) +
             '; çözülemeyen: ' + _val(coverage["unresolved"]) + '.</p>' +
+            '<details><summary>Kat kotu ve ara nokta eşleştirmesi</summary>' +
+            '<p>Yalnız üst düzlem noktaları kat kotunu destekler. Ara ve alt sınır '
+            'noktaları kat yüksekliğini değiştirmez; tam fiziksel sayım NOT_PROVEN.</p>' +
+            _table((("story", "Kat"), ("lower_elevation_m", "Alt kot (m)"),
+                    ("upper_elevation_m", "Üst kot (m)"), ("at_level_points", "Üst düzlem noktası"),
+                    ("intermediate_points", "Ara kotlu nokta"),
+                    ("lower_boundary_points", "Alt sınır noktası")),
+                   (b2.get("story_order") or {}).get("point_story_span_counts", [])) + '</details>' +
             _table((("story", "Kat"), ("direction", "Yön"), ("case", "Vaka"),
                     ("height_m", "h (m)"), ("average_drift_m", "Avg Drift (m)"),
                     ("status", "Kaynak"), ("reason", "Eksik / hata")),

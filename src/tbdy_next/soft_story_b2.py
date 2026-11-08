@@ -189,22 +189,45 @@ def _levels(source: Mapping[str, Any]) -> tuple[list[StoryLevel], dict]:
         z += heights[row["Story"]]
         levels.append(StoryLevel(row["Story"], z, heights[row["Story"]]))
     point_levels = set()
+    point_counts = {s.story: {
+        "story": s.story, "lower_elevation_m": str(s.elevation_m - s.height_m),
+        "upper_elevation_m": str(s.elevation_m), "at_level_points": 0,
+        "intermediate_points": 0, "lower_boundary_points": 0,
+    } for s in levels}
     point_table = (source.get("table_reads") or {}).get("Point Object Connectivity")
-    if isinstance(point_table, Mapping) and point_table.get("status") == "CAPTURED":
+    points_captured = isinstance(point_table, Mapping) and point_table.get("status") == "CAPTURED"
+    if points_captured:
         points = _read(source, "Point Object Connectivity",
                        ("UniqueName", "Story", "Z"), {"Z": "m"})
-        expected_z = {s.story: s.elevation_m for s in levels}
+        bounds = {s.story: (s.elevation_m - s.height_m, s.elevation_m) for s in levels}
+        tolerance = Decimal("0.000001")
         for row in points:
-            if row["Story"] in expected_z:
-                if abs(dec(row["Z"], "B2_POINT_Z") - expected_z[row["Story"]]) > Decimal("0.000001"):
+            if row["Story"] in bounds:
+                lower, upper = bounds[row["Story"]]
+                point_z = dec(row["Z"], "B2_POINT_Z")
+                # A point assigned to a story may lie inside its vertical span.
+                # Only points at its upper plane corroborate the story elevation;
+                # neither interior points nor lower-boundary points move a level.
+                if point_z < lower - tolerance or point_z > upper + tolerance:
                     raise ValueError("B2_STORY_ORDER_POINT_ELEVATION_CONFLICT:" + row["Story"])
-                point_levels.add(row["Story"])
+                counts = point_counts[row["Story"]]
+                if abs(point_z - upper) <= tolerance:
+                    point_levels.add(row["Story"])
+                    counts["at_level_points"] += 1
+                elif abs(point_z - lower) <= tolerance:
+                    counts["lower_boundary_points"] += 1
+                else:
+                    counts["intermediate_points"] += 1
     return levels, {
         "basis": "OBSERVED_TOP_TO_BOTTOM_TABLE_ORDER_PLUS_BASE_AND_HEIGHTS",
         "base_story": base["BSName"], "base_elevation_m": base["BSElev"],
         "point_elevation_confirmed_stories": sorted(point_levels),
         "stories_without_point_elevation_confirmation": [
             s.story for s in levels if s.story not in point_levels],
+        "point_table_captured": points_captured,
+        "point_story_span_counts": list(point_counts.values()),
+        "intermediate_point_count": sum(r["intermediate_points"] for r in point_counts.values()),
+        "lower_boundary_point_count": sum(r["lower_boundary_points"] for r in point_counts.values()),
         "full_physical_census_proven": False,
     }
 
@@ -247,7 +270,7 @@ def bind_soft_story_b2(source: Mapping[str, Any] | None, *,
         "assumptions_notes": [
             "ETABS Avg Drift / h, ortalama göreli kat ötelemesi oranı ADAYI olarak alınır; ortalama tanımı henüz normatif olarak doğrulanmamıştır.",
             "RSX/X ve RSY/Y aynı vaka ve Max izdüşümünde karşılaştırılır. ±%5 dışmerkezlik kolları ve TBDY 4.7 hesabı bu kayıttan kanıtlanmaz.",
-            "Kat sırası, mevcut ETABS üstten alta tablo sırası ve temel kotu ile kurulur; varsa nokta kotlarıyla çelişki reddedilir.",
+            "Kat kotları, mevcut ETABS üstten alta tablo sırası ve temel kotuyla kurulur. Kat içi ara noktalar yükseklikleri değiştirmez; yalnız üst düzlem noktaları kotu destekler, kat aralığı dışındaki noktalar reddedilir.",
             "Bodrum niteliği ve fiziksel kapsam onaylanmadığından tüm tanımlı katlar korunur; eksik bir kat atlanarak yeni komşuluk kurulmaz.",
             "ηki > 2,0 yalnız koşullu kaynak hesabında eşik aşımıdır; yönetmelik B2 VAR/YOK veya bina PASS kararı değildir. Yuvarlatılmış kaynak hassasiyeti korunur.",
         ],

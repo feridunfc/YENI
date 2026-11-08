@@ -54,11 +54,17 @@ class B2SingleRunTests(unittest.TestCase):
                 for p in self.root.rglob("*") if p.is_file()}
 
     def test_source_to_same_run_json_html_inventory_and_receipts_unchanged(self):
+        points = self.delta["table_reads"]["Point Object Connectivity"]
+        points["rows"].append({"UniqueName": "INTERIOR", "Story": "+3.00",
+                               "X": "0", "Y": "0", "Z": "2.7"})
+        points["row_count"] = len(points["rows"])
+        self.delta = reseal(self.delta)
         run_id = self.create()
         before = self.snapshot()
         report = json.loads(self.get("/api/export-checks?run_id=" + run_id))
         b2 = report["soft_story_b2"]
         self.assertEqual(b2["comparison_coverage"]["resolved"], 8)
+        self.assertEqual(b2["story_order"]["intermediate_point_count"], 1)
         self.assertEqual(b2["threshold_exceeded_comparisons"], 1)
         entries = [e for e in report["check_inventory"]["entries"] if e["check_id"] == "SOFT_STORY_B2"]
         self.assertEqual(len(entries), 1)
@@ -71,6 +77,7 @@ class B2SingleRunTests(unittest.TestCase):
         self.assertIn(b2["result_sha256"], html)
         self.assertIn("THRESHOLD_EXCEEDED", html)
         self.assertIn("Avg Drift", html)
+        self.assertIn("Kat kotu ve ara nokta eşleştirmesi", html)
         self.assertIn("NOT_PROVEN", html)
         self.assertEqual(report["engineering_release"], "NOT_READY")
         self.assertEqual(self.snapshot(), before)

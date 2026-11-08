@@ -30,7 +30,11 @@ Numaralı adım, yinelenmiş vaka/yön kaydı ve bilinmeyen şema reddedilir.
 Bağımsız RS nokta maksimumları çıkarılmaz; bağımsız kat zarfları oluşturulmaz.
 
 Kat sırası mevcut üstten alta ETABS tablo sırasından, BSElev ve yüksekliklerle
-kurulan aday sıradır; varsa nokta Z değerleriyle çelişki reddedilir.
+kurulan aday sıradır. Noktanın Story etiketi üst düzlemde olmasını gerektirmez:
+Z, ilgili [üst kot − h, üst kot] aralığında 10⁻⁶ m toleransıyla denetlenir.
+Yalnız üst düzlem noktaları kotu destekler; ara ve alt sınır noktaları ayrı
+sayılır. Aralık dışı nokta ve ters kat sırası reddedilir. Kotlar/yükseklikler
+noktalara uydurulmaz; destekleyici nokta yokluğu ayrıca açıkça gösterilir.
 Kat adı kot olarak ayrıştırılmaz. Tüm tanımlı katlar korunur; eksik orta
 kat atlanmaz, boş olduğu düşünülen üst kat otomatik dışlanmaz.
 n kat için 2n kaynak yuvası ve 4(n−1) yönlü komşuluk ayrı sayılır.

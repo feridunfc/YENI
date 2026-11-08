@@ -238,6 +238,58 @@ class B2SourceBoundaryTests(unittest.TestCase):
         self.assertEqual(result["status"], "BLOCKED_SOURCE")
         self.assertIn("B2_STORY_ORDER_POINT_ELEVATION_CONFLICT", result["reason_codes"][0])
 
+    def test_intermediate_points_keep_levels_ratios_and_real_floor_anchors(self):
+        source = b2_source()
+        before = bind_soft_story_b2(source)
+        points = source["table_reads"]["Point Object Connectivity"]
+        points["rows"].extend([
+            {"UniqueName": "INNER_LOW", "Story": "Lower", "X": "0", "Y": "0", "Z": "-1"},
+            {"UniqueName": "INNER_MID", "Story": "Middle", "X": "0", "Y": "0", "Z": "2.7"},
+        ])
+        points["row_count"] = len(points["rows"])
+        result = bind_soft_story_b2(reseal(source))
+        self.assertEqual(result["stories"], before["stories"])
+        self.assertEqual(result["items"], before["items"])
+        order = result["story_order"]
+        self.assertEqual(order["point_elevation_confirmed_stories"], ["Lower", "Middle", "Roof"])
+        self.assertEqual(order["intermediate_point_count"], 2)
+        self.assertEqual(order["lower_boundary_point_count"], 0)
+        self.assertFalse(order["full_physical_census_proven"])
+
+    def test_lower_boundary_and_interior_points_do_not_confirm_upper_elevation(self):
+        for z, field in (("0", "lower_boundary_point_count"), ("1", "intermediate_point_count")):
+            source = b2_source()
+            point = next(r for r in source["table_reads"]["Point Object Connectivity"]["rows"]
+                         if r["Story"] == "Middle")
+            point["Z"] = z
+            result = bind_soft_story_b2(reseal(source))
+            self.assertEqual(result["comparison_coverage"]["resolved"], 8)
+            self.assertNotIn("Middle", result["story_order"]["point_elevation_confirmed_stories"])
+            self.assertIn("Middle", result["story_order"]["stories_without_point_elevation_confirmation"])
+            self.assertEqual(result["story_order"][field], 1)
+            self.assertEqual(result["formal_compliance"], "NOT_PROVEN")
+
+    def test_points_outside_assigned_story_span_still_block(self):
+        for z in ("-0.000002", "3.000002", "8", "-4"):
+            source = b2_source()
+            point = next(r for r in source["table_reads"]["Point Object Connectivity"]["rows"]
+                         if r["Story"] == "Middle")
+            point["Z"] = z
+            result = bind_soft_story_b2(reseal(source))
+            self.assertEqual(result["status"], "BLOCKED_SOURCE", z)
+            self.assertIn("B2_STORY_ORDER_POINT_ELEVATION_CONFLICT:Middle", result["reason_codes"])
+
+    def test_point_tolerance_applies_to_both_span_boundaries(self):
+        for z, field in (("-0.000001", "lower_boundary_points"), ("3.000001", "at_level_points")):
+            source = b2_source()
+            point = next(r for r in source["table_reads"]["Point Object Connectivity"]["rows"]
+                         if r["Story"] == "Middle")
+            point["Z"] = z
+            result = bind_soft_story_b2(reseal(source))
+            self.assertEqual(result["comparison_coverage"]["resolved"], 8)
+            counts = next(r for r in result["story_order"]["point_story_span_counts"] if r["story"] == "Middle")
+            self.assertEqual(counts[field], 1)
+
     def test_adjacent_numbered_steps_and_one_sided_step_identity_are_rejected(self):
         for names in ((AVERAGES, DRIFTS), (AVERAGES,)):
             source = b2_source()

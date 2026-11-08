@@ -266,6 +266,14 @@
       ' · Komşuluk hesabı: ' + c.resolved + '/' + c.expected +
       ' · Çözülemeyen: ' + c.unresolved +
       ' · Resmî B2 sınıflandırması: NOT_PROVEN', 'muted small'));
+    if (b.story_order) {
+      const order = b.story_order;
+      host.append(make('p', 'Üst düzlem noktasıyla desteklenen kat: ' +
+        order.point_elevation_confirmed_stories.length + '/' + b.stories.length +
+        ' · Ara kotlu nokta: ' + (order.intermediate_point_count ?? '—') +
+        ' · Alt sınır noktası: ' + (order.lower_boundary_point_count ?? '—') +
+        '. Ara noktalar kat kotunu veya yüksekliğini değiştirmez.', 'muted small'));
+    }
     const addTable = (rows, fields) => {
       const scroll = make('div', undefined, 'modal-table-scroll');
       const table = make('table', undefined, 'modal-source-table');
