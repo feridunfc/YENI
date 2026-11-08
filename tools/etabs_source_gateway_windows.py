@@ -406,8 +406,15 @@ def bind(record: Mapping[str, Any], specification: Mapping[str, Any]) -> dict[st
 def attach_live(action: str, **kwargs: Any) -> dict[str, Any]:
     if sys.platform != "win32":
         raise SourceError("LIVE_ETABS_REQUIRES_WINDOWS")
-    import comtypes
-    import comtypes.client
+    try:
+        import comtypes
+        import comtypes.client
+    except ModuleNotFoundError as exc:
+        if exc.name and exc.name.startswith("comtypes"):
+            raise SourceError(
+                "COMTYPES_MISSING: install with python -m pip install -e .[etabs-windows]"
+            ) from exc
+        raise
     comtypes.CoInitialize()
     app = sap = None
     try:
