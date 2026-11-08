@@ -13,6 +13,7 @@ Self-contained except for comtypes on Windows live commands.
 from __future__ import annotations
 
 import argparse
+from collections.abc import Sequence
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from hashlib import sha256
@@ -166,6 +167,110 @@ def read_table(db: Any, key: str, *, max_rows: int = 500_000) -> dict[str, Any]:
             "row_count": 0, "rows": [], "error": " | ".join(problems)}
 
 
+
+def capture_distributed_frame_loads_by_object(
+    sap: Any, beam_table: Mapping[str, Any], *, max_beams: int = 50000,
+    max_loads: int = 200000,
+) -> dict[str, Any]:
+    """Read ETABS FrameObj.GetLoadDistributed on observed beam objects only.
+
+    Source adapter inside the EXISTING generic ETABS COM gateway, not a
+    second COM attachment. Retains every failed object and all returned load
+    spans; a failed object is NEVER interpreted as an empty assignment.
+    CSI GetLoadDistributed outputs 12 fields followed by a return code.
+    """
+    schema = "tbdy.next.etabs.frame-object-distributed-load-probe.v1"
+    if sap.GetModelIsLocked() is not True or sap.GetPresentUnits() != 6:
+        raise SourceError("FRAME_LOAD_PROBE_REQUIRES_LOCKED_KN_M_C")
+    if (not isinstance(beam_table, Mapping)
+            or beam_table.get("status") != "CAPTURED"
+            or beam_table.get("table_key") != "Beam Object Connectivity"
+            or not {"UniqueName", "Story", "Length"}.issubset(
+                beam_table.get("fields") or [])
+            or (beam_table.get("field_metadata") or {}).get(
+                "units_by_field", {}).get("Length") != "m"):
+        raise SourceError("FRAME_LOAD_PROBE_BEAM_SCHEMA_INVALID")
+    beam_rows = beam_table.get("rows")
+    if (not isinstance(beam_rows, list)
+            or beam_table.get("row_count") != len(beam_rows)
+            or len(beam_rows) > max_beams):
+        raise SourceError("FRAME_LOAD_PROBE_BEAM_CENSUS_INVALID")
+    seen: set[str] = set()
+    output: list[dict[str, str]] = []
+    unresolved: list[dict[str, str]] = []
+    successful = 0
+    source = sap.FrameObj  # read-only GetLoadDistributed only
+    for beam in beam_rows:
+        name = beam.get("UniqueName")
+        if not isinstance(name, str) or not name or name in seen:
+            raise SourceError("FRAME_LOAD_PROBE_DUPLICATE_BEAM_ID")
+        seen.add(name)
+        try:
+            raw = source.GetLoadDistributed(name)
+            if not isinstance(raw, (tuple, list)) or len(raw) != 13:
+                raise SourceError("GET_LOAD_DISTRIBUTED_ABI_UNKNOWN")
+            count = raw[0]
+            if type(count) is not int or count < 0 or return_code(raw, "GetLoadDistributed") != 0:
+                raise SourceError("GET_LOAD_DISTRIBUTED_RET_OR_COUNT")
+            arrays = raw[1:12]
+            if any(not isinstance(a, Sequence) or isinstance(a, (str, bytes))
+                   or len(a) != count for a in arrays):
+                raise SourceError("GET_LOAD_DISTRIBUTED_ARRAY_LENGTH_INVALID")
+            parsed = []
+            for i in range(count):
+                frame_id, pattern, my_type, coordinate, direction = (
+                    arrays[0][i], arrays[1][i], arrays[2][i], arrays[3][i],
+                    arrays[4][i])
+                if (frame_id != name or not isinstance(pattern, str)
+                        or not pattern or type(my_type) is not int
+                        or type(direction) is not int
+                        or not isinstance(coordinate, str)):
+                    raise SourceError("GET_LOAD_DISTRIBUTED_IDENTITY_INVALID")
+                nums = []
+                for a in arrays[5:11]:
+                    try:
+                        v = Decimal(str(a[i]))
+                    except (ValueError, InvalidOperation):
+                        raise SourceError("GET_LOAD_DISTRIBUTED_NUMERIC_INVALID") from None
+                    if not v.is_finite():
+                        raise SourceError("GET_LOAD_DISTRIBUTED_NONFINITE")
+                    nums.append(v)
+                rd1, rd2, d1, d2, v1, v2 = nums
+                if rd1 < 0 or rd2 > 1 or rd1 > rd2 or d1 < 0 or d2 < d1:
+                    raise SourceError("GET_LOAD_DISTRIBUTED_SPAN_INVALID")
+                parsed.append({
+                    "UniqueName": name, "Story": str(beam["Story"]),
+                    "LoadPattern": pattern, "MyType": str(my_type),
+                    "CSys": coordinate, "Dir": str(direction),
+                    "RelDistA": str(rd1), "RelDistB": str(rd2),
+                    "AbsDistA": str(d1), "AbsDistB": str(d2),
+                    "ValA": str(v1), "ValB": str(v2),
+                })
+            if len(output) + len(parsed) > max_loads:
+                raise SourceError("FRAME_LOAD_PROBE_LOAD_ROW_LIMIT_EXCEEDED")
+            output.extend(parsed)
+            successful += 1
+        except Exception as exc:
+            # Do not misclassify API failures as no load on that beam.
+            unresolved.append({"UniqueName": name, "reason": f"{type(exc).__name__}:{exc}"})
+    return {
+        "schema": schema,
+        "source_method": "SapModel.FrameObj.GetLoadDistributed",
+        "status": "CAPTURED" if not unresolved else "SOURCE_PARTIAL",
+        "model_units_code": 6,
+        "beam_count": len(beam_rows),
+        "successful_beam_count": successful,
+        "unresolved_beam_count": len(unresolved),
+        "load_row_count": len(output),
+        "rows": output,
+        "unresolved_beams": unresolved,
+        "units_by_field": {
+            "RelDistA": "", "RelDistB": "", "AbsDistA": "m",
+            "AbsDistB": "m", "ValA": "kN/m", "ValB": "kN/m",
+        },
+        "engineering_release": "NOT_READY",
+    }
+
 def selected_cases(db: Any) -> tuple[str, ...]:
     try:
         raw = db.GetLoadCasesSelectedForDisplay()
@@ -240,13 +345,16 @@ def resolve_keys(inventory: list[dict[str, Any]], *, preset: str | None = None,
 def capture(sap: Any, *, action: str, cases: tuple[str, ...] = (),
             preset: str | None = None, exact: tuple[str, ...] = (),
             matching: tuple[str, ...] = (), all_tables: bool = False,
-            max_rows: int = 500_000) -> dict[str, Any]:
+            max_rows: int = 500_000,
+            frame_load_probe: bool = False) -> dict[str, Any]:
     if action not in ("discover", "capture"):
         raise SourceError("UNKNOWN_CAPTURE_ACTION")
     if any(not isinstance(c, str) or not c or c != c.strip() for c in cases) or len(set(cases)) != len(cases):
         raise SourceError("INVALID_CASE_SELECTION")
     if max_rows < 1:
         raise SourceError("MAX_ROWS_NONPOSITIVE")
+    if frame_load_probe and action != "capture":
+        raise SourceError("FRAME_LOAD_PROBE_CAPTURE_ONLY")
     db = sap.DatabaseTables
     original = selected_cases(db)
     before_units = sap.GetPresentUnits()
@@ -293,6 +401,15 @@ def capture(sap: Any, *, action: str, cases: tuple[str, ...] = (),
                     raise SourceError("CRITICAL_ETABS_DISPLAY_SELECTION_RESTORE_FAILED: " + str(exc)) from exc
         if error:
             raise SourceError("ETABS_CAPTURE_ABORTED: " + str(error)) from error
+    # Preserve the original table CAPTURE_ERROR while independently probing
+    # actual object assignments through the same SapModel. Never overwrite a
+    # failed DatabaseTables response with manufactured successful rows.
+    frame_probe = None
+    if frame_load_probe:
+        beam_table = result.get("Beam Object Connectivity")
+        if beam_table is None:
+            raise SourceError("FRAME_LOAD_PROBE_REQUIRES_BEAM_TABLE")
+        frame_probe = capture_distributed_frame_loads_by_object(sap, beam_table)
     after_units = sap.GetPresentUnits()
     restored = selected_cases(db)
     if before_units != after_units or restored != original:
@@ -318,6 +435,7 @@ def capture(sap: Any, *, action: str, cases: tuple[str, ...] = (),
         "table_queries_not_found": missed,
         "preset_optional_hints_not_found": optional_missed,
         "table_reads": result,
+        **({"frame_load_object_probe": frame_probe} if frame_probe is not None else {}),
         "source_only": True,
         "analysis_generation_proven": False,
         "engineering_release": "NOT_READY",
@@ -406,8 +524,15 @@ def bind(record: Mapping[str, Any], specification: Mapping[str, Any]) -> dict[st
 def attach_live(action: str, **kwargs: Any) -> dict[str, Any]:
     if sys.platform != "win32":
         raise SourceError("LIVE_ETABS_REQUIRES_WINDOWS")
-    import comtypes
-    import comtypes.client
+    try:
+        import comtypes
+        import comtypes.client
+    except ModuleNotFoundError as exc:
+        if exc.name and exc.name.startswith("comtypes"):
+            raise SourceError(
+                "COMTYPES_MISSING: install with python -m pip install -e .[etabs-windows]"
+            ) from exc
+        raise
     comtypes.CoInitialize()
     app = sap = None
     try:
@@ -433,6 +558,7 @@ def main(argv: list[str] | None = None) -> int:
         q.add_argument("--all", action="store_true", help="Explicitly enumerate/capture ALL tables")
         q.add_argument("--max-rows", type=int, default=500000)
         q.add_argument("--case", action="append", default=[], help="Select a case temporarily; repeat e.g. Modal RSX RSY")
+        q.add_argument("--frame-load-probe", action="store_true", help="Read-only FrameObj.GetLoadDistributed fallback on captured beam objects")
     q = sub.add_parser("template")
     q.add_argument("--input", type=Path, required=True)
     q.add_argument("--out", type=Path, required=True)
@@ -449,7 +575,8 @@ def main(argv: list[str] | None = None) -> int:
         data = attach_live(args.command, cases=tuple(args.case),
                            preset=args.preset, exact=tuple(args.table),
                            matching=tuple(args.match), all_tables=args.all,
-                           max_rows=args.max_rows)
+                           max_rows=args.max_rows,
+                           frame_load_probe=args.frame_load_probe)
     save_new(args.out, data)
     print("STATUS:", data.get("status", data.get("schema")))
     if data.get("table_reads") is not None:
@@ -460,6 +587,14 @@ def main(argv: list[str] | None = None) -> int:
             print("-", key, "|", item["status"], "|", item.get("row_count", "schema"))
         print("MISSING REQUIRED TARGETS:", data["table_queries_not_found"])
         print("OPTIONAL PRESET HINTS NOT FOUND:", data["preset_optional_hints_not_found"])
+        probe = data.get("frame_load_object_probe")
+        if isinstance(probe, dict):
+            print("FRAME OBJECT LOAD PROBE:", probe["status"],
+                  "BEAMS:", probe["successful_beam_count"], "/", probe["beam_count"],
+                  "UNRESOLVED:", probe["unresolved_beam_count"])
+            print("DISTRIBUTED LOAD ROWS:", probe["load_row_count"])
+            print("LC_WDL ASSIGNMENT ROWS:",
+                  sum(r.get("LoadPattern") == "LC_WDL" for r in probe["rows"]))
     print("OUTPUT:", args.out.resolve())
     return 0 if data.get("status") not in ("SOURCE_PARTIAL",) else 2
 

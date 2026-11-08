@@ -18,3 +18,14 @@ jobs:
       - run: python -m pip install -e .
       - run: python -m unittest discover -s tests -v
       - run: python -m compileall -q src
+  windows-b1-http:
+    # Live ETABS COM is not required; this checks Windows socket/HTTP behavior
+    # that Ubuntu cannot exercise (cross-origin rejection, WinError 10053).
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e .
+      - run: python -m unittest discover -s tests -p "test_vs06_b1_*.py" -v

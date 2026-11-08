@@ -36,8 +36,10 @@ def _load_source(directory: Path, expected_sha: str) -> dict[str, Any]:
     return decoded
 
 
-def _vs05_check_inventory(checks: list[dict], story_drift: dict | None) -> dict:
-    """Keep the eight historical checks and the STORY_DRIFT source check distinct."""
+def _vs05_check_inventory(checks: list[dict], story_drift: dict | None,
+                          b1: Mapping[str, Any] | None = None,
+                          b1_source_status: str | None = None) -> dict:
+    """Separate historical checks and source-derived checks; no fake code PASS."""
     entries = [{"check_id": c["check_id"], "evaluation": "BOUNDED_EXISTING"}
                for c in checks]
     if story_drift is not None:
@@ -46,6 +48,40 @@ def _vs05_check_inventory(checks: list[dict], story_drift: dict | None) -> dict:
         entries.append({"check_id": "STORY_DRIFT", "evaluation": "SOURCE_NUMERICAL",
                         "status": story_drift["status"],
                         "formal_compliance": "NOT_PROVEN"})
+    if b1 is not None:
+        if (b1.get("check_id") != "WEAK_STORY_B1"
+                or b1.get("formal_compliance") != "NOT_PROVEN"
+                or not isinstance(b1.get("b1_numerical"), Mapping)
+                or b1["b1_numerical"].get("formal_compliance") != "NOT_PROVEN"
+                or b1_source_status != "SOURCE_BOUND_NUMERICAL"):
+            raise ValueError("B1_INVENTORY_SOURCE_CONTRACT_INVALID")
+        numerical = b1["b1_numerical"]
+        pairs = numerical.get("computed_story_direction_pairs")
+        expected = numerical.get("expected_story_direction_pairs")
+        if (type(pairs) is not int or type(expected) is not int
+                or pairs < 1 or pairs != expected):
+            raise ValueError("B1_INVENTORY_PAIR_COUNT_INVALID")
+        entries.append({
+            "check_id": "WEAK_STORY_B1",
+            "evaluation": "CONDITIONAL_SOURCE_NUMERICAL",
+            "status": numerical["numeric_condition"],
+            "source_status": b1_source_status,
+            "evaluated_count": pairs,
+            "expected_count": expected,
+            "formal_compliance": "NOT_PROVEN",
+            "engineering_release": "NOT_READY",
+        })
+    elif b1_source_status is not None:
+        # An attempted B1 source MUST remain visible even when it failed.
+        entries.append({
+            "check_id": "WEAK_STORY_B1",
+            "evaluation": "BLOCKED_SOURCE",
+            "status": "BLOCKED_SOURCE_BINDING",
+            "source_status": b1_source_status,
+            "evaluated_count": 0,
+            "formal_compliance": "NOT_PROVEN",
+            "engineering_release": "NOT_READY",
+        })
     ids = [e["check_id"] for e in entries]
     if len(ids) != len(set(ids)):
         raise ValueError("DUPLICATE_REPORTED_CHECK_ID")
@@ -185,6 +221,68 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
             raise ReportUnavailable("VS05 STORY_DRIFT source/receipt mismatch")
     elif story_drift_receipt is not None:
         raise ReportUnavailable("Orphan VS05 STORY_DRIFT receipt")
+
+    # VS06-A is a read-only projection of the already-verified VS05 record.
+    # Never alter the historical receipt payload: exact replay is required.
+    vs06_slot_ledger = None
+    if (story_drift is not None and
+            story_drift.get("execution_status") == "EXECUTED_SOURCE_NUMERICAL"):
+        from .story_slot_ledger import build_story_slot_ledger
+        try:
+            vs06_slot_ledger = build_story_slot_ledger(
+                source["vs05_delta_source"], story_drift)
+        except (ValueError, TypeError, KeyError) as exc:
+            raise ReportUnavailable("VS06 slot ledger cannot be reconciled") from exc
+
+    # VS06-B is another read-only evidence projection. No change to original
+    # VS05 receipt, check inventory, or the existing one-button COM workflow.
+    vs06_physical_source_review = None
+    if vs06_slot_ledger is not None:
+        from .story_physical_source import review_story_physical_source
+        try:
+            vs06_physical_source_review = review_story_physical_source(
+                source["vs05_delta_source"], story_drift, vs06_slot_ledger)
+        except (ValueError, TypeError, KeyError) as exc:
+            raise ReportUnavailable("VS06 physical-source review cannot be reconciled") from exc
+
+    # VS06-C1: compile the existing 94-node candidate graph into the
+    # expected STORY_DIRECTION denominator and blocked normative readiness.
+    # The source-verified VS05 receipt remains immutable.
+    vs06_effective_drift_readiness = None
+    if vs06_physical_source_review is not None:
+        from .compiled_dag import read_candidate_catalog
+        from .effective_drift_readiness import review_effective_drift_readiness
+        try:
+            catalog_path = (Path(__file__).resolve().parents[2] / "config" /
+                            "dag" / "tbdy_r1c_94_candidate.json")
+            catalog = read_candidate_catalog(catalog_path)
+            vs06_effective_drift_readiness = review_effective_drift_readiness(
+                source["vs05_delta_source"], story_drift, vs06_slot_ledger,
+                vs06_physical_source_review, catalog)
+        except (OSError, UnicodeError, ValueError, TypeError, KeyError) as exc:
+            raise ReportUnavailable("VS06-C1 effective drift readiness invalid") from exc
+
+    # VS06-D1: one-click live capture already has the two immutable ETABS
+    # source blobs in the same run. Derive B1 X/Y numeric scenario here while
+    # rechecking both source hashes; old VS05 archived receipts are unchanged.
+    # B1 is optional: missing/unsupported source cannot break VS01-VS06-C2.
+    vs06_b1_result = None
+    vs06_b1_source_status = None
+    if ("vs06_b1_geometry_source" in source or "vs06_wall_load_source" in source
+            or "vs06_b1_geometry_capture_error" in source):
+        if (isinstance(source.get("vs06_b1_geometry_source"), Mapping) and
+                isinstance(source.get("vs06_wall_load_source"), Mapping)):
+            from .b1_source_bridge import B1BridgeError, evaluate_b1_sources
+            try:
+                vs06_b1_result = evaluate_b1_sources(
+                    source["vs06_b1_geometry_source"],
+                    source["vs06_wall_load_source"])
+                vs06_b1_source_status = "SOURCE_BOUND_NUMERICAL"
+            except (B1BridgeError, ValueError, TypeError, KeyError) as exc:
+                vs06_b1_source_status = "BLOCKED_SOURCE_BINDING: " + str(exc)
+        else:
+            vs06_b1_source_status = "BLOCKED_REQUIRED_B1_SOURCES_MISSING"
+
     frame_rows = ((geometry_source or {}).get("tables", {}).get("FRAME_ASSIGNMENTS", {})
                   .get("rows", []) or [])
     frame_types = dict(sorted(Counter(str(row.get("Type", "UNKNOWN")) for row in frame_rows).items()))
@@ -218,7 +316,15 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         )
     elif vs04:
         source_scope += " (E–J historical source evidence if recorded)"
-    inventory = _vs05_check_inventory(checks, story_drift)
+    inventory = _vs05_check_inventory(
+        checks, story_drift, vs06_b1_result, vs06_b1_source_status)
+    if vs06_b1_result is not None:
+        pair_count = vs06_b1_result["b1_numerical"]["computed_story_direction_pairs"]
+        source_scope += (" + WEAK_STORY_B1 X/Y source numerical "
+                         + str(pair_count) + " physically observed-story pairs"
+                         + " (infill assumptions; TBDY NOT_PROVEN)")
+    elif vs06_b1_source_status is not None:
+        source_scope += " + WEAK_STORY_B1 source BLOCKED (no numeric result)"
     if story_drift is not None:
         source_scope += (" + STORY_DRIFT ETABS-derived source numerical "
                          + str(story_drift["evaluated_story_case_direction_count"])
@@ -256,6 +362,16 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         "vs04_readiness": vs04_readiness,
         "vs04_pipeline": vs04_pipeline,
         **({"story_drift": story_drift} if story_drift is not None else {}),
+        **({"vs06_story_slot_ledger": vs06_slot_ledger}
+           if vs06_slot_ledger is not None else {}),
+        **({"vs06_physical_source_review": vs06_physical_source_review}
+           if vs06_physical_source_review is not None else {}),
+        **({"vs06_effective_drift_readiness": vs06_effective_drift_readiness}
+           if vs06_effective_drift_readiness is not None else {}),
+        **({"vs06_b1_result": vs06_b1_result}
+           if vs06_b1_result is not None else {}),
+        **({"vs06_b1_source_status": vs06_b1_source_status}
+           if vs06_b1_source_status is not None else {}),
         "vs03": new_checks,
         "checks": checks,
         "modal_source_table": {
@@ -480,6 +596,159 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
             _table((("story", "Kat"), ("case", "Vaka"), ("direction", "Yön")),
                    drift_check.get("missing_story_case_direction", [])) +
             '</section>')
+    ledger = report.get("vs06_story_slot_ledger")
+    if isinstance(ledger, Mapping):
+        vs04_sections.append(
+            '<section class="percheck"><h2>VS06-A · STORY_DRIFT kaynak slot muhasebesi</h2>'
+            '<p>Beklenen slot: ' + _val(ledger.get("expected_slot_count")) +
+            '; kaynaktan hesaplanan: ' + _val(ledger.get("source_numeric_count")) +
+            '; kaynağı eksik: ' + _val(ledger.get("source_missing_count")) +
+            '. Tüm satırlar muhasebeleştirilmiştir ancak fiziksel uygulanabilirlik ve '
+            'TBDY uygunluğu NOT_PROVEN. Eksik satırlar sıfır veya kapsam dışı sayılmamıştır.</p>' +
+            _table((("story", "Kat"), ("case", "Vaka"), ("direction", "Yön"),
+                    ("source_status", "Kaynak"), ("source_delta_mm", "Δ adayı (mm)"),
+                    ("physical_applicability", "Fiziksel uygulanabilirlik"),
+                    ("normative_status", "TBDY durumu"), ("reason_code", "Açık kanıt")),
+                   ledger.get("slots", [])) + '</section>')
+
+    physical = report.get("vs06_physical_source_review")
+    if isinstance(physical, Mapping):
+        vs04_sections.append(
+            '<section class="percheck"><h2>VS06-B · Fiziksel kaynak ve spektral eşzamanlılık kanıtı</h2>'
+            '<p>Gözlenen kolon bağlantısı: ' + _val(physical.get("endpoint_linked_column_count")) +
+            ' / ' + _val(physical.get("observed_column_count")) +
+            '; bağımsız RSX/RSY nokta maksimumu: ' +
+            _val(physical.get("response_spectrum_independent_max_rows")) +
+            '; eşzamanlı tasarım deplasman çifti kanıtlanan: ' +
+            _val(physical.get("signed_concurrent_spectrum_design_pairs_proven")) +
+            '. Kolonların gözlenmesi tam bina sayımı değildir; yokluk kapsam dışılık '
+            'değildir. Fiziksel uygulanabilirlik ve yönetmelik uygunluğu NOT_PROVEN.</p>' +
+            '<h3>Kat bazında gözlenen bağlantılar</h3>' +
+            _table((("story", "Kat"), ("assigned_columns_observed", "Atanan kolon"),
+                    ("endpoint_linked_columns_observed", "Uçları eşlenen"),
+                    ("member_presence_evidence", "Kaynak bulgusu"),
+                    ("physical_story_applicability", "Uygulanabilirlik")),
+                   physical.get("observed_stories", [])) +
+            '<h3>Kat / spektral vaka / yön kanıt sınırı</h3>' +
+            _table((("story", "Kat"), ("case", "Vaka"), ("direction", "Yön"),
+                    ("source_status", "Ötelenme kaynağı"),
+                    ("member_presence_evidence", "Fiziksel kaynak"),
+                    ("physical_applicability", "Uygulanabilirlik"),
+                    ("signed_concurrent_spectrum_delta_available", "Eşzamanlı Δ"),
+                    ("regulatory_status", "Yönetmelik")),
+                   physical.get("slots", [])) +
+            '<h3>Çözümlenemeyen kolon uç bağlantıları</h3>' +
+            _table((("column", "Kolon"), ("story", "Kat"), ("reason", "Açık kanıt")),
+                   physical.get("unresolved_columns", [])) + '</section>')
+
+    readiness = report.get("vs06_effective_drift_readiness")
+    if isinstance(readiness, Mapping):
+        vs04_sections.append(
+            '<section class="percheck"><h2>VS06-C1 · TBDY 4.9 etkin göreli kat ötelemesi hesap hazırlığı</h2>'
+            '<p>94 düğümlü mevcut DAG üzerinden beklenen kat/yön kontrolleri: ' +
+            _val(readiness.get("expected_story_direction_instances")) +
+            '; ETABS kaynak-nümerik aday bulunan: ' +
+            _val(readiness.get("source_numeric_primary_instances")) +
+            '; temel kaynak eksiği: ' +
+            _val(readiness.get("source_missing_primary_instances")) +
+            '; aday FCR NOT_PROVEN: ' +
+            _val(readiness.get("candidate_fcr_not_proven")) +
+            '. Denk. (4.32)–(4.34) formel hesabı henüz yürütülmedi. '
+            'Kaynak maksimumları eşzamanlı tasarım deplasmanı değildir. '
+            'Boş tanımlı kotlar kanıt olmadan kapsam dışı sayılamaz.</p>' +
+            _table((("check_instance_id", "DAG CheckInstance"),
+                    ("case", "ETABS vakası"), ("source_numeric_status", "Kaynak"),
+                    ("etabs_derived_delta_mm_candidate", "Kaynak Δ adayı (mm)"),
+                    ("member_presence_evidence", "Fiziksel kaynak"),
+                    ("physical_applicability", "Uygulanabilirlik"),
+                    ("formula_execution", "Denklem yürütümü"),
+                    ("regulatory_status", "TBDY durumu"),
+                    ("required_source_evidence", "Eksik normatif kanıt")),
+                   readiness.get("check_instances", [])) +
+            '</section>')
+
+    scenario = report.get("vs06_drift_scenario")
+    if isinstance(scenario, Mapping):
+        wall = scenario.get("wall_candidate_inventory") or {}
+        options = scenario.get("scenario_input") or {}
+        vs04_sections.append(
+            '<section class="percheck"><h2>VS06-C2 · TBDY 4.9 etkin göreli öteleme — SAYISAL SENARYO</h2>'
+            '<p>Gevrek dolgu: Denk.(4.34a) / 0.008κ; esnek bağlantı: Denk.(4.34b) / '
+            '0.016κ (deneye dayalı bağlantı kapasitesi ayrıca gereklidir). '
+            'Bu tablo gerçekte gözlenen ETABS Story Drifts × h kaynak adaylarından '
+            'oluşturulmuştur; tam fiziksel eşzamanlı deplasman ve resmî uygunluk '
+            'kanıtı değildir. <strong>FORMAL COMPLIANCE: NOT_PROVEN</strong>.</p>' +
+            _table((("r", "Varsayılan/senaryo R"), ("i", "Senaryo I"),
+                    ("lambda", "Senaryo λ"), ("material", "Sistem"),
+                    ("wall_type", "Dolgu bağlantısı"), ("coverage_pct", "Dolgu oranı %"),
+                    ("wall_height_m", "Varsayılan duvar h (m)"),
+                    ("opening_pct", "Açıklık %"), ("wall_mode", "Duvar kaynak modu"),
+                    ("wall_load_pattern", "ETABS duvar yük deseni")),
+                   [options]) +
+            '<p>Yük deseni ' + _val(wall.get("load_pattern")) + ' gözlemi: ' + _val(wall.get("source_status")) +
+            ' · Aday kiriş: ' + _val(wall.get("candidate_beam_count")) +
+            ' · Aday toplam uzunluk (m): ' + _val(wall.get("candidate_total_length_m")) +
+            ' · Varsayımsal net dolgu yüzey alanı (m²): ' +
+            _val(wall.get("assumed_net_face_area_m2")) +
+            '. Yük ataması fiziksel dolgu varlığının veya B1 etkin kesme alanının '
+            'kanıtı değildir.</p>' +
+            _table((("story", "Kat"), ("case", "Vaka"), ("direction", "Yön"),
+                    ("source_delta_mm", "Kaynak Δ adayı (mm)"),
+                    ("effective_delta_mm", "Etkin Δ senaryo (mm)"),
+                    ("lambda_effective_ratio", "λ δ / h"),
+                    ("limit", "Sınır"), ("utilization_ratio", "Kullanım oranı"),
+                    ("conditional_numeric_condition", "Koşullu sayılsal sonuç"),
+                    ("formal_compliance", "Resmî uygunluk")),
+                   scenario.get("rows", [])) +
+            '<p>Senaryo SHA-256: ' + _val(scenario.get("scenario_sha256")) +
+            ' · Kaynak SHA-256: ' + _val(scenario.get("input_sha256")) +
+            '. Esnek bağlantı seçimi için deneye dayalı kapasite belgesi: ' +
+            _val(scenario.get("flexible_branch_capacity_accepted")) +
+            '.</p></section>')
+
+    b1 = report.get("vs06_b1_result")
+    if isinstance(b1, Mapping):
+        b1_numeric = b1.get("b1_numerical") or {}
+        area_rows = []
+        for story in b1.get("story_direction_areas", []):
+            for d in ("X", "Y"):
+                item = story.get(d) or {}
+                area_rows.append({"story": story.get("story"), "direction": d,
+                    "Aw_m2": item.get("column_Aw_m2"),
+                    "Ag_m2": item.get("wall_Ag_m2"),
+                    "Ak_m2": item.get("infill_Ak_assumed_m2"),
+                    "K_proxy": item.get("infill_shear_stiffness_proxy_kN_m")})
+        vs04_sections.append(
+            '<section class="percheck"><h2>VS06-D1 · B1 Zayıf Kat — sayısal kaynak senaryosu</h2>'
+            '<p>TBDY 2018 Tablo 3.6, 3.6.2.3. Ae = Aw+Ag+0,15Ak. '
+            'Kolon/perde gerçek kaynak geometrisidir; tuğla 9/19 cm ve '
+            'kapı/pencere azaltması varsayımdır. Formel uygunluk NOT_PROVEN.</p>'
+            '<p>ηci,min: ' + _val(b1_numeric.get("eta_ci_min")) +
+            ' · Sayısal karar: ' + _val(b1_numeric.get("numeric_condition")) +
+            ' · Gevrek dolgu varsayılanı: ' +
+            _val((b1.get("parameters") or {}).get("wall_type")) + '</p>' +
+            _table((("story", "Kat"), ("direction", "Yön"),
+                    ("Aw_m2", "Aw (m²)"), ("Ag_m2", "Ag (m²)"),
+                    ("Ak_m2", "Ak varsayım (m²)"),
+                    ("K_proxy", "K_proxy (kN/m)")), area_rows) +
+            _table((("lower_story", "Alt kat"), ("upper_story", "Üst kat"),
+                    ("direction", "Yön"), ("eta_ci", "ηci"),
+                    ("numeric_condition", "Sayısal durum")),
+                   b1_numeric.get("paired_results", [])) +
+            '<h3>Hesap varsayımları</h3><ol>' +
+            ''.join('<li>' + escape(str(item)) + '</li>'
+                    for item in b1.get("assumptions_notes", [])) +
+            '</ol><p>Kaynak SHA: ' +
+            _val((b1.get("provenance") or {}).get("geometry_capture_sha256")) +
+            ' / ' +
+            _val((b1.get("provenance") or {}).get("wall_load_capture_sha256")) +
+            '. Mühendislik release NOT_READY.</p></section>')
+    elif report.get("vs06_b1_source_status"):
+        vs04_sections.append(
+            '<section class="percheck"><h2>VS06-D1 · B1 veri eşleştirmesi</h2>'
+            '<p>' + _val(report.get("vs06_b1_source_status")) +
+            '. Önceki kabul edilmiş alt kontroller korunmuştur.</p></section>')
+
     a1_warnings = [
         c for c in extras if c.get("check_id") in ("a1_torsion_x", "a1_torsion_y")
         and any(item.get("status") == "A1_OBSERVED" for item in c.get("items", []))

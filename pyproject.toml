@@ -9,6 +9,11 @@ description = "Independent, vertical-slice-first Turkish structural engineering 
 requires-python = ">=3.11"
 dependencies = []
 
+[project.optional-dependencies]
+# ETABS is an in-process Windows COM integration. Keep Linux/offline CI free
+# of Windows-only imports while making the live workstation setup reproducible.
+etabs-windows = ["comtypes>=1.4,<2; sys_platform == 'win32'"]
+
 [project.scripts]
 tbdy-next = "tbdy_next.cli:main"
 

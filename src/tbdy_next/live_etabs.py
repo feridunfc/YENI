@@ -103,6 +103,42 @@ def read_quick_suite_from_running_etabs(case: str, *, with_vs04: bool = False) -
                     # VS05 table is unavailable.  Persist a BLOCKED check.
                     payload["vs05_delta_capture_error"] = (
                         f"{type(exc).__name__}: {exc}")
+                # VS06-C2: OPTIONAL exact LoadPattern=LC_WDL assignment evidence.
+                # Same existing COM session and general table reader; no
+                # new COM connection or ETABS model mutation. When the DB table
+                # returns 1, probe the same beam objects via read-only FrameObj.
+                # Unknown schema is
+                # preserved as source-only, never guessed into wall area.
+                try:
+                    from tools.etabs_source_gateway_windows import capture as capture_tables
+                    payload["vs06_wall_load_source"] = capture_tables(
+                        sap, action="capture",
+                        exact=("Frame Loads Assignments - Distributed", "Beam Object Connectivity"),
+                        frame_load_probe=True)
+                except Exception as exc:
+                    payload["vs06_wall_capture_error"] = (
+                        f"{type(exc).__name__}: {exc}")
+                # VS06-D1: X/Y B1 geometry via the SAME generic source reader
+                # and already owned COM session, not a separate live workflow.
+                # B1 remains optional, old accepted checks survive a missing
+                # table while the exact cause is preserved.
+                try:
+                    from tools.etabs_source_gateway_windows import capture as capture_tables
+                    payload["vs06_b1_geometry_source"] = capture_tables(
+                        sap, action="capture",
+                        exact=(
+                            "Point Object Connectivity",
+                            "Column Object Connectivity",
+                            "Wall Object Connectivity",
+                            "Frame Assignments - Section Properties",
+                            "Frame Section Property Definitions - Concrete Rectangular",
+                            "Area Assignments - Section Properties",
+                            "Wall Property Definitions - Specified",
+                            "Story Definitions",
+                        ))
+                except Exception as exc:
+                    payload["vs06_b1_geometry_capture_error"] = (
+                        f"{type(exc).__name__}: {exc}")
             return payload
         finally:
             sap = None

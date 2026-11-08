@@ -106,13 +106,29 @@ def make_handler(output_root: Path, *, live_capture=None):
                 self.reply(200, {"runs": quick_history(output_root), "engineering_release": "NOT_READY"})
             elif url.path == "/api/modal-history":
                 self.reply(200, {"runs": modal_history(output_root), "engineering_release": "NOT_READY"})
-            elif url.path in ("/api/export-checks", "/report/print"):
-                ids = parse_qs(url.query).get("run_id", [])
+            elif url.path in ("/api/export-checks", "/report/print",
+                                "/api/vs06-drift-scenario"):
+                query = parse_qs(url.query)
+                ids = query.get("run_id", [])
                 if len(ids) != 1 or _RUN_ID_PATTERN.fullmatch(ids[0]) is None:
                     self.reply(400, {"error": "EXACT_RUN_ID_REQUIRED"})
                     return
                 try:
                     report = build_complete_report(output_root, ids[0])
+                    # C2: optional read-only numerical scenario over a sealed
+                    # archived run. Does not start ETABS or edit a receipt.
+                    from .vs06_drift_scenario import ALLOWED, evaluate_drift_scenario
+                    offered = {k: v for k, v in query.items() if k != "run_id"}
+                    if set(offered) - ALLOWED or any(len(v) != 1 for v in offered.values()):
+                        self.reply(400, {"error": "VS06_SCENARIO_QUERY_INVALID"})
+                        return
+                    if url.path == "/api/vs06-drift-scenario" or offered:
+                        params = {k: v[0] for k, v in offered.items()}
+                        scenario = evaluate_drift_scenario(report, params)
+                        if url.path == "/api/vs06-drift-scenario":
+                            self.reply(200, scenario)
+                            return
+                        report["vs06_drift_scenario"] = scenario
                     if url.path == "/api/export-checks":
                         data = (json.dumps(report, ensure_ascii=False, indent=2,
                                            sort_keys=True) + "\n").encode("utf-8")
@@ -122,7 +138,13 @@ def make_handler(output_root: Path, *, live_capture=None):
                         data = build_printable_html(report).encode("utf-8")
                         mime = "text/html; charset=utf-8"
                         disposition = f'inline; filename="TBDY_NEXT_{ids[0]}_report.html"'
-                except (ReportUnavailable, OSError, UnicodeError, TypeError, ValueError, KeyError):
+                except (ReportUnavailable, OSError, UnicodeError, TypeError, ValueError, KeyError) as exc:
+                    # A rejected scenario is a bad request, not a fabricated
+                    # missing archive or an authorized normative PASS.
+                    from .vs06_drift_scenario import DriftScenarioError
+                    if isinstance(exc, DriftScenarioError):
+                        self.reply(422, {"error": str(exc), "formal_compliance": "NOT_PROVEN"})
+                        return
                     self.reply(404, {"error": "VERIFIED_FIVE_CHECK_REPORT_NOT_FOUND"})
                     return
                 self.send_response(200)
@@ -169,6 +191,72 @@ def make_handler(output_root: Path, *, live_capture=None):
 
         def do_POST(self) -> None:
             url = urlsplit(self.path)
+            if url.path == "/api/vs06-b1-preview":
+                # Read-only mathematical preview of two independently SHA-sealed
+                # ETABS captures. No COM call, no receipt mutation and no
+                # uploaded source echoed to an external service.
+                origin = self.headers.get("Origin")
+                host = self.headers.get("Host", "")
+                if (self.headers.get("Sec-Fetch-Site") == "cross-site"
+                        or (origin and origin != "http://" + host)):
+                    # Windows (WinError 10053): closing an HTTP/1.0 socket
+                    # while the client still has POST bytes in flight can
+                    # generate a TCP reset before the 403 response is read.
+                    # Drain ONLY a declared, bounded request body. This is
+                    # byte disposal, never JSON parsing or ETABS processing.
+                    # An invalid, transfer-encoded, or oversized body is
+                    # rejected without an unbounded drain.
+                    try:
+                        rejected_length = int(self.headers.get("Content-Length", "-1"))
+                    except ValueError:
+                        rejected_length = -1
+                    if (0 <= rejected_length <= MAX_UPLOAD_BYTES
+                            and not self.headers.get("Transfer-Encoding")):
+                        previous_timeout = self.connection.gettimeout()
+                        try:
+                            self.connection.settimeout(2.0)
+                            remaining = rejected_length
+                            while remaining:
+                                chunk = self.rfile.read(min(65536, remaining))
+                                if not chunk:
+                                    break
+                                remaining -= len(chunk)
+                        except OSError:
+                            # Still deny the request; never hand its bytes to
+                            # JSON parsing or evaluate any engineering source.
+                            pass
+                        finally:
+                            self.connection.settimeout(previous_timeout)
+                    self.reply(403, {"error": "CROSS_ORIGIN_DENIED"})
+                    return
+                try:
+                    length = int(self.headers.get("Content-Length", ""))
+                except ValueError:
+                    length = -1
+                if length < 1 or length > MAX_UPLOAD_BYTES or self.headers.get("Transfer-Encoding"):
+                    self.reply(413, {"error": "VS06_B1_PREVIEW_SIZE_INVALID",
+                                     "max_bytes": MAX_UPLOAD_BYTES})
+                    return
+                try:
+                    raw = self.rfile.read(length)
+                    data = json.loads(raw.decode("utf-8"))
+                    if not isinstance(data, dict) or set(data) != {"geometry", "wall_loads", "options"}:
+                        raise ValueError("VS06_B1_PREVIEW_PAYLOAD_SHAPE")
+                    options = data["options"]
+                    if not isinstance(options, dict) or set(options) - {
+                        "wall_type", "unit_weight_kN_m3",
+                        "unit_weight_min_kN_m3", "unit_weight_max_kN_m3",
+                        "opening_fraction", "low_load_ratio_cutoff",
+                        "shear_modulus_mpa", "R_base"}:
+                        raise ValueError("VS06_B1_PREVIEW_OPTIONS_INVALID")
+                    from .b1_source_bridge import evaluate_b1_sources
+                    from tools.verify_vs06_b1_sources import render_b1_html
+                    result = evaluate_b1_sources(data["geometry"], data["wall_loads"], **options)
+                    self.reply(200, {"result": result, "html": render_b1_html(result)})
+                except (UnicodeError, ValueError, TypeError, KeyError, ArithmeticError) as exc:
+                    self.reply(422, {"error": str(exc),
+                                     "formal_compliance": "NOT_PROVEN"})
+                return
             if url.path in ("/api/live-modal", "/api/live-suite", "/api/live-vs04"):
                 # Browser can POST to loopback from a foreign page; reject any
                 # declared cross-site origin before touching the ETABS session.
