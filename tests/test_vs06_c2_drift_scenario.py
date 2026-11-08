@@ -103,6 +103,20 @@ class Vs06C2Numerics(unittest.TestCase):
         self.assertIsNone(r["wall_candidate_inventory"]["assumed_net_face_area_m2"])
         self.assertEqual(r["source_numeric_count"], 1)
 
+    def test_manual_wall_length_assumption_computes_face_area(self):
+        report = scenario_report()
+        result = evaluate_drift_scenario(
+            report,
+            {"wall_mode": "MANUAL", "manual_wall_length_m": "15",
+             "wall_height_m": "3", "coverage_pct": "60",
+             "opening_pct": "20", "thickness_m": "0.20"})
+        wall = result["wall_candidate_inventory"]
+        self.assertEqual(wall["source_status"], "USER_MANUAL_LENGTH_ASSUMPTION")
+        self.assertEqual(Decimal(wall["assumed_net_face_area_m2"]), Decimal("21.6"))
+        self.assertEqual(Decimal(wall["assumed_wall_volume_m3"]), Decimal("4.32"))
+        self.assertEqual(result["formal_compliance"], "NOT_PROVEN")
+        self.assertEqual(result["source_numeric_count"], 1)
+
     def test_lc_wall_source_candidates_and_assumed_area(self):
         report = scenario_report()
         geometry = {"tables": {"FRAME_ASSIGNMENTS": {
