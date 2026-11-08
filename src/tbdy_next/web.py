@@ -106,13 +106,29 @@ def make_handler(output_root: Path, *, live_capture=None):
                 self.reply(200, {"runs": quick_history(output_root), "engineering_release": "NOT_READY"})
             elif url.path == "/api/modal-history":
                 self.reply(200, {"runs": modal_history(output_root), "engineering_release": "NOT_READY"})
-            elif url.path in ("/api/export-checks", "/report/print"):
-                ids = parse_qs(url.query).get("run_id", [])
+            elif url.path in ("/api/export-checks", "/report/print",
+                                "/api/vs06-drift-scenario"):
+                query = parse_qs(url.query)
+                ids = query.get("run_id", [])
                 if len(ids) != 1 or _RUN_ID_PATTERN.fullmatch(ids[0]) is None:
                     self.reply(400, {"error": "EXACT_RUN_ID_REQUIRED"})
                     return
                 try:
                     report = build_complete_report(output_root, ids[0])
+                    # C2: optional read-only numerical scenario over a sealed
+                    # archived run. Does not start ETABS or edit a receipt.
+                    from .vs06_drift_scenario import ALLOWED, evaluate_drift_scenario
+                    offered = {k: v for k, v in query.items() if k != "run_id"}
+                    if set(offered) - ALLOWED or any(len(v) != 1 for v in offered.values()):
+                        self.reply(400, {"error": "VS06_SCENARIO_QUERY_INVALID"})
+                        return
+                    if url.path == "/api/vs06-drift-scenario" or offered:
+                        params = {k: v[0] for k, v in offered.items()}
+                        scenario = evaluate_drift_scenario(report, params)
+                        if url.path == "/api/vs06-drift-scenario":
+                            self.reply(200, scenario)
+                            return
+                        report["vs06_drift_scenario"] = scenario
                     if url.path == "/api/export-checks":
                         data = (json.dumps(report, ensure_ascii=False, indent=2,
                                            sort_keys=True) + "\n").encode("utf-8")
@@ -122,7 +138,13 @@ def make_handler(output_root: Path, *, live_capture=None):
                         data = build_printable_html(report).encode("utf-8")
                         mime = "text/html; charset=utf-8"
                         disposition = f'inline; filename="TBDY_NEXT_{ids[0]}_report.html"'
-                except (ReportUnavailable, OSError, UnicodeError, TypeError, ValueError, KeyError):
+                except (ReportUnavailable, OSError, UnicodeError, TypeError, ValueError, KeyError) as exc:
+                    # A rejected scenario is a bad request, not a fabricated
+                    # missing archive or an authorized normative PASS.
+                    from .vs06_drift_scenario import DriftScenarioError
+                    if isinstance(exc, DriftScenarioError):
+                        self.reply(422, {"error": str(exc), "formal_compliance": "NOT_PROVEN"})
+                        return
                     self.reply(404, {"error": "VERIFIED_FIVE_CHECK_REPORT_NOT_FOUND"})
                     return
                 self.send_response(200)
