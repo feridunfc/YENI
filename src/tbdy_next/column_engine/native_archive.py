@@ -65,7 +65,7 @@ def identity(value, label):
     return value
 
 
-def native_observation(z, manifest, item, api, kind, name, expected_fields=None):
+def native_observation(z, manifest, item, api, kind, name, expected_fields=None, *, entity_key="name"):
     path = item.get("path")
     if not isinstance(path, str) or path not in manifest["files"] or not path.startswith("shards/"):
         raise BankError("NATIVE_SHARD_UNBOUND:" + api)
@@ -80,7 +80,7 @@ def native_observation(z, manifest, item, api, kind, name, expected_fields=None)
     obj = decode(data)
     if (not isinstance(obj, dict) or obj.get("schema") != "tbdy.full-bank.native-observation.v1"
             or obj.get("call_id") != item.get("call_id") or obj.get("api") != api
-            or obj.get("entity") != {"kind": kind, "name": name}
+            or obj.get("entity") != {"kind": kind, entity_key: name}
             or obj.get("status") != "OBSERVED" or type(obj.get("return_code")) is not int
             or obj["return_code"] != 0 or type(obj.get("units_code")) is not int
             or obj["units_code"] != 6):
@@ -171,7 +171,8 @@ class NativeArchive:
         for item in entries:
             if not isinstance(item, dict) or not isinstance(item.get("entity"), dict):
                 continue  # Global calls have no entity and cannot fill member inputs.
-            self.index[(item.get("api"), item["entity"].get("kind"), item["entity"].get("name"))].append(item)
+            entity = item["entity"]
+            self.index[(item.get("api"), entity.get("kind"), entity.get("name", entity.get("key")))].append(item)
 
     def json(self, name):
         try:
@@ -189,6 +190,44 @@ class NativeArchive:
         if not items or items[0].get("status") != "OBSERVED":
             return None
         return native_observation(self.z, self.manifest, items[0], api, kind, name, fields)
+
+    def table(self, key, required_fields, *, required_units=None):
+        """Read a sealed, complete display table; schema-only evidence is insufficient."""
+        api = "DatabaseTables.GetTableForDisplayArray"
+        items = self.index.get((api, "table", key), ())
+        if len(items) > 1:
+            raise BankError("AMBIGUOUS_NATIVE_TABLE:" + key)
+        if not items or items[0].get("status") != "OBSERVED":
+            return None
+        values, proof = native_observation(self.z, self.manifest, items[0], api,
+            "table", key, entity_key="key")
+        n, fields, cells = (values.get(k) for k in ("NumberRecords", "FieldsKeysIncluded", "TableData"))
+        if (type(n) is not int or not 0 <= n <= 20000 or not isinstance(fields, list)
+                or not fields or any(not isinstance(f, str) or not f for f in fields)
+                or len(set(fields)) != len(fields) or not set(required_fields) <= set(fields)
+                or not isinstance(cells, list) or len(cells) != n * len(fields)
+                or any(c is not None and not isinstance(c, str) for c in cells)):
+            raise BankError("NATIVE_TABLE_SHAPE_OR_FIELDS_INVALID:" + key)
+        rows = [dict(zip(fields, cells[i:i + len(fields)])) for i in range(0, len(cells), len(fields))]
+        proof = proof | {"table_key": key, "fields": fields, "row_count": n}
+        if required_units:
+            schema_api = "DatabaseTables.GetAllFieldsInTable"
+            schemas = self.index.get((schema_api, "table", key), ())
+            if len(schemas) != 1 or schemas[0].get("status") != "OBSERVED":
+                raise BankError("TABLE_FIELD_UNITS_NOT_OBSERVED:" + key)
+            data, schema_proof = native_observation(self.z, self.manifest, schemas[0],
+                schema_api, "table", key, entity_key="key")
+            count, keys, units = (data.get(k) for k in ("NumberFields", "FieldKey", "UnitsString"))
+            if (type(count) is not int or count <= 0 or not isinstance(keys, list)
+                    or not isinstance(units, list) or len(keys) != count or len(units) != count
+                    or any(not isinstance(k, str) for k in keys) or len(set(keys)) != count
+                    or type(data.get("TableVersion")) is not int or type(values.get("TableVersion")) is not int
+                    or data.get("TableVersion") != values.get("TableVersion")
+                    or any(dict(zip(keys, units)).get(k) != u for k, u in required_units.items())):
+                raise BankError("TABLE_FIELD_UNITS_OR_VERSION_INVALID:" + key)
+            proof["field_units"] = dict(zip(keys, units))
+            proof["schema_source"] = schema_proof
+        return rows, proof
 
     def close(self):
         self.z.close()

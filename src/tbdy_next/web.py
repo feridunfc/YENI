@@ -200,7 +200,7 @@ def make_handler(output_root: Path, *, live_capture=None):
                 self.reply(200, {"runs": column_bank_history(output_root), "engineering_release": "NOT_READY"})
                 return
             query = parse_qs(url.query, keep_blank_values=True)
-            allowed = {"run_id", "member", "case", "offset"} if url.path == "/api/column-bank" else {"run_id", "format"} if url.path == "/api/export-column-bank" else {"run_id"}
+            allowed = {"run_id", "member", "case", "offset", "view"} if url.path == "/api/column-bank" else {"run_id", "format"} if url.path == "/api/export-column-bank" else {"run_id"}
             if (set(query) - allowed or any(len(v) != 1 for v in query.values())
                     or not _RUN_ID_PATTERN.fullmatch(query.get("run_id", [""])[0])):
                 self.reply(400, {"error": "COLUMN_QUERY_INVALID"})
@@ -208,7 +208,9 @@ def make_handler(output_root: Path, *, live_capture=None):
             run_id = query["run_id"][0]
             fmt = query.get("format", ["json"])[0]
             offset = query.get("offset", ["0"])[0]
-            if fmt not in ("json", "sqlite") or not offset.isdecimal() or len(offset) > 9:
+            view = query.get("view", ["native"])[0]
+            if (fmt not in ("json", "sqlite") or not offset.isdecimal() or len(offset) > 9
+                    or view not in ("native", "static", "design")):
                 self.reply(400, {"error": "COLUMN_QUERY_INVALID"})
                 return
             try:
@@ -218,7 +220,7 @@ def make_handler(output_root: Path, *, live_capture=None):
                 else:
                     report = read_column_bank(output_root, run_id,
                         member_id=query.get("member", [None])[0], output_case=query.get("case", [None])[0],
-                        offset=int(offset), full=url.path == "/api/export-column-bank")
+                        offset=int(offset), view=view, full=url.path == "/api/export-column-bank")
                     if url.path == "/api/column-bank":
                         self.reply(200, report)
                         return

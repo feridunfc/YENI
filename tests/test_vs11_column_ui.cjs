@@ -55,5 +55,34 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
   const failure=await select(2);failure.done({error:'VERIFIED_COLUMN_BANK_NOT_FOUND'},false);await flush();
   assert.match(ids.get('columnStatus').textContent,/VERIFIED_COLUMN_BANK_NOT_FOUND/);
   assert.equal(ids.get('columnForces').children.length,0);
-  console.log('VS11 column UI identity/filter/export regressions PASS');
+  const demandPayload=()=>({...payload(2),demand_chain:{source_run_id:run(2),source_archive_sha256:'SOURCE_2',
+    design_demand_authority:'DENIED',combination_count:1,static_candidate_count:1,combinations:[],
+    design_summary:{row_count:1,unique_static_links:1,ambiguous_design_station_rows:0,references_without_exact_station:0}}});
+  const initial=await select(2);initial.done(demandPayload());await flush();
+  ids.get('columnView').value='static';ids.get('columnView').trigger('change');await flush();
+  const staticRequest=take();assert.match(staticRequest.url,/view=static/);
+  const candidate={native_key:{Obj:'C2',ObjSta:3.3,Elm:'E2',ElmSta:1.3,LoadCase:'SUM',StepType:'Single Value',StepNum:0},
+    domain_values:{N_compression_kN:180,V2_kN:10.8,V3_kN:-18.4,T_kNcm:260,M2_kNcm:4800,M3_kNcm:-5720}};
+  staticRequest.done({...demandPayload(),demand_page:{view:'static',total:1,offset:0,limit:200,rows:[candidate]}});await flush();
+  assert.match(ids.get('columnForces').textContent,/4800/);
+  assert.match(ids.get('columnUnits').textContent,/kN·cm/);
+  // Switching view invalidates an older request even when the run has not changed.
+  ids.get('columnView').trigger('change');await flush();const staleStatic=take();
+  ids.get('columnView').value='native';ids.get('columnView').trigger('change');await flush();
+  take().done(demandPayload());await flush();
+  staleStatic.done({...demandPayload(),demand_page:{view:'static',total:1,offset:0,limit:200,rows:[candidate]}});await flush();
+  assert.doesNotMatch(ids.get('columnForces').textContent,/4800/);
+  assert.match(ids.get('columnUnits').textContent,/kN·m,/);
+  ids.get('columnView').value='design';ids.get('columnView').trigger('change');await flush();
+  const designRequest=take();assert.match(designRequest.url,/view=design/);
+  designRequest.done({...demandPayload(),demand_page:{view:'design',total:1,offset:0,limit:200,rows:[{
+    native_design_row:{UniqueName:'C2',Station:'2',PMMRatio:null,PMMCombo:'SUM',VMajCombo:'SUM',VMinCombo:'RS'},
+    references:['PMM','MAJOR_SHEAR','MINOR_SHEAR'].map(role=>({role,status:'AMBIGUOUS_DESIGN_STATION'}))}]}});await flush();
+  assert.match(ids.get('columnForces').textContent,/Çift tasarım istasyonu/);
+  assert.match(ids.get('columnForces').textContent,/—/);
+  ids.get('columnView').value='native';ids.get('columnView').trigger('change');await flush();
+  const wrong=demandPayload();wrong.demand_chain.source_archive_sha256='OTHER';take().done(wrong);await flush();
+  assert.match(ids.get('columnStatus').textContent,/başka bir kaynağa/);
+  assert.equal(ids.get('columnForces').children.length,0);
+  console.log('VS11–VS12 column UI identity, view, units and export regressions PASS');
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -64,6 +64,38 @@ def build_column_bank_html(report: Mapping[str, Any]) -> str:
         ("expected_rows", "Beklenen satır"), ("matched_rows", "Eşleşen"), ("mismatched_rows", "Farklı"),
         ("unresolved_rows", "Çözümlenemeyen"), ("maximum_absolute_difference", "En büyük |Δ|"),
         ("reason", "Kapsam / neden")), replay["combinations"])
+    chain = report.get("demand_chain")
+    if chain:
+        design = chain["design_summary"]
+        content += ('<h2>CE-02 · Kolon kuvvet zinciri</h2><p>' + _val(chain["combination_count"]) +
+            ' birleşim; ' + _val(chain["static_candidate_count"]) + ' doğrulanmış statik kaynak adayı. ' +
+            'N basınç pozitif = −P; yerel V2/V3 işaretleri korunur; T/M2/M3 × 100 ile kN·cm birimine çevrilir. ' +
+            'Çekme sıfırlanmaz; J ucunda ek işaret dönüşümü yapılmaz. Analiz mertebesi ve tasarım seçimi ' +
+            'NOT_PROVEN; bunlar büyütülmüş tasarım momentleri değildir.</p>')
+        content += _table((("combination", "Birleşim"), ("classification", "Kaynak sınıfı"),
+            ("case_names", "Kaynak vakalar"), ("static_candidate_count", "Statik aday"),
+            ("reason", "Açık neden")), chain["combinations"])
+        content += ('<h3>ETABS kritik birleşim referansları</h3><p>' + _val(design["row_count"]) +
+            ' tasarım özeti satırı; ' + _val(design["reference_count"]) + ' PMM/VMaj/VMin referansı; ' +
+            _val(design["known_combination_references"]) + ' tanımlı birleşim bağı; ' +
+            _val(design["unique_static_links"]) + ' tekil statik kaynak bağı. ' +
+            _val(design["ambiguous_design_station_rows"]) + ' çift istasyon kaydı ve ' +
+            _val(design["references_without_exact_station"]) + ' kesin istasyon eşleşmesi bulunmayan referans ' +
+            'ayrı sayılır; bu iki eksik örtüşebilir.</p>')
+        content += ('<p>Özet istasyonu yuvarlanmaz, yakın kuvvet satırı seçilmez. PMMRatio alanında ' +
+            _val(design["null_pmm_ratio_rows"]) + ' boş hücre var; boş oran sıfır veya PASS sayılmaz. ' +
+            'VMaj/VMin ile V2/V3 eşlemesi onaylanmadı. ETABS tasarım özeti, tam tasarım birleşimi ' +
+            'seçiminin veya bağımsız kapasite doğrulamasının yerine geçmez.</p>')
+        if design.get("reason"):
+            content += '<p>Özet kaynağı: ' + _val(design["reason"]) + '</p>'
+        content += _table((("member_id", "Kolon"), ("static_candidate_count", "Statik aday"),
+            ("design_rows", "Tasarım satırı"), ("unique_static_links", "Tekil statik bağ"),
+            ("pmm_combinations", "PMM referansları"), ("major_shear_combinations", "Büyük yön kesme"),
+            ("minor_shear_combinations", "Küçük yön kesme")), chain["members"])
+        content += ('<p>Tam JSON çıktısında her adayın yedi alanlı native anahtarı, kaynak satırı, ' +
+            'birleşim katsayıları, altı kuvvet bileşeni ve tasarım özeti satır bağlantıları bulunur. ' +
+            'SQLite mevcut ham kuvvet bankasıdır; bu görünüm okuma sırasında türetilir.</p>')
+        content += '<p>Talep görünümü SHA-256: ' + _val(chain["result_sha256"]) + '</p>'
     historical = report.get("historical_reconciliation")
     if historical:
         content += '<h2>Tarihsel D7-B6 toplamları</h2>' + _table((

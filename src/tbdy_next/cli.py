@@ -26,10 +26,27 @@ def main(argv: list[str] | None = None) -> int:
     columns.add_argument("--input", type=Path, required=True)
     columns.add_argument("--historical-db", type=Path)
     columns.add_argument("--out", type=Path, default=Path(".receipts"))
+    demands = actions.add_parser("inspect-column-demands", help="Derive CE-02 from an existing bank without copying its ZIP/SQLite")
+    demands.add_argument("--run-id", required=True)
+    demands.add_argument("--out", type=Path, default=Path(".receipts"))
     args = parser.parse_args(argv)
     if args.action == "serve":
         from .web import serve
         serve(host=args.host, port=args.port, output_root=args.out)
+        return 0
+    if args.action == "inspect-column-demands":
+        import sqlite3
+        from .column_engine.store import read_column_bank
+        try:
+            chain = read_column_bank(args.out, args.run_id)["demand_chain"]
+            result = {k: chain[k] for k in ("source_run_id", "source_archive_sha256", "result_sha256",
+                "classification_counts", "static_candidate_count", "formal_compliance", "engineering_release")}
+            result["design_summary"] = {k: chain["design_summary"][k] for k in (
+                "status", "row_count", "reference_count", "known_combination_references", "unique_static_links", "link_status_counts")}
+        except (OSError, EOFError, ValueError, KeyError, TypeError, sqlite3.Error) as exc:
+            print(json.dumps({"status": "REJECTED", "reason": str(exc), "engineering_release": "NOT_READY"}, ensure_ascii=False))
+            return 2
+        print(json.dumps(result, indent=2, ensure_ascii=False))
         return 0
     if args.action == "import-column-bank":
         import sqlite3
