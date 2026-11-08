@@ -133,14 +133,19 @@ class Vs06C2Numerics(unittest.TestCase):
             "table_reads": {
                 "Frame Loads Assignments - Distributed": {
                     "table_key": "Frame Loads Assignments - Distributed", "status": "CAPTURED",
-                    "fields": ["UniqueName", "LoadPat"],
-                    "field_metadata": {"status": "OK", "field_keys": ["UniqueName", "LoadPat"]},
+                    "fields": ["UniqueName", "LoadPattern", "RelDistA", "RelDistB", "LoadType"],
+                    "field_metadata": {"status": "OK", "field_keys":
+                                       ["UniqueName", "LoadPattern", "RelDistA", "RelDistB", "LoadType"]},
                     "row_count": 4,
                     "rows": [
-                        {"UniqueName": "B1", "LoadPat": "LC_WDL"},
-                        {"UniqueName": "B1", "LoadPat": "LC_WDL"},
-                        {"UniqueName": "B2", "LoadPat": "LC_WALL"},
-                        {"UniqueName": "C1", "LoadPat": "LC_WDL"},
+                        {"UniqueName": "B1", "LoadPattern": "LC_WDL",
+                         "RelDistA": "0", "RelDistB": "0.7", "LoadType": "Force"},
+                        {"UniqueName": "B1", "LoadPattern": "LC_WDL",
+                         "RelDistA": "0.3", "RelDistB": "1", "LoadType": "Force"},
+                        {"UniqueName": "B2", "LoadPattern": "LC_WALL",
+                         "RelDistA": "0", "RelDistB": "1", "LoadType": "Force"},
+                        {"UniqueName": "C1", "LoadPattern": "LC_WDL",
+                         "RelDistA": "0", "RelDistB": "1", "LoadType": "Force"},
                     ]},
                 "Beam Object Connectivity": {
                     "table_key": "Beam Object Connectivity", "status": "CAPTURED",
