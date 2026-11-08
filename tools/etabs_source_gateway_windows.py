@@ -586,6 +586,14 @@ def main(argv: list[str] | None = None) -> int:
             print("-", key, "|", item["status"], "|", item.get("row_count", "schema"))
         print("MISSING REQUIRED TARGETS:", data["table_queries_not_found"])
         print("OPTIONAL PRESET HINTS NOT FOUND:", data["preset_optional_hints_not_found"])
+        probe = data.get("frame_load_object_probe")
+        if isinstance(probe, dict):
+            print("FRAME OBJECT LOAD PROBE:", probe["status"],
+                  "BEAMS:", probe["successful_beam_count"], "/", probe["beam_count"],
+                  "UNRESOLVED:", probe["unresolved_beam_count"])
+            print("DISTRIBUTED LOAD ROWS:", probe["load_row_count"])
+            print("LC_WDL ASSIGNMENT ROWS:",
+                  sum(r.get("LoadPattern") == "LC_WDL" for r in probe["rows"]))
     print("OUTPUT:", args.out.resolve())
     return 0 if data.get("status") not in ("SOURCE_PARTIAL",) else 2
 
