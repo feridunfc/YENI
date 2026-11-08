@@ -18,12 +18,14 @@ def verify(root: Path, run_id: str, *, R: str = "7", I: str = "1.5",
            lam: str = "0.5", wall_type: str = "BRITTLE",
            expected_checks: int | None = None,
            expected_numeric: int | None = None,
-           wall_mode: str = "LC_WALL_BEAM_CANDIDATE",
+           wall_mode: str = "LOAD_PATTERN_BEAM_CANDIDATE",
+           wall_load_pattern: str = "LC_WDL",
            manual_wall_length_m: str = "0") -> dict:
     report = build_complete_report(root, run_id)
     scenario = evaluate_drift_scenario(report, {
         "r": R, "i": I, "lambda": lam,
         "wall_type": wall_type, "wall_mode": wall_mode,
+        "wall_load_pattern": wall_load_pattern,
         "manual_wall_length_m": manual_wall_length_m,
     })
     if expected_checks is not None and scenario["expected_story_direction_count"] != expected_checks:
@@ -50,6 +52,7 @@ def verify(root: Path, run_id: str, *, R: str = "7", I: str = "1.5",
         "conditionally_exceeds_limit": scenario["conditional_exceeds_count"],
         "limit": scenario["limit"],
         "wall_source_status": scenario["wall_candidate_inventory"]["source_status"],
+        "wall_load_pattern": scenario["wall_candidate_inventory"]["load_pattern"],
         "wall_candidate_beams": scenario["wall_candidate_inventory"]["candidate_beam_count"],
         "estimated_wall_area_m2": scenario["wall_candidate_inventory"]["assumed_net_face_area_m2"],
         "scenario_sha256": scenario["scenario_sha256"],
@@ -67,8 +70,9 @@ def main():
     parser.add_argument("--i", default="1.5")
     parser.add_argument("--lambda", dest="lam", default="0.5")
     parser.add_argument("--wall-type", choices=("BRITTLE", "FLEXIBLE"), default="BRITTLE")
-    parser.add_argument("--wall-mode", choices=("MANUAL", "LC_WALL_BEAM_CANDIDATE"),
-                        default="LC_WALL_BEAM_CANDIDATE")
+    parser.add_argument("--wall-mode", choices=("MANUAL", "LOAD_PATTERN_BEAM_CANDIDATE",
+                        "LC_WALL_BEAM_CANDIDATE"), default="LOAD_PATTERN_BEAM_CANDIDATE")
+    parser.add_argument("--wall-load-pattern", default="LC_WDL")
     parser.add_argument("--manual-wall-length-m", default="0")
     parser.add_argument("--expected-checks", type=int)
     parser.add_argument("--expected-numeric", type=int)
@@ -76,7 +80,8 @@ def main():
     print(json.dumps(verify(
         args.root, args.run_id, R=args.r, I=args.i,
         lam=args.lam, wall_type=args.wall_type,
-        wall_mode=args.wall_mode, manual_wall_length_m=args.manual_wall_length_m,
+        wall_mode=args.wall_mode, wall_load_pattern=args.wall_load_pattern,
+        manual_wall_length_m=args.manual_wall_length_m,
         expected_checks=args.expected_checks, expected_numeric=args.expected_numeric,
     ), indent=2, ensure_ascii=False))
 
