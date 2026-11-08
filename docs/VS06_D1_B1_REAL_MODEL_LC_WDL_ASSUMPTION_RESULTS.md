@@ -53,7 +53,16 @@ Kolonlar: 87 adet, kaynak atamasından tamamı `Column_80x80` (0.64 m²). +0.00:
 
 **ηci,alt/üst (koşullu senaryo):** +0.00/+4.50 X=1.6626, Y≈1.6529; +4.50/+9.00 X≈1.3302, Y≈1.3093. En küçük η≈1.3093; B1 sınırı η<0.80 bu senaryoda tetiklenmiyor. **Formal TBDY 2018 uygunluk `NOT_PROVEN`**, mühendislik release `NOT_READY`.
 
-## 4. Kullanıcıya dönük tek dikey dilim
+## 4. Tek tuş uygulama entegrasyonu ve geçmiş kayıt disiplini
+
+- `/api/live-vs04` içindeki **aynı kilitli ETABS SapModel / tek COM oturumu**, var olan modal, VS04/VS05, `LC_WDL` kaynaklarından sonra B1 için sekiz ayrı geometri tablosunu `vs06_b1_geometry_source` altında opsiyonel yakalar. Hiçbir analiz yeniden başlatılmaz, model/units değişmez.
+- `build_complete_report(root, run_id)`, aynı arşivde B1 geometrisi ve yük kaynağı varsa SHA doğrulamalarını tekrar yaparak B1 X/Y sonucunu `vs06_b1_result` altında türetir. Dışarıdan seçilen iki dosya `/api/vs06-b1-preview` üzerinden de bağımsız hesaplanabilir.
+- Yazdırılabilir tek mühendislik raporunun `VS06-D1 · B1` bölümünde yönlü Aw/Ag/Ak, ηci kat çiftleri, varsayımsal Gm ve Türkçe varsayım notları vardır. Ana uygulamanın `Kat/sistem sonuçları` sekmesindeki **Seçili tek tuş ETABS kaydındaki B1'i göster** seçeneği bu run'dan okur; eski iki dosyayla manuel inceleme seçeneği korunur.
+- B1 kaynak dosyası eksik/uyumsuz olursa yalnız `vs06_b1_source_status = BLOCKED...` görünür; VS01–VS06-C2 eski onaylı alt kontroller yeniden yazılmaz. Eski arşivler değişmez. Windows canlı **yeniden** çalıştırma ve yeni tek-run UI kabulü hâlâ operatör testine tabidir.
+
+`+14.5` boş katın fiziksel uygulama kapsamı hâlâ model neslinden bağımsız kesinlikle kanıtlanmış değildir. Bu nedenle B1 numerical önizleme `NOT_PROVEN` kalır.
+
+## 5. Kullanıcıya dönük tek dikey dilim
 
 - `src/tbdy_next/b1_source_bridge.py`: ETABS kaynağı → gerçek şema/birim/SHA → yön/kat → kesit ve açıklık yük varsayımları → mevcut `weak_story_b1.evaluate_b1`.
 - `tools/verify_vs06_b1_sources.py`: Windows'ta aynı iki kaynakla bağımsız JSON/HTML B1 hesap dökümü. Orijinal dosyalar değiştirilmez.
