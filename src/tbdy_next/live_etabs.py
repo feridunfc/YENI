@@ -111,7 +111,7 @@ def read_quick_suite_from_running_etabs(case: str, *, with_vs04: bool = False) -
                     from tools.etabs_source_gateway_windows import capture as capture_tables
                     payload["vs06_wall_load_source"] = capture_tables(
                         sap, action="capture",
-                        exact=("Frame Loads - Distributed", "Beam Object Connectivity"))
+                        exact=("Frame Loads Assignments - Distributed", "Beam Object Connectivity"))
                 except Exception as exc:
                     payload["vs06_wall_capture_error"] = (
                         f"{type(exc).__name__}: {exc}")
