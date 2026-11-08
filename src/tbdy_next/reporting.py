@@ -226,6 +226,27 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         except (OSError, UnicodeError, ValueError, TypeError, KeyError) as exc:
             raise ReportUnavailable("VS06-C1 effective drift readiness invalid") from exc
 
+    # VS06-D1: one-click live capture already has the two immutable ETABS
+    # source blobs in the same run. Derive B1 X/Y numeric scenario here while
+    # rechecking both source hashes; old VS05 archived receipts are unchanged.
+    # B1 is optional: missing/unsupported source cannot break VS01-VS06-C2.
+    vs06_b1_result = None
+    vs06_b1_source_status = None
+    if ("vs06_b1_geometry_source" in source or "vs06_wall_load_source" in source
+            or "vs06_b1_geometry_capture_error" in source):
+        if (isinstance(source.get("vs06_b1_geometry_source"), Mapping) and
+                isinstance(source.get("vs06_wall_load_source"), Mapping)):
+            from .b1_source_bridge import B1BridgeError, evaluate_b1_sources
+            try:
+                vs06_b1_result = evaluate_b1_sources(
+                    source["vs06_b1_geometry_source"],
+                    source["vs06_wall_load_source"])
+                vs06_b1_source_status = "SOURCE_BOUND_NUMERICAL"
+            except (B1BridgeError, ValueError, TypeError, KeyError) as exc:
+                vs06_b1_source_status = "BLOCKED_SOURCE_BINDING: " + str(exc)
+        else:
+            vs06_b1_source_status = "BLOCKED_REQUIRED_B1_SOURCES_MISSING"
+
     frame_rows = ((geometry_source or {}).get("tables", {}).get("FRAME_ASSIGNMENTS", {})
                   .get("rows", []) or [])
     frame_types = dict(sorted(Counter(str(row.get("Type", "UNKNOWN")) for row in frame_rows).items()))
@@ -303,6 +324,10 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
            if vs06_physical_source_review is not None else {}),
         **({"vs06_effective_drift_readiness": vs06_effective_drift_readiness}
            if vs06_effective_drift_readiness is not None else {}),
+        **({"vs06_b1_result": vs06_b1_result}
+           if vs06_b1_result is not None else {}),
+        **({"vs06_b1_source_status": vs06_b1_source_status}
+           if vs06_b1_source_status is not None else {}),
         "vs03": new_checks,
         "checks": checks,
         "modal_source_table": {
@@ -636,6 +661,49 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
             '. Esnek bağlantı seçimi için deneye dayalı kapasite belgesi: ' +
             _val(scenario.get("flexible_branch_capacity_accepted")) +
             '.</p></section>')
+
+    b1 = report.get("vs06_b1_result")
+    if isinstance(b1, Mapping):
+        b1_numeric = b1.get("b1_numerical") or {}
+        area_rows = []
+        for story in b1.get("story_direction_areas", []):
+            for d in ("X", "Y"):
+                item = story.get(d) or {}
+                area_rows.append({"story": story.get("story"), "direction": d,
+                    "Aw_m2": item.get("column_Aw_m2"),
+                    "Ag_m2": item.get("wall_Ag_m2"),
+                    "Ak_m2": item.get("infill_Ak_assumed_m2"),
+                    "K_proxy": item.get("infill_shear_stiffness_proxy_kN_m")})
+        vs04_sections.append(
+            '<section class="percheck"><h2>VS06-D1 · B1 Zayıf Kat — sayısal kaynak senaryosu</h2>'
+            '<p>TBDY 2018 Tablo 3.6, 3.6.2.3. Ae = Aw+Ag+0,15Ak. '
+            'Kolon/perde gerçek kaynak geometrisidir; tuğla 9/19 cm ve '
+            'kapı/pencere azaltması varsayımdır. Formel uygunluk NOT_PROVEN.</p>'
+            '<p>ηci,min: ' + _val(b1_numeric.get("eta_ci_min")) +
+            ' · Sayısal karar: ' + _val(b1_numeric.get("numeric_condition")) +
+            ' · Gevrek dolgu varsayılanı: ' +
+            _val((b1.get("parameters") or {}).get("wall_type")) + '</p>' +
+            _table((("story", "Kat"), ("direction", "Yön"),
+                    ("Aw_m2", "Aw (m²)"), ("Ag_m2", "Ag (m²)"),
+                    ("Ak_m2", "Ak varsayım (m²)"),
+                    ("K_proxy", "K_proxy (kN/m)")), area_rows) +
+            _table((("lower_story", "Alt kat"), ("upper_story", "Üst kat"),
+                    ("direction", "Yön"), ("eta_ci", "ηci"),
+                    ("numeric_condition", "Sayısal durum")),
+                   b1_numeric.get("paired_results", [])) +
+            '<h3>Hesap varsayımları</h3><ol>' +
+            ''.join('<li>' + escape(str(item)) + '</li>'
+                    for item in b1.get("assumptions_notes", [])) +
+            '</ol><p>Kaynak SHA: ' +
+            _val((b1.get("provenance") or {}).get("geometry_capture_sha256")) +
+            ' / ' +
+            _val((b1.get("provenance") or {}).get("wall_load_capture_sha256")) +
+            '. Mühendislik release NOT_READY.</p></section>')
+    elif report.get("vs06_b1_source_status"):
+        vs04_sections.append(
+            '<section class="percheck"><h2>VS06-D1 · B1 veri eşleştirmesi</h2>'
+            '<p>' + _val(report.get("vs06_b1_source_status")) +
+            '. Önceki kabul edilmiş alt kontroller korunmuştur.</p></section>')
 
     a1_warnings = [
         c for c in extras if c.get("check_id") in ("a1_torsion_x", "a1_torsion_y")
