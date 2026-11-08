@@ -559,32 +559,9 @@
       R_base:byId('c2R').value
     };
   }
-  async function calculateB1(){
-    const status=byId('b1Status'),host=byId('b1Result'),btn=byId('b1Calculate');
-    const a=byId('b1GeometryFile').files[0],b=byId('b1WallFile').files[0];
-    if(!a||!b){status.textContent='B1_GEOMETRY ve LC_WDL_OBJECT JSON kaynaklarının ikisini de seçin.';return;}
-    if(a.size+b.size>6*1024*1024){
-      status.textContent='B1 kaynakları toplamı 6 MB sınırını geçiyor; güvenli yükleme yapılamadı.';return;
-    }
-    btn.disabled=true;
-    byId('b1Json').disabled=true;
-    byId('b1Html').disabled=true;
-    b1Result=null;host.replaceChildren();
-    status.textContent='Gerçek kaynaklar X/Y eleman, LC_WDL ve B1 kuralına eşleniyor…';
-    try{
-      const [geometry,wall_loads]=await Promise.all([a.text(),b.text()]);
-      const payload={geometry:JSON.parse(geometry),wall_loads:JSON.parse(wall_loads),
-                     options:b1CurrentOptions()};
-      const response=await fetch('/api/vs06-b1-preview',{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify(payload),cache:'no-store'
-      });
-      const body=await response.json();
-      if(!response.ok)throw new Error(body.error||'B1_HTTP_'+response.status);
-      if(!body.result||!body.html||body.result.formal_compliance!=='NOT_PROVEN'
-         ||body.result.b1_numerical?.formal_compliance!=='NOT_PROVEN'){
-        throw new Error('B1_SOURCE_RESULT_CONTRACT_INVALID');
-      }
+  function showB1(body){
+    const status=byId('b1Status'),host=byId('b1Result');
+    host.replaceChildren();
       b1Result=body;
       const r=body.result,number=r.b1_numerical;
       status.textContent='B1 X/Y: '+r.source_candidate_wall_beams+' LC_WDL kiriş, '+
@@ -619,6 +596,35 @@
       host.append(make('p','B1 sonuç SHA-256: '+r.result_sha256+
         ' · Model nesli ve tuğla malzemesi ayrıca yetkilendirilmedi.','micro'));
       byId('b1Json').disabled=false;byId('b1Html').disabled=false;
+  }
+
+  async function calculateB1(){
+    const status=byId('b1Status'),host=byId('b1Result'),btn=byId('b1Calculate');
+    const a=byId('b1GeometryFile').files[0],b=byId('b1WallFile').files[0];
+    if(!a||!b){status.textContent='B1_GEOMETRY ve LC_WDL_OBJECT JSON kaynaklarının ikisini de seçin.';return;}
+    if(a.size+b.size>6*1024*1024){
+      status.textContent='B1 kaynakları toplamı 6 MB sınırını geçiyor; güvenli yükleme yapılamadı.';return;
+    }
+    btn.disabled=true;
+    byId('b1Json').disabled=true;
+    byId('b1Html').disabled=true;
+    b1Result=null;host.replaceChildren();
+    status.textContent='Gerçek kaynaklar X/Y eleman, LC_WDL ve B1 kuralına eşleniyor…';
+    try{
+      const [geometry,wall_loads]=await Promise.all([a.text(),b.text()]);
+      const payload={geometry:JSON.parse(geometry),wall_loads:JSON.parse(wall_loads),
+                     options:b1CurrentOptions()};
+      const response=await fetch('/api/vs06-b1-preview',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(payload),cache:'no-store'
+      });
+      const body=await response.json();
+      if(!response.ok)throw new Error(body.error||'B1_HTTP_'+response.status);
+      if(!body.result||!body.html||body.result.formal_compliance!=='NOT_PROVEN'
+         ||body.result.b1_numerical?.formal_compliance!=='NOT_PROVEN'){
+        throw new Error('B1_SOURCE_RESULT_CONTRACT_INVALID');
+      }
+      showB1(body);
     }catch(err){
       b1Result=null;status.textContent='B1 sayısal kaynak hesabı reddedildi: '+err.message;
       host.replaceChildren();
@@ -636,6 +642,34 @@
     }
     setTimeout(()=>URL.revokeObjectURL(url),60000);
   }
+  async function showB1FromRun(){
+    const btn=byId('b1UseRun'),status=byId('b1Status');
+    if(!selectedRunId){
+      status.textContent='Önce ETABS tek tuş çalışma kaydını seçin.';return;
+    }
+    btn.disabled=true;
+    status.textContent='Seçili run_id içindeki B1 kaynakları rapordan yeniden hesaplanıyor…';
+    try{
+      const u='/api/export-checks?run_id='+encodeURIComponent(selectedRunId);
+      const response=await fetch(u,{cache:'no-store'});
+      const report=await response.json();
+      if(!response.ok)throw new Error(report.error||'RUN_REPORT_UNAVAILABLE');
+      if(!report.vs06_b1_result){
+        throw new Error('B1 kaynakları bu eski run_id içinde yok veya eksik: '+
+                        (report.vs06_b1_source_status||'SOURCE_ABSENT')+
+                        '. Eski iki JSON için dosya seçicilerini kullanın.');
+      }
+      const htmlResponse=await fetch('/report/print?run_id='+encodeURIComponent(selectedRunId),
+                                    {cache:'no-store'});
+      if(!htmlResponse.ok)throw new Error('B1_HTML_FROM_RUN_UNAVAILABLE');
+      const html=await htmlResponse.text();
+      showB1({result:report.vs06_b1_result,html});
+      status.textContent+=' · Tek tuş kaydında kullanılan B1 varsayılanları: γ=10 kN/m³, 9/19 cm, açıklık %50 koşullu, Gm=500 MPa.';
+    }catch(err){
+      status.textContent='Seçili ETABS çalışmasından B1 açılamadı: '+err.message;
+    }finally{btn.disabled=false;}
+  }
+  byId('b1UseRun')?.addEventListener('click',showB1FromRun);
   byId('b1Calculate')?.addEventListener('click',calculateB1);
   byId('b1Json')?.addEventListener('click',()=>{
     if(b1Result)b1Download('B1_SOURCE_NUMERIC.json',
