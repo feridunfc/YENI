@@ -28,31 +28,43 @@
 .quick-check details summary{cursor:pointer;color:var(--accent);margin:8px 0;font-weight:650}
 .quick-check pre{max-height:240px}.quick-check h3{margin:0}
 .app aside .aside-check-tree li{color:#c8d6e4;border-left-color:#58708b}.app aside .aside-check-tree li:first-child{color:#ffffff;border-color:#65d3b1}
+.app{grid-template-columns:258px minmax(450px,1fr) 218px}
+.nav-category{margin-top:16px;padding:10px 10px 5px;border-top:1px solid #35516a;color:#9bb9cf;font-size:10px;font-weight:750;letter-spacing:.8px;text-transform:uppercase}
+.nav-child{display:flex;align-items:flex-start;justify-content:space-between;gap:7px;line-height:1.4}
+.nav-child-label{min-width:0}.check-state{font-size:9px;white-space:nowrap;color:#a9c2d4;margin-top:1px}.check-state.review{color:#ffd49a}.check-state.observed{color:#91dfc8}
+.rail{grid-column:auto;border-top:0;border-left:1px solid var(--border);padding:21px 14px}.rail .tree li{padding:8px;font-size:11px;line-height:1.5}.rail .tree{margin-bottom:18px}
+.release-note{border-top:1px solid var(--border);padding-top:16px;font-size:11px;line-height:1.6;color:var(--muted)}.release-note strong{display:block;color:var(--warn);margin:5px 0}
+.compact-run{padding:12px 16px}.compact-run details{margin-top:10px}.compact-run .field{max-width:100%;font-size:11px}.compact-run summary{font-size:11px;color:var(--muted);cursor:pointer}
+@media(max-width:1050px){.app{grid-template-columns:230px minmax(0,1fr)}.rail{display:none}main{padding:22px}}
+@media(max-width:700px){.app{display:block}.navlist{display:block;max-height:42vh;overflow:auto}.navitem{width:100%}.navtitle{display:block}main{padding:14px}.top{flex-wrap:wrap}.twocol{grid-template-columns:1fr}.stages{grid-template-columns:1fr}.nav-child{flex-wrap:wrap}}
 </style>
 </head>
 <body>
 <div class="app">
-<aside><div class="logo">TBDY Next Engine</div><div class="tagline">ETABS → Kanıt → TBDY kontrolü → Rapor · VS04</div><div class="navtitle">Model / Analiz / Tasarım</div><nav class="navlist" id="nav"></nav><div class="navtitle">Kontrol ağacı / Result Tree</div><ul class="tree aside-check-tree" id="resulttree"><li>Hesap bekleniyor · NOT_PROVEN</li></ul></aside>
+<aside><div class="logo">TBDY Next Engine</div><div class="tagline">ETABS → Hesap → Rapor</div><nav class="navlist" id="nav" aria-label="Sınıflandırılmış mühendislik kontrolleri"></nav><div class="navtitle">Seçili çalışmanın özeti</div><ul class="tree aside-check-tree" id="resulttree"><li>Hesap bekleniyor · NOT_PROVEN</li></ul></aside>
 <main>
-<div class="top"><div><div class="eyebrow">Birleşik canlı mühendislik taraması · VS04</div><h1 id="heading">Modal analiz</h1><div class="muted small" id="subhead">ETABS → şema/birim/kimlik → uygulanabilirlik → bağımsız kontrol → CheckResult → rapor</div></div><div class="chip">ENGINEERING RELEASE · NOT_READY</div></div>
+<div class="top"><div><div class="eyebrow">Yapısal değerlendirme</div><h1 id="heading">Modal analiz</h1><div class="muted small" id="subhead">Kontroller, kaynakları ve hesap kapsamıyla birlikte gösterilir.</div></div><div class="chip">MÜHENDİSLİK KABULÜ · NOT_READY</div></div>
+<section class="box compact-run" id="quick-panel">
+<div id="quickStatus" class="muted small">Henüz birleşik ETABS kaydı yok.</div>
+<details><summary>Eleman kontrollerinin toplu özeti</summary><div id="quickReport"></div></details>
+</section>
 <div id="activecontent">
 <div class="stages"><div class="step"><em>Aşama 1</em><strong id="step1">Kaynak keşfi bekleniyor</strong></div><div class="step"><em>Aşama 2</em><strong id="step2">Şema doğrulaması bekleniyor</strong></div><div class="step"><em>Aşama 3</em><strong id="step3">Hesap bekleniyor</strong></div></div>
 <section class="box live-panel" id="live-modal-panel"><header><div><div class="live-label">Tek canlı hesap akışı</div><h2>ETABS → Kaynak → Şema → Hesap → Sonuç → Rapor</h2><div class="muted small">ETABS 23.2.0 Windows oturumunda açık ve analiz edilmiş model kullanılır. Dosya seçimi gerekmez; geometri tabloları gerçek şemaya göre birleştirilir.</div></div></header>
 <div class="actions"><label for="liveCase" class="small">Modal vaka</label><input class="field" id="liveCase" value="Modal" maxlength="120" aria-label="ETABS modal vaka adı"><button class="go live-action" type="button" id="runAllBtn">ETABS’tan Oku ve Hesapla</button></div>
-<div class="live-status" id="liveModalStatus" role="status" aria-live="polite">Henüz canlı bağlantı başlatılmadı.</div><p class="micro">Tek tıklamada mevcut 8 sayısal alt kontrol, VS04 kaynak şeması, 5 kaynak-aritmetik gözlemi ve normatif kanıt kapıları hesaplanır; JSON/HTML aynı run_id ile açılır. F–J modülleri henüz canlı web yoluna entegre değildir; yönetmelik uygunluğu NOT_PROVEN, release NOT_READY. ETABS analizi başlatılmaz veya model kaydedilmez.</p></section>
+<div class="live-status" id="liveModalStatus" role="status" aria-live="polite">Henüz canlı bağlantı başlatılmadı.</div><p class="micro">Mevcut analiz sonuçları okunur; desteklenen kontroller aynı çalışma kaydında hesaplanır. Her kontrol kendi veri kapsamını gösterir. Koşullu sayısal sonuçlar, bina için resmî uygunluk onayı değildir.</p></section>
 <details class="offline"><summary>Geliştirici / çevrimdışı kaynak testi (normal canlı hesap için gerekli değil)</summary>
 <div class="twocol">
 <section class="box"><header><div><h2>01 · ETABS kaynak keşfi</h2><div class="muted small">Ön test JSON'unda gerçek tablo anahtarları; henüz sonuç satırı değil</div></div></header><div class="drop"><label for="preflight">Preflight JSON seç</label><input type="file" id="preflight" accept=".json,application/json"></div><div class="actions"><button class="go" id="discoverBtn">Kaynağı incele</button></div></section>
 <section class="box"><header><div><h2>02 · Modal tablo / şema</h2><div class="muted small">Tam tablo satırları ve seçilen modal vaka</div></div></header><div class="drop"><label for="capture">Modal capture JSON seç</label><input type="file" id="capture" accept=".json,application/json"></div><div class="actions"><label class="small" for="case">Vaka</label><input class="field" type="text" id="case" value="Modal" maxlength="120"><button class="go" id="schemaBtn">Şemayı incele</button><button class="go" id="modalBtn">Doğrula + hesapla</button></div></section>
 </div></details>
 <section class="box"><header><div><h2>03 · İnceleme ve sonuç</h2><div class="muted small">Gözlenen veriyle yetkili mühendislik kararı birbirinden ayrı tutulur</div></div></header><div id="result"><div class="empty">Canlı ETABS'a bağlanıp hesaplamak için üstteki yeşil düğmeyi kullanın. Önceki CLI sonuçları da aşağıdaki kayıt panelinde otomatik gösterilir.</div></div></section>
-<section class="box" id="quick-panel"><header><div><h2>05 · Hızlı geometri kontrolleri</h2><div class="muted small">Kolon 1 + kiriş 3; tablolardaki tüm elemanlar için sayısal tarama. Yönetmelik kapsam onayı değildir.</div></div></header>
-<div id="quickStatus" class="muted small">Henüz birleşik ETABS taraması yapılmadı.</div><div id="quickReport" class="muted small">Sonuçlar için yukarıdaki tek ETABS hesap düğmesini kullanın.</div><div class="quick-check"><h3>VS04 · Analiz kaynakları</h3><div id="vs04Report" class="muted small">Üç gerçek analiz tablosu henüz okunmadı.</div></div></section>
 <section class="box" id="saved-modal-panel"><header><div><h2>04 · Kaydedilmiş gerçek modal hesaplar</h2><div class="muted small">CLI ile hesaplanan sonuçlar yeniden dosya yüklemeden görüntülenir; sentetik olanlar ayrıca işaretlenir.</div></div><button class="go" id="refreshSaved">Yenile</button></header>
 <div id="saved-modal-body" class="muted small">Yerel çalışma kayıtları okunuyor…</div><div id="saved-modal-history" class="actions"></div></section>
-<section class="box"><header><div><h2>Aşama kayıtları</h2><div class="muted small">Yerel `.receipts` altında kaynak kopyası, hash ve aşama sonucu tutulur</div></div></header><div id="runlist" class="muted small">Henüz kayıt bulunamadı.</div></section>
+<details class="box"><summary>Çalışma geçmişi ve aşama kayıtları</summary><div id="trail" class="muted small">Yeni kayıt yok.</div><div id="runlist" class="muted small">Henüz kayıt bulunamadı.</div></details>
 </div>
 <div id="systemcontent" class="hidden">
+<section class="box" id="storyDriftPanel" data-check-panel="STORY_DRIFT"><h2>Göreli kat ötelemesi — kaynak hesabı</h2><div id="storyDriftReport">Seçili çalışmanın kat öteleme kayıtları burada gösterilir.</div></section>
 <section class="box" id="vs06c2-panel">
   <header><div><div class="eyebrow">VS06-C2 · TBDY 2018 §4.9.1</div><h2>Etkin göreli kat ötelemesi — sayısal senaryo</h2>
   <p class="muted small">Kayıtlı gerçek ETABS Story Drifts × kat yüksekliği kaynak değerlerini R/I ve DD-3/DD-2 λ ile hesaplar. Kaynak nümeriği gerçek eşzamanlı tasarım deplasmanı olarak onaylanmadıkça formel uygunluk NOT_PROVEN kalır.</p></div></header>
@@ -78,11 +90,17 @@
   <div id="c2Status" class="live-status" role="status" aria-live="polite">Önce mevcut ETABS kaydını seçip hesabı çalıştırın.</div>
   <div id="c2Report"></div>
 </section>
-<section class="box" id="vs06-b1-panel">
+<details class="box"><summary>Analiz kaynakları ve hesap dayanakları</summary><div id="vs04Report">Seçili çalışmanın kaynak dayanakları burada gösterilir.</div></details>
+</div>
+<div id="geometrycontent" class="hidden"><section class="box"><h2 id="geometryTitle">Geometri kontrolleri</h2><p class="muted small">Son canlı ETABS taramasından eleman bazında sonuçlar. Yeni hesap için Modal Analiz sekmesindeki tek hesap düğmesini kullanın.</p><div id="geomTabPanel">Henüz hesap yok.</div></section></div>
+<div id="extraContent" class="hidden"><section class="box"><h2 id="extraTitle">Mühendislik kontrolleri</h2><div id="extraTabPanel"></div></section>
+<section class="box" id="vs06-b1-panel" data-check-panel="WEAK_STORY_B1">
 <header><div><div class="eyebrow">VS06-D1 · TBDY 2018 Tablo 3.6, §3.6.2.3</div>
-<h2>B1 zayıf kat — gerçek ETABS geometri + LC_WDL yükünden X/Y sayısal hesap</h2>
-<p class="muted small">Kaydedilmiş iki salt-okunur ETABS kaynak dosyasını seçin. Kolon/perde alanları gerçek kesit ve koordinatlardan alınır; tuğla kesit alanları yük şiddetinden yapılan, belgeli varsayımlardır.</p></div></header>
+<h2>B1 zayıf kat — koşullu kaynak hesabı</h2>
+<p class="muted small">Seçili ETABS kaydının B1 sonucu aşağıda gösterilir. Ayrı kaynaklarla hesap için iki JSON dosyasını seçin. Kolon/perde alanları gerçek kesit ve koordinatlardan alınır; tuğla kesit alanları yük şiddetinden yapılan, belgeli varsayımlardır.</p></div></header>
 <div class="twocol">
+ <div><label for="b1WallType">Dolgu bağlantısı (senaryo)</label><select class="field" id="b1WallType"><option value="BRITTLE" selected>Gevrek dolgu</option><option value="FLEXIBLE">Esnek bağlantı</option></select></div>
+ <div><label for="b1R">R katsayısı (senaryo)</label><input class="field" id="b1R" type="number" min=".01" step="any" value="7"></div>
  <div><label for="b1GeometryFile">B1_GEOMETRY kaynak JSON</label><input class="field" style="width:100%" id="b1GeometryFile" type="file" accept=".json,application/json"></div>
  <div><label for="b1WallFile">LC_WDL_OBJECT kaynak JSON</label><input class="field" style="width:100%" id="b1WallFile" type="file" accept=".json,application/json"></div>
  <div><label for="b1Gamma">Tuğla için varsayılan birim hacim ağırlığı (kN/m³)</label><input class="field" id="b1Gamma" type="number" step="any" value="10" min="1"></div>
@@ -92,25 +110,28 @@
  <div><label for="b1Opening">Düşük yükte varsayılan açıklık oranı (0–1)</label><input class="field" id="b1Opening" type="number" step="0.05" min="0" max=".99" value="0.5"></div>
  <div><label for="b1Cutoff">Açıklık hipotezi q/q_tam tetik oranı</label><input class="field" id="b1Cutoff" type="number" step="0.05" min=".05" max=".99" value="0.75"></div>
 </div>
-<p class="micro">Dolgu bağlantı tipi ve R katsayısı yukarıdaki C2 seçiminden alınır. Varsayılan: <strong>Gevrek dolgu</strong>. Ak için <strong>9 cm veya 19 cm</strong> kalınlık yüke göre tahmin edilir; kat yüksekliğinden kaynak kirişinin t3 kesit yüksekliği çıkarılır. Düşük kN/m için <strong>%50 açıklık</strong> alternatif kabulü yalnız senaryodur. Gm, gerçek tuğla/harç deney değerinin yerine geçmez.</p>
+<p class="micro">Dosya hesabında bu paneldeki dolgu bağlantısı ve R kullanılır; seçili arşiv kaydı kendi varsayılanlarıyla hesaplanır. Başlangıç senaryosu: <strong>Gevrek dolgu</strong>. Ak için <strong>9 cm veya 19 cm</strong> kalınlık yüke göre tahmin edilir; kat yüksekliğinden kaynak kirişinin t3 kesit yüksekliği çıkarılır. Düşük kN/m için <strong>%50 açıklık</strong> alternatif kabulü yalnız senaryodur. Gm, gerçek tuğla/harç deney değerinin yerine geçmez.</p>
 <div class="actions"><button class="go" type="button" id="b1Calculate">Gerçek iki ETABS kaynağından B1 hesapla</button>
 <button type="button" id="b1UseRun">Son seçili tek tuş ETABS kaydındaki B1'i göster</button>
 <button type="button" id="b1Json" disabled>Sayısal B1 JSON indir</button>
 <button type="button" id="b1Html" disabled>Varsayımlı B1 HTML raporu aç</button></div>
-<div id="b1Status" class="live-status" role="status" aria-live="polite">Kaynak dosyaları seçilmedi.</div>
+<div id="b1Status" class="live-status" role="status" aria-live="polite">Birleşik ETABS kaydı seçildiğinde B1 sonucu burada gösterilir.</div>
 <div id="b1Result"></div>
+</section>
+<section class="box hidden" id="b2Panel" data-check-panel="SOFT_STORY_B2">
+<h2>B2 yumuşak kat — koşullu kaynak hesabı</h2>
+<p class="muted small">Seçili ETABS kaydının ortalama öteleme adayları kat yüksekliğine bölünür; her kat üst ve alt komşusuyla ayrı karşılaştırılır. Eşik: ηki &gt; 2,0. Ortalama tanımı, bodrum kapsamı ve ±%5 dışmerkezlik esası onaylanıncaya kadar resmî B2 sınıflandırması NOT_PROVEN.</p>
+<div id="b2Result" aria-live="polite">Birleşik ETABS kaydı seçildiğinde sonuçlar burada gösterilir.</div>
 </section></div>
-<div id="geometrycontent" class="hidden"><section class="box"><h2 id="geometryTitle">Geometri kontrolleri</h2><p class="muted small">Son canlı ETABS taramasından eleman bazında sonuçlar. Yeni hesap için Modal Analiz sekmesindeki tek hesap düğmesini kullanın.</p><div id="geomTabPanel">Henüz hesap yok.</div></section></div>
-<div id="extraContent" class="hidden"><section class="box"><h2 id="extraTitle">Yeni doğrulanan alt kontroller</h2><div id="extraTabPanel"></div></section></div>
 <div id="plannedcontent" class="hidden notbuilt"><h2 id="plannedtitle"></h2><p>Bu hesap henüz etkinleştirilmedi. Sıradaki dikey dilim ancak kaynak → şema → postprocess → mühendislik kontrolü → rapor zinciri çalışınca açılır.</p><p class="muted small">Burada sahte PASS, hazırmış gibi gösterilen formül veya boş hesap ekranı yok.</p></div>
 <div class="footer">Her kontrol tek, izlenebilir sonuç üretir. Sayısal alt koşulun sağlanması bina uygunluk onayı değildir.</div>
 </main>
-<aside class="rail"><div class="section-label">Model Tree</div><ul class="tree" id="modeltree"><li>Kaynak henüz yüklenmedi</li></ul><div class="section-label">Doğrulama geçmişi</div><div id="trail" class="muted small">Yeni kayıt yok.</div></aside>
+<aside class="rail" aria-label="Kısa çalışma özeti"><div class="section-label">Seçili model</div><ul class="tree" id="modeltree"><li>Kaynak henüz yüklenmedi</li></ul><div class="release-note">Mühendislik kabulü<strong>NOT_READY</strong>Hesap kapsamı ve varsayımlar, ilgili kontrolün içinde gösterilir.</div></aside>
 </div>
 <script>
 const tabs=['Geometri','Malzeme','Kesitler','Atamalar','Yükler ve kütle','Analiz vakaları','Deprem esasları','Modal analiz','Kat/sistem sonuçları','Düzensizlikler','Döşemeler','Kirişler','Kolonlar','Perdeler','Birleşimler','Temeller'];
 const nav=document.getElementById('nav');let active=7;
-function selectTab(i){active=i;for(const b of nav.querySelectorAll('[data-nav-tab]'))b.classList.toggle('active',Number(b.dataset.navTab)===i);document.getElementById('heading').textContent=tabs[i];document.getElementById('activecontent').classList.toggle('hidden',i!==7);document.getElementById('geometrycontent').classList.toggle('hidden',i!==11&&i!==12);document.getElementById('systemcontent').classList.toggle('hidden',i!==8);document.getElementById('extraContent').classList.toggle('hidden',i!==1&&i!==9);document.getElementById('plannedcontent').classList.toggle('hidden',[1,7,8,9,11,12].includes(i));document.getElementById('extraTitle').textContent=tabs[i]+' · yeni alt kontroller';document.getElementById('geometryTitle').textContent=tabs[i]+' · geometrik alt kontroller';document.getElementById('plannedtitle').textContent=`${String(i+1).padStart(2,'0')} · ${tabs[i]} — PLANLANDI`;if(typeof window.renderQuickChecksForTab==='function')window.renderQuickChecksForTab(i);}
+function selectTab(i){active=i;for(const b of nav.querySelectorAll('[data-nav-tab]'))b.classList.toggle('active',Number(b.dataset.navTab)===i);document.getElementById('heading').textContent=tabs[i];document.getElementById('activecontent').classList.toggle('hidden',i!==7);document.getElementById('geometrycontent').classList.toggle('hidden',i!==11&&i!==12);document.getElementById('systemcontent').classList.toggle('hidden',i!==8);document.getElementById('extraContent').classList.toggle('hidden',i!==1&&i!==9);document.getElementById('plannedcontent').classList.toggle('hidden',[1,7,8,9,11,12].includes(i));document.getElementById('extraTitle').textContent=tabs[i]+' · kontroller';document.getElementById('geometryTitle').textContent=tabs[i]+' · geometrik alt kontroller';document.getElementById('plannedtitle').textContent=`${String(i+1).padStart(2,'0')} · ${tabs[i]} — PLANLANDI`;if(typeof window.renderQuickChecksForTab==='function')window.renderQuickChecksForTab(i);}
 tabs.forEach((t,i)=>{const b=document.createElement('button');b.className='navitem'+(i===7?' active':'');b.innerHTML=`<span>${String(i+1).padStart(2,'0')}</span><span></span><span class="signal ${i===7?'live':''}">${i===7?'VS01':'PLAN'}</span>`;b.children[1].textContent=t;b.dataset.navTab=String(i);b.onclick=()=>selectTab(i);nav.append(b)});
 const result=document.getElementById('result');
 function textnode(tag,content,cls){const el=document.createElement(tag);el.textContent=String(content);if(cls)el.className=cls;return el}

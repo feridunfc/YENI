@@ -72,7 +72,7 @@ class Vs04JTests(unittest.TestCase):
         self.assertIsNone(result["full_equivalent_base_shear_kn"])
         self.assertIsNone(result["beta_tE_X"])
         self.assertIsNone(result["beta_tE_Y"])
-        self.assertEqual(len(check_registry()),8)
+        self.assertEqual(len(check_registry()),11)
 
     def test_mutated_mass_group_denied_not_silently_used(self):
         x=deepcopy(self.basis)

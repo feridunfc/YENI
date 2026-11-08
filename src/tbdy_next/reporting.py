@@ -38,7 +38,8 @@ def _load_source(directory: Path, expected_sha: str) -> dict[str, Any]:
 
 def _vs05_check_inventory(checks: list[dict], story_drift: dict | None,
                           b1: Mapping[str, Any] | None = None,
-                          b1_source_status: str | None = None) -> dict:
+                          b1_source_status: str | None = None,
+                          b2: Mapping[str, Any] | None = None) -> dict:
     """Separate historical checks and source-derived checks; no fake code PASS."""
     entries = [{"check_id": c["check_id"], "evaluation": "BOUNDED_EXISTING"}
                for c in checks]
@@ -81,6 +82,21 @@ def _vs05_check_inventory(checks: list[dict], story_drift: dict | None,
             "evaluated_count": 0,
             "formal_compliance": "NOT_PROVEN",
             "engineering_release": "NOT_READY",
+        })
+    if b2 is not None:
+        if (b2.get("check_id") != "SOFT_STORY_B2"
+                or b2.get("formal_compliance") != "NOT_PROVEN"
+                or b2.get("engineering_release") != "NOT_READY"):
+            raise ValueError("B2_INVENTORY_SOURCE_CONTRACT_INVALID")
+        entries.append({
+            "check_id": "SOFT_STORY_B2",
+            "evaluation": ("CONDITIONAL_SOURCE_NUMERICAL"
+                           if b2["comparison_coverage"]["resolved"] else "BLOCKED_SOURCE"),
+            "status": b2["numeric_condition"], "source_status": b2["status"],
+            "expected_count": b2["expected_count"],
+            "evaluated_count": b2["evaluated_count"],
+            "comparison_coverage": b2["comparison_coverage"],
+            "formal_compliance": "NOT_PROVEN", "engineering_release": "NOT_READY",
         })
     ids = [e["check_id"] for e in entries]
     if len(ids) != len(set(ids)):
@@ -283,6 +299,15 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         else:
             vs06_b1_source_status = "BLOCKED_REQUIRED_B1_SOURCES_MISSING"
 
+    # VS07 B2 reuses the SAME sealed source; historical receipts and their
+    # evaluators are unchanged. Invalid B2 is local to this optional check.
+    b2 = None
+    if "vs05_delta_source" in source or "vs05_delta_capture_error" in source:
+        from .soft_story_b2 import bind_soft_story_b2
+        b2 = bind_soft_story_b2(
+            source.get("vs05_delta_source"),
+            capture_error=source.get("vs05_delta_capture_error"))
+
     frame_rows = ((geometry_source or {}).get("tables", {}).get("FRAME_ASSIGNMENTS", {})
                   .get("rows", []) or [])
     frame_types = dict(sorted(Counter(str(row.get("Type", "UNKNOWN")) for row in frame_rows).items()))
@@ -317,7 +342,9 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
     elif vs04:
         source_scope += " (E–J historical source evidence if recorded)"
     inventory = _vs05_check_inventory(
-        checks, story_drift, vs06_b1_result, vs06_b1_source_status)
+        checks, story_drift, vs06_b1_result, vs06_b1_source_status, b2)
+    if b2 is not None:
+        source_scope += " + SOFT_STORY_B2 assumed Avg Drift/h adjacent-source arithmetic (TBDY NOT_PROVEN)"
     if vs06_b1_result is not None:
         pair_count = vs06_b1_result["b1_numerical"]["computed_story_direction_pairs"]
         source_scope += (" + WEAK_STORY_B1 X/Y source numerical "
@@ -372,6 +399,7 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
            if vs06_b1_result is not None else {}),
         **({"vs06_b1_source_status": vs06_b1_source_status}
            if vs06_b1_source_status is not None else {}),
+        **({"soft_story_b2": b2} if b2 is not None else {}),
         "vs03": new_checks,
         "checks": checks,
         "modal_source_table": {
@@ -448,6 +476,15 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
     drift_summary = report.get("story_drift")
     if isinstance(drift_summary, Mapping):
         summary_rows.append(_vs05_summary_row(drift_summary))
+    b2 = report.get("soft_story_b2")
+    if isinstance(b2, Mapping):
+        summary_rows.append({
+            "check_id": "SOFT_STORY_B2", "status": b2["status"],
+            "expected_count": b2["expected_count"],
+            "evaluated_count": b2["evaluated_count"],
+            "met_count": 0, "unmet_count": 0, "not_applicable_count": 0,
+            "not_proven_count": b2["expected_count"],
+        })
     section_cols = (
         ("story", "Kat"), ("element_id", "UniqueName"), ("section", "Atanan kesit"),
         ("material_name", "Malzeme"), ("material_classification", "Malzeme sınıfı"),
@@ -748,6 +785,36 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
             '<section class="percheck"><h2>VS06-D1 · B1 veri eşleştirmesi</h2>'
             '<p>' + _val(report.get("vs06_b1_source_status")) +
             '. Önceki kabul edilmiş alt kontroller korunmuştur.</p></section>')
+
+    if isinstance(b2, Mapping):
+        coverage = b2["comparison_coverage"]
+        vs04_sections.append(
+            '<section class="percheck" data-check-panel="SOFT_STORY_B2">'
+            '<h2>B2 yumuşak kat — koşullu kaynak hesabı</h2>'
+            '<p>TBDY 2018 Tablo 3.6 / §3.6.2.1 · ηki = '
+            '(Avg Driftᵢ / hᵢ) / (Avg Driftⱼ / hⱼ). Üst ve alt komşu ayrı ayrı '
+            'karşılaştırılır; eşik ηki &gt; 2,0. Resmî B2 sınıflandırması: '
+            '<strong>NOT_PROVEN</strong>.</p>'
+            '<p>Kaynak durumu: ' + _val(b2["status"]) + '; hesap: ' +
+            _val(b2["numeric_condition"]) + '. Çözülen komşuluk: ' +
+            _val(coverage["resolved"]) + '/' + _val(coverage["expected"]) +
+            '; çözülemeyen: ' + _val(coverage["unresolved"]) + '.</p>' +
+            _table((("story", "Kat"), ("direction", "Yön"), ("case", "Vaka"),
+                    ("height_m", "h (m)"), ("average_drift_m", "Avg Drift (m)"),
+                    ("status", "Kaynak"), ("reason", "Eksik / hata")),
+                   b2["source_rows"]) +
+            _table((("story", "İncelenen kat"), ("adjacent_story", "Komşu kat"),
+                    ("neighbour_role", "Komşuluk"), ("direction", "Yön"), ("case", "Vaka"),
+                    ("normalized_mean", "Avg Driftᵢ / hᵢ"),
+                    ("adjacent_normalized_mean", "Avg Driftⱼ / hⱼ"),
+                    ("eta_ki_candidate", "ηki adayı"), ("status", "Sayısal durum"),
+                    ("reason_codes", "Açık neden")),
+                   b2["items"]) +
+            '<h3>Hesap kapsamı ve varsayımları</h3><ul>' +
+            ''.join('<li>' + _val(s) + '</li>' for s in b2["assumptions_notes"]) +
+            '</ul><p>Kaynak / hesap: ' + _val(b2["source_payload_sha256"]) +
+            ' / ' + _val(b2["result_sha256"]) + '</p><p>Açık kaynak: ' +
+            _val(b2["reason_codes"]) + '. ENGINEERING_RELEASE=NOT_READY.</p></section>')
 
     a1_warnings = [
         c for c in extras if c.get("check_id") in ("a1_torsion_x", "a1_torsion_y")

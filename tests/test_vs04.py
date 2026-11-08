@@ -110,7 +110,7 @@ class Vs04SchemaTests(unittest.TestCase):
         self.assertEqual(result["numeric_checks_executed"], 0)
         self.assertEqual(result["formal_compliance"], "NOT_PROVEN")
         self.assertEqual(result["engineering_release"], "NOT_READY")
-        self.assertEqual(len(check_registry()), 8)
+        self.assertEqual(len(check_registry()), 11)
         self.assertTrue(all(row["status"] == "OBSERVED_UNAPPROVED"
                             for row in result["tables"]))
 
