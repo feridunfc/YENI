@@ -31,15 +31,15 @@ The numerical `(R/I) Δ` and `λ δ/h` operations reuse existing `normative_basi
 
 - Default: `BRITTLE`, kappa=RC 1, R=7, I=1.5, λ=0.5, net wall height 2.8m, thickness 0.19m, coverage 100%, openings 0%. These are explicitly **editable scenario assumptions**, not independently approved real ETABS model parameters. R=7 and I=1.5 were observed in historical compact model function headers but cannot be silently generalized to all buildings; λ=0.5 is illustrative and must be replaced by genuine DD3/DD2 same-Tp evaluation.
 - Alternative `FLEXIBLE`: code limit 0.016κ, only an assumed sensitivity scenario unless joint/connection drift capacity meets the evidence requirements under TBDY §4.9.1.3(b).
-- `LC_WALL_BEAM_CANDIDATE`: read only exact `Frame Loads - Distributed.UniqueName` and `LoadPat=LC_WALL`. Join frame identifiers to **actual Beam** assignments, and read `Beam Object Connectivity.Length` only if real metadata says metres. Distinct candidate beams prevent duplicate counting. This yields a **candidate** full beam length, not proven length of physically connected masonry. Nonuniform/partial distributed load spans cannot be silently inferred as full-wall extents.
-- `MANUAL`: set total wall length in metres explicitly. Optionally use this when LC_WALL table or exact field/unit metadata are not observed.
+- `LOAD_PATTERN_BEAM_CANDIDATE`: read only exact `Frame Loads - Distributed.UniqueName` and `LoadPat=LC_WDL` (default; editable exact ETABS load-pattern name). Join frame identifiers to **actual Beam** assignments, and read `Beam Object Connectivity.Length` only if real metadata says metres. Distinct candidate beams prevent duplicate counting. This yields a **candidate** full beam length, not proven length of physically connected masonry. Nonuniform/partial distributed load spans cannot be silently inferred as full-wall extents.
+- `MANUAL`: set total wall length in metres explicitly. Optionally use this when LC_WDL table or exact field/unit metadata are not observed.
 - **Assumed net infill face area (m²)** = candidate or manual beam length × wall height × coverage fraction × (1 − openings fraction).
 - **Assumed infill volume (m³)** = assumed face area × assumed thickness.
 - Wall area is an independent downstream **B1 weak-story** sensitivity input; it does **not** linearly scale 0.008κ / 0.016κ drift limits.
 
 ### UI and reporting
 
-The existing left navigation **Kat/sistem sonuçları** tab now hosts C2 with default Gevrek dolgu, Esnek dolgu, material, R, I, λ, LC_WALL/manual mode and wall area assumptions. Selecting a previously archived `run_id` and pressing **Kaydedilmiş ETABS verisiyle hesapla** executes pure source-numeric scenario without another COM connection or new model analysis. It prints all story/direction numeric values and missing source rows.
+The existing left navigation **Kat/sistem sonuçları** tab now hosts C2 with default Gevrek dolgu, Esnek dolgu, material, R, I, λ, LC_WDL (editable load-pattern)/manual mode and wall area assumptions. Selecting a previously archived `run_id` and pressing **Kaydedilmiş ETABS verisiyle hesapla** executes pure source-numeric scenario without another COM connection or new model analysis. It prints all story/direction numeric values and missing source rows.
 
 `/api/vs06-drift-scenario?run_id=...&r=...&i=...&lambda=...&wall_type=...` returns the read-only hashed scenario. The existing `/api/export-checks` and `/report/print` accept the identical optional scenario parameter query and embed exactly the same scenario in the existing JSON and HTML. Scenario inputs are included in its SHA and source input SHA; the old input/receipt records are never overwritten. **No full-model compliance approval** is claimed.
 
@@ -66,7 +66,7 @@ Full active physical wall/column/area story census, response-spectrum actual des
 
 ## Tests / branch policy
 
-`tests/test_vs06_c2_drift_scenario.py` includes numeric independent oracles, brittle vs flexible, unchanged limit under area changes, source missing, the 12/16 / 8-check denominator, optional observed LC_WALL, manual scenario, corrupted inputs, E2E same-run HTTP/JSON/HTML and no second COM connection. Full old regression and Python 3.11/3.12 CI are mandatory. All changes stay in worker branch. **MERGE HOLD for A/B/C/D/E until full VS06**.
+`tests/test_vs06_c2_drift_scenario.py` includes numeric independent oracles, brittle vs flexible, unchanged limit under area changes, source missing, the 12/16 / 8-check denominator, optional observed LC_WDL, manual scenario, corrupted inputs, E2E same-run HTTP/JSON/HTML and no second COM connection. Full old regression and Python 3.11/3.12 CI are mandatory. All changes stay in worker branch. **MERGE HOLD for A/B/C/D/E until full VS06**.
 
 Primary regulation: https://www.afad.gov.tr/kurumlar/afad.gov.tr/2309/files/TBDY_2018.pdf
 ETABS distributed-load semantics: https://docs.csiamerica.com/help-files/etabs/Menus/Assign/Frame_Loads/Distributed_Load.htm
