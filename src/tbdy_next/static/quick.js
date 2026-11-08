@@ -454,7 +454,8 @@
     r: 'c2R', i: 'c2I', lambda: 'c2Lambda', material: 'c2Material',
     wall_type: 'c2WallType', flexible_proven: 'c2FlexibleProven',
     wall_mode: 'c2WallMode', coverage_pct: 'c2Coverage',
-    wall_height_m: 'c2WallHeight', opening_pct: 'c2Opening', thickness_m: 'c2Thickness'
+    wall_height_m: 'c2WallHeight', opening_pct: 'c2Opening', thickness_m: 'c2Thickness',
+    manual_wall_length_m: 'c2ManualLength'
   };
   function c2Query() {
     const query = new URLSearchParams();
