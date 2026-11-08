@@ -52,6 +52,30 @@
 <div id="saved-modal-body" class="muted small">Yerel çalışma kayıtları okunuyor…</div><div id="saved-modal-history" class="actions"></div></section>
 <section class="box"><header><div><h2>Aşama kayıtları</h2><div class="muted small">Yerel `.receipts` altında kaynak kopyası, hash ve aşama sonucu tutulur</div></div></header><div id="runlist" class="muted small">Henüz kayıt bulunamadı.</div></section>
 </div>
+<div id="systemcontent" class="hidden">
+<section class="box" id="vs06c2-panel">
+  <header><div><div class="eyebrow">VS06-C2 · TBDY 2018 §4.9.1</div><h2>Etkin göreli kat ötelemesi — sayısal senaryo</h2>
+  <p class="muted small">Kayıtlı gerçek ETABS Story Drifts × kat yüksekliği kaynak değerlerini R/I ve DD-3/DD-2 λ ile hesaplar. Kaynak nümeriği gerçek eşzamanlı tasarım deplasmanı olarak onaylanmadıkça formel uygunluk NOT_PROVEN kalır.</p></div></header>
+  <div class="twocol">
+    <div><label for="c2WallType">Dolgu duvar bağlantısı</label>
+      <select class="field" id="c2WallType" style="width:100%"><option value="BRITTLE" selected>Gevrek dolgu — bitişik / derzsiz (varsayılan)</option><option value="FLEXIBLE">Esnek derzli / esnek bağlantılı</option></select></div>
+    <div><label for="c2Material">Taşıyıcı sistem</label>
+      <select class="field" id="c2Material" style="width:100%"><option value="RC" selected>Betonarme · κ=1</option><option value="STEEL">Çelik · κ=0.5</option></select></div>
+    <div><label for="c2R">Davranış katsayısı R (senaryo)</label><input class="field" id="c2R" type="number" min=".01" step="any" value="7"></div>
+    <div><label for="c2I">Bina önem katsayısı I (senaryo)</label><input class="field" id="c2I" type="number" min=".01" step="any" value="1.5"></div>
+    <div><label for="c2Lambda">λ = Sae(DD-3,Tp) / Sae(DD-2,Tp)</label><input class="field" id="c2Lambda" type="number" min=".001" step="any" value="0.5"></div>
+    <div><label for="c2WallMode">Dolgu kaynak kabulü</label><select class="field" id="c2WallMode" style="width:100%"><option value="LC_WALL_BEAM_CANDIDATE" selected>LC_WALL atanmış kirişler = dolgu adayı</option><option value="MANUAL">Yalnız kullanıcı alan varsayımı</option></select></div>
+    <div><label for="c2WallHeight">Varsayılan dolgu yüksekliği (m)</label><input class="field" id="c2WallHeight" type="number" min=".01" step="any" value="2.8"></div>
+    <div><label for="c2Coverage">Duvar kaplama oranı (%)</label><input class="field" id="c2Coverage" type="number" min="0" max="100" step="any" value="100"></div>
+    <div><label for="c2Opening">Kapı/pencere boşluğu (%)</label><input class="field" id="c2Opening" type="number" min="0" max="100" step="any" value="0"></div>
+    <div><label for="c2Thickness">Dolgu kalınlığı (m)</label><input class="field" id="c2Thickness" type="number" min=".01" step="any" value="0.19"></div>
+  </div>
+  <p class="small"><label><input type="checkbox" id="c2FlexibleProven"> Esnek bağlantının deneysel yatay ötelenme kapasitesini belgeledim</label></p>
+  <p class="micro">R=7, I=1.5, λ=0.5, duvar h=2.8 m ve dolgu oranı %100 başlangıç SENARYO varsayımlarıdır; modelden otomatik onaylanmış değerler değildir. Dolgu oranı TBDY 4.34 limitini oransal değiştirmez. LC_WALL ataması yalnız duvar adayıdır, gerçek duvar kanıtı değildir.</p>
+  <div class="actions"><button class="go" id="c2Calculate" type="button">Kaydedilmiş ETABS verisiyle hesapla</button></div>
+  <div id="c2Status" class="live-status" role="status" aria-live="polite">Önce mevcut ETABS kaydını seçip hesabı çalıştırın.</div>
+  <div id="c2Report"></div>
+</section></div>
 <div id="geometrycontent" class="hidden"><section class="box"><h2 id="geometryTitle">Geometri kontrolleri</h2><p class="muted small">Son canlı ETABS taramasından eleman bazında sonuçlar. Yeni hesap için Modal Analiz sekmesindeki tek hesap düğmesini kullanın.</p><div id="geomTabPanel">Henüz hesap yok.</div></section></div>
 <div id="extraContent" class="hidden"><section class="box"><h2 id="extraTitle">Yeni doğrulanan alt kontroller</h2><div id="extraTabPanel"></div></section></div>
 <div id="plannedcontent" class="hidden notbuilt"><h2 id="plannedtitle"></h2><p>Bu hesap henüz etkinleştirilmedi. Sıradaki dikey dilim ancak kaynak → şema → postprocess → mühendislik kontrolü → rapor zinciri çalışınca açılır.</p><p class="muted small">Burada sahte PASS, hazırmış gibi gösterilen formül veya boş hesap ekranı yok.</p></div>
@@ -62,7 +86,7 @@
 <script>
 const tabs=['Geometri','Malzeme','Kesitler','Atamalar','Yükler ve kütle','Analiz vakaları','Deprem esasları','Modal analiz','Kat/sistem sonuçları','Düzensizlikler','Döşemeler','Kirişler','Kolonlar','Perdeler','Birleşimler','Temeller'];
 const nav=document.getElementById('nav');let active=7;
-function selectTab(i){active=i;for(const b of nav.querySelectorAll('[data-nav-tab]'))b.classList.toggle('active',Number(b.dataset.navTab)===i);document.getElementById('heading').textContent=tabs[i];document.getElementById('activecontent').classList.toggle('hidden',i!==7);document.getElementById('geometrycontent').classList.toggle('hidden',i!==11&&i!==12);document.getElementById('extraContent').classList.toggle('hidden',i!==1&&i!==9);document.getElementById('plannedcontent').classList.toggle('hidden',[1,7,9,11,12].includes(i));document.getElementById('extraTitle').textContent=tabs[i]+' · yeni alt kontroller';document.getElementById('geometryTitle').textContent=tabs[i]+' · geometrik alt kontroller';document.getElementById('plannedtitle').textContent=`${String(i+1).padStart(2,'0')} · ${tabs[i]} — PLANLANDI`;if(typeof window.renderQuickChecksForTab==='function')window.renderQuickChecksForTab(i);}
+function selectTab(i){active=i;for(const b of nav.querySelectorAll('[data-nav-tab]'))b.classList.toggle('active',Number(b.dataset.navTab)===i);document.getElementById('heading').textContent=tabs[i];document.getElementById('activecontent').classList.toggle('hidden',i!==7);document.getElementById('geometrycontent').classList.toggle('hidden',i!==11&&i!==12);document.getElementById('systemcontent').classList.toggle('hidden',i!==8);document.getElementById('extraContent').classList.toggle('hidden',i!==1&&i!==9);document.getElementById('plannedcontent').classList.toggle('hidden',[1,7,8,9,11,12].includes(i));document.getElementById('extraTitle').textContent=tabs[i]+' · yeni alt kontroller';document.getElementById('geometryTitle').textContent=tabs[i]+' · geometrik alt kontroller';document.getElementById('plannedtitle').textContent=`${String(i+1).padStart(2,'0')} · ${tabs[i]} — PLANLANDI`;if(typeof window.renderQuickChecksForTab==='function')window.renderQuickChecksForTab(i);}
 tabs.forEach((t,i)=>{const b=document.createElement('button');b.className='navitem'+(i===7?' active':'');b.innerHTML=`<span>${String(i+1).padStart(2,'0')}</span><span></span><span class="signal ${i===7?'live':''}">${i===7?'VS01':'PLAN'}</span>`;b.children[1].textContent=t;b.dataset.navTab=String(i);b.onclick=()=>selectTab(i);nav.append(b)});
 const result=document.getElementById('result');
 function textnode(tag,content,cls){const el=document.createElement(tag);el.textContent=String(content);if(cls)el.className=cls;return el}
