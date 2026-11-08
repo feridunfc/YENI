@@ -598,6 +598,44 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
                    readiness.get("check_instances", [])) +
             '</section>')
 
+    scenario = report.get("vs06_drift_scenario")
+    if isinstance(scenario, Mapping):
+        wall = scenario.get("wall_candidate_inventory") or {}
+        options = scenario.get("scenario_input") or {}
+        vs04_sections.append(
+            '<section class="percheck"><h2>VS06-C2 · TBDY 4.9 etkin göreli öteleme — SAYISAL SENARYO</h2>'
+            '<p>Gevrek dolgu: Denk.(4.34a) / 0.008κ; esnek bağlantı: Denk.(4.34b) / '
+            '0.016κ (deneye dayalı bağlantı kapasitesi ayrıca gereklidir). '
+            'Bu tablo gerçekte gözlenen ETABS Story Drifts × h kaynak adaylarından '
+            'oluşturulmuştur; tam fiziksel eşzamanlı deplasman ve resmî uygunluk '
+            'kanıtı değildir. <strong>FORMAL COMPLIANCE: NOT_PROVEN</strong>.</p>' +
+            _table((("r", "Varsayılan/senaryo R"), ("i", "Senaryo I"),
+                    ("lambda", "Senaryo λ"), ("material", "Sistem"),
+                    ("wall_type", "Dolgu bağlantısı"), ("coverage_pct", "Dolgu oranı %"),
+                    ("wall_height_m", "Varsayılan duvar h (m)"),
+                    ("opening_pct", "Açıklık %"), ("wall_mode", "Duvar kaynak modu")),
+                   [options]) +
+            '<p>LC_WALL gözlemi: ' + _val(wall.get("source_status")) +
+            ' · Aday kiriş: ' + _val(wall.get("candidate_beam_count")) +
+            ' · Aday toplam uzunluk (m): ' + _val(wall.get("candidate_total_length_m")) +
+            ' · Varsayımsal net dolgu yüzey alanı (m²): ' +
+            _val(wall.get("assumed_net_face_area_m2")) +
+            '. Yük ataması fiziksel dolgu varlığının veya B1 etkin kesme alanının '
+            'kanıtı değildir.</p>' +
+            _table((("story", "Kat"), ("case", "Vaka"), ("direction", "Yön"),
+                    ("source_delta_mm", "Kaynak Δ adayı (mm)"),
+                    ("effective_delta_mm", "Etkin Δ senaryo (mm)"),
+                    ("lambda_effective_ratio", "λ δ / h"),
+                    ("limit", "Sınır"), ("utilization_ratio", "Kullanım oranı"),
+                    ("conditional_numeric_condition", "Koşullu sayılsal sonuç"),
+                    ("formal_compliance", "Resmî uygunluk")),
+                   scenario.get("rows", [])) +
+            '<p>Senaryo SHA-256: ' + _val(scenario.get("scenario_sha256")) +
+            ' · Kaynak SHA-256: ' + _val(scenario.get("input_sha256")) +
+            '. Esnek bağlantı seçimi için deneye dayalı kapasite belgesi: ' +
+            _val(scenario.get("flexible_branch_capacity_accepted")) +
+            '.</p></section>')
+
     a1_warnings = [
         c for c in extras if c.get("check_id") in ("a1_torsion_x", "a1_torsion_y")
         and any(item.get("status") == "A1_OBSERVED" for item in c.get("items", []))
