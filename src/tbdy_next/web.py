@@ -199,6 +199,34 @@ def make_handler(output_root: Path, *, live_capture=None):
                 host = self.headers.get("Host", "")
                 if (self.headers.get("Sec-Fetch-Site") == "cross-site"
                         or (origin and origin != "http://" + host)):
+                    # Windows (WinError 10053): closing an HTTP/1.0 socket
+                    # while the client still has POST bytes in flight can
+                    # generate a TCP reset before the 403 response is read.
+                    # Drain ONLY a declared, bounded request body. This is
+                    # byte disposal, never JSON parsing or ETABS processing.
+                    # An invalid, transfer-encoded, or oversized body is
+                    # rejected without an unbounded drain.
+                    try:
+                        rejected_length = int(self.headers.get("Content-Length", "-1"))
+                    except ValueError:
+                        rejected_length = -1
+                    if (0 <= rejected_length <= MAX_UPLOAD_BYTES
+                            and not self.headers.get("Transfer-Encoding")):
+                        previous_timeout = self.connection.gettimeout()
+                        try:
+                            self.connection.settimeout(2.0)
+                            remaining = rejected_length
+                            while remaining:
+                                chunk = self.rfile.read(min(65536, remaining))
+                                if not chunk:
+                                    break
+                                remaining -= len(chunk)
+                        except OSError:
+                            # Still deny the request; never hand its bytes to
+                            # JSON parsing or evaluate any engineering source.
+                            pass
+                        finally:
+                            self.connection.settimeout(previous_timeout)
                     self.reply(403, {"error": "CROSS_ORIGIN_DENIED"})
                     return
                 try:
