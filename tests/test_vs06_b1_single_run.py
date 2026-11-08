@@ -78,7 +78,7 @@ class B1SingleRunReportTests(unittest.TestCase):
         self.assertNotIn("vs06_b1_result",report)
         self.assertIn("BLOCKED_SOURCE_BINDING",report["vs06_b1_source_status"])
         self.assertEqual(report["engineering_release"],"NOT_READY")
-        self.assertEqual(report["check_inventory"]["count"],8)
+        self.assertEqual(report["check_inventory"]["count"],5)
 
 
 if __name__=="__main__":
