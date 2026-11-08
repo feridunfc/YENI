@@ -131,8 +131,8 @@ class Vs06C2Numerics(unittest.TestCase):
             "schema": "tbdy.next.etabs.generic-source-capture.v1",
             "status": "CAPTURED",
             "table_reads": {
-                "Frame Loads - Distributed": {
-                    "table_key": "Frame Loads - Distributed", "status": "CAPTURED",
+                "Frame Loads Assignments - Distributed": {
+                    "table_key": "Frame Loads Assignments - Distributed", "status": "CAPTURED",
                     "fields": ["UniqueName", "LoadPat"],
                     "field_metadata": {"status": "OK", "field_keys": ["UniqueName", "LoadPat"]},
                     "row_count": 4,
