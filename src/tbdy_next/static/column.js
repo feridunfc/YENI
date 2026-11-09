@@ -4,6 +4,7 @@
   const el = id => document.getElementById(id);
   const run = el('columnRun'), member = el('columnMember'), loadCase = el('columnCase');
   const view = el('columnView'), proposal = el('columnProposal');
+  const beamProposal = el('columnBeamProposal');
   const labels = {
     STATIC_LINEAR_ADD:'Statik Linear Add', RESPONSE_SPECTRUM_LINEAR_ADD:'Spektral katkılı Linear Add',
     ENVELOPE:'Zarf', STATIC_NESTED_UNVERIFIED:'İç içe statik · doğrulanmadı',
@@ -295,6 +296,77 @@
       capacities.append(traces);el('columnOverviewDetails').append(capacities);
     }
   }
+  const beamStatus={BEAM_PROPOSAL_CALCULATED:'Öneri hesabı · koşullu',BEAM_PROPOSAL_BLOCKED:'Girdi veya yerleşim belirsiz',
+    BEAM_PROPOSAL_NUMERIC_UNRESOLVED:'Sayısal çözüm belirsiz'};
+  const beamReason={BEAM_NATIVE_CUT_AMBIGUOUS:'Native uç kesiti belirsiz',BEAM_DESIGN_STATION_AMBIGUOUS:'Uç tasarım istasyonu belirsiz',
+    BEAM_NATIVE_CUT_NOT_FOUND:'Native uç kesiti eksik',BEAM_DESIGN_STATION_NOT_FOUND:'Uç tasarım istasyonu eksik',
+    BEAM_CONTROL_REFERENCE_NOT_BOUND:'Kontrol birleşimi doğrulanmadı'};
+  function beamDrawing(profile,cage) {
+    const figure=text('figure',''),svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    const b=profile.local3_width_mm,h=profile.local2_height_mm;
+    svg.setAttribute('viewBox',`${-b/2-40} ${-h/2-40} ${b+80} ${h+80}`);svg.setAttribute('width','180');svg.setAttribute('height','210');
+    svg.setAttribute('role','img');svg.setAttribute('aria-label','Kiriş öneri kesiti; yerel 2 yukarı, yerel 3 sağa');
+    const shape=(tag,attrs)=>{const node=document.createElementNS('http://www.w3.org/2000/svg',tag);
+      for(const [key,value] of Object.entries(attrs))node.setAttribute(key,String(value));svg.append(node);};
+    shape('rect',{x:-b/2,y:-h/2,width:b,height:h,fill:'#edf1f6',stroke:'#64748b','stroke-width':3});
+    for(const bar of cage.bars)shape('circle',{cx:bar.x3_mm,cy:-bar.x2_mm,r:bar.diameter_mm/2,fill:'#214e78'});
+    figure.append(svg,text('figcaption',`Üst ${cage.top_label} / alt ${cage.bottom_label} · öneri · yerel 2 yukarı`));return figure;
+  }
+  function renderBeams(beams,page,diameter) {
+    el('columnDemandSummary').replaceChildren();
+    if(beams.source_population_status==='BLOCKED_NATIVE_JOINT_GRAPH') {
+      el('columnContext').append(text('p',`Birleşim ağı doğrulanamadı. ${beams.known_column_count} bilinen kolon korunur; kiriş/uç sayısı bilinmiyor.`,'warn'));return;
+    }
+    el('columnUnits').textContent='Alanlar mm², kapasite kN·m. +M3 alt donatıyı, −M3 üst donatıyı çekmeye çalıştırır; N=0 saf eğilme senaryosu.';
+    el('columnContext').append(text('p',`${beams.filtered_bound_end_count}/${beams.filtered_end_count} filtrelenmiş uç kaynağı. `+
+      `Arşivde ${beams.target_beam_count} bağlı kiriş / ${beams.expected_end_count} uç; ${beams.calculated_candidate_count}/${beams.expected_candidate_count} donatı/kapasite senaryosu.`));
+    el('columnContext').append(text('p','Gerekli As, uygulanmış donatı değildir. Üst ve alt alan hedefleri kendi kontrol birleşimlerine bağlıdır. '+
+      'N=0 kaynak kiriş N’si değildir. Nihai donatı seçimi ve SCWB oranı üretilmez.','micro'));
+    const profiles=new Map(beams.profiles.map(p=>[p.profile_id,p])),values=[];
+    for(const row of page.rows) {
+      const c=row.candidates.find(c=>c.diameter_mm===diameter),source=row.source;
+      if(!c || row.final_design_eligible!==false || row.formal_compliance!=='NOT_PROVEN' ||
+          !['BEAM_END_SOURCE_BOUND','BEAM_END_SOURCE_BLOCKED'].includes(row.status) ||
+          row.candidates.length!==3 || new Set(row.candidates.map(x=>x.diameter_mm)).size!==3 ||
+          row.candidates.some(x=>![16,20,24].includes(x.diameter_mm) || !beamStatus[x.status] || x.final_design_eligible!==false ||
+            x.selected_design!==false || x.physical_cage_proven!==false ||
+            (row.status==='BEAM_END_SOURCE_BLOCKED' && (x.status!=='BEAM_PROPOSAL_BLOCKED' || x.capacity!==null)) ||
+            (x.status==='BEAM_PROPOSAL_BLOCKED' && x.capacity!==null) ||
+            (x.status!=='BEAM_PROPOSAL_BLOCKED' && (row.status!=='BEAM_END_SOURCE_BOUND' || source?.status!=='BEAM_END_SOURCE_BOUND' ||
+              source?.native_cut_count!==1 || source?.design_match_count!==1 || source?.targets?.same_force_vector_claimed!==false ||
+              source?.targets?.total_required_area_is_provided!==false || !profiles.has(row.profile_id) ||
+              ['AsTopCombo','AsBotCombo','TLngCombo'].some(key=>source?.targets?.control_references?.[key]?.status!=='OBSERVED') ||
+              x.capacity?.axial_force_scenario_n!==0 || x.capacity?.source_beam_axial_force_applied!==false || x.capacity?.final_design_eligible!==false ||
+              (x.status==='BEAM_PROPOSAL_NUMERIC_UNRESOLVED' && x.capacity?.status!=='BEAM_CAPACITY_UNRESOLVED') ||
+              (x.status==='BEAM_PROPOSAL_CALCULATED' && (x.capacity?.status!=='BEAM_CAPACITY_REFERENCE' ||
+                !Number.isFinite(x.capacity.positive_m3_knm) || x.capacity.positive_m3_knm<=0 ||
+                !Number.isFinite(x.capacity.negative_m3_knm) || x.capacity.negative_m3_knm>=0)))))) {
+        throw new Error('Kiriş önerisinin kaynak bağı veya koşullu kapasitesi uyuşmuyor.');
+      }
+      const targets=source?.targets,cap=c.status==='BEAM_PROPOSAL_CALCULATED'?c.capacity:null;
+      values.push({member_id:row.member_id,end:row.end,station:displayNumber(source?.target_station_m,3),
+        topTarget:displayNumber(targets?.top_mm2),bottomTarget:displayNumber(targets?.bottom_mm2),
+        top:c.top_label,bottom:c.bottom_label,positive:displayNumber(cap?.positive_m3_knm),negative:displayNumber(cap?.negative_m3_knm),
+        state:beamReason[row.reason] || beamStatus[c.status]});
+      if(member.value) {
+        const detail=text('details','');detail.append(text('summary',`${row.member_id}/${row.end} · uç kaynağı ve öneri yerleşimi`));
+        if(c.bars?.length && profiles.has(row.profile_id))detail.append(beamDrawing(profiles.get(row.profile_id),c));
+        detail.append(text('p',`Üst kontrol: ${targets?.top_combination || '—'} · alt kontrol: ${targets?.bottom_combination || '—'} · `+
+          `native kesit / tasarım satırı: ${source?.native_cut_count ?? '—'} / ${source?.design_match_count ?? '—'}`));
+        if(row.reason || c.reason)detail.append(text('p',row.reason || c.reason,'warn'));
+        const trace=text('details','');trace.append(text('summary','Tam hassasiyet ve kaynak izleri'),text('pre',JSON.stringify(row,null,2)));
+        detail.append(trace);el('columnOverviewDetails').append(detail);
+      }
+    }
+    el('columnForces').append(table([['member_id','Kiriş'],['end','Uç'],['station','İstasyon (m)'],
+      ['topTarget','Üst hedef (mm²)'],['bottomTarget','Alt hedef (mm²)'],['top','Üst öneri'],['bottom','Alt öneri'],
+      ['positive','+M3 (kN·m)'],['negative','−M3 (kN·m)'],['state','Durum']],values));
+    const scope=text('details','');scope.append(text('summary','Yerleşim varsayımları ve kapsam dışındaki kirişler'),
+      text('p','Üst/alt örtü, ETABS boyuna donatı ağırlık merkezine mesafesidir. Yan net örtü 30 mm, etriye Φ10 açık öneridir. '+
+        'Tek sıra aralığında çap ve 25 mm referansı kullanılır; agrega, ankraj, süreklilik, burulma/gövde donatısı ve döşeme katkısı doğrulanmadı.'),
+      table([['member_id','Kiriş'],['scope','Kapsam']],beams.outside_joint_scope_beams.map(r=>({...r,scope:'Kayıtlı kolon düğümünde native ucu yok'}))));
+    el('columnOverviewDetails').append(scope);
+  }
   function clearResult() {
     for (const id of ['columnSummary', 'columnExports', 'columnContext', 'columnForces',
                       'columnReplay', 'columnCoverage', 'columnGaps', 'columnPage',
@@ -317,8 +389,10 @@
     const params = new URLSearchParams({run_id:selected, offset:String(offset)});
     const selectedView = view.value || 'native';
     const selectedProposal = proposal.value || '16Φ24';
+    const selectedBeamDiameter = Number(beamProposal?.value || 20);
     el('columnProposalControl').hidden = selectedView !== 'overview';
-    const sectionView = ['reinforcement','stiffness','cages','transverse','joints','joint-ties','stiffness-scenarios'].includes(selectedView);
+    el('columnBeamProposalControl').hidden = selectedView !== 'beam-cages';
+    const sectionView = ['reinforcement','stiffness','cages','transverse','joints','joint-ties','stiffness-scenarios','beam-cages'].includes(selectedView);
     loadCase.disabled = sectionView;
     if (member.value) params.set('member', member.value);
     if (loadCase.value && !sectionView) params.set('case', loadCase.value);
@@ -471,6 +545,25 @@
       const overview = report.column_overview;
       const quality = report.column_pmm_quality;
       const scwb = report.column_scwb;
+      const beams = report.beam_end_references;
+      if(selectedView==='beam-cages' && (!beams || beams.schema!=='tbdy.next.beam-end-capacity-scenarios.v1' ||
+          beams.axis_convention!=='CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3' ||
+          beams.policy?.id!=='VS23_SINGLE_ROW_PHI16_20_24_SOURCE_AREA_TARGET_N0_V1' ||
+          beams.policy.cover_basis!=='CSI_FACE_TO_LONGITUDINAL_GROUP_CENTROID' ||
+          beams.policy.axial_force_scenario_n!==0 || beams.policy.source_beam_axial_force_applied!==false ||
+          beams.policy.automatic_design_selection!==false || beams.policy.physical_cage_proven!==false ||
+          JSON.stringify(beams.policy.diameters_mm)!=='[16,20,24]' || ![16,20,24].includes(selectedBeamDiameter) ||
+          beams.source_run_id!==selected || beams.source_archive_sha256!==report.source_archive_sha256 ||
+          beams.source_demand_result_sha256!==chain?.result_sha256 || beams.source_joints_result_sha256!==joints?.result_sha256 ||
+          beams.member_id_filter!==(member.value || null) || beams.source_population_reduced!==false ||
+          beams.selected_design!==null || beams.actual_or_selected_beam_capacity_bound!==false || beams.scwb_ratio!==null ||
+          beams.design_demand_authority!=='DENIED' || beams.formal_compliance!=='NOT_PROVEN' || beams.engineering_release!=='NOT_READY' ||
+          beams.filtered_end_count!==page?.total || !['NATIVE_JOINT_GRAPH_BOUND','BLOCKED_NATIVE_JOINT_GRAPH'].includes(beams.source_population_status) ||
+          (beams.source_population_status==='NATIVE_JOINT_GRAPH_BOUND' && (beams.source_end_count!==beams.expected_end_count ||
+            beams.expected_end_count!==2*beams.target_beam_count || beams.expected_candidate_count!==3*beams.expected_end_count)) ||
+          (beams.source_population_status==='BLOCKED_NATIVE_JOINT_GRAPH' && (beams.expected_end_count!==null || beams.target_beam_count!==null)))) {
+        throw new Error('Kiriş uç hesabının kaynak bağı veya kapsamı uyuşmuyor.');
+      }
       if (selectedView === 'scwb' && (!scwb || scwb.schema !== 'tbdy.next.scwb-source-references.v1' ||
           scwb.policy !== 'COMPLETE_JOINT_ROSTER_SAME_STATIC_CASE_COLUMN_AXIS_REFERENCE_V1' ||
           scwb.axis_convention !== 'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3' ||
@@ -535,6 +628,8 @@
         renderQuality(quality,page);
       } else if (selectedView === 'scwb') {
         renderScwb(scwb,page);
+      } else if (selectedView === 'beam-cages') {
+        renderBeams(beams,page,selectedBeamDiameter);
       } else if (selectedView === 'native') {
         el('columnUnits').textContent = 'Native işaretler korunur. Kuvvetler kN, momentler kN·m, istasyonlar m.';
         el('columnForces').append(table([...identity,...['P','V2','V3','T','M2','M3'].map(c => [c,c])], page.rows));
@@ -779,7 +874,7 @@
   window.openColumnBank = () => { if (!opened) { opened = true; refresh(); } };
   el('columnRefresh').addEventListener('click', refresh);
   run.addEventListener('change', () => load(true));
-  for (const chooser of [member, loadCase, view, proposal]) chooser.addEventListener('change', () => { offset = 0; load(); });
+  for (const chooser of [member, loadCase, view, proposal, beamProposal].filter(Boolean)) chooser.addEventListener('change', () => { offset = 0; load(); });
   el('columnPrevious').addEventListener('click', () => { offset = Math.max(0, offset - 200); load(); });
   el('columnNext').addEventListener('click', () => { if (offset + 200 < total) { offset += 200; load(); } });
 })();

@@ -21,6 +21,7 @@ from .column_sensitivity import build_column_sensitivity, sensitivity_summaries
 from .column_overview import build_column_overview
 from .column_pmm_quality import build_column_pmm_quality
 from .column_scwb import build_column_scwb, scwb_projection
+from .beam_references import build_beam_references, beam_projection
 from .native_archive import BankError, NativeArchive, decode
 
 
@@ -85,6 +86,14 @@ def _scwb(source_path, database_path, source_sha, database_sha, bank_result_sha)
         return build_column_scwb(derived["demand_chain"],derived["column_cages"],derived["column_joints"],derived["column_kinematics"],archive)
 
 
+@lru_cache(maxsize=2)
+def _beam_references(source_path, database_path, source_sha, database_sha, bank_result_sha):
+    derived=_derive(source_path,database_path,source_sha,database_sha,bank_result_sha)
+    with closing(NativeArchive(Path(source_path).read_bytes())) as archive:
+        if archive.sha256!=source_sha:raise BankError('BEAM_SOURCE_CHANGED')
+        return build_beam_references(derived['demand_chain'],derived['column_joints'],archive)
+
+
 def demand_view(database, report, *, member_id=None, output_case=None, offset=0, limit=200,
                 view="native", full=False):
     """Called only after store.verified_database has verified this exact run."""
@@ -100,12 +109,13 @@ def demand_view(database, report, *, member_id=None, output_case=None, offset=0,
     shear = _shear(*cache_key) if full or view in ("pmm", "shear", "overview", "pmm-quality") else None
     quality = _pmm_quality(*cache_key,None if full else member_id,None if full else output_case) if full or view == "pmm-quality" else None
     scwb = _scwb(*cache_key) if full or view in ("scwb", "pmm-quality") else None
+    beams = _beam_references(*cache_key) if full or view in ("beam-cages", "pmm-quality") else None
     chain, prechecks = derived["demand_chain"], derived["column_prechecks"]
     overview = build_column_overview(chain, derived["column_cages"], pmm, shear, derived["column_sensitivity"],
         member_id=None if full or view in ("pmm", "pmm-quality") else member_id,
         output_case=None if full or view in ("pmm", "pmm-quality") else output_case) if pmm is not None else None
     if full:
-        return deepcopy({**derived,"column_pmm":pmm,"column_shear":shear,"column_overview":overview,"column_pmm_quality":quality,"column_scwb":scwb})
+        return deepcopy({**derived,"column_pmm":pmm,"column_shear":shear,"column_overview":overview,"column_pmm_quality":quality,"column_scwb":scwb,"beam_end_references":beams})
     summary = {k: v for k, v in chain.items() if k not in ("candidates", "design_summary")}
     summary["design_summary"] = {k: v for k, v in chain["design_summary"].items() if k != "rows"}
     precheck_summary = {k: v for k, v in prechecks.items() if k not in ("critical_selection", "reinforcement_bounds")}
@@ -148,6 +158,9 @@ def demand_view(database, report, *, member_id=None, output_case=None, offset=0,
         # The full report and selected-column details keep exact case traces.
         result["column_scwb"] = projected if view == "pmm-quality" or member_id else {
             k:v for k,v in projected.items() if k not in ("rows","column_references")}
+    if beams is not None:
+        beam_rows=beam_projection(beams,member_id)
+        result['beam_end_references']=beam_rows
     if view == "native":
         return result
     if view == "overview":
@@ -156,6 +169,8 @@ def demand_view(database, report, *, member_id=None, output_case=None, offset=0,
         rows = quality["rows"]
     elif view == "scwb":
         rows = projected["summaries"]
+    elif view == "beam-cages":
+        rows = beam_rows['rows']
     elif view == "critical":
         selection = critical_selection(chain, prechecks["population"], member_id=member_id, output_case=output_case)
         rows = selection["rows"]

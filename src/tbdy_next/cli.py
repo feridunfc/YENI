@@ -37,6 +37,7 @@ def main(argv: list[str] | None = None) -> int:
     demands.add_argument("--overview", action="store_true", help="Summarize conditional member results and exact source coverage offline")
     demands.add_argument("--quality", action="store_true", help="Independently compare primary-critical PMM capacities offline")
     demands.add_argument("--scwb", action="store_true", help="Inspect source-bound SCWB rosters and N-dependent column references offline")
+    demands.add_argument("--beams", action="store_true", help="Inspect exact beam-end area sources and proposed signed N=0 capacities offline")
     args = parser.parse_args(argv)
     if args.action == "serve":
         from .web import serve
@@ -46,7 +47,10 @@ def main(argv: list[str] | None = None) -> int:
         import sqlite3
         from .column_engine.store import read_column_bank
         try:
-            report = read_column_bank(args.out, args.run_id, view="pmm-quality" if args.quality or (args.scwb and (args.pmm or args.overview or args.shear)) else "scwb" if args.scwb else "overview" if args.overview else "pmm" if args.pmm else "shear" if args.shear else "native")
+            report_view=("pmm-quality" if args.quality or (args.scwb and (args.pmm or args.overview or args.shear))
+                or (args.beams and (args.pmm or args.overview or args.shear or args.scwb)) else "beam-cages" if args.beams
+                else "scwb" if args.scwb else "overview" if args.overview else "pmm" if args.pmm else "shear" if args.shear else "native")
+            report = read_column_bank(args.out, args.run_id, view=report_view)
             chain = report["demand_chain"]
             result = {k: chain[k] for k in ("source_run_id", "source_archive_sha256", "result_sha256",
                 "classification_counts", "static_candidate_count", "formal_compliance", "engineering_release")}
@@ -100,6 +104,8 @@ def main(argv: list[str] | None = None) -> int:
                 result["column_pmm_quality"] = report["column_pmm_quality"]
             if args.scwb:
                 result["column_scwb"] = report["column_scwb"]
+            if args.beams:
+                result["beam_end_references"] = report["beam_end_references"]
         except (OSError, EOFError, ValueError, KeyError, TypeError, sqlite3.Error) as exc:
             print(json.dumps({"status": "REJECTED", "reason": str(exc), "engineering_release": "NOT_READY"}, ensure_ascii=False))
             return 2
