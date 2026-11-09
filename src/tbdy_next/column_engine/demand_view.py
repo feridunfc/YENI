@@ -13,6 +13,7 @@ import sqlite3
 from .demand_chain import build_demand_chain
 from .column_prechecks import build_column_prechecks, critical_selection
 from .column_stability import build_column_stability
+from .column_pmm import build_column_cages, build_column_pmm, cage_rows
 from .native_archive import BankError, NativeArchive, decode
 
 
@@ -34,20 +35,31 @@ def _derive(source_path, database_path, source_sha, database_sha, bank_result_sh
         chain = build_demand_chain(bank, archive)
         prechecks = build_column_prechecks(bank, chain)
         return {"demand_chain": chain, "column_prechecks": prechecks,
-            "column_stability": build_column_stability(bank, chain, prechecks, archive)}
+            "column_stability": build_column_stability(bank, chain, prechecks, archive),
+            "column_cages": build_column_cages(bank, chain, prechecks, archive)}
     finally:
         archive.close()
+
+
+@lru_cache(maxsize=2)
+def _pmm(source_path, database_path, source_sha, database_sha, bank_result_sha):
+    derived = _derive(source_path,database_path,source_sha,database_sha,bank_result_sha)
+    return build_column_pmm(derived["demand_chain"],derived["column_cages"],derived["column_stability"])
 
 
 def demand_view(database, report, *, member_id=None, output_case=None, offset=0, limit=200,
                 view="native", full=False):
     """Called only after store.verified_database has verified this exact run."""
     database = database.resolve()
-    derived = _derive(str(database.parent / "input.source"), str(database),
+    cache_key = (str(database.parent / "input.source"), str(database),
         report["source_archive_sha256"], report["database_sha256"], report["result_sha256"])
+    derived = _derive(*cache_key)
+    # Numerical capacity is requested explicitly; ordinary source navigation
+    # remains fast. Full export includes every candidate x every static state.
+    pmm = _pmm(*cache_key) if full or view == "pmm" else None
     chain, prechecks = derived["demand_chain"], derived["column_prechecks"]
     if full:
-        return deepcopy(derived)
+        return deepcopy({**derived,"column_pmm":pmm})
     summary = {k: v for k, v in chain.items() if k not in ("candidates", "design_summary")}
     summary["design_summary"] = {k: v for k, v in chain["design_summary"].items() if k != "rows"}
     precheck_summary = {k: v for k, v in prechecks.items() if k not in ("critical_selection", "reinforcement_bounds")}
@@ -57,6 +69,10 @@ def demand_view(database, report, *, member_id=None, output_case=None, offset=0,
     stability = derived["column_stability"]
     result["column_stability"] = deepcopy({k: v for k, v in stability.items() if k != "eccentricity"})
     result["column_stability"]["eccentricity"] = deepcopy({k: v for k, v in stability["eccentricity"].items() if k != "rows"})
+    cages = derived["column_cages"]
+    result["column_cages"] = deepcopy(cages)
+    if pmm is not None:
+        result["column_pmm"] = deepcopy({k:v for k,v in pmm.items() if k != "rows"})
     if view == "native":
         return result
     if view == "critical":
@@ -67,6 +83,11 @@ def demand_view(database, report, *, member_id=None, output_case=None, offset=0,
         rows = [r for r in prechecks["reinforcement_bounds"]["rows"] if member_id is None or r["member_id"] == member_id]
     elif view == "stiffness":
         rows = [r for r in stability["sections"] if member_id is None or r["member_id"] == member_id]
+    elif view == "cages":
+        rows = cage_rows(cages,member_id)
+    elif view == "pmm":
+        rows = [r for r in pmm["rows"] if (member_id is None or r["member_id"] == member_id)
+            and (output_case is None or r["native_key"]["LoadCase"] == output_case)]
     elif view == "eccentricity":
         rows = [r for r in stability["eccentricity"]["rows"] if
             (member_id is None or r["member_id"] == member_id) and

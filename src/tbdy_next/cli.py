@@ -29,6 +29,7 @@ def main(argv: list[str] | None = None) -> int:
     demands = actions.add_parser("inspect-column-demands", help="Derive CE-02 from an existing bank without copying its ZIP/SQLite")
     demands.add_argument("--run-id", required=True)
     demands.add_argument("--out", type=Path, default=Path(".receipts"))
+    demands.add_argument("--pmm", action="store_true", help="Evaluate the three proposed cages against all static vectors")
     args = parser.parse_args(argv)
     if args.action == "serve":
         from .web import serve
@@ -38,7 +39,7 @@ def main(argv: list[str] | None = None) -> int:
         import sqlite3
         from .column_engine.store import read_column_bank
         try:
-            report = read_column_bank(args.out, args.run_id)
+            report = read_column_bank(args.out, args.run_id, view="pmm" if args.pmm else "native")
             chain = report["demand_chain"]
             result = {k: chain[k] for k in ("source_run_id", "source_archive_sha256", "result_sha256",
                 "classification_counts", "static_candidate_count", "formal_compliance", "engineering_release")}
@@ -53,6 +54,13 @@ def main(argv: list[str] | None = None) -> int:
             result["column_stability"] = {k: stability[k] for k in ("calculated_section_count",
                 "native_property_match_count", "elastic_member_count", "actual_second_order_applied", "result_sha256")}
             result["column_stability"]["eccentricity_reference_counts"] = stability["eccentricity"]["status_counts"]
+            cages = report["column_cages"]
+            result["column_cages"] = {k:cages[k] for k in ("bound_member_count","candidate_geometry_count",
+                "member_proposal_count","selected_design","result_sha256")}
+            if args.pmm:
+                pmm = report["column_pmm"]
+                result["column_pmm"] = {k:pmm[k] for k in ("static_state_count","assessment_count","status_counts",
+                    "reason_counts","selected_design","formal_compliance","result_sha256")}
         except (OSError, EOFError, ValueError, KeyError, TypeError, sqlite3.Error) as exc:
             print(json.dumps({"status": "REJECTED", "reason": str(exc), "engineering_release": "NOT_READY"}, ensure_ascii=False))
             return 2

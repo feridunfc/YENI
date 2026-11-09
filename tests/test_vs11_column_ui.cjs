@@ -13,6 +13,7 @@ class Element {
   get textContent() { return this.text + this.children.map(c=>c.textContent).join(' '); }
   addEventListener(event, callback) { this.events[event]=callback; }
   trigger(event) { return this.events[event]?.(); }
+  setAttribute(name,value) { (this.attributes ||= {})[name]=String(value); }
 }
 const ids = new Map();
 const html = fs.readFileSync(path.join(staticDir,'index.html'),'utf8');
@@ -20,7 +21,7 @@ for (const m of html.matchAll(/id="(column[^"]+)"/g)) ids.set(m[1],new Element()
 const pending=[]; const window={};
 vm.runInNewContext(fs.readFileSync(path.join(staticDir,'column.js'),'utf8'), {
   window, URLSearchParams,
-  document:{getElementById:id=>ids.get(id),createElement:()=>new Element()},
+  document:{getElementById:id=>ids.get(id),createElement:()=>new Element(),createElementNS:()=>new Element()},
   fetch(url) { return new Promise(resolve=>pending.push({url, done:(body,ok=true)=>resolve({ok,json:async()=>body})})); }
 });
 const flush=async()=>{for(let i=0;i<12;i++)await Promise.resolve();};
@@ -135,5 +136,34 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
   const wrongStiffness=stabilityPayload();wrongStiffness.column_stability.source_prechecks_result_sha256='OTHER';take().done(wrongStiffness);await flush();
   assert.match(ids.get('columnStatus').textContent,/Rijitlik hesabı seçili kolon kaynağıyla eşleşmiyor/);
   assert.equal(ids.get('columnForces').children.length,0);
-  console.log('VS11–VS14 column UI identity, filtering, stiffness units and eccentricity scope PASS');
+  const cagePayload=()=>{
+    const p=stabilityPayload();p.column_stability.result_sha256='STABILITY2';
+    p.column_cages={source_run_id:run(2),source_archive_sha256:'SOURCE_2',source_demand_result_sha256:'DEMAND2',
+      source_prechecks_result_sha256:'PRECHECK2',result_sha256:'CAGES2',design_demand_authority:'DENIED',selected_design:null};
+    return p;
+  };
+  ids.get('columnMember').value='C2';ids.get('columnView').value='cages';ids.get('columnView').trigger('change');await flush();
+  const cageRequest=take();assert.doesNotMatch(cageRequest.url,/case=/);assert.equal(ids.get('columnCase').disabled,true);
+  cageRequest.done({...cagePayload(),demand_page:{view:'cages',total:1,offset:0,limit:200,rows:[{
+    member_id:'C2',label:'16Φ24',t2_mm:800,t3_mm:800,as_cm2:72.38229474,rho_percent:1.130973,
+    center_offset_mm:64,minimum_clear_spacing_mm:144,geometry_status:'PROPOSED_GEOMETRY_CALCULATED',
+    area_ratio_status:'WITHIN_1_TO_4_PERCENT_REFERENCE',bars:[{x2_mm:336,x3_mm:336,diameter_mm:24}]}]}});await flush();
+  assert.match(ids.get('columnForces').textContent,/72.3823/);assert.match(ids.get('columnContext').textContent,/merkez örtüsü 64 mm/);
+  const drawing=ids.get('columnContext').children.find(c=>c.children.some(s=>s.attributes?.role==='img'));
+  assert.ok(drawing);assert.equal(drawing.children[0].children[1].attributes.cy,'-336');
+  const pmmPayload=()=>({...cagePayload(),column_pmm:{source_run_id:run(2),source_archive_sha256:'SOURCE_2',
+    source_demand_result_sha256:'DEMAND2',source_cages_result_sha256:'CAGES2',source_stability_result_sha256:'STABILITY2',
+    design_demand_authority:'DENIED',pmm_population_reduced:false,actual_second_order_applied:false,
+    minimum_eccentricity_applied:false,selected_design:null,formal_compliance:'NOT_PROVEN',static_state_count:4,assessment_count:12}});
+  ids.get('columnView').value='pmm';ids.get('columnView').trigger('change');await flush();
+  const pmmRequest=take();assert.match(pmmRequest.url,/case=SUM/);assert.equal(ids.get('columnCase').disabled,false);
+  pmmRequest.done({...pmmPayload(),demand_page:{view:'pmm',total:1,offset:0,limit:200,rows:[{
+    ...candidate,native_values:{M2:48,M3:-57.2},candidate_label:'16Φ24',utilization:.2,radial_capacity_kNm:373.363,
+    status:'WITHIN_SCENARIO_SURFACE',reason:null}]}});await flush();
+  assert.match(ids.get('columnForces').textContent,/Koşullu yüzey içinde/);assert.match(ids.get('columnForces').textContent,/-57.2/);
+  assert.match(ids.get('columnUnits').textContent,/ikinci mertebe uygulanmadı/);
+  ids.get('columnView').trigger('change');await flush();const badPmm=pmmPayload();badPmm.column_pmm.source_cages_result_sha256='OTHER';
+  take().done(badPmm);await flush();assert.match(ids.get('columnStatus').textContent,/PMM hesabının kaynak bağı/);
+  assert.equal(ids.get('columnForces').children.length,0);
+  console.log('VS11–VS15 column UI identity, filtering, cage drawing and conditional PMM scope PASS');
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -21,6 +21,18 @@ class ReportUnavailable(ValueError):
     """No verified five-check result exists for this run."""
 
 
+def _column_cage_svg(cage):
+    """Draw the stored proposed bar coordinates; no structural calculation."""
+    w,h = cage["t2_mm"],cage["t3_mm"]
+    content = ('<figure><svg xmlns="http://www.w3.org/2000/svg" role="img" width="200" height="200" ' +
+        f'viewBox="{-w/2-60} {-h/2-60} {w+120} {h+120}" aria-label="' + escape(cage["label"],quote=True) +
+        ' öneri kesiti"><rect ' + f'x="{-w/2}" y="{-h/2}" width="{w}" height="{h}" ' +
+        'fill="#edf1f6" stroke="#64748b" stroke-width="3"/>')
+    for bar in cage["bars"]:
+        content += f'<circle cx="{bar["x2_mm"]}" cy="{-bar["x3_mm"]}" r="{bar["diameter_mm"]/2}" fill="#214e78"/>'
+    return content+'</svg><figcaption>'+escape(cage["label"])+' · yerel 2 sağa, yerel 3 yukarı</figcaption></figure>'
+
+
 def build_column_bank_html(report: Mapping[str, Any]) -> str:
     """The existing report layer also presents an explicitly selected column archive."""
     members = []
@@ -152,6 +164,48 @@ def build_column_bank_html(report: Mapping[str, Any]) -> str:
             ("m2_counts", "M2 kaynak kıyası"), ("m3_counts", "M3 kaynak kıyası")), ecc["members"])
         content += '<p>Rijitlik ve dışmerkezlik SHA-256: ' + _val(stability["result_sha256"]) + '</p>'
         content += '<p>Dayanak: <a href="' + escape(stability["reference_url"], quote=True) + '">TS500/2000 metin kopyası (EMU)</a>.</p>'
+    cages = report.get("column_cages")
+    if cages:
+        content += ('<h2>VS15 · Öneri donatı yerleşimleri</h2><p>' + _val(cages["bound_member_count"]) +
+            ' kolonda üç öneri: 16Φ24 / 16Φ28 / 16Φ32; önerilen etriye Φ12 (TS500 7.4.1 çap alt sınırı). Bunlar mevcut veya seçilmiş donatı değildir. ' +
+            'CSI örtüsü etriyenin dış yüzünedir; boyuna çubuk merkez mesafesi = model örtüsü + önerilen etriye çapı + φ/2. ' +
+            'Modeldeki çubuk adı bir çap ölçüsü olarak kullanılmaz.</p>')
+        content += _table((("profile_id","Kesit profili"),("label","Öneri"),("as_cm2","As (cm²)"),
+            ("rho_percent","ρ (%)"),("center_offset_mm","Merkez örtüsü (mm)"),
+            ("minimum_clear_spacing_mm","Net aralık (mm)"),("area_ratio_status","Alan kıyası"),
+            ("spacing_status","Aralık kapsamı"),("reason","Açık neden")),cages["candidates"])
+        for cage in cages["candidates"]:
+            if cage["geometry_status"] == "PROPOSED_GEOMETRY_CALCULATED": content += _column_cage_svg(cage)
+        content += ('<p>Boyuna yerleşim önerisi; etriye/çiroz detay çizimi değildir. Agrega çapı, sargı, bindirme, ' +
+            'çap tedariki ve proje malzeme katsayılarının kabulü açık kalır. Üç aday tüm donatı seçeneklerini kapsamaz; ' +
+            'otomatik seçim veya optimum tasarım üretilmez.</p>')
+        content += '<p>Donatı önerileri SHA-256: '+_val(cages["result_sha256"])+ '</p>'
+    pmm = report.get("column_pmm")
+    if pmm:
+        content += ('<h2>Koşullu PMM · Tam statik kaynak nüfusu</h2><p>' + _val(pmm["static_state_count"]) +
+            ' statik durum × 3 öneri = ' + _val(pmm["assessment_count"]) + ' kıyas. Kaynak kuvvetleri değiştirilmez. ' +
+            'N=−P; M2/M3 CSI yerel işaretindedir. γc=1,5 ve γs=1,15 açık hesap senaryosudur; proje kabulü değildir. ' +
+            'Çelik gerinimi çubuk merkezinde, çubuğun betonla çakışması dairesel disk kesişim alanı ve birinci momentleriyle hesaplanır.</p>')
+        content += '<p>Sayısal durumlar: '+_val(pmm["status_counts"])+'. Açık nedenler: '+_val(pmm["reason_counts"])+'.</p>'
+        summary_rows = []
+        for item in pmm["members"]:
+            summary_rows.append({**item,"maximum_resolved_utilization":round(item["maximum_resolved_utilization"],6)
+                if item["maximum_resolved_utilization"] is not None else None,
+                "critical_keys":[s["native_key"] for s in item["critical_resolved_states"]]})
+        content += _table((("member_id","Kolon"),("story","Kat"),("candidate_label","Öneri"),("as_cm2","As (cm²)"),
+            ("static_state_count","Statik kayıt"),("maximum_resolved_utilization","En büyük çözülen koşullu oran"),
+            ("critical_keys","Kritik kaynak anahtarı"),("status_counts","Sayısal kapsam"),
+            ("numeric_population_complete","Sayısal nüfus tamam")),summary_rows)
+        content += ('<p>72/144/288 açısal örnekle başlanır; gerekirse 1152’ye kadar sıklaştırılır. Kuvvet artığı ≤1 N; ' +
+            'iki ardışık radyal fark ≤0,001 kN·m + %0,2 bağıl bütçe. Bu gözlenen kararlılıktır; sürekli zarf hatası için ' +
+            'kanıt değildir. Belirsiz çözüm veya sayısal sınır bandı kapasite aşımı/başarısı sayılmaz. Koşullu oran, sabit N’deki moment büyüklüğünün ' +
+            'üç çözünürlükte bulunan en küçük radyal kapasiteye oranıdır; ETABS tasarım PMM oranı değildir.</p>')
+        content += ('<p>Minimum dışmerkezlik ve ikinci mertebe uygulanmadı. Depremli tam tasarım nüfusu, gerçek donatı, ' +
+            'detay koşulları ve nihai seçim doğrulanmadı: <strong>DENIED / NOT_PROVEN / NOT_READY</strong>. ' +
+            'Tam JSON, her kaynak vektörünü, aday kimliğini, yakınsama geçmişini ve kapasite uç noktalarını içerir.</p>')
+        content += '<p>Koşullu PMM SHA-256: '+_val(pmm["result_sha256"])+ '</p>'
+        content += '<p>Hesap dayanakları: '+', '.join('<a href="'+escape(url,quote=True)+'">'+escape(name)+'</a>'
+            for name,url in cages["references"].items())+'</p>'
     historical = report.get("historical_reconciliation")
     if historical:
         content += '<h2>Tarihsel D7-B6 toplamları</h2>' + _table((

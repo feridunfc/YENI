@@ -173,9 +173,9 @@ def column_bank_history(root):
 def read_column_bank(root, run_id, *, member_id=None, output_case=None, offset=0, limit=200, full=False, view="native"):
     database, report = verified_database(root, run_id)
     if (type(offset) is not int or offset < 0 or type(limit) is not int or not 1 <= limit <= 500
-            or view not in ("native", "static", "design", "critical", "reinforcement", "stiffness", "eccentricity")):
+            or view not in ("native", "static", "design", "critical", "reinforcement", "stiffness", "eccentricity", "cages", "pmm")):
         raise BankError("COLUMN_PAGE_INVALID")
-    if view in ("reinforcement", "stiffness") and output_case is not None:
+    if view in ("reinforcement", "stiffness", "cages") and output_case is not None:
         raise BankError("CASE_FILTER_NOT_APPLICABLE_TO_SECTION_VIEW")
     from .demand_view import demand_view
     report.update(demand_view(database, report, member_id=member_id, output_case=output_case,

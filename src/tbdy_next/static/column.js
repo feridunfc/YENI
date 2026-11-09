@@ -18,7 +18,13 @@
     REQUIRED_AREA_BOUNDS_CALCULATED:'Alan sınırları hesaplandı', NOT_PROVEN:'Doğrulanmadı',
     NUMERICAL_MATCH:'Kaynakla eşleşti', NUMERICAL_MISMATCH:'Kaynakla uyuşmuyor',
     BELOW_REFERENCE:'Referans altında', AT_OR_ABOVE_REFERENCE:'Referansı karşılıyor',
-    NONCOMPRESSION_NOT_APPLICABLE:'Basınç değil'
+    NONCOMPRESSION_NOT_APPLICABLE:'Basınç değil', PROPOSED_GEOMETRY_CALCULATED:'Öneri geometrisi',
+    WITHIN_SCENARIO_SURFACE:'Koşullu yüzey içinde', EXCEEDS_SCENARIO_SURFACE:'Koşullu yüzey aşılıyor',
+    NUMERIC_UNRESOLVED:'Sayısal çözüm belirsiz', BLOCKED_INPUTS:'Girdi eksik',
+    AXIAL_ONLY_SCENARIO:'Yalnız eksenel senaryo', OUTSIDE_SCENARIO_AXIAL_RANGE:'Eksenel senaryo sınırı aşılıyor',
+    WITHIN_1_TO_4_PERCENT_REFERENCE:'%1–4 aralığında', OUTSIDE_1_TO_4_PERCENT_REFERENCE:'%1–4 aralığı dışında',
+    ANGULAR_REFINEMENT_NOT_STABLE:'Açısal yakınsama yeterli değil', AGGREGATE_NOT_BOUND:'Agrega bilgisi bekleniyor',
+    NEAR_NUMERICAL_SURFACE_BOUNDARY:'Sayısal sınır bandında; karar belirsiz'
   };
   let epoch = 0, historyEpoch = 0, opened = false, offset = 0, total = 0;
   const text = (tag, value, css) => {
@@ -27,6 +33,24 @@
     return node;
   };
   const show = value => Array.isArray(value) ? value.join(', ') : String(value ?? '—');
+  const rounded = value => typeof value === 'number' && Number.isFinite(value) ? Number(value.toPrecision(6)) : null;
+  function cageDrawing(cage) {
+    const box = document.createElement('figure');
+    const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    const make = (tag,attrs) => {
+      const node = document.createElementNS('http://www.w3.org/2000/svg',tag);
+      for (const [key,value] of Object.entries(attrs)) node.setAttribute(key,String(value));
+      svg.append(node); return node;
+    };
+    const w=cage.t2_mm,h=cage.t3_mm;
+    svg.setAttribute('viewBox',`${-w/2-60} ${-h/2-60} ${w+120} ${h+120}`);
+    svg.setAttribute('width','190'); svg.setAttribute('height','190');
+    svg.setAttribute('role','img'); svg.setAttribute('aria-label',cage.label+' öneri kesiti; yerel 2 sağa, yerel 3 yukarı');
+    make('rect',{x:-w/2,y:-h/2,width:w,height:h,fill:'#edf1f6',stroke:'#64748b','stroke-width':3});
+    for (const bar of cage.bars) make('circle',{cx:bar.x2_mm,cy:-bar.x3_mm,r:bar.diameter_mm/2,fill:'#214e78'});
+    box.append(svg,text('figcaption',`${cage.label} · As ${rounded(cage.as_cm2)} cm² · merkez örtüsü ${cage.center_offset_mm} mm`));
+    return box;
+  }
   function table(columns, rows) {
     const node = document.createElement('table'); node.className = 'modal-source-table';
     const head = document.createElement('thead'), header = document.createElement('tr');
@@ -65,12 +89,12 @@
     if (!selected) { el('columnStatus').textContent = 'Kolon arşivi seçilmedi.'; return; }
     const params = new URLSearchParams({run_id:selected, offset:String(offset)});
     const selectedView = view.value || 'native';
-    const sectionView = selectedView === 'reinforcement' || selectedView === 'stiffness';
+    const sectionView = ['reinforcement','stiffness','cages'].includes(selectedView);
     loadCase.disabled = sectionView;
     if (member.value) params.set('member', member.value);
     if (loadCase.value && !sectionView) params.set('case', loadCase.value);
     if (selectedView !== 'native') params.set('view', selectedView);
-    el('columnStatus').textContent = 'Arşiv doğrulanıyor…';
+    el('columnStatus').textContent = selectedView === 'pmm' ? 'Koşullu PMM hesaplanıyor; ilk açılış biraz sürebilir…' : 'Arşiv doğrulanıyor…';
     try {
       const report = await get('/api/column-bank?' + params);
       if (ticket !== epoch || selected !== run.value) return;
@@ -116,6 +140,19 @@
           stability.design_demand_authority !== 'DENIED' || stability.actual_second_order_applied !== false)) {
         throw new Error('Rijitlik hesabı seçili kolon kaynağıyla eşleşmiyor.');
       }
+      const cages = report.column_cages, pmm = report.column_pmm;
+      if (cages && (cages.source_run_id !== selected || cages.source_archive_sha256 !== report.source_archive_sha256 ||
+          cages.source_demand_result_sha256 !== chain?.result_sha256 || cages.source_prechecks_result_sha256 !== prechecks?.result_sha256 ||
+          cages.design_demand_authority !== 'DENIED' || cages.selected_design !== null)) {
+        throw new Error('Donatı önerileri seçili kolon kaynağıyla eşleşmiyor.');
+      }
+      if (pmm && (pmm.source_run_id !== selected || pmm.source_archive_sha256 !== report.source_archive_sha256 ||
+          pmm.source_demand_result_sha256 !== chain?.result_sha256 || pmm.source_cages_result_sha256 !== cages?.result_sha256 ||
+          pmm.source_stability_result_sha256 !== stability?.result_sha256 || pmm.design_demand_authority !== 'DENIED' ||
+          pmm.pmm_population_reduced !== false || pmm.actual_second_order_applied !== false ||
+          pmm.minimum_eccentricity_applied !== false || pmm.selected_design !== null || pmm.formal_compliance !== 'NOT_PROVEN')) {
+        throw new Error('PMM hesabının kaynak bağı veya koşullu kapsamı uyuşmuyor.');
+      }
       for (const [label, url] of [
         ['HTML hesap raporu', '/report/column-bank?'],
         ['Tam JSON', '/api/export-column-bank?format=json&'],
@@ -135,6 +172,8 @@
       const page = selectedView === 'native' ? report.force_page : report.demand_page;
       if ((selectedView === 'critical' || selectedView === 'reinforcement') && !prechecks) throw new Error('Kolon ön hesabı bulunamadı.');
       if ((selectedView === 'stiffness' || selectedView === 'eccentricity') && !stability) throw new Error('Rijitlik ve dışmerkezlik hesabı bulunamadı.');
+      if (selectedView === 'cages' && !cages) throw new Error('Donatı önerisi bulunamadı.');
+      if (selectedView === 'pmm' && !pmm) throw new Error('Koşullu PMM hesabı bulunamadı.');
       if (!page || (selectedView !== 'native' && page.view !== selectedView)) throw new Error('İstenen talep görünümü bulunamadı.');
       total = page.total; offset = page.offset;
       const identity = [['Obj','Kolon'], ['Elm','Analiz elemanı'], ['ObjSta','Nesne istasyonu'], ['ElmSta','Eleman istasyonu'],
@@ -183,6 +222,27 @@
             ref2:r.axes[0].reference_minimum_moment_kNcm,s2:labels[r.axes[0].status] || r.axes[0].status,
             m3:r.axes[1].source_abs_moment_kNcm,ref3:r.axes[1].reference_minimum_moment_kNcm,
             s3:labels[r.axes[1].status] || r.axes[1].status}))));
+      } else if (selectedView === 'cages') {
+        el('columnUnits').textContent = 'Üç öneri: 16Φ24 / 16Φ28 / 16Φ32; önerilen etriye Φ12. Model örtüsü etriyenin dış yüzünedir. Bunlar mevcut veya seçilmiş donatı değildir.';
+        el('columnContext').append(text('p','Agrega, etriye/çiroz, bindirme ve malzeme katsayılarının proje kabulü açık. Kesitler boyuna yerleşim önerisidir; detay çizimi değildir. Yerel 2 sağa, yerel 3 yukarı.', 'micro'));
+        if (member.value) for (const row of page.rows.filter(r=>r.geometry_status==='PROPOSED_GEOMETRY_CALCULATED')) {
+          el('columnContext').append(cageDrawing(row));
+        }
+        el('columnForces').append(table([['member_id','Kolon'],['story','Kat'],['label','Öneri'],['as','As (cm²)'],
+          ['rho','ρ (%)'],['center_offset_mm','Merkez örtüsü (mm)'],['minimum_clear_spacing_mm','Net aralık (mm)'],
+          ['area','Alan kıyası'],['geometry','Geometri'],['reason','Açık neden']],page.rows.map(r=>({...r,
+            as:rounded(r.as_cm2),rho:rounded(r.rho_percent),area:labels[r.area_ratio_status] || r.area_ratio_status,
+            geometry:labels[r.geometry_status] || r.geometry_status}))));
+      } else if (selectedView === 'pmm') {
+        el('columnUnits').textContent = 'Değiştirilmemiş statik kaynak vektörü × öneri kafesi. M2/M3 ve radyal kapasite kN·m; oran boyutsuzdur. γc=1,5 / γs=1,15 senaryosu; minimum dışmerkezlik ve ikinci mertebe uygulanmadı.';
+        el('columnContext').append(text('p',`${pmm.static_state_count} statik durum × 3 öneri = ${pmm.assessment_count} kıyas (arşivin tamamı). `+
+          'Oran yalnız sayısal olarak çözülen senaryo içindir. Depremli tam tasarım nüfusu ve nihai donatı seçimi henüz doğrulanmadı.', 'micro'));
+        el('columnForces').append(table([['Obj','Kolon'],['ObjSta','İstasyon (m)'],['Elm','Eleman'],['LoadCase','Birleşim'],
+          ['candidate_label','Öneri'],['n','N (kN)'],['m2','M2'],['m3','M3'],['capacity','Radyal kapasite'],
+          ['ratio','Koşullu oran'],['label','Sayısal durum'],['reasonLabel','Açık neden']],page.rows.map(r=>({...r.native_key,...r,
+            n:rounded(r.domain_values.N_compression_kN),m2:rounded(r.native_values.M2),m3:rounded(r.native_values.M3),
+            capacity:rounded(r.radial_capacity_kNm),ratio:rounded(r.utilization),label:labels[r.status] || r.status,
+            reasonLabel:labels[r.reason] || r.reason}))));
       } else {
         el('columnUnits').textContent = 'ETABS tasarım özetindeki referanslar. Yuvarlanmış veya çift istasyonlardan tekil kuvvet seçilmez; bu görünüm PMM/kesme uygunluğu değildir.';
         const rows = page.rows.map(r => {
