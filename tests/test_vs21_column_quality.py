@@ -4,6 +4,7 @@ import unittest
 from unittest.mock import patch
 
 from test_vs15_column_pmm import inputs
+from column_stability_fixture import StiffnessBank
 from tbdy_next.column_engine.column_pmm import build_column_pmm
 from tbdy_next.column_engine.column_pmm_quality import build_column_pmm_quality
 from tbdy_next.column_engine.native_archive import BankError
@@ -20,7 +21,6 @@ class CriticalPMMReferenceTests(unittest.TestCase):
     def replace_capacity(self,row,capacity):
         row['radial_capacity_kNm']=capacity
         row['utilization']=math.hypot(row['native_values']['M2'],row['native_values']['M3'])/capacity
-        row['refinement']['capacity_kNm']=[capacity]*3
 
     def test_critical_subset_matches_without_modifying_primary_or_claiming_full_coverage(self):
         before=deepcopy((self.chain,self.cages,self.pmm));r=self.result()
@@ -33,28 +33,26 @@ class CriticalPMMReferenceTests(unittest.TestCase):
         self.assertEqual((r['design_demand_authority'],r['formal_compliance'],r['engineering_release']),('DENIED','NOT_PROVEN','NOT_READY'))
 
     def test_every_equal_primary_maximum_keeps_state_and_source_binding(self):
+        fixture=StiffnessBank();fixture.set_static_vector((-180,10.8,-18.4,2.6,48,-57.2))
+        _,self.chain,_,stability,self.cages=inputs(fixture)
+        self.pmm=build_column_pmm(self.chain,self.cages,stability)
         primary=self.member_rows()
-        # Equal original source vectors occur at different elements/stations in this fixture.
-        for row in primary[:2]:self.replace_capacity(row,math.hypot(row['native_values']['M2'],row['native_values']['M3'])/.5)
+        # Actual equal source vectors at distinct stations/element cuts must
+        # remain tied after the physical capacity calculation.
         r=self.result(member_id='C_SYNTHETIC_1')
         group=next(g for g in r['members'] if g['candidate_label']=='16Φ24')
-        expected={row['state_id'] for row in primary[:2]}
+        expected={row['state_id'] for row in primary}
         self.assertEqual(set(group['target_state_ids']),expected)
         compared=[row for row in r['rows'] if row['candidate_label']=='16Φ24']
         self.assertEqual({row['state_id'] for row in compared},expected)
-        self.assertEqual(group['comparison_count'],2)
+        self.assertEqual(group['comparison_count'],4)
         for row in compared:
             source=next(p for p in primary if p['state_id']==row['state_id'])
             for key in ('candidate_id','native_key','native_values','source_row_id'):self.assertEqual(row[key],source[key])
 
-    def test_small_primary_capacity_corruption_is_detected_with_fixed_budget(self):
+    def test_small_primary_capacity_corruption_is_rejected_before_reference(self):
         for row in self.member_rows():self.replace_capacity(row,row['radial_capacity_kNm']*.99)
-        r=self.result(member_id='C_SYNTHETIC_1')
-        changed=next(x for x in r['rows'] if x['candidate_label']=='16Φ24')
-        self.assertEqual(changed['status'],'NUMERICAL_COMPARISON_MISMATCH')
-        self.assertGreater(changed['absolute_difference_knm'],changed['comparison_budget_knm'])
-        self.assertFalse(r['numerical_policy']['primary_level_spread_added_to_budget'])
-        self.assertEqual(r['numerical_policy']['comparison_relative_tolerance'],.002)
+        with self.assertRaisesRegex(BankError,'ROOT_CAPACITY_MISMATCH'):self.result(member_id='C_SYNTHETIC_1')
 
     def test_reference_failure_is_retained_in_target_population(self):
         with patch('tbdy_next.column_engine.column_pmm_quality.reference_radial_capacity',side_effect=ValueError('NO_ROOT')):

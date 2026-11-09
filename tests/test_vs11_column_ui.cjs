@@ -153,7 +153,9 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
   assert.ok(drawing);assert.equal(drawing.children[0].children[1].attributes.cy,'-236');
   assert.equal(drawing.children[0].children[0].attributes.width,'700');
   assert.equal(drawing.children[0].children[0].attributes.height,'600');
-  const pmmPayload=()=>({...cagePayload(),column_pmm:{axis_convention:'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3',source_run_id:run(2),source_archive_sha256:'SOURCE_2',
+  const pmmPayload=()=>({...cagePayload(),column_pmm:{schema:'tbdy.next.column-pmm-scenarios.v3',
+    numerical_policy:{basis:'STRAIN_COMPATIBLE_POINT_AT_FIXED_N_AND_MOMENT_DIRECTION',solver_revision:'VS25_DIRECTION_ROOT'},
+    axis_convention:'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3',source_run_id:run(2),source_archive_sha256:'SOURCE_2',
     source_demand_result_sha256:'DEMAND2',source_cages_result_sha256:'CAGES2',source_stability_result_sha256:'STABILITY2',
     design_demand_authority:'DENIED',pmm_population_reduced:false,actual_second_order_applied:false,
     minimum_eccentricity_applied:false,selected_design:null,formal_compliance:'NOT_PROVEN',static_state_count:4,assessment_count:12}});

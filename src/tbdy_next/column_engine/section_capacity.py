@@ -20,6 +20,9 @@ MOMENT_ABS_TOL_NMM = 1000.0
 MOMENT_REL_TOL = .002
 ANGLE_COUNTS = (72, 144, 288)
 MAX_ANGLE_COUNT = 1152
+DIRECTION_TOL_NMM = 1000.0
+DIRECTION_MAX_ITERATIONS = 64
+RADIAL_BASIS = "STRAIN_COMPATIBLE_POINT_AT_FIXED_N_AND_MOMENT_DIRECTION"
 
 
 def number(value, name, *, positive=False):
@@ -197,12 +200,34 @@ class _Curve:
             raise ValueError("PMM_NONMONOTONE_AXIAL_CURVE")
         self.samples = cs,ns
 
-    def solve(self, target):
-        if self.samples is None: self._prepare()
-        cs,ns = self.samples
-        if not ns[0] <= target <= ns[-1]: return None,"AXIAL_ROOT_UNRESOLVED"
-        index = max(1,bisect_left(ns,target))
-        lo,hi,flo,fhi = cs[index-1],cs[index],ns[index-1]-target,ns[index]-target
+    def solve(self, target, *, seed_c=None):
+        if seed_c is None:
+            # Preserve the accepted sampled bracket path used by fixed-axis
+            # column and asymmetric beam capacity callers.
+            if self.samples is None: self._prepare()
+            cs,ns = self.samples
+            if not ns[0] <= target <= ns[-1]: return None,"AXIAL_ROOT_UNRESOLVED"
+            index = max(1,bisect_left(ns,target))
+            lo,hi,flo,fhi = cs[index-1],cs[index],ns[index-1]-target,ns[index]-target
+        else:
+            # A neighbouring solved c is only a bracket hint. Every endpoint
+            # is evaluated at this angle, and the interval is expanded until
+            # it actually contains N. No interpolated c/resultant is returned.
+            seed=number(seed_c,"axial_bracket_seed",positive=True)
+            diagonal=math.hypot(self.section.t2,self.section.t3)
+            lower,upper=diagonal*1e-9,diagonal*1e6
+            lo=max(lower,min(upper,seed/2));hi=max(lower,min(upper,seed*2))
+            flo=number(self.evaluate(lo)['n_n'],"axial_bracket_N")-target
+            fhi=number(self.evaluate(hi)['n_n'],"axial_bracket_N")-target
+            for _ in range(64):
+                if flo<=0<=fhi:break
+                previous=(lo,hi)
+                if flo>0:
+                    lo=max(lower,lo/2);flo=number(self.evaluate(lo)['n_n'],"axial_bracket_N")-target
+                if fhi<0:
+                    hi=min(upper,hi*2);fhi=number(self.evaluate(hi)['n_n'],"axial_bracket_N")-target
+                if (lo,hi)==previous:return None,"AXIAL_ROOT_UNRESOLVED"
+            else:return None,"AXIAL_ROOT_UNRESOLVED"
         for iteration in range(64):
             if abs(flo)<=FORCE_TOL_N: c = lo
             elif abs(fhi)<=FORCE_TOL_N: c = hi
@@ -235,11 +260,71 @@ def _radial(points, u2, u3):
         if t > 0 and -1e-10 <= f <= 1+1e-10:
             point2, point3 = x+f*dx, y+f*dy
             hits.append((t, {"left": left, "right": right, "fraction": f,
+                "interpolated_angle_deg":left["theta_deg"]+f*(right["theta_deg"]-left["theta_deg"]),
                 "direction_residual_nmm": abs(point2*u3-point3*u2)}))
     if not hits: return None
     values = [h[0] for h in hits]
     if max(values)-min(values) > MOMENT_ABS_TOL_NMM: return None
+    # Adjacent segments can touch the same sampled vertex. Distinct angular
+    # intersections, even at equal radii, are not a single resolved bracket.
+    angles = [h[1]["interpolated_angle_deg"] for h in hits]
+    if max(angles)-min(angles)>1e-9:return None
     return min(hits, key=lambda hit: hit[0])
+
+
+def _direction_root(section, target_n, u2, u3, ray):
+    """Resolve the actual strain plane; a polygon segment only supplies a bracket.
+
+    Each midpoint uses a fresh axial solve. Neither c nor the section
+    resultants are interpolated between angular samples. This local solve
+    does not prove global uniqueness of the continuous interaction surface.
+    """
+    left,right=ray["left"],ray["right"]
+    lo,hi=left["theta_deg"],right["theta_deg"]
+    result={"status":"MOMENT_DIRECTION_ROOT_UNRESOLVED","reason":None,
+        "method":"BRACKETED_BISECTION_EXACT_AXIAL_EQUILIBRIUM","target_n_n":target_n,
+        "angle_basis":"COMPRESSION_NORMAL_LOCAL2_TO_LOCAL3_FIRST_QUADRANT_DEG",
+        "folded_unit_direction":[u2,u3],"initial_bracket_theta_deg":[lo,hi],
+        "final_bracket_theta_deg":[lo,hi],"direction_tolerance_nmm":DIRECTION_TOL_NMM,
+        "iterations":0,"evaluated_point_count":0,"max_axial_residual_n":0.0,
+        "point":None,"capacity_nmm":None,"axial_residual_n":None,"direction_residual_nmm":None,
+        "interpolated_strain_plane_used":False,"global_root_uniqueness_proven":False}
+    def inspect(point):
+        for k in ("n_n","m2_nmm","m3_nmm","theta_deg","c_mm","maximum_tensile_strain"):
+            number(point[k],"root_"+k,positive=k=="c_mm")
+        residual=abs(point["n_n"]-target_n)
+        if residual>FORCE_TOL_N or point["maximum_tensile_strain"]>.1:
+            raise ValueError("DIRECTION_ROOT_AXIAL_STATE_UNRESOLVED")
+        result["evaluated_point_count"]+=1
+        result["max_axial_residual_n"]=max(result["max_axial_residual_n"],residual)
+        g=point["m2_nmm"]*u3-point["m3_nmm"]*u2
+        capacity=point["m2_nmm"]*u2+point["m3_nmm"]*u3
+        number(g,"root_direction_residual");number(capacity,"root_capacity",positive=True)
+        return g,capacity,residual
+    def accept(point,g,capacity,residual):
+        result.update(status="MOMENT_DIRECTION_ROOT_RESOLVED",point=dict(point),capacity_nmm=capacity,
+            axial_residual_n=residual,direction_residual_nmm=abs(g),final_bracket_theta_deg=[lo,hi])
+        return result
+    try:
+        if not 0<=lo<hi<=90:raise ValueError("DIRECTION_ROOT_ANGLE_BRACKET_INVALID")
+        gl,cl,rl=inspect(left);gh,ch,rh=inspect(right)
+        if abs(gl)<=DIRECTION_TOL_NMM:return accept(left,gl,cl,rl)
+        if abs(gh)<=DIRECTION_TOL_NMM:return accept(right,gh,ch,rh)
+        if gl*gh>=0:raise ValueError("DIRECTION_ROOT_SIGN_BRACKET_MISSING")
+        for iteration in range(DIRECTION_MAX_ITERATIONS):
+            result["iterations"]=iteration+1
+            angle=(lo+hi)/2
+            seed=left['c_mm']+(right['c_mm']-left['c_mm'])/2
+            point,reason=_Curve(section,angle).solve(target_n,seed_c=seed)
+            if reason:raise ValueError("DIRECTION_ROOT_"+reason)
+            g,capacity,residual=inspect(point)
+            if abs(g)<=DIRECTION_TOL_NMM:return accept(point,g,capacity,residual)
+            if gl*g<=0:hi,right=angle,point
+            else:lo,gl,left=angle,g,point
+        raise ValueError("DIRECTION_ROOT_ITERATION_LIMIT")
+    except (ValueError,OverflowError) as exc:
+        result.update(reason=str(exc),final_bracket_theta_deg=[lo,hi])
+        return result
 
 
 class RadialSolver:
@@ -261,6 +346,7 @@ class RadialSolver:
         if not self.tension <= n <= self.compression:
             return {**base, "status": "OUTSIDE_SCENARIO_AXIAL_RANGE", "reason": "SECTION_MODEL_AXIAL_LIMIT"}
         magnitude = math.hypot(m2,m3)
+        if not math.isfinite(magnitude):return {**base,"reason":"MOMENT_MAGNITUDE_NOT_FINITE"}
         if magnitude == 0:
             return {**base, "status": "AXIAL_ONLY_SCENARIO", "axial_utilization": n/self.compression if n>=0 else n/self.tension}
         if min(n-self.tension,self.compression-n) <= FORCE_TOL_N:
@@ -299,7 +385,16 @@ class RadialSolver:
             if counts[-1]>=MAX_ANGLE_COUNT:
                 return {**base,"reason":"ANGULAR_REFINEMENT_NOT_STABLE","refinement":evidence}
             counts = tuple(2*c for c in counts)
-        capacity = min(capacities)
+        root=_direction_root(self.section,n,u2,u3,rays[-1][1])
+        evidence.update(capacity_basis=RADIAL_BASIS,direction_root=root,
+            max_axial_residual_n=max(max_residual,root["max_axial_residual_n"]))
+        if root["status"]!="MOMENT_DIRECTION_ROOT_RESOLVED":
+            return {**base,"reason":root["reason"],"refinement":evidence}
+        capacity = root["capacity_nmm"]
+        evidence.update(selected_capacity_kNm=capacity/1e6,
+            coarse_minimum_capacity_kNm=min(capacities)/1e6,
+            root_minus_coarse_minimum_kNm=(capacity-min(capacities))/1e6,
+            root_minus_finest_polygon_kNm=(capacity-capacities[-1])/1e6)
         ratio = magnitude/capacity
         # A computed ratio infinitesimally above/below one is not a resolved
         # exceedance/inside finding. Keep a decision guard at the same numeric

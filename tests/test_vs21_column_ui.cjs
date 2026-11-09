@@ -51,6 +51,9 @@ const clone=key=>structuredClone(samples[key]);
   assert.doesNotMatch(ids.get('columnStatus').textContent,/gösterilemedi/);
   assert.match(ids.get('columnContext').textContent,/kritik alt küme/);
   assert.match(ids.get('columnContext').textContent,/aynı malzeme modelini/);
+  assert.match(ids.get('columnContext').textContent,/gerinim uyumlu denge noktasından/);
+  assert.match(ids.get('columnOverviewDetails').textContent,/denge noktaları ve yaklaşım farkları/);
+  assert.match(ids.get('columnOverviewDetails').textContent,/Basınç normali θ/);
   assert.match(ids.get('columnForces').textContent,/Bağımsız kapasite/);
   assert.match(ids.get('columnForces').textContent,/Tolerans içinde/);
   assert.doesNotMatch(ids.get('columnForces').textContent,/state_id|source_row_id/);
@@ -73,7 +76,9 @@ const clone=key=>structuredClone(samples[key]);
   failed.demand_page.rows[1].absolute_difference_knm=10;failed.demand_page.rows[1].comparison_budget_knm=1;
   take().done(failed);await flush();
   assert.match(ids.get('columnForces').textContent,/Referans çözülemedi/);assert.match(ids.get('columnForces').textContent,/Tolerans dışında/);
-  for(const bad of ['source','filter','full_scope','material','budget','selection','row_gate','false_match','missing']) {
+  for(const bad of ['source','filter','full_scope','material','budget','selection','row_gate','false_match','missing',
+    'old_solver','old_primary_schema','old_primary_basis','old_primary_revision','native_P_missing','native_M2_string','native_M3_null',
+    'point_missing','point_N','point_M','point_c','point_theta','root_residual','root_budget','root_interpolation']) {
     ids.get('columnView').trigger('change');await flush();const r=clone('all');const q=r.column_pmm_quality;
     if(bad==='source')q.source_pmm_result_sha256='OTHER';
     if(bad==='filter')q.output_case_filter='OTHER';
@@ -84,9 +89,25 @@ const clone=key=>structuredClone(samples[key]);
     if(bad==='row_gate')r.demand_page.rows[0].final_design_eligible=true;
     if(bad==='false_match')r.demand_page.rows[0].absolute_difference_knm=100;
     if(bad==='missing')delete r.column_pmm_quality;
+    if(bad==='old_solver')q.primary_solver_revision='OLD_POLYGON_MINIMUM';
+    if(bad==='old_primary_schema')r.column_pmm.schema='tbdy.next.column-pmm-scenarios.v2';
+    if(bad==='old_primary_basis')r.column_pmm.numerical_policy.basis='COARSE_POLYGON_MINIMUM';
+    if(bad==='old_primary_revision')r.column_pmm.numerical_policy.solver_revision='OLD_POLYGON_MINIMUM';
+    if(bad==='native_P_missing')delete r.demand_page.rows[0].native_values.P;
+    if(bad==='native_M2_string')r.demand_page.rows[0].native_values.M2=String(r.demand_page.rows[0].native_values.M2);
+    if(bad==='native_M3_null')r.demand_page.rows[0].native_values.M3=null;
+    const point=r.demand_page.rows[0].primary_direction_root;
+    if(bad==='point_missing')delete r.demand_page.rows[0].primary_direction_root;
+    if(bad==='point_N')point.point.n_n+=100;
+    if(bad==='point_M')point.point.m2_nmm*=1.1;
+    if(bad==='point_c')point.point.c_mm=0;
+    if(bad==='point_theta')point.point.theta_deg=120;
+    if(bad==='root_residual')point.direction_residual_nmm=1001;
+    if(bad==='root_budget')point.direction_tolerance_nmm=1001;
+    if(bad==='root_interpolation')point.interpolated_strain_plane_used=true;
     take().done(r);await flush();assert.match(ids.get('columnStatus').textContent,/uyuşmuyor/);
     assert.equal(ids.get('columnForces').children.length,0);assert.equal(ids.get('columnExports').children.length,0);
     assert.equal(ids.get('columnOverviewDetails').children.length,0);
   }
-  console.log('VS21 UI: explicit critical subset, same material model, numerical mismatch/failure, filters and stale/source/authority guards PASS');
+  console.log('VS21–VS25 UI: root equilibrium evidence, explicit critical subset, numerical mismatch/failure, filters and stale/source/authority guards PASS');
 })().catch(error=>{console.error(error);process.exitCode=1;});

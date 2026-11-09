@@ -1,0 +1,10 @@
+# VS25 — PMM doğrultu kökü ve altı sayısal uyuşmazlığın kapanması
+
+- [VS21](VS21_PMM_INDEPENDENT_NUMERICAL_REFERENCE_TR.md) bulgularındaki 145/16Φ32, 230/16Φ24, 64/16Φ24, 68/16Φ32, 70/16Φ24 ve 72/16Φ28 uyuşmazlıkları giderildi; önceki üç açısal düzeyin minimumu kapasiteyi gereğinden düşük seçiyordu.
+- Ana kapasite artık sabit kaynak N ve kaynak moment doğrultusunda çözülen gerçek gerinim düzleminden gelir: |ΔN|≤1 N, doğrultu artığı≤1.000 N·mm. Açısal aralıkta ikiye bölme; komşu c yalnız başlangıç aralığı ipucudur, sonuç interpolasyonu veya başarısız kökte poligon kapasitesine dönüş yoktur.
+- Gerçek arşivde 7.236 senaryo çözüldü. Bağımsız 64 panelli integrasyonla aynı c/θ düzleminde 7.236 nokta tekrarlandı; en büyük fark 4,49×10⁻⁵ N ve 0,00990 N·mm altında. Bu, tüm nüfusta bağımsız kök araması veya malzeme kabulü değildir.
+- Güncel 261/261 ve önceki sabit 261/261 kritik hedef, değişmeyen %0,2 + mutlak/eksenel bütçelerinde eşleşti; birleşimleri 262 ayrı kayıt/öneri kimliğidir. En büyük bağıl fark %0,0000198264; ana örnekleme yayılımı bütçeye eklenmedi.
+- 217/16Φ24 kritik kaydı Soil_Up/0 m yerine Grav_TempPos/4,45 m oldu; eski hedef ayrıca korundu ve kıyaslandı. En büyük koşullu PMM 0,408910273: 136/16Φ24/Soil_Ult. Bunlar depremli nihai tasarım oranı değildir.
+- UI/HTML: mevcut PMM sayısal kıyas altında kapalı denge noktası ayrıntıları; θ basınç normalinin ilk çeyreğe katlanmış açısıdır. JSON tam hassasiyeti korur; eski v2 PMM politikası ve eksik/sayısal olmayan kaynak kuvvetleri reddedilir. Ana PMM şeması v3, kıyas şeması v2.
+- Doğrulama: 25 yeni çözücü/entegrasyon ve iki HTTP/rapor testi; toplam 936/936 Python, yedi Node regresyonu ve bağımsız sayısal kod denetimi PASS. Kalite doğrulaması her radyal kaydın iki aralık ucunu ve sonuç düzlemini bağımsız integrasyonla kontrol eder; kök karşılaştırması kritik alt kümededir.
+- ZIP/SQLite ve SCWB/kiriş hesapları dâhil diğer 12 türetim kimliği aynı; PMM, kolon özeti ve sayısal kıyas bilinçli güncellendi. Yeni COM/analiz/veri edinimi yok; küresel kök tekliği ve normatif tasarım kabulü açık, DENIED / NOT_PROVEN / NOT_READY ve ortak Windows/ETABS kabulüne kadar MERGE HOLD korunur.

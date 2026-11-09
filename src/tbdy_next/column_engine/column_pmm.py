@@ -13,7 +13,7 @@ from .csi_geometry import AXIS_CONVENTION, REFERENCE as CSI_REFERENCE, local_dim
 from .native_archive import BankError, digest
 from .observed_context import EXPECTED_FIELDS
 from .section_capacity import (ANGLE_COUNTS, MAX_ANGLE_COUNT, FORCE_TOL_N, MOMENT_ABS_TOL_NMM, MOMENT_REL_TOL,
-    Bar, Material, Section, perimeter, solver)
+    DIRECTION_TOL_NMM, DIRECTION_MAX_ITERATIONS, RADIAL_BASIS, Bar, Material, Section, perimeter, solver)
 
 DIAMETERS = (24, 28, 32)
 POLICY = {"id": "CE05A_RECT16_24_28_32_T12_GC1P5_GS1P15_CSI_AXES_V2",
@@ -212,7 +212,7 @@ def build_column_pmm(chain,cages,stability):
                 for r in numeric if r["utilization"]==maximum],
             "numeric_population_complete":bool(values) and not (counts["NUMERIC_UNRESOLVED"] or counts["BLOCKED_INPUTS"]),
             "selected_design":False})
-    result = {"schema":"tbdy.next.column-pmm-scenarios.v2","axis_convention":AXIS_CONVENTION,
+    result = {"schema":"tbdy.next.column-pmm-scenarios.v3","axis_convention":AXIS_CONVENTION,
         "source_run_id":chain["source_run_id"],
         "source_archive_sha256":chain["source_archive_sha256"],"source_demand_result_sha256":chain["result_sha256"],
         "source_cages_result_sha256":cages["result_sha256"],"source_stability_result_sha256":stability["result_sha256"],
@@ -223,7 +223,10 @@ def build_column_pmm(chain,cages,stability):
             "axial_tolerance_n":FORCE_TOL_N,
             "moment_absolute_tolerance_nmm":MOMENT_ABS_TOL_NMM,"moment_relative_tolerance":MOMENT_REL_TOL,
             "boundary_guard":"MOMENT_ABS_PLUS_RELATIVE_PLUS_FORCE_TOL_TIMES_SECTION_RADIUS",
-            "basis":"MINIMUM_OF_THREE_SAMPLED_RADIAL_CAPACITIES", "global_root_uniqueness_proven":False,
+            "basis":RADIAL_BASIS,"solver_revision":"VS25_DIRECTION_ROOT",
+            "direction_absolute_tolerance_nmm":DIRECTION_TOL_NMM,
+            "direction_maximum_iterations":DIRECTION_MAX_ITERATIONS,"final_capacity_from_strain_compatible_point":True,
+            "global_root_uniqueness_proven":False,
             "concrete_replacement":"EXACT_CIRCULAR_DISK_HALFPLANE_AREA_AND_FIRST_MOMENTS",
             "moment_signs":"CSI_M2_PLUS3_COMPRESSION_M3_PLUS2_COMPRESSION"},
         "open_basis":list(OPEN_BASIS),"selected_design":None,"actual_second_order_applied":False,

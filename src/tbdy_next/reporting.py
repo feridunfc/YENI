@@ -208,10 +208,12 @@ def build_column_bank_html(report: Mapping[str, Any]) -> str:
         content += ('<p>72/144/288 açısal örnekle başlanır; gerekirse 1152’ye kadar sıklaştırılır. Kuvvet artığı ≤1 N; ' +
             'iki ardışık radyal fark ≤0,001 kN·m + %0,2 bağıl bütçe. Bu gözlenen kararlılıktır; sürekli zarf hatası için ' +
             'kanıt değildir. Belirsiz çözüm veya sayısal sınır bandı kapasite aşımı/başarısı sayılmaz. Koşullu oran, sabit N’deki moment büyüklüğünün ' +
-            'üç çözünürlükte bulunan en küçük radyal kapasiteye oranıdır; ETABS tasarım PMM oranı değildir.</p>')
+            'aynı N ve moment doğrultusunda çözülen gerinim uyumlu kapasiteye oranıdır; ETABS tasarım PMM oranı değildir. ' +
+            'En ince açısal kesişim aralığında N(c,θ)=Nkaynak ve M2·u3−M3·u2=0 birlikte çözülür; ' +
+            'doğrultu artığı ≤1000 N·mm. Ara açılarda yeni eksenel denge çözülür; gerinim düzlemi enterpole edilmez.</p>')
         content += ('<p>Minimum dışmerkezlik ve ikinci mertebe uygulanmadı. Depremli tam tasarım nüfusu, gerçek donatı, ' +
             'detay koşulları ve nihai seçim doğrulanmadı: <strong>DENIED / NOT_PROVEN / NOT_READY</strong>. ' +
-            'Tam JSON, her kaynak vektörünü, aday kimliğini, yakınsama geçmişini ve kapasite uç noktalarını içerir.</p>')
+            'Tam JSON, her kaynak vektörünü, aday kimliğini, yakınsama geçmişini ve çözülen θ/c/N/M2/M3 noktasını içerir.</p>')
         content += '<p>Koşullu PMM SHA-256: '+_val(pmm["result_sha256"])+ '</p>'
         content += '<p>Hesap dayanakları: '+', '.join('<a href="'+escape(url,quote=True)+'">'+escape(name)+'</a>'
             for name,url in cages["references"].items())+'</p>'

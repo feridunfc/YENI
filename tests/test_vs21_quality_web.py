@@ -101,3 +101,25 @@ class ColumnQualityWebTests(unittest.TestCase):
         self.assertEqual(code,0);q=json.loads(out.getvalue())['column_pmm_quality']
         self.assertTrue(q['critical_subset_only']);self.assertFalse(q['full_primary_population_independently_checked'])
         self.assertEqual(before,sorted(p.name for p in self.receipts.iterdir()))
+
+    def test_vs25_full_json_exposes_resolved_planes_and_unchanged_source_vectors(self):
+        with self.get('/api/export-column-bank?'+self.query) as response:r=json.load(response)
+        p=r['column_pmm'];q=r['column_pmm_quality']
+        self.assertEqual(p['schema'],'tbdy.next.column-pmm-scenarios.v3')
+        self.assertEqual(q['schema'],'tbdy.next.column-pmm-numerical-reference.v2')
+        self.assertEqual(q['source_pmm_result_sha256'],p['result_sha256'])
+        for row in p['rows']:
+            if row['utilization'] is None:continue
+            root=row['refinement']['direction_root']
+            self.assertAlmostEqual(root['target_n_n'],-row['native_values']['P']*1000,delta=1e-6)
+            self.assertEqual(root['capacity_nmm']/1e6,row['radial_capacity_kNm'])
+            self.assertLessEqual(root['direction_residual_nmm'],1000)
+        self.assertEqual(self.hashes,[sha256(p.read_bytes()).hexdigest() for p in self.paths])
+
+    def test_vs25_report_places_root_evidence_in_closed_details(self):
+        with self.get('/report/column-bank?'+self.query) as response:html=response.read().decode()
+        self.assertIn('<details><summary>Kritik kayıtların denge noktaları ve yaklaşım farkları</summary>',html)
+        self.assertIn('Basınç normali θ (°)',html)
+        self.assertIn('M2·u3−M3·u2=0',html)
+        self.assertNotIn('üç çözünürlükte bulunan en küçük radyal kapasiteye oranıdır',html)
+        page=QualityPage();page.feed(html);self.assertEqual((page.open_details,page.scripts),(0,0))

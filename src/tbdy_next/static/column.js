@@ -199,6 +199,8 @@
     el('columnUnits').textContent = 'Radyal kapasiteler kN·m. Ana hesabın kolon/öneri başına en büyük çözülen PMM kayıtları ve tüm eşitleri karşılaştırılır.';
     el('columnContext').append(text('p',`${quality.comparison_count} kritik kayıt / ${quality.filtered_primary_assessment_count} filtrelenmiş PMM değerlendirmesi. `+
       'Bu kritik alt küme bağımsız sayısal kıyastır; tüm PMM nüfusu ve kritik seçimin kendisi bağımsız doğrulanmış değildir.'));
+    el('columnContext').append(text('p','Ana kapasite sabit N ve kaynak moment doğrultusunda gerinim uyumlu denge noktasından hesaplanır. '+
+      'Eksenel artık ≤1 N; doğrultu artığı ≤0,001 kN·m. Açısal örnekler kök aralığını belirler.','micro'));
     el('columnContext').append(text('p','İki çözüm aynı malzeme modelini kullanır. Tolerans içinde sonuç, malzeme modelinin veya yönetmelik uygunluğunun kabulü değildir. ' +
       'Depremli tasarım vektörü, ikinci mertebe ve nihai donatı seçimi bekleniyor.','micro'));
     const statusCounts=Object.entries(quality.status_counts).map(([status,count])=>`${labels[status] || status}: ${count}`).join(' · ');
@@ -206,6 +208,25 @@
     for (const row of page.rows) {
       if (row.final_design_eligible !== false || !labels[row.status] || !row.state_id || !row.candidate_id) {
         throw new Error('Sayısal kıyasın kayıt kapsamı uyuşmuyor.');
+      }
+      const root=row.primary_direction_root,point=root?.point,v=row.native_values;
+      const magnitude=Math.hypot(v.M2,v.M3),u2=Math.abs(v.M2)/magnitude,u3=Math.abs(v.M3)/magnitude;
+      const capacity=point?.m2_nmm*u2+point?.m3_nmm*u3;
+      const cross=point?.m2_nmm*u3-point?.m3_nmm*u2;
+      if (!root || root.status !== 'MOMENT_DIRECTION_ROOT_RESOLVED' || root.reason !== null ||
+          root.method !== 'BRACKETED_BISECTION_EXACT_AXIAL_EQUILIBRIUM' || root.interpolated_strain_plane_used !== false ||
+          root.angle_basis !== 'COMPRESSION_NORMAL_LOCAL2_TO_LOCAL3_FIRST_QUADRANT_DEG' ||
+          root.global_root_uniqueness_proven !== false || root.direction_tolerance_nmm !== 1000 ||
+          ![v.P,v.M2,v.M3,point?.n_n,point?.m2_nmm,point?.m3_nmm,point?.theta_deg,point?.c_mm,root.target_n_n,root.capacity_nmm,
+            root.axial_residual_n,root.direction_residual_nmm,row.primary_capacity_knm,capacity,cross,magnitude].every(Number.isFinite) ||
+          magnitude <= 0 || point.c_mm <= 0 || point.theta_deg < 0 || point.theta_deg > 90 ||
+          root.axial_residual_n < 0 || root.axial_residual_n > 1 || root.direction_residual_nmm < 0 || root.direction_residual_nmm > 1000 ||
+          Math.abs(root.target_n_n+v.P*1000)>1e-6 || Math.abs(point.n_n-root.target_n_n)>1+1e-6 ||
+          Math.abs(Math.abs(point.n_n-root.target_n_n)-root.axial_residual_n)>1e-6 ||
+          Math.abs(cross)>1000+1e-5 || Math.abs(Math.abs(cross)-root.direction_residual_nmm)>1e-5 ||
+          capacity <= 0 || Math.abs(capacity/1e6-row.primary_capacity_knm)>1e-8 ||
+          Math.abs(root.capacity_nmm/1e6-row.primary_capacity_knm)>1e-8) {
+        throw new Error('PMM denge noktasının kaynak veya sayısal kapsamı uyuşmuyor.');
       }
       if (row.status.startsWith('NUMERICAL_COMPARISON_') &&
           (!Number.isFinite(row.reference_capacity_knm) || row.reference_capacity_knm <= 0 ||
@@ -225,6 +246,15 @@
       ['states','Ana hesap durumları']],quality.members.map(g=>({...g,states:Object.entries(g.primary_status_counts)
         .map(([s,n])=>`${labels[s] || s}: ${n}`).join(' · ') || 'Statik hesap kaydı yok'}))));
     el('columnOverviewDetails').append(scope);
+    const equilibrium=text('details','');equilibrium.append(text('summary','Kritik kayıtların denge noktaları ve yaklaşım farkları'));
+    equilibrium.append(text('p','θ, iki eksenli simetriyle ilk bölgeye indirgenmiş basınç normalinin yerel 2’den yerel 3’e açısıdır.'));
+    equilibrium.append(table([['member_id','Kolon'],['candidate_label','Öneri'],['theta','Basınç normali θ (°)'],
+      ['depth','c (mm)'],['axial','|ΔN| (N)'],['direction','Doğrultu artığı (kN·m)'],['correction','Kaba minimuma göre fark (kN·m)']],
+      page.rows.map(r=>({...r,theta:displayNumber(r.primary_direction_root.point.theta_deg,5),
+        depth:displayNumber(r.primary_direction_root.point.c_mm,5),axial:displayNumber(r.primary_direction_root.axial_residual_n,5),
+        direction:displayNumber(r.primary_direction_root.direction_residual_nmm/1e6,6),
+        correction:displayNumber(r.primary_root_minus_coarse_minimum_knm,6)}))));
+    el('columnOverviewDetails').append(equilibrium);
     if (member.value) {
       const traces=text('details','');traces.append(text('summary','Seçili kolonun tam hassasiyet, kaynak ve sayısal çözüm izleri'));
       traces.append(text('pre',JSON.stringify({models:quality.reference_models,policy:quality.numerical_policy,comparisons:quality.rows},null,2)));
@@ -511,7 +541,10 @@
           cages.design_demand_authority !== 'DENIED' || cages.selected_design !== null)) {
         throw new Error('Donatı önerileri seçili kolon kaynağıyla eşleşmiyor.');
       }
-      if (pmm && (pmm.source_run_id !== selected || pmm.source_archive_sha256 !== report.source_archive_sha256 ||
+      if (pmm && (pmm.schema !== 'tbdy.next.column-pmm-scenarios.v3' ||
+          pmm.numerical_policy?.basis !== 'STRAIN_COMPATIBLE_POINT_AT_FIXED_N_AND_MOMENT_DIRECTION' ||
+          pmm.numerical_policy?.solver_revision !== 'VS25_DIRECTION_ROOT' ||
+          pmm.source_run_id !== selected || pmm.source_archive_sha256 !== report.source_archive_sha256 ||
           pmm.source_demand_result_sha256 !== chain?.result_sha256 || pmm.source_cages_result_sha256 !== cages?.result_sha256 ||
           pmm.source_stability_result_sha256 !== stability?.result_sha256 || pmm.design_demand_authority !== 'DENIED' ||
           pmm.pmm_population_reduced !== false || pmm.actual_second_order_applied !== false ||
@@ -673,8 +706,11 @@
              scwb.joint_case_count !== 0 || scwb.column_reference_count !== 0)))) {
         throw new Error('SCWB hesabının kaynak bağı veya kapsamı uyuşmuyor.');
       }
-      if (selectedView === 'pmm-quality' && (!quality || quality.schema !== 'tbdy.next.column-pmm-numerical-reference.v1' ||
-          quality.policy_id !== 'CRITICAL_PMM_STRIP_GAUSS_BISECTION_V1' ||
+      if (selectedView === 'pmm-quality' && (!quality || quality.schema !== 'tbdy.next.column-pmm-numerical-reference.v2' ||
+          quality.policy_id !== 'CRITICAL_PMM_STRIP_GAUSS_BISECTION_WITH_PRIMARY_DIRECTION_ROOT_V2' ||
+          quality.primary_capacity_basis !== 'STRAIN_COMPATIBLE_POINT_AT_FIXED_N_AND_MOMENT_DIRECTION' ||
+          quality.primary_solver_revision !== 'VS25_DIRECTION_ROOT' ||
+          quality.numerical_policy?.primary_direction_absolute_tolerance_nmm !== 1000 ||
           quality.axis_convention !== 'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3' ||
           quality.source_run_id !== selected || quality.source_archive_sha256 !== report.source_archive_sha256 ||
           quality.source_demand_result_sha256 !== chain?.result_sha256 || quality.source_cages_result_sha256 !== cages?.result_sha256 ||
@@ -776,6 +812,8 @@
         el('columnUnits').textContent = 'Değiştirilmemiş statik kaynak vektörü × öneri kafesi. M2/M3 ve radyal kapasite kN·m; oran boyutsuzdur. γc=1,5 / γs=1,15 senaryosu; minimum dışmerkezlik ve ikinci mertebe uygulanmadı.';
         el('columnContext').append(text('p',`${pmm.static_state_count} statik durum × 3 öneri = ${pmm.assessment_count} kıyas (arşivin tamamı). `+
           'Oran yalnız sayısal olarak çözülen senaryo içindir. Depremli tam tasarım nüfusu ve nihai donatı seçimi henüz doğrulanmadı.', 'micro'));
+        el('columnContext').append(text('p','Kapasite sabit N ve kaynak moment doğrultusunda çözülen gerinim uyumlu noktadır. '+
+          'Kritik kayıtların denge artıkları PMM bağımsız sayısal kıyas görünümündedir.','micro'));
         el('columnForces').append(table([['Obj','Kolon'],['ObjSta','İstasyon (m)'],['Elm','Eleman'],['LoadCase','Birleşim'],
           ['candidate_label','Öneri'],['n','N (kN)'],['m2','M2'],['m3','M3'],['capacity','Radyal kapasite'],
           ['ratio','Koşullu oran'],['label','Sayısal durum'],['reasonLabel','Açık neden']],page.rows.map(r=>({...r.native_key,...r,
