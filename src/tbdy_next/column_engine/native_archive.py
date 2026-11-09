@@ -194,8 +194,13 @@ class NativeArchive:
         return native_observation(self.z, self.manifest, items[0], api, kind, name, fields,
             entity_key=entity_key, expected_args=expected_args)
 
-    def table(self, key, required_fields, *, required_units=None):
+    def table(self, key, required_fields, *, required_units=None, max_records=20000):
         """Read a sealed, complete display table; schema-only evidence is insufficient."""
+        # Only the regular point-object displacement table has a larger opt-in
+        # budget. The native gzip byte limit and ordinary table limit remain.
+        if (type(max_records) is not int or not 0 < max_records <= 50000
+                or (max_records > 20000 and key != "Joint Displacements")):
+            raise BankError("NATIVE_TABLE_RECORD_BUDGET_INVALID")
         api = "DatabaseTables.GetTableForDisplayArray"
         items = self.index.get((api, "table", key), ())
         if len(items) > 1:
@@ -205,7 +210,7 @@ class NativeArchive:
         values, proof = native_observation(self.z, self.manifest, items[0], api,
             "table", key, entity_key="key")
         n, fields, cells = (values.get(k) for k in ("NumberRecords", "FieldsKeysIncluded", "TableData"))
-        if (type(n) is not int or not 0 <= n <= 20000 or not isinstance(fields, list)
+        if (type(n) is not int or not 0 <= n <= max_records or not isinstance(fields, list)
                 or not fields or any(not isinstance(f, str) or not f for f in fields)
                 or len(set(fields)) != len(fields) or not set(required_fields) <= set(fields)
                 or not isinstance(cells, list) or len(cells) != n * len(fields)

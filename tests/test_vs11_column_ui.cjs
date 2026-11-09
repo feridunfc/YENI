@@ -255,5 +255,42 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
   const legacy=cagePayload();delete legacy.column_cages.axis_convention;take().done(legacy);await flush();
   assert.match(ids.get('columnStatus').textContent,/Kesit eksen sözleşmesi eski veya belirsiz/);
   assert.equal(ids.get('columnExports').children.length,0);
-  console.log('VS11–VS17 column UI identity, filtering, native axes, drawings and conditional joint/PMM/shear scope PASS');
+  const kinematicsPayload=()=>{
+    const p=jointsPayload();p.column_joints.result_sha256='JOINTS2';
+    p.column_kinematics={source_run_id:run(2),source_archive_sha256:'SOURCE_2',source_bank_result_sha256:'BANK2',
+      source_demand_result_sha256:'DEMAND2',source_joints_result_sha256:'JOINTS2',
+      axis_convention:'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3',coordinate_contract:'ETABS_POINT_OBJECT_UX_UY_UZ_RX_RY_RZ_GLOBAL',
+      analysis_order:'NOT_PROVEN',analysis_generation_qualified:false,actual_second_order_applied:false,
+      cm:null,beta:null,magnified_design_moments:null,design_demand_authority:'DENIED',formal_compliance:'NOT_PROVEN',
+      engineering_release:'NOT_READY',linked_member_case_count:1,expected_member_case_count:1,
+      analysis_basis:{combinations:[{combination:'SUM',case_names:['G']}],cases:[{case_name:'G',stiffness_type:'Nonlinear Case',
+        nonlinear_case_raw:'None',status:'RECORDED_NONLINEAR_CASE_UNRESOLVED',reason:null}]}};
+    return p;
+  };
+  const linkedRow={member_id:'C2',output_case:'SUM',point_i:'I2',point_j:'J2',status:'SAME_CASE_SOURCE_LINKED',
+    force_reason:null,kinematics_reason:null,force_pair:{i:{native_key:{Elm:'E2A',ObjSta:0},
+      native_values:{P:-180,V2:10.8,V3:-18.4,T:2.6,M2:48,M3:-57.2}},j:{native_key:{Elm:'E2B',ObjSta:3.3},
+      native_values:{P:-720,V2:43.2,V3:-73.6,T:10.4,M2:192,M3:-228.8}}},
+    calculation:{object_i_j_length_m:4,delta_local_m:[0,.008,-.006],chord_alpha2_rad:.0015,chord_alpha3_rad:.002,
+      joint_i_relative_r2_rad:0,joint_i_relative_r3_rad:0,joint_j_relative_r2_rad:0,joint_j_relative_r3_rad:0}};
+  ids.get('columnCase').value='SUM';ids.get('columnView').value='end-forces';ids.get('columnView').trigger('change');await flush();
+  const ends=take();assert.match(ends.url,/case=SUM/);assert.equal(ids.get('columnCase').disabled,false);
+  ends.done({...kinematicsPayload(),demand_page:{view:'end-forces',total:1,offset:0,limit:200,rows:[linkedRow]}});await flush();
+  assert.match(ids.get('columnForces').textContent,/-228.8/);assert.match(ids.get('columnForces').textContent,/E2B, 3.3/);
+  assert.match(ids.get('columnUnits').textContent,/P çekme pozitif/);
+  ids.get('columnView').trigger('change');await flush();const staleEnds=take();
+  ids.get('columnView').value='kinematics';ids.get('columnView').trigger('change');await flush();
+  take().done({...kinematicsPayload(),demand_page:{view:'kinematics',total:1,offset:0,limit:200,rows:[linkedRow]}});await flush();
+  assert.match(ids.get('columnForces').textContent,/0, 8, -6/);
+  assert.match(ids.get('columnForces').textContent,/0.0015, 0.002/);
+  assert.match(ids.get('columnContext').textContent,/Nonlinear Case/);
+  staleEnds.done({...kinematicsPayload(),demand_page:{view:'end-forces',total:1,offset:0,limit:200,rows:[linkedRow]}});await flush();
+  assert.doesNotMatch(ids.get('columnForces').textContent,/-228.8/);
+  for (const change of [p=>p.column_kinematics.source_joints_result_sha256='OTHER',p=>p.column_kinematics.actual_second_order_applied=true,
+                       p=>p.column_kinematics.beta=1.2,p=>p.column_kinematics.coordinate_contract='POINT_LOCAL']) {
+    ids.get('columnView').trigger('change');await flush();const invalid=kinematicsPayload();change(invalid);take().done(invalid);await flush();
+    assert.match(ids.get('columnStatus').textContent,/Kolon uç hareketlerinin kaynak bağı/);
+    assert.equal(ids.get('columnForces').children.length,0);assert.equal(ids.get('columnExports').children.length,0);
+  }
+  console.log('VS11–VS18 column UI identity, filtering, native axes, end kinematics and conditional design scope PASS');
 })().catch(error=>{console.error(error);process.exitCode=1;});

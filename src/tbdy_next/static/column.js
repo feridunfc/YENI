@@ -35,7 +35,11 @@
     JOINT_OTHER_INCIDENT_FRAME_NOT_CLASSIFIED:'Sınıflandırılmamış bağlı çubuk',
     JOINT_INTERIOR_FRAME_CONNECTION_NOT_BOUND:'Çubuk içindeki bağlantı belirsiz',
     JOINT_COINCIDENT_DISTINCT_POINT_IDS:'Aynı koordinatta farklı düğümler',
-    EQ71_BASELINE_REFERENCES_CALCULATED:'Denk. 7.1 esaslı sargı referansı'
+    EQ71_BASELINE_REFERENCES_CALCULATED:'Denk. 7.1 esaslı sargı referansı',
+    SAME_CASE_SOURCE_LINKED:'Aynı birleşimde kaynaklar bağlı', PARTIAL_SOURCE_LINK:'Kısmi kaynak bağı',
+    RECORDED_PDELTA_STIFFNESS:'P-Delta rijitliği kaydı',
+    RECORDED_NONLINEAR_CASE_UNRESOLVED:'Nonlinear Case kaydı · başlangıç esası belirsiz',
+    RECORDED_STIFFNESS_SETTING:'Rijitlik ayarı kaydedilmiş'
   };
   let epoch = 0, historyEpoch = 0, opened = false, offset = 0, total = 0;
   const text = (tag, value, css) => {
@@ -185,6 +189,18 @@
         throw new Error('Kesme hesabının kaynak bağı veya koşullu kapsamı uyuşmuyor.');
       }
       const joints = report.column_joints;
+      const kinematics = report.column_kinematics;
+      if (kinematics && (kinematics.source_run_id !== selected || kinematics.source_archive_sha256 !== report.source_archive_sha256 ||
+          kinematics.source_bank_result_sha256 !== report.result_sha256 || kinematics.source_demand_result_sha256 !== chain?.result_sha256 ||
+          kinematics.source_joints_result_sha256 !== joints?.result_sha256 ||
+          kinematics.axis_convention !== 'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3' ||
+          kinematics.coordinate_contract !== 'ETABS_POINT_OBJECT_UX_UY_UZ_RX_RY_RZ_GLOBAL' ||
+          kinematics.analysis_order !== 'NOT_PROVEN' || kinematics.analysis_generation_qualified !== false ||
+          kinematics.actual_second_order_applied !== false || kinematics.cm !== null || kinematics.beta !== null ||
+          kinematics.magnified_design_moments !== null || kinematics.design_demand_authority !== 'DENIED' ||
+          kinematics.formal_compliance !== 'NOT_PROVEN' || kinematics.engineering_release !== 'NOT_READY')) {
+        throw new Error('Kolon uç hareketlerinin kaynak bağı veya analiz kapsamı uyuşmuyor.');
+      }
       for (const calculation of [stability,cages,pmm,transverse,shear]) {
         if (calculation && calculation.axis_convention !== 'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3') {
           throw new Error('Kesit eksen sözleşmesi eski veya belirsiz; güncel hesap gerekli.');
@@ -224,6 +240,7 @@
       if (selectedView === 'transverse' && !transverse) throw new Error('Enine donatı önerisi bulunamadı.');
       if (selectedView === 'shear' && !shear) throw new Error('Koşullu kesme hesabı bulunamadı.');
       if (['joints','joint-ties'].includes(selectedView) && !joints) throw new Error('Birleşim referansları bulunamadı.');
+      if (['end-forces','kinematics'].includes(selectedView) && !kinematics) throw new Error('Kolon uç kaynak bağı bulunamadı.');
       if (!page || (selectedView !== 'native' && page.view !== selectedView)) throw new Error('İstenen talep görünümü bulunamadı.');
       total = page.total; offset = page.offset;
       const identity = [['Obj','Kolon'], ['Elm','Analiz elemanı'], ['ObjSta','Nesne istasyonu'], ['ElmSta','Eleman istasyonu'],
@@ -322,6 +339,39 @@
             vr:rounded(r.calculation?.branches.ts500.vr_kn),ratio:rounded(r.calculation?.branches.ts500.source_utilization),
             ratioZero:rounded(r.calculation?.branches.zero_concrete.source_utilization),label:labels[r.status] || r.status,
             reasonLabel:labels[r.reason] || r.reason}))));
+      } else if (selectedView === 'end-forces' || selectedView === 'kinematics') {
+        el('columnContext').append(text('p',`${kinematics.linked_member_case_count}/${kinematics.expected_member_case_count} kolon–birleşim kaynak bağı. `+
+          'Analiz mertebesi doğrulanmadı; Cm, β ve büyütülmüş moment üretilmez.','micro'));
+        const details = text('details',''); details.append(text('summary','Analiz rijitliği kaynağı'));
+        const names = kinematics.analysis_basis.combinations.find(c=>c.combination===loadCase.value)?.case_names;
+        details.append(table([['case_name','Vaka'],['stiffness_type','Rijitlik ayarı'],['nonlinear_case_raw','Başlangıç vaka kaydı'],
+          ['label','Kaynak durumu'],['reason','Açık neden']],kinematics.analysis_basis.cases.filter(c=>!names || names.includes(c.case_name))
+          .map(c=>({...c,label:labels[c.status] || c.status}))));
+        details.append(text('p','Lineer statik vaka türü birinci mertebe kanıtı değildir; kayıttaki “None” değeri doğrulanmış başlangıç koşulu sayılmaz.','micro'));
+        el('columnContext').append(details);
+        if (selectedView === 'end-forces') {
+          el('columnUnits').textContent = 'Her satır aynı tek değerli statik birleşimde iki kaynak kesitini eşler. P çekme pozitif; kuvvetler kN, momentler kN·m, istasyonlar m. Çıktı kesitleri düğüm veya fiziksel destek yüzü kabul edilmez; ara istasyonlar korunur.';
+          const values = (pair,end,keys) => pair?.[end] ? keys.map(k=>rounded(pair[end].native_values[k])) : null;
+          el('columnForces').append(table([['member_id','Kolon'],['output_case','Birleşim'],['iCut','I: eleman / istasyon'],
+            ['jCut','J: eleman / istasyon'],['iF','I: P / V2 / V3'],['iM','I: T / M2 / M3'],
+            ['jF','J: P / V2 / V3'],['jM','J: T / M2 / M3'],['label','Kaynak bağı'],['reason','Açık neden']],page.rows.map(r=>({...r,
+              iCut:r.force_pair ? [r.force_pair.i.native_key.Elm,r.force_pair.i.native_key.ObjSta] : null,
+              jCut:r.force_pair ? [r.force_pair.j.native_key.Elm,r.force_pair.j.native_key.ObjSta] : null,
+              iF:values(r.force_pair,'i',['P','V2','V3']),iM:values(r.force_pair,'i',['T','M2','M3']),
+              jF:values(r.force_pair,'j',['P','V2','V3']),jM:values(r.force_pair,'j',['T','M2','M3']),
+              label:labels[r.status] || r.status,reason:r.force_reason || r.kinematics_reason}))));
+        } else {
+          el('columnUnits').textContent = 'Global düğüm U/R değerleri kolonun yerel 1–2–3 eksenlerine dönüştürülür. Δu: mm, L: düğümler arası m; α2=−Δu3/L, α3=Δu2/L ve R−α: rad. Bunlar yuvarlanmış düğüm kinematiğidir; kesit eğriliği, P–δ veya kat stabilitesi sonucu değildir.';
+          el('columnForces').append(table([['member_id','Kolon'],['output_case','Birleşim'],['points','I / J düğümü'],
+            ['length','L (m)'],['delta','Δu1 / Δu2 / Δu3 (mm)'],['alpha','α2 / α3 (rad)'],
+            ['ri','I: R2−α2 / R3−α3'],['rj','J: R2−α2 / R3−α3'],['label','Kaynak bağı'],['reason','Açık neden']],page.rows.map(r=>{
+              const c=r.calculation; return {...r,points:[r.point_i,r.point_j],length:c?.object_i_j_length_m,
+                delta:c?.delta_local_m.map(v=>rounded(v*1000)),alpha:c ? [rounded(c.chord_alpha2_rad),rounded(c.chord_alpha3_rad)] : null,
+                ri:c ? [rounded(c.joint_i_relative_r2_rad),rounded(c.joint_i_relative_r3_rad)] : null,
+                rj:c ? [rounded(c.joint_j_relative_r2_rad),rounded(c.joint_j_relative_r3_rad)] : null,
+                label:labels[r.status] || r.status,reason:r.kinematics_reason || r.force_reason};})));
+          el('columnContext').append(text('p','Tabloda sıfır yazması gerçek hareketin sıfır olduğunu kanıtlamaz. Düğüm dönmeleri, releases/offsets bulunan kolonun kesit uç dönmeleri yerine kullanılamaz.','micro'));
+        }
       } else if (selectedView === 'joints') {
         el('columnUnits').textContent = 'TBDY 7.5 · Eşmerkez, dik kesit senaryosu. Dört yüzde kiriş ve her genişlik ≥ %75 koşuluyla sınıflandırılır. Kesme sınırları kN; Ve ve SCWB doğrulanmadı.';
         el('columnContext').append(text('p',`${joints.joint_node_count} düğüm · ${joints.column_end_count} kolon ucu · ${joints.geometric_limit_count} yön sınırı. `+

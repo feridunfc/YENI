@@ -32,6 +32,7 @@ def main(argv: list[str] | None = None) -> int:
     demands.add_argument("--pmm", action="store_true", help="Evaluate the three proposed cages against all static vectors")
     demands.add_argument("--shear", action="store_true", help="Compare proposed transverse steel with every static V2/V3 source state")
     demands.add_argument("--joints", action="store_true", help="Inspect native joint topology and conditional geometric references offline")
+    demands.add_argument("--kinematics", action="store_true", help="Link static force-cut pairs and joint displacement states offline")
     args = parser.parse_args(argv)
     if args.action == "serve":
         from .web import serve
@@ -77,6 +78,12 @@ def main(argv: list[str] | None = None) -> int:
                     "ve_status","scwb_status","formal_compliance","result_sha256")}
                 result["column_joints"]["graph_status"] = joints["graph"]["status"]
                 result["column_joints"]["graph_reason"] = joints["graph"]["reason"]
+            if args.kinematics:
+                kinematics = report["column_kinematics"]
+                result["column_kinematics"] = {k:kinematics[k] for k in ("expected_member_case_count",
+                    "bound_force_pair_count", "calculated_kinematics_count", "linked_member_case_count", "status_counts",
+                    "reason_counts", "analysis_order", "actual_second_order_applied", "result_sha256")}
+                result["column_kinematics"]["stiffness_setting_counts"] = kinematics["analysis_basis"]["status_counts"]
         except (OSError, EOFError, ValueError, KeyError, TypeError, sqlite3.Error) as exc:
             print(json.dumps({"status": "REJECTED", "reason": str(exc), "engineering_release": "NOT_READY"}, ensure_ascii=False))
             return 2

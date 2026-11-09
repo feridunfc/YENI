@@ -303,6 +303,38 @@ def build_column_bank_html(report: Mapping[str, Any]) -> str:
             ("proposed_ash_mm2","Öneri Ash (mm²)"),("spacing_mm","Öneri s (mm)"),("tie_reason","Açık neden")),ties)+'</details>'
         content += '<p>Birleşim türetimi SHA-256: '+_val(joints["result_sha256"])+'. '+', '.join(
             '<a href="'+escape(url,quote=True)+'">'+escape(name)+'</a>' for name,url in joints["references"].items())+'</p>'
+    kinematics = report.get("column_kinematics")
+    if kinematics:
+        from .column_engine.column_kinematics import kinematic_summaries
+        content += ('<h2>VS18 · Kolon uç kuvvetleri ve düğüm hareketleri</h2><p>' +
+            _val(kinematics["linked_member_case_count"])+'/'+_val(kinematics["expected_member_case_count"])+
+            ' kolon–birleşim kaynak bağı. I/J kuvvetleri aynı tek değerli statik birleşime aittir; '+
+            'ara istasyonlar talep zincirinde korunur. Çıktı kesiti ile uç düğümü ayrı konumlardır. '+
+            '<strong>Analiz mertebesi NOT_PROVEN; Cm, β veya büyütülmüş tasarım momenti üretilmedi.</strong></p>')
+        content += ('<p>Global U/R, doğrulanmış I→J yerel eksenlerine dönüştürülür. '+
+            'L düğümler arasındaki boydur; α2=−Δu3/L, α3=Δu2/L. R−α düğümün kolon doğrusuna göre küçük dönmesidir; '+
+            'kesit uç dönmesi, eğrilik veya bağımsız P–δ hesabı değildir. Deplasmanlar yuvarlanmış tablo değerleridir; '+
+            'sıfır hücre gerçek sıfır hareket kanıtı değildir.</p>')
+        summary = kinematic_summaries(kinematics) if "rows" in kinematics else kinematics.get("summaries", [])
+        content += '<details><summary>Aynı birleşimde kaynak uç kuvvetleri</summary>'+_table((
+            ("member_id","Kolon"),("output_case","Birleşim"),("i_element","I analiz elemanı"),("i_station_m","I istasyon (m)"),
+            ("j_element","J analiz elemanı"),("j_station_m","J istasyon (m)"),("i_P","I P (kN)"),("j_P","J P (kN)"),
+            ("i_M2","I M2 (kN·m)"),("j_M2","J M2 (kN·m)"),("i_M3","I M3 (kN·m)"),("j_M3","J M3 (kN·m)"),
+            ("status","Kaynak bağı"),("force_reason","Açık neden")),summary)+'</details>'
+        content += '<details><summary>Düğüm hareketleri ve kolon doğrusu</summary>'+_table((
+            ("member_id","Kolon"),("output_case","Birleşim"),("point_i","I düğüm"),("point_j","J düğüm"),
+            ("object_i_j_length_m","I–J boyu (m)"),("output_cut_span_m","Çıktı kesitleri arası (m)"),
+            ("delta_local_m","Δu1/2/3 (m)"),("chord_alpha2_rad","α2 (rad)"),("chord_alpha3_rad","α3 (rad)"),
+            ("joint_i_relative_r2_rad","I R2−α2"),("joint_i_relative_r3_rad","I R3−α3"),
+            ("joint_j_relative_r2_rad","J R2−α2"),("joint_j_relative_r3_rad","J R3−α3"),
+            ("kinematics_reason","Açık neden")),summary)+'</details>'
+        content += '<details><summary>Kaydedilmiş analiz rijitliği esası</summary>'+_table((
+            ("case_name","Vaka"),("stiffness_type","Rijitlik ayarı"),("nonlinear_case_raw","Başlangıç vaka kaydı"),
+            ("status","Kaynak durumu"),("reason","Açık neden")),kinematics["analysis_basis"]["cases"])+(
+            '<p>Lineer statik vaka türü birinci mertebeyi kanıtlamaz. P-Delta kaydı tam ikinci mertebe doğrulaması değildir; '+
+            'Nonlinear Case / None kaydı doğrulanmış bir başlangıç koşulu sayılmaz.</p></details>')
+        content += '<p>Uç türetimi SHA-256: '+_val(kinematics["result_sha256"])+'. '+', '.join(
+            '<a href="'+escape(url,quote=True)+'">'+escape(name)+'</a>' for name,url in kinematics["references"].items())+'</p>'
     historical = report.get("historical_reconciliation")
     if historical:
         content += '<h2>Tarihsel D7-B6 toplamları</h2>' + _table((

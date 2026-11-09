@@ -1,0 +1,10 @@
+# VS18 / CE-04B — aynı birleşimde kolon uç kaynak bağı
+
+- Mevcut mühürlü ZIP/SQLite üzerinden 87 kolon × 6 doğrudan statik birleşim: 522/522 kaynak uç çifti ve düğüm kinematiği; yeni ETABS çağrısı veya veri tabanı kaydı yok.
+- I/J kuvvetleri native offset kesitlerinde tekilleştirilir; P–V2–V3–T–M2–M3 işaretleri, analiz elemanı, istasyon, vaka/adım ve kaynak kimlikleri korunur. Mükerrer, eksik veya tolerans pencereleri çakışan uçlar bloke edilir; ara istasyonlar korunur.
+- [CSI global düğüm çıktısı](https://docs.csiamerica.com/help-files/etabs/Output_Conventions/Displacements.htm) ve [panel-zone sözleşmesi](https://docs.csiamerica.com/help-files/etabs/Output_Conventions/Panel_Zone_Output.htm): Ux/Uy/Uz ve Rx/Ry/Rz, VS17 I→J eksenlerine dönüştürülür. Gerçek düğüm boyuyla α2=−Δu3/L, α3=Δu2/L ve R−α hesaplanır; çıktı kesiti/serbest boy veya kesit dönmesi yerine kullanılmaz.
+- Regular Joint Displacements tablosunun 31.200 satırı, yalnız bu tabloya özgü 50.000 satırlık opt-in sınırıyla okunur; genel 20.000 satır ve 16 MiB native shard sınırları değişmez. Ham yuvarlanmış hücreler saklanır; sıfır hücre gerçek sıfır hareket kanıtı değildir.
+- Analiz tablosunda 11 Nonlinear Case / literal None, 1 P-Delta kaydı ve 11 eksik iç vaka esası görülür. Lineer statik türü birinci mertebe kanıtı sayılmaz; otomatik FIRST_ORDER/GLOBAL_ONLY seçilmez, gerçek Cm/β/φ veya büyütülmüş tasarım momenti üretilmez.
+- Kolon panelinin “İkinci mertebe girdileri” grubunda uç kuvvetleri ve düğüm hareketleri; kolon/birleşim filtresi, HTML/tam JSON ve `inspect-column-demands --kinematics` aynı türetimi kullanır. CHECK sayısı 16 kalır.
+- 26 yeni Python testi: bağımsız rijit dönme, 90° dönüş/ters I-J, eksik/çift/yanlış adım, birim, kaynak ve çakışan uçlar; Windows CI kapsamına eklendi. İki Node regresyonu ve bağımsız mühendislik denetimi tamamlandı.
+- Ham kaynakla 6.264 kuvvet ve 5.220 kinematik skaler kıyasının farkı sıfır; önceki türetim hash’leri aynı. ZIP SHA `3882b659…`, SQLite SHA `98bef804…`; yeni türetim SHA `7e43adc9…`. Analiz nesli/mertebesi ve normatif kabul açık: DENIED / NOT_PROVEN / NOT_READY; ortak Windows/ETABS kabulü ve main merge son aşamada.
