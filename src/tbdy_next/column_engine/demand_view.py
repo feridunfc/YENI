@@ -14,6 +14,7 @@ from .demand_chain import build_demand_chain
 from .column_prechecks import build_column_prechecks, critical_selection
 from .column_stability import build_column_stability
 from .column_pmm import build_column_cages, build_column_pmm, cage_rows
+from .column_transverse import build_column_transverse, build_column_shear, transverse_rows
 from .native_archive import BankError, NativeArchive, decode
 
 
@@ -34,9 +35,10 @@ def _derive(source_path, database_path, source_sha, database_sha, bank_result_sh
             raise BankError("DEMAND_SOURCE_CHANGED")
         chain = build_demand_chain(bank, archive)
         prechecks = build_column_prechecks(bank, chain)
+        cages = build_column_cages(bank, chain, prechecks, archive)
         return {"demand_chain": chain, "column_prechecks": prechecks,
             "column_stability": build_column_stability(bank, chain, prechecks, archive),
-            "column_cages": build_column_cages(bank, chain, prechecks, archive)}
+            "column_cages": cages, "column_transverse": build_column_transverse(chain, cages, archive)}
     finally:
         archive.close()
 
@@ -45,6 +47,12 @@ def _derive(source_path, database_path, source_sha, database_sha, bank_result_sh
 def _pmm(source_path, database_path, source_sha, database_sha, bank_result_sha):
     derived = _derive(source_path,database_path,source_sha,database_sha,bank_result_sha)
     return build_column_pmm(derived["demand_chain"],derived["column_cages"],derived["column_stability"])
+
+
+@lru_cache(maxsize=2)
+def _shear(source_path, database_path, source_sha, database_sha, bank_result_sha):
+    derived = _derive(source_path,database_path,source_sha,database_sha,bank_result_sha)
+    return build_column_shear(derived["demand_chain"],derived["column_cages"],derived["column_transverse"])
 
 
 def demand_view(database, report, *, member_id=None, output_case=None, offset=0, limit=200,
@@ -57,9 +65,12 @@ def demand_view(database, report, *, member_id=None, output_case=None, offset=0,
     # Numerical capacity is requested explicitly; ordinary source navigation
     # remains fast. Full export includes every candidate x every static state.
     pmm = _pmm(*cache_key) if full or view == "pmm" else None
+    # PMM/report includes the related shear summary. Shear navigation itself
+    # never invokes the more expensive PMM solver.
+    shear = _shear(*cache_key) if full or view in ("pmm", "shear") else None
     chain, prechecks = derived["demand_chain"], derived["column_prechecks"]
     if full:
-        return deepcopy({**derived,"column_pmm":pmm})
+        return deepcopy({**derived,"column_pmm":pmm,"column_shear":shear})
     summary = {k: v for k, v in chain.items() if k not in ("candidates", "design_summary")}
     summary["design_summary"] = {k: v for k, v in chain["design_summary"].items() if k != "rows"}
     precheck_summary = {k: v for k, v in prechecks.items() if k not in ("critical_selection", "reinforcement_bounds")}
@@ -71,8 +82,12 @@ def demand_view(database, report, *, member_id=None, output_case=None, offset=0,
     result["column_stability"]["eccentricity"] = deepcopy({k: v for k, v in stability["eccentricity"].items() if k != "rows"})
     cages = derived["column_cages"]
     result["column_cages"] = deepcopy(cages)
+    transverse = derived["column_transverse"]
+    result["column_transverse"] = deepcopy(transverse)
     if pmm is not None:
         result["column_pmm"] = deepcopy({k:v for k,v in pmm.items() if k != "rows"})
+    if shear is not None:
+        result["column_shear"] = deepcopy({k:v for k,v in shear.items() if k != "rows"})
     if view == "native":
         return result
     if view == "critical":
@@ -85,6 +100,11 @@ def demand_view(database, report, *, member_id=None, output_case=None, offset=0,
         rows = [r for r in stability["sections"] if member_id is None or r["member_id"] == member_id]
     elif view == "cages":
         rows = cage_rows(cages,member_id)
+    elif view == "transverse":
+        rows = transverse_rows(transverse,member_id)
+    elif view == "shear":
+        rows = [r for r in shear["rows"] if (member_id is None or r["member_id"] == member_id)
+            and (output_case is None or r["native_key"]["LoadCase"] == output_case)]
     elif view == "pmm":
         rows = [r for r in pmm["rows"] if (member_id is None or r["member_id"] == member_id)
             and (output_case is None or r["native_key"]["LoadCase"] == output_case)]

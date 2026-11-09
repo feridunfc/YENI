@@ -21,16 +21,23 @@ class ReportUnavailable(ValueError):
     """No verified five-check result exists for this run."""
 
 
-def _column_cage_svg(cage):
+def _column_cage_svg(cage, layout=None):
     """Draw the stored proposed bar coordinates; no structural calculation."""
     w,h = cage["t2_mm"],cage["t3_mm"]
     content = ('<figure><svg xmlns="http://www.w3.org/2000/svg" role="img" width="200" height="200" ' +
         f'viewBox="{-w/2-60} {-h/2-60} {w+120} {h+120}" aria-label="' + escape(cage["label"],quote=True) +
         ' öneri kesiti"><rect ' + f'x="{-w/2}" y="{-h/2}" width="{w}" height="{h}" ' +
         'fill="#edf1f6" stroke="#64748b" stroke-width="3"/>')
+    if layout:
+        for leg in layout["legs"]:
+            a,b = leg["endpoints_mm"]
+            content += (f'<line x1="{a[0]}" y1="{-a[1]}" x2="{b[0]}" y2="{-b[1]}" '+
+                f'stroke="#34786b" stroke-width="{leg["diameter_mm"]}" '+
+                ('stroke-dasharray="12 6" ' if leg["kind"]=="CROSSTIE" else '')+'/>')
     for bar in cage["bars"]:
         content += f'<circle cx="{bar["x2_mm"]}" cy="{-bar["x3_mm"]}" r="{bar["diameter_mm"]/2}" fill="#214e78"/>'
-    return content+'</svg><figcaption>'+escape(cage["label"])+' · yerel 2 sağa, yerel 3 yukarı</figcaption></figure>'
+    caption = ' · etriye/çiroz eksen şeması; kanca ve düşey yerleşim doğrulanmadı' if layout else ''
+    return content+'</svg><figcaption>'+escape(cage["label"])+caption+' · yerel 2 sağa, yerel 3 yukarı</figcaption></figure>'
 
 
 def build_column_bank_html(report: Mapping[str, Any]) -> str:
@@ -175,7 +182,9 @@ def build_column_bank_html(report: Mapping[str, Any]) -> str:
             ("minimum_clear_spacing_mm","Net aralık (mm)"),("area_ratio_status","Alan kıyası"),
             ("spacing_status","Aralık kapsamı"),("reason","Açık neden")),cages["candidates"])
         for cage in cages["candidates"]:
-            if cage["geometry_status"] == "PROPOSED_GEOMETRY_CALCULATED": content += _column_cage_svg(cage)
+            layout = next((p["layout"] for p in (report.get("column_transverse") or {}).get("proposals",[])
+                if p["candidate_id"]==cage["candidate_id"]),None)
+            if cage["geometry_status"] == "PROPOSED_GEOMETRY_CALCULATED": content += _column_cage_svg(cage,layout)
         content += ('<p>Boyuna yerleşim önerisi; etriye/çiroz detay çizimi değildir. Agrega çapı, sargı, bindirme, ' +
             'çap tedariki ve proje malzeme katsayılarının kabulü açık kalır. Üç aday tüm donatı seçeneklerini kapsamaz; ' +
             'otomatik seçim veya optimum tasarım üretilmez.</p>')
@@ -206,6 +215,63 @@ def build_column_bank_html(report: Mapping[str, Any]) -> str:
         content += '<p>Koşullu PMM SHA-256: '+_val(pmm["result_sha256"])+ '</p>'
         content += '<p>Hesap dayanakları: '+', '.join('<a href="'+escape(url,quote=True)+'">'+escape(name)+'</a>'
             for name,url in cages["references"].items())+'</p>'
+    transverse = report.get("column_transverse")
+    if transverse:
+        content += ('<h2>VS16 · Etriye ve çiroz önerileri</h2><p>' + _val(transverse["bound_member_count"]) +
+            ' kolonda enine donatı malzemesi kendi native kaydından bağlandı. Φ12/100 önerisi: bir kapalı dış etriye ve ' +
+            'her yönde üç çiroz; her yönde beş etkin kol varsayımı. Çizgiler eksen izdüşümüdür; kanca, büküm ve düşey ' +
+            'yerleşimin uygulanabilirliği doğrulanmış değildir. Native etriye adları ve kol sayıları tasarım detayı sayılmaz.</p>')
+        content += _table((("profile_id","Kesit profili"),("confinement_material","Enine donatı malzemesi"),
+            ("observed_fywk_mpa","Kaynak fywk (MPa)"),("scenario_fywd_mpa","Senaryo fywd (MPa)"),
+            ("steel_grade_compliance","Çelik sınıfı kabulü")),transverse["profiles"])
+        proposal_rows = []
+        for p in transverse["proposals"]:
+            for name,axis in p["axes"].items():
+                proposal_rows.append({**p,**axis,**axis["confinement"],"core_area_mm2":p["layout"]["core_area_mm2"]})
+        content += _table((("candidate_label","Boyuna öneri"),("shear_axis","Kesme yönü"),("bk_axis","bk ekseni"),
+            ("core_area_mm2","Ack (mm²)"),("bk_mm","bk (mm)"),("asw_mm2","Asw (mm²)"),("ash_mm2","Ash (mm²)"),
+            ("high_axial_required_ash_mm2","Ash yüksek N (mm²)"),("low_axial_required_ash_mm2","Ash düşük N (mm²)"),
+            ("maximum_lateral_leg_spacing_mm","Yatay kol aralığı (mm)"),("confinement_spacing_max_mm","Sarılma s üst sınırı (mm)")),proposal_rows)
+        content += ('<p>Ack dıştan dışa sargı alanı; bk en dış etriye eksenleri arasıdır (TBDY 7.0). Ash, bk’ya dik kol ' +
+            'izdüşümleri; Asw, kesme yönüne paralel kollardır. Bu ortogonal öneride sayısal olarak eşittir; genel olarak ' +
+            'birbirinin yerine konmaz. Denklem 7.1: max[0,30·s·bk·(Ac/Ack−1)·fck/fywk; 0,075·s·bk·fck/fywk]. ' +
+            'Nd≤0,20Acfck dalı bunun 2/3’üdür. Tam depremli eksenel yük nüfusu bağlı olmadığından iki dal da gösterilir; ' +
+            'hiçbiri seçilmez. 50≤s≤min(bmin/3,6φboyuna,150) ve yatay aralık≤25φetriye ayrı referanslardır.</p>')
+        content += ('<p>Sarılma bölgesinin gerçek uzunluğu henüz hesaplanamaz: kiriş yüzleri arası serbest boy ve konsol ' +
+            'durumu doğrulanmadı. Normal kolon referansı max(ln/6,1,5hmax,500), konsol alt ucu 2hmax. Öneri kancalar ' +
+            '135°/135°, iç büküm çapı≥5φ, düz kuyruk≥max(6φ,80); üç boyutlu imalat detayı değildir. Genel uygunluk ' +
+            've nihai donatı seçimi NOT_PROVEN kalır.</p>')
+        content += '<p>Enine donatı önerisi SHA-256: '+_val(transverse["result_sha256"])+ '</p>'
+    shear = report.get("column_shear")
+    if shear:
+        content += ('<h2>Koşullu kesme · Tam statik kaynak nüfusu</h2><p>' + _val(shear["static_state_count"]) +
+            ' statik vektör × 3 öneri × 2 yerel yön = ' + _val(shear["assessment_count"]) +
+            ' kıyas. V2: bw=T3, d=T2−boyuna merkez örtüsü; V3: bw=T2, d=T3−boyuna merkez örtüsü. ' +
+            'd karşı dış boyuna katmanın merkezine göre bir referanstır; tasarım kesiti kabulü değildir.</p>')
+        content += ('<p>TS500 8.1 senaryosu: fctk=0,35√fck, fctd=fctk/1,5; Vcr=0,65fctd·bw·d·(1+γ|N|/Ac), ' +
+            'basınçta γ=0,07, çekmede γ=−0,30. Vc=0,8Vcr; Vw=(Asw/s)·fywd·d; Vr=Vc+Vw. Ayrı senaryoda Vc=0. ' +
+            'Negatif çatlama çarpanı sıfıra kırpılıp onaylanmaz; beton katkılı dal belirsiz kalır. Denge Asw/s hesabı ' +
+            'yalnız |V|−Vc farkını karşılar; minimum ve detay koşullarının tamamı değildir.</p>')
+        content += ('<p>Gerçek tasarım Ve=NOT_PROVEN. Statik kaynak V, kapasite kesmesi olarak adlandırılmaz. ' +
+            'TBDY 7.3.7.6 için sarılma konumu, yalnız deprem kesmesinin toplam depremli kesmeye oranı&gt;0,5 ve ' +
+            'Nd≤0,05Acfck koşulları bağlanmadığından Vc=0 dalı zorunlu seçilmez. 0,85Ac√fck ve TS500 8.7 ' +
+            '0,22fcd·bw·d üst sınırları JSON’da ayrı kaynak kıyaslarıdır; TS500 kiriş gövde hükmünün kolona uygulanması ' +
+            'bu pakette onaylanmadı. Burulma etkileşimi ve ikinci mertebe değerlendirilmedi.</p>')
+        summary_rows = []
+        for item in shear["members"]:
+            ts,zero = item["branches"]["ts500"],item["branches"]["zero_concrete"]
+            summary_rows.append({**item,"ts500_ratio":ts["maximum_source_utilization"],
+                "zero_ratio":zero["maximum_source_utilization"],
+                "critical_ts500":[r["native_key"] for r in ts["critical_source_states"]],
+                "critical_zero":[r["native_key"] for r in zero["critical_source_states"]]})
+        content += '<p>Sayısal kapsam: '+_val(shear["status_counts"])+'. Açık nedenler: '+_val(shear["reason_counts"])+'.</p>'
+        content += '<details><summary>Kolon, öneri ve yön bazında kaynak kıyasları</summary>'+_table(
+            (("member_id","Kolon"),("story","Kat"),("candidate_label","Boyuna öneri"),("shear_axis","Yön"),
+             ("static_state_count","Statik kayıt"),("ts500_ratio","En büyük |V|/Vr · TS500"),("zero_ratio","En büyük |V|/Vr · Vc=0"),
+             ("critical_ts500","TS500 kritik kaynak"),("critical_zero","Vc=0 kritik kaynak"),("status_counts","Sayısal kapsam")),summary_rows)+'</details>'
+        content += '<p>Kesme hesabı SHA-256: '+_val(shear["result_sha256"])+'. <strong>DENIED / NOT_PROVEN / NOT_READY</strong>.</p>'
+        content += '<p>Hesap dayanakları: '+', '.join('<a href="'+escape(url,quote=True)+'">'+escape(name)+'</a>'
+            for name,url in shear["references"].items())+'</p>'
     historical = report.get("historical_reconciliation")
     if historical:
         content += '<h2>Tarihsel D7-B6 toplamları</h2>' + _table((

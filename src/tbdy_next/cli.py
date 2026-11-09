@@ -30,6 +30,7 @@ def main(argv: list[str] | None = None) -> int:
     demands.add_argument("--run-id", required=True)
     demands.add_argument("--out", type=Path, default=Path(".receipts"))
     demands.add_argument("--pmm", action="store_true", help="Evaluate the three proposed cages against all static vectors")
+    demands.add_argument("--shear", action="store_true", help="Compare proposed transverse steel with every static V2/V3 source state")
     args = parser.parse_args(argv)
     if args.action == "serve":
         from .web import serve
@@ -39,7 +40,7 @@ def main(argv: list[str] | None = None) -> int:
         import sqlite3
         from .column_engine.store import read_column_bank
         try:
-            report = read_column_bank(args.out, args.run_id, view="pmm" if args.pmm else "native")
+            report = read_column_bank(args.out, args.run_id, view="pmm" if args.pmm else "shear" if args.shear else "native")
             chain = report["demand_chain"]
             result = {k: chain[k] for k in ("source_run_id", "source_archive_sha256", "result_sha256",
                 "classification_counts", "static_candidate_count", "formal_compliance", "engineering_release")}
@@ -61,6 +62,13 @@ def main(argv: list[str] | None = None) -> int:
                 pmm = report["column_pmm"]
                 result["column_pmm"] = {k:pmm[k] for k in ("static_state_count","assessment_count","status_counts",
                     "reason_counts","selected_design","formal_compliance","result_sha256")}
+            transverse = report["column_transverse"]
+            result["column_transverse"] = {k:transverse[k] for k in ("bound_member_count","member_proposal_count",
+                "selected_design","result_sha256")}
+            if args.shear or args.pmm:
+                shear = report["column_shear"]
+                result["column_shear"] = {k:shear[k] for k in ("static_state_count","assessment_count","status_counts",
+                    "reason_counts","ve_status","selected_design","formal_compliance","result_sha256")}
         except (OSError, EOFError, ValueError, KeyError, TypeError, sqlite3.Error) as exc:
             print(json.dumps({"status": "REJECTED", "reason": str(exc), "engineering_release": "NOT_READY"}, ensure_ascii=False))
             return 2

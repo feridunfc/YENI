@@ -165,5 +165,50 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
   ids.get('columnView').trigger('change');await flush();const badPmm=pmmPayload();badPmm.column_pmm.source_cages_result_sha256='OTHER';
   take().done(badPmm);await flush();assert.match(ids.get('columnStatus').textContent,/PMM hesabının kaynak bağı/);
   assert.equal(ids.get('columnForces').children.length,0);
-  console.log('VS11–VS15 column UI identity, filtering, cage drawing and conditional PMM scope PASS');
+  const transversePayload=()=>{
+    const p=cagePayload();
+    p.column_cages.candidates=[{candidate_id:'CAGE2',label:'16Φ24',t2_mm:800,t3_mm:800,
+      as_cm2:72.38229474,center_offset_mm:64,bars:[{x2_mm:336,x3_mm:336,diameter_mm:24}]}];
+    p.column_transverse={source_run_id:run(2),source_archive_sha256:'SOURCE_2',source_demand_result_sha256:'DEMAND2',
+      source_cages_result_sha256:'CAGES2',result_sha256:'TRANSVERSE2',design_demand_authority:'DENIED',
+      formal_compliance:'NOT_PROVEN',selected_design:null,proposal_policy:{physical_arrangement_proven:false}};
+    return p;
+  };
+  ids.get('columnView').value='transverse';ids.get('columnView').trigger('change');await flush();
+  const transverseRequest=take();assert.doesNotMatch(transverseRequest.url,/case=/);assert.equal(ids.get('columnCase').disabled,true);
+  transverseRequest.done({...transversePayload(),demand_page:{view:'transverse',total:1,offset:0,limit:200,rows:[{
+    member_id:'C2',candidate_id:'CAGE2',candidate_label:'16Φ24',shear_axis:'V2',status:'PROPOSED_TRANSVERSE_REFERENCES_CALCULATED',
+    confinement_spacing_max_mm:144,layout:{legs:[{endpoints_mm:[[-354,168],[354,168]],diameter_mm:12,kind:'CROSSTIE'}]},
+    direction:{bk_axis:3,bk_mm:708,ash_mm2:565.486677646,maximum_lateral_leg_spacing_mm:186,
+      confinement:{high_axial_required_ash_mm2:371.7,low_axial_required_ash_mm2:247.8}}}]}});await flush();
+  assert.match(ids.get('columnForces').textContent,/371.7/);assert.match(ids.get('columnForces').textContent,/247.8/);
+  assert.match(ids.get('columnUnits').textContent,/Ack dıştan dışa/);
+  const tieDrawing=ids.get('columnContext').children.find(c=>c.children.some(s=>s.attributes?.role==='img'));
+  assert.ok(tieDrawing);assert.equal(tieDrawing.children[0].children[1].attributes.y1,'-168');
+  assert.match(tieDrawing.textContent,/düşey yerleşim doğrulanmadı/);
+  const shearPayload=()=>({...transversePayload(),column_shear:{source_run_id:run(2),source_archive_sha256:'SOURCE_2',
+    source_demand_result_sha256:'DEMAND2',source_cages_result_sha256:'CAGES2',source_transverse_result_sha256:'TRANSVERSE2',
+    design_demand_authority:'DENIED',formal_compliance:'NOT_PROVEN',selected_design:null,ve_status:'NOT_PROVEN',
+    source_population_reduced:false,actual_second_order_applied:false,vc_zero_gate:{required:null},static_state_count:8,assessment_count:48}});
+  ids.get('columnView').value='shear';ids.get('columnView').trigger('change');await flush();
+  const shearRequest=take();assert.match(shearRequest.url,/case=SUM/);assert.equal(ids.get('columnCase').disabled,false);
+  shearRequest.done({...shearPayload(),demand_page:{view:'shear',total:1,offset:0,limit:200,rows:[{
+    ...candidate,candidate_label:'16Φ24',shear_axis:'V3',status:'SHEAR_REFERENCES_CALCULATED',reason:null,
+    calculation:{source_signed_v_kn:-500,branches:{ts500:{vc_kn:100,vw_kn:1000,vr_kn:1100,source_utilization:.454545},
+      zero_concrete:{vc_kn:0,vw_kn:1000,vr_kn:1000,source_utilization:.5}}}}]}});await flush();
+  assert.match(ids.get('columnForces').textContent,/-500/);assert.match(ids.get('columnForces').textContent,/0.454545/);
+  assert.match(ids.get('columnUnits').textContent,/tasarım Ve doğrulanmadı/);
+  assert.match(ids.get('columnContext').textContent,/48 kıyas/);
+  ids.get('columnView').trigger('change');await flush();const oldShear=take();
+  ids.get('columnView').value='native';ids.get('columnView').trigger('change');await flush();
+  take().done(transversePayload());await flush();oldShear.done(shearPayload());await flush();
+  assert.doesNotMatch(ids.get('columnForces').textContent,/0.454545/);
+  ids.get('columnView').value='shear';ids.get('columnView').trigger('change');await flush();
+  const unboundShear=shearPayload();unboundShear.column_shear.source_transverse_result_sha256='OTHER';
+  take().done(unboundShear);await flush();assert.match(ids.get('columnStatus').textContent,/Kesme hesabının kaynak bağı/);
+  assert.equal(ids.get('columnForces').children.length,0);
+  ids.get('columnView').trigger('change');await flush();const promoted=shearPayload();promoted.column_shear.vc_zero_gate.required=true;
+  take().done(promoted);await flush();assert.match(ids.get('columnStatus').textContent,/Kesme hesabının kaynak bağı/);
+  assert.equal(ids.get('columnExports').children.length,0);
+  console.log('VS11–VS16 column UI identity, filtering, drawings and conditional PMM/shear scope PASS');
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -39,3 +39,4 @@ jobs:
       - run: python -m unittest discover -s tests -p "test_vs13_*.py" -v
       - run: python -m unittest discover -s tests -p "test_vs14_*.py" -v
       - run: python -m unittest discover -s tests -p "test_vs15_*.py" -v
+      - run: python -m unittest discover -s tests -p "test_vs16_*.py" -v
