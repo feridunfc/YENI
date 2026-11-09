@@ -49,6 +49,10 @@ def main(argv: list[str] | None = None) -> int:
                 "reinforcement_bound_members": prechecks["reinforcement_bounds"]["calculated_member_count"],
                 "asmin_source_comparisons": prechecks["reinforcement_bounds"]["source_comparison_counts"],
                 "result_sha256": prechecks["result_sha256"]}
+            stability = report["column_stability"]
+            result["column_stability"] = {k: stability[k] for k in ("calculated_section_count",
+                "native_property_match_count", "elastic_member_count", "actual_second_order_applied", "result_sha256")}
+            result["column_stability"]["eccentricity_reference_counts"] = stability["eccentricity"]["status_counts"]
         except (OSError, EOFError, ValueError, KeyError, TypeError, sqlite3.Error) as exc:
             print(json.dumps({"status": "REJECTED", "reason": str(exc), "engineering_release": "NOT_READY"}, ensure_ascii=False))
             return 2

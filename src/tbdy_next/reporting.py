@@ -124,6 +124,34 @@ def build_column_bank_html(report: Mapping[str, Any]) -> str:
             'bir değer görülmesi tek başına yönetmelik ihlali veya mühendislik kabulü üretmez. ' +
             'Mevcut statik birleşimlerden normatif G+Q+E maksimum eksenel talebi türetilmedi.</p>')
         content += '<p>Ön hesap SHA-256: ' + _val(prechecks["result_sha256"]) + '</p>'
+    stability = report.get("column_stability")
+    if stability:
+        content += ('<h2>VS14 · Kesit rijitliği ve boylar</h2><p>' + _val(stability["calculated_section_count"]) +
+            ' kolonda ' + _val(stability["distinct_section_count"]) + ' farklı dikdörtgen kesit; ' +
+            _val(stability["native_property_match_count"]) + ' A/I/r kaynak kıyası eşleşti. ' +
+            'E×I gözlenen elastisite modülüyle bulunan brüt rijitliktir; etkili EI veya analiz rijitliği değildir. ' +
+            'r=√(I/A) ile TS500 0,30h yaklaşımı ayrı tutulur.</p>')
+        stiffness_rows = []
+        for row in stability["sections"]:
+            section, elastic = row["section"] or {}, row["elastic"] or {}
+            stiffness_rows.append({**row, **section, **elastic, **row["lengths"]})
+        content += _table((("member_id", "Kolon"), ("section_name", "Kesit"), ("i22_mm4", "I22 (mm⁴)"),
+            ("i33_mm4", "I33 (mm⁴)"), ("r22_exact_mm", "r22 (mm)"), ("r33_exact_mm", "r33 (mm)"),
+            ("observed_E_MPa", "E (MPa)"), ("object_i_j_m", "I–J (m)"), ("output_face_span_m", "Çıktı aralığı (m)"),
+            ("property_comparison_status", "Kaynak kıyası")), stiffness_rows)
+        content += ('<p>Çıktı aralığı serbest boy değildir. TS500 serbest boyu, k, ötelenebilirlik, sünme, ' +
+            'uç momenti eğrilik işareti ve analiz esası bağlanmadan gerçek kuvvetlere büyütme uygulanmaz. ' +
+            '7.29 metnindeki serbest boy ifadesi ile basılı lk sembolü uyuşmadığından bu karar NOT_PROVEN kalır.</p>')
+        ecc = stability["eccentricity"]
+        content += ('<h2>Minimum dışmerkezlik referansı · TS500 6.16</h2><p>e,min=15+0,03h (mm); M2 için h=T3, ' +
+            'M3 için h=T2. ' + _val(ecc["state_count"]) + ' statik kaynak kaydında ' + _val(ecc["axis_comparison_count"]) +
+            ' eksen kaydı: ' + _val(ecc["status_counts"]) + '. Basınç olmayan satırlar ayrı tutulur. ' +
+            'Bu hüküm tasarım uç momentine yöneliktir; iç istasyon kıyasları normatif ihlal/başarı sayılmaz. ' +
+            'Kaynak vektörleri değiştirilmez; tam satır izleri JSON çıktısındadır.</p>')
+        content += _table((("member_id", "Kolon"), ("candidate_count", "Statik kayıt"),
+            ("m2_counts", "M2 kaynak kıyası"), ("m3_counts", "M3 kaynak kıyası")), ecc["members"])
+        content += '<p>Rijitlik ve dışmerkezlik SHA-256: ' + _val(stability["result_sha256"]) + '</p>'
+        content += '<p>Dayanak: <a href="' + escape(stability["reference_url"], quote=True) + '">TS500/2000 metin kopyası (EMU)</a>.</p>'
     historical = report.get("historical_reconciliation")
     if historical:
         content += '<h2>Tarihsel D7-B6 toplamları</h2>' + _table((

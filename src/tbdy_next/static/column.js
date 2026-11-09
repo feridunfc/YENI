@@ -15,7 +15,10 @@
     DESIGN_STATION_INVALID:'İstasyon geçersiz', N_COMPRESSION_MAX:'En büyük basınç', N_TENSION_MAX:'En büyük çekme',
     M2_ABS_MAX:'En büyük |M2|', M3_ABS_MAX:'En büyük |M3|', V2_ABS_MAX:'En büyük |V2|',
     V3_ABS_MAX:'En büyük |V3|', T_ABS_MAX:'En büyük |T|',
-    REQUIRED_AREA_BOUNDS_CALCULATED:'Alan sınırları hesaplandı', NOT_PROVEN:'Doğrulanmadı'
+    REQUIRED_AREA_BOUNDS_CALCULATED:'Alan sınırları hesaplandı', NOT_PROVEN:'Doğrulanmadı',
+    NUMERICAL_MATCH:'Kaynakla eşleşti', NUMERICAL_MISMATCH:'Kaynakla uyuşmuyor',
+    BELOW_REFERENCE:'Referans altında', AT_OR_ABOVE_REFERENCE:'Referansı karşılıyor',
+    NONCOMPRESSION_NOT_APPLICABLE:'Basınç değil'
   };
   let epoch = 0, historyEpoch = 0, opened = false, offset = 0, total = 0;
   const text = (tag, value, css) => {
@@ -62,9 +65,10 @@
     if (!selected) { el('columnStatus').textContent = 'Kolon arşivi seçilmedi.'; return; }
     const params = new URLSearchParams({run_id:selected, offset:String(offset)});
     const selectedView = view.value || 'native';
-    loadCase.disabled = selectedView === 'reinforcement';
+    const sectionView = selectedView === 'reinforcement' || selectedView === 'stiffness';
+    loadCase.disabled = sectionView;
     if (member.value) params.set('member', member.value);
-    if (loadCase.value && selectedView !== 'reinforcement') params.set('case', loadCase.value);
+    if (loadCase.value && !sectionView) params.set('case', loadCase.value);
     if (selectedView !== 'native') params.set('view', selectedView);
     el('columnStatus').textContent = 'Arşiv doğrulanıyor…';
     try {
@@ -106,6 +110,12 @@
         el('columnDemandSummary').append(text('p', `${prechecks.critical_selection.critical_state_count} kritik statik kayıt · ` +
           `${prechecks.reinforcement_bounds.calculated_member_count} kolonda boyuna donatı alan sınırı`));
       }
+      const stability = report.column_stability;
+      if (stability && (stability.source_run_id !== selected || stability.source_archive_sha256 !== report.source_archive_sha256 ||
+          stability.source_demand_result_sha256 !== chain?.result_sha256 || stability.source_prechecks_result_sha256 !== prechecks?.result_sha256 ||
+          stability.design_demand_authority !== 'DENIED' || stability.actual_second_order_applied !== false)) {
+        throw new Error('Rijitlik hesabı seçili kolon kaynağıyla eşleşmiyor.');
+      }
       for (const [label, url] of [
         ['HTML hesap raporu', '/report/column-bank?'],
         ['Tam JSON', '/api/export-column-bank?format=json&'],
@@ -124,6 +134,7 @@
       }
       const page = selectedView === 'native' ? report.force_page : report.demand_page;
       if ((selectedView === 'critical' || selectedView === 'reinforcement') && !prechecks) throw new Error('Kolon ön hesabı bulunamadı.');
+      if ((selectedView === 'stiffness' || selectedView === 'eccentricity') && !stability) throw new Error('Rijitlik ve dışmerkezlik hesabı bulunamadı.');
       if (!page || (selectedView !== 'native' && page.view !== selectedView)) throw new Error('İstenen talep görünümü bulunamadı.');
       total = page.total; offset = page.offset;
       const identity = [['Obj','Kolon'], ['Elm','Analiz elemanı'], ['ObjSta','Nesne istasyonu'], ['ElmSta','Eleman istasyonu'],
@@ -151,6 +162,27 @@
             sourceMatches:r.asmin_source_counts.NUMERICAL_MATCH || 0,sourceAbove:r.asmin_source_counts.SOURCE_ABOVE_REFERENCE || 0,
             sourceBelow:r.asmin_source_counts.SOURCE_BELOW_REFERENCE || 0,
             sourceUnknown:Object.keys(r.asmin_source_counts).length ? (r.asmin_source_counts.NOT_PROVEN || 0) : 'Kayıt yok'}))));
+      } else if (selectedView === 'stiffness') {
+        const fmt = v => v == null ? null : Number(v.toPrecision(10));
+        el('columnUnits').textContent = 'Brüt kesit: I cm⁴, r mm, E MPa; boylar m. E×I etkili rijitlik değildir. Çıktı aralığı TS500 serbest boyu veya etkili boy sayılmaz.';
+        el('columnContext').append(text('p', `${stability.calculated_section_count} kolon · ${stability.distinct_section_count} farklı kesit · ` +
+          `${stability.native_property_match_count} kaynak özellik eşleşmesi. ` +
+          'İkinci mertebe için serbest boy, k, ötelenebilirlik, sünme ve analiz esası bekleniyor. r=√(I/A) ve 0,30h yaklaşımı ayrı değerlerdir.', 'micro'));
+        el('columnForces').append(table([['member_id','Kolon'],['story','Kat'],['section_name','Kesit'],
+          ['i22','I22'],['i33','I33'],['r22','r22'],['r33','r33'],['e','E'],['object','I–J boyu'],
+          ['span','Çıktı aralığı'],['comparison','Kesit kaynak kıyası']], page.rows.map(r=>({...r,
+            i22:fmt(r.section ? r.section.i22_mm4/1e4 : null),i33:fmt(r.section ? r.section.i33_mm4/1e4 : null),
+            r22:fmt(r.section?.r22_exact_mm),r33:fmt(r.section?.r33_exact_mm),e:fmt(r.elastic?.observed_E_MPa),
+            object:r.lengths.object_i_j_m,span:r.lengths.output_face_span_m,comparison:labels[r.property_comparison_status] || r.property_comparison_status}))));
+      } else if (selectedView === 'eccentricity') {
+        el('columnUnits').textContent = 'TS500 6.16: e,min = 15 + 0,03h (mm); N·e,min referansı kN·cm. Uç momenti hükmü için kaynak kıyasıdır; iç istasyonlara yönetmelik PASS/FAIL verilmez. Kuvvetler değiştirilmez.';
+        el('columnContext').append(text('p', 'M2 için h=T3, M3 için h=T2. Basınç olmayan kayıtlarda bu referans uygulanmaz. Tasarım uçlarının ve birleşimlerinin kabulü ayrıca gereklidir.', 'micro'));
+        el('columnForces').append(table([['Obj','Kolon'],['Elm','Analiz elemanı'],['ObjSta','İstasyon (m)'],['LoadCase','Birleşim'],
+          ['n','N (kN)'],['m2','|M2|'],['ref2','M2 referansı'],['s2','M2 kıyası'],['m3','|M3|'],['ref3','M3 referansı'],['s3','M3 kıyası']],
+          page.rows.map(r=>({...r.native_key,n:r.axes[0].n_compression_kn,m2:r.axes[0].source_abs_moment_kNcm,
+            ref2:r.axes[0].reference_minimum_moment_kNcm,s2:labels[r.axes[0].status] || r.axes[0].status,
+            m3:r.axes[1].source_abs_moment_kNcm,ref3:r.axes[1].reference_minimum_moment_kNcm,
+            s3:labels[r.axes[1].status] || r.axes[1].status}))));
       } else {
         el('columnUnits').textContent = 'ETABS tasarım özetindeki referanslar. Yuvarlanmış veya çift istasyonlardan tekil kuvvet seçilmez; bu görünüm PMM/kesme uygunluğu değildir.';
         const rows = page.rows.map(r => {

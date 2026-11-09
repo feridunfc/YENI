@@ -109,5 +109,31 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
   const invalid=precheckPayload();invalid.column_prechecks.source_demand_result_sha256='OTHER';take().done(invalid);await flush();
   assert.match(ids.get('columnStatus').textContent,/kuvvet zinciriyle eşleşmiyor/);
   assert.equal(ids.get('columnForces').children.length,0);
-  console.log('VS11–VS13 column UI identity, filtering, critical states, units and area bounds PASS');
+  const stabilityPayload=()=>{
+    const p=precheckPayload();p.column_prechecks.result_sha256='PRECHECK2';
+    p.column_stability={source_run_id:run(2),source_archive_sha256:'SOURCE_2',source_demand_result_sha256:'DEMAND2',
+      source_prechecks_result_sha256:'PRECHECK2',design_demand_authority:'DENIED',actual_second_order_applied:false,
+      calculated_section_count:1,distinct_section_count:1,native_property_match_count:5};
+    return p;
+  };
+  ids.get('columnView').value='stiffness';ids.get('columnView').trigger('change');await flush();
+  const stiffness=take();assert.doesNotMatch(stiffness.url,/case=/);assert.equal(ids.get('columnCase').disabled,true);
+  stiffness.done({...stabilityPayload(),demand_page:{view:'stiffness',total:1,offset:0,limit:200,rows:[{
+    member_id:'C2',section_name:'RECT',section:{i22_mm4:34133333333.33333,i33_mm4:34133333333.33333,
+      r22_exact_mm:230.94010767585,r33_exact_mm:230.94010767585},elastic:{observed_E_MPa:34000},
+    lengths:{object_i_j_m:4.5,output_face_span_m:3.8},property_comparison_status:'NUMERICAL_MATCH'}]}});await flush();
+  assert.match(ids.get('columnForces').textContent,/34000/);assert.match(ids.get('columnForces').textContent,/3413333/);
+  assert.match(ids.get('columnForces').textContent,/230.940/);assert.match(ids.get('columnUnits').textContent,/etkili rijitlik değildir/);
+  ids.get('columnView').value='eccentricity';ids.get('columnView').trigger('change');await flush();
+  const eccentricity=take();assert.match(eccentricity.url,/case=SUM/);assert.equal(ids.get('columnCase').disabled,false);
+  eccentricity.done({...stabilityPayload(),demand_page:{view:'eccentricity',total:1,offset:0,limit:200,rows:[{
+    ...candidate,axes:[{n_compression_kn:'1000',source_abs_moment_kNcm:'2000',reference_minimum_moment_kNcm:'3900',status:'BELOW_REFERENCE'},
+      {n_compression_kn:'1000',source_abs_moment_kNcm:'4000',reference_minimum_moment_kNcm:'3900',status:'AT_OR_ABOVE_REFERENCE'}]}]}});await flush();
+  assert.match(ids.get('columnForces').textContent,/3900/);assert.match(ids.get('columnForces').textContent,/Referans altında/);
+  assert.match(ids.get('columnUnits').textContent,/iç istasyonlara/);
+  ids.get('columnView').value='stiffness';ids.get('columnView').trigger('change');await flush();
+  const wrongStiffness=stabilityPayload();wrongStiffness.column_stability.source_prechecks_result_sha256='OTHER';take().done(wrongStiffness);await flush();
+  assert.match(ids.get('columnStatus').textContent,/Rijitlik hesabı seçili kolon kaynağıyla eşleşmiyor/);
+  assert.equal(ids.get('columnForces').children.length,0);
+  console.log('VS11–VS14 column UI identity, filtering, stiffness units and eccentricity scope PASS');
 })().catch(error=>{console.error(error);process.exitCode=1;});

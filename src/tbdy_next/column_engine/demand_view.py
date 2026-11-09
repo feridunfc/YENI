@@ -12,6 +12,7 @@ import sqlite3
 
 from .demand_chain import build_demand_chain
 from .column_prechecks import build_column_prechecks, critical_selection
+from .column_stability import build_column_stability
 from .native_archive import BankError, NativeArchive, decode
 
 
@@ -31,7 +32,9 @@ def _derive(source_path, database_path, source_sha, database_sha, bank_result_sh
         if archive.sha256 != source_sha:
             raise BankError("DEMAND_SOURCE_CHANGED")
         chain = build_demand_chain(bank, archive)
-        return {"demand_chain": chain, "column_prechecks": build_column_prechecks(bank, chain)}
+        prechecks = build_column_prechecks(bank, chain)
+        return {"demand_chain": chain, "column_prechecks": prechecks,
+            "column_stability": build_column_stability(bank, chain, prechecks, archive)}
     finally:
         archive.close()
 
@@ -51,6 +54,9 @@ def demand_view(database, report, *, member_id=None, output_case=None, offset=0,
     precheck_summary["critical_selection"] = {k: v for k, v in prechecks["critical_selection"].items() if k != "rows"}
     precheck_summary["reinforcement_bounds"] = {k: v for k, v in prechecks["reinforcement_bounds"].items() if k != "source_comparisons"}
     result = {"demand_chain": deepcopy(summary), "column_prechecks": deepcopy(precheck_summary)}
+    stability = derived["column_stability"]
+    result["column_stability"] = deepcopy({k: v for k, v in stability.items() if k != "eccentricity"})
+    result["column_stability"]["eccentricity"] = deepcopy({k: v for k, v in stability["eccentricity"].items() if k != "rows"})
     if view == "native":
         return result
     if view == "critical":
@@ -59,6 +65,12 @@ def demand_view(database, report, *, member_id=None, output_case=None, offset=0,
         result["critical_scope"] = deepcopy({k: v for k, v in selection.items() if k != "rows"})
     elif view == "reinforcement":
         rows = [r for r in prechecks["reinforcement_bounds"]["rows"] if member_id is None or r["member_id"] == member_id]
+    elif view == "stiffness":
+        rows = [r for r in stability["sections"] if member_id is None or r["member_id"] == member_id]
+    elif view == "eccentricity":
+        rows = [r for r in stability["eccentricity"]["rows"] if
+            (member_id is None or r["member_id"] == member_id) and
+            (output_case is None or r["native_key"]["LoadCase"] == output_case)]
     elif view == "static":
         rows = [r for r in chain["candidates"] if
             (member_id is None or r["native_key"]["Obj"] == member_id) and
