@@ -84,5 +84,30 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
   const wrong=demandPayload();wrong.demand_chain.source_archive_sha256='OTHER';take().done(wrong);await flush();
   assert.match(ids.get('columnStatus').textContent,/başka bir kaynağa/);
   assert.equal(ids.get('columnForces').children.length,0);
-  console.log('VS11–VS12 column UI identity, view, units and export regressions PASS');
+  const precheckPayload=()=>{
+    const p=demandPayload();p.demand_chain.result_sha256='DEMAND2';
+    p.column_prechecks={source_run_id:run(2),source_archive_sha256:'SOURCE_2',source_demand_result_sha256:'DEMAND2',
+      design_demand_authority:'DENIED',critical_selection:{critical_state_count:1},reinforcement_bounds:{calculated_member_count:1}};
+    return p;
+  };
+  ids.get('columnCase').value='SUM';ids.get('columnView').value='critical';ids.get('columnView').trigger('change');await flush();
+  const critical=take();assert.match(critical.url,/view=critical/);assert.match(critical.url,/case=SUM/);
+  critical.done({...precheckPayload(),critical_scope:{candidate_count:4,pmm_population_reduced:false},
+    demand_page:{view:'critical',total:1,offset:0,limit:200,rows:[{...candidate,criteria:['N_COMPRESSION_MAX','V2_ABS_MAX']}]}});await flush();
+  assert.match(ids.get('columnForces').textContent,/En büyük basınç/);
+  assert.match(ids.get('columnForces').textContent,/4800/);
+  assert.match(ids.get('columnContext').textContent,/tam aday nüfusu saklanır/);
+  ids.get('columnView').value='reinforcement';ids.get('columnView').trigger('change');await flush();
+  const bounds=take();assert.doesNotMatch(bounds.url,/case=/);assert.equal(ids.get('columnCase').disabled,true);
+  bounds.done({...precheckPayload(),demand_page:{view:'reinforcement',total:1,offset:0,limit:200,rows:[{
+    member_id:'C2',story:'S',section_name:'RECT',gross_area_cm2:'6400',minimum_as_cm2:'64',maximum_as_cm2:'256',
+    provided_as_cm2:null,status:'REQUIRED_AREA_BOUNDS_CALCULATED',asmin_source_counts:{NUMERICAL_MATCH:4}}]}});await flush();
+  assert.match(ids.get('columnForces').textContent,/6400/);assert.match(ids.get('columnForces').textContent,/256/);
+  assert.match(ids.get('columnUnits').textContent,/7.3.2.1/);assert.match(ids.get('columnForces').textContent,/—/);
+  ids.get('columnView').value='critical';ids.get('columnView').trigger('change');await flush();
+  assert.equal(ids.get('columnCase').disabled,false);
+  const invalid=precheckPayload();invalid.column_prechecks.source_demand_result_sha256='OTHER';take().done(invalid);await flush();
+  assert.match(ids.get('columnStatus').textContent,/kuvvet zinciriyle eşleşmiyor/);
+  assert.equal(ids.get('columnForces').children.length,0);
+  console.log('VS11–VS13 column UI identity, filtering, critical states, units and area bounds PASS');
 })().catch(error=>{console.error(error);process.exitCode=1;});

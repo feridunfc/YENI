@@ -11,6 +11,7 @@ from pathlib import Path
 import sqlite3
 
 from .demand_chain import build_demand_chain
+from .column_prechecks import build_column_prechecks, critical_selection
 from .native_archive import BankError, NativeArchive, decode
 
 
@@ -29,7 +30,8 @@ def _derive(source_path, database_path, source_sha, database_sha, bank_result_sh
     try:
         if archive.sha256 != source_sha:
             raise BankError("DEMAND_SOURCE_CHANGED")
-        return build_demand_chain(bank, archive)
+        chain = build_demand_chain(bank, archive)
+        return {"demand_chain": chain, "column_prechecks": build_column_prechecks(bank, chain)}
     finally:
         archive.close()
 
@@ -38,16 +40,26 @@ def demand_view(database, report, *, member_id=None, output_case=None, offset=0,
                 view="native", full=False):
     """Called only after store.verified_database has verified this exact run."""
     database = database.resolve()
-    chain = _derive(str(database.parent / "input.source"), str(database),
+    derived = _derive(str(database.parent / "input.source"), str(database),
         report["source_archive_sha256"], report["database_sha256"], report["result_sha256"])
+    chain, prechecks = derived["demand_chain"], derived["column_prechecks"]
     if full:
-        return {"demand_chain": deepcopy(chain)}
+        return deepcopy(derived)
     summary = {k: v for k, v in chain.items() if k not in ("candidates", "design_summary")}
     summary["design_summary"] = {k: v for k, v in chain["design_summary"].items() if k != "rows"}
-    result = {"demand_chain": deepcopy(summary)}
+    precheck_summary = {k: v for k, v in prechecks.items() if k not in ("critical_selection", "reinforcement_bounds")}
+    precheck_summary["critical_selection"] = {k: v for k, v in prechecks["critical_selection"].items() if k != "rows"}
+    precheck_summary["reinforcement_bounds"] = {k: v for k, v in prechecks["reinforcement_bounds"].items() if k != "source_comparisons"}
+    result = {"demand_chain": deepcopy(summary), "column_prechecks": deepcopy(precheck_summary)}
     if view == "native":
         return result
-    if view == "static":
+    if view == "critical":
+        selection = critical_selection(chain, prechecks["population"], member_id=member_id, output_case=output_case)
+        rows = selection["rows"]
+        result["critical_scope"] = deepcopy({k: v for k, v in selection.items() if k != "rows"})
+    elif view == "reinforcement":
+        rows = [r for r in prechecks["reinforcement_bounds"]["rows"] if member_id is None or r["member_id"] == member_id]
+    elif view == "static":
         rows = [r for r in chain["candidates"] if
             (member_id is None or r["native_key"]["Obj"] == member_id) and
             (output_case is None or r["native_key"]["LoadCase"] == output_case)]

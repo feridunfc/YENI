@@ -12,7 +12,10 @@
     MULTIPLE_NATIVE_STATES:'Birden fazla kuvvet durumu', AMBIGUOUS_DESIGN_STATION:'Çift tasarım istasyonu',
     EXACT_NATIVE_STATION_NOT_FOUND:'Kesin istasyon eşleşmesi yok', SOURCE_REFERENCE_ONLY:'Yalnız kaynak referansı',
     DESIGN_MEMBER_CONTEXT_UNRESOLVED:'Kolon/kesit kimliği uyuşmuyor', COMBINATION_NOT_DEFINED:'Birleşim tanımı yok',
-    DESIGN_STATION_INVALID:'İstasyon geçersiz'
+    DESIGN_STATION_INVALID:'İstasyon geçersiz', N_COMPRESSION_MAX:'En büyük basınç', N_TENSION_MAX:'En büyük çekme',
+    M2_ABS_MAX:'En büyük |M2|', M3_ABS_MAX:'En büyük |M3|', V2_ABS_MAX:'En büyük |V2|',
+    V3_ABS_MAX:'En büyük |V3|', T_ABS_MAX:'En büyük |T|',
+    REQUIRED_AREA_BOUNDS_CALCULATED:'Alan sınırları hesaplandı', NOT_PROVEN:'Doğrulanmadı'
   };
   let epoch = 0, historyEpoch = 0, opened = false, offset = 0, total = 0;
   const text = (tag, value, css) => {
@@ -58,9 +61,10 @@
     }
     if (!selected) { el('columnStatus').textContent = 'Kolon arşivi seçilmedi.'; return; }
     const params = new URLSearchParams({run_id:selected, offset:String(offset)});
-    if (member.value) params.set('member', member.value);
-    if (loadCase.value) params.set('case', loadCase.value);
     const selectedView = view.value || 'native';
+    loadCase.disabled = selectedView === 'reinforcement';
+    if (member.value) params.set('member', member.value);
+    if (loadCase.value && selectedView !== 'reinforcement') params.set('case', loadCase.value);
     if (selectedView !== 'native') params.set('view', selectedView);
     el('columnStatus').textContent = 'Arşiv doğrulanıyor…';
     try {
@@ -93,6 +97,15 @@
           'ETABS PMM oranındaki boş hücreler boş kalır. VMaj/VMin, V2/V3 olarak kendiliğinden eşlenmez.', 'micro'));
         if (d.reason) el('columnDemandRoutes').append(text('p', d.reason, 'micro'));
       }
+      const prechecks = report.column_prechecks;
+      if (prechecks) {
+        if (prechecks.source_run_id !== selected || prechecks.source_archive_sha256 !== report.source_archive_sha256 ||
+            prechecks.source_demand_result_sha256 !== chain?.result_sha256 || prechecks.design_demand_authority !== 'DENIED') {
+          throw new Error('Kolon ön hesabı seçili kuvvet zinciriyle eşleşmiyor.');
+        }
+        el('columnDemandSummary').append(text('p', `${prechecks.critical_selection.critical_state_count} kritik statik kayıt · ` +
+          `${prechecks.reinforcement_bounds.calculated_member_count} kolonda boyuna donatı alan sınırı`));
+      }
       for (const [label, url] of [
         ['HTML hesap raporu', '/report/column-bank?'],
         ['Tam JSON', '/api/export-column-bank?format=json&'],
@@ -110,6 +123,7 @@
         if (chosen.reason_codes.length) el('columnContext').append(text('p', chosen.reason_codes.join(' · '), 'warn'));
       }
       const page = selectedView === 'native' ? report.force_page : report.demand_page;
+      if ((selectedView === 'critical' || selectedView === 'reinforcement') && !prechecks) throw new Error('Kolon ön hesabı bulunamadı.');
       if (!page || (selectedView !== 'native' && page.view !== selectedView)) throw new Error('İstenen talep görünümü bulunamadı.');
       total = page.total; offset = page.offset;
       const identity = [['Obj','Kolon'], ['Elm','Analiz elemanı'], ['ObjSta','Nesne istasyonu'], ['ElmSta','Eleman istasyonu'],
@@ -117,11 +131,26 @@
       if (selectedView === 'native') {
         el('columnUnits').textContent = 'Native işaretler korunur. Kuvvetler kN, momentler kN·m, istasyonlar m.';
         el('columnForces').append(table([...identity,...['P','V2','V3','T','M2','M3'].map(c => [c,c])], page.rows));
-      } else if (selectedView === 'static') {
+      } else if (selectedView === 'static' || selectedView === 'critical') {
         el('columnUnits').textContent = 'N basınç pozitif = −P; çekme negatif kalır. Kuvvetler kN, momentler kN·cm, istasyonlar m; CSI yerel 2–3 eksenleri. Analiz mertebesi doğrulanmadı.';
-        el('columnForces').append(table([...identity,['N_compression_kN','N (basınç +)'], ['V2_kN','V2'],
+        const reason = selectedView === 'critical' ? [['criticalReason','Kritik ölçüt']] : [];
+        if (selectedView === 'critical') {
+          if (!report.critical_scope || report.critical_scope.pmm_population_reduced !== false) throw new Error('Kritik seçim kapsamı doğrulanamadı.');
+          el('columnContext').append(text('p', `${report.critical_scope.candidate_count} filtrelenmiş statik aday içinden kritik kayıtlar. ` +
+            'Eşit kritiklerin tamamı korunur. Bileşen maksimumları tek vektöre birleştirilmez; PMM için tam aday nüfusu saklanır.', 'micro'));
+        }
+        el('columnForces').append(table([...reason,...identity,['N_compression_kN','N (basınç +)'], ['V2_kN','V2'],
           ['V3_kN','V3'],['T_kNcm','T'],['M2_kNcm','M2'],['M3_kNcm','M3']],
-          page.rows.map(r => ({...r.native_key,...r.domain_values}))));
+          page.rows.map(r => ({...r.native_key,...r.domain_values,criticalReason:(r.criteria || []).map(c => labels[c] || c).join(', ')}))));
+      } else if (selectedView === 'reinforcement') {
+        el('columnUnits').textContent = 'TBDY 2018 7.3.2.1 alan hesabı: As,min = %1 Ac; As,max = %4 Ac. Alanlar cm². Birleşimden bağımsızdır; süneklik sınıfı, gerçek donatı, çap/adet ve bindirme uygunluğu bu hesapla doğrulanmaz.';
+        el('columnForces').append(table([['member_id','Kolon'],['story','Kat'],['section_name','Kesit'],
+          ['gross_area_cm2','Ac'],['minimum_as_cm2','As,min'],['maximum_as_cm2','As,max'],['provided_as_cm2','Doğrulanmış mevcut As'],
+          ['sourceMatches','Kaynak AsMin eşleşen'],['sourceAbove','Referans üstünde'],['sourceBelow','Referans altında'],
+          ['sourceUnknown','AsMin belirsiz'],['label','Hesap'],['reason','Açık neden']], page.rows.map(r => ({...r,label:labels[r.status] || r.status,
+            sourceMatches:r.asmin_source_counts.NUMERICAL_MATCH || 0,sourceAbove:r.asmin_source_counts.SOURCE_ABOVE_REFERENCE || 0,
+            sourceBelow:r.asmin_source_counts.SOURCE_BELOW_REFERENCE || 0,
+            sourceUnknown:Object.keys(r.asmin_source_counts).length ? (r.asmin_source_counts.NOT_PROVEN || 0) : 'Kayıt yok'}))));
       } else {
         el('columnUnits').textContent = 'ETABS tasarım özetindeki referanslar. Yuvarlanmış veya çift istasyonlardan tekil kuvvet seçilmez; bu görünüm PMM/kesme uygunluğu değildir.';
         const rows = page.rows.map(r => {
@@ -133,7 +162,7 @@
           ['PMMCombo','PMM birleşimi'],['pmmLink','Kaynak bağı'],['PMMRatio','ETABS PMM oranı'],
           ['VMajCombo','Büyük yön kesme'],['majorLink','Kaynak bağı'],['VMinCombo','Küçük yön kesme'],['minorLink','Kaynak bağı']], rows));
       }
-      el('columnPage').textContent = total ? `${offset + 1}–${Math.min(offset + page.limit,total)} / ${total}` : 'Bu seçim için kaynak satırı yok.';
+      el('columnPage').textContent = total ? `${offset + 1}–${Math.min(offset + page.limit,total)} / ${total}` : 'Bu filtre ve görünüm için gösterilecek kayıt yok.';
       el('columnPrevious').disabled = offset === 0;
       el('columnNext').disabled = offset + page.limit >= total;
       const replay = report.static_replay;

@@ -96,6 +96,34 @@ def build_column_bank_html(report: Mapping[str, Any]) -> str:
             'birleşim katsayıları, altı kuvvet bileşeni ve tasarım özeti satır bağlantıları bulunur. ' +
             'SQLite mevcut ham kuvvet bankasıdır; bu görünüm okuma sırasında türetilir.</p>')
         content += '<p>Talep görünümü SHA-256: ' + _val(chain["result_sha256"]) + '</p>'
+    prechecks = report.get("column_prechecks")
+    if prechecks:
+        critical, bounds = prechecks["critical_selection"], prechecks["reinforcement_bounds"]
+        content += ('<h2>VS13 · Kritik statik kayıtlar</h2><p>' + _val(critical["candidate_count"]) +
+            ' statik aday içinden ' + _val(critical["critical_state_count"]) + ' kaynak kaydı kritik ölçütlerle işaretlendi. ' +
+            'Eşit kritikler ve karşıt işaretler korunur. Bu seçim PMM için tam talep nüfusunun yerine geçmez; ' +
+            'ayrı satırların bileşen maksimumları tek vektöre birleştirilmez.</p>')
+        extrema = [{**m, **{c["criterion"]: c["magnitude"] for c in m["criteria"]}} for m in critical["members"]]
+        content += _table((("member_id", "Kolon"), ("candidate_count", "Statik aday"),
+            ("expected_static_states", "Kaynak kapsamı beklenen"), ("source_subset_coverage", "Altküme kapsamı"),
+            ("N_COMPRESSION_MAX", "Basınç (kN)"), ("N_TENSION_MAX", "Çekme büyüklüğü (kN)"),
+            ("M2_ABS_MAX", "|M2| (kN·cm)"), ("M3_ABS_MAX", "|M3| (kN·cm)"),
+            ("V2_ABS_MAX", "|V2| (kN)"), ("V3_ABS_MAX", "|V3| (kN)"), ("T_ABS_MAX", "|T| (kN·cm)")), extrema)
+        content += ('<p>Bu tablodaki sütunlar bağımsız ekstrem büyüklüklerdir. Aynı satırdaki sayılar birlikte ' +
+            'etkiyen bir kuvvet vektörü oluşturmaz. Tam vektörler ve ölçüt→state_id bağları JSON çıktısındadır.</p>')
+        content += ('<h2>Boyuna donatı alan sınırları · TBDY 2018 7.3.2.1</h2><p>' +
+            _val(bounds["calculated_member_count"]) + '/' + _val(bounds["selected_member_count"]) +
+            ' kolon için Ac=b2×b3; As,min=0.01Ac; As,max=0.04Ac hesaplandı. ' +
+            'Sınırlar dahildir; bu alan alt hesabı süneklik sınıfını, gerçek donatı kafesini, çap/adet veya ' +
+            'bindirme koşullarını doğrulamaz. Bindirmeli kesit için %6 sınırı genel %4 üst sınırın yerine geçmez.</p>')
+        content += _table((("member_id", "Kolon"), ("story", "Kat"), ("section_name", "Kesit"),
+            ("gross_area_cm2", "Ac (cm²)"), ("minimum_as_cm2", "As,min (cm²)"), ("maximum_as_cm2", "As,max (cm²)"),
+            ("provided_as_cm2", "Doğrulanmış mevcut As"), ("status", "Alan hesabı"), ("reason", "Açık neden")), bounds["rows"])
+        content += '<p>Kaynak AsMin sayısal kıyası: ' + _val(bounds["source_comparison_counts"]) + '</p>'
+        content += ('<p>Kaynak AsMin, yerleştirilmiş donatı değildir. Referans altından veya üstünden farklı ' +
+            'bir değer görülmesi tek başına yönetmelik ihlali veya mühendislik kabulü üretmez. ' +
+            'Mevcut statik birleşimlerden normatif G+Q+E maksimum eksenel talebi türetilmedi.</p>')
+        content += '<p>Ön hesap SHA-256: ' + _val(prechecks["result_sha256"]) + '</p>'
     historical = report.get("historical_reconciliation")
     if historical:
         content += '<h2>Tarihsel D7-B6 toplamları</h2>' + _table((

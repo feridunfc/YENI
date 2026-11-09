@@ -23,7 +23,7 @@ class DesignBank(SyntheticBank):
                     "SYNTHETIC_STORY", member, member, "RECT_SYNTHETIC", station,
                     "Design", "No Message", None, "SUM", ".0064", ".0064", ".000533", ".000533",
                     "SUM", ".00091", "RS_SUM", ".00091", "No Message", "No Message"])))
-        self.units = {f: "m" if f == "Station" else "" for f in FIELDS}
+        self.units = {f: "m" if f == "Station" else "m2" if f == "AsMin" else "" for f in FIELDS}
         self.table_fields = list(FIELDS)
         self.truncate = False
 
