@@ -20,6 +20,7 @@ from .column_kinematics import build_column_kinematics, kinematic_summaries
 from .column_sensitivity import build_column_sensitivity, sensitivity_summaries
 from .column_overview import build_column_overview
 from .column_pmm_quality import build_column_pmm_quality
+from .column_scwb import build_column_scwb, scwb_projection
 from .native_archive import BankError, NativeArchive, decode
 
 
@@ -75,6 +76,15 @@ def _pmm_quality(source_path, database_path, source_sha, database_sha, bank_resu
         member_id=member_id,output_case=output_case)
 
 
+@lru_cache(maxsize=2)
+def _scwb(source_path, database_path, source_sha, database_sha, bank_result_sha):
+    key=(source_path,database_path,source_sha,database_sha,bank_result_sha)
+    derived=_derive(*key)
+    with closing(NativeArchive(Path(source_path).read_bytes())) as archive:
+        if archive.sha256!=source_sha:raise BankError("SCWB_SOURCE_CHANGED")
+        return build_column_scwb(derived["demand_chain"],derived["column_cages"],derived["column_joints"],derived["column_kinematics"],archive)
+
+
 def demand_view(database, report, *, member_id=None, output_case=None, offset=0, limit=200,
                 view="native", full=False):
     """Called only after store.verified_database has verified this exact run."""
@@ -89,12 +99,13 @@ def demand_view(database, report, *, member_id=None, output_case=None, offset=0,
     # never invokes the more expensive PMM solver.
     shear = _shear(*cache_key) if full or view in ("pmm", "shear", "overview", "pmm-quality") else None
     quality = _pmm_quality(*cache_key,None if full else member_id,None if full else output_case) if full or view == "pmm-quality" else None
+    scwb = _scwb(*cache_key) if full or view in ("scwb", "pmm-quality") else None
     chain, prechecks = derived["demand_chain"], derived["column_prechecks"]
     overview = build_column_overview(chain, derived["column_cages"], pmm, shear, derived["column_sensitivity"],
         member_id=None if full or view in ("pmm", "pmm-quality") else member_id,
         output_case=None if full or view in ("pmm", "pmm-quality") else output_case) if pmm is not None else None
     if full:
-        return deepcopy({**derived,"column_pmm":pmm,"column_shear":shear,"column_overview":overview,"column_pmm_quality":quality})
+        return deepcopy({**derived,"column_pmm":pmm,"column_shear":shear,"column_overview":overview,"column_pmm_quality":quality,"column_scwb":scwb})
     summary = {k: v for k, v in chain.items() if k not in ("candidates", "design_summary")}
     summary["design_summary"] = {k: v for k, v in chain["design_summary"].items() if k != "rows"}
     precheck_summary = {k: v for k, v in prechecks.items() if k not in ("critical_selection", "reinforcement_bounds")}
@@ -132,12 +143,19 @@ def demand_view(database, report, *, member_id=None, output_case=None, offset=0,
         # All critical ties (including failures) support the complete HTML report.
         # The UI table is paginated separately; ordinary views never compute this.
         result["column_pmm_quality"] = deepcopy(quality)
+    if scwb is not None:
+        projected=scwb_projection(scwb,member_id,output_case)
+        # The full report and selected-column details keep exact case traces.
+        result["column_scwb"] = projected if view == "pmm-quality" or member_id else {
+            k:v for k,v in projected.items() if k not in ("rows","column_references")}
     if view == "native":
         return result
     if view == "overview":
         rows = overview["rows"]
     elif view == "pmm-quality":
         rows = quality["rows"]
+    elif view == "scwb":
+        rows = projected["summaries"]
     elif view == "critical":
         selection = critical_selection(chain, prechecks["population"], member_id=member_id, output_case=output_case)
         rows = selection["rows"]

@@ -230,6 +230,71 @@
       el('columnOverviewDetails').append(traces);
     }
   }
+  const scwbStatus = {
+    BEAM_CAPACITY_NOT_BOUND:'Kiriş uç donatısı bekleniyor',
+    COLUMN_AND_BEAM_INPUTS_INCOMPLETE:'Kolon ve kiriş girdileri eksik',
+    NO_RECORDED_BEAM_IN_DIRECTION:'Bu yönde kayıtlı kiriş yok',
+    TOPOLOGY_UNRESOLVED:'Bağlantı geometrisi belirsiz',
+    NO_STATIC_SOURCE_CASES:'Statik kaynak vakası yok'
+  };
+  function renderScwb(scwb, page) {
+    el('columnDemandSummary').replaceChildren();
+    if (scwb.source_population_status === 'BLOCKED_NATIVE_JOINT_GRAPH') {
+      el('columnContext').append(text('p',`Birleşim ağı doğrulanamadı. ${scwb.selected_column_count} bilinen kolon / `+
+        `${scwb.expected_column_end_count} beklenen uç / ${scwb.expected_column_reference_count} beklenen kapasite kaydı. `+
+        'Birleşim sayısı bilinmiyor; kapsam tamamlanmış değildir.','warn'));
+      el('columnForces').append(table([['member_id','Kolon'],['end','Uç']],scwb.unresolved_member_ends));
+      const source=text('details','');source.append(text('summary','Bağlantı kaynağının açık nedeni'),text('p',scwb.graph_reason));
+      el('columnOverviewDetails').append(source);return;
+    }
+    el('columnUnits').textContent = 'Kolon kapasite toplamı kN·m; N basınç pozitif. Kaynak kesitleri fiziksel birleşim yüzü olarak doğrulanmadı.';
+    el('columnContext').append(text('p',`${scwb.filtered_joint_node_count} birleşim · ${scwb.static_cases.length} statik birleşim · `+
+      'üç donatı senaryosu · X/Y ve iki dönme yönü. Seçili kolonun komşu üyeleri hesapta korunur.'));
+    el('columnContext').append(text('p','Gösterilen minimum yalnız kayıtlı statik vakalar arasındadır; deprem yönüyle uyumlu Nd minimumu değildir. '+
+      'İki dönme yönündeki kolon eşitliği doğrulanmış kafes simetrisine dayanır. Kiriş kapasitesi ve SCWB oranı henüz hesaplanmadı.','micro'));
+    el('columnContext').append(text('p',Object.entries(scwb.filtered_status_counts)
+      .map(([status,count])=>`${scwbStatus[status] || 'Belirsiz'}: ${count}`).join(' · ') || 'Birleşim kaydı yok.'));
+    for (const r of page.rows) {
+      if (!scwbStatus[r.status] || !['X','Y'].includes(r.direction) || ![-1,1].includes(r.rotation_sign) ||
+          r.final_design_eligible !== false || r.formal_compliance !== 'NOT_PROVEN' || r.normative_exception_applied !== false ||
+          r.minimum_over_declared_static_cases_only !== true || r.normative_nd_minimum_proven !== false ||
+          r.scwb_ratio !== null || r.normalized_reference_ratio !== null || r.sum_mrb_knm !== null ||
+          r.expected_case_count !== scwb.static_cases.length || r.calculated_column_sum_count < 0 ||
+          r.calculated_column_sum_count > r.expected_case_count ||
+          (r.sampled_minimum_column_sum_knm !== null && (!Number.isFinite(r.sampled_minimum_column_sum_knm) ||
+            r.sampled_minimum_column_sum_knm <= 0 || !r.expected_case_count ||
+            r.calculated_column_sum_count !== r.expected_case_count || r.topology_reasons.length ||
+            !r.sampled_minimum_case_ids.length)) ||
+          (r.sampled_minimum_column_sum_knm === null && r.sampled_minimum_case_ids.length) ||
+          r.sampled_minimum_case_ids.some(c=>!scwb.static_cases.includes(c))) {
+        throw new Error('SCWB özetinin kaynak kapsamı veya koşullu durumu uyuşmuyor.');
+      }
+    }
+    el('columnForces').append(table([['joint_id','Birleşim'],['elevation','Kot (m)'],['directionText','Yön / dönme'],
+      ['candidate_label','Donatı senaryosu'],['coverage','Kolon toplamı / vaka'],['columnSum','En küçük ΣMrc kaynak (kN·m)'],
+      ['cases','Kritik statik birleşim'],['state','SCWB durumu']],page.rows.map(r=>({...r,
+        elevation:displayNumber(r.elevation_m),directionText:r.direction+' / '+(r.rotation_sign>0?'+':'−'),
+        coverage:`${r.calculated_column_sum_count} / ${r.expected_case_count}`,columnSum:displayNumber(r.sampled_minimum_column_sum_knm),
+        cases:r.sampled_minimum_case_ids.join(', ') || '—',state:scwbStatus[r.status]}))));
+    const roster=text('details','');roster.append(text('summary','Birleşim üyeleri ve açık mühendislik girdileri'));
+    roster.append(text('p','Kiriş tasarım özetindeki gerekli As ve modeldeki donatı alanı override değerleri, seçilmiş uç donatısı değildir. '+
+      'Sıfır override sıfır donatı sayılmaz. Kiriş uç kapasiteleri, döşeme katkısı, fiziksel yüzler, depremli Nd ve istisna uygulanabilirliği bekleniyor.'));
+    roster.append(table([['joint','Birleşim'],['direction','Yön'],['columns','Kolon uçları'],['beams','Kiriş uçları'],['scope','Bağlantı']],
+      scwb.nodes.flatMap(n=>['X','Y'].map(direction=>({joint:n.point_id,direction,
+        columns:n.rosters[direction].columns.map(c=>`${c.member_id}/${c.end}`).join(', '),
+        beams:n.rosters[direction].beams.map(b=>`${b.member_id}/${b.end}`).join(', ') || 'Kayıt yok',
+        scope:n.rosters[direction].reasons.length?'Geometri belirsiz':'Native uçlar bağlı; fiziksel yüzler bekleniyor'})))));
+    el('columnOverviewDetails').append(roster);
+    if (member.value) {
+      const capacities=text('details','');capacities.append(text('summary','Seçili kolonun birleşimlerindeki kolon kapasite kayıtları'));
+      capacities.append(table([['member_id','Kolon'],['end','Uç'],['axis','Yerel moment'],['output_case','Statik birleşim'],
+        ['candidate_label','Senaryo'],['n','N kaynak (kN)'],['capacity','Mrc kaynak (kN·m)']],
+        scwb.column_references.map(r=>({...r,n:displayNumber(r.n_source_kn),capacity:displayNumber(r.capacity_knm)}))));
+      const traces=text('details','');traces.append(text('summary','Tam hassasiyet, vaka ve kaynak kimlikleri'),
+        text('pre',JSON.stringify({column_references:scwb.column_references,beam_sources:scwb.beam_sources,rows:scwb.rows},null,2)));
+      capacities.append(traces);el('columnOverviewDetails').append(capacities);
+    }
+  }
   function clearResult() {
     for (const id of ['columnSummary', 'columnExports', 'columnContext', 'columnForces',
                       'columnReplay', 'columnCoverage', 'columnGaps', 'columnPage',
@@ -258,7 +323,7 @@
     if (member.value) params.set('member', member.value);
     if (loadCase.value && !sectionView) params.set('case', loadCase.value);
     if (selectedView !== 'native') params.set('view', selectedView);
-    el('columnStatus').textContent = ['pmm','overview','pmm-quality'].includes(selectedView) ? 'Koşullu kolon hesapları hazırlanıyor; ilk açılış biraz sürebilir…' : 'Arşiv doğrulanıyor…';
+    el('columnStatus').textContent = ['pmm','overview','pmm-quality','scwb'].includes(selectedView) ? 'Koşullu kolon hesapları hazırlanıyor; ilk açılış biraz sürebilir…' : 'Arşiv doğrulanıyor…';
     try {
       const report = await get('/api/column-bank?' + params);
       if (ticket !== epoch || selected !== run.value) return;
@@ -405,6 +470,31 @@
       if (['stiffness-scenarios','length-sensitivity'].includes(selectedView) && !sensitivity) throw new Error('Etkin boy duyarlılığı bulunamadı.');
       const overview = report.column_overview;
       const quality = report.column_pmm_quality;
+      const scwb = report.column_scwb;
+      if (selectedView === 'scwb' && (!scwb || scwb.schema !== 'tbdy.next.scwb-source-references.v1' ||
+          scwb.policy !== 'COMPLETE_JOINT_ROSTER_SAME_STATIC_CASE_COLUMN_AXIS_REFERENCE_V1' ||
+          scwb.axis_convention !== 'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3' ||
+          scwb.source_run_id !== selected || scwb.source_archive_sha256 !== report.source_archive_sha256 ||
+          scwb.source_demand_result_sha256 !== chain?.result_sha256 || scwb.source_cages_result_sha256 !== cages?.result_sha256 ||
+          scwb.source_joints_result_sha256 !== joints?.result_sha256 || scwb.source_kinematics_result_sha256 !== kinematics?.result_sha256 ||
+          scwb.member_id_filter !== (member.value || null) || scwb.output_case_filter !== (loadCase.value || null) ||
+          scwb.source_population_reduced !== false || scwb.neighbouring_participants_retained !== true ||
+          scwb.required_beam_steel_used_as_capacity !== false || scwb.approximate_as_half_fallback_used !== false ||
+          scwb.earthquake_compatible_minimum_proven !== false || scwb.normative_exception_applied !== false ||
+          scwb.physical_joint_population_proven !== false || scwb.scwb_ratio_count !== 0 ||
+          scwb.actual_second_order_applied !== false || scwb.selected_design !== null ||
+          scwb.design_demand_authority !== 'DENIED' || scwb.formal_compliance !== 'NOT_PROVEN' || scwb.engineering_release !== 'NOT_READY' ||
+          !['NATIVE_JOINT_GRAPH_BOUND','BLOCKED_NATIVE_JOINT_GRAPH'].includes(scwb.source_population_status) ||
+          scwb.expected_column_end_count !== 2*scwb.selected_column_count || scwb.summaries.length !== page?.total ||
+          (scwb.source_population_status === 'NATIVE_JOINT_GRAPH_BOUND' &&
+            (scwb.graph_status !== 'NATIVE_ENDPOINT_GRAPH_BOUND' || scwb.joint_case_count !== scwb.expected_joint_case_count ||
+             scwb.column_end_count !== scwb.expected_column_end_count || scwb.column_reference_count !== scwb.expected_column_reference_count ||
+             scwb.filtered_joint_case_count !== scwb.filtered_joint_node_count*scwb.static_cases.length*12)) ||
+          (scwb.source_population_status === 'BLOCKED_NATIVE_JOINT_GRAPH' &&
+            (scwb.graph_status !== 'BLOCKED_INPUTS' || scwb.joint_node_count !== null || scwb.expected_joint_case_count !== null ||
+             scwb.joint_case_count !== 0 || scwb.column_reference_count !== 0)))) {
+        throw new Error('SCWB hesabının kaynak bağı veya kapsamı uyuşmuyor.');
+      }
       if (selectedView === 'pmm-quality' && (!quality || quality.schema !== 'tbdy.next.column-pmm-numerical-reference.v1' ||
           quality.policy_id !== 'CRITICAL_PMM_STRIP_GAUSS_BISECTION_V1' ||
           quality.axis_convention !== 'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3' ||
@@ -443,6 +533,8 @@
         renderOverview(report,page,selectedProposal);
       } else if (selectedView === 'pmm-quality') {
         renderQuality(quality,page);
+      } else if (selectedView === 'scwb') {
+        renderScwb(scwb,page);
       } else if (selectedView === 'native') {
         el('columnUnits').textContent = 'Native işaretler korunur. Kuvvetler kN, momentler kN·m, istasyonlar m.';
         el('columnForces').append(table([...identity,...['P','V2','V3','T','M2','M3'].map(c => [c,c])], page.rows));
