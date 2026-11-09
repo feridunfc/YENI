@@ -61,6 +61,10 @@ class Material:
 
 @dataclass(frozen=True)
 class Section:
+    """Physical extents t2 along local 2 and t3 along local 3, not native T2/T3.
+
+    CSI adapters must pass native T3, T2 in this order.
+    """
     t2: float
     t3: float
     bars: tuple
@@ -91,7 +95,10 @@ class Section:
 
 
 def perimeter(t2, t3, cover, tie, diameter, n2=5, n3=5):
-    """Geometry-only proposal. Cover is clear to the OUTSIDE of the tie."""
+    """Physical local-2/local-3 extents; cover is clear to OUTSIDE of the tie.
+
+    These t2/t3 arguments are coordinate extents, not CSI's native T2/T3.
+    """
     for key, value in (("t2", t2), ("t3", t3), ("cover", cover), ("tie", tie), ("diameter", diameter)):
         number(value, key, positive=True)
     if any(type(n) is not int or not 2 <= n <= 100 for n in (n2, n3)):

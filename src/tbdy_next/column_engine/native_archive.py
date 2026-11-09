@@ -65,7 +65,7 @@ def identity(value, label):
     return value
 
 
-def native_observation(z, manifest, item, api, kind, name, expected_fields=None, *, entity_key="name"):
+def native_observation(z, manifest, item, api, kind, name, expected_fields=None, *, entity_key="name", expected_args=None):
     path = item.get("path")
     if not isinstance(path, str) or path not in manifest["files"] or not path.startswith("shards/"):
         raise BankError("NATIVE_SHARD_UNBOUND:" + api)
@@ -80,11 +80,13 @@ def native_observation(z, manifest, item, api, kind, name, expected_fields=None,
     obj = decode(data)
     if (not isinstance(obj, dict) or obj.get("schema") != "tbdy.full-bank.native-observation.v1"
             or obj.get("call_id") != item.get("call_id") or obj.get("api") != api
-            or obj.get("entity") != {"kind": kind, entity_key: name}
+            or obj.get("entity") != ({"kind": kind, entity_key: name} if entity_key else {"kind": kind})
             or obj.get("status") != "OBSERVED" or type(obj.get("return_code")) is not int
             or obj["return_code"] != 0 or type(obj.get("units_code")) is not int
             or obj["units_code"] != 6):
         raise BankError("NATIVE_IDENTITY_OR_UNITS_MISMATCH:" + api)
+    if expected_args is not None and canonical(obj.get("args")) != canonical(expected_args):
+        raise BankError("NATIVE_REQUEST_ARGUMENTS_MISMATCH:" + api)
     fields, values = obj.get("output_names"), obj.get("raw_response")
     if (not isinstance(fields, list) or not isinstance(values, list) or not fields
             or any(not isinstance(x, str) for x in fields) or len(set(fields)) != len(fields)
@@ -183,13 +185,14 @@ class NativeArchive:
     def jsonlines(self, name):
         return [decode(line) for line in self.z.read(name).splitlines() if line.strip()]
 
-    def native(self, api, kind, name, fields=None):
+    def native(self, api, kind, name, fields=None, *, entity_key="name", expected_args=None):
         items = self.index.get((api, kind, name), ())
         if len(items) > 1:
-            raise BankError("AMBIGUOUS_NATIVE_CALL:" + api + ":" + name)
+            raise BankError("AMBIGUOUS_NATIVE_CALL:" + api + ":" + str(name))
         if not items or items[0].get("status") != "OBSERVED":
             return None
-        return native_observation(self.z, self.manifest, items[0], api, kind, name, fields)
+        return native_observation(self.z, self.manifest, items[0], api, kind, name, fields,
+            entity_key=entity_key, expected_args=expected_args)
 
     def table(self, key, required_fields, *, required_units=None):
         """Read a sealed, complete display table; schema-only evidence is insufficient."""

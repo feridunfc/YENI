@@ -149,10 +149,10 @@ class TransverseSourceAndGeometryTests(unittest.TestCase):
         _,_,transverse,_=package(fixture);p=transverse['proposals'][0]
         self.assertEqual(p['layout']['core_area_mm2'],374400)
         v2,v3=p['axes']['V2'],p['axes']['V3']
-        self.assertEqual((v2['bw_mm'],v2['d_mm'],v2['bk_axis'],v2['bk_mm']),(800,536,3,708))
-        self.assertEqual((v3['bw_mm'],v3['d_mm'],v3['bk_axis'],v3['bk_mm']),(600,736,2,508))
-        self.assertAlmostEqual(v2['confinement']['high_axial_required_ash_mm2'],419.353846154,places=8)
-        self.assertAlmostEqual(v3['confinement']['high_axial_required_ash_mm2'],300.892307692,places=8)
+        self.assertEqual((v2['bw_mm'],v2['d_mm'],v2['bk_axis'],v2['bk_mm']),(600,736,3,508))
+        self.assertEqual((v3['bw_mm'],v3['d_mm'],v3['bk_axis'],v3['bk_mm']),(800,536,2,708))
+        self.assertAlmostEqual(v2['confinement']['high_axial_required_ash_mm2'],300.892307692,places=8)
+        self.assertAlmostEqual(v3['confinement']['high_axial_required_ash_mm2'],419.353846154,places=8)
 
     def test_confinement_material_is_separate_from_longitudinal_material(self):
         p=self.transverse['profiles'][0]

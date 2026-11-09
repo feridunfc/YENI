@@ -11,6 +11,7 @@ import math
 from .column_pmm import DIAMETERS, POLICY as CAGE_POLICY, REFERENCES as CAGE_REFERENCES, _native
 from .column_prechecks import _number
 from .column_stability import OPTIONAL_ERRORS
+from .csi_geometry import AXIS_CONVENTION, local_dimensions
 from .native_archive import BankError, digest
 from .section_capacity import perimeter
 from .transverse_kernel import confinement_reference, shear_reference, zero_concrete_gate
@@ -63,8 +64,9 @@ substitution between the two quantities.
 """
     if cage["geometry_status"]!="PROPOSED_GEOMETRY_CALCULATED":
         raise BankError("TRANSVERSE_LONGITUDINAL_GEOMETRY_NOT_BOUND")
-    w,h,c,t,p = (positive(cage[key],key) for key in
-        ("t2_mm","t3_mm","clear_cover_to_tie_mm","tie_diameter_mm","bar_diameter_mm"))
+    w,h = local_dimensions(cage["t2_mm"],cage["t3_mm"])
+    c,t,p = (positive(cage[key],key) for key in
+        ("clear_cover_to_tie_mm","tie_diameter_mm","bar_diameter_mm"))
     bars,center,_ = perimeter(w,h,c,t,p)
     if cage["bars"] != [{"x2_mm":b.x2,"x3_mm":b.x3,"area_mm2":b.area,"diameter_mm":p} for b in bars]:
         raise BankError("TRANSVERSE_BAR_COORDINATES_MISMATCH")
@@ -139,7 +141,8 @@ def _proposal(cage,material):
 
 
 def build_column_transverse(chain,cages,archive):
-    if (cages["source_archive_sha256"]!=archive.sha256 or chain["source_archive_sha256"]!=archive.sha256
+    if (cages.get("axis_convention")!=AXIS_CONVENTION
+            or cages["source_archive_sha256"]!=archive.sha256 or chain["source_archive_sha256"]!=archive.sha256
             or cages["source_demand_result_sha256"]!=chain["result_sha256"] or cages["source_run_id"]!=chain["source_run_id"]):
         raise BankError("TRANSVERSE_SOURCE_BINDING_MISMATCH")
     profiles,errors,proposals = {},{},[]
@@ -150,7 +153,8 @@ def build_column_transverse(chain,cages,archive):
         "status":"TRANSVERSE_MATERIAL_BOUND" if m["profile_id"] in profiles else "BLOCKED_INPUTS"} for m in cages["members"]]
     for cage in cages["candidates"]:
         if cage["profile_id"] in profiles: proposals.append(_proposal(cage,profiles[cage["profile_id"]]))
-    result = {"schema":"tbdy.next.column-transverse-proposals.v1","source_run_id":chain["source_run_id"],
+    result = {"schema":"tbdy.next.column-transverse-proposals.v2","axis_convention":AXIS_CONVENTION,
+        "source_run_id":chain["source_run_id"],
         "source_archive_sha256":archive.sha256,"source_demand_result_sha256":chain["result_sha256"],
         "source_cages_result_sha256":cages["result_sha256"],"proposal_policy":deepcopy(POLICY),
         "references":REFERENCES.copy(),"profiles":list(profiles.values()),"members":members,"proposals":proposals,
@@ -178,7 +182,8 @@ def transverse_rows(transverse,member_id=None):
 
 
 def build_column_shear(chain,cages,transverse):
-    if (transverse["source_run_id"]!=chain["source_run_id"] or cages["source_run_id"]!=chain["source_run_id"]
+    if (cages.get("axis_convention")!=AXIS_CONVENTION or transverse.get("axis_convention")!=AXIS_CONVENTION
+            or transverse["source_run_id"]!=chain["source_run_id"] or cages["source_run_id"]!=chain["source_run_id"]
             or transverse["source_archive_sha256"]!=chain["source_archive_sha256"]
             or cages["source_archive_sha256"]!=chain["source_archive_sha256"]
             or transverse["source_demand_result_sha256"]!=chain["result_sha256"]
@@ -241,7 +246,8 @@ def build_column_shear(chain,cages,transverse):
                 "critical_source_states":[{"state_id":r["state_id"],"source_row_id":r["source_row_id"],"native_key":r["native_key"]}
                     for r in numeric if r["calculation"]["branches"][branch]["source_utilization"]==maximum]}
         summaries.append(summary)
-    result = {"schema":"tbdy.next.column-shear-scenarios.v1","source_run_id":chain["source_run_id"],
+    result = {"schema":"tbdy.next.column-shear-scenarios.v2","axis_convention":AXIS_CONVENTION,
+        "source_run_id":chain["source_run_id"],
         "source_archive_sha256":chain["source_archive_sha256"],"source_demand_result_sha256":chain["result_sha256"],
         "source_cages_result_sha256":cages["result_sha256"],"source_transverse_result_sha256":transverse["result_sha256"],
         "static_state_count":len(seen),"assessment_count":len(rows),"expected_assessment_count":len(seen)*len(DIAMETERS)*2,

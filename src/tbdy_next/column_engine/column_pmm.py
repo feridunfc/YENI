@@ -9,13 +9,15 @@ from dataclasses import asdict
 
 from .column_prechecks import _number
 from .column_stability import OPTIONAL_ERRORS
+from .csi_geometry import AXIS_CONVENTION, REFERENCE as CSI_REFERENCE, local_dimensions
 from .native_archive import BankError, digest
 from .observed_context import EXPECTED_FIELDS
 from .section_capacity import (ANGLE_COUNTS, MAX_ANGLE_COUNT, FORCE_TOL_N, MOMENT_ABS_TOL_NMM, MOMENT_REL_TOL,
     Bar, Material, Section, perimeter, solver)
 
 DIAMETERS = (24, 28, 32)
-POLICY = {"id": "CE05A_RECT16_24_28_32_T12_GC1P5_GS1P15",
+POLICY = {"id": "CE05A_RECT16_24_28_32_T12_GC1P5_GS1P15_CSI_AXES_V2",
+    "axis_convention": AXIS_CONVENTION,
     "bar_diameters_mm": list(DIAMETERS), "bars_per_local2_face": 5, "bars_per_local3_face": 5,
     "tie_diameter_mm": 12, "gamma_concrete": 1.5, "gamma_steel": 1.15,
     "tie_diameter_basis": "PROPOSAL_AT_LEAST_LONGITUDINAL_DIAMETER_OVER_3_TS500_7_4_1",
@@ -23,6 +25,7 @@ POLICY = {"id": "CE05A_RECT16_24_28_32_T12_GC1P5_GS1P15",
     "aggregate_max_mm": None, "bar_availability_proven": False,
     "candidate_population_exhaustive": False, "automatic_design_selection": False}
 REFERENCES = {
+    "native_dimensions": CSI_REFERENCE,
     "capacity_kernel": "https://github.com/feridunfc/TBDY/blob/1440df1b9300f75b1e604204438f5cada9ebd247/tbdy_engine/design/columns/section_capacity.py",
     "geometry_kernel": "https://github.com/feridunfc/TBDY/blob/1440df1b9300f75b1e604204438f5cada9ebd247/tbdy_engine/design/columns/rebar_layout.py",
     "cover": "https://docs.csiamerica.com/help-files/etabs-api-2016/html/cef22cbd-9054-36ac-88e2-9e0ed51f3295.htm",
@@ -81,7 +84,8 @@ def _candidate(profile, diameter):
         "geometry_status":"BLOCKED_INPUTS","reason":None,"area_ratio_status":"NOT_PROVEN",
         "spacing_status":"AGGREGATE_NOT_BOUND","selected_design":False,"physical_cage_proven":False}
     try:
-        bars,center,spacing = perimeter(profile["t2_mm"],profile["t3_mm"],profile["model_clear_cover_to_tie_mm"],POLICY["tie_diameter_mm"],diameter)
+        d2,d3 = local_dimensions(profile["t2_mm"],profile["t3_mm"])
+        bars,center,spacing = perimeter(d2,d3,profile["model_clear_cover_to_tie_mm"],POLICY["tie_diameter_mm"],diameter)
         area = sum(b.area for b in bars)
         rho = area/(profile["t2_mm"]*profile["t3_mm"])
         row.update(bars=[{"x2_mm":b.x2,"x3_mm":b.x3,"area_mm2":b.area,"diameter_mm":diameter} for b in bars],
@@ -117,7 +121,8 @@ def build_column_cages(bank,chain,prechecks,archive):
             item["reason"] = str(exc)
         members.append(item)
     candidates = [_candidate(profile,d) for profile in profiles.values() for d in DIAMETERS]
-    result = {"schema":"tbdy.next.column-cages.v1","source_run_id":bank.get("run_id"),"source_archive_sha256":archive.sha256,
+    result = {"schema":"tbdy.next.column-cages.v2","axis_convention":AXIS_CONVENTION,
+        "source_run_id":bank.get("run_id"),"source_archive_sha256":archive.sha256,
         "source_demand_result_sha256":chain["result_sha256"],"source_prechecks_result_sha256":prechecks["result_sha256"],
         "proposal_policy":POLICY.copy(),"references":REFERENCES.copy(),"profiles":list(profiles.values()),"members":members,
         "candidates":candidates,"bound_member_count":sum(m["profile_id"] is not None for m in members),
@@ -142,12 +147,14 @@ def cage_rows(cages,member_id=None):
 
 
 def _section(profile,candidate):
-    return Section(profile["t2_mm"],profile["t3_mm"],tuple(Bar(b["x2_mm"],b["x3_mm"],b["area_mm2"])
+    d2,d3 = local_dimensions(profile["t2_mm"],profile["t3_mm"])
+    return Section(d2,d3,tuple(Bar(b["x2_mm"],b["x3_mm"],b["area_mm2"])
         for b in candidate["bars"]),Material(**profile["material"]))
 
 
 def build_column_pmm(chain,cages,stability):
-    if (cages["source_demand_result_sha256"] != chain["result_sha256"]
+    if (cages.get("axis_convention") != AXIS_CONVENTION or stability.get("axis_convention") != AXIS_CONVENTION
+            or cages["source_demand_result_sha256"] != chain["result_sha256"]
             or cages["source_run_id"] != chain["source_run_id"] or stability["source_run_id"] != chain["source_run_id"]
             or stability["source_demand_result_sha256"] != chain["result_sha256"]
             or cages["source_archive_sha256"] != chain["source_archive_sha256"]
@@ -205,7 +212,8 @@ def build_column_pmm(chain,cages,stability):
                 for r in numeric if r["utilization"]==maximum],
             "numeric_population_complete":bool(values) and not (counts["NUMERIC_UNRESOLVED"] or counts["BLOCKED_INPUTS"]),
             "selected_design":False})
-    result = {"schema":"tbdy.next.column-pmm-scenarios.v1","source_run_id":chain["source_run_id"],
+    result = {"schema":"tbdy.next.column-pmm-scenarios.v2","axis_convention":AXIS_CONVENTION,
+        "source_run_id":chain["source_run_id"],
         "source_archive_sha256":chain["source_archive_sha256"],"source_demand_result_sha256":chain["result_sha256"],
         "source_cages_result_sha256":cages["result_sha256"],"source_stability_result_sha256":stability["result_sha256"],
         "static_state_count":len(seen),"assessment_count":len(rows),"expected_assessment_count":len(seen)*len(DIAMETERS),

@@ -112,7 +112,7 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
   assert.equal(ids.get('columnForces').children.length,0);
   const stabilityPayload=()=>{
     const p=precheckPayload();p.column_prechecks.result_sha256='PRECHECK2';
-    p.column_stability={source_run_id:run(2),source_archive_sha256:'SOURCE_2',source_demand_result_sha256:'DEMAND2',
+    p.column_stability={axis_convention:'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3',source_run_id:run(2),source_archive_sha256:'SOURCE_2',source_demand_result_sha256:'DEMAND2',
       source_prechecks_result_sha256:'PRECHECK2',design_demand_authority:'DENIED',actual_second_order_applied:false,
       calculated_section_count:1,distinct_section_count:1,native_property_match_count:5};
     return p;
@@ -138,20 +138,22 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
   assert.equal(ids.get('columnForces').children.length,0);
   const cagePayload=()=>{
     const p=stabilityPayload();p.column_stability.result_sha256='STABILITY2';
-    p.column_cages={source_run_id:run(2),source_archive_sha256:'SOURCE_2',source_demand_result_sha256:'DEMAND2',
+    p.column_cages={axis_convention:'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3',source_run_id:run(2),source_archive_sha256:'SOURCE_2',source_demand_result_sha256:'DEMAND2',
       source_prechecks_result_sha256:'PRECHECK2',result_sha256:'CAGES2',design_demand_authority:'DENIED',selected_design:null};
     return p;
   };
   ids.get('columnMember').value='C2';ids.get('columnView').value='cages';ids.get('columnView').trigger('change');await flush();
   const cageRequest=take();assert.doesNotMatch(cageRequest.url,/case=/);assert.equal(ids.get('columnCase').disabled,true);
   cageRequest.done({...cagePayload(),demand_page:{view:'cages',total:1,offset:0,limit:200,rows:[{
-    member_id:'C2',label:'16Φ24',t2_mm:800,t3_mm:800,as_cm2:72.38229474,rho_percent:1.130973,
-    center_offset_mm:64,minimum_clear_spacing_mm:144,geometry_status:'PROPOSED_GEOMETRY_CALCULATED',
-    area_ratio_status:'WITHIN_1_TO_4_PERCENT_REFERENCE',bars:[{x2_mm:336,x3_mm:336,diameter_mm:24}]}]}});await flush();
+    member_id:'C2',label:'16Φ24',t2_mm:600,t3_mm:700,as_cm2:72.38229474,rho_percent:1.723388,
+    center_offset_mm:64,minimum_clear_spacing_mm:94,geometry_status:'PROPOSED_GEOMETRY_CALCULATED',
+    area_ratio_status:'WITHIN_1_TO_4_PERCENT_REFERENCE',bars:[{x2_mm:286,x3_mm:236,diameter_mm:24}]}]}});await flush();
   assert.match(ids.get('columnForces').textContent,/72.3823/);assert.match(ids.get('columnContext').textContent,/merkez örtüsü 64 mm/);
   const drawing=ids.get('columnContext').children.find(c=>c.children.some(s=>s.attributes?.role==='img'));
-  assert.ok(drawing);assert.equal(drawing.children[0].children[1].attributes.cy,'-336');
-  const pmmPayload=()=>({...cagePayload(),column_pmm:{source_run_id:run(2),source_archive_sha256:'SOURCE_2',
+  assert.ok(drawing);assert.equal(drawing.children[0].children[1].attributes.cy,'-236');
+  assert.equal(drawing.children[0].children[0].attributes.width,'700');
+  assert.equal(drawing.children[0].children[0].attributes.height,'600');
+  const pmmPayload=()=>({...cagePayload(),column_pmm:{axis_convention:'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3',source_run_id:run(2),source_archive_sha256:'SOURCE_2',
     source_demand_result_sha256:'DEMAND2',source_cages_result_sha256:'CAGES2',source_stability_result_sha256:'STABILITY2',
     design_demand_authority:'DENIED',pmm_population_reduced:false,actual_second_order_applied:false,
     minimum_eccentricity_applied:false,selected_design:null,formal_compliance:'NOT_PROVEN',static_state_count:4,assessment_count:12}});
@@ -169,7 +171,7 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
     const p=cagePayload();
     p.column_cages.candidates=[{candidate_id:'CAGE2',label:'16Φ24',t2_mm:800,t3_mm:800,
       as_cm2:72.38229474,center_offset_mm:64,bars:[{x2_mm:336,x3_mm:336,diameter_mm:24}]}];
-    p.column_transverse={source_run_id:run(2),source_archive_sha256:'SOURCE_2',source_demand_result_sha256:'DEMAND2',
+    p.column_transverse={axis_convention:'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3',source_run_id:run(2),source_archive_sha256:'SOURCE_2',source_demand_result_sha256:'DEMAND2',
       source_cages_result_sha256:'CAGES2',result_sha256:'TRANSVERSE2',design_demand_authority:'DENIED',
       formal_compliance:'NOT_PROVEN',selected_design:null,proposal_policy:{physical_arrangement_proven:false}};
     return p;
@@ -186,7 +188,7 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
   const tieDrawing=ids.get('columnContext').children.find(c=>c.children.some(s=>s.attributes?.role==='img'));
   assert.ok(tieDrawing);assert.equal(tieDrawing.children[0].children[1].attributes.y1,'-168');
   assert.match(tieDrawing.textContent,/düşey yerleşim doğrulanmadı/);
-  const shearPayload=()=>({...transversePayload(),column_shear:{source_run_id:run(2),source_archive_sha256:'SOURCE_2',
+  const shearPayload=()=>({...transversePayload(),column_shear:{axis_convention:'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3',source_run_id:run(2),source_archive_sha256:'SOURCE_2',
     source_demand_result_sha256:'DEMAND2',source_cages_result_sha256:'CAGES2',source_transverse_result_sha256:'TRANSVERSE2',
     design_demand_authority:'DENIED',formal_compliance:'NOT_PROVEN',selected_design:null,ve_status:'NOT_PROVEN',
     source_population_reduced:false,actual_second_order_applied:false,vc_zero_gate:{required:null},static_state_count:8,assessment_count:48}});
@@ -210,5 +212,48 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
   ids.get('columnView').trigger('change');await flush();const promoted=shearPayload();promoted.column_shear.vc_zero_gate.required=true;
   take().done(promoted);await flush();assert.match(ids.get('columnStatus').textContent,/Kesme hesabının kaynak bağı/);
   assert.equal(ids.get('columnExports').children.length,0);
-  console.log('VS11–VS16 column UI identity, filtering, drawings and conditional PMM/shear scope PASS');
+  const jointsPayload=()=>{
+    const p=transversePayload();p.result_sha256='BANK2';
+    p.column_joints={source_run_id:run(2),source_archive_sha256:'SOURCE_2',source_bank_result_sha256:'BANK2',
+      source_demand_result_sha256:'DEMAND2',source_cages_result_sha256:'CAGES2',source_transverse_result_sha256:'TRANSVERSE2',
+      axis_convention:'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3',scenario:'CENTERLINE_AS_SECTION_CENTER_SCENARIO',
+      design_demand_authority:'DENIED',formal_compliance:'NOT_PROVEN',engineering_release:'NOT_READY',
+      selected_design:null,ve_status:'NOT_PROVEN',scwb_status:'NOT_PROVEN',physical_geometry_proven:false,
+      physical_joint_population_proven:false,joint_node_count:3,column_end_count:4,geometric_limit_count:4,
+      graph:{status:'NATIVE_ENDPOINT_GRAPH_BOUND',reason:null}};
+    return p;
+  };
+  const endRow={member_id:'C2',end:'I',point_id:'P1',geometry_column_id:'C2',
+    enclosure_scenario:'UNENCLOSED',status:'JOINT_GEOMETRIC_REFERENCES_CALCULATED',
+    axes:[{axis:'V2',calculation:{geometric_limit_kn:3786.291061184}},{axis:'V3',calculation:null}],
+    faces:{'2+':{face:'2+',frame_id:'B2',native_end:'I',beam_width_mm:600,column_transverse_width_mm:800}},
+    missing_faces:['2-'],narrow_faces:[],reason:null};
+  ids.get('columnView').value='joints';ids.get('columnView').trigger('change');await flush();
+  const jointsRequest=take();assert.doesNotMatch(jointsRequest.url,/case=/);assert.equal(ids.get('columnCase').disabled,true);
+  jointsRequest.done({...jointsPayload(),demand_page:{view:'joints',total:1,offset:0,limit:200,rows:[endRow]}});await flush();
+  assert.match(ids.get('columnForces').textContent,/3786.29/);
+  assert.match(ids.get('columnForces').textContent,/Kuşatılmamış · eşmerkez senaryo/);
+  assert.match(ids.get('columnUnits').textContent,/Ve ve SCWB doğrulanmadı/);
+  assert.match(ids.get('columnContext').textContent,/B2/);
+  ids.get('columnView').trigger('change');await flush();const oldJoint=take();
+  ids.get('columnView').value='joint-ties';ids.get('columnView').trigger('change');await flush();
+  const jt=take();assert.doesNotMatch(jt.url,/case=/);
+  jt.done({...jointsPayload(),demand_page:{view:'joint-ties',total:1,offset:0,limit:200,rows:[{
+    member_id:'C2',end:'I',point_id:'P1',lower_column_id:'C1',axis:'V2',lower_axis:'V3',candidate_label:'16Φ24',
+    branches:{high:{required_ash_at_joint_spacing_mm2:251.612308,proposed_ash_mm2:565.486678,joint_spacing_mm:100},
+      low:{required_ash_at_joint_spacing_mm2:167.741538}},tie_reason:null}]}});await flush();
+  assert.match(ids.get('columnForces').textContent,/251.612/);assert.match(ids.get('columnForces').textContent,/V3/);
+  oldJoint.done({...jointsPayload(),demand_page:{view:'joints',total:1,offset:0,limit:200,rows:[endRow]}});await flush();
+  assert.doesNotMatch(ids.get('columnForces').textContent,/3786.29/);
+  assert.match(ids.get('columnUnits').textContent,/tam donatı ihtiyacı doğrulanmadı/);
+  for (const change of [p=>p.column_joints.source_transverse_result_sha256='OTHER',p=>p.column_joints.physical_geometry_proven=true]) {
+    ids.get('columnView').trigger('change');await flush();const invalid=jointsPayload();change(invalid);take().done(invalid);await flush();
+    assert.match(ids.get('columnStatus').textContent,/Birleşim hesabının kaynak bağı/);
+    assert.equal(ids.get('columnForces').children.length,0);assert.equal(ids.get('columnExports').children.length,0);
+  }
+  ids.get('columnView').value='cages';ids.get('columnView').trigger('change');await flush();
+  const legacy=cagePayload();delete legacy.column_cages.axis_convention;take().done(legacy);await flush();
+  assert.match(ids.get('columnStatus').textContent,/Kesit eksen sözleşmesi eski veya belirsiz/);
+  assert.equal(ids.get('columnExports').children.length,0);
+  console.log('VS11–VS17 column UI identity, filtering, native axes, drawings and conditional joint/PMM/shear scope PASS');
 })().catch(error=>{console.error(error);process.exitCode=1;});

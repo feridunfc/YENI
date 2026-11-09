@@ -45,11 +45,11 @@ class SectionAndEccentricityTests(unittest.TestCase):
     def test_unequal_rectangle_axis_mapping_and_reference_units(self):
         fixture=StiffnessBank(); fixture.unequal_rectangle(); fixture.set_static_vector([-1000,0,0,0,20,40])
         result,_=assess(fixture.build()); sec=result['sections'][0]['section']
-        self.assertAlmostEqual(sec['i22_mm4']/1e9,25.6)
-        self.assertAlmostEqual(sec['i33_mm4']/1e9,14.4)
+        self.assertAlmostEqual(sec['i22_mm4']/1e9,14.4)
+        self.assertAlmostEqual(sec['i33_mm4']/1e9,25.6)
         axes=result['eccentricity']['rows'][0]['axes']
-        self.assertEqual([a['e_min_mm'] for a in axes],['39','33'])
-        self.assertEqual([a['reference_minimum_moment_kNcm'] for a in axes],['3900','3300'])
+        self.assertEqual([a['e_min_mm'] for a in axes],['33','39'])
+        self.assertEqual([a['reference_minimum_moment_kNcm'] for a in axes],['3300','3900'])
         self.assertEqual([a['status'] for a in axes],['BELOW_REFERENCE','AT_OR_ABOVE_REFERENCE'])
         self.assertEqual([a['source_eccentricity_mm'] for a in axes],['20','40'])
 
@@ -67,9 +67,9 @@ class SectionAndEccentricityTests(unittest.TestCase):
             self.assertTrue(all(a['source_eccentricity_mm'] is None for r in result['eccentricity']['rows'] for a in r['axes']))
 
     def test_noninteger_dimension_unit_conversion_does_not_turn_equality_into_failure(self):
-        for t3,moment in ((.3017,24.051),(.8034,39.102)):
+        for t2,moment in ((.3017,24.051),(.8034,39.102)):
             fixture=StiffnessBank(); fixture.set_static_vector([-1000,0,0,0,moment,40])
-            fixture.calls[('PropFrame.GetRectangle','frame_section','RECT_SYNTHETIC')]['raw_response'][2]=t3
+            fixture.calls[('PropFrame.GetRectangle','frame_section','RECT_SYNTHETIC')]['raw_response'][3]=t2
             fixture.omitted.add(('PropFrame.GetSectProps','frame_section','RECT_SYNTHETIC'))
             result,_=assess(fixture.build())
             row=result['eccentricity']['rows'][0]['axes'][0]

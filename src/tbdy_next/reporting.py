@@ -23,7 +23,7 @@ class ReportUnavailable(ValueError):
 
 def _column_cage_svg(cage, layout=None):
     """Draw the stored proposed bar coordinates; no structural calculation."""
-    w,h = cage["t2_mm"],cage["t3_mm"]
+    w,h = cage["t3_mm"],cage["t2_mm"]  # CSI native T3 is along local 2.
     content = ('<figure><svg xmlns="http://www.w3.org/2000/svg" role="img" width="200" height="200" ' +
         f'viewBox="{-w/2-60} {-h/2-60} {w+120} {h+120}" aria-label="' + escape(cage["label"],quote=True) +
         ' öneri kesiti"><rect ' + f'x="{-w/2}" y="{-h/2}" width="{w}" height="{h}" ' +
@@ -162,8 +162,8 @@ def build_column_bank_html(report: Mapping[str, Any]) -> str:
             'uç momenti eğrilik işareti ve analiz esası bağlanmadan gerçek kuvvetlere büyütme uygulanmaz. ' +
             '7.29 metnindeki serbest boy ifadesi ile basılı lk sembolü uyuşmadığından bu karar NOT_PROVEN kalır.</p>')
         ecc = stability["eccentricity"]
-        content += ('<h2>Minimum dışmerkezlik referansı · TS500 6.16</h2><p>e,min=15+0,03h (mm); M2 için h=T3, ' +
-            'M3 için h=T2. ' + _val(ecc["state_count"]) + ' statik kaynak kaydında ' + _val(ecc["axis_comparison_count"]) +
+        content += ('<h2>Minimum dışmerkezlik referansı · TS500 6.16</h2><p>Native T3 yerel 2, T2 yerel 3 boyutudur. e,min=15+0,03h (mm); M2 için h=T2, ' +
+            'M3 için h=T3. ' + _val(ecc["state_count"]) + ' statik kaynak kaydında ' + _val(ecc["axis_comparison_count"]) +
             ' eksen kaydı: ' + _val(ecc["status_counts"]) + '. Basınç olmayan satırlar ayrı tutulur. ' +
             'Bu hüküm tasarım uç momentine yöneliktir; iç istasyon kıyasları normatif ihlal/başarı sayılmaz. ' +
             'Kaynak vektörleri değiştirilmez; tam satır izleri JSON çıktısındadır.</p>')
@@ -246,7 +246,7 @@ def build_column_bank_html(report: Mapping[str, Any]) -> str:
     if shear:
         content += ('<h2>Koşullu kesme · Tam statik kaynak nüfusu</h2><p>' + _val(shear["static_state_count"]) +
             ' statik vektör × 3 öneri × 2 yerel yön = ' + _val(shear["assessment_count"]) +
-            ' kıyas. V2: bw=T3, d=T2−boyuna merkez örtüsü; V3: bw=T2, d=T3−boyuna merkez örtüsü. ' +
+            ' kıyas. V2: bw=T2, d=T3−boyuna merkez örtüsü; V3: bw=T3, d=T2−boyuna merkez örtüsü. ' +
             'd karşı dış boyuna katmanın merkezine göre bir referanstır; tasarım kesiti kabulü değildir.</p>')
         content += ('<p>TS500 8.1 senaryosu: fctk=0,35√fck, fctd=fctk/1,5; Vcr=0,65fctd·bw·d·(1+γ|N|/Ac), ' +
             'basınçta γ=0,07, çekmede γ=−0,30. Vc=0,8Vcr; Vw=(Asw/s)·fywd·d; Vr=Vc+Vw. Ayrı senaryoda Vc=0. ' +
@@ -272,6 +272,37 @@ def build_column_bank_html(report: Mapping[str, Any]) -> str:
         content += '<p>Kesme hesabı SHA-256: '+_val(shear["result_sha256"])+'. <strong>DENIED / NOT_PROVEN / NOT_READY</strong>.</p>'
         content += '<p>Hesap dayanakları: '+', '.join('<a href="'+escape(url,quote=True)+'">'+escape(name)+'</a>'
             for name,url in shear["references"].items())+'</p>'
+    joints = report.get("column_joints")
+    if joints:
+        from .column_engine.column_joints import joint_summaries, joint_tie_summaries
+        content += ('<h2>VS17 · Kolon–kiriş birleşim referansları</h2><p>' + _val(joints["joint_node_count"]) +
+            ' native düğüm · ' + _val(joints["column_end_count"]) + ' kolon ucu · ' + _val(joints["geometric_limit_count"]) +
+            ' yön sınırı. Kesitler düğüm merkezinde eşmerkez ve dik kabul edilen ayrı uç senaryolarıdır. ' +
+            'Her satırın geometrisi uç kolonuna; sargı referansı ayrıca belirtilen alt kolona aittir. ' +
+            'Native uç bağlantıları fiziksel birleşim yüzlerini veya eksantrisiteyi kanıtlamaz.</p>')
+        content += ('<p>TBDY 7.5.1: dört tarafta kiriş ve her kiriş eni ≥ ilgili kolon eninin %75’i. ' +
+            'Kuşatılmış/kuşatılmamış senaryoda sınır 1,7/1,0 × bj × h × √fck. Eşmerkez durumda bj, ' +
+            'kolon eni ve en dar kiriş eni+h sınırıyla belirlenir; boyutlar mm, dayanım MPa, sonuç kN. ' +
+            '<strong>Birleşim Ve ve SCWB: NOT_PROVEN</strong>. Kiriş donatısı ve depremle uyumlu kapasite durumları eksiktir.</p>')
+        content += '<p>Kapsam: '+_val(joints["status_counts"])+'. Uç senaryoları: '+_val(joints["enclosure_counts"])+'.</p>'
+        if joints["graph"].get("reason"): content += '<p>Kaynak bağı: '+_val(joints["graph"]["reason"])+'.</p>'
+        ends = joint_summaries(joints) if "rows" in joints else joints.get("end_summaries",[])
+        content += '<details><summary>Kolon uçları, kiriş bağlantıları ve koşullu kesme sınırları</summary>'+_table((
+            ("member_id","Geometri kolonu"),("end","Uç"),("point_id","Düğüm"),("enclosure_scenario","Eşmerkez sınıf"),
+            ("beam_ids","Kirişler"),("limit_V2_kn","V2 sınırı (kN)"),("limit_V3_kn","V3 sınırı (kN)"),
+            ("missing_faces","Kirişsiz yüz"),("narrow_faces","Dar kiriş yüzü"),("status","Kapsam"),("reason","Açık neden")),ends)+'</details>'
+        content += ('<h3>Birleşim sargı referansları · Denk. 7.1 tabanı</h3><p>Alt kolonun iki eksenel yük dalındaki ' +
+            'Ash/s referansları fiziksel doğrultuya eşlenir. TBDY 7.5.2.3 için %40/%60 oranıyla aynı Φ12/100 önerisine ' +
+            'aktarılır; aralık sınırları 150/100 mm, çap alt sınırı 8 mm. Eksik kapasite kesmesi daha fazla donatı ' +
+            'gerektirebilir; bu hesap tam birleşim donatısı ihtiyacı veya gerçek donatı kabulü değildir.</p>')
+        ties = joint_tie_summaries(joints) if "rows" in joints else joints.get("tie_summaries",[])
+        content += '<details><summary>Alt kolon, yön ve öneri bazında sargı referansları</summary>'+_table((
+            ("member_id","Uç kolonu"),("end","Uç"),("point_id","Düğüm"),("lower_column_id","Alt kolon"),
+            ("axis","Uç yönü"),("lower_axis","Alt kolon yönü"),("candidate_label","Boyuna öneri"),
+            ("required_high_mm2","Ash yüksek N (mm²)"),("required_low_mm2","Ash düşük N (mm²)"),
+            ("proposed_ash_mm2","Öneri Ash (mm²)"),("spacing_mm","Öneri s (mm)"),("tie_reason","Açık neden")),ties)+'</details>'
+        content += '<p>Birleşim türetimi SHA-256: '+_val(joints["result_sha256"])+'. '+', '.join(
+            '<a href="'+escape(url,quote=True)+'">'+escape(name)+'</a>' for name,url in joints["references"].items())+'</p>'
     historical = report.get("historical_reconciliation")
     if historical:
         content += '<h2>Tarihsel D7-B6 toplamları</h2>' + _table((

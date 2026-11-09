@@ -10,6 +10,7 @@ from decimal import Decimal
 import math
 
 from .native_archive import BankError, finite
+from .csi_geometry import local_dimensions
 
 TS500_REFERENCE = "https://staff.emu.edu.tr/cemalgenes/Documents/courses/INSA471_2019_20_Bahar/TS500.pdf"
 SWAY_PREVENTED = "SWAY_PREVENTED"
@@ -37,13 +38,13 @@ def _ratio(value):
 
 
 def rectangle_properties(t2_mm, t3_mm):
-    """CSI M2 bends about local 2: h=T3; M3 about local 3: h=T2."""
-    t2, t3 = positive(t2_mm, "T2"), positive(t3_mm, "T3")
-    area = t2 * t3
-    i22, i33 = t2 * t3**3 / 12, t3 * t2**3 / 12
+    """Native CSI dimensions: M2 bends through T2; M3 through T3."""
+    d2, d3 = local_dimensions(t2_mm, t3_mm)
+    area = d2 * d3
+    i22, i33 = d2 * d3**3 / 12, d3 * d2**3 / 12
     result = {"area_mm2": area, "i22_mm4": i22, "i33_mm4": i33,
         "r22_exact_mm": math.sqrt(i22 / area), "r33_exact_mm": math.sqrt(i33 / area),
-        "r22_ts500_approx_mm": .30 * t3, "r33_ts500_approx_mm": .30 * t2}
+        "r22_ts500_approx_mm": .30 * d3, "r33_ts500_approx_mm": .30 * d2}
     for name, value in result.items():
         positive(value, name)
     return result

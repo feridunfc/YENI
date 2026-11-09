@@ -31,6 +31,7 @@ def main(argv: list[str] | None = None) -> int:
     demands.add_argument("--out", type=Path, default=Path(".receipts"))
     demands.add_argument("--pmm", action="store_true", help="Evaluate the three proposed cages against all static vectors")
     demands.add_argument("--shear", action="store_true", help="Compare proposed transverse steel with every static V2/V3 source state")
+    demands.add_argument("--joints", action="store_true", help="Inspect native joint topology and conditional geometric references offline")
     args = parser.parse_args(argv)
     if args.action == "serve":
         from .web import serve
@@ -69,6 +70,13 @@ def main(argv: list[str] | None = None) -> int:
                 shear = report["column_shear"]
                 result["column_shear"] = {k:shear[k] for k in ("static_state_count","assessment_count","status_counts",
                     "reason_counts","ve_status","selected_design","formal_compliance","result_sha256")}
+            if args.joints:
+                joints = report["column_joints"]
+                result["column_joints"] = {k:joints[k] for k in ("joint_node_count","column_end_count","nodes_with_beams",
+                    "status_counts","enclosure_counts","geometric_limit_count","tie_reference_count","scenario",
+                    "ve_status","scwb_status","formal_compliance","result_sha256")}
+                result["column_joints"]["graph_status"] = joints["graph"]["status"]
+                result["column_joints"]["graph_reason"] = joints["graph"]["reason"]
         except (OSError, EOFError, ValueError, KeyError, TypeError, sqlite3.Error) as exc:
             print(json.dumps({"status": "REJECTED", "reason": str(exc), "engineering_release": "NOT_READY"}, ensure_ascii=False))
             return 2

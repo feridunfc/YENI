@@ -28,7 +28,14 @@
     PROPOSED_TRANSVERSE_REFERENCES_CALCULATED:'Öneri sargı hesabı',
     SHEAR_REFERENCES_CALCULATED:'İki kesme senaryosu hesaplandı', SHEAR_REFERENCE_PARTIAL:'Kesme senaryosu kısmi',
     WITHIN_REFERENCE_RESISTANCE:'Referans dayanım içinde', EXCEEDS_REFERENCE_RESISTANCE:'Referans dayanımı aşıyor',
-    OUTSIDE_CRACKING_FORMULA_DOMAIN:'Çekme durumu formül alanı dışında'
+    OUTSIDE_CRACKING_FORMULA_DOMAIN:'Çekme durumu formül alanı dışında',
+    ENCLOSED:'Kuşatılmış · eşmerkez senaryo', UNENCLOSED:'Kuşatılmamış · eşmerkez senaryo',
+    JOINT_GEOMETRIC_REFERENCES_CALCULATED:'Geometrik referans hesaplandı',
+    NO_RECORDED_BEAM_AT_NODE:'Düğümde kayıtlı kiriş yok',
+    JOINT_OTHER_INCIDENT_FRAME_NOT_CLASSIFIED:'Sınıflandırılmamış bağlı çubuk',
+    JOINT_INTERIOR_FRAME_CONNECTION_NOT_BOUND:'Çubuk içindeki bağlantı belirsiz',
+    JOINT_COINCIDENT_DISTINCT_POINT_IDS:'Aynı koordinatta farklı düğümler',
+    EQ71_BASELINE_REFERENCES_CALCULATED:'Denk. 7.1 esaslı sargı referansı'
   };
   let epoch = 0, historyEpoch = 0, opened = false, offset = 0, total = 0;
   const text = (tag, value, css) => {
@@ -46,7 +53,7 @@
       for (const [key,value] of Object.entries(attrs)) node.setAttribute(key,String(value));
       svg.append(node); return node;
     };
-    const w=cage.t2_mm,h=cage.t3_mm;
+    const w=cage.t3_mm,h=cage.t2_mm; // Native T3 is the local-2 extent.
     svg.setAttribute('viewBox',`${-w/2-60} ${-h/2-60} ${w+120} ${h+120}`);
     svg.setAttribute('width','190'); svg.setAttribute('height','190');
     svg.setAttribute('role','img'); svg.setAttribute('aria-label',cage.label+' öneri kesiti; yerel 2 sağa, yerel 3 yukarı');
@@ -99,7 +106,7 @@
     if (!selected) { el('columnStatus').textContent = 'Kolon arşivi seçilmedi.'; return; }
     const params = new URLSearchParams({run_id:selected, offset:String(offset)});
     const selectedView = view.value || 'native';
-    const sectionView = ['reinforcement','stiffness','cages','transverse'].includes(selectedView);
+    const sectionView = ['reinforcement','stiffness','cages','transverse','joints','joint-ties'].includes(selectedView);
     loadCase.disabled = sectionView;
     if (member.value) params.set('member', member.value);
     if (loadCase.value && !sectionView) params.set('case', loadCase.value);
@@ -177,6 +184,22 @@
           shear.source_population_reduced !== false || shear.actual_second_order_applied !== false || shear.vc_zero_gate?.required !== null)) {
         throw new Error('Kesme hesabının kaynak bağı veya koşullu kapsamı uyuşmuyor.');
       }
+      const joints = report.column_joints;
+      for (const calculation of [stability,cages,pmm,transverse,shear]) {
+        if (calculation && calculation.axis_convention !== 'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3') {
+          throw new Error('Kesit eksen sözleşmesi eski veya belirsiz; güncel hesap gerekli.');
+        }
+      }
+      if (joints && (joints.source_run_id !== selected || joints.source_archive_sha256 !== report.source_archive_sha256 ||
+          joints.source_bank_result_sha256 !== report.result_sha256 || joints.source_demand_result_sha256 !== chain?.result_sha256 ||
+          joints.source_cages_result_sha256 !== cages?.result_sha256 || joints.source_transverse_result_sha256 !== transverse?.result_sha256 ||
+          joints.design_demand_authority !== 'DENIED' || joints.formal_compliance !== 'NOT_PROVEN' || joints.engineering_release !== 'NOT_READY' ||
+          joints.ve_status !== 'NOT_PROVEN' || joints.scwb_status !== 'NOT_PROVEN' || joints.selected_design !== null ||
+          joints.physical_geometry_proven !== false || joints.physical_joint_population_proven !== false ||
+          joints.scenario !== 'CENTERLINE_AS_SECTION_CENTER_SCENARIO' ||
+          joints.axis_convention !== 'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3')) {
+        throw new Error('Birleşim hesabının kaynak bağı veya koşullu kapsamı uyuşmuyor.');
+      }
       for (const [label, url] of [
         ['HTML hesap raporu', '/report/column-bank?'],
         ['Tam JSON', '/api/export-column-bank?format=json&'],
@@ -200,6 +223,7 @@
       if (selectedView === 'pmm' && !pmm) throw new Error('Koşullu PMM hesabı bulunamadı.');
       if (selectedView === 'transverse' && !transverse) throw new Error('Enine donatı önerisi bulunamadı.');
       if (selectedView === 'shear' && !shear) throw new Error('Koşullu kesme hesabı bulunamadı.');
+      if (['joints','joint-ties'].includes(selectedView) && !joints) throw new Error('Birleşim referansları bulunamadı.');
       if (!page || (selectedView !== 'native' && page.view !== selectedView)) throw new Error('İstenen talep görünümü bulunamadı.');
       total = page.total; offset = page.offset;
       const identity = [['Obj','Kolon'], ['Elm','Analiz elemanı'], ['ObjSta','Nesne istasyonu'], ['ElmSta','Eleman istasyonu'],
@@ -241,7 +265,7 @@
             object:r.lengths.object_i_j_m,span:r.lengths.output_face_span_m,comparison:labels[r.property_comparison_status] || r.property_comparison_status}))));
       } else if (selectedView === 'eccentricity') {
         el('columnUnits').textContent = 'TS500 6.16: e,min = 15 + 0,03h (mm); N·e,min referansı kN·cm. Uç momenti hükmü için kaynak kıyasıdır; iç istasyonlara yönetmelik PASS/FAIL verilmez. Kuvvetler değiştirilmez.';
-        el('columnContext').append(text('p', 'M2 için h=T3, M3 için h=T2. Basınç olmayan kayıtlarda bu referans uygulanmaz. Tasarım uçlarının ve birleşimlerinin kabulü ayrıca gereklidir.', 'micro'));
+        el('columnContext').append(text('p', 'Native T3 yerel 2, T2 yerel 3 boyutudur. M2 için h=T2, M3 için h=T3. Basınç olmayan kayıtlarda bu referans uygulanmaz. Tasarım uçlarının ve birleşimlerinin kabulü ayrıca gereklidir.', 'micro'));
         el('columnForces').append(table([['Obj','Kolon'],['Elm','Analiz elemanı'],['ObjSta','İstasyon (m)'],['LoadCase','Birleşim'],
           ['n','N (kN)'],['m2','|M2|'],['ref2','M2 referansı'],['s2','M2 kıyası'],['m3','|M3|'],['ref3','M3 referansı'],['s3','M3 kıyası']],
           page.rows.map(r=>({...r.native_key,n:r.axes[0].n_compression_kn,m2:r.axes[0].source_abs_moment_kNcm,
@@ -287,7 +311,7 @@
             reqLow:rounded(r.direction?.confinement.low_axial_required_ash_mm2),gap:rounded(r.direction?.maximum_lateral_leg_spacing_mm),
             smax:rounded(r.confinement_spacing_max_mm),label:labels[r.status] || r.status}))));
       } else if (selectedView === 'shear') {
-        el('columnUnits').textContent = 'Kuvvetler kN. V2: bw=T3, d=T2−merkez örtüsü; V3: bw=T2, d=T3−merkez örtüsü. Vr=Vc+Vw; oran |kaynak V|/Vr. Bunlar statik kaynak kıyaslarıdır; gerçek tasarım Ve doğrulanmadı.';
+        el('columnUnits').textContent = 'Kuvvetler kN. V2: bw=T2, d=T3−merkez örtüsü; V3: bw=T3, d=T2−merkez örtüsü. Vr=Vc+Vw; oran |kaynak V|/Vr. Bunlar statik kaynak kıyaslarıdır; gerçek tasarım Ve doğrulanmadı.';
         el('columnContext').append(text('p',`${shear.static_state_count} statik durum × 3 öneri × 2 yön = ${shear.assessment_count} kıyas (arşivin tamamı). `+
           'Vc=0 deprem koşulu seçilmedi; iki senaryo birlikte gösterilir. Burulma etkileşimi, kapasite kesmesi ve nihai donatı seçimi açık.','micro'));
         el('columnForces').append(table([['Obj','Kolon'],['ObjSta','İstasyon (m)'],['LoadCase','Birleşim'],
@@ -298,6 +322,31 @@
             vr:rounded(r.calculation?.branches.ts500.vr_kn),ratio:rounded(r.calculation?.branches.ts500.source_utilization),
             ratioZero:rounded(r.calculation?.branches.zero_concrete.source_utilization),label:labels[r.status] || r.status,
             reasonLabel:labels[r.reason] || r.reason}))));
+      } else if (selectedView === 'joints') {
+        el('columnUnits').textContent = 'TBDY 7.5 · Eşmerkez, dik kesit senaryosu. Dört yüzde kiriş ve her genişlik ≥ %75 koşuluyla sınıflandırılır. Kesme sınırları kN; Ve ve SCWB doğrulanmadı.';
+        el('columnContext').append(text('p',`${joints.joint_node_count} düğüm · ${joints.column_end_count} kolon ucu · ${joints.geometric_limit_count} yön sınırı. `+
+          'Her satırın kesiti o uç kolonuna aittir; birleşimin fiziksel yüzleri ve eksantrisitesi henüz bağlı değil.','micro'));
+        if (joints.graph.reason) el('columnContext').append(text('p',joints.graph.reason,'warn'));
+        el('columnForces').append(table([['member_id','Kolon'],['end','Uç'],['point_id','Düğüm'],['label','Eşmerkez sınıf'],
+          ['v2','V2 sınırı'],['v3','V3 sınırı'],['missing_faces','Kirişsiz yüz'],['narrow_faces','Dar kiriş yüzü'],['reasonLabel','Açık neden']],
+          page.rows.map(r=>({...r,label:labels[r.enclosure_scenario || r.status] || r.status,
+            v2:rounded(r.axes.find(a=>a.axis==='V2')?.calculation?.geometric_limit_kn),
+            v3:rounded(r.axes.find(a=>a.axis==='V3')?.calculation?.geometric_limit_kn),reasonLabel:labels[r.reason] || r.reason}))));
+        if (member.value) for (const row of page.rows) {
+          const details = text('details',''); details.append(text('summary',`${row.end} ucu · kiriş genişlikleri ve kaynak bağlantıları`));
+          details.append(table([['face','Kolon yüzü'],['frame_id','Kiriş'],['native_end','Kiriş ucu'],['beam_section_name','Kesit'],
+            ['beam_width_mm','Kiriş eni (mm)'],['column_transverse_width_mm','Kolon eni (mm)']],Object.values(row.faces).filter(Boolean)));
+          el('columnContext').append(details);
+        }
+      } else if (selectedView === 'joint-ties') {
+        el('columnUnits').textContent = 'TBDY 7.5.2.3 · Alt kolonun Denk. 7.1 sargı referansından %40/%60 × Ash/s aktarımı. Alanlar mm², aralık mm. İki N dalı açık kalır; kapasite kesmesi kaynaklı tam donatı ihtiyacı doğrulanmadı.';
+        el('columnContext').append(text('p','Öneri aynı Φ12/100 yerleşimidir. Üst ve alt kolonun eksenleri fiziksel doğrultuyla eşlenir. Kuşatılmış/kuşatılmamış senaryoda aralık sınırı 150/100 mm, çap alt sınırı 8 mm; gerçek birleşim detayı henüz doğrulanmadı.','micro'));
+        el('columnForces').append(table([['member_id','Uç kolonu'],['end','Uç'],['point_id','Düğüm'],['lower_column_id','Alt kolon'],
+          ['axis','Uç yönü'],['lower_axis','Alt kolon yönü'],['candidate_label','Boyuna öneri'],['high','Ash · yüksek N'],
+          ['low','Ash · düşük N'],['ash','Öneri Ash'],['s','Öneri s'],['reasonLabel','Açık neden']],page.rows.map(r=>({...r,
+            high:rounded(r.branches.high?.required_ash_at_joint_spacing_mm2),low:rounded(r.branches.low?.required_ash_at_joint_spacing_mm2),
+            ash:rounded(r.branches.high?.proposed_ash_mm2),s:r.branches.high?.joint_spacing_mm,
+            reasonLabel:labels[r.tie_reason] || r.tie_reason}))));
       } else {
         el('columnUnits').textContent = 'ETABS tasarım özetindeki referanslar. Yuvarlanmış veya çift istasyonlardan tekil kuvvet seçilmez; bu görünüm PMM/kesme uygunluğu değildir.';
         const rows = page.rows.map(r => {

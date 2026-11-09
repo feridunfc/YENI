@@ -210,8 +210,8 @@ def make_handler(output_root: Path, *, live_capture=None):
             offset = query.get("offset", ["0"])[0]
             view = query.get("view", ["native"])[0]
             if (fmt not in ("json", "sqlite") or not offset.isdecimal() or len(offset) > 9
-                    or view not in ("native", "static", "design", "critical", "reinforcement", "stiffness", "eccentricity", "cages", "pmm", "transverse", "shear")
-                    or (view in ("reinforcement", "stiffness", "cages", "transverse") and "case" in query)):
+                    or view not in ("native", "static", "design", "critical", "reinforcement", "stiffness", "eccentricity", "cages", "pmm", "transverse", "shear", "joints", "joint-ties")
+                    or (view in ("reinforcement", "stiffness", "cages", "transverse", "joints", "joint-ties") and "case" in query)):
                 self.reply(400, {"error": "COLUMN_QUERY_INVALID"})
                 return
             try:

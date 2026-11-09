@@ -9,10 +9,11 @@ import math
 import zlib
 
 from .column_prechecks import _number, _text
+from .csi_geometry import AXIS_CONVENTION, REFERENCE as CSI_REFERENCE
 from .native_archive import BankError, digest
 from .ts500_column import TS500_REFERENCE, minimum_eccentricity_mm, positive, rectangle_properties
 
-SCHEMA = "tbdy.next.column-stability-inputs.v1"
+SCHEMA = "tbdy.next.column-stability-inputs.v2"
 SECTION_FIELDS = ("Area", "As2", "As3", "Torsion", "I22", "I33", "S22", "S33", "Z22", "Z33", "R22", "R33", "pRetVal")
 ELASTIC_FIELDS = ("E", "U", "A", "G", "pRetVal")
 SOURCE_RTOL, SOURCE_ATOL = 1e-10, 1e-12  # Native m-based quantities; serialization comparison only.
@@ -47,8 +48,8 @@ def _section_row(member, bound, archive):
         properties = rectangle_properties(t2, t3)
         row.update(geometry_status="RECTANGLE_CALCULATED", section={**properties, "t2_mm": t2, "t3_mm": t3,
             "t2_mm_decimal": _text(t2_exact), "t3_mm_decimal": _text(t3_exact),
-            "e_min_m2_mm": _text(minimum_eccentricity_mm(t3_exact)),
-            "e_min_m3_mm": _text(minimum_eccentricity_mm(t2_exact))})
+            "e_min_m2_mm": _text(minimum_eccentricity_mm(t2_exact)),
+            "e_min_m3_mm": _text(minimum_eccentricity_mm(t3_exact))})
         row["source_calls"].update(bound["source_calls"])
     except OPTIONAL_ERRORS as exc:
         row["reason_codes"].append(str(exc))
@@ -152,7 +153,8 @@ def build_column_stability(bank, chain, prechecks, archive):
             "m3_counts": dict(Counter(r["axes"][1]["status"] for r in states))})
     result = {"schema": SCHEMA, "source_run_id": bank.get("run_id"), "source_archive_sha256": archive.sha256,
         "source_demand_result_sha256": chain["result_sha256"], "source_prechecks_result_sha256": prechecks["result_sha256"],
-        "reference_url": TS500_REFERENCE, "selected_member_count": len(sections),
+        "reference_url": TS500_REFERENCE, "axis_convention": AXIS_CONVENTION, "axis_reference_url": CSI_REFERENCE,
+        "selected_member_count": len(sections),
         "calculated_section_count": sum(r["section"] is not None for r in sections),
         "distinct_section_count": len({r["section_name"] for r in sections if r["section"] is not None}),
         "native_property_match_count": sum(c["status"] == "NUMERICAL_MATCH" for r in sections for c in r["property_comparisons"]),

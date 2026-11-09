@@ -19,7 +19,8 @@ class StiffnessBank(DesignBank):
                 if row[4] in ('G','SUM'): row[7:]=list(vector)
 
     def unequal_rectangle(self):
-        # T2=.6 m, T3=.8 m. I22=.0256 m4; I33=.0144 m4.
+        # Native T2=.6 m, T3=.8 m: local-2 extent .8, local-3 extent .6.
+        # I22=.8*.6^3/12=.0144; I33=.6*.8^3/12=.0256 m4.
         self.calls[('PropFrame.GetRectangle','frame_section','RECT_SYNTHETIC')]['raw_response'][2:4]=[.8,.6]
         props=self.calls[('PropFrame.GetSectProps','frame_section','RECT_SYNTHETIC')]['raw_response']
-        props[0]=.48; props[4:6]=[.0256,.0144]; props[10:12]=[.2309401076758503,.17320508075688773]
+        props[0]=.48; props[4:6]=[.0144,.0256]; props[10:12]=[.17320508075688773,.2309401076758503]
