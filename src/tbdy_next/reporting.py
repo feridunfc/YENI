@@ -398,7 +398,9 @@ def build_column_bank_html(report: Mapping[str, Any]) -> str:
         '<br>Hesap SHA-256: ' + _val(report["result_sha256"]) + '</p>')
     if report.get("column_overview"):
         from .column_overview_report import overview_html
-        content = overview_html(report["column_overview"]) + '<details class="calculation-details"><summary>Tüm kaynak tabloları, formüller ve ara hesaplar</summary>' + content + '</details>'
+        from .column_quality_report import quality_html
+        quality = quality_html(report["column_pmm_quality"]) if report.get("column_pmm_quality") else ""
+        content = overview_html(report["column_overview"]) + quality + '<details class="calculation-details"><summary>Tüm kaynak tabloları, formüller ve ara hesaplar</summary>' + content + '</details>'
     return ('<!doctype html><html lang="tr"><meta charset="utf-8"><title>YENI · Kolon mühendislik özeti</title>' +
         '<style>body{font:14px/1.5 system-ui;margin:32px;color:#243345}h1{font-size:23px}h2{margin-top:30px}' +
         'table{border-collapse:collapse;width:100%;font-size:11px}th,td{border:1px solid #cfd8e3;padding:6px;text-align:left}' +

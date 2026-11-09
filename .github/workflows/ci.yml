@@ -24,6 +24,7 @@ jobs:
       - run: node tests/test_vs07_ui_state.cjs
       - run: node tests/test_vs11_column_ui.cjs
       - run: node tests/test_vs20_column_ui.cjs
+      - run: node tests/test_vs21_column_ui.cjs
   windows-b1-http:
     # Live ETABS COM is not required; this checks Windows socket/HTTP behavior
     # that Ubuntu cannot exercise (cross-origin rejection, WinError 10053).
@@ -45,3 +46,4 @@ jobs:
       - run: python -m unittest discover -s tests -p "test_vs18_*.py" -v
       - run: python -m unittest discover -s tests -p "test_vs19_*.py" -v
       - run: python -m unittest discover -s tests -p "test_vs20_*.py" -v
+      - run: python -m unittest discover -s tests -p "test_vs21_*.py" -v

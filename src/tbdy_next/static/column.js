@@ -21,6 +21,8 @@
     NONCOMPRESSION_NOT_APPLICABLE:'Basınç değil', PROPOSED_GEOMETRY_CALCULATED:'Öneri geometrisi',
     WITHIN_SCENARIO_SURFACE:'Koşullu yüzey içinde', EXCEEDS_SCENARIO_SURFACE:'Koşullu yüzey aşılıyor',
     NUMERIC_UNRESOLVED:'Sayısal çözüm belirsiz', BLOCKED_INPUTS:'Girdi eksik',
+    NUMERICAL_COMPARISON_MATCH:'Tolerans içinde', NUMERICAL_COMPARISON_MISMATCH:'Tolerans dışında',
+    REFERENCE_UNRESOLVED:'Referans çözülemedi', REFERENCE_NOT_STABLE:'Referans kararlı değil',
     AXIAL_ONLY_SCENARIO:'Yalnız eksenel senaryo', OUTSIDE_SCENARIO_AXIAL_RANGE:'Eksenel senaryo sınırı aşılıyor',
     WITHIN_1_TO_4_PERCENT_REFERENCE:'%1–4 aralığında', OUTSIDE_1_TO_4_PERCENT_REFERENCE:'%1–4 aralığı dışında',
     ANGULAR_REFINEMENT_NOT_STABLE:'Açısal yakınsama yeterli değil', AGGREGATE_NOT_BOUND:'Agrega bilgisi bekleniyor',
@@ -192,6 +194,42 @@
     values.forEach(([value, label]) => { const option = text('option', label); option.value = value; target.append(option); });
     target.value = '';
   }
+  function renderQuality(quality, page) {
+    el('columnUnits').textContent = 'Radyal kapasiteler kN·m. Ana hesabın kolon/öneri başına en büyük çözülen PMM kayıtları ve tüm eşitleri karşılaştırılır.';
+    el('columnContext').append(text('p',`${quality.comparison_count} kritik kayıt / ${quality.filtered_primary_assessment_count} filtrelenmiş PMM değerlendirmesi. `+
+      'Bu kritik alt küme bağımsız sayısal kıyastır; tüm PMM nüfusu ve kritik seçimin kendisi bağımsız doğrulanmış değildir.'));
+    el('columnContext').append(text('p','İki çözüm aynı malzeme modelini kullanır. Tolerans içinde sonuç, malzeme modelinin veya yönetmelik uygunluğunun kabulü değildir. ' +
+      'Depremli tasarım vektörü, ikinci mertebe ve nihai donatı seçimi bekleniyor.','micro'));
+    const statusCounts=Object.entries(quality.status_counts).map(([status,count])=>`${labels[status] || status}: ${count}`).join(' · ');
+    el('columnContext').append(text('p',statusCounts || 'Seçili filtrede karşılaştırılabilir kritik radyal kayıt yok.'));
+    for (const row of page.rows) {
+      if (row.final_design_eligible !== false || !labels[row.status] || !row.state_id || !row.candidate_id) {
+        throw new Error('Sayısal kıyasın kayıt kapsamı uyuşmuyor.');
+      }
+      if (row.status.startsWith('NUMERICAL_COMPARISON_') &&
+          (!Number.isFinite(row.reference_capacity_knm) || row.reference_capacity_knm <= 0 ||
+           !Number.isFinite(row.absolute_difference_knm) || !Number.isFinite(row.comparison_budget_knm) ||
+           (row.status === 'NUMERICAL_COMPARISON_MATCH') !== (row.absolute_difference_knm <= row.comparison_budget_knm))) {
+        throw new Error('Sayısal kıyasın tolerans durumu uyuşmuyor.');
+      }
+    }
+    el('columnForces').append(table([['member_id','Kolon'],['story','Kat'],['candidate_label','Öneri'],
+      ['combo','Kritik statik birleşim'],['primary','Ana kapasite'],['reference','Bağımsız kapasite'],
+      ['delta','|Fark|'],['budget','Tolerans'],['statusText','Sayısal kıyas']],page.rows.map(r=>({...r,
+        combo:r.native_key.LoadCase,primary:displayNumber(r.primary_capacity_knm),reference:displayNumber(r.reference_capacity_knm),
+        delta:displayNumber(r.absolute_difference_knm,4),budget:displayNumber(r.comparison_budget_knm,4),statusText:labels[r.status]}))));
+    const scope=text('details','');scope.append(text('summary','Karşılaştırma kapsamı ve kıyaslanmayan durumlar'));
+    scope.append(table([['member_id','Kolon'],['candidate_label','Öneri'],['primary_state_count','Ana kayıt'],
+      ['primary_radial_state_count','Radyal'],['primary_nonradial_state_count','Radyal dışı'],['target_count','Kritik eşitler'],
+      ['states','Ana hesap durumları']],quality.members.map(g=>({...g,states:Object.entries(g.primary_status_counts)
+        .map(([s,n])=>`${labels[s] || s}: ${n}`).join(' · ') || 'Statik hesap kaydı yok'}))));
+    el('columnOverviewDetails').append(scope);
+    if (member.value) {
+      const traces=text('details','');traces.append(text('summary','Seçili kolonun tam hassasiyet, kaynak ve sayısal çözüm izleri'));
+      traces.append(text('pre',JSON.stringify({models:quality.reference_models,policy:quality.numerical_policy,comparisons:quality.rows},null,2)));
+      el('columnOverviewDetails').append(traces);
+    }
+  }
   function clearResult() {
     for (const id of ['columnSummary', 'columnExports', 'columnContext', 'columnForces',
                       'columnReplay', 'columnCoverage', 'columnGaps', 'columnPage',
@@ -220,7 +258,7 @@
     if (member.value) params.set('member', member.value);
     if (loadCase.value && !sectionView) params.set('case', loadCase.value);
     if (selectedView !== 'native') params.set('view', selectedView);
-    el('columnStatus').textContent = ['pmm','overview'].includes(selectedView) ? 'Koşullu kolon hesapları hazırlanıyor; ilk açılış biraz sürebilir…' : 'Arşiv doğrulanıyor…';
+    el('columnStatus').textContent = ['pmm','overview','pmm-quality'].includes(selectedView) ? 'Koşullu kolon hesapları hazırlanıyor; ilk açılış biraz sürebilir…' : 'Arşiv doğrulanıyor…';
     try {
       const report = await get('/api/column-bank?' + params);
       if (ticket !== epoch || selected !== run.value) return;
@@ -366,6 +404,24 @@
       if (['end-forces','kinematics'].includes(selectedView) && !kinematics) throw new Error('Kolon uç kaynak bağı bulunamadı.');
       if (['stiffness-scenarios','length-sensitivity'].includes(selectedView) && !sensitivity) throw new Error('Etkin boy duyarlılığı bulunamadı.');
       const overview = report.column_overview;
+      const quality = report.column_pmm_quality;
+      if (selectedView === 'pmm-quality' && (!quality || quality.schema !== 'tbdy.next.column-pmm-numerical-reference.v1' ||
+          quality.policy_id !== 'CRITICAL_PMM_STRIP_GAUSS_BISECTION_V1' ||
+          quality.axis_convention !== 'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3' ||
+          quality.source_run_id !== selected || quality.source_archive_sha256 !== report.source_archive_sha256 ||
+          quality.source_demand_result_sha256 !== chain?.result_sha256 || quality.source_cages_result_sha256 !== cages?.result_sha256 ||
+          quality.source_pmm_result_sha256 !== pmm?.result_sha256 ||
+          quality.member_id_filter !== (member.value || null) || quality.output_case_filter !== (loadCase.value || null) ||
+          quality.critical_subset_only !== true || quality.critical_selection_independently_verified !== false ||
+          quality.full_primary_population_independently_checked !== false || quality.primary_results_changed !== false ||
+          quality.same_declared_material_model !== true || quality.independent_material_model_validation !== false ||
+          quality.continuous_error_bound_proven !== false || quality.global_root_uniqueness_proven !== false ||
+          quality.actual_second_order_applied !== false || quality.selected_design !== null ||
+          quality.design_demand_authority !== 'DENIED' || quality.formal_compliance !== 'NOT_PROVEN' || quality.engineering_release !== 'NOT_READY' ||
+          quality.comparison_count !== quality.critical_target_count || quality.comparison_count !== page?.total ||
+          quality.numerical_policy?.comparison_relative_tolerance !== .002 || quality.numerical_policy?.primary_level_spread_added_to_budget !== false)) {
+        throw new Error('Bağımsız PMM kıyasının kaynak bağı veya kapsamı uyuşmuyor.');
+      }
       if (selectedView === 'overview' && (!overview || overview.schema !== 'tbdy.next.column-overview.v1' ||
           overview.policy !== 'EXPLICIT_CAGE_DISPLAY_ONLY_SAME_SOURCE_VECTOR_V1' ||
           overview.axis_convention !== 'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3' ||
@@ -385,6 +441,8 @@
         ['LoadCase','Vaka / birleşim'], ['StepType','Adım'], ['StepNum','No']];
       if (selectedView === 'overview') {
         renderOverview(report,page,selectedProposal);
+      } else if (selectedView === 'pmm-quality') {
+        renderQuality(quality,page);
       } else if (selectedView === 'native') {
         el('columnUnits').textContent = 'Native işaretler korunur. Kuvvetler kN, momentler kN·m, istasyonlar m.';
         el('columnForces').append(table([...identity,...['P','V2','V3','T','M2','M3'].map(c => [c,c])], page.rows));

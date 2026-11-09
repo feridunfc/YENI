@@ -210,7 +210,7 @@ def make_handler(output_root: Path, *, live_capture=None):
             offset = query.get("offset", ["0"])[0]
             view = query.get("view", ["native"])[0]
             if (fmt not in ("json", "sqlite") or not offset.isdecimal() or len(offset) > 9
-                    or view not in ("native", "static", "design", "critical", "reinforcement", "stiffness", "eccentricity", "cages", "pmm", "transverse", "shear", "joints", "joint-ties", "end-forces", "kinematics", "stiffness-scenarios", "length-sensitivity", "overview")
+                    or view not in ("native", "static", "design", "critical", "reinforcement", "stiffness", "eccentricity", "cages", "pmm", "transverse", "shear", "joints", "joint-ties", "end-forces", "kinematics", "stiffness-scenarios", "length-sensitivity", "overview", "pmm-quality")
                     or (view in ("reinforcement", "stiffness", "cages", "transverse", "joints", "joint-ties", "stiffness-scenarios") and "case" in query)):
                 self.reply(400, {"error": "COLUMN_QUERY_INVALID"})
                 return
@@ -221,7 +221,7 @@ def make_handler(output_root: Path, *, live_capture=None):
                 else:
                     report = read_column_bank(output_root, run_id,
                         member_id=query.get("member", [None])[0], output_case=query.get("case", [None])[0],
-                        offset=int(offset), view="pmm" if url.path == "/report/column-bank" else view,
+                        offset=int(offset), view="pmm-quality" if url.path == "/report/column-bank" else view,
                         full=url.path == "/api/export-column-bank")
                     if url.path == "/api/column-bank":
                         self.reply(200, report)

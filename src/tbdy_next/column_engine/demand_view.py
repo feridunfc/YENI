@@ -19,6 +19,7 @@ from .column_joints import build_column_joints, joint_tie_rows, joint_summaries,
 from .column_kinematics import build_column_kinematics, kinematic_summaries
 from .column_sensitivity import build_column_sensitivity, sensitivity_summaries
 from .column_overview import build_column_overview
+from .column_pmm_quality import build_column_pmm_quality
 from .native_archive import BankError, NativeArchive, decode
 
 
@@ -66,6 +67,14 @@ def _shear(source_path, database_path, source_sha, database_sha, bank_result_sha
     return build_column_shear(derived["demand_chain"],derived["column_cages"],derived["column_transverse"])
 
 
+@lru_cache(maxsize=4)
+def _pmm_quality(source_path, database_path, source_sha, database_sha, bank_result_sha, member_id, output_case):
+    key=(source_path,database_path,source_sha,database_sha,bank_result_sha)
+    derived=_derive(*key)
+    return build_column_pmm_quality(derived["demand_chain"],derived["column_cages"],_pmm(*key),
+        member_id=member_id,output_case=output_case)
+
+
 def demand_view(database, report, *, member_id=None, output_case=None, offset=0, limit=200,
                 view="native", full=False):
     """Called only after store.verified_database has verified this exact run."""
@@ -75,16 +84,17 @@ def demand_view(database, report, *, member_id=None, output_case=None, offset=0,
     derived = _derive(*cache_key)
     # Numerical capacity is requested explicitly; ordinary source navigation
     # remains fast. Full export includes every candidate x every static state.
-    pmm = _pmm(*cache_key) if full or view in ("pmm", "overview") else None
+    pmm = _pmm(*cache_key) if full or view in ("pmm", "overview", "pmm-quality") else None
     # PMM/report includes the related shear summary. Shear navigation itself
     # never invokes the more expensive PMM solver.
-    shear = _shear(*cache_key) if full or view in ("pmm", "shear", "overview") else None
+    shear = _shear(*cache_key) if full or view in ("pmm", "shear", "overview", "pmm-quality") else None
+    quality = _pmm_quality(*cache_key,None if full else member_id,None if full else output_case) if full or view == "pmm-quality" else None
     chain, prechecks = derived["demand_chain"], derived["column_prechecks"]
     overview = build_column_overview(chain, derived["column_cages"], pmm, shear, derived["column_sensitivity"],
-        member_id=None if full or view == "pmm" else member_id,
-        output_case=None if full or view == "pmm" else output_case) if pmm is not None else None
+        member_id=None if full or view in ("pmm", "pmm-quality") else member_id,
+        output_case=None if full or view in ("pmm", "pmm-quality") else output_case) if pmm is not None else None
     if full:
-        return deepcopy({**derived,"column_pmm":pmm,"column_shear":shear,"column_overview":overview})
+        return deepcopy({**derived,"column_pmm":pmm,"column_shear":shear,"column_overview":overview,"column_pmm_quality":quality})
     summary = {k: v for k, v in chain.items() if k not in ("candidates", "design_summary")}
     summary["design_summary"] = {k: v for k, v in chain["design_summary"].items() if k != "rows"}
     precheck_summary = {k: v for k, v in prechecks.items() if k not in ("critical_selection", "reinforcement_bounds")}
@@ -105,7 +115,7 @@ def demand_view(database, report, *, member_id=None, output_case=None, offset=0,
     result["column_kinematics"] = deepcopy({k:v for k,v in kinematics.items() if k != "rows"})
     sensitivity = derived["column_sensitivity"]
     result["column_sensitivity"] = deepcopy({k:v for k,v in sensitivity.items() if k not in ("rows", "axes", "axial_profiles")})
-    if view == "pmm":
+    if view in ("pmm", "pmm-quality"):
         result["column_joints"]["end_summaries"] = joint_summaries(joints)
         result["column_joints"]["tie_summaries"] = joint_tie_summaries(joints)
         result["column_kinematics"]["summaries"] = kinematic_summaries(kinematics)
@@ -117,11 +127,17 @@ def demand_view(database, report, *, member_id=None, output_case=None, offset=0,
     if shear is not None:
         result["column_shear"] = deepcopy({k:v for k,v in shear.items() if k != "rows"})
     if overview is not None:
-        result["column_overview"] = deepcopy({k:v for k,v in overview.items() if k != "rows" or view == "pmm"})
+        result["column_overview"] = deepcopy({k:v for k,v in overview.items() if k != "rows" or view in ("pmm", "pmm-quality")})
+    if quality is not None:
+        # All critical ties (including failures) support the complete HTML report.
+        # The UI table is paginated separately; ordinary views never compute this.
+        result["column_pmm_quality"] = deepcopy(quality)
     if view == "native":
         return result
     if view == "overview":
         rows = overview["rows"]
+    elif view == "pmm-quality":
+        rows = quality["rows"]
     elif view == "critical":
         selection = critical_selection(chain, prechecks["population"], member_id=member_id, output_case=output_case)
         rows = selection["rows"]

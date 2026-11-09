@@ -35,6 +35,7 @@ def main(argv: list[str] | None = None) -> int:
     demands.add_argument("--kinematics", action="store_true", help="Link static force-cut pairs and joint displacement states offline")
     demands.add_argument("--sensitivity", action="store_true", help="Inspect explicit TS500 stiffness and effective-length parameter families offline")
     demands.add_argument("--overview", action="store_true", help="Summarize conditional member results and exact source coverage offline")
+    demands.add_argument("--quality", action="store_true", help="Independently compare primary-critical PMM capacities offline")
     args = parser.parse_args(argv)
     if args.action == "serve":
         from .web import serve
@@ -44,7 +45,7 @@ def main(argv: list[str] | None = None) -> int:
         import sqlite3
         from .column_engine.store import read_column_bank
         try:
-            report = read_column_bank(args.out, args.run_id, view="overview" if args.overview else "pmm" if args.pmm else "shear" if args.shear else "native")
+            report = read_column_bank(args.out, args.run_id, view="pmm-quality" if args.quality else "overview" if args.overview else "pmm" if args.pmm else "shear" if args.shear else "native")
             chain = report["demand_chain"]
             result = {k: chain[k] for k in ("source_run_id", "source_archive_sha256", "result_sha256",
                 "classification_counts", "static_candidate_count", "formal_compliance", "engineering_release")}
@@ -94,6 +95,8 @@ def main(argv: list[str] | None = None) -> int:
                     "axial_profile_status_counts", "actual_second_order_applied", "formal_compliance", "result_sha256")}
             if args.overview:
                 result["column_overview"] = report["column_overview"]
+            if args.quality:
+                result["column_pmm_quality"] = report["column_pmm_quality"]
         except (OSError, EOFError, ValueError, KeyError, TypeError, sqlite3.Error) as exc:
             print(json.dumps({"status": "REJECTED", "reason": str(exc), "engineering_release": "NOT_READY"}, ensure_ascii=False))
             return 2
