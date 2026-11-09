@@ -6,7 +6,7 @@ from hashlib import sha256
 from io import BytesIO
 import json
 import sqlite3
-from zipfile import ZipFile, ZIP_DEFLATED
+from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
 
 
 def encoded(value):
@@ -17,7 +17,9 @@ def zipped(files):
     output = BytesIO()
     with ZipFile(output, "w", compression=ZIP_DEFLATED) as z:
         for name, data in files.items():
-            z.writestr(name, data)
+            # Rebuilding unchanged synthetic evidence must preserve its identity.
+            info = ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
+            z.writestr(info, data, compress_type=ZIP_DEFLATED)
     return output.getvalue()
 
 

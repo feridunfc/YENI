@@ -343,11 +343,11 @@ def build_column_bank_html(report: Mapping[str, Any]) -> str:
             ' eksen kaydı: '+_val(sensitivity["stiffness_scenario_count"])+' EI senaryosu, '+
             _val(sensitivity["euler_reference_count"])+' Euler referansı, '+_val(sensitivity["zero_length_reference_count"])+
             ' matematiksel payda-sıfır boyu. Bütün ara istasyonlar ve eşit kritik kaynaklar korunur.</p>')
-        content += ('<p>TS500 7.19/7.21: EI=0,4EcIc/(1+Rm), Nk=π²EI/lk². Rm=0/0,5/1 açık parametre ailesidir; '+
+        content += ('<p>TS500 7.19/7.21: EI(N·mm²)=0,4EcIc/(1+Rm), Nk(kN)=π²EI/(1000lk(mm)²). Rm=0/0,5/1 açık parametre ailesidir; '+
             'gerçek sünme oranı veya doğrulanmış EI aralığı değildir. i=0,30h seçilir; √(I/A) ayrı gösterilir. '+
             '22i ötelenmesi önlenmemiş sınıfın koşullu sınırı, 40i önlenmiş sınıfın yalnız üst sınırı, '+
             '100i yaklaşık yöntemin narinlik tavanıdır. Bu boylar gerçek lk yerine atanmaz.</p>')
-        content += ('<p>lk,0=π√[EI/(1,3Nkaynak)] yalnız Denk.7.24 paydasının sıfır olduğu boydur; '+
+        content += ('<p>lk,0(mm)=π√[EI/(1,3×1000×Nkaynak(kN))] yalnız Denk.7.24 paydasının sıfır olduğu boydur; '+
             '<strong>izin verilen boy veya Nk=N Euler boyu değildir.</strong> 100i ötesindeki matematiksel '+
             'boy, yaklaşık yöntemin kapsamını genişletmez. Pozitif payda mühendislik stabilite kabulü değildir; '+
             'Cm, β ve tasarım momenti üretilmez.</p>')

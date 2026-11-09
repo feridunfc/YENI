@@ -22,6 +22,16 @@ def summary(report, name="SUM"):
 
 
 class NativeBankTests(unittest.TestCase):
+    def test_synthetic_archive_identity_survives_zip_timestamp_boundary(self):
+        fixture = SyntheticBank()
+        with patch('zipfile.time.localtime', return_value=(2026, 11, 9, 12, 0, 0, 0, 0, 0)):
+            before = fixture.build()
+        with patch('zipfile.time.localtime', return_value=(2026, 11, 9, 12, 0, 2, 0, 0, 0)):
+            after = fixture.build()
+        self.assertEqual(before, after)
+        fixture.forces[fixture.members[0]][0][7] -= 1
+        self.assertNotEqual(sha256(fixture.build()).hexdigest(), sha256(before).hexdigest())
+
     def test_six_component_signed_vector_and_mesh_identity(self):
         source = SyntheticBank().build(); report = recover_column_bank(source)
         self.assertEqual((report["selected_column_count"], report["observed_column_count"],

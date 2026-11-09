@@ -221,6 +221,11 @@ class TransverseSourceAndGeometryTests(unittest.TestCase):
                 self.assertEqual({r['native_key']['ObjSta'] for r in branch['critical_source_states']},{0,2,3.3})
 
     def test_source_mismatch_duplicate_state_or_missing_proposal_is_rejected(self):
+        fixture=StiffnessBank()
+        fixture.calls[('PropMaterial.GetORebar_1','material','TIE_STEEL_SYNTHETIC')]['raw_response'][0]=500000
+        with closing(NativeArchive(fixture.build())) as archive:
+            with self.assertRaisesRegex(BankError,'TRANSVERSE_SOURCE_BINDING_MISMATCH'):
+                build_column_transverse(self.chain,self.cages,archive)
         changed=deepcopy(self.transverse);changed['source_cages_result_sha256']='OTHER'
         with self.assertRaises(BankError):build_column_shear(self.chain,self.cages,changed)
         changed=deepcopy(self.chain);changed['candidates'][1]=deepcopy(changed['candidates'][0])

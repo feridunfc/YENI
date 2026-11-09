@@ -366,7 +366,7 @@
         el('columnContext').append(text('p','Rm = 0 / 0,5 / 1 açık parametre senaryolarıdır; gerçek sünme oranı veya doğrulanmış EI aralığı değildir. ' +
           'Yarıçap i=0,30h seçildi. 22i ötelenmesi önlenmemiş sınıfın koşullu sınırı; 40i önlenmiş sınıfın yalnız üst sınırı; 100i yaklaşık yöntem tavanıdır.','micro'));
         if (selectedView === 'stiffness-scenarios') {
-          el('columnUnits').textContent = 'TS500 7.19 / 7.21 · EI=0,4EcIc/(1+Rm), Nk=π²EI/lk². Ec: MPa; Ic: mm⁴; EI: N·mm²; referans boylar: m. Gerçek lk, k veya serbest boy atanmamıştır.';
+          el('columnUnits').textContent = 'TS500 7.19 / 7.21 · EI=0,4EcIc/(1+Rm), Nk(kN)=π²EI/(1000lk²). Formülde lk: mm; Ec: MPa, Ic: mm⁴, EI: N·mm²; tablodaki boylar: m. Gerçek lk, k veya serbest boy atanmamıştır.';
           const scientific = v => typeof v === 'number' ? v.toExponential(4) : null;
           el('columnForces').append(table([['member_id','Kolon'],['axis','Eksen'],['ec_mpa_observed','Ec (MPa)'],
             ['inertia','Ic (mm⁴)'],['radius','i: 0,30h / √(I/A) (mm)'],['ei','EI: Rm 0 / 0,5 / 1 (N·mm²)'],
@@ -384,7 +384,7 @@
             el('columnContext').append(details);
           }
         } else {
-          el('columnUnits').textContent = 'lk,0 = π√[EI/(1,3Nkaynak)] · Denk. 7.24 paydasının sıfır olduğu matematiksel boy (m). İzin verilen boy veya Nk=N boyu değildir. Her statik istasyon ve iki eksen korunur; çekme/sıfır N bu basınç hesabına uygulanmaz.';
+          el('columnUnits').textContent = 'lk,0(mm)=π√[EI/(1,3×1000×Nkaynak(kN))] · EI: N·mm²; Denk. 7.24 paydasının sıfır olduğu matematiksel boy tabloda m olarak gösterilir. İzin verilen boy veya Nk=N boyu değildir. Her statik istasyon ve iki eksen korunur; çekme/sıfır N bu basınç hesabına uygulanmaz.';
           el('columnContext').append(text('p',`${sensitivity.static_state_count} statik kayıt · ${sensitivity.zero_length_reference_count} payda-sıfır boyu. `+
             '100i ötesindeki matematiksel boylar yaklaşık yöntemin kapsamını genişletmez; Cm/β ve tasarım momenti üretilmez.','micro'));
           el('columnForces').append(table([['member_id','Kolon'],['case','Birleşim'],['station','İstasyon (m)'],['axis','Eksen'],
