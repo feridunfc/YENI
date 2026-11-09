@@ -200,7 +200,7 @@ def make_handler(output_root: Path, *, live_capture=None):
                 self.reply(200, {"runs": column_bank_history(output_root), "engineering_release": "NOT_READY"})
                 return
             query = parse_qs(url.query, keep_blank_values=True)
-            allowed = {"run_id", "member", "case", "offset", "view"} if url.path == "/api/column-bank" else {"run_id", "format"} if url.path == "/api/export-column-bank" else {"run_id"}
+            allowed = {"run_id", "member", "case", "offset", "view", "column_cage", "beam_diameter"} if url.path == "/api/column-bank" else {"run_id", "format"} if url.path == "/api/export-column-bank" else {"run_id"}
             if (set(query) - allowed or any(len(v) != 1 for v in query.values())
                     or not _RUN_ID_PATTERN.fullmatch(query.get("run_id", [""])[0])):
                 self.reply(400, {"error": "COLUMN_QUERY_INVALID"})
@@ -209,8 +209,13 @@ def make_handler(output_root: Path, *, live_capture=None):
             fmt = query.get("format", ["json"])[0]
             offset = query.get("offset", ["0"])[0]
             view = query.get("view", ["native"])[0]
+            column_label=query.get('column_cage',[None])[0]
+            beam_diameter=query.get('beam_diameter',[None])[0]
             if (fmt not in ("json", "sqlite") or not offset.isdecimal() or len(offset) > 9
-                    or view not in ("native", "static", "design", "critical", "reinforcement", "stiffness", "eccentricity", "cages", "pmm", "transverse", "shear", "joints", "joint-ties", "end-forces", "kinematics", "stiffness-scenarios", "length-sensitivity", "overview", "pmm-quality", "scwb", "beam-cages")
+                    or view not in ("native", "static", "design", "critical", "reinforcement", "stiffness", "eccentricity", "cages", "pmm", "transverse", "shear", "joints", "joint-ties", "end-forces", "kinematics", "stiffness-scenarios", "length-sensitivity", "overview", "pmm-quality", "scwb", "beam-cages", "scwb-scenarios")
+                    or (column_label is not None or beam_diameter is not None) and view!='scwb-scenarios'
+                    or column_label is not None and column_label not in ('16Φ24','16Φ28','16Φ32')
+                    or beam_diameter is not None and beam_diameter not in ('16','20','24')
                     or (view in ("reinforcement", "stiffness", "cages", "transverse", "joints", "joint-ties", "stiffness-scenarios", "beam-cages") and "case" in query)):
                 self.reply(400, {"error": "COLUMN_QUERY_INVALID"})
                 return
@@ -222,6 +227,7 @@ def make_handler(output_root: Path, *, live_capture=None):
                     report = read_column_bank(output_root, run_id,
                         member_id=query.get("member", [None])[0], output_case=query.get("case", [None])[0],
                         offset=int(offset), view="pmm-quality" if url.path == "/report/column-bank" else view,
+                        column_label=column_label,beam_diameter=int(beam_diameter) if beam_diameter is not None else None,
                         full=url.path == "/api/export-column-bank")
                     if url.path == "/api/column-bank":
                         self.reply(200, report)

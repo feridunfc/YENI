@@ -38,19 +38,27 @@ def main(argv: list[str] | None = None) -> int:
     demands.add_argument("--quality", action="store_true", help="Independently compare primary-critical PMM capacities offline")
     demands.add_argument("--scwb", action="store_true", help="Inspect source-bound SCWB rosters and N-dependent column references offline")
     demands.add_argument("--beams", action="store_true", help="Inspect exact beam-end area sources and proposed signed N=0 capacities offline")
+    demands.add_argument("--scwb-scenarios", action="store_true", help="Compare explicit column/beam proposal capacities with native joint signs offline")
+    demands.add_argument("--column-cage", choices=('16Φ24','16Φ28','16Φ32'), help="Display column proposal for --scwb-scenarios")
+    demands.add_argument("--beam-diameter", type=int, choices=(16,20,24), help="Display beam diameter proposal for --scwb-scenarios")
     args = parser.parse_args(argv)
     if args.action == "serve":
         from .web import serve
         serve(host=args.host, port=args.port, output_root=args.out)
         return 0
     if args.action == "inspect-column-demands":
+        if (args.column_cage is not None or args.beam_diameter is not None) and not args.scwb_scenarios:
+            parser.error('--column-cage and --beam-diameter require --scwb-scenarios')
         import sqlite3
         from .column_engine.store import read_column_bank
         try:
-            report_view=("pmm-quality" if args.quality or (args.scwb and (args.pmm or args.overview or args.shear))
+            report_view=("pmm-quality" if args.quality or (args.scwb_scenarios and (args.pmm or args.overview or args.shear or args.beams)) or (args.scwb and (args.pmm or args.overview or args.shear))
                 or (args.beams and (args.pmm or args.overview or args.shear or args.scwb)) else "beam-cages" if args.beams
                 else "scwb" if args.scwb else "overview" if args.overview else "pmm" if args.pmm else "shear" if args.shear else "native")
-            report = read_column_bank(args.out, args.run_id, view=report_view)
+            if args.scwb_scenarios and report_view!='pmm-quality':report_view='scwb-scenarios'
+            report = read_column_bank(args.out, args.run_id, view=report_view,
+                column_label=args.column_cage or ('16Φ24' if args.scwb_scenarios else None),
+                beam_diameter=args.beam_diameter or (20 if args.scwb_scenarios else None))
             chain = report["demand_chain"]
             result = {k: chain[k] for k in ("source_run_id", "source_archive_sha256", "result_sha256",
                 "classification_counts", "static_candidate_count", "formal_compliance", "engineering_release")}
@@ -106,6 +114,8 @@ def main(argv: list[str] | None = None) -> int:
                 result["column_scwb"] = report["column_scwb"]
             if args.beams:
                 result["beam_end_references"] = report["beam_end_references"]
+            if args.scwb_scenarios:
+                result['scwb_scenarios']=report['scwb_scenarios']
         except (OSError, EOFError, ValueError, KeyError, TypeError, sqlite3.Error) as exc:
             print(json.dumps({"status": "REJECTED", "reason": str(exc), "engineering_release": "NOT_READY"}, ensure_ascii=False))
             return 2

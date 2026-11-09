@@ -22,6 +22,7 @@ from .column_overview import build_column_overview
 from .column_pmm_quality import build_column_pmm_quality
 from .column_scwb import build_column_scwb, scwb_projection
 from .beam_references import build_beam_references, beam_projection
+from .scwb_scenarios import build_scwb_scenarios, scenario_projection, DEFAULT_COLUMN, DEFAULT_BEAM
 from .native_archive import BankError, NativeArchive, decode
 
 
@@ -94,8 +95,17 @@ def _beam_references(source_path, database_path, source_sha, database_sha, bank_
         return build_beam_references(derived['demand_chain'],derived['column_joints'],archive)
 
 
+@lru_cache(maxsize=2)
+def _scwb_scenarios(source_path, database_path, source_sha, database_sha, bank_result_sha):
+    key=(source_path,database_path,source_sha,database_sha,bank_result_sha)
+    derived=_derive(*key)
+    with closing(NativeArchive(Path(source_path).read_bytes())) as archive:
+        if archive.sha256!=source_sha:raise BankError('SCENARIO_SOURCE_CHANGED')
+        return build_scwb_scenarios(derived['demand_chain'],derived['column_joints'],_scwb(*key),_beam_references(*key),archive)
+
+
 def demand_view(database, report, *, member_id=None, output_case=None, offset=0, limit=200,
-                view="native", full=False):
+                view="native", full=False, column_label=None, beam_diameter=None):
     """Called only after store.verified_database has verified this exact run."""
     database = database.resolve()
     cache_key = (str(database.parent / "input.source"), str(database),
@@ -108,14 +118,15 @@ def demand_view(database, report, *, member_id=None, output_case=None, offset=0,
     # never invokes the more expensive PMM solver.
     shear = _shear(*cache_key) if full or view in ("pmm", "shear", "overview", "pmm-quality") else None
     quality = _pmm_quality(*cache_key,None if full else member_id,None if full else output_case) if full or view == "pmm-quality" else None
-    scwb = _scwb(*cache_key) if full or view in ("scwb", "pmm-quality") else None
-    beams = _beam_references(*cache_key) if full or view in ("beam-cages", "pmm-quality") else None
+    scwb = _scwb(*cache_key) if full or view in ("scwb", "pmm-quality", "scwb-scenarios") else None
+    beams = _beam_references(*cache_key) if full or view in ("beam-cages", "pmm-quality", "scwb-scenarios") else None
+    scenarios = _scwb_scenarios(*cache_key) if full or view in ("scwb-scenarios", "pmm-quality") else None
     chain, prechecks = derived["demand_chain"], derived["column_prechecks"]
     overview = build_column_overview(chain, derived["column_cages"], pmm, shear, derived["column_sensitivity"],
         member_id=None if full or view in ("pmm", "pmm-quality") else member_id,
         output_case=None if full or view in ("pmm", "pmm-quality") else output_case) if pmm is not None else None
     if full:
-        return deepcopy({**derived,"column_pmm":pmm,"column_shear":shear,"column_overview":overview,"column_pmm_quality":quality,"column_scwb":scwb,"beam_end_references":beams})
+        return deepcopy({**derived,"column_pmm":pmm,"column_shear":shear,"column_overview":overview,"column_pmm_quality":quality,"column_scwb":scwb,"beam_end_references":beams,"scwb_scenarios":scenarios})
     summary = {k: v for k, v in chain.items() if k not in ("candidates", "design_summary")}
     summary["design_summary"] = {k: v for k, v in chain["design_summary"].items() if k != "rows"}
     precheck_summary = {k: v for k, v in prechecks.items() if k not in ("critical_selection", "reinforcement_bounds")}
@@ -160,7 +171,13 @@ def demand_view(database, report, *, member_id=None, output_case=None, offset=0,
             k:v for k,v in projected.items() if k not in ("rows","column_references")}
     if beams is not None:
         beam_rows=beam_projection(beams,member_id)
-        result['beam_end_references']=beam_rows
+        result['beam_end_references']=beam_rows if view!='scwb-scenarios' else {k:v for k,v in beam_rows.items() if k not in ('rows','profiles')}
+    if scenarios is not None:
+        scenario_rows=scenario_projection(scenarios,member_id,output_case,
+            column_label or (DEFAULT_COLUMN if view=='scwb-scenarios' else None),
+            beam_diameter or (DEFAULT_BEAM if view=='scwb-scenarios' else None))
+        result['scwb_scenarios']=scenario_rows if member_id or view=='pmm-quality' else {
+            k:v for k,v in scenario_rows.items() if k not in ('rows','member_moment_mappings','beam_references')}
     if view == "native":
         return result
     if view == "overview":
@@ -171,6 +188,8 @@ def demand_view(database, report, *, member_id=None, output_case=None, offset=0,
         rows = projected["summaries"]
     elif view == "beam-cages":
         rows = beam_rows['rows']
+    elif view == "scwb-scenarios":
+        rows = scenario_rows['summaries']
     elif view == "critical":
         selection = critical_selection(chain, prechecks["population"], member_id=member_id, output_case=output_case)
         rows = selection["rows"]

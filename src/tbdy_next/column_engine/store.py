@@ -170,16 +170,20 @@ def column_bank_history(root):
     return sorted(result, key=lambda r: r["imported_at_utc"], reverse=True)[:30]
 
 
-def read_column_bank(root, run_id, *, member_id=None, output_case=None, offset=0, limit=200, full=False, view="native"):
+def read_column_bank(root, run_id, *, member_id=None, output_case=None, offset=0, limit=200, full=False, view="native", column_label=None, beam_diameter=None):
     database, report = verified_database(root, run_id)
     if (type(offset) is not int or offset < 0 or type(limit) is not int or not 1 <= limit <= 500
-            or view not in ("native", "static", "design", "critical", "reinforcement", "stiffness", "eccentricity", "cages", "pmm", "transverse", "shear", "joints", "joint-ties", "end-forces", "kinematics", "stiffness-scenarios", "length-sensitivity", "overview", "pmm-quality", "scwb", "beam-cages")):
+            or view not in ("native", "static", "design", "critical", "reinforcement", "stiffness", "eccentricity", "cages", "pmm", "transverse", "shear", "joints", "joint-ties", "end-forces", "kinematics", "stiffness-scenarios", "length-sensitivity", "overview", "pmm-quality", "scwb", "beam-cages", "scwb-scenarios")):
         raise BankError("COLUMN_PAGE_INVALID")
+    if ((column_label is not None or beam_diameter is not None) and view not in ('scwb-scenarios','pmm-quality')
+            or column_label is not None and column_label not in ('16Φ24','16Φ28','16Φ32')
+            or beam_diameter is not None and (type(beam_diameter) is not int or beam_diameter not in (16,20,24))):
+        raise BankError('SCENARIO_DISPLAY_FILTER_INVALID')
     if view in ("reinforcement", "stiffness", "cages", "transverse", "joints", "joint-ties", "stiffness-scenarios", "beam-cages") and output_case is not None:
         raise BankError("CASE_FILTER_NOT_APPLICABLE_TO_SECTION_VIEW")
     from .demand_view import demand_view
     report.update(demand_view(database, report, member_id=member_id, output_case=output_case,
-        offset=offset, limit=limit, view=view, full=full))
+        offset=offset, limit=limit, view=view, full=full, column_label=column_label, beam_diameter=beam_diameter))
     with closing(_readonly(database)) as db:
         if full:
             report["force_states"] = [decode(row[0]) for row in db.execute("SELECT data_json FROM force_states ORDER BY rowid")]
