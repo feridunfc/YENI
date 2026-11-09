@@ -18,6 +18,7 @@ from .column_transverse import build_column_transverse, build_column_shear, tran
 from .column_joints import build_column_joints, joint_tie_rows, joint_summaries, joint_tie_summaries
 from .column_kinematics import build_column_kinematics, kinematic_summaries
 from .column_sensitivity import build_column_sensitivity, sensitivity_summaries
+from .column_overview import build_column_overview
 from .native_archive import BankError, NativeArchive, decode
 
 
@@ -74,13 +75,16 @@ def demand_view(database, report, *, member_id=None, output_case=None, offset=0,
     derived = _derive(*cache_key)
     # Numerical capacity is requested explicitly; ordinary source navigation
     # remains fast. Full export includes every candidate x every static state.
-    pmm = _pmm(*cache_key) if full or view == "pmm" else None
+    pmm = _pmm(*cache_key) if full or view in ("pmm", "overview") else None
     # PMM/report includes the related shear summary. Shear navigation itself
     # never invokes the more expensive PMM solver.
-    shear = _shear(*cache_key) if full or view in ("pmm", "shear") else None
+    shear = _shear(*cache_key) if full or view in ("pmm", "shear", "overview") else None
     chain, prechecks = derived["demand_chain"], derived["column_prechecks"]
+    overview = build_column_overview(chain, derived["column_cages"], pmm, shear, derived["column_sensitivity"],
+        member_id=None if full or view == "pmm" else member_id,
+        output_case=None if full or view == "pmm" else output_case) if pmm is not None else None
     if full:
-        return deepcopy({**derived,"column_pmm":pmm,"column_shear":shear})
+        return deepcopy({**derived,"column_pmm":pmm,"column_shear":shear,"column_overview":overview})
     summary = {k: v for k, v in chain.items() if k not in ("candidates", "design_summary")}
     summary["design_summary"] = {k: v for k, v in chain["design_summary"].items() if k != "rows"}
     precheck_summary = {k: v for k, v in prechecks.items() if k not in ("critical_selection", "reinforcement_bounds")}
@@ -112,9 +116,13 @@ def demand_view(database, report, *, member_id=None, output_case=None, offset=0,
         result["column_pmm"] = deepcopy({k:v for k,v in pmm.items() if k != "rows"})
     if shear is not None:
         result["column_shear"] = deepcopy({k:v for k,v in shear.items() if k != "rows"})
+    if overview is not None:
+        result["column_overview"] = deepcopy({k:v for k,v in overview.items() if k != "rows" or view == "pmm"})
     if view == "native":
         return result
-    if view == "critical":
+    if view == "overview":
+        rows = overview["rows"]
+    elif view == "critical":
         selection = critical_selection(chain, prechecks["population"], member_id=member_id, output_case=output_case)
         rows = selection["rows"]
         result["critical_scope"] = deepcopy({k: v for k, v in selection.items() if k != "rows"})

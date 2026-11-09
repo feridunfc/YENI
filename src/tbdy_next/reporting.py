@@ -396,10 +396,16 @@ def build_column_bank_html(report: Mapping[str, Any]) -> str:
     content += ('<h2>İzlenebilirlik</h2><p>Kaynak ZIP SHA-256: ' + _val(report["source_archive_sha256"]) +
         '<br>Veritabanı SHA-256: ' + _val(report.get("database_sha256")) +
         '<br>Hesap SHA-256: ' + _val(report["result_sha256"]) + '</p>')
-    return ('<!doctype html><html lang="tr"><meta charset="utf-8"><title>YENI · Kolon kaynak raporu</title>' +
+    if report.get("column_overview"):
+        from .column_overview_report import overview_html
+        content = overview_html(report["column_overview"]) + '<details class="calculation-details"><summary>Tüm kaynak tabloları, formüller ve ara hesaplar</summary>' + content + '</details>'
+    return ('<!doctype html><html lang="tr"><meta charset="utf-8"><title>YENI · Kolon mühendislik özeti</title>' +
         '<style>body{font:14px/1.5 system-ui;margin:32px;color:#243345}h1{font-size:23px}h2{margin-top:30px}' +
         'table{border-collapse:collapse;width:100%;font-size:11px}th,td{border:1px solid #cfd8e3;padding:6px;text-align:left}' +
-        'th{background:#eaf0f6}p{overflow-wrap:anywhere}@media print{thead{display:table-header-group}tr{break-inside:avoid}}</style>' + content + '</html>')
+        'th{background:#eaf0f6}p{overflow-wrap:anywhere}.overview-scroll{overflow-x:auto}.column-overview td{font-variant-numeric:tabular-nums}' +
+        'details{margin:12px 0;border:1px solid #cfd8e3;border-radius:6px;padding:10px}summary{cursor:pointer;font-weight:600}' +
+        'pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;background:#f4f7fa;padding:12px}' +
+        '@media print{thead{display:table-header-group}tr{break-inside:avoid}}</style>' + content + '</html>')
 
 
 def _load_source(directory: Path, expected_sha: str) -> dict[str, Any]:

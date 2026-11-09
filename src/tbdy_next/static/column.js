@@ -3,7 +3,7 @@
   'use strict';
   const el = id => document.getElementById(id);
   const run = el('columnRun'), member = el('columnMember'), loadCase = el('columnCase');
-  const view = el('columnView');
+  const view = el('columnView'), proposal = el('columnProposal');
   const labels = {
     STATIC_LINEAR_ADD:'Statik Linear Add', RESPONSE_SPECTRUM_LINEAR_ADD:'Spektral katkılı Linear Add',
     ENVELOPE:'Zarf', STATIC_NESTED_UNVERIFIED:'İç içe statik · doğrulanmadı',
@@ -84,9 +84,107 @@
     const body = document.createElement('tbody');
     rows.forEach(row => {
       const tr = document.createElement('tr');
-      columns.forEach(([key]) => tr.append(text('td', show(row[key])))); body.append(tr);
+      columns.forEach(([key,, render]) => {
+        const cell = text('td', render ? '' : show(row[key]));
+        if (render) cell.append(render(row));
+        tr.append(cell);
+      }); body.append(tr);
     });
     node.append(head, body); return node;
+  }
+  function displayNumber(value, digits = 2) {
+    if (value === null || value === undefined) return '—';
+    if (typeof value !== 'number' || !Number.isFinite(value)) throw new Error('Özet sayısal değeri geçersiz.');
+    return new Intl.NumberFormat('tr-TR', {minimumFractionDigits:digits, maximumFractionDigits:digits, signDisplay:'negative'}).format(value);
+  }
+  function pmmText(pm) {
+    if (pm.status === 'AXIAL_RANGE_EXCEEDED') return `Eksenel sınır aşılıyor · ${pm.axial_outside_count} kayıt`;
+    if (pm.status === 'NO_STATIC_STATES') return 'Statik hesap kaydı yok';
+    let value = pm.representative_basis === 'MAXIMUM_RESOLVED_RADIAL_PMM' ? displayNumber(pm.maximum_resolved_utilization,4)+' · koşullu' :
+      pm.representative_basis === 'MAXIMUM_AXIAL_ONLY_REFERENCE' ? 'Yalnız N: '+displayNumber(pm.maximum_axial_utilization,4) : 'Sayısal sonuç bekleniyor';
+    if (pm.unresolved_count || pm.blocked_count) value += ` · ${pm.unresolved_count} belirsiz / ${pm.blocked_count} eksik`;
+    if (pm.axial_only_count && pm.representative_basis === 'MAXIMUM_RESOLVED_RADIAL_PMM') value += ` · ayrıca ${pm.axial_only_count} yalnız N`;
+    if (pm.status_counts.EXCEEDS_SCENARIO_SURFACE) value += ' · yüzey aşılıyor';
+    return value;
+  }
+  const shearText = {SOURCE_REFERENCE_EXCEEDED:'Kaynak sınırı aşılıyor', PARTIAL_SHEAR_REFERENCES:'Kısmi kaynak hesabı',
+    CONDITIONAL_SHEAR_REFERENCES:'Koşullu kaynak hesabı', NO_STATIC_STATES:'Statik kayıt yok'};
+  function overviewDetails(row, scenario) {
+    const target = el('columnOverviewDetails'), pm = scenario.pmm, sh = scenario.shear;
+    const details = (title, ...nodes) => {
+      const item = text('details','');item.append(text('summary',title),...nodes);target.append(item);return item;
+    };
+    const states = pm.critical_states.map(s => ({...s.native_key,...s.source_values,
+      station:displayNumber(s.native_key.ObjSta,3), n:displayNumber(s.source_values.n_compression_kn),
+      m2:displayNumber(s.source_values.m2_knm),m3:displayNumber(s.source_values.m3_knm)}));
+    details(`${row.member_id} · ${scenario.candidate_label} · PMM kapsamı ve kritik kayıtlar`,
+      text('p',`${pm.static_state_count} statik kayıt: ${pm.radial_pmm_count} radyal PMM, ${pm.axial_only_count} yalnız N, `+
+        `${pm.axial_outside_count} eksenel sınır aşımı, ${pm.unresolved_count} belirsiz, ${pm.blocked_count} eksik.`, 'small'),
+      table([['LoadCase','Birleşim'],['station','İstasyon (m)'],['Elm','Analiz elemanı'],['n','N (kN)'],['m2','M2 (kN·m)'],['m3','M3 (kN·m)']],states));
+    details('Kesme senaryoları · kendi kritik kaynak durumları',
+      text('p','Kesme maksimumları tüm filtrelenmiş statik kayıtlardan gelir. Her yön ve beton katkısı dalı kendi birleşim/istasyonuna bağlıdır. Ve doğrulanmadı.','small'),
+      table([['axis','Yön'],['branchLabel','Senaryo'],['coverage','Çözülen / beklenen'],['ratio','En büyük |V|/Vr'],['cases','Kritik birleşimler']],
+        sh.branches.map(b=>({...b,branchLabel:b.branch==='ts500'?'TS500':'Vc=0',coverage:`${b.numeric_count} / ${b.state_count}`,
+          ratio:displayNumber(b.maximum_source_utilization,4),cases:[...new Set(b.critical_source_states.map(s=>s.native_key.LoadCase))].join(', ')}))),
+      text('h3','Görüntülenen PMM kaydıyla aynı durumdaki kesme'),
+      table([['axis','Yön'],['source','İşaretli V (kN)'],['ts','TS500 |V|/Vr'],['zero','Vc=0 |V|/Vr']],
+        sh.at_pmm_representative.map(s=>({axis:s.shear_axis,source:displayNumber(s.native_values[s.shear_axis]),
+          ts:displayNumber(s.calculation?.branches.ts500.source_utilization,4),
+          zero:displayNumber(s.calculation?.branches.zero_concrete.source_utilization,4)}))));
+    if (sh.other_limit_findings.length) details('Ek kesme üst sınırı kaynak bulguları',
+      text('p','Gerçek Ve ve normatif kolon uygulanabilirliği açık kalır.','small'),
+      table([['axis','Yön'],['referenceLabel','Referans'],['case','Birleşim'],['v','İşaretli V (kN)'],['limit','Sınır (kN)']],
+        sh.other_limit_findings.map(f=>({...f,referenceLabel:f.reference==='ts500_web'?'TS500 gövde':'TBDY gevrek kesme',
+          case:f.native_key.LoadCase,v:displayNumber(f.source_signed_v_kn),limit:displayNumber(f.reference_limit_kn)}))));
+    const second = row.second_order;
+    details('İkinci mertebe · girdiler ve duyarlılık referansları',
+      text('p','Doğrulanmış ln, k, lk, Cm, β ve büyütülmüş momentler bekleniyor. '+
+        `${second.reference_count} duyarlılık karşılaştırmasının ${second.nonpositive_reference_count} adedinde sıfıra yakın veya negatif payda. `+
+        'Bu sayı varsayımsal boy/rijitlik referanslarına aittir; gerçek kolon stabilite göçmesi göstermez.','small'),
+      table([['case','Birleşim'],['axis','Eksen'],['rm','Rm senaryosu'],['lambda','lk/i referansı'],['denominator','Payda']],
+        second.reference_findings.map(r=>({case:r.native_key.LoadCase,axis:r.axis,rm:displayNumber(r.rm_scenario,1),
+          lambda:r.lk_over_i_reference,denominator:displayNumber(r.source_denominator,4)}))));
+    const c=row.station_coverage;
+    details('ETABS tasarım özeti · istasyon eşleşmeleri',text('p',
+      `${c.design_row_count} satır / ${c.reference_count} rol referansı. ${c.ambiguous_row_count} belirsiz satırda ${c.ambiguous_reference_count} referans; `+
+      `kesin istasyonu bulunmayan ${c.missing_exact_reference_count} referansla kesişim ${c.overlap_reference_count}, birleşim ${c.union_reference_count}. `+
+      'Satır ve referans sayıları toplanmaz; yakın istasyon seçilmez.','small'));
+    details('Tam hassasiyet ve kaynak kimlikleri',text('pre',JSON.stringify({member_id:row.member_id,scenario,
+      second_order:second,station_coverage:row.station_coverage},null,2)));
+  }
+  function renderOverview(report, page, selectedProposal) {
+    const overview = report.column_overview;
+    el('columnDemandSummary').replaceChildren();
+    const classes=overview.source_combination_classifications;
+    el('columnDemandSummary').append(text('p',`${classes.STATIC_LINEAR_ADD || 0} doğrudan statik birleşim · `+
+      `${classes.RESPONSE_SPECTRUM_LINEAR_ADD || 0} spektrum içeren birleşimin tasarım vektörü bekleniyor. `+
+      `${overview.member_count} kolonun ${overview.members_without_static_states} adedinde seçili filtre için statik hesap kaydı yok.`));
+    el('columnUnits').textContent = 'N, M2 ve M3 aynı kritik kaydın kaynak vektörüdür. N basınç pozitif; kuvvet kN, moment kN·m. '+
+      'Doğrulanmış Nd/M2d/M3d ve büyütülmüş momentler bekleniyor. Gösterim yuvarlanır; kritik seçim tam hassasiyetle yapılır.';
+    const rows = page.rows.map(row => {
+      const s=row.scenarios.find(s=>s.candidate_label===selectedProposal);
+      if (!s || s.selected_design !== false || s.final_design_eligible !== false || s.design_values?.status !== 'NOT_PROVEN' ||
+          ['Nd_kn','M2d_knm','M3d_knm'].some(k=>s.design_values[k]!==null) || row.second_order.actual_second_order_applied!==false ||
+          row.second_order.actual_stability_failure_proven!==false) throw new Error('Özetin koşullu senaryo kapsamı uyuşmuyor.');
+      const pm=s.pmm, source=pm.representative, v=source?.source_values;
+      if (member.value === row.member_id) overviewDetails(row,s);
+      return {member_id:row.member_id,story:row.story,combo:(source?.native_key.LoadCase || '—')+
+        (pm.critical_state_count>1 ? ` · ${pm.critical_state_count} eşit/aynı öncelikli kayıt` : ''),
+        n:displayNumber(v?.n_compression_kn),m2:displayNumber(v?.m2_knm),m3:displayNumber(v?.m3_knm),
+        proposal:selectedProposal,pmm:pmmText(pm),shear:(shearText[s.shear.status] || 'Kapsam belirsiz')+' · Ve bekleniyor',
+        second:'Girdiler bekleniyor'};
+    });
+    el('columnForces').append(table([['member_id','Kolon'],['story','Kat'],['combo','Kritik statik birleşim'],
+      ['n','N kaynak (kN)'],['m2','M2 kaynak (kN·m)'],['m3','M3 kaynak (kN·m)'],['proposal','Donatı senaryosu'],
+      ['pmm','Koşullu PMM'],['shear','Kesme'],['second','İkinci mertebe'],['member_id','Ayrıntı',r=>{
+        const button=text('button','İncele');button.type='button';button.setAttribute('aria-label',r.member_id+' kolonunu incele');
+        button.addEventListener('click',()=>{member.value=r.member_id;offset=0;load();});return button;
+      }]],rows));
+    const c=overview.station_coverage;
+    const coverage=text('details','');coverage.append(text('summary','Özet kapsamı ve istasyon eşleşmeleri'),text('p',
+      `${c.reference_count} rol referansı: ${c.missing_exact_reference_count} kesin eşleşme yok, ${c.ambiguous_reference_count} belirsiz istasyon referansı. `+
+      `Kesişim ${c.overlap_reference_count}, birleşim ${c.union_reference_count}; belirsiz tasarım satırı ${c.ambiguous_row_count}.`, 'small'));
+    el('columnOverviewDetails').append(coverage);
   }
   function options(target, values, placeholder) {
     target.replaceChildren();
@@ -97,7 +195,7 @@
   function clearResult() {
     for (const id of ['columnSummary', 'columnExports', 'columnContext', 'columnForces',
                       'columnReplay', 'columnCoverage', 'columnGaps', 'columnPage',
-                      'columnDemandSummary', 'columnDemandRoutes', 'columnUnits']) el(id).replaceChildren();
+                      'columnDemandSummary', 'columnDemandRoutes', 'columnUnits', 'columnOverviewDetails']) el(id).replaceChildren();
     el('columnPrevious').disabled = true; el('columnNext').disabled = true;
   }
   async function get(url) {
@@ -115,12 +213,14 @@
     if (!selected) { el('columnStatus').textContent = 'Kolon arşivi seçilmedi.'; return; }
     const params = new URLSearchParams({run_id:selected, offset:String(offset)});
     const selectedView = view.value || 'native';
+    const selectedProposal = proposal.value || '16Φ24';
+    el('columnProposalControl').hidden = selectedView !== 'overview';
     const sectionView = ['reinforcement','stiffness','cages','transverse','joints','joint-ties','stiffness-scenarios'].includes(selectedView);
     loadCase.disabled = sectionView;
     if (member.value) params.set('member', member.value);
     if (loadCase.value && !sectionView) params.set('case', loadCase.value);
     if (selectedView !== 'native') params.set('view', selectedView);
-    el('columnStatus').textContent = selectedView === 'pmm' ? 'Koşullu PMM hesaplanıyor; ilk açılış biraz sürebilir…' : 'Arşiv doğrulanıyor…';
+    el('columnStatus').textContent = ['pmm','overview'].includes(selectedView) ? 'Koşullu kolon hesapları hazırlanıyor; ilk açılış biraz sürebilir…' : 'Arşiv doğrulanıyor…';
     try {
       const report = await get('/api/column-bank?' + params);
       if (ticket !== epoch || selected !== run.value) return;
@@ -134,7 +234,8 @@
       }
       el('columnStatus').textContent = selected + ' · NOT_PROVEN / NOT_READY';
       el('columnSummary').append(text('p', `${report.observed_column_count}/${report.selected_column_count} seçili kolon · ${report.force_row_count} kuvvet satırı · ${report.recorded_output_count} kayıtlı vaka/birleşim`));
-      el('columnSummary').append(text('p', 'Kaynak SHA-256: ' + report.source_archive_sha256, 'micro'));
+      const trace=text('details','');trace.append(text('summary','Arşiv kimliği'),text('p', 'Kaynak SHA-256: ' + report.source_archive_sha256, 'micro'));
+      el('columnSummary').append(trace);
       const chain = report.demand_chain;
       if (chain) {
         if (chain.source_run_id !== selected || chain.source_archive_sha256 !== report.source_archive_sha256 ||
@@ -246,7 +347,7 @@
         link.target = '_blank'; link.rel = 'noopener'; el('columnExports').append(link);
       }
       const chosen = report.members.find(m => m.frame_name === member.value);
-      if (chosen) {
+      if (chosen && selectedView !== 'overview') {
         const ctx = chosen.context || {}, g = chosen.station_geometry || {};
         el('columnContext').append(text('p', `${ctx.frame?.section_assigned || 'Kesit belirsiz'} · ` +
           `b2/b3: ${show(ctx.geometry?.T2_cm)}/${show(ctx.geometry?.T3_cm)} cm · Fc/Fy: ${show(ctx.material?.fc_MPa)}/${show(ctx.material?.fy_MPa)} MPa · ` +
@@ -264,11 +365,27 @@
       if (['joints','joint-ties'].includes(selectedView) && !joints) throw new Error('Birleşim referansları bulunamadı.');
       if (['end-forces','kinematics'].includes(selectedView) && !kinematics) throw new Error('Kolon uç kaynak bağı bulunamadı.');
       if (['stiffness-scenarios','length-sensitivity'].includes(selectedView) && !sensitivity) throw new Error('Etkin boy duyarlılığı bulunamadı.');
+      const overview = report.column_overview;
+      if (selectedView === 'overview' && (!overview || overview.schema !== 'tbdy.next.column-overview.v1' ||
+          overview.policy !== 'EXPLICIT_CAGE_DISPLAY_ONLY_SAME_SOURCE_VECTOR_V1' ||
+          overview.axis_convention !== 'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3' ||
+          overview.source_run_id !== selected || overview.source_archive_sha256 !== report.source_archive_sha256 ||
+          overview.source_demand_result_sha256 !== chain?.result_sha256 || overview.source_cages_result_sha256 !== cages?.result_sha256 ||
+          overview.source_pmm_result_sha256 !== pmm?.result_sha256 || overview.source_shear_result_sha256 !== shear?.result_sha256 ||
+          overview.source_sensitivity_result_sha256 !== sensitivity?.result_sha256 ||
+          overview.member_id_filter !== (member.value || null) || overview.output_case_filter !== (loadCase.value || null) ||
+          overview.automatic_design_selection !== false || overview.selected_design !== null ||
+          overview.underlying_source_population_reduced !== false || overview.actual_second_order_applied !== false ||
+          overview.spectral_design_vectors_formed !== false || overview.design_demand_authority !== 'DENIED' ||
+          overview.formal_compliance !== 'NOT_PROVEN' || overview.engineering_release !== 'NOT_READY' ||
+          !overview.candidate_labels.includes(selectedProposal))) throw new Error('Kolon özetinin kaynak bağı veya kapsamı uyuşmuyor.');
       if (!page || (selectedView !== 'native' && page.view !== selectedView)) throw new Error('İstenen talep görünümü bulunamadı.');
       total = page.total; offset = page.offset;
       const identity = [['Obj','Kolon'], ['Elm','Analiz elemanı'], ['ObjSta','Nesne istasyonu'], ['ElmSta','Eleman istasyonu'],
         ['LoadCase','Vaka / birleşim'], ['StepType','Adım'], ['StepNum','No']];
-      if (selectedView === 'native') {
+      if (selectedView === 'overview') {
+        renderOverview(report,page,selectedProposal);
+      } else if (selectedView === 'native') {
         el('columnUnits').textContent = 'Native işaretler korunur. Kuvvetler kN, momentler kN·m, istasyonlar m.';
         el('columnForces').append(table([...identity,...['P','V2','V3','T','M2','M3'].map(c => [c,c])], page.rows));
       } else if (selectedView === 'static' || selectedView === 'critical') {
@@ -512,7 +629,7 @@
   window.openColumnBank = () => { if (!opened) { opened = true; refresh(); } };
   el('columnRefresh').addEventListener('click', refresh);
   run.addEventListener('change', () => load(true));
-  for (const chooser of [member, loadCase, view]) chooser.addEventListener('change', () => { offset = 0; load(); });
+  for (const chooser of [member, loadCase, view, proposal]) chooser.addEventListener('change', () => { offset = 0; load(); });
   el('columnPrevious').addEventListener('click', () => { offset = Math.max(0, offset - 200); load(); });
   el('columnNext').addEventListener('click', () => { if (offset + 200 < total) { offset += 200; load(); } });
 })();
