@@ -33,6 +33,7 @@ def main(argv: list[str] | None = None) -> int:
     demands.add_argument("--shear", action="store_true", help="Compare proposed transverse steel with every static V2/V3 source state")
     demands.add_argument("--joints", action="store_true", help="Inspect native joint topology and conditional geometric references offline")
     demands.add_argument("--kinematics", action="store_true", help="Link static force-cut pairs and joint displacement states offline")
+    demands.add_argument("--sensitivity", action="store_true", help="Inspect explicit TS500 stiffness and effective-length parameter families offline")
     args = parser.parse_args(argv)
     if args.action == "serve":
         from .web import serve
@@ -84,6 +85,12 @@ def main(argv: list[str] | None = None) -> int:
                     "bound_force_pair_count", "calculated_kinematics_count", "linked_member_case_count", "status_counts",
                     "reason_counts", "analysis_order", "actual_second_order_applied", "result_sha256")}
                 result["column_kinematics"]["stiffness_setting_counts"] = kinematics["analysis_basis"]["status_counts"]
+            if args.sensitivity:
+                sensitivity = report["column_sensitivity"]
+                result["column_sensitivity"] = {k:sensitivity[k] for k in ("static_state_count", "state_axis_count",
+                    "calculated_axis_count", "stiffness_scenario_count", "euler_reference_count", "zero_length_reference_count",
+                    "source_denominator_count", "status_counts", "reason_counts", "denominator_status_counts",
+                    "axial_profile_status_counts", "actual_second_order_applied", "formal_compliance", "result_sha256")}
         except (OSError, EOFError, ValueError, KeyError, TypeError, sqlite3.Error) as exc:
             print(json.dumps({"status": "REJECTED", "reason": str(exc), "engineering_release": "NOT_READY"}, ensure_ascii=False))
             return 2

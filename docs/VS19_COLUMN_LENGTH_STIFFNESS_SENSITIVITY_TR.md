@@ -1,0 +1,10 @@
+# VS19 / CE-04C — etkin boy ve rijitlik duyarlılığı
+
+- [TS500 7.19/7.21/7.24](https://staff.emu.edu.tr/cemalgenes/Documents/courses/INSA471_2019_20_Bahar/TS500.pdf): mevcut kabul edilmiş çekirdekler yeniden kullanıldı; EI=0,4EcIc/(1+Rm), Nk=π²EI/lk². Rm=0/0,5/1 açık senaryolardır; gerçek sünme oranı veya doğrulanmış EI aralığı değildir.
+- Referanslarda i=0,30h kullanılır; √(I/A) ayrıca gösterilir. 22i koşullu ötelenmesi önlenmemiş sınırı, 40i önlenmiş sınıfın yalnız üst sınırı, 100i yaklaşık yöntem tavanıdır; gerçek ln/k/lk atanmaz.
+- 87 kolon × 2 eksen: 522 EI senaryosu, 1.566 Euler referansı. 2.412 statik kaydın 4.824 eksen satırı korunur; 4.740 basınç satırında 14.220 lk,0=π√[EI/(1,3Nkaynak)] boyu ve 42.660 referans payda hesaplandı; 84 çekme/sıfır-N eksen satırı NOT_APPLICABLE.
+- lk,0, Denk.7.24 paydasının sıfır olduğu matematiksel boydur; izin verilen boy veya Nk=N Euler boyu değildir. 50 sıfır/negatif payda yalnız Rm=1, lk/i=100 senaryosundadır. 100i ötesindeki lk,0 yaklaşık yöntem kapsamını genişletmez; pozitif payda stabilite kabulü sayılmaz.
+- 522 kolon–birleşim grubunun tamamında kayıtlı N değerleri farklıdır; işaretli I/J farkı ve tüm istasyon aralığı gösterilir. Eşit kayıtlar da sabit N/kesit, doğrusal elastik analiz ve minimum dışmerkezlik koşullarını kendiliğinden kanıtlamaz.
+- “İkinci mertebe girdileri” altında rijitlik/Euler ve etkin boy duyarlılığı görünümleri; kolon/vaka filtresi, HTML, tam JSON ve `inspect-column-demands --sensitivity` aynı türetimi kullanır. Kritik özet tüm eşit kaynakları korur; tam kuvvet nüfusu azaltılmaz, CHECK=16.
+- Yerel 746/746 test ve iki Node regresyonu PASS; 23 yeni Python testi Windows CI kapsamına eklendi. Bağımsız 400×600/E30GPa/N1000 oracle’ı ve l=a·l0 ⇒ payda=1−a² sınırı doğrulandı; bağımsız kod/UI incelemesi PASS.
+- Native Ec/I/N üzerinden 174 yarıçap, 522 EI, 1.566 Nk, 4.824 N/anahtar, 14.220 boy ve 42.660 payda yeniden kıyaslandı; en büyük payda farkı 6,11e−16. Önceki türetimler, ZIP SHA3882b659… ve SQLite SHA98bef804… aynı; yeni türetim SHAb1fba50f…. Gerçek Cm/β/Md üretilmez; DENIED / NOT_PROVEN / NOT_READY ve son ortak Windows/ETABS kabulü korunur.

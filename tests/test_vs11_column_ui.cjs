@@ -292,5 +292,46 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
     assert.match(ids.get('columnStatus').textContent,/Kolon uç hareketlerinin kaynak bağı/);
     assert.equal(ids.get('columnForces').children.length,0);assert.equal(ids.get('columnExports').children.length,0);
   }
-  console.log('VS11–VS18 column UI identity, filtering, native axes, end kinematics and conditional design scope PASS');
+  const sensitivityPayload=()=>{
+    const p=kinematicsPayload();p.column_kinematics.result_sha256='KINEMATICS2';
+    p.column_sensitivity={source_run_id:run(2),source_archive_sha256:'SOURCE_2',source_bank_result_sha256:'BANK2',
+      source_demand_result_sha256:'DEMAND2',source_stability_result_sha256:'STABILITY2',source_kinematics_result_sha256:'KINEMATICS2',
+      axis_convention:'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3',policy:{id:'TS500_EQ721_RM_0_0P5_1_REFERENCE_FAMILY',
+        radius_basis:'TS500_RECTANGLE_0_30_BENDING_DIMENSION',actual_ei_interval_proven:false,source_axial_force_is_design_nd:false},
+      source_population_reduced:false,actual_second_order_applied:false,actual_effective_length_lk_mm:null,actual_beta:null,actual_cm:null,
+      actual_creep_ratio:null,actual_sway_classification:null,magnified_design_moments:null,approximate_method_applicability_proven:false,
+      analysis_order:'NOT_PROVEN',design_demand_authority:'DENIED',formal_compliance:'NOT_PROVEN',engineering_release:'NOT_READY',
+      static_state_count:4,zero_length_reference_count:24,axial_profiles:[{member_id:'C2',output_case:'SUM',recorded_static_station_count:4,
+        n_i_kn:'180',n_j_kn:'720',end_n_j_minus_i_kn:'540',recorded_range_kn:'540',recorded_values_status:'RECORDED_AXIAL_VALUES_DIFFER'}]};
+    return p;
+  };
+  const referenceAxis={member_id:'C2',axis:'M2',ec_mpa_observed:30000,gross_inertia_mm4:3.2e9,radius_reference_mm:120,
+    radius_exact_mm:115.4700538,length_22i_mm:2640,length_40i_mm:4800,length_100i_mm:12000,
+    status:'STIFFNESS_PARAMETER_FAMILY_CALCULATED',reason:null,scenarios:[{creep_ratio_scenario:0,effective_ei_nmm2_scenario:3.84e13,
+      length_references:[{nk_kn_scenario:54379},{nk_kn_scenario:16449},{nk_kn_scenario:2631}]}]};
+  ids.get('columnView').value='stiffness-scenarios';ids.get('columnView').trigger('change');await flush();
+  const stiffnessScenarios=take();assert.doesNotMatch(stiffnessScenarios.url,/case=/);assert.equal(ids.get('columnCase').disabled,true);
+  stiffnessScenarios.done({...sensitivityPayload(),demand_page:{view:'stiffness-scenarios',total:1,offset:0,limit:200,rows:[referenceAxis]}});await flush();
+  assert.match(ids.get('columnForces').textContent,/3.8400e\+13/);assert.match(ids.get('columnForces').textContent,/2.64, 4.8, 12/);
+  assert.match(ids.get('columnContext').textContent,/gerçek sünme oranı/);assert.match(ids.get('columnContext').textContent,/54379/);
+  ids.get('columnView').trigger('change');await flush();const oldReference=take();
+  ids.get('columnView').value='length-sensitivity';ids.get('columnView').trigger('change');await flush();
+  const lengths=take();assert.match(lengths.url,/case=SUM/);assert.equal(ids.get('columnCase').disabled,false);
+  lengths.done({...sensitivityPayload(),demand_page:{view:'length-sensitivity',total:1,offset:0,limit:200,rows:[{
+    member_id:'C2',axis:'M2',native_key:candidate.native_key,n_source_compression_kn:'1000',status:'SOURCE_LENGTH_REFERENCES_CALCULATED',
+    reason:null,scenarios:[{creep_ratio_scenario:0,zero_denominator_length_mm:17074.335419,zero_length_exceeds_100i_reference:true,
+      at_reference_lengths:[{lk_over_i_reference:100,effective_length_lk_mm_scenario:12000,nk_kn_scenario:2631,
+        source_denominator:.5059,status:'POSITIVE_SOURCE_DENOMINATOR'}]}]}]}});await flush();
+  assert.match(ids.get('columnForces').textContent,/17.0743/);assert.match(ids.get('columnUnits').textContent,/İzin verilen boy/);
+  assert.match(ids.get('columnContext').textContent,/Kayıtlı N değerleri farklı/);assert.match(ids.get('columnContext').textContent,/540/);
+  oldReference.done({...sensitivityPayload(),demand_page:{view:'stiffness-scenarios',total:1,offset:0,limit:200,rows:[referenceAxis]}});await flush();
+  assert.doesNotMatch(ids.get('columnForces').textContent,/3.8400e\+13/);
+  for (const change of [p=>p.column_sensitivity.source_stability_result_sha256='OTHER',p=>p.column_sensitivity.policy.actual_ei_interval_proven=true,
+    p=>p.column_sensitivity.actual_beta=1.2,p=>p.column_sensitivity.actual_effective_length_lk_mm=4000,
+    p=>p.column_sensitivity.approximate_method_applicability_proven=true]) {
+    ids.get('columnView').trigger('change');await flush();const invalid=sensitivityPayload();change(invalid);take().done(invalid);await flush();
+    assert.match(ids.get('columnStatus').textContent,/Etkin boy duyarlılığının kaynak bağı/);
+    assert.equal(ids.get('columnForces').children.length,0);assert.equal(ids.get('columnExports').children.length,0);
+  }
+  console.log('VS11–VS19 column UI identity, filters, native axes, kinematics and stiffness/length parameter scope PASS');
 })().catch(error=>{console.error(error);process.exitCode=1;});

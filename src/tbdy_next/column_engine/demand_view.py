@@ -17,6 +17,7 @@ from .column_pmm import build_column_cages, build_column_pmm, cage_rows
 from .column_transverse import build_column_transverse, build_column_shear, transverse_rows
 from .column_joints import build_column_joints, joint_tie_rows, joint_summaries, joint_tie_summaries
 from .column_kinematics import build_column_kinematics, kinematic_summaries
+from .column_sensitivity import build_column_sensitivity, sensitivity_summaries
 from .native_archive import BankError, NativeArchive, decode
 
 
@@ -40,11 +41,14 @@ def _derive(source_path, database_path, source_sha, database_sha, bank_result_sh
         cages = build_column_cages(bank, chain, prechecks, archive)
         transverse = build_column_transverse(chain, cages, archive)
         joints = build_column_joints(bank, chain, cages, transverse, archive)
+        stability = build_column_stability(bank, chain, prechecks, archive)
+        kinematics = build_column_kinematics(bank, chain, joints, archive)
         return {"demand_chain": chain, "column_prechecks": prechecks,
-            "column_stability": build_column_stability(bank, chain, prechecks, archive),
+            "column_stability": stability,
             "column_cages": cages, "column_transverse": transverse,
             "column_joints": joints,
-            "column_kinematics": build_column_kinematics(bank, chain, joints, archive)}
+            "column_kinematics": kinematics,
+            "column_sensitivity": build_column_sensitivity(chain, stability, kinematics)}
     finally:
         archive.close()
 
@@ -95,10 +99,15 @@ def demand_view(database, report, *, member_id=None, output_case=None, offset=0,
     result["column_joints"]["graph"] = deepcopy({k:v for k,v in joints["graph"].items() if k not in ("frames","points","nodes")})
     kinematics = derived["column_kinematics"]
     result["column_kinematics"] = deepcopy({k:v for k,v in kinematics.items() if k != "rows"})
+    sensitivity = derived["column_sensitivity"]
+    result["column_sensitivity"] = deepcopy({k:v for k,v in sensitivity.items() if k not in ("rows", "axes", "axial_profiles")})
     if view == "pmm":
         result["column_joints"]["end_summaries"] = joint_summaries(joints)
         result["column_joints"]["tie_summaries"] = joint_tie_summaries(joints)
         result["column_kinematics"]["summaries"] = kinematic_summaries(kinematics)
+        result["column_sensitivity"]["axes"] = deepcopy(sensitivity["axes"])
+        result["column_sensitivity"]["summaries"] = sensitivity_summaries(sensitivity)
+        result["column_sensitivity"]["axial_profiles"] = deepcopy(sensitivity["axial_profiles"])
     if pmm is not None:
         result["column_pmm"] = deepcopy({k:v for k,v in pmm.items() if k != "rows"})
     if shear is not None:
@@ -125,6 +134,15 @@ def demand_view(database, report, *, member_id=None, output_case=None, offset=0,
         rows = [r for r in kinematics["rows"] if
             (member_id is None or r["member_id"] == member_id) and
             (output_case is None or r["output_case"] == output_case)]
+    elif view == "stiffness-scenarios":
+        rows = [r for r in sensitivity["axes"] if member_id is None or r["member_id"] == member_id]
+    elif view == "length-sensitivity":
+        rows = [r for r in sensitivity["rows"] if
+            (member_id is None or r["member_id"] == member_id) and
+            (output_case is None or r["native_key"]["LoadCase"] == output_case)]
+        result["column_sensitivity"]["axial_profiles"] = deepcopy([r for r in sensitivity["axial_profiles"] if
+            (member_id is None or r["member_id"] == member_id) and
+            (output_case is None or r["output_case"] == output_case)])
     elif view == "shear":
         rows = [r for r in shear["rows"] if (member_id is None or r["member_id"] == member_id)
             and (output_case is None or r["native_key"]["LoadCase"] == output_case)]

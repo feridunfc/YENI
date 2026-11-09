@@ -39,7 +39,12 @@
     SAME_CASE_SOURCE_LINKED:'Aynı birleşimde kaynaklar bağlı', PARTIAL_SOURCE_LINK:'Kısmi kaynak bağı',
     RECORDED_PDELTA_STIFFNESS:'P-Delta rijitliği kaydı',
     RECORDED_NONLINEAR_CASE_UNRESOLVED:'Nonlinear Case kaydı · başlangıç esası belirsiz',
-    RECORDED_STIFFNESS_SETTING:'Rijitlik ayarı kaydedilmiş'
+    RECORDED_STIFFNESS_SETTING:'Rijitlik ayarı kaydedilmiş',
+    STIFFNESS_PARAMETER_FAMILY_CALCULATED:'Açık rijitlik senaryoları',
+    SOURCE_LENGTH_REFERENCES_CALCULATED:'Matematiksel boy referansları',
+    POSITIVE_SOURCE_DENOMINATOR:'Pozitif kaynak paydası', NONPOSITIVE_SOURCE_DENOMINATOR:'Sıfır/negatif kaynak paydası',
+    NUMERICALLY_NEAR_ZERO:'Sayısal olarak sıfıra yakın',
+    RECORDED_AXIAL_VALUES_DIFFER:'Kayıtlı N değerleri farklı', RECORDED_AXIAL_VALUES_EQUAL:'Kayıtlı N değerleri eşit'
   };
   let epoch = 0, historyEpoch = 0, opened = false, offset = 0, total = 0;
   const text = (tag, value, css) => {
@@ -110,7 +115,7 @@
     if (!selected) { el('columnStatus').textContent = 'Kolon arşivi seçilmedi.'; return; }
     const params = new URLSearchParams({run_id:selected, offset:String(offset)});
     const selectedView = view.value || 'native';
-    const sectionView = ['reinforcement','stiffness','cages','transverse','joints','joint-ties'].includes(selectedView);
+    const sectionView = ['reinforcement','stiffness','cages','transverse','joints','joint-ties','stiffness-scenarios'].includes(selectedView);
     loadCase.disabled = sectionView;
     if (member.value) params.set('member', member.value);
     if (loadCase.value && !sectionView) params.set('case', loadCase.value);
@@ -190,6 +195,23 @@
       }
       const joints = report.column_joints;
       const kinematics = report.column_kinematics;
+      const sensitivity = report.column_sensitivity;
+      if (sensitivity && (sensitivity.source_run_id !== selected || sensitivity.source_archive_sha256 !== report.source_archive_sha256 ||
+          sensitivity.source_bank_result_sha256 !== report.result_sha256 || sensitivity.source_demand_result_sha256 !== chain?.result_sha256 ||
+          sensitivity.source_stability_result_sha256 !== stability?.result_sha256 ||
+          sensitivity.source_kinematics_result_sha256 !== kinematics?.result_sha256 ||
+          sensitivity.axis_convention !== 'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3' ||
+          sensitivity.policy?.id !== 'TS500_EQ721_RM_0_0P5_1_REFERENCE_FAMILY' ||
+          sensitivity.policy?.radius_basis !== 'TS500_RECTANGLE_0_30_BENDING_DIMENSION' ||
+          sensitivity.policy?.actual_ei_interval_proven !== false || sensitivity.policy?.source_axial_force_is_design_nd !== false ||
+          sensitivity.source_population_reduced !== false || sensitivity.actual_second_order_applied !== false ||
+          sensitivity.actual_effective_length_lk_mm !== null || sensitivity.actual_beta !== null || sensitivity.actual_cm !== null ||
+          sensitivity.actual_creep_ratio !== null || sensitivity.actual_sway_classification !== null ||
+          sensitivity.magnified_design_moments !== null || sensitivity.approximate_method_applicability_proven !== false ||
+          sensitivity.analysis_order !== 'NOT_PROVEN' || sensitivity.design_demand_authority !== 'DENIED' ||
+          sensitivity.formal_compliance !== 'NOT_PROVEN' || sensitivity.engineering_release !== 'NOT_READY')) {
+        throw new Error('Etkin boy duyarlılığının kaynak bağı veya senaryo kapsamı uyuşmuyor.');
+      }
       if (kinematics && (kinematics.source_run_id !== selected || kinematics.source_archive_sha256 !== report.source_archive_sha256 ||
           kinematics.source_bank_result_sha256 !== report.result_sha256 || kinematics.source_demand_result_sha256 !== chain?.result_sha256 ||
           kinematics.source_joints_result_sha256 !== joints?.result_sha256 ||
@@ -241,6 +263,7 @@
       if (selectedView === 'shear' && !shear) throw new Error('Koşullu kesme hesabı bulunamadı.');
       if (['joints','joint-ties'].includes(selectedView) && !joints) throw new Error('Birleşim referansları bulunamadı.');
       if (['end-forces','kinematics'].includes(selectedView) && !kinematics) throw new Error('Kolon uç kaynak bağı bulunamadı.');
+      if (['stiffness-scenarios','length-sensitivity'].includes(selectedView) && !sensitivity) throw new Error('Etkin boy duyarlılığı bulunamadı.');
       if (!page || (selectedView !== 'native' && page.view !== selectedView)) throw new Error('İstenen talep görünümü bulunamadı.');
       total = page.total; offset = page.offset;
       const identity = [['Obj','Kolon'], ['Elm','Analiz elemanı'], ['ObjSta','Nesne istasyonu'], ['ElmSta','Eleman istasyonu'],
@@ -339,6 +362,54 @@
             vr:rounded(r.calculation?.branches.ts500.vr_kn),ratio:rounded(r.calculation?.branches.ts500.source_utilization),
             ratioZero:rounded(r.calculation?.branches.zero_concrete.source_utilization),label:labels[r.status] || r.status,
             reasonLabel:labels[r.reason] || r.reason}))));
+      } else if (selectedView === 'stiffness-scenarios' || selectedView === 'length-sensitivity') {
+        el('columnContext').append(text('p','Rm = 0 / 0,5 / 1 açık parametre senaryolarıdır; gerçek sünme oranı veya doğrulanmış EI aralığı değildir. ' +
+          'Yarıçap i=0,30h seçildi. 22i ötelenmesi önlenmemiş sınıfın koşullu sınırı; 40i önlenmiş sınıfın yalnız üst sınırı; 100i yaklaşık yöntem tavanıdır.','micro'));
+        if (selectedView === 'stiffness-scenarios') {
+          el('columnUnits').textContent = 'TS500 7.19 / 7.21 · EI=0,4EcIc/(1+Rm), Nk=π²EI/lk². Ec: MPa; Ic: mm⁴; EI: N·mm²; referans boylar: m. Gerçek lk, k veya serbest boy atanmamıştır.';
+          const scientific = v => typeof v === 'number' ? v.toExponential(4) : null;
+          el('columnForces').append(table([['member_id','Kolon'],['axis','Eksen'],['ec_mpa_observed','Ec (MPa)'],
+            ['inertia','Ic (mm⁴)'],['radius','i: 0,30h / √(I/A) (mm)'],['ei','EI: Rm 0 / 0,5 / 1 (N·mm²)'],
+            ['lengths','22i / 40i / 100i (m)'],['label','Kapsam'],['reason','Açık neden']],page.rows.map(r=>({...r,
+              inertia:scientific(r.gross_inertia_mm4),radius:[rounded(r.radius_reference_mm),rounded(r.radius_exact_mm)],
+              ei:r.scenarios.map(s=>scientific(s.effective_ei_nmm2_scenario)),
+              lengths:[r.length_22i_mm,r.length_40i_mm,r.length_100i_mm].map(v=>v==null ? null : rounded(v/1000)),
+              label:labels[r.status] || r.status}))));
+          if (member.value) {
+            const details=text('details','');details.append(text('summary','Referans boylarda Euler yükleri'));
+            details.append(table([['axis','Eksen'],['rm','Rm senaryosu'],['n22','Nk: 22i (kN)'],['n40','Nk: 40i (kN)'],['n100','Nk: 100i (kN)']],
+              page.rows.flatMap(r=>r.scenarios.map(s=>({axis:r.axis,rm:s.creep_ratio_scenario,
+                n22:rounded(s.length_references[0].nk_kn_scenario),n40:rounded(s.length_references[1].nk_kn_scenario),
+                n100:rounded(s.length_references[2].nk_kn_scenario)})))));
+            el('columnContext').append(details);
+          }
+        } else {
+          el('columnUnits').textContent = 'lk,0 = π√[EI/(1,3Nkaynak)] · Denk. 7.24 paydasının sıfır olduğu matematiksel boy (m). İzin verilen boy veya Nk=N boyu değildir. Her statik istasyon ve iki eksen korunur; çekme/sıfır N bu basınç hesabına uygulanmaz.';
+          el('columnContext').append(text('p',`${sensitivity.static_state_count} statik kayıt · ${sensitivity.zero_length_reference_count} payda-sıfır boyu. `+
+            '100i ötesindeki matematiksel boylar yaklaşık yöntemin kapsamını genişletmez; Cm/β ve tasarım momenti üretilmez.','micro'));
+          el('columnForces').append(table([['member_id','Kolon'],['case','Birleşim'],['station','İstasyon (m)'],['axis','Eksen'],
+            ['n_source_compression_kn','Nkaynak (kN, basınç +)'],['lengths','lk,0: Rm 0 / 0,5 / 1 (m)'],
+            ['beyond','100i ötesinde: 0 / 0,5 / 1'],['label','Hesap'],['reason','Açık neden']],page.rows.map(r=>({...r,
+              case:r.native_key.LoadCase,station:r.native_key.ObjSta,
+              lengths:r.scenarios.map(s=>s.zero_denominator_length_mm==null ? '—' : rounded(s.zero_denominator_length_mm/1000)),
+              beyond:r.scenarios.map(s=>s.zero_length_exceeds_100i_reference==null ? '—' : s.zero_length_exceeds_100i_reference ? 'Evet' : 'Hayır'),
+              label:labels[r.status] || r.status}))));
+          if (member.value) {
+            const detail=text('details','');detail.append(text('summary','Kayıtlı eksenel kuvvet değişimi ve yöntemin açık koşulları'));
+            detail.append(table([['output_case','Birleşim'],['recorded_static_station_count','İstasyon'],['n_i_kn','I kesiti N (kN)'],
+              ['n_j_kn','J kesiti N (kN)'],['end_n_j_minus_i_kn','NJ−NI (kN)'],['recorded_range_kn','Tüm kayıtlarda N aralığı (kN)'],
+              ['label','Kaynak']],(sensitivity.axial_profiles || []).map(r=>({...r,label:labels[r.recorded_values_status] || r.recorded_values_status}))));
+            detail.append(text('p','Yaklaşık yöntem için sabit kesit/eksenel kuvvet, doğrusal elastik analiz ve minimum dışmerkezlik esası ayrıca gerekir. Eşit kayıtlı uç değerleri bu koşulları kanıtlamaz.','micro'));
+            el('columnContext').append(detail);
+            const denominator=text('details','');denominator.append(text('summary','Açık referans boylarda 1−1,3Nkaynak/Nk paydası'));
+            denominator.append(table([['case','Birleşim'],['station','İstasyon'],['axis','Eksen'],['rm','Rm'],['lambda','lk/i referansı'],
+              ['lk','lk (m)'],['nk','Nk (kN)'],['value','Payda'],['label','Sayısal kapsam']],page.rows.flatMap(r=>r.scenarios.flatMap(s=>
+                s.at_reference_lengths.map(v=>({case:r.native_key.LoadCase,station:r.native_key.ObjSta,axis:r.axis,rm:s.creep_ratio_scenario,
+                  lambda:v.lk_over_i_reference,lk:rounded(v.effective_length_lk_mm_scenario/1000),nk:rounded(v.nk_kn_scenario),
+                  value:rounded(v.source_denominator),label:labels[v.status] || v.status}))))));
+            el('columnContext').append(denominator);
+          }
+        }
       } else if (selectedView === 'end-forces' || selectedView === 'kinematics') {
         el('columnContext').append(text('p',`${kinematics.linked_member_case_count}/${kinematics.expected_member_case_count} kolon–birleşim kaynak bağı. `+
           'Analiz mertebesi doğrulanmadı; Cm, β ve büyütülmüş moment üretilmez.','micro'));

@@ -335,6 +335,55 @@ def build_column_bank_html(report: Mapping[str, Any]) -> str:
             'Nonlinear Case / None kaydı doğrulanmış bir başlangıç koşulu sayılmaz.</p></details>')
         content += '<p>Uç türetimi SHA-256: '+_val(kinematics["result_sha256"])+'. '+', '.join(
             '<a href="'+escape(url,quote=True)+'">'+escape(name)+'</a>' for name,url in kinematics["references"].items())+'</p>'
+    sensitivity = report.get("column_sensitivity")
+    if sensitivity:
+        from .column_engine.column_sensitivity import sensitivity_summaries
+        content += ('<h2>VS19 · Etkin boy ve rijitlik duyarlılığı</h2><p>'+
+            _val(sensitivity["static_state_count"])+' statik kaynak kaydı, '+_val(sensitivity["state_axis_count"])+
+            ' eksen kaydı: '+_val(sensitivity["stiffness_scenario_count"])+' EI senaryosu, '+
+            _val(sensitivity["euler_reference_count"])+' Euler referansı, '+_val(sensitivity["zero_length_reference_count"])+
+            ' matematiksel payda-sıfır boyu. Bütün ara istasyonlar ve eşit kritik kaynaklar korunur.</p>')
+        content += ('<p>TS500 7.19/7.21: EI=0,4EcIc/(1+Rm), Nk=π²EI/lk². Rm=0/0,5/1 açık parametre ailesidir; '+
+            'gerçek sünme oranı veya doğrulanmış EI aralığı değildir. i=0,30h seçilir; √(I/A) ayrı gösterilir. '+
+            '22i ötelenmesi önlenmemiş sınıfın koşullu sınırı, 40i önlenmiş sınıfın yalnız üst sınırı, '+
+            '100i yaklaşık yöntemin narinlik tavanıdır. Bu boylar gerçek lk yerine atanmaz.</p>')
+        content += ('<p>lk,0=π√[EI/(1,3Nkaynak)] yalnız Denk.7.24 paydasının sıfır olduğu boydur; '+
+            '<strong>izin verilen boy veya Nk=N Euler boyu değildir.</strong> 100i ötesindeki matematiksel '+
+            'boy, yaklaşık yöntemin kapsamını genişletmez. Pozitif payda mühendislik stabilite kabulü değildir; '+
+            'Cm, β ve tasarım momenti üretilmez.</p>')
+        axes = sensitivity.get("axes", [])
+        axis_rows, euler_rows = [], []
+        for row in axes:
+            axis_rows.append({**row, "ei_family": [format(s["effective_ei_nmm2_scenario"], ".6g") for s in row["scenarios"]]})
+            for scenario in row["scenarios"]:
+                euler_rows.append({"member_id":row["member_id"], "axis":row["axis"], "rm":scenario["creep_ratio_scenario"],
+                    "nk_22":scenario["length_references"][0]["nk_kn_scenario"],
+                    "nk_40":scenario["length_references"][1]["nk_kn_scenario"],
+                    "nk_100":scenario["length_references"][2]["nk_kn_scenario"]})
+        content += '<details><summary>Kesit, yarıçap ve açık EI senaryoları</summary>'+_table((
+            ("member_id","Kolon"),("axis","Eksen"),("ec_mpa_observed","Ec (MPa)"),("gross_inertia_mm4","Ic (mm⁴)"),
+            ("radius_reference_mm","i=0,30h (mm)"),("radius_exact_mm","√(I/A) (mm)"),
+            ("length_22i_mm","22i (mm)"),("length_40i_mm","40i (mm)"),("length_100i_mm","100i (mm)"),
+            ("ei_family","EI: Rm=0/0,5/1 (N·mm²)"),("status","Kaynak"),("reason","Açık neden")),axis_rows)+'</details>'
+        content += '<details><summary>Referans etkin boylarda Euler yükleri</summary>'+_table((
+            ("member_id","Kolon"),("axis","Eksen"),("rm","Rm senaryosu"),("nk_22","Nk: 22i (kN)"),
+            ("nk_40","Nk: 40i (kN)"),("nk_100","Nk: 100i (kN)")),euler_rows)+'</details>'
+        summary = sensitivity_summaries(sensitivity) if "rows" in sensitivity else sensitivity.get("summaries", [])
+        content += '<details><summary>Kolon ve eksen bazında en küçük matematiksel payda-sıfır boyları</summary>'+_table((
+            ("member_id","Kolon"),("axis","Eksen"),("recorded_state_count","Statik kayıt"),
+            ("maximum_source_n_kn","En büyük N kaynağı (kN)"),("minimum_zero_lengths_mm","lk,0: Rm 0/0,5/1 (mm)"),
+            ("zero_lengths_exceed_100i","100i ötesinde"),("critical_source_states","Eşit kritik kaynakların tamamı"),
+            ("status_counts","Sayısal kapsam")),summary)+'</details>'
+        content += '<p>Referans paydaların sayısal kapsamı: '+_val(sensitivity["denominator_status_counts"])+'.</p>'
+        content += '<details><summary>Kaydedilmiş eksenel kuvvet değişimi</summary>'+_table((
+            ("member_id","Kolon"),("output_case","Birleşim"),("recorded_static_station_count","İstasyon"),
+            ("n_i_kn","I N (kN)"),("n_j_kn","J N (kN)"),("end_n_j_minus_i_kn","NJ−NI (kN)"),
+            ("recorded_range_kn","Tüm kayıtların N aralığı (kN)"),("recorded_values_status","Kaynak gözlemi")),
+            sensitivity.get("axial_profiles", []))+('<p>TS500 7.6.2 için sabit kesit ve eksenel kuvvet, doğrusal elastik '+
+            'analiz ve minimum dışmerkezlik esası ayrıca gerekir. Eşit kayıtlı N değerleri bu koşulları kanıtlamaz.</p></details>')
+        content += ('<p>Duyarlılık türetimi SHA-256: '+_val(sensitivity["result_sha256"])+'. '+', '.join(
+            '<a href="'+escape(url,quote=True)+'">'+escape(name)+'</a>' for name,url in sensitivity["references"].items())+
+            ' · <strong>DENIED / NOT_PROVEN / NOT_READY</strong>.</p>')
     historical = report.get("historical_reconciliation")
     if historical:
         content += '<h2>Tarihsel D7-B6 toplamları</h2>' + _table((
