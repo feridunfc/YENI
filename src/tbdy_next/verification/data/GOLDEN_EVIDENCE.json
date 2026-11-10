@@ -1,0 +1,38 @@
+{
+  "schema": "column.golden.evidence.v1",
+  "sources": [
+    {
+      "id": "GOLDEN-01",
+      "file_name": "1(1).pdf",
+      "sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "geometry": "2 x 3m; 40x40; A15 chosen despite no walls",
+      "role": "NEGATIVE_SYSTEM"
+    },
+    {
+      "id": "GOLDEN-02",
+      "file_name": "2(1).pdf",
+      "sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+      "geometry": "2 x 5m; 30x30; A11",
+      "role": "NEGATIVE_ALPHA"
+    },
+    {
+      "id": "GOLDEN-03",
+      "file_name": "3.pdf",
+      "sha256": "0e5d2841d44f0690509cfe681681a238291bed645e24011424ac37b3c9c5f196",
+      "geometry": "3 x 3m; 40x40; A11",
+      "role": "MIXED_VALIDATION_NONSWAY"
+    },
+    {
+      "id": "GOLDEN-04",
+      "file_name": "4.pdf",
+      "sha256": "2a21e640a6e4d91ed959abc54050ccaac47debecf08cf9d42c0f9198214fa43d",
+      "geometry": "3 x 5m; 40x40; A11",
+      "role": "MIXED_VALIDATION_SWAY"
+    }
+  ],
+  "additional_archive": {
+    "name": "TBDY_Column_Cumulative_C1_R3.zip",
+    "sha256": "b56b3b4765b7d385336d3fca0966aa644aef6748c5b1b4117a6985204ec08f3e"
+  },
+  "notes": "Source PDFs are comparison references, not normative correctness or actual Column runtime evidence"
+}

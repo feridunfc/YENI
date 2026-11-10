@@ -1,0 +1,80 @@
+<!doctype html><html lang='tr'><meta charset='utf-8'><title>YENI · Golden regresyon kapısı</title><style>body{font:15px system-ui;margin:2rem;color:#183047}table{border-collapse:collapse;width:100%;font-size:12px}td,th{padding:8px;border-bottom:1px solid #ccd4dd;text-align:left}th{background:#edf2f7}pre{white-space:pre-wrap;overflow-wrap:anywhere}</style><h1>Golden regresyon kapısı</h1><p><strong>Kabul kapsamı eksik · NOT_READY.</strong> YENI hesabı → bağımsız aritmetik → rapor → farkın açıklaması. Sayısal uyum, raporun veya modelin yönetmelik onayı değildir.</p><p>GOLDEN-01'in 23 karşılaştırması ve GOLDEN-02'nin 7 eski test grubu korunur. Üretime bağlanmayan yollar INSUFFICIENT_SOURCE kalır. 87 kolonlu ETABS bankası ayrı kaynak entegrasyonu denetimidir.</p><table><tr><th>Kontrol</th><th>PDF sayfası</th><th>YENI</th><th>Bağımsız</th><th>Rapor</th><th>Sınıf</th><th>Açıklama</th></tr><tr><td>G01_SDS</td><td>7</td><td>—</td><td>0.6592</td><td>0.6592</td><td>INSUFFICIENT_SOURCE</td><td>DD2 horizontal spectral coefficient, not an unconditional system design acceptance Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı.</td></tr><tr><td>G01_SD1</td><td>7</td><td>—</td><td>0.1912</td><td>0.1912</td><td>INSUFFICIENT_SOURCE</td><td>Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı.</td></tr><tr><td>G01_TA</td><td>7</td><td>—</td><td>0.0580097087</td><td>0.058</td><td>INSUFFICIENT_SOURCE</td><td>Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı.</td></tr><tr><td>G01_TB</td><td>7</td><td>—</td><td>0.290048544</td><td>0.29</td><td>INSUFFICIENT_SOURCE</td><td>Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı.</td></tr><tr><td>G01_PROVIDED_AS</td><td>183, 196</td><td>18.4725648</td><td>18.4725648</td><td>18.47</td><td>NUMERICAL_MATCH</td><td>Do not confuse displayed Ast=16.00 cm2 required/design figure with physically provided As=18.47 cm2 Yalnız 12 çubuğun alanı sınandı; koordinatlar iki açık test yerleşimidir, rapora bağlı PMM geometrisi değildir.</td></tr><tr><td>G01_CONFINEMENT_ASW_OVER_S</td><td>184</td><td>—</td><td>25.1327412</td><td>25.13</td><td>INSUFFICIENT_SOURCE</td><td>4 ties/legs directly from stated row; effective leg geometry still needs source confirmation Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı.</td></tr><tr><td>G01_AC</td><td>184</td><td>1600</td><td>1600</td><td>1600</td><td>NUMERICAL_MATCH</td><td></td></tr><tr><td>G01_CONFINEMENT_AXIAL_BRANCH_THRESHOLD</td><td>184</td><td>—</td><td>960</td><td>960</td><td>INSUFFICIENT_SOURCE</td><td>Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı.</td></tr><tr><td>G01_AXIAL_TBDY_LIMIT</td><td>192</td><td>—</td><td>1920</td><td>1920</td><td>INSUFFICIENT_SOURCE</td><td>Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı.</td></tr><tr><td>G01_AXIAL_TS500_LIMIT</td><td>192</td><td>—</td><td>2880</td><td>2880</td><td>INSUFFICIENT_SOURCE</td><td>Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı.</td></tr><tr><td>G01_JOINT_UNCONFINED_LIMIT</td><td>194</td><td>876.356092</td><td>876.356092</td><td>876.36</td><td>NUMERICAL_MATCH</td><td>Geometric capacity branch only; joint classification separate</td></tr><tr><td>G01_JOINT_CONFINED_LIMIT</td><td>194</td><td>1489.80536</td><td>1489.80536</td><td>1489.81</td><td>NUMERICAL_MATCH</td><td>Confinement classification must be verified from all relevant adjacent beams</td></tr><tr><td>G01_SCWB_COLUMN_SUM</td><td>191</td><td>347.34</td><td>347.34</td><td>347.34</td><td>NUMERICAL_MATCH</td><td>Basılı uç kapasitelerinin toplamı sınandı; I/J test rolüdür, native uç veya kapasite hesabı kanıtı değildir.</td></tr><tr><td>G01_SCWB_BEAM_1P2_SUM</td><td>191</td><td>185.8788</td><td>185.8788</td><td>185.88</td><td>NUMERICAL_MATCH</td><td>Basılı uç kapasitelerinin toplamı sınandı; I/J test rolüdür, native uç veya kapasite hesabı kanıtı değildir.</td></tr><tr><td>G01_SCWB_NUMERIC_INEQUALITY</td><td>191</td><td>True</td><td>True</td><td>True</td><td>NUMERICAL_MATCH</td><td>Numeric inequality only, not proof of selected Nd/beam moment capacity/concurrency Basılı uç kapasitelerinin toplamı sınandı; I/J test rolüdür, native uç veya kapasite hesabı kanıtı değildir.</td></tr><tr><td>G01_JOINT_VE_ONE_BEAM_APPROX</td><td>194</td><td>—</td><td>198.605</td><td>198.74</td><td>INSUFFICIENT_SOURCE</td><td>Tolerance includes As1 printed to two decimals; use unrounded reinforcement area for exact oracle Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı.</td></tr><tr><td>G01_JOINT_VE_TWO_BEAM_APPROX</td><td>194</td><td>—</td><td>389.015</td><td>389.22</td><td>INSUFFICIENT_SOURCE</td><td>Tolerance includes printed As values Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı.</td></tr><tr><td>G01_THETA_GROUND</td><td>28</td><td>—</td><td>0.00751685361</td><td>0.0075</td><td>INSUFFICIENT_SOURCE</td><td>Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı.</td></tr><tr><td>G01_THETA_UPPER</td><td>28</td><td>—</td><td>0.00599776097</td><td>0.006</td><td>INSUFFICIENT_SOURCE</td><td>Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı.</td></tr><tr><td>G01_SWAY_PHI_GROUND</td><td>186</td><td>—</td><td>0.0102143068</td><td>0.0102</td><td>INSUFFICIENT_SOURCE</td><td>Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı.</td></tr><tr><td>G01_SWAY_PHI_UPPER</td><td>186</td><td>—</td><td>0.00907018127</td><td>0.00907</td><td>INSUFFICIENT_SOURCE</td><td>Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı.</td></tr><tr><td>G01_DRIFT_LAMBDA</td><td>27</td><td>—</td><td>0.397438348</td><td>0.3975</td><td>INSUFFICIENT_SOURCE</td><td>Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı.</td></tr><tr><td>G01_LOCAL_BETA_NON_DIAGNOSTIC</td><td>187</td><td>—</td><td>1</td><td>1</td><td>INSUFFICIENT_SOURCE</td><td>This is not a discriminating regression for the old denominator bug: both formulas yield 1.00 Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı.</td></tr><tr><td>G02_BETA_S101_top_1</td><td>186</td><td>1.0903412</td><td>1.0903412</td><td>1.09</td><td>NUMERICAL_MATCH</td><td>Bireysel β karşılaştırması; lk/EI hesabı ve nihai büyütülmüş moment doğrulaması değildir.</td></tr><tr><td>G02_USED_FACTOR_S101_top_1</td><td>186</td><td>—</td><td>1.26693916</td><td>1.27</td><td>ENGINEERING_INTERPRETATION_DIFFERENCE</td><td>Raporun Alındı değeri β×βs aritmetiğine uyuyor. YENI nihai çarpanı onaylamıyor; serbest boy, 7.29 politikası ve PMM aktarımı kanıtlı değil. Bireysel β ile Alındı β aynı büyüklük sayılmadı.</td></tr><tr><td>G02_EQ729_S101_top_1</td><td>186</td><td>—</td><td>False</td><td>False</td><td>INSUFFICIENT_SOURCE</td><td>Eski auditin lk/i duyarlılığı korunur. Kat yüksekliği fiziksel serbest boy olarak atanmaz; tam YENI 7.29 çağrısı için ln/k/mesnet ve politika kaynağı eksik.</td></tr><tr><td>G02_BETA_S101_top_2</td><td>186</td><td>1.23850283</td><td>1.23850283</td><td>1.24</td><td>NUMERICAL_MATCH</td><td>Bireysel β karşılaştırması; lk/EI hesabı ve nihai büyütülmüş moment doğrulaması değildir.</td></tr><tr><td>G02_USED_FACTOR_S101_top_2</td><td>186</td><td>—</td><td>1.43909789</td><td>1.44</td><td>ENGINEERING_INTERPRETATION_DIFFERENCE</td><td>Raporun Alındı değeri β×βs aritmetiğine uyuyor. YENI nihai çarpanı onaylamıyor; serbest boy, 7.29 politikası ve PMM aktarımı kanıtlı değil. Bireysel β ile Alındı β aynı büyüklük sayılmadı.</td></tr><tr><td>G02_EQ729_S101_top_2</td><td>186</td><td>—</td><td>False</td><td>False</td><td>INSUFFICIENT_SOURCE</td><td>Eski auditin lk/i duyarlılığı korunur. Kat yüksekliği fiziksel serbest boy olarak atanmaz; tam YENI 7.29 çağrısı için ln/k/mesnet ve politika kaynağı eksik.</td></tr><tr><td>G02_BETA_SZ01_ground</td><td>186</td><td>1.54935162</td><td>1.54935162</td><td>1.55</td><td>NUMERICAL_MATCH</td><td>Bireysel β karşılaştırması; lk/EI hesabı ve nihai büyütülmüş moment doğrulaması değildir.</td></tr><tr><td>G02_USED_FACTOR_SZ01_ground</td><td>186</td><td>—</td><td>1.84801233</td><td>1.85</td><td>ENGINEERING_INTERPRETATION_DIFFERENCE</td><td>Raporun Alındı değeri β×βs aritmetiğine uyuyor. YENI nihai çarpanı onaylamıyor; serbest boy, 7.29 politikası ve PMM aktarımı kanıtlı değil. Bireysel β ile Alındı β aynı büyüklük sayılmadı.</td></tr><tr><td>G02_EQ729_SZ01_ground</td><td>186</td><td>—</td><td>False</td><td>False</td><td>INSUFFICIENT_SOURCE</td><td>Eski auditin lk/i duyarlılığı korunur. Kat yüksekliği fiziksel serbest boy olarak atanmaz; tam YENI 7.29 çağrısı için ln/k/mesnet ve politika kaynağı eksik.</td></tr><tr><td>G02_BETA_SZ03_ground</td><td>186</td><td>1.50541348</td><td>1.50541348</td><td>1.51</td><td>NUMERICAL_MATCH</td><td>Bireysel β karşılaştırması; lk/EI hesabı ve nihai büyütülmüş moment doğrulaması değildir.</td></tr><tr><td>G02_USED_FACTOR_SZ03_ground</td><td>186</td><td>—</td><td>1.79560447</td><td>1.8</td><td>ENGINEERING_INTERPRETATION_DIFFERENCE</td><td>Raporun Alındı değeri β×βs aritmetiğine uyuyor. YENI nihai çarpanı onaylamıyor; serbest boy, 7.29 politikası ve PMM aktarımı kanıtlı değil. Bireysel β ile Alındı β aynı büyüklük sayılmadı.</td></tr><tr><td>G02_EQ729_SZ03_ground</td><td>186</td><td>—</td><td>False</td><td>False</td><td>INSUFFICIENT_SOURCE</td><td>Eski auditin lk/i duyarlılığı korunur. Kat yüksekliği fiziksel serbest boy olarak atanmaz; tam YENI 7.29 çağrısı için ln/k/mesnet ve politika kaynağı eksik.</td></tr><tr><td>G02_STORY_BETA_top</td><td>186</td><td>1.16196577</td><td>1.16196577</td><td>1.16</td><td>NUMERICAL_MATCH</td><td>Basılı kat toplamlarıyla βs aritmetiği; nüfusun tekil ve eksiksiz olduğu ayrıca doğrulanmalıdır.</td></tr><tr><td>G02_STORY_BETA_ground</td><td>186</td><td>1.19276497</td><td>1.19276497</td><td>1.19</td><td>NUMERICAL_MATCH</td><td>Basılı kat toplamlarıyla βs aritmetiği; nüfusun tekil ve eksiksiz olduğu ayrıca doğrulanmalıdır.</td></tr><tr><td>G02_ALPHA_top</td><td>189</td><td>—</td><td>1</td><td>1</td><td>INSUFFICIENT_SOURCE</td><td>Bağımsız Vis/Vik hesabı raporla uyumlu. YENI kat α motoru ve eksiksiz tekil kat nüfusu bu sprintte bağlanmadı; tek kolonda donatı artırma veya 1/α ile kabul üretilmez.</td></tr><tr><td>G02_ALPHA_ground</td><td>189</td><td>—</td><td>0.626226747</td><td>0.6262</td><td>INSUFFICIENT_SOURCE</td><td>Bağımsız Vis/Vik hesabı raporla uyumlu. YENI kat α motoru ve eksiksiz tekil kat nüfusu bu sprintte bağlanmadı; tek kolonda donatı artırma veya 1/α ile kabul üretilmez.</td></tr><tr><td>G02_SWAY_BRANCH_CHANGED</td><td>185</td><td>—</td><td>True</td><td>True</td><td>INSUFFICIENT_SOURCE</td><td>Eski auditin değişen φ dalı doğrulanır; rapor φ değerlerini YENI&#x27;nin tam fiziksel kat hesabı üretmiş sayılmaz.</td></tr><tr><td>PMM_REPORT_GATE</td><td>183, 196, 197</td><td>—</td><td>—</td><td>—</td><td>INSUFFICIENT_SOURCE</td><td>Tam çubuk koordinatları, malzeme/eksen politikası, eşzamanlı talep ve bağımsız sabit-N/sabit-yön PMM referansı eksik; iki ayrı eksen kapasitesi 3B PMM golden sayılmaz.</td></tr><tr><td>CAPACITY_SHEAR_REPORT_GATE</td><td>188, 189</td><td>—</td><td>—</td><td>—</td><td>INSUFFICIENT_SOURCE</td><td>Ma/Mu yetkisi, fiziksel ln, D dalı ve Vd alt sınırıyla çalışan YENI Ve yolu henüz rapora bağlanmadı; kaynak V veya birleşim Ve hesabı kolon kapasite kesmesi değildir.</td></tr><tr><td>GOLDEN03_REPORT_GATE</td><td></td><td>—</td><td>—</td><td>—</td><td>INSUFFICIENT_SOURCE</td><td>PDF hash&#x27;i doğrulandı; tamamlanmış rapor aritmetiği paketi ve YENI karşılaştırması bulunmadı.</td></tr><tr><td>GOLDEN04_REPORT_GATE</td><td></td><td>—</td><td>—</td><td>—</td><td>INSUFFICIENT_SOURCE</td><td>PDF hash&#x27;i doğrulandı; tamamlanmış rapor aritmetiği paketi ve YENI karşılaştırması bulunmadı.</td></tr></table><details><summary>Kaynak ve kabul kimliği</summary><pre>{
+  &quot;schema&quot;: &quot;tbdy.next.golden-regression-gate.v1&quot;,
+  &quot;result_sha256&quot;: &quot;8abd607c92655b66dcaea2d857b8a6f1901fc09a7e4497eeb01d0e1129f2b965&quot;,
+  &quot;source_manifest_sha256&quot;: &quot;59dedec19a7e6c3d5f496e8d616b8c708af3c99701e271bd872644e39361bec7&quot;,
+  &quot;source_verification&quot;: &quot;PINNED_REVIEWED_EXCERPTS_AND_AUDIT_BYTES&quot;,
+  &quot;record_count&quot;: 44,
+  &quot;classification_counts&quot;: {
+    &quot;INSUFFICIENT_SOURCE&quot;: 27,
+    &quot;NUMERICAL_MATCH&quot;: 13,
+    &quot;ENGINEERING_INTERPRETATION_DIFFERENCE&quot;: 4
+  },
+  &quot;legacy_reference_bank&quot;: {
+    &quot;golden01_comparisons&quot;: 23,
+    &quot;golden01_reference_arithmetic_matches&quot;: 23,
+    &quot;golden02_original_test_methods&quot;: 7,
+    &quot;golden02_replayed_test_groups&quot;: [
+      &quot;test_alpha_ground_fails&quot;,
+      &quot;test_alpha_top&quot;,
+      &quot;test_beta_member_ts500_denominator&quot;,
+      &quot;test_beta_story&quot;,
+      &quot;test_report_used_is_product_arithmetically&quot;,
+      &quot;test_sway_branch_changed&quot;,
+      &quot;test_ts500_729_requires_separate_branch_proof&quot;
+    ],
+    &quot;legacy_success_is_not_yeni_engine_acceptance&quot;: true
+  },
+  &quot;required_domains&quot;: [
+    {
+      &quot;domain&quot;: &quot;SECOND_ORDER&quot;,
+      &quot;classification_counts&quot;: {
+        &quot;NUMERICAL_MATCH&quot;: 6,
+        &quot;ENGINEERING_INTERPRETATION_DIFFERENCE&quot;: 4,
+        &quot;INSUFFICIENT_SOURCE&quot;: 7
+      },
+      &quot;report_golden_complete&quot;: false,
+      &quot;acceptance_eligible&quot;: false,
+      &quot;reason&quot;: &quot;Seçili aritmetik karşılaştırmalar tam algoritma/kapsam kabulü sağlamaz.&quot;
+    },
+    {
+      &quot;domain&quot;: &quot;PMM&quot;,
+      &quot;classification_counts&quot;: {
+        &quot;INSUFFICIENT_SOURCE&quot;: 1
+      },
+      &quot;report_golden_complete&quot;: false,
+      &quot;acceptance_eligible&quot;: false,
+      &quot;reason&quot;: &quot;Seçili aritmetik karşılaştırmalar tam algoritma/kapsam kabulü sağlamaz.&quot;
+    },
+    {
+      &quot;domain&quot;: &quot;SCWB&quot;,
+      &quot;classification_counts&quot;: {
+        &quot;NUMERICAL_MATCH&quot;: 3
+      },
+      &quot;report_golden_complete&quot;: false,
+      &quot;acceptance_eligible&quot;: false,
+      &quot;reason&quot;: &quot;Seçili aritmetik karşılaştırmalar tam algoritma/kapsam kabulü sağlamaz.&quot;
+    },
+    {
+      &quot;domain&quot;: &quot;CAPACITY_SHEAR&quot;,
+      &quot;classification_counts&quot;: {
+        &quot;INSUFFICIENT_SOURCE&quot;: 1
+      },
+      &quot;report_golden_complete&quot;: false,
+      &quot;acceptance_eligible&quot;: false,
+      &quot;reason&quot;: &quot;Seçili aritmetik karşılaştırmalar tam algoritma/kapsam kabulü sağlamaz.&quot;
+    },
+    {
+      &quot;domain&quot;: &quot;STORY_ALPHA&quot;,
+      &quot;classification_counts&quot;: {
+        &quot;INSUFFICIENT_SOURCE&quot;: 2
+      },
+      &quot;report_golden_complete&quot;: false,
+      &quot;acceptance_eligible&quot;: false,
+      &quot;reason&quot;: &quot;Seçili aritmetik karşılaştırmalar tam algoritma/kapsam kabulü sağlamaz.&quot;
+    }
+  ],
+  &quot;gate_status&quot;: &quot;REQUIRED_REPORT_GOLDEN_COVERAGE_INCOMPLETE&quot;,
+  &quot;acceptance_eligible&quot;: false,
+  &quot;normative_qualification&quot;: &quot;NOT_PROVEN&quot;,
+  &quot;engineering_release&quot;: &quot;NOT_READY&quot;
+}</pre></details></html>

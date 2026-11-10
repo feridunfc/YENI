@@ -39,18 +39,97 @@ def main(argv: list[str] | None = None) -> int:
     demands.add_argument("--scwb", action="store_true", help="Inspect source-bound SCWB rosters and N-dependent column references offline")
     demands.add_argument("--beams", action="store_true", help="Inspect exact beam-end area sources and proposed signed N=0 capacities offline")
     demands.add_argument("--scwb-scenarios", action="store_true", help="Compare explicit column/beam proposal capacities with native joint signs offline")
+    demands.add_argument("--spectral", action="store_true", help="Replay scalar spectral envelopes only; no PMM calculation or new source copy")
     demands.add_argument("--column-cage", choices=('16Φ24','16Φ28','16Φ32'), help="Display column proposal for --scwb-scenarios")
     demands.add_argument("--beam-diameter", type=int, choices=(16,20,24), help="Display beam diameter proposal for --scwb-scenarios")
+    spectral = actions.add_parser("inspect-spectral-design", help="VS26 conditional sign candidates and existing PMM, entirely offline")
+    spectral.add_argument("--run-id", required=True)
+    spectral.add_argument("--out", type=Path, default=Path(".receipts"))
+    spectral.add_argument("--member")
+    spectral.add_argument("--case", dest="output_case")
+    spectral.add_argument("--cage", choices=("16Φ24","16Φ28","16Φ32"))
+    spectral.add_argument("--candidates", action="store_true", help="Bounded candidate page with source and numeric traces")
+    spectral.add_argument("--offset", type=int, default=0)
+    spectral.add_argument("--limit", type=int, default=200)
+    spectral_files = spectral.add_mutually_exclusive_group()
+    spectral_files.add_argument("--json", type=Path, dest="json_path", help="Write this exact bounded page, exclusively to a new file")
+    spectral_files.add_argument("--html", type=Path, dest="html_path", help="Write a compact HTML report of this exact page")
+    spectral_files.add_argument("--forensic", type=Path, help="Write all VS26 records as a ZIP; filters are forbidden")
+    golden = actions.add_parser("inspect-golden-regression", help="Replay the pinned report bank against existing YENI kernels, separately from ETABS")
+    golden.add_argument("--source-dir", type=Path, help="Optionally rehash the four original PDFs and two original audit ZIPs")
+    golden.add_argument("--require-complete", action="store_true", help="Exit 3 when mandatory engineering report coverage remains incomplete")
+    golden_files = golden.add_mutually_exclusive_group()
+    golden_files.add_argument("--json", type=Path, dest="json_path")
+    golden_files.add_argument("--html", type=Path, dest="html_path")
     args = parser.parse_args(argv)
     if args.action == "serve":
         from .web import serve
         serve(host=args.host, port=args.port, output_root=args.out)
         return 0
+    if args.action == "inspect-golden-regression":
+        from .verification.golden_gate import build_golden_gate, build_golden_html
+        try:
+            result = build_golden_gate(source_dir=args.source_dir)
+            if args.json_path is not None:
+                with args.json_path.open('x', encoding='utf-8') as target:
+                    json.dump(result, target, ensure_ascii=False, indent=2, allow_nan=False)
+            elif args.html_path is not None:
+                with args.html_path.open('x', encoding='utf-8') as target:
+                    target.write(build_golden_html(result))
+            else:
+                print(json.dumps(result, ensure_ascii=False, indent=2, allow_nan=False))
+            return 3 if args.require_complete and not result['acceptance_eligible'] else 0
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            print(json.dumps({"status":"REJECTED","reason":str(exc),"engineering_release":"NOT_READY"},ensure_ascii=False))
+            return 2
+    if args.action == "inspect-spectral-design":
+        import sqlite3
+        from .column_engine.store import read_column_bank, verified_database
+        try:
+            if args.forensic is not None:
+                if args.member is not None or args.output_case is not None or args.cage is not None or args.candidates or args.offset != 0 or args.limit != 200:
+                    parser.error('--forensic exports the full population; do not supply display filters or pagination')
+                from .column_engine.demand_view import verified_spectral_design
+                from .column_engine.spectral_projection import write_spectral_forensic
+                _, result = verified_spectral_design(args.out, args.run_id)
+                with args.forensic.open('xb') as target:
+                    manifest = write_spectral_forensic(result, target)
+                verified_database(args.out, args.run_id)
+                print(json.dumps({"output": str(args.forensic), "scope": manifest["scope"],
+                    "pmm_result_sha256": manifest["pmm_result_sha256"], "engineering_release": "NOT_READY"}, ensure_ascii=False))
+                return 0
+            report = read_column_bank(args.out, args.run_id, view="spectral-candidates" if args.candidates else "spectral-design",
+                member_id=args.member, output_case=args.output_case, column_label=args.cage, offset=args.offset, limit=args.limit)
+            if args.html_path is not None:
+                from .spectral_design_report import build_spectral_design_html
+                with args.html_path.open('x', encoding='utf-8') as target: target.write(build_spectral_design_html(report))
+                print(json.dumps({"output": str(args.html_path), "scope": "SELECTED_FILTERED_PAGE"}))
+            elif args.json_path is not None:
+                with args.json_path.open('x', encoding='utf-8') as target:
+                    json.dump(report, target, ensure_ascii=False, indent=2, allow_nan=False)
+                print(json.dumps({"output": str(args.json_path), "scope": "SELECTED_FILTERED_PAGE"}))
+            else:
+                print(json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False))
+            return 0
+        except (OSError, EOFError, ValueError, KeyError, TypeError, sqlite3.Error) as exc:
+            print(json.dumps({"status": "REJECTED", "reason": str(exc), "engineering_release": "NOT_READY"}, ensure_ascii=False))
+            return 2
     if args.action == "inspect-column-demands":
         if (args.column_cage is not None or args.beam_diameter is not None) and not args.scwb_scenarios:
             parser.error('--column-cage and --beam-diameter require --scwb-scenarios')
         import sqlite3
         from .column_engine.store import read_column_bank
+        if args.spectral:
+            if any(getattr(args, flag) for flag in ("pmm", "shear", "joints", "kinematics", "sensitivity", "overview", "quality", "scwb", "beams", "scwb_scenarios")):
+                parser.error('--spectral is a separate scalar-envelope view')
+            try:
+                report = read_column_bank(args.out, args.run_id, view="spectral-envelopes", limit=1)
+                result = report["column_spectral_envelopes"]
+                print(json.dumps({k: v for k, v in result.items() if k not in ("combinations", "spectral_cases")}, indent=2, ensure_ascii=False))
+                return 0
+            except (OSError, EOFError, ValueError, KeyError, TypeError, sqlite3.Error) as exc:
+                print(json.dumps({"status": "REJECTED", "reason": str(exc), "engineering_release": "NOT_READY"}, ensure_ascii=False))
+                return 2
         try:
             report_view=("pmm-quality" if args.quality or (args.scwb_scenarios and (args.pmm or args.overview or args.shear or args.beams)) or (args.scwb and (args.pmm or args.overview or args.shear))
                 or (args.beams and (args.pmm or args.overview or args.shear or args.scwb)) else "beam-cages" if args.beams

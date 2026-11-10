@@ -9,6 +9,7 @@ from functools import lru_cache
 from hashlib import sha256
 from pathlib import Path
 import sqlite3
+from threading import RLock
 
 from .demand_chain import build_demand_chain
 from .column_prechecks import build_column_prechecks, critical_selection
@@ -24,6 +25,10 @@ from .column_scwb import build_column_scwb, scwb_projection
 from .beam_references import build_beam_references, beam_projection
 from .scwb_scenarios import build_scwb_scenarios, scenario_projection, DEFAULT_COLUMN, DEFAULT_BEAM
 from .native_archive import BankError, NativeArchive, decode
+from .spectral_envelope import build_spectral_envelopes, spectral_projection, VIEW as SPECTRAL_VIEW
+from .spectral_design import build_design_population, VIEW as SPECTRAL_DESIGN_VIEW, DETAIL_VIEW as SPECTRAL_DETAIL_VIEW
+from .spectral_pmm import build_spectral_pmm
+from .spectral_projection import spectral_design_projection
 
 
 @lru_cache(maxsize=2)
@@ -104,12 +109,74 @@ def _scwb_scenarios(source_path, database_path, source_sha, database_sha, bank_r
         return build_scwb_scenarios(derived['demand_chain'],derived['column_joints'],_scwb(*key),_beam_references(*key),archive)
 
 
+@lru_cache(maxsize=2)
+def _spectral(source_path, database_path, source_sha, database_sha, bank_result_sha):
+    # Independent lazy view: no PMM/cage/joint solve and no new SQLite writes.
+    database = Path(database_path)
+    if sha256(database.read_bytes()).hexdigest() != database_sha:
+        raise BankError("SPECTRAL_DATABASE_CHANGED")
+    with closing(sqlite3.connect(database.resolve().as_uri() + "?mode=ro&immutable=1", uri=True)) as db:
+        bank = decode(db.execute("SELECT value FROM metadata WHERE key='report'").fetchone()[0])
+        if bank["result_sha256"] != bank_result_sha:
+            raise BankError("SPECTRAL_BANK_BINDING_MISMATCH")
+        bank["force_states"] = [decode(r[0]) for r in db.execute("SELECT data_json FROM force_states ORDER BY rowid")]
+    with closing(NativeArchive(Path(source_path).read_bytes())) as archive:
+        if archive.sha256 != source_sha:
+            raise BankError("SPECTRAL_SOURCE_CHANGED")
+        return build_spectral_envelopes(bank, archive)
+
+
+_spectral_design_lock = RLock()
+
+
+@lru_cache(maxsize=1)
+def _spectral_design_cached(source_path, database_path, source_sha, database_sha, bank_result_sha):
+    database = Path(database_path)
+    if sha256(database.read_bytes()).hexdigest() != database_sha:
+        raise BankError("SPECTRAL_DESIGN_DATABASE_CHANGED")
+    with closing(sqlite3.connect(database.resolve().as_uri() + "?mode=ro&immutable=1", uri=True)) as db:
+        bank = decode(db.execute("SELECT value FROM metadata WHERE key='report'").fetchone()[0])
+        if bank["result_sha256"] != bank_result_sha:
+            raise BankError("SPECTRAL_DESIGN_BANK_BINDING_MISMATCH")
+        bank["force_states"] = [decode(r[0]) for r in db.execute("SELECT data_json FROM force_states ORDER BY rowid")]
+        bank["static_replay"]["items"] = [decode(r[0]) for r in db.execute("SELECT data_json FROM combination_replay ORDER BY rowid")]
+    with closing(NativeArchive(Path(source_path).read_bytes())) as archive:
+        if archive.sha256 != source_sha:
+            raise BankError("SPECTRAL_DESIGN_SOURCE_CHANGED")
+        population = build_design_population(bank, archive)
+        prechecks = build_column_prechecks(bank, population.static_chain)
+        cages = build_column_cages(bank, population.static_chain, prechecks, archive)
+    return build_spectral_pmm(population, cages)
+
+
+def _spectral_design(*key):
+    # HTTP is threaded; serialize cache lookup+fill so two tabs do not solve
+    # the same large population simultaneously. No persisted result cache.
+    with _spectral_design_lock:
+        return _spectral_design_cached(*key)
+
+
+def verified_spectral_design(root, run_id):
+    from .store import verified_database
+    database, report = verified_database(root, run_id)
+    database = database.resolve()
+    key = (str(database.parent / "input.source"), str(database.resolve()),
+        report["source_archive_sha256"], report["database_sha256"], report["result_sha256"])
+    return report, _spectral_design(*key)
+
+
 def demand_view(database, report, *, member_id=None, output_case=None, offset=0, limit=200,
                 view="native", full=False, column_label=None, beam_diameter=None):
     """Called only after store.verified_database has verified this exact run."""
     database = database.resolve()
     cache_key = (str(database.parent / "input.source"), str(database),
         report["source_archive_sha256"], report["database_sha256"], report["result_sha256"])
+    if view == SPECTRAL_VIEW:
+        return spectral_projection(_spectral(*cache_key), member_id=member_id,
+            output_case=output_case, offset=offset, limit=limit)
+    if view in (SPECTRAL_DESIGN_VIEW, SPECTRAL_DETAIL_VIEW):
+        return spectral_design_projection(_spectral_design(*cache_key), view=view, member_id=member_id,
+            output_case=output_case, column_label=column_label, offset=offset, limit=limit)
     derived = _derive(*cache_key)
     # Numerical capacity is requested explicitly; ordinary source navigation
     # remains fast. Full export includes every candidate x every static state.

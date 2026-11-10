@@ -173,17 +173,32 @@ def column_bank_history(root):
 def read_column_bank(root, run_id, *, member_id=None, output_case=None, offset=0, limit=200, full=False, view="native", column_label=None, beam_diameter=None):
     database, report = verified_database(root, run_id)
     if (type(offset) is not int or offset < 0 or type(limit) is not int or not 1 <= limit <= 500
-            or view not in ("native", "static", "design", "critical", "reinforcement", "stiffness", "eccentricity", "cages", "pmm", "transverse", "shear", "joints", "joint-ties", "end-forces", "kinematics", "stiffness-scenarios", "length-sensitivity", "overview", "pmm-quality", "scwb", "beam-cages", "scwb-scenarios")):
+            or view not in ("native", "static", "design", "critical", "reinforcement", "stiffness", "eccentricity", "cages", "pmm", "transverse", "shear", "joints", "joint-ties", "end-forces", "kinematics", "stiffness-scenarios", "length-sensitivity", "overview", "pmm-quality", "scwb", "beam-cages", "scwb-scenarios", "spectral-envelopes", "spectral-design", "spectral-candidates")):
         raise BankError("COLUMN_PAGE_INVALID")
-    if ((column_label is not None or beam_diameter is not None) and view not in ('scwb-scenarios','pmm-quality')
+    if full and view in ("spectral-envelopes", "spectral-design", "spectral-candidates"):
+        raise BankError("SPECTRAL_EXPORT_REQUIRES_EXPLICIT_PAGE_SCOPE")
+    if (column_label is not None and view not in ('scwb-scenarios','pmm-quality','spectral-design','spectral-candidates')
+            or beam_diameter is not None and view not in ('scwb-scenarios','pmm-quality')
             or column_label is not None and column_label not in ('16Φ24','16Φ28','16Φ32')
             or beam_diameter is not None and (type(beam_diameter) is not int or beam_diameter not in (16,20,24))):
         raise BankError('SCENARIO_DISPLAY_FILTER_INVALID')
     if view in ("reinforcement", "stiffness", "cages", "transverse", "joints", "joint-ties", "stiffness-scenarios", "beam-cages") and output_case is not None:
         raise BankError("CASE_FILTER_NOT_APPLICABLE_TO_SECTION_VIEW")
     from .demand_view import demand_view
-    report.update(demand_view(database, report, member_id=member_id, output_case=output_case,
-        offset=offset, limit=limit, view=view, full=full, column_label=column_label, beam_diameter=beam_diameter))
+    projected = demand_view(database, report, member_id=member_id, output_case=output_case,
+        offset=offset, limit=limit, view=view, full=full, column_label=column_label, beam_diameter=beam_diameter)
+    if view in ("spectral-design", "spectral-candidates"):
+        # Navigation needs only IDs and labels, not every native call/geometry.
+        compact = {k: report[k] for k in ("schema", "run_id", "source_archive_sha256", "database_sha256",
+            "result_sha256", "selected_column_count", "observed_column_count", "force_row_count",
+            "recorded_output_count", "formal_compliance", "design_demand_authority", "engineering_release")}
+        compact["members"] = [{"frame_name": m["frame_name"], "context": {"frame": {
+            "story_label": m.get("context", {}).get("frame", {}).get("story_label")}}} for m in report["members"]]
+        compact["case_coverage"] = [{"name": c["name"], "row_count": c["row_count"]} for c in report["case_coverage"]]
+        return compact | projected
+    report.update(projected)
+    if view == "spectral-envelopes":
+        return report
     with closing(_readonly(database)) as db:
         if full:
             report["force_states"] = [decode(row[0]) for row in db.execute("SELECT data_json FROM force_states ORDER BY rowid")]

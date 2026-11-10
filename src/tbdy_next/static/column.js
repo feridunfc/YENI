@@ -463,11 +463,217 @@
                       'columnDemandSummary', 'columnDemandRoutes', 'columnUnits', 'columnOverviewDetails']) el(id).replaceChildren();
     el('columnPrevious').disabled = true; el('columnNext').disabled = true;
   }
+  function renderSpectral(report, params) {
+    const s=report.column_spectral_envelopes, page=report.demand_page;
+    const fail=()=>{throw new Error('Spektral zarfın kaynak bağı, sayfa veya kabul kapsamı uyuşmuyor.');};
+    const components=['P','V2','V3','T','M2','M3'], display=['N','V2','V3','T','M2','M3'];
+    const falseFlags=['physical_concurrency_proven','code_rule_qualified','analysis_generation_qualified',
+      'additional_directional_factor_applied','spectrum_scale_reapplied','strength_amplification_reapplied',
+      'static_candidate_population_changed','final_design_eligible'];
+    if(!s || s.schema!=='tbdy.next.column-spectral-envelopes.v1' ||
+       s.policy!=='DIRECT_LINEAR_ADD_STATIC_CENTER_RS_SCALAR_RADIUS_V1' || s.source_run_id!==report.run_id ||
+       s.source_archive_sha256!==report.source_archive_sha256 || s.source_bank_result_sha256!==report.result_sha256 ||
+       !/^[a-f0-9]{64}$/.test(s.result_sha256) || falseFlags.some(k=>s[k]!==false) ||
+       s.design_demand_authority!=='DENIED' || s.formal_compliance!=='NOT_PROVEN' || s.engineering_release!=='NOT_READY' ||
+       s.absolute_tolerance_native!=='1e-09' || s.relative_tolerance!=='1e-12' ||
+       !['NUMERICAL_MATCH','NUMERICAL_MISMATCH','NOT_PROVEN'].includes(s.replay_status) ||
+       !['SOURCE_COVERAGE_COMPLETE','PARTIAL','NOT_AVAILABLE'].includes(s.source_coverage_status) ||
+       s.analysis_order!=='NOT_PROVEN' || s.units?.force!=='kN' || s.units?.moment!=='kNm' || s.units?.station!=='m' ||
+       s.units?.native_p_positive!=='TENSION' || s.units?.display_n_positive!=='COMPRESSION' ||
+       JSON.stringify(s.components)!==JSON.stringify(components) || JSON.stringify(s.display_components)!==JSON.stringify(display) ||
+       s.member_id_filter!==(member.value || null) || s.output_case_filter!==(loadCase.value || null) ||
+       !page || page.view!=='spectral-envelopes' || page.member_id!==s.member_id_filter || page.output_case!==s.output_case_filter ||
+       page.offset!==offset || page.limit!==200 || !Number.isInteger(page.total) || page.total<0 || page.total!==s.filtered_pair_count ||
+       !Array.isArray(page.rows) || page.rows.length>200 || page.rows.length!==Math.max(0,Math.min(200,page.total-offset))) fail();
+    const numeric=value=>typeof value==='number' && Number.isFinite(value);
+    const routes=new Map(s.combinations.map(c=>[c.combination,c]));
+    for(const row of page.rows) {
+      if(!['NUMERICAL_MATCH','NUMERICAL_MISMATCH','SOURCE_UNRESOLVED'].includes(row.status) ||
+          row.final_design_eligible!==false || row.concurrent_force_vector!==null ||
+          row.station_key?.Obj!==row.member_id || member.value && row.member_id!==member.value ||
+          loadCase.value && row.output_case!==loadCase.value || !numeric(row.station_key?.ObjSta) || !numeric(row.station_key?.ElmSta)) fail();
+      if(row.status==='SOURCE_UNRESOLVED') {
+        if(row.bounds!==null || row.scalar_comparisons!==0 || !row.reason) fail();
+      } else {
+        const terms=routes.get(row.output_case)?.definition?.terms;
+        if(!row.bounds || !row.native_bounds || row.scalar_comparisons!==12 ||
+          display.some(c=>!numeric(row.bounds[c]?.lower) || !numeric(row.bounds[c]?.upper) || row.bounds[c].lower>row.bounds[c].upper) ||
+          components.some(c=>!numeric(row.center?.[c]) || !numeric(row.spectral_radius?.[c]) || row.spectral_radius[c]<0) ||
+          row.bounds.N.lower!==-row.native_bounds.P?.upper || row.bounds.N.upper!==-row.native_bounds.P?.lower ||
+          !Array.isArray(row.native_steps) || row.native_steps.length!==2 ||
+          new Set(row.native_steps.map(r=>r.native_key?.StepType)).size!==2 ||
+          row.native_steps.some(r=>!['Max','Min'].includes(r.native_key?.StepType) || r.native_key.StepNum!==0 ||
+            r.native_key.LoadCase!==row.output_case || !r.source_row_id || !r.source_call_id ||
+            ['Obj','ObjSta','Elm','ElmSta'].some(k=>r.native_key[k]!==row.station_key[k])) ||
+          !Array.isArray(terms) || !Array.isArray(row.source_terms) || row.source_terms.length!==terms.length ||
+          row.source_terms.some((r,i)=>r.factor!==terms[i].factor || r.native_key?.LoadCase!==terms[i].name ||
+            ![1,4].includes(r.case_type) || r.native_key.StepType!==(r.case_type===4?'Max':'Single Value') || r.native_key.StepNum!==0 ||
+            !r.source_row_id || !r.source_call_id || ['Obj','ObjSta','Elm','ElmSta'].some(k=>r.native_key[k]!==row.station_key[k])) ||
+          !Array.isArray(row.comparisons) || row.comparisons.length!==12 ||
+          new Set(row.comparisons.map(c=>c.step_type+':'+c.component)).size!==12 ||
+          row.comparisons.some(c=>!numeric(c.calculated) || !numeric(c.observed) || !numeric(c.absolute_difference) ||
+            !components.includes(c.component) || !['Max','Min'].includes(c.step_type) ||
+            c.unit!==(['P','V2','V3'].includes(c.component)?'kN':'kNm') ||
+            c.absolute_difference<0 || !numeric(c.tolerance) || c.tolerance<=0 || typeof c.match!=='boolean') ||
+          (row.status==='NUMERICAL_MATCH')!==row.comparisons.every(c=>c.match)) fail();
+      }
+    }
+    const interval=(row,c)=>row.bounds ? `${displayNumber(row.bounds[c].lower)} / ${displayNumber(row.bounds[c].upper)}` : '—';
+    const label=r=>({NUMERICAL_MATCH:'Kaynakla eşleşti',NUMERICAL_MISMATCH:'Kaynakla uyuşmuyor',SOURCE_UNRESOLVED:'Kaynak bağı eksik'})[r.status];
+    const details=(target,title,...nodes)=>{const d=text('details','');d.append(text('summary',title),...nodes);target.append(d);};
+    el('columnDemandSummary').append(text('p',`${s.eligible_combination_count} spektral birleşim · ${s.matched_rows}/${s.expected_native_row_count} eşleşen native satır · ${s.scalar_comparisons} skaler kıyas`));
+    el('columnContext').append(text('p','Bileşenlerin ayrı alt/üst sınırları gösterilir. Nihai tasarım birleşimi, ikinci mertebe ve yönetmelik kuralının kabulü bekleniyor.'));
+    el('columnContext').append(text('p',`Kaynak kapsamı: ${s.source_coverage_status} · ${s.unresolved_pair_count} eksik çift · ${s.mismatched_rows} uyumsuz satır · istasyon nüfusu bilinmeyen kolon: ${s.members_without_station_population.length}.`,'micro'));
+    el('columnUnits').textContent='N basınç pozitif (kN); M2/M3 yerel eksenlerde kN·m, istasyon m. Alt / üst sınırlar fiziksel eşzamanlı N–M2–M3 vektörü veya nihai Nd/Md değildir. N alt=−P üst; N üst=−P alt.';
+    el('columnForces').append(table([['member_id','Kolon'],['story','Kat'],['output_case','Birleşim'],['cut','Eleman · istasyon (m)'],
+      ['n','N alt / üst'],['m2','M2 alt / üst'],['m3','M3 alt / üst'],['label','Sayısal kaynak']],page.rows.map(r=>({...r,
+        cut:`${r.station_key.Elm} · ${displayNumber(r.station_key.ObjSta,4)}`,n:interval(r,'N'),m2:interval(r,'M2'),m3:interval(r,'M3'),label:label(r)}))));
+    details(el('columnOverviewDetails'),'V2, V3 ve T sınırları',table([['member_id','Kolon'],['output_case','Birleşim'],
+      ['cut','Eleman · obje / eleman istasyonu (m)'],['v2','V2 alt / üst (kN)'],['v3','V3 alt / üst (kN)'],['t','T alt / üst (kN·m)']],
+      page.rows.map(r=>({...r,cut:`${r.station_key.Elm} · ${displayNumber(r.station_key.ObjSta,4)} / ${displayNumber(r.station_key.ElmSta,4)}`,
+        v2:interval(r,'V2'),v3:interval(r,'V3'),t:interval(r,'T')}))));
+    details(el('columnOverviewDetails'),'Bu sayfanın tam hassasiyetli hesapları ve kaynak satırları',text('pre',JSON.stringify(page,null,2)));
+    details(el('columnOverviewDetails'),'Spektrum parametrelerinin kaynakları',text('pre',JSON.stringify(s.spectral_cases,null,2)));
+    el('columnDemandRoutes').append(table([['combination','Birleşim'],['recipe','Tarif'],['reason','Kapsam dışında kalma nedeni']],
+      s.combinations.map(c=>({...c,recipe:c.definition.terms?.map(t=>`${t.factor} × ${t.name}`).join(' + ')}))));
+    el('columnReplay').append(text('p','C = işaretli statik toplam; A = Σ |katsayı| × spektral Max genliği. C−A ve C+A kayıtlı Min/Max ile karşılaştırılır. Kaynak katsayıları bir kez uygulanır; %100/%30, D ve spektrum ölçeği tekrar uygulanmaz.'));
+    details(el('columnReplay'),'Birleşim katsayıları ve sayısal kabul bütçesi',text('pre',JSON.stringify({
+      absolute_tolerance_native:s.absolute_tolerance_native,relative_tolerance:s.relative_tolerance,
+      maximum_absolute_difference_by_unit:s.maximum_absolute_difference_by_unit,combinations:s.combinations},null,2)));
+    el('columnGaps').append(text('p',`${s.selected_member_count} kolon için kabul zinciri: kolon → proje tasarım birleşimi → kullanılan N/M2/M3 → donatı → yönetmelik kuralı. Bu görünüm kuvvet kaynağının skaler zarflarını inceler; sonraki bağlar onaylandığında tasarım özeti tamamlanır.`));
+    for(const [title,url] of [['Bu sayfanın HTML raporu','/report/column-bank?'],['Bu sayfanın JSON verisi','/api/export-column-bank?']]) {
+      const a=text('a',title);a.href=url+params.toString();a.target='_blank';a.rel='noopener';el('columnExports').append(a);
+    }
+    total=page.total;
+    el('columnPage').textContent=page.rows.length ? `${offset+1}–${offset+page.rows.length} / ${total} sınır çifti` : 'Bu filtre ve görünüm için gösterilecek kayıt yok.';
+    el('columnPrevious').disabled=offset===0;el('columnNext').disabled=offset+page.limit>=total;
+  }
   async function get(url) {
     const response = await fetch(url, {cache:'no-store'});
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Arşiv doğrulanamadı');
     return data;
+  }
+  function renderSpectralDesign(report, params, selectedView, selectedProposal) {
+    const s=report.column_spectral_design, p=report.spectral_pmm, replay=report.spectral_replay, page=report.demand_page;
+    const golden=report.golden_regression_gate;
+    const fail=()=>{throw new Error('Depremli tasarım görünümünün kaynak bağı veya kapsamı uyuşmuyor.');};
+    const hash=x=>typeof x==='string' && /^[0-9a-f]{64}$/.test(x);
+    const numeric=x=>typeof x==='number' && Number.isFinite(x);
+    const count=x=>Number.isSafeInteger(x) && x>=0;
+    const conditional=x=>x && x.final_design_eligible===false && x.normative_qualification==='NOT_PROVEN';
+    if(!s || !p || !replay || !page || s.schema!=='tbdy.next.spectral-design-population.v1' ||
+       !golden || golden.schema!=='tbdy.next.golden-regression-gate.v1' || !hash(golden.result_sha256) ||
+       golden.source_manifest_sha256!=='59dedec19a7e6c3d5f496e8d616b8c708af3c99701e271bd872644e39361bec7' ||
+       golden.normative_qualification!=='NOT_PROVEN' || golden.acceptance_eligible!==false ||
+       golden.gate_status!=='REQUIRED_REPORT_GOLDEN_COVERAGE_INCOMPLETE' || golden.engineering_release!=='NOT_READY' ||
+       p.schema!=='tbdy.next.spectral-pmm-scenarios.v1' || replay.schema!=='tbdy.next.column-spectral-envelopes.v1' ||
+       s.source_run_id!==report.run_id || p.source_run_id!==report.run_id || replay.source_run_id!==report.run_id ||
+       [s,p,replay].some(x=>x.source_archive_sha256!==report.source_archive_sha256 || !hash(x.result_sha256)) ||
+       s.source_bank_result_sha256!==report.result_sha256 || replay.source_bank_result_sha256!==report.result_sha256 ||
+       s.source_replay_result_sha256!==replay.result_sha256 || p.source_population_result_sha256!==s.result_sha256 ||
+       p.source_static_demand_result_sha256!==s.source_static_demand_result_sha256 ||
+       s.permutation_policy!=='CSI_MAX_MIN_P_M2_M3_EIGHT_CORNERS_CONDITIONAL_V1' ||
+       s.applicable_design_rule!=='CSI_ETABS_CONCRETE_FRAME_DESIGN_2_1_MAX_MIN_PERMUTATIONS' ||
+       p.selection_basis!=='MAX_RESOLVED_RADIAL_RATIO_AMONG_ALL_RECORDED_CUTS_AND_EIGHT_SIGN_CANDIDATES' ||
+       p.numerical_policy?.solver_revision!=='VS25_DIRECTION_ROOT' ||
+       [s,p].some(x=>!conditional(x) || x.design_demand_authority!=='DENIED' || x.engineering_release!=='NOT_READY' ||
+         ['physical_concurrency_proven','analysis_generation_qualified','continuous_axial_envelope_complete','second_order_applied'].some(k=>x[k]!==false)) ||
+       s.additional_directional_factor_applied!==false || s.spectrum_scale_reapplied!==false ||
+       !count(s.candidate_count) || !count(s.envelope_count) || s.candidate_count!==8*s.envelope_count ||
+       p.candidate_count!==s.candidate_count || p.assessment_count!==3*s.candidate_count ||
+       p.expected_assessment_count!==3*s.expected_candidate_count ||
+       page.view!==selectedView || page.member_id!==(member.value||null) || page.output_case!==(loadCase.value||null) ||
+       page.member_id!==s.member_id_filter || page.output_case!==s.output_case_filter || page.column_label!==selectedProposal ||
+       s.reinforcement_filter!==selectedProposal || page.offset!==offset || page.limit!==200 || !count(page.total) ||
+       page.raw_population_included!==false || !Array.isArray(page.rows) ||
+       page.rows.length!==Math.max(0,Math.min(page.limit,page.total-offset))) fail();
+    function validateState(r, name) {
+      if(!r || !conditional(r) || r.engineering_status!=='CONDITIONAL' || r.second_order_applied!==false ||
+        r.member_id!==name || r.station_key?.Obj!==name || !r.station_key?.Elm ||
+        !numeric(r.station_key.ObjSta) || r.station_key.ObjSta<0 || !numeric(r.station_key.ElmSta) || r.station_key.ElmSta<0 ||
+        r.reinforcement!==selectedProposal || !hash(r.evaluation_id) || !hash(r.candidate_id) ||
+        !/^P[+-]1_M2[+-]1_M3[+-]1$/.test(r.sign_id) || !r.combination ||
+        (page.output_case!==null && r.combination!==page.output_case) ||
+        ['N_kN','M2_kNm','M3_kNm'].some(k=>!numeric(r.forces?.[k])) ||
+        (r.conditional_pmm_ratio!==null && (!numeric(r.conditional_pmm_ratio) || r.conditional_pmm_ratio<0)) ||
+        !['WITHIN_SCENARIO_SURFACE','EXCEEDS_SCENARIO_SURFACE','AXIAL_ONLY_SCENARIO','OUTSIDE_SCENARIO_AXIAL_RANGE','NUMERIC_UNRESOLVED','BLOCKED_INPUTS'].includes(r.numerical_status) ||
+        (['WITHIN_SCENARIO_SURFACE','EXCEEDS_SCENARIO_SURFACE'].includes(r.numerical_status)!==(r.conditional_pmm_ratio!==null))) fail();
+    }
+    for(const r of page.rows) {
+      if(!conditional(r) || r.engineering_status!=='CONDITIONAL' || r.reinforcement!==selectedProposal ||
+         (page.member_id!==null && r.member_id!==page.member_id)) fail();
+      if(selectedView==='spectral-candidates') {
+        validateState(r,r.member_id);
+        const c=r.design_candidate, e=r.numerical_evidence;
+        if(!c || c.schema!=='tbdy.next.code-design-demand-candidate.v1' || c.candidate_id!==r.candidate_id ||
+           c.source_archive_sha256!==s.source_archive_sha256 || c.source_run_id!==s.source_run_id ||
+           c.source_replay_result_sha256!==replay.result_sha256 || !hash(c.source_envelope_content_sha256) ||
+           c.permutation_policy!==s.permutation_policy || c.applicable_design_rule!==s.applicable_design_rule ||
+           c.source_combination!==r.combination || c.sign_id!==r.sign_id || !conditional(c) ||
+           c.physical_concurrency_proven!==false || c.second_order_applied!==false ||
+           ['Obj','ObjSta','Elm','ElmSta'].some(k=>c.station_key[k]!==r.station_key[k]) ||
+           ['N_kN','M2_kNm','M3_kNm'].some(k=>c.forces[k]!==r.forces[k]) ||
+           (e===null)!==(r.numerical_evidence_id===null) ||
+           (e && (e.solver_revision!=='VS25_DIRECTION_ROOT' || e.N_N!==r.forces.N_kN*1000 ||
+             e.M2_Nmm!==r.forces.M2_kNm*1000000 || e.M3_Nmm!==r.forces.M3_kNm*1000000 ||
+             e.result.status!==r.numerical_status || e.result.utilization!==r.conditional_pmm_ratio))) fail();
+      } else {
+        if(r.continuous_axial_envelope_complete!==false || r.selection_scope!=='FINITE_GENERATED_CANDIDATES_ONLY' ||
+           !count(r.assessment_count) || !count(r.unresolved_or_axial_outside_count)) fail();
+        for(const v of [r.governing_resolved,r.first_unresolved_or_axial_outside].filter(Boolean)) validateState(v,r.member_id);
+        if(r.maximum_resolved_conditional_ratio!==(r.governing_resolved?.conditional_pmm_ratio ?? null) ||
+          (r.unresolved_or_axial_outside_count>0 && (!r.first_unresolved_or_axial_outside || r.numerical_selection_complete))) fail();
+      }
+    }
+    el('columnDemandSummary').append(text('p',`${replay.eligible_combination_count} spektrumlu birleşim · `+
+      `${replay.matched_rows}/${replay.expected_native_row_count} eşleşen Max/Min satırı · ${replay.scalar_comparisons} bileşen kıyası.`));
+    el('columnContext').append(text('p',`${s.candidate_count}/${s.expected_candidate_count} işaret adayı · `+
+      `${p.assessment_count}/${p.expected_assessment_count} PMM değerlendirmesi · ${s.blocked_pair_count} aday üretilemeyen sınır çifti.`));
+    el('columnContext').append(text('p','Kritik oran, bu sonlu adaylar arasındaki en büyük çözülen orandır. Ara N değerleri için tamlık kanıtı yok. '+
+      'İkinci mertebe ve minimum dışmerkezlik uygulanmadı; donatı seçimi ve TBDY tasarım kabulü bekleniyor.','micro'));
+    el('columnContext').append(text('p','Golden rapor kabul kapısı açık. 23+7 eski rapor kontrolü korunuyor; '+
+      'tam algoritma doğrulaması eksik. ETABS kaynak eşleşmesi bu kapıyı kapatmaz.','micro'));
+    el('columnUnits').textContent='Koşullu tasarım adayı: N basınç pozitif (kN), M2/M3 yerel eksenlerde (kN·m), istasyon m. '+
+      'P işaret senaryosu native çekme pozitif P üzerindedir; N=−P. Fiziksel eşzamanlı kuvvet vektörü değildir.';
+    const rows=page.rows.map(r=>{
+      const state=selectedView==='spectral-candidates'?r:r.governing_resolved;
+      let status=state ? (labels[state.numerical_status] || state.numerical_status) : 'Çözülen radyal oran yok';
+      if(r.unresolved_or_axial_outside_count) status=`${r.unresolved_or_axial_outside_count} belirsiz / eksenel sınır aşımı · `+status;
+      else if(selectedView==='spectral-design' && !r.numerical_selection_complete) status='Kaynak kapsamı / sayısal seçim eksik · '+status;
+      return {...r,combo:state?.combination || '—',station:state?`${state.station_key.Elm} · ${displayNumber(state.station_key.ObjSta,4)} / ${displayNumber(state.station_key.ElmSta,4)}`:'—',
+        sign:state?.sign_id || '—',n:displayNumber(state?.forces.N_kN),m2:displayNumber(state?.forces.M2_kNm),m3:displayNumber(state?.forces.M3_kNm),
+        ratio:displayNumber(state?.conditional_pmm_ratio,4),outcome:status,second:'Uygulanmadı',critical:state};
+    });
+    const columns=[['member_id','Kolon'],['story','Kat'],['combo','Kritik birleşim'],['station','Eleman · Obje / Eleman istasyonu (m)'],
+      ['sign','İşaret senaryosu'],['n','N (kN)'],['m2','M2 (kN·m)'],['m3','M3 (kN·m)'],['reinforcement','Öneri donatı'],
+      ['ratio','Koşullu PMM'],['outcome','Sayısal durum'],['second','İkinci mertebe']];
+    if(selectedView==='spectral-design') columns.push(['member_id','Ayrıntı',r=>{
+      const button=text('button','Senaryoları aç');button.type='button';
+      button.addEventListener('click',()=>{member.value=r.member_id;if(r.critical)loadCase.value=r.critical.combination;
+        view.value='spectral-candidates';offset=0;load();});return button;
+    }]);
+    el('columnForces').append(table(columns,rows));
+    const details=(title,...nodes)=>{const d=text('details','');d.append(text('summary',title),...nodes);el('columnOverviewDetails').append(d);};
+    details('Golden rapor doğrulama kapsamı',text('pre',JSON.stringify(golden,null,2)));
+    details('Bileşen farkları · arşivin tamamı',table([['component','Bileşen'],['unit','Birim'],['comparisons','Kıyas'],['mismatches','Tolerans dışı'],['difference','En büyük mutlak fark']],
+      replay.component_differences.map(r=>({...r,difference:r.maximum_absolute_difference.toExponential(5)}))));
+    details('Birleşim sınıfları ve kaynak kapsamı',table([['combination','Birleşim'],['label','Sınıf'],['coverage','Eşleşen / beklenen satır'],['sign_construction_scope','Aday kapsamı'],['reason','Açık neden']],
+      s.classifications.map(r=>({...r,label:labels[r.classification] || r.classification,coverage:`${r.matched_rows} / ${2*r.expected_pairs}`}))));
+    details('Yöntem ve kabul bekleyen koşullar',text('p','C işaretli statik katkı, A katsayılarla ağırlıklı spektrum genliğidir. '+
+      'P/M2/M3 için sekiz bağımsız işaret senaryosu kurulur. Kayıtlı %100/%30 ve ölçek ikinci kez uygulanmaz. '+
+      'CSI tasarım zarfı yaklaşımı; TBDY 4.4.2, 4.4.3, 4.4.4 ve Ek 4B kabulünün yerine geçmez.'),
+      text('pre',JSON.stringify({blockers:p.blockers,direction_diagnostics:s.direction_diagnostics,references:s.references},null,2)));
+    details('Seçili sayfanın kaynak kimlikleri ve hesap ayrıntıları',text('pre',JSON.stringify({
+      replay_result_sha256:replay.result_sha256,population_result_sha256:s.result_sha256,pmm_result_sha256:p.result_sha256,page},null,2)));
+    for(const [title,url] of [['Bu sayfanın HTML raporu','/report/column-bank?'],['Bu sayfanın JSON verisi','/api/export-column-bank?']]) {
+      const a=text('a',title);a.href=url+params;a.target='_blank';a.rel='noopener';el('columnExports').append(a);
+    }
+    const forensic=text('a','Tüm VS26 kaynak ve hesap dökümü · ZIP');
+    forensic.href='/api/export-spectral-design?'+new URLSearchParams({run_id:report.run_id});forensic.target='_blank';forensic.rel='noopener';el('columnExports').append(forensic);
+    total=page.total;
+    el('columnPage').textContent=page.rows.length?`${offset+1}–${offset+page.rows.length} / ${total}`:'Bu filtrede gösterilecek kayıt yok.';
+    el('columnPrevious').disabled=offset===0;el('columnNext').disabled=offset+page.limit>=total;
   }
   async function load(resetFilters = false) {
     const ticket = ++epoch, selected = run.value;
@@ -480,7 +686,7 @@
     const selectedView = view.value || 'native';
     const selectedProposal = proposal.value || '16Φ24';
     const selectedBeamDiameter = Number(beamProposal?.value || 20);
-    el('columnProposalControl').hidden = !['overview','scwb-scenarios'].includes(selectedView);
+    el('columnProposalControl').hidden = !['overview','scwb-scenarios','spectral-design','spectral-candidates'].includes(selectedView);
     el('columnBeamProposalControl').hidden = !['beam-cages','scwb-scenarios'].includes(selectedView);
     const sectionView = ['reinforcement','stiffness','cages','transverse','joints','joint-ties','stiffness-scenarios','beam-cages'].includes(selectedView);
     loadCase.disabled = sectionView;
@@ -488,7 +694,8 @@
     if (loadCase.value && !sectionView) params.set('case', loadCase.value);
     if (selectedView !== 'native') params.set('view', selectedView);
     if(selectedView==='scwb-scenarios') {params.set('column_cage',selectedProposal);params.set('beam_diameter',String(selectedBeamDiameter));}
-    el('columnStatus').textContent = ['pmm','overview','pmm-quality','scwb','scwb-scenarios'].includes(selectedView) ? 'Koşullu kolon hesapları hazırlanıyor; ilk açılış biraz sürebilir…' : 'Arşiv doğrulanıyor…';
+    if(['spectral-design','spectral-candidates'].includes(selectedView)) params.set('column_cage',selectedProposal);
+    el('columnStatus').textContent = ['pmm','overview','pmm-quality','scwb','scwb-scenarios','spectral-design','spectral-candidates'].includes(selectedView) ? 'Koşullu kolon hesapları hazırlanıyor; ilk açılış biraz sürebilir…' : 'Arşiv doğrulanıyor…';
     try {
       const report = await get('/api/column-bank?' + params);
       if (ticket !== epoch || selected !== run.value) return;
@@ -504,6 +711,8 @@
       el('columnSummary').append(text('p', `${report.observed_column_count}/${report.selected_column_count} seçili kolon · ${report.force_row_count} kuvvet satırı · ${report.recorded_output_count} kayıtlı vaka/birleşim`));
       const trace=text('details','');trace.append(text('summary','Arşiv kimliği'),text('p', 'Kaynak SHA-256: ' + report.source_archive_sha256, 'micro'));
       el('columnSummary').append(trace);
+      if(selectedView==='spectral-envelopes') {renderSpectral(report,params);return;}
+      if(['spectral-design','spectral-candidates'].includes(selectedView)) {renderSpectralDesign(report,params,selectedView,selectedProposal);return;}
       const chain = report.demand_chain;
       if (chain) {
         if (chain.source_run_id !== selected || chain.source_archive_sha256 !== report.source_archive_sha256 ||
