@@ -1,0 +1,506 @@
+{
+  "schema": "tbdy.next.vs25-pmm-regression-cases.v1",
+  "source_archive_sha256": "3882b659937626bb3bbfe841e6dbd6c57798fcfcce8e6fa54a683a221210fee3",
+  "baseline_commit": "f585de772982743eeb97e40c4f4fffe0f87c589b",
+  "baseline_pmm_sha256": "551c083b40368f0f655c687559c299fc30aea182ccf73ee05d9c1405cb2ba7ce",
+  "source_note": "Six VS21 fixed critical states; unchanged material model. Static source/proposed cages, not authorized design.",
+  "models": [
+    {
+      "reference_model_id": "REFMODEL-0efbeb02761456ef9d3b5f33",
+      "source_material": {
+        "fck": 35.0,
+        "fcd": 23.333333333333332,
+        "fyd": 434.7826086956522,
+        "es": 200000.0,
+        "ecu": 0.003
+      },
+      "parameters": {
+        "local2_mm": 800.0,
+        "local3_mm": 800.0,
+        "bars": [
+          [
+            -334.0,
+            -334.0,
+            615.7521601035994
+          ],
+          [
+            -334.0,
+            334.0,
+            615.7521601035994
+          ],
+          [
+            -167.0,
+            -334.0,
+            615.7521601035994
+          ],
+          [
+            -167.0,
+            334.0,
+            615.7521601035994
+          ],
+          [
+            0.0,
+            -334.0,
+            615.7521601035994
+          ],
+          [
+            0.0,
+            334.0,
+            615.7521601035994
+          ],
+          [
+            167.0,
+            -334.0,
+            615.7521601035994
+          ],
+          [
+            167.0,
+            334.0,
+            615.7521601035994
+          ],
+          [
+            334.0,
+            -334.0,
+            615.7521601035994
+          ],
+          [
+            334.0,
+            334.0,
+            615.7521601035994
+          ],
+          [
+            -334.0,
+            -167.0,
+            615.7521601035994
+          ],
+          [
+            334.0,
+            -167.0,
+            615.7521601035994
+          ],
+          [
+            -334.0,
+            0.0,
+            615.7521601035994
+          ],
+          [
+            334.0,
+            0.0,
+            615.7521601035994
+          ],
+          [
+            -334.0,
+            167.0,
+            615.7521601035994
+          ],
+          [
+            334.0,
+            167.0,
+            615.7521601035994
+          ]
+        ],
+        "block_stress_mpa": 19.833333333333332,
+        "block_depth_factor": 0.79,
+        "steel_yield_mpa": 434.7826086956522,
+        "steel_modulus_mpa": 200000.0,
+        "concrete_ultimate_strain": 0.003
+      }
+    },
+    {
+      "reference_model_id": "REFMODEL-a7ded398b1057c4a4623d6cc",
+      "source_material": {
+        "fck": 35.0,
+        "fcd": 23.333333333333332,
+        "fyd": 434.7826086956522,
+        "es": 200000.0,
+        "ecu": 0.003
+      },
+      "parameters": {
+        "local2_mm": 800.0,
+        "local3_mm": 800.0,
+        "bars": [
+          [
+            -332.0,
+            -332.0,
+            804.247719318987
+          ],
+          [
+            -332.0,
+            332.0,
+            804.247719318987
+          ],
+          [
+            -166.0,
+            -332.0,
+            804.247719318987
+          ],
+          [
+            -166.0,
+            332.0,
+            804.247719318987
+          ],
+          [
+            0.0,
+            -332.0,
+            804.247719318987
+          ],
+          [
+            0.0,
+            332.0,
+            804.247719318987
+          ],
+          [
+            166.0,
+            -332.0,
+            804.247719318987
+          ],
+          [
+            166.0,
+            332.0,
+            804.247719318987
+          ],
+          [
+            332.0,
+            -332.0,
+            804.247719318987
+          ],
+          [
+            332.0,
+            332.0,
+            804.247719318987
+          ],
+          [
+            -332.0,
+            -166.0,
+            804.247719318987
+          ],
+          [
+            332.0,
+            -166.0,
+            804.247719318987
+          ],
+          [
+            -332.0,
+            0.0,
+            804.247719318987
+          ],
+          [
+            332.0,
+            0.0,
+            804.247719318987
+          ],
+          [
+            -332.0,
+            166.0,
+            804.247719318987
+          ],
+          [
+            332.0,
+            166.0,
+            804.247719318987
+          ]
+        ],
+        "block_stress_mpa": 19.833333333333332,
+        "block_depth_factor": 0.79,
+        "steel_yield_mpa": 434.7826086956522,
+        "steel_modulus_mpa": 200000.0,
+        "concrete_ultimate_strain": 0.003
+      }
+    },
+    {
+      "reference_model_id": "REFMODEL-c0f98a809c6e71041c901e90",
+      "source_material": {
+        "fck": 35.0,
+        "fcd": 23.333333333333332,
+        "fyd": 434.7826086956522,
+        "es": 200000.0,
+        "ecu": 0.003
+      },
+      "parameters": {
+        "local2_mm": 800.0,
+        "local3_mm": 800.0,
+        "bars": [
+          [
+            -336.0,
+            -336.0,
+            452.3893421169302
+          ],
+          [
+            -336.0,
+            336.0,
+            452.3893421169302
+          ],
+          [
+            -168.0,
+            -336.0,
+            452.3893421169302
+          ],
+          [
+            -168.0,
+            336.0,
+            452.3893421169302
+          ],
+          [
+            0.0,
+            -336.0,
+            452.3893421169302
+          ],
+          [
+            0.0,
+            336.0,
+            452.3893421169302
+          ],
+          [
+            168.0,
+            -336.0,
+            452.3893421169302
+          ],
+          [
+            168.0,
+            336.0,
+            452.3893421169302
+          ],
+          [
+            336.0,
+            -336.0,
+            452.3893421169302
+          ],
+          [
+            336.0,
+            336.0,
+            452.3893421169302
+          ],
+          [
+            -336.0,
+            -168.0,
+            452.3893421169302
+          ],
+          [
+            336.0,
+            -168.0,
+            452.3893421169302
+          ],
+          [
+            -336.0,
+            0.0,
+            452.3893421169302
+          ],
+          [
+            336.0,
+            0.0,
+            452.3893421169302
+          ],
+          [
+            -336.0,
+            168.0,
+            452.3893421169302
+          ],
+          [
+            336.0,
+            168.0,
+            452.3893421169302
+          ]
+        ],
+        "block_stress_mpa": 19.833333333333332,
+        "block_depth_factor": 0.79,
+        "steel_yield_mpa": 434.7826086956522,
+        "steel_modulus_mpa": 200000.0,
+        "concrete_ultimate_strain": 0.003
+      }
+    }
+  ],
+  "cases": [
+    {
+      "member_id": "145",
+      "candidate_label": "16Φ32",
+      "state_id": "5b564feac556423ba699e2993d322548523b9492632cbc64d2969ecec7669df4",
+      "source_row_id": "4da2c39327bae36ffaaf451c7002eee8dc48b004f5ff4a97d0ed3b00af07da36",
+      "native_key": {
+        "Obj": "145",
+        "ObjSta": 0.0,
+        "Elm": "145",
+        "ElmSta": 0.0,
+        "LoadCase": "Soil_Ult",
+        "StepType": "Single Value",
+        "StepNum": 0.0
+      },
+      "native_values": {
+        "P": -198.15035289596983,
+        "V2": 63.07390228688317,
+        "V3": 17.981514066922262,
+        "T": -13.040755083402669,
+        "M2": 49.32744662302285,
+        "M3": 157.29327114129478
+      },
+      "reference_model_id": "REFMODEL-a7ded398b1057c4a4623d6cc",
+      "primary_capacity_knm": 1782.3239953297596,
+      "reference_capacity_knm": 1785.9233447475267,
+      "comparison_budget_knm": 3.5734406591912498,
+      "primary_level_capacities_knm": [
+        1782.3239953297596,
+        1785.810502414099,
+        1785.8924232665138
+      ]
+    },
+    {
+      "member_id": "230",
+      "candidate_label": "16Φ24",
+      "state_id": "760977ccced95c56a67cb5c134a34323498041605a14dd8573329acb622a7262",
+      "source_row_id": "076c1a556b4cba06e0e873d7bfc3bad16fdea20f447dc52e990b7f537d921cda",
+      "native_key": {
+        "Obj": "230",
+        "ObjSta": 0.0,
+        "Elm": "230",
+        "ElmSta": 0.0,
+        "LoadCase": "Soil_Ult",
+        "StepType": "Single Value",
+        "StepNum": 0.0
+      },
+      "native_values": {
+        "P": -3155.676403514184,
+        "V2": 2.0942012414559326,
+        "V3": 82.5269221893652,
+        "T": -0.5100038004004905,
+        "M2": 363.35243061469254,
+        "M3": 13.507184232103473
+      },
+      "reference_model_id": "REFMODEL-c0f98a809c6e71041c901e90",
+      "primary_capacity_knm": 1765.0574542670643,
+      "reference_capacity_knm": 1768.7846217936187,
+      "comparison_budget_knm": 3.539163213283434,
+      "primary_level_capacities_knm": [
+        1765.0574542670643,
+        1768.1881827765822,
+        1768.7475376651455
+      ]
+    },
+    {
+      "member_id": "64",
+      "candidate_label": "16Φ24",
+      "state_id": "35653eec5b96722fcecf0cebbcc3f18a0292996771fdbf5a8f626245d3c4dcf8",
+      "source_row_id": "974673c1ffde07b431722def8f7171ce90765ab91ea86a2195a4dd2de94c7ef9",
+      "native_key": {
+        "Obj": "64",
+        "ObjSta": 3.8,
+        "Elm": "64",
+        "ElmSta": 3.8,
+        "LoadCase": "Soil_Ult",
+        "StepType": "Single Value",
+        "StepNum": 0.0
+      },
+      "native_values": {
+        "P": -1030.3383510136018,
+        "V2": 22.586099145321445,
+        "V3": 201.1053816443267,
+        "T": 0.18522957427879705,
+        "M2": -404.08585976306443,
+        "M3": -53.08044375666694
+      },
+      "reference_model_id": "REFMODEL-c0f98a809c6e71041c901e90",
+      "primary_capacity_knm": 1340.917807991134,
+      "reference_capacity_knm": 1343.9481466237462,
+      "comparison_budget_knm": 2.689490262943689,
+      "primary_level_capacities_knm": [
+        1340.917807991134,
+        1342.8323490001676,
+        1343.4640113349597
+      ]
+    },
+    {
+      "member_id": "68",
+      "candidate_label": "16Φ32",
+      "state_id": "01e79b0270e00c4a64788dffffff4cb2fcfa48d10244c656d0b7c2a12628d513",
+      "source_row_id": "bc7dffd24fc434949e7d5211e77624e005f4f4818abd17729e337cc3163145d9",
+      "native_key": {
+        "Obj": "68",
+        "ObjSta": 3.8,
+        "Elm": "68",
+        "ElmSta": 3.8,
+        "LoadCase": "Grav_Ult",
+        "StepType": "Single Value",
+        "StepNum": 0.0
+      },
+      "native_values": {
+        "P": -974.4239149420582,
+        "V2": 3.610023619345947,
+        "V3": -132.1765099120026,
+        "T": -2.4779749177798895,
+        "M2": 266.4426917205019,
+        "M3": -6.753266194533121
+      },
+      "reference_model_id": "REFMODEL-a7ded398b1057c4a4623d6cc",
+      "primary_capacity_knm": 2027.2926909341156,
+      "reference_capacity_knm": 2031.539714632588,
+      "comparison_budget_knm": 4.064673398961372,
+      "primary_level_capacities_knm": [
+        2027.2926909341156,
+        2030.0190163272298,
+        2030.9863066673192
+      ]
+    },
+    {
+      "member_id": "70",
+      "candidate_label": "16Φ24",
+      "state_id": "872a12b5516cfa9ab02316a08201903b23dbfacf68bd26d54b2e38f2d9561b03",
+      "source_row_id": "51b82868b5d211aa86f94e971229aba9b769743cbff01a5eb8be03a21b4968f2",
+      "native_key": {
+        "Obj": "70",
+        "ObjSta": 3.8,
+        "Elm": "70",
+        "ElmSta": 3.8,
+        "LoadCase": "Grav_Ult",
+        "StepType": "Single Value",
+        "StepNum": 0.0
+      },
+      "native_values": {
+        "P": -558.2232210931363,
+        "V2": 175.05969419639956,
+        "V3": -82.87087751094793,
+        "T": -0.9390149174682229,
+        "M2": 173.78244607712236,
+        "M3": -366.7909265213227
+      },
+      "reference_model_id": "REFMODEL-c0f98a809c6e71041c901e90",
+      "primary_capacity_knm": 1210.329823314586,
+      "reference_capacity_knm": 1212.9137407405253,
+      "comparison_budget_knm": 2.4274214511772474,
+      "primary_level_capacities_knm": [
+        1210.329823314586,
+        1212.1463076300408,
+        1212.4977157838862
+      ]
+    },
+    {
+      "member_id": "72",
+      "candidate_label": "16Φ28",
+      "state_id": "fa68fd32fe073a875d833325bd75c8a257a9d7af40898aa938b6cc70df99d5ee",
+      "source_row_id": "49f2ab6a89c2d2dad122bdad58234ac6247733e0dcd836db04ab6208c6cf9d32",
+      "native_key": {
+        "Obj": "72",
+        "ObjSta": 3.8,
+        "Elm": "72",
+        "ElmSta": 3.8,
+        "LoadCase": "Soil_Ult",
+        "StepType": "Single Value",
+        "StepNum": 0.0
+      },
+      "native_values": {
+        "P": -632.3206692378832,
+        "V2": -62.83813756234776,
+        "V3": 173.91331739577947,
+        "T": -5.012520353179319,
+        "M2": -363.29233686989016,
+        "M3": 129.74913219639316
+      },
+      "reference_model_id": "REFMODEL-0efbeb02761456ef9d3b5f33",
+      "primary_capacity_knm": 1529.931126413516,
+      "reference_capacity_knm": 1533.6287584116947,
+      "comparison_budget_knm": 3.0688514865195864,
+      "primary_level_capacities_knm": [
+        1529.931126413516,
+        1532.270572520367,
+        1533.1569837384172
+      ]
+    }
+  ]
+}

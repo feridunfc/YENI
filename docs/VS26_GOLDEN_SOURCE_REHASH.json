@@ -1,0 +1,133 @@
+{
+  "summary": {
+    "schema": "tbdy.next.golden-regression-gate.v1",
+    "result_sha256": "89cc05bc264508d946657dafef5e09b28d78c748c765a2d7b0f244e78f6f5027",
+    "source_manifest_sha256": "59dedec19a7e6c3d5f496e8d616b8c708af3c99701e271bd872644e39361bec7",
+    "source_verification": "COMPLETE_PDF_AND_AUDIT_BYTES_REHASHED",
+    "record_count": 44,
+    "classification_counts": {
+      "INSUFFICIENT_SOURCE": 27,
+      "NUMERICAL_MATCH": 13,
+      "ENGINEERING_INTERPRETATION_DIFFERENCE": 4
+    },
+    "legacy_reference_bank": {
+      "golden01_comparisons": 23,
+      "golden01_reference_arithmetic_matches": 23,
+      "golden02_original_test_methods": 7,
+      "golden02_replayed_test_groups": [
+        "test_alpha_ground_fails",
+        "test_alpha_top",
+        "test_beta_member_ts500_denominator",
+        "test_beta_story",
+        "test_report_used_is_product_arithmetically",
+        "test_sway_branch_changed",
+        "test_ts500_729_requires_separate_branch_proof"
+      ],
+      "legacy_success_is_not_yeni_engine_acceptance": true
+    },
+    "required_domains": [
+      {
+        "domain": "SECOND_ORDER",
+        "classification_counts": {
+          "NUMERICAL_MATCH": 6,
+          "ENGINEERING_INTERPRETATION_DIFFERENCE": 4,
+          "INSUFFICIENT_SOURCE": 7
+        },
+        "report_golden_complete": false,
+        "acceptance_eligible": false,
+        "reason": "Seçili aritmetik karşılaştırmalar tam algoritma/kapsam kabulü sağlamaz."
+      },
+      {
+        "domain": "PMM",
+        "classification_counts": {
+          "INSUFFICIENT_SOURCE": 1
+        },
+        "report_golden_complete": false,
+        "acceptance_eligible": false,
+        "reason": "Seçili aritmetik karşılaştırmalar tam algoritma/kapsam kabulü sağlamaz."
+      },
+      {
+        "domain": "SCWB",
+        "classification_counts": {
+          "NUMERICAL_MATCH": 3
+        },
+        "report_golden_complete": false,
+        "acceptance_eligible": false,
+        "reason": "Seçili aritmetik karşılaştırmalar tam algoritma/kapsam kabulü sağlamaz."
+      },
+      {
+        "domain": "CAPACITY_SHEAR",
+        "classification_counts": {
+          "INSUFFICIENT_SOURCE": 1
+        },
+        "report_golden_complete": false,
+        "acceptance_eligible": false,
+        "reason": "Seçili aritmetik karşılaştırmalar tam algoritma/kapsam kabulü sağlamaz."
+      },
+      {
+        "domain": "STORY_ALPHA",
+        "classification_counts": {
+          "INSUFFICIENT_SOURCE": 2
+        },
+        "report_golden_complete": false,
+        "acceptance_eligible": false,
+        "reason": "Seçili aritmetik karşılaştırmalar tam algoritma/kapsam kabulü sağlamaz."
+      }
+    ],
+    "gate_status": "REQUIRED_REPORT_GOLDEN_COVERAGE_INCOMPLETE",
+    "acceptance_eligible": false,
+    "normative_qualification": "NOT_PROVEN",
+    "engineering_release": "NOT_READY"
+  },
+  "reports": [
+    {
+      "id": "GOLDEN-01",
+      "file_name": "1(1).pdf",
+      "sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "geometry": "2 x 3m; 40x40; A15 chosen despite no walls",
+      "role": "NEGATIVE_SYSTEM",
+      "bytes": 21852036,
+      "pdf_pages": 197,
+      "full_pdf_sha256_verified": true,
+      "verification_date": "2026-11-10",
+      "audit_package_available": true
+    },
+    {
+      "id": "GOLDEN-02",
+      "file_name": "2(1).pdf",
+      "sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+      "geometry": "2 x 5m; 30x30; A11",
+      "role": "NEGATIVE_ALPHA",
+      "bytes": 21828842,
+      "pdf_pages": 197,
+      "full_pdf_sha256_verified": true,
+      "verification_date": "2026-11-10",
+      "audit_package_available": true
+    },
+    {
+      "id": "GOLDEN-03",
+      "file_name": "3.pdf",
+      "sha256": "0e5d2841d44f0690509cfe681681a238291bed645e24011424ac37b3c9c5f196",
+      "geometry": "3 x 3m; 40x40; A11",
+      "role": "MIXED_VALIDATION_NONSWAY",
+      "bytes": 23433178,
+      "pdf_pages": 258,
+      "full_pdf_sha256_verified": true,
+      "verification_date": "2026-11-10",
+      "audit_package_available": false
+    },
+    {
+      "id": "GOLDEN-04",
+      "file_name": "4.pdf",
+      "sha256": "2a21e640a6e4d91ed959abc54050ccaac47debecf08cf9d42c0f9198214fa43d",
+      "geometry": "3 x 5m; 40x40; A11",
+      "role": "MIXED_VALIDATION_SWAY",
+      "bytes": 23509094,
+      "pdf_pages": 261,
+      "full_pdf_sha256_verified": true,
+      "verification_date": "2026-11-10",
+      "audit_package_available": false
+    }
+  ],
+  "native_etabs_archive_untouched": true
+}

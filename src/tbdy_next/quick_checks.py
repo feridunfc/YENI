@@ -39,7 +39,25 @@ GEOMETRY_CHECKS = tuple(c for c in CHECKS if c.category == "GEOMETRY_SCREENING")
 
 def check_registry() -> list[dict[str, Any]]:
     from .next_checks import EXTRA_CHECKS
-    return [c.as_dict() for c in (*CHECKS, *EXTRA_CHECKS)]
+    from .soft_story_b2 import CHECK as B2_CHECK
+    from .wall_geometry import CHECK as WALL_CHECK
+    from .source_control_bundle import CHECKS as SOURCE_CHECKS, PANELS as SOURCE_PANELS
+    from .earthquake_combinations import CHECKS as COMBINATION_CHECKS, PANELS as COMBINATION_PANELS
+    # Existing same-run derivations are navigable checks, not new evaluators.
+    # Effective drift is a scenario of STORY_DRIFT, not a duplicate check ID.
+    derived = (
+        CheckDefinition("STORY_DRIFT", "Göreli / etkin kat ötelemesi", 8,
+                        "TBDY 2018 §4.9.1", "SOURCE_NUMERICAL"),
+        CheckDefinition("WEAK_STORY_B1", "B1 zayıf kat — koşullu hesap", 9,
+                        "TBDY 2018 Tablo 3.6 / §3.6.2.3", "CONDITIONAL_SOURCE_NUMERICAL"),
+    )
+    panels = {"STORY_DRIFT": "storyDriftPanel",
+              "WEAK_STORY_B1": "vs06-b1-panel", "SOFT_STORY_B2": "b2Panel",
+              "WALL_GEOMETRY_CHECK": "wallGeometryPanel"}
+    panels.update(SOURCE_PANELS)
+    panels.update(COMBINATION_PANELS)
+    return [{**c.as_dict(), **({"panel_id": panels[c.check_id]} if c.check_id in panels else {})}
+            for c in (*CHECKS, *EXTRA_CHECKS, *derived, B2_CHECK, WALL_CHECK, *SOURCE_CHECKS, *COMBINATION_CHECKS)]
 
 
 def _numeric(raw: object) -> Decimal:

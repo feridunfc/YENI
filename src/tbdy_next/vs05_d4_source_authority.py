@@ -153,7 +153,8 @@ def _case_source(tables: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
-def _combo_source(tables: Mapping[str, Any], cases: Mapping[str, Any]) -> dict[str, Any]:
+def _combo_source(tables: Mapping[str, Any], cases: Mapping[str, Any], *,
+                  include_graph: bool = False) -> dict[str, Any]:
     rows = _source_table(tables, COMBOS,
                          {"Name", "Type", "LoadName", "SF", "GUID"})
     # ETABS prints Type/GUID on a combination's first row and 'None' on
@@ -281,7 +282,9 @@ def _combo_source(tables: Mapping[str, Any], cases: Mapping[str, Any]) -> dict[s
         "candidate_operator_reference_shape_observed": not (
             unknown_refs or unsupported or cycles or warnings),
     }
-    return summary
+    # Optional reuse by later pure numerical adapters. Historical callers keep
+    # their exact summary and hash; no operator/reference parser is duplicated.
+    return {**summary, "typed_graph": groups} if include_graph else summary
 
 
 def _seismic_mass(report: Mapping[str, Any]) -> dict[str, Any]:

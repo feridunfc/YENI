@@ -1,0 +1,675 @@
+{
+  "schema": "column.engineering.rulecards.v1",
+  "version": "1.0",
+  "ruleset_date": "2026-11-03",
+  "source_authority": [
+    "TS500:2000",
+    "TBDY:2018"
+  ],
+  "product": "feridunfc/Column",
+  "eq729_policy": "FREE_LENGTH_TEXT_V1_WITH_PRINTED_LK_SHADOW_AND_ENGINEER_APPROVAL",
+  "implementation_acceptance": "NOT_PROVEN",
+  "rules": [
+    {
+      "rule_id": "SYS_01",
+      "standard_ref": "TBDY 4.3, Tablo 4.1, 7.2",
+      "scope": "MODEL",
+      "required_inputs": [
+        "A11/R/D/I/DTS/BYS/süneklik",
+        "perdesiz topoloji",
+        "tasarım depremi",
+        "analiz revizyonu"
+      ],
+      "decision": "Her deprem doğrultusu için sistem sınıfını ve kurala göre seçilmiş katsayıların uyumunu doğrula.",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "SYSTEM_INVALID / REANALYSIS_REQUIRED",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "ColumnEvaluator"
+    },
+    {
+      "rule_id": "DATA_01",
+      "standard_ref": "Column constitution C05/C08",
+      "scope": "SOURCE",
+      "required_inputs": [
+        "model+run+generation+member+combo+step+station+I/J+local axes+cage revision"
+      ],
+      "decision": "Tam signed concurrency ve model kimliği aynı değilse birleşim yapma.",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "SOURCE_UNQUALIFIED",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "ColumnEvaluator"
+    },
+    {
+      "rule_id": "TS500_7_13",
+      "standard_ref": "TS500 7.6.2.1 Eq7.13",
+      "scope": "STORY_AXIS",
+      "required_inputs": [
+        "delta_i",
+        "sum(Ndi/Li)",
+        "Vfi",
+        "required action case"
+      ],
+      "decision": "phi=1.5*delta_i*sum(Ndi/Li)/Vfi; phi<=0.05 nonsway else sway.",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "SWAY_UNRESOLVED",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "StoryStabilityService"
+    },
+    {
+      "rule_id": "TS500_7_14_15",
+      "standard_ref": "TS500 7.6.2.2 Eq7.14/15",
+      "scope": "COLUMN_AXIS",
+      "required_inputs": [
+        "clear unsupported length ln",
+        "end rotational stiffness",
+        "sway_class"
+      ],
+      "decision": "lk=k*ln, k from applicable end restraint; unknown stiffness cannot be guessed.",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "LENGTH_NO_DATA",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "ColumnEvaluator"
+    },
+    {
+      "rule_id": "TS500_7_17_18",
+      "standard_ref": "TS500 7.6.2.3 Eq7.17/18",
+      "scope": "COLUMN_AXIS_STATE",
+      "required_inputs": [
+        "lk",
+        "i",
+        "M1/M2 curvature",
+        "sway_class"
+      ],
+      "decision": "nonsway lambda<=min(34-12M1/M2,40) or sway lambda<=22 permits neglect.",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "SLENDERNESS_UNQUALIFIED",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "ColumnEvaluator"
+    },
+    {
+      "rule_id": "TS500_7_19",
+      "standard_ref": "TS500 7.6.2.4 Eq7.19–21",
+      "scope": "COLUMN_AXIS_STATE",
+      "required_inputs": [
+        "EI method",
+        "Ec",
+        "Ic",
+        "Es",
+        "Is",
+        "creep Rm",
+        "lk"
+      ],
+      "decision": "Nk=pi² EI/lk²; EI=(.2EcIc+EsIs)/(1+Rm) or .4EcIc/(1+Rm).",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "NK_UNQUALIFIED",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "ColumnEvaluator"
+    },
+    {
+      "rule_id": "TS500_7_24",
+      "standard_ref": "TS500 7.6.2.5 Eq7.24–26",
+      "scope": "COLUMN_AXIS_STATE",
+      "required_inputs": [
+        "Nd",
+        "Nk",
+        "Cm",
+        "signed M1/M2",
+        "transverse loading"
+      ],
+      "decision": "beta=max(1,Cm/(1-1.3Nd/Nk)); sway Cm=1; denominator<=0 fails.",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "GENERAL_SECOND_ORDER_REQUIRED",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "ColumnEvaluator"
+    },
+    {
+      "rule_id": "TS500_7_27_28",
+      "standard_ref": "TS500 7.6.2.5 Eq7.27–28",
+      "scope": "COMPLETE_STORY_AXIS_CASE",
+      "required_inputs": [
+        "complete story sumNd",
+        "sumNk",
+        "source action case",
+        "population ids"
+      ],
+      "decision": "sumNd<=.45sumNk and beta_s=max(1,1/(1-1.3sumNd/sumNk)); incomplete story is BLOCKED.",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "STORY_STABILITY_BLOCKED",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "StoryStabilityService"
+    },
+    {
+      "rule_id": "TS500_7_29",
+      "standard_ref": "TS500 7.6.2.5 Eq7.29",
+      "scope": "SWAY_COLUMN_AXIS_STATE",
+      "required_inputs": [
+        "ln",
+        "lk",
+        "i",
+        "Nd",
+        "fck",
+        "Ac",
+        "beta",
+        "beta_s",
+        "policy approval"
+      ],
+      "decision": "Chosen policy FREE_LENGTH_TEXT_V1: (ln/i)>35/sqrt(Nd/(fck Ac)) -> product, else max; printed lk/i sensitivity separately.",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "POLICY_APPROVAL_REQUIRED",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "ColumnEvaluator"
+    },
+    {
+      "rule_id": "TS500_7_6_2_6",
+      "standard_ref": "TS500 7.6.2.6",
+      "scope": "PMM_HANDOFF",
+      "required_inputs": [
+        "same StateKey",
+        "M2",
+        "M3",
+        "local axis magnification"
+      ],
+      "decision": "Amplify each direction independently from one signed N,M2,M3 state exactly once.",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "HANDOFF_BLOCKED",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "ColumnEvaluator"
+    },
+    {
+      "rule_id": "R2_SECOND_ORDER",
+      "standard_ref": "TS500 7.6.1/7.6.2; TBDY 4.9.2",
+      "scope": "ANALYSIS_TO_DESIGN",
+      "required_inputs": [
+        "first_order vs global_PDelta vs general_second_order provenance",
+        "local delta coverage"
+      ],
+      "decision": "No duplicate global/local second order; if coverage absent, resolve required local effects.",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "SECOND_ORDER_UNQUALIFIED",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "ColumnEvaluator"
+    },
+    {
+      "rule_id": "TS500_7_4_1",
+      "standard_ref": "TS500 7.4.1; TBDY 7.3.1.2",
+      "scope": "COLUMN_STATE",
+      "required_inputs": [
+        "Nd",
+        "Ndm",
+        "Ac",
+        "fcd",
+        "fck",
+        "applicability"
+      ],
+      "decision": "Verify both independent code axial maxima under appropriate governing axial definitions.",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "AXIAL_FAILURE",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "ColumnEvaluator"
+    },
+    {
+      "rule_id": "R3_REAL_CAGE",
+      "standard_ref": "TS500 7.1, 7.4–7.5",
+      "scope": "SECTION_CAGE",
+      "required_inputs": [
+        "actual bar coordinates",
+        "diameters",
+        "material",
+        "cover",
+        "cage revision"
+      ],
+      "decision": "As_provided from actual bars; required steel As is not provided steel.",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "CAGE_UNQUALIFIED",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "SectionSolver"
+    },
+    {
+      "rule_id": "R3_PMM",
+      "standard_ref": "TS500 7.1, 7.5",
+      "scope": "SECTION_STATE",
+      "required_inputs": [
+        "one concurrent N",
+        "M2*",
+        "M3*",
+        "actual bars",
+        "equilibrium solver proof"
+      ],
+      "decision": "Solve 3D strain-compatible N/M2/M3 equilibrium in same fixed-N ray; all quadrants and root convergence.",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "PMM_NOT_PROVEN",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "SectionSolver"
+    },
+    {
+      "rule_id": "R4_VE",
+      "standard_ref": "TBDY 7.3.7.1–5 Eq7.5/7.7",
+      "scope": "COLUMN_AXIS_SIGN",
+      "required_inputs": [
+        "Ma",
+        "Mu from SCWB/foundation decisions",
+        "ln",
+        "Vd",
+        "D earthquake branch",
+        "Vr",
+        "Aw",
+        "fck"
+      ],
+      "decision": "Ve from end capacities; eligible D-amplified cap; Ve>=Vd; Ve<=Vr and <=.85Aw sqrt(fck).",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "SHEAR_REDESIGN_OR_NODATA",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "ColumnEvaluator"
+    },
+    {
+      "rule_id": "R4_VC0",
+      "standard_ref": "TBDY 7.3.7.6",
+      "scope": "CONFINEMENT_ZONE_ACTION",
+      "required_inputs": [
+        "seismic-only V",
+        "concurrent total V",
+        "Nd",
+        "Ac",
+        "fck",
+        "zone identity"
+      ],
+      "decision": "Vc=0 iff confinement_zone AND abs(Ve_seis)>.5abs(Vtotal) AND Nd<=.05Acfck.",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "VC_DECISION_UNQUALIFIED",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "ColumnEvaluator"
+    },
+    {
+      "rule_id": "R4_CONF_LEN",
+      "standard_ref": "TBDY 7.3.4.1",
+      "scope": "COLUMN_END_ZONE",
+      "required_inputs": [
+        "physical ln",
+        "b",
+        "h",
+        "foundation and joint faces"
+      ],
+      "decision": "lo>=max(ln/6,1.5max(b,h),500mm), ends and footings correctly mapped.",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "CONFINEMENT_LENGTH_FAIL",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "ColumnEvaluator"
+    },
+    {
+      "rule_id": "R4_CONF_ASH",
+      "standard_ref": "TBDY 7.3.4.1 Eq7.1–7.2",
+      "scope": "COLUMN_CAGE_AXIS",
+      "required_inputs": [
+        "Ac",
+        "Ack",
+        "bk",
+        "Nd",
+        "fck",
+        "fywk",
+        "actual legs/crossties and spacing"
+      ],
+      "decision": "Rectangular Eq7.1 both axes, multiplier 2/3 iff Nd<=0.20Acfck else 1.",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "CONFINEMENT_REBAR_FAIL",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "ColumnEvaluator"
+    },
+    {
+      "rule_id": "R4_CONF_GEOM",
+      "standard_ref": "TBDY 7.2.8,7.3.4.1–2",
+      "scope": "PHYSICAL_CAGE_REGION",
+      "required_inputs": [
+        "tie paths",
+        "hooks",
+        "phi_t",
+        "phi_long",
+        "bmin",
+        "actual plane elevations"
+      ],
+      "decision": "Confinement 50<=s<=min(bmin/3,150,6phi_long); middle s<=min(bmin/2,200); horizontal leg distance<=25phi_t.",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "CAGE_TOPOLOGY_FAIL",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "ColumnEvaluator"
+    },
+    {
+      "rule_id": "R4_SHORT",
+      "standard_ref": "TBDY 7.3.8",
+      "scope": "PHYSICAL_MEMBER",
+      "required_inputs": [
+        "actual infill/window opening/brace location",
+        "short clear length",
+        "end faces"
+      ],
+      "decision": "Short-column Ve based on short ln and full special transverse cage continuity.",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "SHORT_COLUMN_SOURCE_MISSING",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "ColumnEvaluator"
+    },
+    {
+      "rule_id": "R5_SCWB",
+      "standard_ref": "TBDY 7.3.5.1–2 Eq7.3",
+      "scope": "JOINT_AXIS_SIGN",
+      "required_inputs": [
+        "two column end capacities at adverse Nd",
+        "all actual beam face capacities",
+        "beam sides"
+      ],
+      "decision": "sum Mrc>=1.20 sum Mrb evaluated for axis and +/- independently.",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "SCWB_FAIL",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "JointDesigner"
+    },
+    {
+      "rule_id": "R5_SCWB_EXEMPT",
+      "standard_ref": "TBDY 7.3.5.3(a)-(c)",
+      "scope": "JOINT_AXIS_SIGN",
+      "required_inputs": [
+        "both columns Nd and Acfck",
+        "roof continuation",
+        "wall weak axis physical proof"
+      ],
+      "decision": "Exemption is EXEMPT_BY_CODE with proof; Nd<=.10Acfck is inclusive and applies to BOTH columns.",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "EXEMPTION_UNQUALIFIED",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "JointDesigner"
+    },
+    {
+      "rule_id": "R5_ALPHA",
+      "standard_ref": "TBDY 7.3.6.1–3 Eq7.4",
+      "scope": "STORY_AXIS_SIGN",
+      "required_inputs": [
+        "complete unique story shear population Vis/Vik",
+        "member end classifications"
+      ],
+      "decision": "alpha<.70 system class change/reanalysis; .70<=alpha<=1 eligible 1/alpha; alpha=1 no extra; alpha>1 investigate.",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "SYSTEM_REANALYSIS_REQUIRED",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "StoryStabilityService"
+    },
+    {
+      "rule_id": "R5_PANEL_CLASS",
+      "standard_ref": "TBDY 7.5.1",
+      "scope": "JOINT",
+      "required_inputs": [
+        "4 physical beam sides and each face beam width vs 3/4 column dimension"
+      ],
+      "decision": "CONFINED iff all four real beam faces AND width>=.75 axis-facing column dimension; else UNCONFINED.",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "JOINT_CLASS_NO_DATA",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "JointDesigner"
+    },
+    {
+      "rule_id": "R5_PANEL_VE",
+      "standard_ref": "TBDY 7.5.2.1–2 Eq7.11–13",
+      "scope": "JOINT_AXIS_SIGN",
+      "required_inputs": [
+        "As1",
+        "As2",
+        "fy k",
+        "qualified concurrent Vkol",
+        "effective bj",
+        "h",
+        "fck",
+        "enclosure"
+      ],
+      "decision": "Ve=1.25fyk(As1+As2)-Vkol; one side As2=0; <=(1.7 or 1.0)bj h sqrt(fck).",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "JOINT_SHEAR_FAIL",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "JointDesigner"
+    },
+    {
+      "rule_id": "R5_PANEL_TIES",
+      "standard_ref": "TBDY 7.5.2.3",
+      "scope": "JOINT_PHYSICAL_CAGE",
+      "required_inputs": [
+        "actual through-joint ties",
+        "lower column conf requirement",
+        "phi",
+        "s",
+        "enclosure"
+      ],
+      "decision": "CONFINED >=.40 lower conf, s<=150mm; UNCONFINED >=.60, s<=100mm; phi>=8mm.",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "JOINT_CAGE_FAIL",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "JointDesigner"
+    },
+    {
+      "rule_id": "R6_RELEASE",
+      "standard_ref": "Column constitution / quality gates",
+      "scope": "COMPLETE_BUILDING",
+      "required_inputs": [
+        "all physical members/joints/axis/sign/combo/station checked",
+        "all cross-domain owners qualified"
+      ],
+      "decision": "READY only with R1-R5 required checks/coverage complete, source lineage, independent oracle, full real runtime regression and supervisor approval.",
+      "missing_evidence": "NO_DATA_BLOCKS_PRODUCT_READY",
+      "hard_failure": "PRODUCT_HOLD",
+      "result_shape": [
+        "applicability",
+        "execution",
+        "compliance",
+        "coverage",
+        "ratio_or_boolean",
+        "source_refs",
+        "decision_trace"
+      ],
+      "owner": "ColumnEvaluator"
+    }
+  ]
+}

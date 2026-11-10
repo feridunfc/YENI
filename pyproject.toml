@@ -22,3 +22,4 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "tbdy_next" = ["static/*.html", "static/*.js"]
+"tbdy_next.verification" = ["data/*.json", "data/*.zip", "references/*.py"]

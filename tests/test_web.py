@@ -44,7 +44,8 @@ class TestLocalWeb(unittest.TestCase):
         status, data, headers = self.request("/")
         self.assertEqual(status, 200)
         self.assertIn(b"text/html", headers["Content-Type"].encode())
-        self.assertIn(b"Result Tree", data)
+        self.assertIn(b'id="resulttree"', data)
+        self.assertIn("Seçili çalışmanın özeti".encode("utf-8"), data)
         self.assertIn("Birleşimler".encode(), data)
         self.assertIn("PLANLANDI".encode(), data)
 

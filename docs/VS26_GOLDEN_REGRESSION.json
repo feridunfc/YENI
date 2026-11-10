@@ -1,0 +1,1377 @@
+{
+  "schema": "tbdy.next.golden-regression-gate.v1",
+  "source_manifest_sha256": "59dedec19a7e6c3d5f496e8d616b8c708af3c99701e271bd872644e39361bec7",
+  "source_repositories": {
+    "Column-Engine": "df754b202415a58508f60b27d96f731a7b840041",
+    "Column": "9269a00f5f5471ab68413c039912cafb2cf4db39"
+  },
+  "source_verification": "PINNED_REVIEWED_EXCERPTS_AND_AUDIT_BYTES",
+  "reports": [
+    {
+      "id": "GOLDEN-01",
+      "file_name": "1(1).pdf",
+      "sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "geometry": "2 x 3m; 40x40; A15 chosen despite no walls",
+      "role": "NEGATIVE_SYSTEM",
+      "bytes": 21852036,
+      "pdf_pages": 197,
+      "full_pdf_sha256_verified": true,
+      "verification_date": "2026-11-10",
+      "audit_package_available": true
+    },
+    {
+      "id": "GOLDEN-02",
+      "file_name": "2(1).pdf",
+      "sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+      "geometry": "2 x 5m; 30x30; A11",
+      "role": "NEGATIVE_ALPHA",
+      "bytes": 21828842,
+      "pdf_pages": 197,
+      "full_pdf_sha256_verified": true,
+      "verification_date": "2026-11-10",
+      "audit_package_available": true
+    },
+    {
+      "id": "GOLDEN-03",
+      "file_name": "3.pdf",
+      "sha256": "0e5d2841d44f0690509cfe681681a238291bed645e24011424ac37b3c9c5f196",
+      "geometry": "3 x 3m; 40x40; A11",
+      "role": "MIXED_VALIDATION_NONSWAY",
+      "bytes": 23433178,
+      "pdf_pages": 258,
+      "full_pdf_sha256_verified": true,
+      "verification_date": "2026-11-10",
+      "audit_package_available": false
+    },
+    {
+      "id": "GOLDEN-04",
+      "file_name": "4.pdf",
+      "sha256": "2a21e640a6e4d91ed959abc54050ccaac47debecf08cf9d42c0f9198214fa43d",
+      "geometry": "3 x 5m; 40x40; A11",
+      "role": "MIXED_VALIDATION_SWAY",
+      "bytes": 23509094,
+      "pdf_pages": 261,
+      "full_pdf_sha256_verified": true,
+      "verification_date": "2026-11-10",
+      "audit_package_available": false
+    }
+  ],
+  "source_pdf_bytes_bundled": false,
+  "record_count": 44,
+  "classification_counts": {
+    "INSUFFICIENT_SOURCE": 27,
+    "NUMERICAL_MATCH": 13,
+    "ENGINEERING_INTERPRETATION_DIFFERENCE": 4
+  },
+  "legacy_reference_bank": {
+    "golden01_comparisons": 23,
+    "golden01_reference_arithmetic_matches": 23,
+    "golden02_original_test_methods": 7,
+    "golden02_replayed_test_groups": [
+      "test_alpha_ground_fails",
+      "test_alpha_top",
+      "test_beta_member_ts500_denominator",
+      "test_beta_story",
+      "test_report_used_is_product_arithmetically",
+      "test_sway_branch_changed",
+      "test_ts500_729_requires_separate_branch_proof"
+    ],
+    "legacy_success_is_not_yeni_engine_acceptance": true
+  },
+  "independent_numerical_bank": {
+    "repository": "feridunfc/Column",
+    "commit": "9269a00f5f5471ab68413c039912cafb2cf4db39",
+    "scope": "B7_SYNTHETIC_400x600_N500kN_TWO_CAGES",
+    "is_golden_report_01_02": false,
+    "oracle_sha256": "1b81cb6b8469eff9fe5bbcc946a1b0bd3474644ffeabb5ee58ac1661134eca50",
+    "different_point_bar_concrete_replacement_policy": true,
+    "not_substituted_for_report_gate": true
+  },
+  "real_model_bank": {
+    "source_sha256": "3882b659937626bb3bbfe841e6dbd6c57798fcfcce8e6fa54a683a221210fee3",
+    "selected_columns": 87,
+    "role": "SOURCE_INTEGRATION_REGRESSION",
+    "not_substituted_for_report_gate": true
+  },
+  "algorithm_sha256": {
+    "ts500_column": "6ae27308e38b2d62a0ef5aa624c2d2ec104295e92e3686315ef85ea538271bc5",
+    "section_capacity": "864dac27093836c941b53c89f5e9c3f948e5a09f01bc118eb1342bb982e92943",
+    "scwb_kernel": "7a6edc27670b009749c190b3fd7c96c80c81260a1003f9168bec54058a793416",
+    "joint_kernel": "1921ce396b4fdce224ef459bdfcfa1a6d211283169e9889bb1553465fe808642",
+    "report_oracles": "fc028b844c8c90ea40fdcd6c3b347e508d9f8bc6ca1bd1eae0a109a48085c73d",
+    "golden_gate": "4b3abf451c412ce4c897740af6f942cb0bf2a2b3f40465140d964af9094347a0"
+  },
+  "required_domains": [
+    {
+      "domain": "SECOND_ORDER",
+      "classification_counts": {
+        "NUMERICAL_MATCH": 6,
+        "ENGINEERING_INTERPRETATION_DIFFERENCE": 4,
+        "INSUFFICIENT_SOURCE": 7
+      },
+      "report_golden_complete": false,
+      "acceptance_eligible": false,
+      "reason": "Seçili aritmetik karşılaştırmalar tam algoritma/kapsam kabulü sağlamaz."
+    },
+    {
+      "domain": "PMM",
+      "classification_counts": {
+        "INSUFFICIENT_SOURCE": 1
+      },
+      "report_golden_complete": false,
+      "acceptance_eligible": false,
+      "reason": "Seçili aritmetik karşılaştırmalar tam algoritma/kapsam kabulü sağlamaz."
+    },
+    {
+      "domain": "SCWB",
+      "classification_counts": {
+        "NUMERICAL_MATCH": 3
+      },
+      "report_golden_complete": false,
+      "acceptance_eligible": false,
+      "reason": "Seçili aritmetik karşılaştırmalar tam algoritma/kapsam kabulü sağlamaz."
+    },
+    {
+      "domain": "CAPACITY_SHEAR",
+      "classification_counts": {
+        "INSUFFICIENT_SOURCE": 1
+      },
+      "report_golden_complete": false,
+      "acceptance_eligible": false,
+      "reason": "Seçili aritmetik karşılaştırmalar tam algoritma/kapsam kabulü sağlamaz."
+    },
+    {
+      "domain": "STORY_ALPHA",
+      "classification_counts": {
+        "INSUFFICIENT_SOURCE": 2
+      },
+      "report_golden_complete": false,
+      "acceptance_eligible": false,
+      "reason": "Seçili aritmetik karşılaştırmalar tam algoritma/kapsam kabulü sağlamaz."
+    }
+  ],
+  "comparisons": [
+    {
+      "id": "G01_SDS",
+      "domain": "REPORT_ARITHMETIC",
+      "legacy_case_id": "SDS",
+      "report_id": "GOLDEN-01",
+      "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "pdf_pages_1_based": [
+        7
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "Ss": 0.824,
+        "Fs": 0.8
+      },
+      "formula": "Ss * Fs",
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": 0.6592,
+      "report": 0.6592,
+      "report_rounding_tolerance": 1e-06,
+      "oracle_report_difference": 0.0,
+      "yeni_oracle_difference": null,
+      "yeni_oracle_tolerance": 1.0065920000000002e-09,
+      "explanation": "DD2 horizontal spectral coefficient, not an unconditional system design acceptance Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı."
+    },
+    {
+      "id": "G01_SD1",
+      "domain": "REPORT_ARITHMETIC",
+      "legacy_case_id": "SD1",
+      "report_id": "GOLDEN-01",
+      "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "pdf_pages_1_based": [
+        7
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "S1": 0.239,
+        "F1": 0.8
+      },
+      "formula": "S1 * F1",
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": 0.1912,
+      "report": 0.1912,
+      "report_rounding_tolerance": 1e-06,
+      "oracle_report_difference": 0.0,
+      "yeni_oracle_difference": null,
+      "yeni_oracle_tolerance": 1.0019120000000001e-09,
+      "explanation": "Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı."
+    },
+    {
+      "id": "G01_TA",
+      "domain": "REPORT_ARITHMETIC",
+      "legacy_case_id": "TA",
+      "report_id": "GOLDEN-01",
+      "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "pdf_pages_1_based": [
+        7
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "SD1": 0.1912,
+        "SDS": 0.6592
+      },
+      "formula": "0.2 * SD1 / SDS",
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": 0.05800970873786408,
+      "report": 0.058,
+      "report_rounding_tolerance": 0.0002,
+      "oracle_report_difference": 9.708737864079497e-06,
+      "yeni_oracle_difference": null,
+      "yeni_oracle_tolerance": 1.0005800970873787e-09,
+      "explanation": "Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı."
+    },
+    {
+      "id": "G01_TB",
+      "domain": "REPORT_ARITHMETIC",
+      "legacy_case_id": "TB",
+      "report_id": "GOLDEN-01",
+      "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "pdf_pages_1_based": [
+        7
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "SD1": 0.1912,
+        "SDS": 0.6592
+      },
+      "formula": "SD1 / SDS",
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": 0.29004854368932037,
+      "report": 0.29,
+      "report_rounding_tolerance": 0.0002,
+      "oracle_report_difference": 4.854368932039055e-05,
+      "yeni_oracle_difference": null,
+      "yeni_oracle_tolerance": 1.0029004854368933e-09,
+      "explanation": "Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı."
+    },
+    {
+      "id": "G01_PROVIDED_AS",
+      "domain": "REINFORCEMENT_AREA",
+      "legacy_case_id": "PROVIDED_AS",
+      "report_id": "GOLDEN-01",
+      "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "pdf_pages_1_based": [
+        183,
+        196
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "bar_count": 12,
+        "diameter_mm": 14
+      },
+      "formula": "12 * pi * diameter_mm**2 / 4 / 100",
+      "classification": "NUMERICAL_MATCH",
+      "yeni": 18.472564803107982,
+      "independent": 18.472564803107986,
+      "report": 18.47,
+      "report_rounding_tolerance": 0.01,
+      "oracle_report_difference": 0.0025648031079867906,
+      "yeni_oracle_difference": 3.552713678800501e-15,
+      "yeni_oracle_tolerance": 1.18472564803108e-09,
+      "explanation": "Do not confuse displayed Ast=16.00 cm2 required/design figure with physically provided As=18.47 cm2 Yalnız 12 çubuğun alanı sınandı; koordinatlar iki açık test yerleşimidir, rapora bağlı PMM geometrisi değildir."
+    },
+    {
+      "id": "G01_CONFINEMENT_ASW_OVER_S",
+      "domain": "REPORT_ARITHMETIC",
+      "legacy_case_id": "CONFINEMENT_ASW_OVER_S",
+      "report_id": "GOLDEN-01",
+      "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "pdf_pages_1_based": [
+        184
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "legs": 4,
+        "tie_diameter_mm": 8,
+        "s_mm": 80
+      },
+      "formula": "legs * pi * tie_diameter_mm**2 / 4 / 100 / (s_mm/1000)",
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": 25.132741228718345,
+      "report": 25.13,
+      "report_rounding_tolerance": 0.02,
+      "oracle_report_difference": 0.0027412287183459227,
+      "yeni_oracle_difference": null,
+      "yeni_oracle_tolerance": 1.2513274122871834e-09,
+      "explanation": "4 ties/legs directly from stated row; effective leg geometry still needs source confirmation Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı."
+    },
+    {
+      "id": "G01_AC",
+      "domain": "REPORT_ARITHMETIC",
+      "legacy_case_id": "AC",
+      "report_id": "GOLDEN-01",
+      "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "pdf_pages_1_based": [
+        184
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "b_cm": 40,
+        "h_cm": 40
+      },
+      "formula": "b_cm * h_cm",
+      "classification": "NUMERICAL_MATCH",
+      "yeni": 1600.0,
+      "independent": 1600,
+      "report": 1600,
+      "report_rounding_tolerance": 1e-08,
+      "oracle_report_difference": 0,
+      "yeni_oracle_difference": 0.0,
+      "yeni_oracle_tolerance": 1.6999999999999997e-08,
+      "explanation": ""
+    },
+    {
+      "id": "G01_CONFINEMENT_AXIAL_BRANCH_THRESHOLD",
+      "domain": "REPORT_ARITHMETIC",
+      "legacy_case_id": "CONFINEMENT_AXIAL_BRANCH_THRESHOLD",
+      "report_id": "GOLDEN-01",
+      "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "pdf_pages_1_based": [
+        184
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "Ac_cm2": 1600,
+        "fck_MPa": 30
+      },
+      "formula": "0.2 * Ac_cm2 * 0.1 * fck_MPa",
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": 960.0,
+      "report": 960,
+      "report_rounding_tolerance": 1e-08,
+      "oracle_report_difference": 0.0,
+      "yeni_oracle_difference": null,
+      "yeni_oracle_tolerance": 1.06e-08,
+      "explanation": "Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı."
+    },
+    {
+      "id": "G01_AXIAL_TBDY_LIMIT",
+      "domain": "REPORT_ARITHMETIC",
+      "legacy_case_id": "AXIAL_TBDY_LIMIT",
+      "report_id": "GOLDEN-01",
+      "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "pdf_pages_1_based": [
+        192
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "Ac_cm2": 1600,
+        "fck_MPa": 30
+      },
+      "formula": "0.4 * Ac_cm2 * 0.1 * fck_MPa",
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": 1920.0,
+      "report": 1920,
+      "report_rounding_tolerance": 1e-08,
+      "oracle_report_difference": 0.0,
+      "yeni_oracle_difference": null,
+      "yeni_oracle_tolerance": 2.02e-08,
+      "explanation": "Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı."
+    },
+    {
+      "id": "G01_AXIAL_TS500_LIMIT",
+      "domain": "REPORT_ARITHMETIC",
+      "legacy_case_id": "AXIAL_TS500_LIMIT",
+      "report_id": "GOLDEN-01",
+      "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "pdf_pages_1_based": [
+        192
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "Ac_cm2": 1600,
+        "fcd_MPa": 20
+      },
+      "formula": "0.9 * Ac_cm2 * 0.1 * fcd_MPa",
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": 2880.0,
+      "report": 2880,
+      "report_rounding_tolerance": 1e-08,
+      "oracle_report_difference": 0.0,
+      "yeni_oracle_difference": null,
+      "yeni_oracle_tolerance": 2.98e-08,
+      "explanation": "Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı."
+    },
+    {
+      "id": "G01_JOINT_UNCONFINED_LIMIT",
+      "domain": "REPORT_ARITHMETIC",
+      "legacy_case_id": "JOINT_UNCONFINED_LIMIT",
+      "report_id": "GOLDEN-01",
+      "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "pdf_pages_1_based": [
+        194
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "bj_mm": 400,
+        "h_mm": 400,
+        "fck_MPa": 30
+      },
+      "formula": "bj_mm * h_mm * sqrt(fck_MPa) / 1000",
+      "classification": "NUMERICAL_MATCH",
+      "yeni": 876.3560920082658,
+      "independent": 876.3560920082658,
+      "report": 876.36,
+      "report_rounding_tolerance": 0.02,
+      "oracle_report_difference": 0.003907991734195093,
+      "yeni_oracle_difference": 0.0,
+      "yeni_oracle_tolerance": 9.763560920082658e-09,
+      "explanation": "Geometric capacity branch only; joint classification separate"
+    },
+    {
+      "id": "G01_JOINT_CONFINED_LIMIT",
+      "domain": "REPORT_ARITHMETIC",
+      "legacy_case_id": "JOINT_CONFINED_LIMIT",
+      "report_id": "GOLDEN-01",
+      "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "pdf_pages_1_based": [
+        194
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "bj_mm": 400,
+        "h_mm": 400,
+        "fck_MPa": 30
+      },
+      "formula": "1.7 * bj_mm * h_mm * sqrt(fck_MPa) / 1000",
+      "classification": "NUMERICAL_MATCH",
+      "yeni": 1489.8053564140519,
+      "independent": 1489.8053564140519,
+      "report": 1489.81,
+      "report_rounding_tolerance": 0.02,
+      "oracle_report_difference": 0.004643585948088003,
+      "yeni_oracle_difference": 0.0,
+      "yeni_oracle_tolerance": 1.5898053564140518e-08,
+      "explanation": "Confinement classification must be verified from all relevant adjacent beams"
+    },
+    {
+      "id": "G01_SCWB_COLUMN_SUM",
+      "domain": "SCWB",
+      "legacy_case_id": "SCWB_COLUMN_SUM",
+      "report_id": "GOLDEN-01",
+      "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "pdf_pages_1_based": [
+        191
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "Mr_lower": 161.009,
+        "Mr_upper": 186.331
+      },
+      "formula": "Mr_lower + Mr_upper",
+      "classification": "NUMERICAL_MATCH",
+      "yeni": 347.34,
+      "independent": 347.34,
+      "report": 347.34,
+      "report_rounding_tolerance": 0.01,
+      "oracle_report_difference": 0.0,
+      "yeni_oracle_difference": 0.0,
+      "yeni_oracle_tolerance": 4.4734e-09,
+      "explanation": "Basılı uç kapasitelerinin toplamı sınandı; I/J test rolüdür, native uç veya kapasite hesabı kanıtı değildir."
+    },
+    {
+      "id": "G01_SCWB_BEAM_1P2_SUM",
+      "domain": "SCWB",
+      "legacy_case_id": "SCWB_BEAM_1P2_SUM",
+      "report_id": "GOLDEN-01",
+      "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "pdf_pages_1_based": [
+        191
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "Mr_beam_left": 70.07,
+        "Mr_beam_right": 84.829
+      },
+      "formula": "1.2 * (Mr_beam_left + Mr_beam_right)",
+      "classification": "NUMERICAL_MATCH",
+      "yeni": 185.87879999999998,
+      "independent": 185.87879999999998,
+      "report": 185.88,
+      "report_rounding_tolerance": 0.02,
+      "oracle_report_difference": 0.0012000000000114142,
+      "yeni_oracle_difference": 0.0,
+      "yeni_oracle_tolerance": 2.8587879999999996e-09,
+      "explanation": "Basılı uç kapasitelerinin toplamı sınandı; I/J test rolüdür, native uç veya kapasite hesabı kanıtı değildir."
+    },
+    {
+      "id": "G01_SCWB_NUMERIC_INEQUALITY",
+      "domain": "SCWB",
+      "legacy_case_id": "SCWB_NUMERIC_INEQUALITY",
+      "report_id": "GOLDEN-01",
+      "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "pdf_pages_1_based": [
+        191
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "Mr_lower": 161.009,
+        "Mr_upper": 186.331,
+        "Mr_beam_left": 70.07,
+        "Mr_beam_right": 84.829
+      },
+      "formula": "(Mr_lower + Mr_upper) > 1.2*(Mr_beam_left+Mr_beam_right)",
+      "classification": "NUMERICAL_MATCH",
+      "yeni": true,
+      "independent": true,
+      "report": true,
+      "report_rounding_tolerance": 0,
+      "oracle_report_difference": 0,
+      "yeni_oracle_difference": 0,
+      "explanation": "Numeric inequality only, not proof of selected Nd/beam moment capacity/concurrency Basılı uç kapasitelerinin toplamı sınandı; I/J test rolüdür, native uç veya kapasite hesabı kanıtı değildir."
+    },
+    {
+      "id": "G01_JOINT_VE_ONE_BEAM_APPROX",
+      "domain": "REPORT_ARITHMETIC",
+      "legacy_case_id": "JOINT_VE_ONE_BEAM_APPROX",
+      "report_id": "GOLDEN-01",
+      "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "pdf_pages_1_based": [
+        194
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "fyk_MPa": 420,
+        "As1_cm2": 4.27,
+        "Vcol_kN": 25.57
+      },
+      "formula": "1.25 * fyk_MPa * As1_cm2 * 100 / 1000 - Vcol_kN",
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": 198.60500000000002,
+      "report": 198.74,
+      "report_rounding_tolerance": 0.25,
+      "oracle_report_difference": 0.1349999999999909,
+      "yeni_oracle_difference": null,
+      "yeni_oracle_tolerance": 2.9860500000000005e-09,
+      "explanation": "Tolerance includes As1 printed to two decimals; use unrounded reinforcement area for exact oracle Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı."
+    },
+    {
+      "id": "G01_JOINT_VE_TWO_BEAM_APPROX",
+      "domain": "REPORT_ARITHMETIC",
+      "legacy_case_id": "JOINT_VE_TWO_BEAM_APPROX",
+      "report_id": "GOLDEN-01",
+      "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "pdf_pages_1_based": [
+        194
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "fyk_MPa": 420,
+        "As1_cm2": 4.27,
+        "As2_cm2": 4.02,
+        "Vcol_kN": 46.21
+      },
+      "formula": "1.25 * fyk_MPa * (As1_cm2+As2_cm2) * 100 / 1000 - Vcol_kN",
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": 389.01500000000004,
+      "report": 389.22,
+      "report_rounding_tolerance": 0.3,
+      "oracle_report_difference": 0.20499999999998408,
+      "yeni_oracle_difference": null,
+      "yeni_oracle_tolerance": 4.89015e-09,
+      "explanation": "Tolerance includes printed As values Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı."
+    },
+    {
+      "id": "G01_THETA_GROUND",
+      "domain": "REPORT_ARITHMETIC",
+      "legacy_case_id": "THETA_GROUND",
+      "report_id": "GOLDEN-01",
+      "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "pdf_pages_1_based": [
+        28
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "sum_W_above_kN": 2392.23,
+        "delta_avg_mm": 1.519,
+        "story_shear_kN": 161.14,
+        "height_m": 3
+      },
+      "formula": "sum_W_above_kN*(delta_avg_mm/1000)/(story_shear_kN*height_m)",
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": 0.007516853605560383,
+      "report": 0.0075,
+      "report_rounding_tolerance": 5e-05,
+      "oracle_report_difference": 1.685360556038292e-05,
+      "yeni_oracle_difference": null,
+      "yeni_oracle_tolerance": 1.0000751685360557e-09,
+      "explanation": "Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı."
+    },
+    {
+      "id": "G01_THETA_UPPER",
+      "domain": "REPORT_ARITHMETIC",
+      "legacy_case_id": "THETA_UPPER",
+      "report_id": "GOLDEN-01",
+      "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "pdf_pages_1_based": [
+        28
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "sum_W_above_kN": 1230.62,
+        "delta_avg_mm": 1.612,
+        "story_shear_kN": 110.25,
+        "height_m": 3
+      },
+      "formula": "sum_W_above_kN*(delta_avg_mm/1000)/(story_shear_kN*height_m)",
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": 0.005997760967498111,
+      "report": 0.006,
+      "report_rounding_tolerance": 5e-05,
+      "oracle_report_difference": 2.2390325018894347e-06,
+      "yeni_oracle_difference": null,
+      "yeni_oracle_tolerance": 1.000059977609675e-09,
+      "explanation": "Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı."
+    },
+    {
+      "id": "G01_SWAY_PHI_GROUND",
+      "domain": "REPORT_ARITHMETIC",
+      "legacy_case_id": "SWAY_PHI_GROUND",
+      "report_id": "GOLDEN-01",
+      "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "pdf_pages_1_based": [
+        186
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "delta_mm": 1.574,
+        "sum_N_over_L_kN_per_m": 732.22,
+        "story_shear_kN": 169.25
+      },
+      "formula": "1.5*(delta_mm/1000)*sum_N_over_L_kN_per_m/story_shear_kN",
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": 0.010214306765140325,
+      "report": 0.0102,
+      "report_rounding_tolerance": 0.0001,
+      "oracle_report_difference": 1.4306765140324751e-05,
+      "yeni_oracle_difference": null,
+      "yeni_oracle_tolerance": 1.0001021430676515e-09,
+      "explanation": "Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı."
+    },
+    {
+      "id": "G01_SWAY_PHI_UPPER",
+      "domain": "REPORT_ARITHMETIC",
+      "legacy_case_id": "SWAY_PHI_UPPER",
+      "report_id": "GOLDEN-01",
+      "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "pdf_pages_1_based": [
+        186
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "delta_mm": 1.67,
+        "sum_N_over_L_kN_per_m": 424.47,
+        "story_shear_kN": 117.23
+      },
+      "formula": "1.5*(delta_mm/1000)*sum_N_over_L_kN_per_m/story_shear_kN",
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": 0.00907018126759362,
+      "report": 0.00907,
+      "report_rounding_tolerance": 2e-05,
+      "oracle_report_difference": 1.8126759361927758e-07,
+      "yeni_oracle_difference": null,
+      "yeni_oracle_tolerance": 1.000090701812676e-09,
+      "explanation": "Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı."
+    },
+    {
+      "id": "G01_DRIFT_LAMBDA",
+      "domain": "REPORT_ARITHMETIC",
+      "legacy_case_id": "DRIFT_LAMBDA",
+      "report_id": "GOLDEN-01",
+      "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "pdf_pages_1_based": [
+        27
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "Sae_DD3": 0.2079,
+        "Sae_DD2": 0.5231
+      },
+      "formula": "Sae_DD3_over_Sae_DD2",
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": 0.3974383483081629,
+      "report": 0.3975,
+      "report_rounding_tolerance": 0.0001,
+      "oracle_report_difference": 6.165169183713903e-05,
+      "yeni_oracle_difference": null,
+      "yeni_oracle_tolerance": 1.0039743834830816e-09,
+      "explanation": "Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı."
+    },
+    {
+      "id": "G01_LOCAL_BETA_NON_DIAGNOSTIC",
+      "domain": "REPORT_ARITHMETIC",
+      "legacy_case_id": "LOCAL_BETA_NON_DIAGNOSTIC",
+      "report_id": "GOLDEN-01",
+      "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "pdf_pages_1_based": [
+        187
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "Cm": 0.41,
+        "Nd_kN": 85.13,
+        "Nk_kN": 26790.32
+      },
+      "formula": "max(1.0, Cm/(1-1.3*Nd/Nk))",
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": 1.0,
+      "report": 1.0,
+      "report_rounding_tolerance": 1e-09,
+      "oracle_report_difference": 0.0,
+      "yeni_oracle_difference": null,
+      "yeni_oracle_tolerance": 1.01e-09,
+      "explanation": "This is not a discriminating regression for the old denominator bug: both formulas yield 1.00 Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı."
+    },
+    {
+      "id": "G02_BETA_S101_top_1",
+      "domain": "SECOND_ORDER",
+      "legacy_group": "test_beta_member_ts500_denominator",
+      "report_id": "GOLDEN-02",
+      "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+      "pdf_pages_1_based": [
+        186
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "id": "S101_top_1",
+        "story": "top",
+        "Nd": 95.45,
+        "Nk": 1497.6,
+        "lk": 5.53,
+        "beta": 1.09,
+        "reported_used": 1.27
+      },
+      "yeni_kernel": "ts500_column.moment_magnification_factors",
+      "classification": "NUMERICAL_MATCH",
+      "yeni": 1.0903412048648904,
+      "independent": 1.0903412048648904,
+      "report": 1.09,
+      "report_rounding_tolerance": 0.0052,
+      "oracle_report_difference": 0.0003412048648903099,
+      "yeni_oracle_difference": 0.0,
+      "yeni_oracle_tolerance": 1.010903412048649e-09,
+      "explanation": "Bireysel β karşılaştırması; lk/EI hesabı ve nihai büyütülmüş moment doğrulaması değildir."
+    },
+    {
+      "id": "G02_USED_FACTOR_S101_top_1",
+      "domain": "SECOND_ORDER",
+      "legacy_group": "test_report_used_is_product_arithmetically",
+      "report_id": "GOLDEN-02",
+      "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+      "pdf_pages_1_based": [
+        186
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "member": {
+          "id": "S101_top_1",
+          "story": "top",
+          "Nd": 95.45,
+          "Nk": 1497.6,
+          "lk": 5.53,
+          "beta": 1.09,
+          "reported_used": 1.27
+        },
+        "story": {
+          "Nd": 1507.84,
+          "Nk": 14062.7,
+          "beta_s": 1.16
+        }
+      },
+      "classification": "ENGINEERING_INTERPRETATION_DIFFERENCE",
+      "yeni": null,
+      "yeni_status": "EQ729_DECISION_NOT_PROVEN",
+      "yeni_beta": 1.0903412048648904,
+      "yeni_beta_story": 1.1619657677565676,
+      "independent": 1.2669391552274534,
+      "report": 1.27,
+      "report_quantity": "Alındı Eleman β",
+      "oracle_report_difference": 0.0030608447725466448,
+      "report_rounding_tolerance": 0.012,
+      "printed_symbol_probe": {
+        "lk_over_i": 63.85493977237261,
+        "threshold": 186.1495368744579,
+        "product_branch_from_printed_symbol": false
+      },
+      "explanation": "Raporun Alındı değeri β×βs aritmetiğine uyuyor. YENI nihai çarpanı onaylamıyor; serbest boy, 7.29 politikası ve PMM aktarımı kanıtlı değil. Bireysel β ile Alındı β aynı büyüklük sayılmadı.",
+      "normative_disagreement_resolved": false,
+      "engineering_acceptance": false
+    },
+    {
+      "id": "G02_EQ729_S101_top_1",
+      "domain": "SECOND_ORDER",
+      "legacy_group": "test_ts500_729_requires_separate_branch_proof",
+      "report_id": "GOLDEN-02",
+      "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+      "pdf_pages_1_based": [
+        186
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "id": "S101_top_1",
+        "story": "top",
+        "Nd": 95.45,
+        "Nk": 1497.6,
+        "lk": 5.53,
+        "beta": 1.09,
+        "reported_used": 1.27
+      },
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": false,
+      "report": false,
+      "report_rounding_tolerance": 0,
+      "oracle_report_difference": 0,
+      "yeni_oracle_difference": null,
+      "independent_details": {
+        "lk_over_i": 63.85493977237261,
+        "threshold": 186.1495368744579,
+        "product_branch_from_printed_symbol": false
+      },
+      "explanation": "Eski auditin lk/i duyarlılığı korunur. Kat yüksekliği fiziksel serbest boy olarak atanmaz; tam YENI 7.29 çağrısı için ln/k/mesnet ve politika kaynağı eksik."
+    },
+    {
+      "id": "G02_BETA_S101_top_2",
+      "domain": "SECOND_ORDER",
+      "legacy_group": "test_beta_member_ts500_denominator",
+      "report_id": "GOLDEN-02",
+      "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+      "pdf_pages_1_based": [
+        186
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "id": "S101_top_2",
+        "story": "top",
+        "Nd": 227.93,
+        "Nk": 1538.68,
+        "lk": 5.53,
+        "beta": 1.24,
+        "reported_used": 1.44
+      },
+      "yeni_kernel": "ts500_column.moment_magnification_factors",
+      "classification": "NUMERICAL_MATCH",
+      "yeni": 1.2385028304749548,
+      "independent": 1.2385028304749548,
+      "report": 1.24,
+      "report_rounding_tolerance": 0.0052,
+      "oracle_report_difference": 0.0014971695250451944,
+      "yeni_oracle_difference": 0.0,
+      "yeni_oracle_tolerance": 1.0123850283047496e-09,
+      "explanation": "Bireysel β karşılaştırması; lk/EI hesabı ve nihai büyütülmüş moment doğrulaması değildir."
+    },
+    {
+      "id": "G02_USED_FACTOR_S101_top_2",
+      "domain": "SECOND_ORDER",
+      "legacy_group": "test_report_used_is_product_arithmetically",
+      "report_id": "GOLDEN-02",
+      "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+      "pdf_pages_1_based": [
+        186
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "member": {
+          "id": "S101_top_2",
+          "story": "top",
+          "Nd": 227.93,
+          "Nk": 1538.68,
+          "lk": 5.53,
+          "beta": 1.24,
+          "reported_used": 1.44
+        },
+        "story": {
+          "Nd": 1507.84,
+          "Nk": 14062.7,
+          "beta_s": 1.16
+        }
+      },
+      "classification": "ENGINEERING_INTERPRETATION_DIFFERENCE",
+      "yeni": null,
+      "yeni_status": "EQ729_DECISION_NOT_PROVEN",
+      "yeni_beta": 1.2385028304749548,
+      "yeni_beta_story": 1.1619657677565676,
+      "independent": 1.439097892281513,
+      "report": 1.44,
+      "report_quantity": "Alındı Eleman β",
+      "oracle_report_difference": 0.0009021077184869775,
+      "report_rounding_tolerance": 0.012,
+      "printed_symbol_probe": {
+        "lk_over_i": 63.85493977237261,
+        "threshold": 120.46175363746543,
+        "product_branch_from_printed_symbol": false
+      },
+      "explanation": "Raporun Alındı değeri β×βs aritmetiğine uyuyor. YENI nihai çarpanı onaylamıyor; serbest boy, 7.29 politikası ve PMM aktarımı kanıtlı değil. Bireysel β ile Alındı β aynı büyüklük sayılmadı.",
+      "normative_disagreement_resolved": false,
+      "engineering_acceptance": false
+    },
+    {
+      "id": "G02_EQ729_S101_top_2",
+      "domain": "SECOND_ORDER",
+      "legacy_group": "test_ts500_729_requires_separate_branch_proof",
+      "report_id": "GOLDEN-02",
+      "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+      "pdf_pages_1_based": [
+        186
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "id": "S101_top_2",
+        "story": "top",
+        "Nd": 227.93,
+        "Nk": 1538.68,
+        "lk": 5.53,
+        "beta": 1.24,
+        "reported_used": 1.44
+      },
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": false,
+      "report": false,
+      "report_rounding_tolerance": 0,
+      "oracle_report_difference": 0,
+      "yeni_oracle_difference": null,
+      "independent_details": {
+        "lk_over_i": 63.85493977237261,
+        "threshold": 120.46175363746543,
+        "product_branch_from_printed_symbol": false
+      },
+      "explanation": "Eski auditin lk/i duyarlılığı korunur. Kat yüksekliği fiziksel serbest boy olarak atanmaz; tam YENI 7.29 çağrısı için ln/k/mesnet ve politika kaynağı eksik."
+    },
+    {
+      "id": "G02_BETA_SZ01_ground",
+      "domain": "SECOND_ORDER",
+      "legacy_group": "test_beta_member_ts500_denominator",
+      "report_id": "GOLDEN-02",
+      "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+      "pdf_pages_1_based": [
+        186
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "id": "SZ01_ground",
+        "story": "ground",
+        "Nd": 471.11,
+        "Nk": 1727.29,
+        "lk": 5.23,
+        "beta": 1.55,
+        "reported_used": 1.85
+      },
+      "yeni_kernel": "ts500_column.moment_magnification_factors",
+      "classification": "NUMERICAL_MATCH",
+      "yeni": 1.549351615064668,
+      "independent": 1.5493516150646682,
+      "report": 1.55,
+      "report_rounding_tolerance": 0.0052,
+      "oracle_report_difference": 0.0006483849353318138,
+      "yeni_oracle_difference": 2.220446049250313e-16,
+      "yeni_oracle_tolerance": 1.0154935161506467e-09,
+      "explanation": "Bireysel β karşılaştırması; lk/EI hesabı ve nihai büyütülmüş moment doğrulaması değildir."
+    },
+    {
+      "id": "G02_USED_FACTOR_SZ01_ground",
+      "domain": "SECOND_ORDER",
+      "legacy_group": "test_report_used_is_product_arithmetically",
+      "report_id": "GOLDEN-02",
+      "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+      "pdf_pages_1_based": [
+        186
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "member": {
+          "id": "SZ01_ground",
+          "story": "ground",
+          "Nd": 471.11,
+          "Nk": 1727.29,
+          "lk": 5.23,
+          "beta": 1.55,
+          "reported_used": 1.85
+        },
+        "story": {
+          "Nd": 1975.94,
+          "Nk": 15894.39,
+          "beta_s": 1.19
+        }
+      },
+      "classification": "ENGINEERING_INTERPRETATION_DIFFERENCE",
+      "yeni": null,
+      "yeni_status": "EQ729_DECISION_NOT_PROVEN",
+      "yeni_beta": 1.549351615064668,
+      "yeni_beta_story": 1.1927649705815873,
+      "independent": 1.848012333563144,
+      "report": 1.85,
+      "report_quantity": "Alındı Eleman β",
+      "oracle_report_difference": 0.001987666436856106,
+      "report_rounding_tolerance": 0.012,
+      "printed_symbol_probe": {
+        "lk_over_i": 60.39083815723486,
+        "threshold": 83.7893391225729,
+        "product_branch_from_printed_symbol": false
+      },
+      "explanation": "Raporun Alındı değeri β×βs aritmetiğine uyuyor. YENI nihai çarpanı onaylamıyor; serbest boy, 7.29 politikası ve PMM aktarımı kanıtlı değil. Bireysel β ile Alındı β aynı büyüklük sayılmadı.",
+      "normative_disagreement_resolved": false,
+      "engineering_acceptance": false
+    },
+    {
+      "id": "G02_EQ729_SZ01_ground",
+      "domain": "SECOND_ORDER",
+      "legacy_group": "test_ts500_729_requires_separate_branch_proof",
+      "report_id": "GOLDEN-02",
+      "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+      "pdf_pages_1_based": [
+        186
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "id": "SZ01_ground",
+        "story": "ground",
+        "Nd": 471.11,
+        "Nk": 1727.29,
+        "lk": 5.23,
+        "beta": 1.55,
+        "reported_used": 1.85
+      },
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": false,
+      "report": false,
+      "report_rounding_tolerance": 0,
+      "oracle_report_difference": 0,
+      "yeni_oracle_difference": null,
+      "independent_details": {
+        "lk_over_i": 60.39083815723486,
+        "threshold": 83.7893391225729,
+        "product_branch_from_printed_symbol": false
+      },
+      "explanation": "Eski auditin lk/i duyarlılığı korunur. Kat yüksekliği fiziksel serbest boy olarak atanmaz; tam YENI 7.29 çağrısı için ln/k/mesnet ve politika kaynağı eksik."
+    },
+    {
+      "id": "G02_BETA_SZ03_ground",
+      "domain": "SECOND_ORDER",
+      "legacy_group": "test_beta_member_ts500_denominator",
+      "report_id": "GOLDEN-02",
+      "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+      "pdf_pages_1_based": [
+        186
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "id": "SZ03_ground",
+        "story": "ground",
+        "Nd": 499.81,
+        "Nk": 1935.34,
+        "lk": 4.89,
+        "beta": 1.51,
+        "reported_used": 1.8
+      },
+      "yeni_kernel": "ts500_column.moment_magnification_factors",
+      "classification": "NUMERICAL_MATCH",
+      "yeni": 1.505413480379002,
+      "independent": 1.505413480379002,
+      "report": 1.51,
+      "report_rounding_tolerance": 0.0052,
+      "oracle_report_difference": 0.004586519620997986,
+      "yeni_oracle_difference": 0.0,
+      "yeni_oracle_tolerance": 1.0150541348037901e-09,
+      "explanation": "Bireysel β karşılaştırması; lk/EI hesabı ve nihai büyütülmüş moment doğrulaması değildir."
+    },
+    {
+      "id": "G02_USED_FACTOR_SZ03_ground",
+      "domain": "SECOND_ORDER",
+      "legacy_group": "test_report_used_is_product_arithmetically",
+      "report_id": "GOLDEN-02",
+      "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+      "pdf_pages_1_based": [
+        186
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "member": {
+          "id": "SZ03_ground",
+          "story": "ground",
+          "Nd": 499.81,
+          "Nk": 1935.34,
+          "lk": 4.89,
+          "beta": 1.51,
+          "reported_used": 1.8
+        },
+        "story": {
+          "Nd": 1975.94,
+          "Nk": 15894.39,
+          "beta_s": 1.19
+        }
+      },
+      "classification": "ENGINEERING_INTERPRETATION_DIFFERENCE",
+      "yeni": null,
+      "yeni_status": "EQ729_DECISION_NOT_PROVEN",
+      "yeni_beta": 1.505413480379002,
+      "yeni_beta_story": 1.1927649705815873,
+      "independent": 1.7956044656373855,
+      "report": 1.8,
+      "report_quantity": "Alındı Eleman β",
+      "oracle_report_difference": 0.004395534362614528,
+      "report_rounding_tolerance": 0.012,
+      "printed_symbol_probe": {
+        "lk_over_i": 56.4648563267454,
+        "threshold": 81.34810787946525,
+        "product_branch_from_printed_symbol": false
+      },
+      "explanation": "Raporun Alındı değeri β×βs aritmetiğine uyuyor. YENI nihai çarpanı onaylamıyor; serbest boy, 7.29 politikası ve PMM aktarımı kanıtlı değil. Bireysel β ile Alındı β aynı büyüklük sayılmadı.",
+      "normative_disagreement_resolved": false,
+      "engineering_acceptance": false
+    },
+    {
+      "id": "G02_EQ729_SZ03_ground",
+      "domain": "SECOND_ORDER",
+      "legacy_group": "test_ts500_729_requires_separate_branch_proof",
+      "report_id": "GOLDEN-02",
+      "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+      "pdf_pages_1_based": [
+        186
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "id": "SZ03_ground",
+        "story": "ground",
+        "Nd": 499.81,
+        "Nk": 1935.34,
+        "lk": 4.89,
+        "beta": 1.51,
+        "reported_used": 1.8
+      },
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": false,
+      "report": false,
+      "report_rounding_tolerance": 0,
+      "oracle_report_difference": 0,
+      "yeni_oracle_difference": null,
+      "independent_details": {
+        "lk_over_i": 56.4648563267454,
+        "threshold": 81.34810787946525,
+        "product_branch_from_printed_symbol": false
+      },
+      "explanation": "Eski auditin lk/i duyarlılığı korunur. Kat yüksekliği fiziksel serbest boy olarak atanmaz; tam YENI 7.29 çağrısı için ln/k/mesnet ve politika kaynağı eksik."
+    },
+    {
+      "id": "G02_STORY_BETA_top",
+      "domain": "SECOND_ORDER",
+      "legacy_group": "test_beta_story",
+      "report_id": "GOLDEN-02",
+      "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+      "pdf_pages_1_based": [
+        186
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "Nd": 1507.84,
+        "Nk": 14062.7,
+        "beta_s": 1.16
+      },
+      "yeni_kernel": "ts500_column.moment_magnification_factors",
+      "classification": "NUMERICAL_MATCH",
+      "yeni": 1.1619657677565676,
+      "independent": 1.1619657677565676,
+      "report": 1.16,
+      "report_rounding_tolerance": 0.005,
+      "oracle_report_difference": 0.001965767756567649,
+      "yeni_oracle_difference": 0.0,
+      "yeni_oracle_tolerance": 1.0116196576775657e-09,
+      "explanation": "Basılı kat toplamlarıyla βs aritmetiği; nüfusun tekil ve eksiksiz olduğu ayrıca doğrulanmalıdır."
+    },
+    {
+      "id": "G02_STORY_BETA_ground",
+      "domain": "SECOND_ORDER",
+      "legacy_group": "test_beta_story",
+      "report_id": "GOLDEN-02",
+      "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+      "pdf_pages_1_based": [
+        186
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "Nd": 1975.94,
+        "Nk": 15894.39,
+        "beta_s": 1.19
+      },
+      "yeni_kernel": "ts500_column.moment_magnification_factors",
+      "classification": "NUMERICAL_MATCH",
+      "yeni": 1.1927649705815873,
+      "independent": 1.1927649705815875,
+      "report": 1.19,
+      "report_rounding_tolerance": 0.005,
+      "oracle_report_difference": 0.0027649705815875336,
+      "yeni_oracle_difference": 2.220446049250313e-16,
+      "yeni_oracle_tolerance": 1.011927649705816e-09,
+      "explanation": "Basılı kat toplamlarıyla βs aritmetiği; nüfusun tekil ve eksiksiz olduğu ayrıca doğrulanmalıdır."
+    },
+    {
+      "id": "G02_ALPHA_top",
+      "domain": "STORY_ALPHA",
+      "legacy_group": "test_alpha_top",
+      "report_id": "GOLDEN-02",
+      "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+      "pdf_pages_1_based": [
+        189
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "Vis": 38.2169,
+        "Vik": 38.2169,
+        "reported": 1.0
+      },
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": 1.0,
+      "report": 1.0,
+      "report_rounding_tolerance": 5e-05,
+      "oracle_report_difference": 0.0,
+      "yeni_oracle_difference": null,
+      "yeni_oracle_tolerance": 1.01e-09,
+      "below_070_reference": false,
+      "one_column_repair_proven": false,
+      "automatic_inverse_alpha_magnification_authorized": false,
+      "explanation": "Bağımsız Vis/Vik hesabı raporla uyumlu. YENI kat α motoru ve eksiksiz tekil kat nüfusu bu sprintte bağlanmadı; tek kolonda donatı artırma veya 1/α ile kabul üretilmez."
+    },
+    {
+      "id": "G02_ALPHA_ground",
+      "domain": "STORY_ALPHA",
+      "legacy_group": "test_alpha_ground_fails",
+      "report_id": "GOLDEN-02",
+      "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+      "pdf_pages_1_based": [
+        189
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "Vis": 34.872,
+        "Vik": 55.6859,
+        "reported": 0.6262
+      },
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": 0.6262267468066423,
+      "report": 0.6262,
+      "report_rounding_tolerance": 5e-05,
+      "oracle_report_difference": 2.6746806642274912e-05,
+      "yeni_oracle_difference": null,
+      "yeni_oracle_tolerance": 1.0062622674680665e-09,
+      "below_070_reference": true,
+      "one_column_repair_proven": false,
+      "automatic_inverse_alpha_magnification_authorized": false,
+      "explanation": "Bağımsız Vis/Vik hesabı raporla uyumlu. YENI kat α motoru ve eksiksiz tekil kat nüfusu bu sprintte bağlanmadı; tek kolonda donatı artırma veya 1/α ile kabul üretilmez."
+    },
+    {
+      "id": "G02_SWAY_BRANCH_CHANGED",
+      "domain": "SECOND_ORDER",
+      "legacy_group": "test_sway_branch_changed",
+      "report_id": "GOLDEN-02",
+      "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+      "pdf_pages_1_based": [
+        185
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "inputs": {
+        "old_phi": 0.0102,
+        "new_phi": 0.0939
+      },
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": true,
+      "report": true,
+      "report_rounding_tolerance": 0,
+      "oracle_report_difference": 0,
+      "yeni_oracle_difference": null,
+      "explanation": "Eski auditin değişen φ dalı doğrulanır; rapor φ değerlerini YENI'nin tam fiziksel kat hesabı üretmiş sayılmaz."
+    },
+    {
+      "id": "PMM_REPORT_GATE",
+      "domain": "PMM",
+      "report_id": "GOLDEN-01",
+      "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "pdf_pages_1_based": [
+        183,
+        196,
+        197
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": null,
+      "report": null,
+      "explanation": "Tam çubuk koordinatları, malzeme/eksen politikası, eşzamanlı talep ve bağımsız sabit-N/sabit-yön PMM referansı eksik; iki ayrı eksen kapasitesi 3B PMM golden sayılmaz."
+    },
+    {
+      "id": "CAPACITY_SHEAR_REPORT_GATE",
+      "domain": "CAPACITY_SHEAR",
+      "report_id": "GOLDEN-01",
+      "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "pdf_pages_1_based": [
+        188,
+        189
+      ],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": null,
+      "report": null,
+      "explanation": "Ma/Mu yetkisi, fiziksel ln, D dalı ve Vd alt sınırıyla çalışan YENI Ve yolu henüz rapora bağlanmadı; kaynak V veya birleşim Ve hesabı kolon kapasite kesmesi değildir."
+    },
+    {
+      "id": "GOLDEN03_REPORT_GATE",
+      "domain": "SECOND_ORDER",
+      "report_id": "GOLDEN-03",
+      "source_pdf_sha256": "0e5d2841d44f0690509cfe681681a238291bed645e24011424ac37b3c9c5f196",
+      "pdf_pages_1_based": [],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": null,
+      "report": null,
+      "explanation": "PDF hash'i doğrulandı; tamamlanmış rapor aritmetiği paketi ve YENI karşılaştırması bulunmadı."
+    },
+    {
+      "id": "GOLDEN04_REPORT_GATE",
+      "domain": "SECOND_ORDER",
+      "report_id": "GOLDEN-04",
+      "source_pdf_sha256": "2a21e640a6e4d91ed959abc54050ccaac47debecf08cf9d42c0f9198214fa43d",
+      "pdf_pages_1_based": [],
+      "scope": "SELECTED_REPORT_QUANTITIES_ONLY",
+      "classification": "INSUFFICIENT_SOURCE",
+      "yeni": null,
+      "independent": null,
+      "report": null,
+      "explanation": "PDF hash'i doğrulandı; tamamlanmış rapor aritmetiği paketi ve YENI karşılaştırması bulunmadı."
+    }
+  ],
+  "negative_system_reference": {
+    "golden01": "BLOCKED_A15_SYSTEM_MISMATCH",
+    "golden02_ground_alpha": 0.6262267468066423,
+    "single_column_repair_or_inverse_alpha_acceptance": false
+  },
+  "gate_status": "REQUIRED_REPORT_GOLDEN_COVERAGE_INCOMPLETE",
+  "acceptance_eligible": false,
+  "normative_qualification": "NOT_PROVEN",
+  "engineering_release": "NOT_READY",
+  "result_sha256": "8abd607c92655b66dcaea2d857b8a6f1901fc09a7e4497eeb01d0e1129f2b965"
+}

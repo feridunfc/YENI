@@ -52,7 +52,7 @@ class Vs03Math(unittest.TestCase):
     def test_three_new_checks_and_values(self):
         out=evaluate_next_capture(source(),geo())
         self.assertEqual(len(EXTRA_CHECKS),3)
-        self.assertEqual(len(check_registry()),8)
+        self.assertEqual(len(check_registry()),16)
         self.assertEqual(out['status'],'NUMERICAL_CLASSIFIED')
         a,b,c=out['checks']
         self.assertEqual(a['items'][0]['fck_mpa'],'35.000')

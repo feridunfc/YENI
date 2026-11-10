@@ -1,0 +1,153 @@
+{
+  "schema": "tbdy.next.golden-bank-source-ledger.v1",
+  "source_repositories": {
+    "Column-Engine": "df754b202415a58508f60b27d96f731a7b840041",
+    "Column": "9269a00f5f5471ab68413c039912cafb2cf4db39"
+  },
+  "reports": [
+    {
+      "id": "GOLDEN-01",
+      "file_name": "1(1).pdf",
+      "sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+      "geometry": "2 x 3m; 40x40; A15 chosen despite no walls",
+      "role": "NEGATIVE_SYSTEM",
+      "bytes": 21852036,
+      "pdf_pages": 197,
+      "full_pdf_sha256_verified": true,
+      "verification_date": "2026-11-10",
+      "audit_package_available": true
+    },
+    {
+      "id": "GOLDEN-02",
+      "file_name": "2(1).pdf",
+      "sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+      "geometry": "2 x 5m; 30x30; A11",
+      "role": "NEGATIVE_ALPHA",
+      "bytes": 21828842,
+      "pdf_pages": 197,
+      "full_pdf_sha256_verified": true,
+      "verification_date": "2026-11-10",
+      "audit_package_available": true
+    },
+    {
+      "id": "GOLDEN-03",
+      "file_name": "3.pdf",
+      "sha256": "0e5d2841d44f0690509cfe681681a238291bed645e24011424ac37b3c9c5f196",
+      "geometry": "3 x 3m; 40x40; A11",
+      "role": "MIXED_VALIDATION_NONSWAY",
+      "bytes": 23433178,
+      "pdf_pages": 258,
+      "full_pdf_sha256_verified": true,
+      "verification_date": "2026-11-10",
+      "audit_package_available": false
+    },
+    {
+      "id": "GOLDEN-04",
+      "file_name": "4.pdf",
+      "sha256": "2a21e640a6e4d91ed959abc54050ccaac47debecf08cf9d42c0f9198214fa43d",
+      "geometry": "3 x 5m; 40x40; A11",
+      "role": "MIXED_VALIDATION_SWAY",
+      "bytes": 23509094,
+      "pdf_pages": 261,
+      "full_pdf_sha256_verified": true,
+      "verification_date": "2026-11-10",
+      "audit_package_available": false
+    }
+  ],
+  "archives": [
+    {
+      "id": "GOLDEN01",
+      "original_filename": "COLUMN_GOLDEN_01_RECIPE_AND_TESTS(1).zip",
+      "bundled_path": "data/golden01.zip",
+      "sha256": "8d13a4a76dc9a05d3353446f7e4e331d9801be9182bedb51d630730594934007",
+      "bytes": 9903,
+      "members": {
+        "README.md": {
+          "sha256": "1fcd547655e95987105929f1033cfacffe513d84d532672c3064feee8d1ab164",
+          "bytes": 5164
+        },
+        "fixtures.json": {
+          "sha256": "82f9f99f584b2b192639a440a34d6b92ddcaa8631ea4c59ce5dadff55ca2fb85",
+          "bytes": 14734
+        },
+        "manifest.json": {
+          "sha256": "dd4e58281dac65f0fb80e53d7742f0e09dd55478d5b4e354f855c4ec5c503c19",
+          "bytes": 467
+        },
+        "test-results.json": {
+          "sha256": "114fba801f2fe0b1a57b5f3de1cc41f33949a6bf8bd25262fe8f0c10c4dbb547",
+          "bytes": 5854
+        },
+        "test_golden.py": {
+          "sha256": "5f8f6446e6169c9c97af78097d900b2f1cbd10e8435d1b1b8eae238e1285da30",
+          "bytes": 3053
+        }
+      }
+    },
+    {
+      "id": "GOLDEN02",
+      "original_filename": "COLUMN_GOLDEN_02_AUDIT(1).zip",
+      "bundled_path": "data/golden02.zip",
+      "sha256": "0648bb0a49c52152c9a015f5cb4f83d1cdb4b33d103fe4e7a62ef04201d591e9",
+      "bytes": 2917,
+      "members": {
+        "COLUMN_GOLDEN_02/test_golden02_arithmetic.py": {
+          "sha256": "64a9bcf762732c3d810892b42f8eb5b4ada2ae838ef57e2ada59b96274dbdf17",
+          "bytes": 1802
+        },
+        "COLUMN_GOLDEN_02/audit_fixture.json": {
+          "sha256": "7d840fde637d476c20c475a4306864b418a859f041014d15619729a38588e2e5",
+          "bytes": 2131
+        },
+        "COLUMN_GOLDEN_02/REVIEW.md": {
+          "sha256": "c541b3af7f54da49799daa56bff9e54d4cf60972bf45cb2512961aec629c4923",
+          "bytes": 1659
+        }
+      }
+    }
+  ],
+  "files": {
+    "data/GOLDEN_EVIDENCE.json": {
+      "sha256": "e4dc17e7fc1562a107f2ff0da7aef5dbb1097afd84370ea7671d1ce3d2338089",
+      "bytes": 1268
+    },
+    "data/RULE_CARDS.json": {
+      "sha256": "65f45eabf3a6d15a47f79c9ec3cf780e8cd87917b1375510aa1f6c690a0241eb",
+      "bytes": 19561
+    },
+    "data/golden01.zip": {
+      "sha256": "8d13a4a76dc9a05d3353446f7e4e331d9801be9182bedb51d630730594934007",
+      "bytes": 9903
+    },
+    "data/golden02.zip": {
+      "sha256": "0648bb0a49c52152c9a015f5cb4f83d1cdb4b33d103fe4e7a62ef04201d591e9",
+      "bytes": 2917
+    },
+    "data/report_excerpts.json": {
+      "sha256": "b102467f965eb40aeb307e629e683fa48285b58bf3627678a5c66f0769436b46",
+      "bytes": 70801
+    },
+    "references/test_v11_reference_regression.py": {
+      "sha256": "3613c3bccc167aa0da3febca21aaddbea49915ba83d4c165cd7b9fcf7d8a317c",
+      "bytes": 14158
+    },
+    "references/column_oracle.py": {
+      "sha256": "1b81cb6b8469eff9fe5bbcc946a1b0bd3474644ffeabb5ee58ac1661134eca50",
+      "bytes": 16352
+    },
+    "references/test_b7_oracle_matrix.py": {
+      "sha256": "eb81ed41aef3a0b32cbda772e7d1ecbd040941fbaf753ce9ec4fec933ccc169a",
+      "bytes": 6393
+    },
+    "references/column_section_pilot.py": {
+      "sha256": "7e803b366fac39c24d9d95446b62e5f45bb1673fa9fad2538b3bf85d9b091915",
+      "bytes": 4700
+    }
+  },
+  "pdf_bytes_bundled": false,
+  "pdf_source_policy": "Hash-verified source PDFs remain in the original source bank; only selected report excerpts and original compact audit ZIPs are bundled.",
+  "golden03_04_policy": "Source identities verified; no completed report arithmetic suite asserted.",
+  "legacy_golden01_comparisons": 23,
+  "legacy_golden02_test_methods": 7,
+  "real_model_archive_sha256": "3882b659937626bb3bbfe841e6dbd6c57798fcfcce8e6fa54a683a221210fee3"
+}

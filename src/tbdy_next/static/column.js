@@ -1,0 +1,1214 @@
+/* Presentation of one explicitly selected offline bank. No engineering arithmetic. */
+(() => {
+  'use strict';
+  const el = id => document.getElementById(id);
+  const run = el('columnRun'), member = el('columnMember'), loadCase = el('columnCase');
+  const view = el('columnView'), proposal = el('columnProposal');
+  const beamProposal = el('columnBeamProposal');
+  const labels = {
+    STATIC_LINEAR_ADD:'Statik Linear Add', RESPONSE_SPECTRUM_LINEAR_ADD:'Spektral katkılı Linear Add',
+    ENVELOPE:'Zarf', STATIC_NESTED_UNVERIFIED:'İç içe statik · doğrulanmadı',
+    DEFINITION_UNRESOLVED:'Tanım çözümlenemedi', NON_LINEAR_ADD_ROUTE:'Diğer birleşim işlemi',
+    OTHER_ANALYSIS_CASE:'Diğer analiz türü', UNIQUE_STATIC_SOURCE_LINK:'Tekil statik kaynak bağı',
+    MULTIPLE_NATIVE_STATES:'Birden fazla kuvvet durumu', AMBIGUOUS_DESIGN_STATION:'Çift tasarım istasyonu',
+    EXACT_NATIVE_STATION_NOT_FOUND:'Kesin istasyon eşleşmesi yok', SOURCE_REFERENCE_ONLY:'Yalnız kaynak referansı',
+    DESIGN_MEMBER_CONTEXT_UNRESOLVED:'Kolon/kesit kimliği uyuşmuyor', COMBINATION_NOT_DEFINED:'Birleşim tanımı yok',
+    DESIGN_STATION_INVALID:'İstasyon geçersiz', N_COMPRESSION_MAX:'En büyük basınç', N_TENSION_MAX:'En büyük çekme',
+    M2_ABS_MAX:'En büyük |M2|', M3_ABS_MAX:'En büyük |M3|', V2_ABS_MAX:'En büyük |V2|',
+    V3_ABS_MAX:'En büyük |V3|', T_ABS_MAX:'En büyük |T|',
+    REQUIRED_AREA_BOUNDS_CALCULATED:'Alan sınırları hesaplandı', NOT_PROVEN:'Doğrulanmadı',
+    NUMERICAL_MATCH:'Kaynakla eşleşti', NUMERICAL_MISMATCH:'Kaynakla uyuşmuyor',
+    BELOW_REFERENCE:'Referans altında', AT_OR_ABOVE_REFERENCE:'Referansı karşılıyor',
+    NONCOMPRESSION_NOT_APPLICABLE:'Basınç değil', PROPOSED_GEOMETRY_CALCULATED:'Öneri geometrisi',
+    WITHIN_SCENARIO_SURFACE:'Koşullu yüzey içinde', EXCEEDS_SCENARIO_SURFACE:'Koşullu yüzey aşılıyor',
+    NUMERIC_UNRESOLVED:'Sayısal çözüm belirsiz', BLOCKED_INPUTS:'Girdi eksik',
+    NUMERICAL_COMPARISON_MATCH:'Tolerans içinde', NUMERICAL_COMPARISON_MISMATCH:'Tolerans dışında',
+    REFERENCE_UNRESOLVED:'Referans çözülemedi', REFERENCE_NOT_STABLE:'Referans kararlı değil',
+    AXIAL_ONLY_SCENARIO:'Yalnız eksenel senaryo', OUTSIDE_SCENARIO_AXIAL_RANGE:'Eksenel senaryo sınırı aşılıyor',
+    WITHIN_1_TO_4_PERCENT_REFERENCE:'%1–4 aralığında', OUTSIDE_1_TO_4_PERCENT_REFERENCE:'%1–4 aralığı dışında',
+    ANGULAR_REFINEMENT_NOT_STABLE:'Açısal yakınsama yeterli değil', AGGREGATE_NOT_BOUND:'Agrega bilgisi bekleniyor',
+    NEAR_NUMERICAL_SURFACE_BOUNDARY:'Sayısal sınır bandında; karar belirsiz',
+    PROPOSED_TRANSVERSE_REFERENCES_CALCULATED:'Öneri sargı hesabı',
+    SHEAR_REFERENCES_CALCULATED:'İki kesme senaryosu hesaplandı', SHEAR_REFERENCE_PARTIAL:'Kesme senaryosu kısmi',
+    WITHIN_REFERENCE_RESISTANCE:'Referans dayanım içinde', EXCEEDS_REFERENCE_RESISTANCE:'Referans dayanımı aşıyor',
+    OUTSIDE_CRACKING_FORMULA_DOMAIN:'Çekme durumu formül alanı dışında',
+    ENCLOSED:'Kuşatılmış · eşmerkez senaryo', UNENCLOSED:'Kuşatılmamış · eşmerkez senaryo',
+    JOINT_GEOMETRIC_REFERENCES_CALCULATED:'Geometrik referans hesaplandı',
+    NO_RECORDED_BEAM_AT_NODE:'Düğümde kayıtlı kiriş yok',
+    JOINT_OTHER_INCIDENT_FRAME_NOT_CLASSIFIED:'Sınıflandırılmamış bağlı çubuk',
+    JOINT_INTERIOR_FRAME_CONNECTION_NOT_BOUND:'Çubuk içindeki bağlantı belirsiz',
+    JOINT_COINCIDENT_DISTINCT_POINT_IDS:'Aynı koordinatta farklı düğümler',
+    EQ71_BASELINE_REFERENCES_CALCULATED:'Denk. 7.1 esaslı sargı referansı',
+    SAME_CASE_SOURCE_LINKED:'Aynı birleşimde kaynaklar bağlı', PARTIAL_SOURCE_LINK:'Kısmi kaynak bağı',
+    RECORDED_PDELTA_STIFFNESS:'P-Delta rijitliği kaydı',
+    RECORDED_NONLINEAR_CASE_UNRESOLVED:'Nonlinear Case kaydı · başlangıç esası belirsiz',
+    RECORDED_STIFFNESS_SETTING:'Rijitlik ayarı kaydedilmiş',
+    STIFFNESS_PARAMETER_FAMILY_CALCULATED:'Açık rijitlik senaryoları',
+    SOURCE_LENGTH_REFERENCES_CALCULATED:'Matematiksel boy referansları',
+    POSITIVE_SOURCE_DENOMINATOR:'Pozitif kaynak paydası', NONPOSITIVE_SOURCE_DENOMINATOR:'Sıfır/negatif kaynak paydası',
+    NUMERICALLY_NEAR_ZERO:'Sayısal olarak sıfıra yakın',
+    RECORDED_AXIAL_VALUES_DIFFER:'Kayıtlı N değerleri farklı', RECORDED_AXIAL_VALUES_EQUAL:'Kayıtlı N değerleri eşit'
+  };
+  let epoch = 0, historyEpoch = 0, opened = false, offset = 0, total = 0;
+  const text = (tag, value, css) => {
+    const node = document.createElement(tag); node.textContent = String(value ?? '—');
+    if (css) node.className = css;
+    return node;
+  };
+  const show = value => Array.isArray(value) ? value.join(', ') : String(value ?? '—');
+  const rounded = value => typeof value === 'number' && Number.isFinite(value) ? Number(value.toPrecision(6)) : null;
+  function cageDrawing(cage, layout = null) {
+    const box = document.createElement('figure');
+    const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    const make = (tag,attrs) => {
+      const node = document.createElementNS('http://www.w3.org/2000/svg',tag);
+      for (const [key,value] of Object.entries(attrs)) node.setAttribute(key,String(value));
+      svg.append(node); return node;
+    };
+    const w=cage.t3_mm,h=cage.t2_mm; // Native T3 is the local-2 extent.
+    svg.setAttribute('viewBox',`${-w/2-60} ${-h/2-60} ${w+120} ${h+120}`);
+    svg.setAttribute('width','190'); svg.setAttribute('height','190');
+    svg.setAttribute('role','img'); svg.setAttribute('aria-label',cage.label+' öneri kesiti; yerel 2 sağa, yerel 3 yukarı');
+    make('rect',{x:-w/2,y:-h/2,width:w,height:h,fill:'#edf1f6',stroke:'#64748b','stroke-width':3});
+    if (layout) for (const leg of layout.legs) {
+      const [a,b] = leg.endpoints_mm;
+      make('line',{x1:a[0],y1:-a[1],x2:b[0],y2:-b[1],stroke:'#34786b','stroke-width':leg.diameter_mm,
+        'stroke-dasharray':leg.kind==='CROSSTIE' ? '12 6' : 'none'});
+    }
+    for (const bar of cage.bars) make('circle',{cx:bar.x2_mm,cy:-bar.x3_mm,r:bar.diameter_mm/2,fill:'#214e78'});
+    box.append(svg,text('figcaption',`${cage.label} · As ${rounded(cage.as_cm2)} cm² · merkez örtüsü ${cage.center_offset_mm} mm`));
+    if (layout) box.append(text('p','Etriye/çiroz eksen şeması; kancalar ve düşey yerleşim doğrulanmadı.','micro'));
+    return box;
+  }
+  function table(columns, rows) {
+    const node = document.createElement('table'); node.className = 'modal-source-table';
+    const head = document.createElement('thead'), header = document.createElement('tr');
+    columns.forEach(([, label]) => header.append(text('th', label))); head.append(header);
+    const body = document.createElement('tbody');
+    rows.forEach(row => {
+      const tr = document.createElement('tr');
+      columns.forEach(([key,, render]) => {
+        const cell = text('td', render ? '' : show(row[key]));
+        if (render) cell.append(render(row));
+        tr.append(cell);
+      }); body.append(tr);
+    });
+    node.append(head, body); return node;
+  }
+  function displayNumber(value, digits = 2) {
+    if (value === null || value === undefined) return '—';
+    if (typeof value !== 'number' || !Number.isFinite(value)) throw new Error('Özet sayısal değeri geçersiz.');
+    return new Intl.NumberFormat('tr-TR', {minimumFractionDigits:digits, maximumFractionDigits:digits, signDisplay:'negative'}).format(value);
+  }
+  function pmmText(pm) {
+    if (pm.status === 'AXIAL_RANGE_EXCEEDED') return `Eksenel sınır aşılıyor · ${pm.axial_outside_count} kayıt`;
+    if (pm.status === 'NO_STATIC_STATES') return 'Statik hesap kaydı yok';
+    let value = pm.representative_basis === 'MAXIMUM_RESOLVED_RADIAL_PMM' ? displayNumber(pm.maximum_resolved_utilization,4)+' · koşullu' :
+      pm.representative_basis === 'MAXIMUM_AXIAL_ONLY_REFERENCE' ? 'Yalnız N: '+displayNumber(pm.maximum_axial_utilization,4) : 'Sayısal sonuç bekleniyor';
+    if (pm.unresolved_count || pm.blocked_count) value += ` · ${pm.unresolved_count} belirsiz / ${pm.blocked_count} eksik`;
+    if (pm.axial_only_count && pm.representative_basis === 'MAXIMUM_RESOLVED_RADIAL_PMM') value += ` · ayrıca ${pm.axial_only_count} yalnız N`;
+    if (pm.status_counts.EXCEEDS_SCENARIO_SURFACE) value += ' · yüzey aşılıyor';
+    return value;
+  }
+  const shearText = {SOURCE_REFERENCE_EXCEEDED:'Kaynak sınırı aşılıyor', PARTIAL_SHEAR_REFERENCES:'Kısmi kaynak hesabı',
+    CONDITIONAL_SHEAR_REFERENCES:'Koşullu kaynak hesabı', NO_STATIC_STATES:'Statik kayıt yok'};
+  function overviewDetails(row, scenario) {
+    const target = el('columnOverviewDetails'), pm = scenario.pmm, sh = scenario.shear;
+    const details = (title, ...nodes) => {
+      const item = text('details','');item.append(text('summary',title),...nodes);target.append(item);return item;
+    };
+    const states = pm.critical_states.map(s => ({...s.native_key,...s.source_values,
+      station:displayNumber(s.native_key.ObjSta,3), n:displayNumber(s.source_values.n_compression_kn),
+      m2:displayNumber(s.source_values.m2_knm),m3:displayNumber(s.source_values.m3_knm)}));
+    details(`${row.member_id} · ${scenario.candidate_label} · PMM kapsamı ve kritik kayıtlar`,
+      text('p',`${pm.static_state_count} statik kayıt: ${pm.radial_pmm_count} radyal PMM, ${pm.axial_only_count} yalnız N, `+
+        `${pm.axial_outside_count} eksenel sınır aşımı, ${pm.unresolved_count} belirsiz, ${pm.blocked_count} eksik.`, 'small'),
+      table([['LoadCase','Birleşim'],['station','İstasyon (m)'],['Elm','Analiz elemanı'],['n','N (kN)'],['m2','M2 (kN·m)'],['m3','M3 (kN·m)']],states));
+    details('Kesme senaryoları · kendi kritik kaynak durumları',
+      text('p','Kesme maksimumları tüm filtrelenmiş statik kayıtlardan gelir. Her yön ve beton katkısı dalı kendi birleşim/istasyonuna bağlıdır. Ve doğrulanmadı.','small'),
+      table([['axis','Yön'],['branchLabel','Senaryo'],['coverage','Çözülen / beklenen'],['ratio','En büyük |V|/Vr'],['cases','Kritik birleşimler']],
+        sh.branches.map(b=>({...b,branchLabel:b.branch==='ts500'?'TS500':'Vc=0',coverage:`${b.numeric_count} / ${b.state_count}`,
+          ratio:displayNumber(b.maximum_source_utilization,4),cases:[...new Set(b.critical_source_states.map(s=>s.native_key.LoadCase))].join(', ')}))),
+      text('h3','Görüntülenen PMM kaydıyla aynı durumdaki kesme'),
+      table([['axis','Yön'],['source','İşaretli V (kN)'],['ts','TS500 |V|/Vr'],['zero','Vc=0 |V|/Vr']],
+        sh.at_pmm_representative.map(s=>({axis:s.shear_axis,source:displayNumber(s.native_values[s.shear_axis]),
+          ts:displayNumber(s.calculation?.branches.ts500.source_utilization,4),
+          zero:displayNumber(s.calculation?.branches.zero_concrete.source_utilization,4)}))));
+    if (sh.other_limit_findings.length) details('Ek kesme üst sınırı kaynak bulguları',
+      text('p','Gerçek Ve ve normatif kolon uygulanabilirliği açık kalır.','small'),
+      table([['axis','Yön'],['referenceLabel','Referans'],['case','Birleşim'],['v','İşaretli V (kN)'],['limit','Sınır (kN)']],
+        sh.other_limit_findings.map(f=>({...f,referenceLabel:f.reference==='ts500_web'?'TS500 gövde':'TBDY gevrek kesme',
+          case:f.native_key.LoadCase,v:displayNumber(f.source_signed_v_kn),limit:displayNumber(f.reference_limit_kn)}))));
+    const second = row.second_order;
+    details('İkinci mertebe · girdiler ve duyarlılık referansları',
+      text('p','Doğrulanmış ln, k, lk, Cm, β ve büyütülmüş momentler bekleniyor. '+
+        `${second.reference_count} duyarlılık karşılaştırmasının ${second.nonpositive_reference_count} adedinde sıfıra yakın veya negatif payda. `+
+        'Bu sayı varsayımsal boy/rijitlik referanslarına aittir; gerçek kolon stabilite göçmesi göstermez.','small'),
+      table([['case','Birleşim'],['axis','Eksen'],['rm','Rm senaryosu'],['lambda','lk/i referansı'],['denominator','Payda']],
+        second.reference_findings.map(r=>({case:r.native_key.LoadCase,axis:r.axis,rm:displayNumber(r.rm_scenario,1),
+          lambda:r.lk_over_i_reference,denominator:displayNumber(r.source_denominator,4)}))));
+    const c=row.station_coverage;
+    details('ETABS tasarım özeti · istasyon eşleşmeleri',text('p',
+      `${c.design_row_count} satır / ${c.reference_count} rol referansı. ${c.ambiguous_row_count} belirsiz satırda ${c.ambiguous_reference_count} referans; `+
+      `kesin istasyonu bulunmayan ${c.missing_exact_reference_count} referansla kesişim ${c.overlap_reference_count}, birleşim ${c.union_reference_count}. `+
+      'Satır ve referans sayıları toplanmaz; yakın istasyon seçilmez.','small'));
+    details('Tam hassasiyet ve kaynak kimlikleri',text('pre',JSON.stringify({member_id:row.member_id,scenario,
+      second_order:second,station_coverage:row.station_coverage},null,2)));
+  }
+  function renderOverview(report, page, selectedProposal) {
+    const overview = report.column_overview;
+    el('columnDemandSummary').replaceChildren();
+    const classes=overview.source_combination_classifications;
+    el('columnDemandSummary').append(text('p',`${classes.STATIC_LINEAR_ADD || 0} doğrudan statik birleşim · `+
+      `${classes.RESPONSE_SPECTRUM_LINEAR_ADD || 0} spektrum içeren birleşimin tasarım vektörü bekleniyor. `+
+      `${overview.member_count} kolonun ${overview.members_without_static_states} adedinde seçili filtre için statik hesap kaydı yok.`));
+    el('columnUnits').textContent = 'N, M2 ve M3 aynı kritik kaydın kaynak vektörüdür. N basınç pozitif; kuvvet kN, moment kN·m. '+
+      'Doğrulanmış Nd/M2d/M3d ve büyütülmüş momentler bekleniyor. Gösterim yuvarlanır; kritik seçim tam hassasiyetle yapılır.';
+    const rows = page.rows.map(row => {
+      const s=row.scenarios.find(s=>s.candidate_label===selectedProposal);
+      if (!s || s.selected_design !== false || s.final_design_eligible !== false || s.design_values?.status !== 'NOT_PROVEN' ||
+          ['Nd_kn','M2d_knm','M3d_knm'].some(k=>s.design_values[k]!==null) || row.second_order.actual_second_order_applied!==false ||
+          row.second_order.actual_stability_failure_proven!==false) throw new Error('Özetin koşullu senaryo kapsamı uyuşmuyor.');
+      const pm=s.pmm, source=pm.representative, v=source?.source_values;
+      if (member.value === row.member_id) overviewDetails(row,s);
+      return {member_id:row.member_id,story:row.story,combo:(source?.native_key.LoadCase || '—')+
+        (pm.critical_state_count>1 ? ` · ${pm.critical_state_count} eşit/aynı öncelikli kayıt` : ''),
+        n:displayNumber(v?.n_compression_kn),m2:displayNumber(v?.m2_knm),m3:displayNumber(v?.m3_knm),
+        proposal:selectedProposal,pmm:pmmText(pm),shear:(shearText[s.shear.status] || 'Kapsam belirsiz')+' · Ve bekleniyor',
+        second:'Girdiler bekleniyor'};
+    });
+    el('columnForces').append(table([['member_id','Kolon'],['story','Kat'],['combo','Kritik statik birleşim'],
+      ['n','N kaynak (kN)'],['m2','M2 kaynak (kN·m)'],['m3','M3 kaynak (kN·m)'],['proposal','Donatı senaryosu'],
+      ['pmm','Koşullu PMM'],['shear','Kesme'],['second','İkinci mertebe'],['member_id','Ayrıntı',r=>{
+        const button=text('button','İncele');button.type='button';button.setAttribute('aria-label',r.member_id+' kolonunu incele');
+        button.addEventListener('click',()=>{member.value=r.member_id;offset=0;load();});return button;
+      }]],rows));
+    const c=overview.station_coverage;
+    const coverage=text('details','');coverage.append(text('summary','Özet kapsamı ve istasyon eşleşmeleri'),text('p',
+      `${c.reference_count} rol referansı: ${c.missing_exact_reference_count} kesin eşleşme yok, ${c.ambiguous_reference_count} belirsiz istasyon referansı. `+
+      `Kesişim ${c.overlap_reference_count}, birleşim ${c.union_reference_count}; belirsiz tasarım satırı ${c.ambiguous_row_count}.`, 'small'));
+    el('columnOverviewDetails').append(coverage);
+  }
+  function options(target, values, placeholder) {
+    target.replaceChildren();
+    const first = text('option', placeholder); first.value = ''; target.append(first);
+    values.forEach(([value, label]) => { const option = text('option', label); option.value = value; target.append(option); });
+    target.value = '';
+  }
+  function renderQuality(quality, page) {
+    el('columnUnits').textContent = 'Radyal kapasiteler kN·m. Ana hesabın kolon/öneri başına en büyük çözülen PMM kayıtları ve tüm eşitleri karşılaştırılır.';
+    el('columnContext').append(text('p',`${quality.comparison_count} kritik kayıt / ${quality.filtered_primary_assessment_count} filtrelenmiş PMM değerlendirmesi. `+
+      'Bu kritik alt küme bağımsız sayısal kıyastır; tüm PMM nüfusu ve kritik seçimin kendisi bağımsız doğrulanmış değildir.'));
+    el('columnContext').append(text('p','Ana kapasite sabit N ve kaynak moment doğrultusunda gerinim uyumlu denge noktasından hesaplanır. '+
+      'Eksenel artık ≤1 N; doğrultu artığı ≤0,001 kN·m. Açısal örnekler kök aralığını belirler.','micro'));
+    el('columnContext').append(text('p','İki çözüm aynı malzeme modelini kullanır. Tolerans içinde sonuç, malzeme modelinin veya yönetmelik uygunluğunun kabulü değildir. ' +
+      'Depremli tasarım vektörü, ikinci mertebe ve nihai donatı seçimi bekleniyor.','micro'));
+    const statusCounts=Object.entries(quality.status_counts).map(([status,count])=>`${labels[status] || status}: ${count}`).join(' · ');
+    el('columnContext').append(text('p',statusCounts || 'Seçili filtrede karşılaştırılabilir kritik radyal kayıt yok.'));
+    for (const row of page.rows) {
+      if (row.final_design_eligible !== false || !labels[row.status] || !row.state_id || !row.candidate_id) {
+        throw new Error('Sayısal kıyasın kayıt kapsamı uyuşmuyor.');
+      }
+      const root=row.primary_direction_root,point=root?.point,v=row.native_values;
+      const magnitude=Math.hypot(v.M2,v.M3),u2=Math.abs(v.M2)/magnitude,u3=Math.abs(v.M3)/magnitude;
+      const capacity=point?.m2_nmm*u2+point?.m3_nmm*u3;
+      const cross=point?.m2_nmm*u3-point?.m3_nmm*u2;
+      if (!root || root.status !== 'MOMENT_DIRECTION_ROOT_RESOLVED' || root.reason !== null ||
+          root.method !== 'BRACKETED_BISECTION_EXACT_AXIAL_EQUILIBRIUM' || root.interpolated_strain_plane_used !== false ||
+          root.angle_basis !== 'COMPRESSION_NORMAL_LOCAL2_TO_LOCAL3_FIRST_QUADRANT_DEG' ||
+          root.global_root_uniqueness_proven !== false || root.direction_tolerance_nmm !== 1000 ||
+          ![v.P,v.M2,v.M3,point?.n_n,point?.m2_nmm,point?.m3_nmm,point?.theta_deg,point?.c_mm,root.target_n_n,root.capacity_nmm,
+            root.axial_residual_n,root.direction_residual_nmm,row.primary_capacity_knm,capacity,cross,magnitude].every(Number.isFinite) ||
+          magnitude <= 0 || point.c_mm <= 0 || point.theta_deg < 0 || point.theta_deg > 90 ||
+          root.axial_residual_n < 0 || root.axial_residual_n > 1 || root.direction_residual_nmm < 0 || root.direction_residual_nmm > 1000 ||
+          Math.abs(root.target_n_n+v.P*1000)>1e-6 || Math.abs(point.n_n-root.target_n_n)>1+1e-6 ||
+          Math.abs(Math.abs(point.n_n-root.target_n_n)-root.axial_residual_n)>1e-6 ||
+          Math.abs(cross)>1000+1e-5 || Math.abs(Math.abs(cross)-root.direction_residual_nmm)>1e-5 ||
+          capacity <= 0 || Math.abs(capacity/1e6-row.primary_capacity_knm)>1e-8 ||
+          Math.abs(root.capacity_nmm/1e6-row.primary_capacity_knm)>1e-8) {
+        throw new Error('PMM denge noktasının kaynak veya sayısal kapsamı uyuşmuyor.');
+      }
+      if (row.status.startsWith('NUMERICAL_COMPARISON_') &&
+          (!Number.isFinite(row.reference_capacity_knm) || row.reference_capacity_knm <= 0 ||
+           !Number.isFinite(row.absolute_difference_knm) || !Number.isFinite(row.comparison_budget_knm) ||
+           (row.status === 'NUMERICAL_COMPARISON_MATCH') !== (row.absolute_difference_knm <= row.comparison_budget_knm))) {
+        throw new Error('Sayısal kıyasın tolerans durumu uyuşmuyor.');
+      }
+    }
+    el('columnForces').append(table([['member_id','Kolon'],['story','Kat'],['candidate_label','Öneri'],
+      ['combo','Kritik statik birleşim'],['primary','Ana kapasite'],['reference','Bağımsız kapasite'],
+      ['delta','|Fark|'],['budget','Tolerans'],['statusText','Sayısal kıyas']],page.rows.map(r=>({...r,
+        combo:r.native_key.LoadCase,primary:displayNumber(r.primary_capacity_knm),reference:displayNumber(r.reference_capacity_knm),
+        delta:displayNumber(r.absolute_difference_knm,4),budget:displayNumber(r.comparison_budget_knm,4),statusText:labels[r.status]}))));
+    const scope=text('details','');scope.append(text('summary','Karşılaştırma kapsamı ve kıyaslanmayan durumlar'));
+    scope.append(table([['member_id','Kolon'],['candidate_label','Öneri'],['primary_state_count','Ana kayıt'],
+      ['primary_radial_state_count','Radyal'],['primary_nonradial_state_count','Radyal dışı'],['target_count','Kritik eşitler'],
+      ['states','Ana hesap durumları']],quality.members.map(g=>({...g,states:Object.entries(g.primary_status_counts)
+        .map(([s,n])=>`${labels[s] || s}: ${n}`).join(' · ') || 'Statik hesap kaydı yok'}))));
+    el('columnOverviewDetails').append(scope);
+    const equilibrium=text('details','');equilibrium.append(text('summary','Kritik kayıtların denge noktaları ve yaklaşım farkları'));
+    equilibrium.append(text('p','θ, iki eksenli simetriyle ilk bölgeye indirgenmiş basınç normalinin yerel 2’den yerel 3’e açısıdır.'));
+    equilibrium.append(table([['member_id','Kolon'],['candidate_label','Öneri'],['theta','Basınç normali θ (°)'],
+      ['depth','c (mm)'],['axial','|ΔN| (N)'],['direction','Doğrultu artığı (kN·m)'],['correction','Kaba minimuma göre fark (kN·m)']],
+      page.rows.map(r=>({...r,theta:displayNumber(r.primary_direction_root.point.theta_deg,5),
+        depth:displayNumber(r.primary_direction_root.point.c_mm,5),axial:displayNumber(r.primary_direction_root.axial_residual_n,5),
+        direction:displayNumber(r.primary_direction_root.direction_residual_nmm/1e6,6),
+        correction:displayNumber(r.primary_root_minus_coarse_minimum_knm,6)}))));
+    el('columnOverviewDetails').append(equilibrium);
+    if (member.value) {
+      const traces=text('details','');traces.append(text('summary','Seçili kolonun tam hassasiyet, kaynak ve sayısal çözüm izleri'));
+      traces.append(text('pre',JSON.stringify({models:quality.reference_models,policy:quality.numerical_policy,comparisons:quality.rows},null,2)));
+      el('columnOverviewDetails').append(traces);
+    }
+  }
+  const scwbStatus = {
+    BEAM_CAPACITY_NOT_BOUND:'Kiriş uç donatısı bekleniyor',
+    COLUMN_AND_BEAM_INPUTS_INCOMPLETE:'Kolon ve kiriş girdileri eksik',
+    NO_RECORDED_BEAM_IN_DIRECTION:'Bu yönde kayıtlı kiriş yok',
+    TOPOLOGY_UNRESOLVED:'Bağlantı geometrisi belirsiz',
+    NO_STATIC_SOURCE_CASES:'Statik kaynak vakası yok'
+  };
+  function renderScwb(scwb, page) {
+    el('columnDemandSummary').replaceChildren();
+    if (scwb.source_population_status === 'BLOCKED_NATIVE_JOINT_GRAPH') {
+      el('columnContext').append(text('p',`Birleşim ağı doğrulanamadı. ${scwb.selected_column_count} bilinen kolon / `+
+        `${scwb.expected_column_end_count} beklenen uç / ${scwb.expected_column_reference_count} beklenen kapasite kaydı. `+
+        'Birleşim sayısı bilinmiyor; kapsam tamamlanmış değildir.','warn'));
+      el('columnForces').append(table([['member_id','Kolon'],['end','Uç']],scwb.unresolved_member_ends));
+      const source=text('details','');source.append(text('summary','Bağlantı kaynağının açık nedeni'),text('p',scwb.graph_reason));
+      el('columnOverviewDetails').append(source);return;
+    }
+    el('columnUnits').textContent = 'Kolon kapasite toplamı kN·m; N basınç pozitif. Kaynak kesitleri fiziksel birleşim yüzü olarak doğrulanmadı.';
+    el('columnContext').append(text('p',`${scwb.filtered_joint_node_count} birleşim · ${scwb.static_cases.length} statik birleşim · `+
+      'üç donatı senaryosu · X/Y ve iki dönme yönü. Seçili kolonun komşu üyeleri hesapta korunur.'));
+    el('columnContext').append(text('p','Gösterilen minimum yalnız kayıtlı statik vakalar arasındadır; deprem yönüyle uyumlu Nd minimumu değildir. '+
+      'İki dönme yönündeki kolon eşitliği doğrulanmış kafes simetrisine dayanır. Bu kaynak görünümünde uygulanmış kiriş kapasitesi ve nihai SCWB oranı bağlı değildir; öneriler ayrı görünümdedir.','micro'));
+    el('columnContext').append(text('p',Object.entries(scwb.filtered_status_counts)
+      .map(([status,count])=>`${scwbStatus[status] || 'Belirsiz'}: ${count}`).join(' · ') || 'Birleşim kaydı yok.'));
+    for (const r of page.rows) {
+      if (!scwbStatus[r.status] || !['X','Y'].includes(r.direction) || ![-1,1].includes(r.rotation_sign) ||
+          r.final_design_eligible !== false || r.formal_compliance !== 'NOT_PROVEN' || r.normative_exception_applied !== false ||
+          r.minimum_over_declared_static_cases_only !== true || r.normative_nd_minimum_proven !== false ||
+          r.scwb_ratio !== null || r.normalized_reference_ratio !== null || r.sum_mrb_knm !== null ||
+          r.expected_case_count !== scwb.static_cases.length || r.calculated_column_sum_count < 0 ||
+          r.calculated_column_sum_count > r.expected_case_count ||
+          (r.sampled_minimum_column_sum_knm !== null && (!Number.isFinite(r.sampled_minimum_column_sum_knm) ||
+            r.sampled_minimum_column_sum_knm <= 0 || !r.expected_case_count ||
+            r.calculated_column_sum_count !== r.expected_case_count || r.topology_reasons.length ||
+            !r.sampled_minimum_case_ids.length)) ||
+          (r.sampled_minimum_column_sum_knm === null && r.sampled_minimum_case_ids.length) ||
+          r.sampled_minimum_case_ids.some(c=>!scwb.static_cases.includes(c))) {
+        throw new Error('SCWB özetinin kaynak kapsamı veya koşullu durumu uyuşmuyor.');
+      }
+    }
+    el('columnForces').append(table([['joint_id','Birleşim'],['elevation','Kot (m)'],['directionText','Yön / dönme'],
+      ['candidate_label','Donatı senaryosu'],['coverage','Kolon toplamı / vaka'],['columnSum','En küçük ΣMrc kaynak (kN·m)'],
+      ['cases','Kritik statik birleşim'],['state','SCWB durumu']],page.rows.map(r=>({...r,
+        elevation:displayNumber(r.elevation_m),directionText:r.direction+' / '+(r.rotation_sign>0?'+':'−'),
+        coverage:`${r.calculated_column_sum_count} / ${r.expected_case_count}`,columnSum:displayNumber(r.sampled_minimum_column_sum_knm),
+        cases:r.sampled_minimum_case_ids.join(', ') || '—',state:scwbStatus[r.status]}))));
+    const roster=text('details','');roster.append(text('summary','Birleşim üyeleri ve açık mühendislik girdileri'));
+    roster.append(text('p','Kiriş tasarım özetindeki gerekli As ve modeldeki donatı alanı override değerleri, seçilmiş uç donatısı değildir. '+
+      'Sıfır override sıfır donatı sayılmaz. Kiriş uç kapasiteleri, döşeme katkısı, fiziksel yüzler, depremli Nd ve istisna uygulanabilirliği bekleniyor.'));
+    roster.append(table([['joint','Birleşim'],['direction','Yön'],['columns','Kolon uçları'],['beams','Kiriş uçları'],['scope','Bağlantı']],
+      scwb.nodes.flatMap(n=>['X','Y'].map(direction=>({joint:n.point_id,direction,
+        columns:n.rosters[direction].columns.map(c=>`${c.member_id}/${c.end}`).join(', '),
+        beams:n.rosters[direction].beams.map(b=>`${b.member_id}/${b.end}`).join(', ') || 'Kayıt yok',
+        scope:n.rosters[direction].reasons.length?'Geometri belirsiz':'Native uçlar bağlı; fiziksel yüzler bekleniyor'})))));
+    el('columnOverviewDetails').append(roster);
+    if (member.value) {
+      const capacities=text('details','');capacities.append(text('summary','Seçili kolonun birleşimlerindeki kolon kapasite kayıtları'));
+      capacities.append(table([['member_id','Kolon'],['end','Uç'],['axis','Yerel moment'],['output_case','Statik birleşim'],
+        ['candidate_label','Senaryo'],['n','N kaynak (kN)'],['capacity','Mrc kaynak (kN·m)']],
+        scwb.column_references.map(r=>({...r,n:displayNumber(r.n_source_kn),capacity:displayNumber(r.capacity_knm)}))));
+      const traces=text('details','');traces.append(text('summary','Tam hassasiyet, vaka ve kaynak kimlikleri'),
+        text('pre',JSON.stringify({column_references:scwb.column_references,beam_sources:scwb.beam_sources,rows:scwb.rows},null,2)));
+      capacities.append(traces);el('columnOverviewDetails').append(capacities);
+    }
+  }
+  const beamStatus={BEAM_PROPOSAL_CALCULATED:'Öneri hesabı · koşullu',BEAM_PROPOSAL_BLOCKED:'Girdi veya yerleşim belirsiz',
+    BEAM_PROPOSAL_NUMERIC_UNRESOLVED:'Sayısal çözüm belirsiz'};
+  const beamReason={BEAM_NATIVE_CUT_AMBIGUOUS:'Native uç kesiti belirsiz',BEAM_DESIGN_STATION_AMBIGUOUS:'Uç tasarım istasyonu belirsiz',
+    BEAM_NATIVE_CUT_NOT_FOUND:'Native uç kesiti eksik',BEAM_DESIGN_STATION_NOT_FOUND:'Uç tasarım istasyonu eksik',
+    BEAM_CONTROL_REFERENCE_NOT_BOUND:'Kontrol birleşimi doğrulanmadı'};
+  function beamDrawing(profile,cage) {
+    const figure=text('figure',''),svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    const b=profile.local3_width_mm,h=profile.local2_height_mm;
+    svg.setAttribute('viewBox',`${-b/2-40} ${-h/2-40} ${b+80} ${h+80}`);svg.setAttribute('width','180');svg.setAttribute('height','210');
+    svg.setAttribute('role','img');svg.setAttribute('aria-label','Kiriş öneri kesiti; yerel 2 yukarı, yerel 3 sağa');
+    const shape=(tag,attrs)=>{const node=document.createElementNS('http://www.w3.org/2000/svg',tag);
+      for(const [key,value] of Object.entries(attrs))node.setAttribute(key,String(value));svg.append(node);};
+    shape('rect',{x:-b/2,y:-h/2,width:b,height:h,fill:'#edf1f6',stroke:'#64748b','stroke-width':3});
+    for(const bar of cage.bars)shape('circle',{cx:bar.x3_mm,cy:-bar.x2_mm,r:bar.diameter_mm/2,fill:'#214e78'});
+    figure.append(svg,text('figcaption',`Üst ${cage.top_label} / alt ${cage.bottom_label} · öneri · yerel 2 yukarı`));return figure;
+  }
+  function renderBeams(beams,page,diameter) {
+    el('columnDemandSummary').replaceChildren();
+    if(beams.source_population_status==='BLOCKED_NATIVE_JOINT_GRAPH') {
+      el('columnContext').append(text('p',`Birleşim ağı doğrulanamadı. ${beams.known_column_count} bilinen kolon korunur; kiriş/uç sayısı bilinmiyor.`,'warn'));return;
+    }
+    el('columnUnits').textContent='Alanlar mm², kapasite kN·m. +M3 alt donatıyı, −M3 üst donatıyı çekmeye çalıştırır; N=0 saf eğilme senaryosu.';
+    el('columnContext').append(text('p',`${beams.filtered_bound_end_count}/${beams.filtered_end_count} filtrelenmiş uç kaynağı. `+
+      `Arşivde ${beams.target_beam_count} bağlı kiriş / ${beams.expected_end_count} uç; ${beams.calculated_candidate_count}/${beams.expected_candidate_count} donatı/kapasite senaryosu.`));
+    el('columnContext').append(text('p','Gerekli As, uygulanmış donatı değildir. Üst ve alt alan hedefleri kendi kontrol birleşimlerine bağlıdır. '+
+      'N=0 kaynak kiriş N’si değildir. Nihai donatı seçimi ve SCWB oranı üretilmez.','micro'));
+    const profiles=new Map(beams.profiles.map(p=>[p.profile_id,p])),values=[];
+    for(const row of page.rows) {
+      const c=row.candidates.find(c=>c.diameter_mm===diameter),source=row.source;
+      if(!c || row.final_design_eligible!==false || row.formal_compliance!=='NOT_PROVEN' ||
+          !['BEAM_END_SOURCE_BOUND','BEAM_END_SOURCE_BLOCKED'].includes(row.status) ||
+          row.candidates.length!==3 || new Set(row.candidates.map(x=>x.diameter_mm)).size!==3 ||
+          row.candidates.some(x=>![16,20,24].includes(x.diameter_mm) || !beamStatus[x.status] || x.final_design_eligible!==false ||
+            x.selected_design!==false || x.physical_cage_proven!==false ||
+            (row.status==='BEAM_END_SOURCE_BLOCKED' && (x.status!=='BEAM_PROPOSAL_BLOCKED' || x.capacity!==null)) ||
+            (x.status==='BEAM_PROPOSAL_BLOCKED' && x.capacity!==null) ||
+            (x.status!=='BEAM_PROPOSAL_BLOCKED' && (row.status!=='BEAM_END_SOURCE_BOUND' || source?.status!=='BEAM_END_SOURCE_BOUND' ||
+              source?.native_cut_count!==1 || source?.design_match_count!==1 || source?.targets?.same_force_vector_claimed!==false ||
+              source?.targets?.total_required_area_is_provided!==false || !profiles.has(row.profile_id) ||
+              ['AsTopCombo','AsBotCombo','TLngCombo'].some(key=>source?.targets?.control_references?.[key]?.status!=='OBSERVED') ||
+              x.capacity?.axial_force_scenario_n!==0 || x.capacity?.source_beam_axial_force_applied!==false || x.capacity?.final_design_eligible!==false ||
+              (x.status==='BEAM_PROPOSAL_NUMERIC_UNRESOLVED' && x.capacity?.status!=='BEAM_CAPACITY_UNRESOLVED') ||
+              (x.status==='BEAM_PROPOSAL_CALCULATED' && (x.capacity?.status!=='BEAM_CAPACITY_REFERENCE' ||
+                !Number.isFinite(x.capacity.positive_m3_knm) || x.capacity.positive_m3_knm<=0 ||
+                !Number.isFinite(x.capacity.negative_m3_knm) || x.capacity.negative_m3_knm>=0)))))) {
+        throw new Error('Kiriş önerisinin kaynak bağı veya koşullu kapasitesi uyuşmuyor.');
+      }
+      const targets=source?.targets,cap=c.status==='BEAM_PROPOSAL_CALCULATED'?c.capacity:null;
+      values.push({member_id:row.member_id,end:row.end,station:displayNumber(source?.target_station_m,3),
+        topTarget:displayNumber(targets?.top_mm2),bottomTarget:displayNumber(targets?.bottom_mm2),
+        top:c.top_label,bottom:c.bottom_label,positive:displayNumber(cap?.positive_m3_knm),negative:displayNumber(cap?.negative_m3_knm),
+        state:beamReason[row.reason] || beamStatus[c.status]});
+      if(member.value) {
+        const detail=text('details','');detail.append(text('summary',`${row.member_id}/${row.end} · uç kaynağı ve öneri yerleşimi`));
+        if(c.bars?.length && profiles.has(row.profile_id))detail.append(beamDrawing(profiles.get(row.profile_id),c));
+        detail.append(text('p',`Üst kontrol: ${targets?.top_combination || '—'} · alt kontrol: ${targets?.bottom_combination || '—'} · `+
+          `native kesit / tasarım satırı: ${source?.native_cut_count ?? '—'} / ${source?.design_match_count ?? '—'}`));
+        if(row.reason || c.reason)detail.append(text('p',row.reason || c.reason,'warn'));
+        const trace=text('details','');trace.append(text('summary','Tam hassasiyet ve kaynak izleri'),text('pre',JSON.stringify(row,null,2)));
+        detail.append(trace);el('columnOverviewDetails').append(detail);
+      }
+    }
+    el('columnForces').append(table([['member_id','Kiriş'],['end','Uç'],['station','İstasyon (m)'],
+      ['topTarget','Üst hedef (mm²)'],['bottomTarget','Alt hedef (mm²)'],['top','Üst öneri'],['bottom','Alt öneri'],
+      ['positive','+M3 (kN·m)'],['negative','−M3 (kN·m)'],['state','Durum']],values));
+    const scope=text('details','');scope.append(text('summary','Yerleşim varsayımları ve kapsam dışındaki kirişler'),
+      text('p','Üst/alt örtü, ETABS boyuna donatı ağırlık merkezine mesafesidir. Yan net örtü 30 mm, etriye Φ10 açık öneridir. '+
+        'Tek sıra aralığında çap ve 25 mm referansı kullanılır; agrega, ankraj, süreklilik, burulma/gövde donatısı ve döşeme katkısı doğrulanmadı.'),
+      table([['member_id','Kiriş'],['scope','Kapsam']],beams.outside_joint_scope_beams.map(r=>({...r,scope:'Kayıtlı kolon düğümünde native ucu yok'}))));
+    el('columnOverviewDetails').append(scope);
+  }
+  const scenarioStatus={SCENARIO_REFERENCE_SATISFIED:'Senaryo referansını karşılıyor',SCENARIO_REFERENCE_NOT_SATISFIED:'Senaryo referansının altında',
+    SCENARIO_BOUNDARY_UNRESOLVED:'Sayısal sınırda · belirsiz',SCENARIO_INPUTS_INCOMPLETE:'Katılımcı kapasitesi eksik',
+    TOPOLOGY_UNRESOLVED:'Bağlantı geometrisi belirsiz',NO_RECORDED_BEAM_IN_DIRECTION:'Yönde kayıtlı kiriş yok',NO_STATIC_SOURCE_CASES:'Statik kolon N kaydı yok'};
+  function renderScenarios(scenarios,page) {
+    el('columnDemandSummary').replaceChildren();
+    if(scenarios.source_population_status==='BLOCKED_NATIVE_JOINT_GRAPH') {
+      el('columnContext').append(text('p',`${scenarios.known_column_count} bilinen kolon / ${scenarios.expected_column_end_count} beklenen kolon ucu korunur; `+
+        'birleşim ve senaryo paydası bilinmiyor.','warn'));return;
+    }
+    el('columnUnits').textContent='Oran = ΣMrc(kolon kaynak N) / [1,2 ΣMrb(kiriş N=0)]; senaryo referansı ≥1. Kapasiteler kN·m.';
+    el('columnContext').append(text('p',`${scenarios.filtered_joint_node_count} birleşim · ${scenarios.filtered_summary_count} birleşim/yön özeti · `+
+      `kolon ${scenarios.display_column_label} / kiriş Φ${scenarios.display_beam_diameter_mm}. Ortak çap uçlardaki çubuk adetlerini veya sürekliliği eşitlemez.`));
+    el('columnContext').append(text('p','Vaka filtresi yalnız kolon N kayıtlarını seçer; kirişlerin alan zarfları ayrı kontrol birleşimlerinden gelebilir. '+
+      'Dönmeler geometrik referanstır. Bu oran depremle uyumlu Nd minimumu veya nihai SCWB uygunluğu değildir.','micro'));
+    for(const row of page.rows) {
+      const ratio=row.minimum_normalized_scenario_ratio,complete=ratio!==null;
+      if(!scenarioStatus[row.status] || !['X','Y'].includes(row.direction) || row.column_label!==scenarios.display_column_label ||
+          row.beam_diameter_mm!==scenarios.display_beam_diameter_mm || row.scwb_ratio!==null || row.final_design_eligible!==false ||
+          row.formal_compliance!=='NOT_PROVEN' || row.normative_nd_minimum_proven!==false || row.normative_exception_applied!==false ||
+          row.sampled_static_cases_and_both_rotations_only!==true || row.expected_case_rotation_count!==2*scenarios.static_cases.length ||
+          row.calculated_case_rotation_count<0 || row.calculated_case_rotation_count>row.expected_case_rotation_count ||
+          row.complete_declared_scenario_population!==complete ||
+          (complete && (!Number.isFinite(ratio) || ratio<=0 || !row.expected_case_rotation_count ||
+            row.calculated_case_rotation_count!==row.expected_case_rotation_count || row.topology_reasons.length ||
+            !scenarios.static_cases.includes(row.governing_output_case) || ![-1,1].includes(row.governing_rotation_sign) ||
+            !row.governing_result_ids.length || ['governing_sum_mrc_knm','governing_sum_mrb_knm','governing_required_mrc_knm'].some(k=>!Number.isFinite(row[k]) || row[k]<=0))) ||
+          (!complete && (row.governing_result_ids.length || row.governing_output_case!==null || row.governing_rotation_sign!==null ||
+            ['governing_sum_mrc_knm','governing_sum_mrb_knm','governing_required_mrc_knm'].some(k=>row[k]!==null))) ||
+          (row.status==='SCENARIO_REFERENCE_SATISFIED' && (!complete || ratio<1 || row.scenario_reference_satisfied!==true)) ||
+          (row.status==='SCENARIO_REFERENCE_NOT_SATISFIED' && (!complete || ratio>=1 || row.scenario_reference_satisfied!==false)) ||
+          (row.status==='SCENARIO_BOUNDARY_UNRESOLVED' && (!complete || row.scenario_reference_satisfied!==null)) ||
+          (!row.status.startsWith('SCENARIO_REFERENCE_') && row.status!=='SCENARIO_BOUNDARY_UNRESOLVED' && (complete || row.scenario_reference_satisfied!==null))) {
+        throw new Error('SCWB öneri senaryosunun vaka kapsamı veya koşullu sonucu uyuşmuyor.');
+      }
+    }
+    el('columnForces').append(table([['joint_id','Birleşim'],['elevation','Kot (m)'],['direction','Yön'],['coverage','Vaka×dönme'],
+      ['caseText','Kritik kolon N vakası / dönme'],['columnSum','ΣMrc (kN·m)'],['beamSum','ΣMrb (kN·m)'],
+      ['ratio','Koşullu oran ≥1'],['state','Durum']],page.rows.map(r=>({...r,elevation:displayNumber(r.elevation_m),
+        coverage:`${r.calculated_case_rotation_count}/${r.expected_case_rotation_count}`,
+        caseText:r.governing_output_case?`${r.governing_output_case} / ${r.governing_rotation_sign===1?'+':'−'}`:'—',
+        columnSum:displayNumber(r.governing_sum_mrc_knm),beamSum:displayNumber(r.governing_sum_mrb_knm),
+        ratio:displayNumber(r.minimum_normalized_scenario_ratio,3),state:scenarioStatus[r.status]}))));
+    const scope=text('details','');scope.append(text('summary','Birleşim katılımcıları ve açık mühendislik koşulları'),
+      text('p','I/J, yerel eksen ve ilgili native dönme serbestliği doğrulanır. Fiziksel kolon yüzüne V×r/N×r aktarımı, döşeme, '+
+        'gerçek donatı, agrega/burulma/ankraj/süreklilik, depremli Nd ve istisnalar doğrulanmadı. X dönmesi +Y, Y dönmesi −X eksenine göre sağ el kuralıdır.'),
+      table([['joint','Birleşim'],['direction','Yön'],['columns','Kolon/uç'],['beams','Kiriş/uç']],scenarios.nodes.flatMap(n=>['X','Y'].map(d=>({
+        joint:n.point_id,direction:d,columns:n.rosters[d].columns.map(r=>`${r.member_id}/${r.end}`).join(', '),
+        beams:n.rosters[d].beams.map(r=>`${r.member_id}/${r.end}`).join(', ') || 'Kayıt yok'})))));
+    el('columnOverviewDetails').append(scope);
+    if(member.value) {
+      const details=text('details','');details.append(text('summary','Seçili kolonun birleşimlerindeki kiriş moment dalları'));
+      details.append(table([['joint_id','Birleşim'],['dir','Yön/dönme'],['member','Kiriş/uç'],['top_label','Üst öneri'],['bottom_label','Alt öneri'],
+        ['face','Çekme yüzü'],['moment','Yerel M3 (kN·m)'],['reason','Açık neden']],scenarios.beam_references.map(r=>({...r,
+          dir:`${r.direction}/${r.rotation_sign===1?'+':'−'}`,member:`${r.member_id}/${r.end}`,face:({TOP:'Üst',BOTTOM:'Alt'})[r.tension_face],
+          moment:displayNumber(r.signed_local_m3_knm)}))));
+      const raw=text('details','');raw.append(text('summary','Tam hassasiyet, I/J, serbestlik ve vaka izleri'),
+        text('pre',JSON.stringify({rows:scenarios.rows,beam_references:scenarios.beam_references,member_moment_mappings:scenarios.member_moment_mappings},null,2)));
+      details.append(raw);el('columnOverviewDetails').append(details);
+    }
+  }
+  function clearResult() {
+    for (const id of ['columnSummary', 'columnExports', 'columnContext', 'columnForces',
+                      'columnReplay', 'columnCoverage', 'columnGaps', 'columnPage',
+                      'columnDemandSummary', 'columnDemandRoutes', 'columnUnits', 'columnOverviewDetails']) el(id).replaceChildren();
+    el('columnPrevious').disabled = true; el('columnNext').disabled = true;
+  }
+  function renderSpectral(report, params) {
+    const s=report.column_spectral_envelopes, page=report.demand_page;
+    const fail=()=>{throw new Error('Spektral zarfın kaynak bağı, sayfa veya kabul kapsamı uyuşmuyor.');};
+    const components=['P','V2','V3','T','M2','M3'], display=['N','V2','V3','T','M2','M3'];
+    const falseFlags=['physical_concurrency_proven','code_rule_qualified','analysis_generation_qualified',
+      'additional_directional_factor_applied','spectrum_scale_reapplied','strength_amplification_reapplied',
+      'static_candidate_population_changed','final_design_eligible'];
+    if(!s || s.schema!=='tbdy.next.column-spectral-envelopes.v1' ||
+       s.policy!=='DIRECT_LINEAR_ADD_STATIC_CENTER_RS_SCALAR_RADIUS_V1' || s.source_run_id!==report.run_id ||
+       s.source_archive_sha256!==report.source_archive_sha256 || s.source_bank_result_sha256!==report.result_sha256 ||
+       !/^[a-f0-9]{64}$/.test(s.result_sha256) || falseFlags.some(k=>s[k]!==false) ||
+       s.design_demand_authority!=='DENIED' || s.formal_compliance!=='NOT_PROVEN' || s.engineering_release!=='NOT_READY' ||
+       s.absolute_tolerance_native!=='1e-09' || s.relative_tolerance!=='1e-12' ||
+       !['NUMERICAL_MATCH','NUMERICAL_MISMATCH','NOT_PROVEN'].includes(s.replay_status) ||
+       !['SOURCE_COVERAGE_COMPLETE','PARTIAL','NOT_AVAILABLE'].includes(s.source_coverage_status) ||
+       s.analysis_order!=='NOT_PROVEN' || s.units?.force!=='kN' || s.units?.moment!=='kNm' || s.units?.station!=='m' ||
+       s.units?.native_p_positive!=='TENSION' || s.units?.display_n_positive!=='COMPRESSION' ||
+       JSON.stringify(s.components)!==JSON.stringify(components) || JSON.stringify(s.display_components)!==JSON.stringify(display) ||
+       s.member_id_filter!==(member.value || null) || s.output_case_filter!==(loadCase.value || null) ||
+       !page || page.view!=='spectral-envelopes' || page.member_id!==s.member_id_filter || page.output_case!==s.output_case_filter ||
+       page.offset!==offset || page.limit!==200 || !Number.isInteger(page.total) || page.total<0 || page.total!==s.filtered_pair_count ||
+       !Array.isArray(page.rows) || page.rows.length>200 || page.rows.length!==Math.max(0,Math.min(200,page.total-offset))) fail();
+    const numeric=value=>typeof value==='number' && Number.isFinite(value);
+    const routes=new Map(s.combinations.map(c=>[c.combination,c]));
+    for(const row of page.rows) {
+      if(!['NUMERICAL_MATCH','NUMERICAL_MISMATCH','SOURCE_UNRESOLVED'].includes(row.status) ||
+          row.final_design_eligible!==false || row.concurrent_force_vector!==null ||
+          row.station_key?.Obj!==row.member_id || member.value && row.member_id!==member.value ||
+          loadCase.value && row.output_case!==loadCase.value || !numeric(row.station_key?.ObjSta) || !numeric(row.station_key?.ElmSta)) fail();
+      if(row.status==='SOURCE_UNRESOLVED') {
+        if(row.bounds!==null || row.scalar_comparisons!==0 || !row.reason) fail();
+      } else {
+        const terms=routes.get(row.output_case)?.definition?.terms;
+        if(!row.bounds || !row.native_bounds || row.scalar_comparisons!==12 ||
+          display.some(c=>!numeric(row.bounds[c]?.lower) || !numeric(row.bounds[c]?.upper) || row.bounds[c].lower>row.bounds[c].upper) ||
+          components.some(c=>!numeric(row.center?.[c]) || !numeric(row.spectral_radius?.[c]) || row.spectral_radius[c]<0) ||
+          row.bounds.N.lower!==-row.native_bounds.P?.upper || row.bounds.N.upper!==-row.native_bounds.P?.lower ||
+          !Array.isArray(row.native_steps) || row.native_steps.length!==2 ||
+          new Set(row.native_steps.map(r=>r.native_key?.StepType)).size!==2 ||
+          row.native_steps.some(r=>!['Max','Min'].includes(r.native_key?.StepType) || r.native_key.StepNum!==0 ||
+            r.native_key.LoadCase!==row.output_case || !r.source_row_id || !r.source_call_id ||
+            ['Obj','ObjSta','Elm','ElmSta'].some(k=>r.native_key[k]!==row.station_key[k])) ||
+          !Array.isArray(terms) || !Array.isArray(row.source_terms) || row.source_terms.length!==terms.length ||
+          row.source_terms.some((r,i)=>r.factor!==terms[i].factor || r.native_key?.LoadCase!==terms[i].name ||
+            ![1,4].includes(r.case_type) || r.native_key.StepType!==(r.case_type===4?'Max':'Single Value') || r.native_key.StepNum!==0 ||
+            !r.source_row_id || !r.source_call_id || ['Obj','ObjSta','Elm','ElmSta'].some(k=>r.native_key[k]!==row.station_key[k])) ||
+          !Array.isArray(row.comparisons) || row.comparisons.length!==12 ||
+          new Set(row.comparisons.map(c=>c.step_type+':'+c.component)).size!==12 ||
+          row.comparisons.some(c=>!numeric(c.calculated) || !numeric(c.observed) || !numeric(c.absolute_difference) ||
+            !components.includes(c.component) || !['Max','Min'].includes(c.step_type) ||
+            c.unit!==(['P','V2','V3'].includes(c.component)?'kN':'kNm') ||
+            c.absolute_difference<0 || !numeric(c.tolerance) || c.tolerance<=0 || typeof c.match!=='boolean') ||
+          (row.status==='NUMERICAL_MATCH')!==row.comparisons.every(c=>c.match)) fail();
+      }
+    }
+    const interval=(row,c)=>row.bounds ? `${displayNumber(row.bounds[c].lower)} / ${displayNumber(row.bounds[c].upper)}` : '—';
+    const label=r=>({NUMERICAL_MATCH:'Kaynakla eşleşti',NUMERICAL_MISMATCH:'Kaynakla uyuşmuyor',SOURCE_UNRESOLVED:'Kaynak bağı eksik'})[r.status];
+    const details=(target,title,...nodes)=>{const d=text('details','');d.append(text('summary',title),...nodes);target.append(d);};
+    el('columnDemandSummary').append(text('p',`${s.eligible_combination_count} spektral birleşim · ${s.matched_rows}/${s.expected_native_row_count} eşleşen native satır · ${s.scalar_comparisons} skaler kıyas`));
+    el('columnContext').append(text('p','Bileşenlerin ayrı alt/üst sınırları gösterilir. Nihai tasarım birleşimi, ikinci mertebe ve yönetmelik kuralının kabulü bekleniyor.'));
+    el('columnContext').append(text('p',`Kaynak kapsamı: ${s.source_coverage_status} · ${s.unresolved_pair_count} eksik çift · ${s.mismatched_rows} uyumsuz satır · istasyon nüfusu bilinmeyen kolon: ${s.members_without_station_population.length}.`,'micro'));
+    el('columnUnits').textContent='N basınç pozitif (kN); M2/M3 yerel eksenlerde kN·m, istasyon m. Alt / üst sınırlar fiziksel eşzamanlı N–M2–M3 vektörü veya nihai Nd/Md değildir. N alt=−P üst; N üst=−P alt.';
+    el('columnForces').append(table([['member_id','Kolon'],['story','Kat'],['output_case','Birleşim'],['cut','Eleman · istasyon (m)'],
+      ['n','N alt / üst'],['m2','M2 alt / üst'],['m3','M3 alt / üst'],['label','Sayısal kaynak']],page.rows.map(r=>({...r,
+        cut:`${r.station_key.Elm} · ${displayNumber(r.station_key.ObjSta,4)}`,n:interval(r,'N'),m2:interval(r,'M2'),m3:interval(r,'M3'),label:label(r)}))));
+    details(el('columnOverviewDetails'),'V2, V3 ve T sınırları',table([['member_id','Kolon'],['output_case','Birleşim'],
+      ['cut','Eleman · obje / eleman istasyonu (m)'],['v2','V2 alt / üst (kN)'],['v3','V3 alt / üst (kN)'],['t','T alt / üst (kN·m)']],
+      page.rows.map(r=>({...r,cut:`${r.station_key.Elm} · ${displayNumber(r.station_key.ObjSta,4)} / ${displayNumber(r.station_key.ElmSta,4)}`,
+        v2:interval(r,'V2'),v3:interval(r,'V3'),t:interval(r,'T')}))));
+    details(el('columnOverviewDetails'),'Bu sayfanın tam hassasiyetli hesapları ve kaynak satırları',text('pre',JSON.stringify(page,null,2)));
+    details(el('columnOverviewDetails'),'Spektrum parametrelerinin kaynakları',text('pre',JSON.stringify(s.spectral_cases,null,2)));
+    el('columnDemandRoutes').append(table([['combination','Birleşim'],['recipe','Tarif'],['reason','Kapsam dışında kalma nedeni']],
+      s.combinations.map(c=>({...c,recipe:c.definition.terms?.map(t=>`${t.factor} × ${t.name}`).join(' + ')}))));
+    el('columnReplay').append(text('p','C = işaretli statik toplam; A = Σ |katsayı| × spektral Max genliği. C−A ve C+A kayıtlı Min/Max ile karşılaştırılır. Kaynak katsayıları bir kez uygulanır; %100/%30, D ve spektrum ölçeği tekrar uygulanmaz.'));
+    details(el('columnReplay'),'Birleşim katsayıları ve sayısal kabul bütçesi',text('pre',JSON.stringify({
+      absolute_tolerance_native:s.absolute_tolerance_native,relative_tolerance:s.relative_tolerance,
+      maximum_absolute_difference_by_unit:s.maximum_absolute_difference_by_unit,combinations:s.combinations},null,2)));
+    el('columnGaps').append(text('p',`${s.selected_member_count} kolon için kabul zinciri: kolon → proje tasarım birleşimi → kullanılan N/M2/M3 → donatı → yönetmelik kuralı. Bu görünüm kuvvet kaynağının skaler zarflarını inceler; sonraki bağlar onaylandığında tasarım özeti tamamlanır.`));
+    for(const [title,url] of [['Bu sayfanın HTML raporu','/report/column-bank?'],['Bu sayfanın JSON verisi','/api/export-column-bank?']]) {
+      const a=text('a',title);a.href=url+params.toString();a.target='_blank';a.rel='noopener';el('columnExports').append(a);
+    }
+    total=page.total;
+    el('columnPage').textContent=page.rows.length ? `${offset+1}–${offset+page.rows.length} / ${total} sınır çifti` : 'Bu filtre ve görünüm için gösterilecek kayıt yok.';
+    el('columnPrevious').disabled=offset===0;el('columnNext').disabled=offset+page.limit>=total;
+  }
+  async function get(url) {
+    const response = await fetch(url, {cache:'no-store'});
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Arşiv doğrulanamadı');
+    return data;
+  }
+  function renderSpectralDesign(report, params, selectedView, selectedProposal) {
+    const s=report.column_spectral_design, p=report.spectral_pmm, replay=report.spectral_replay, page=report.demand_page;
+    const golden=report.golden_regression_gate;
+    const fail=()=>{throw new Error('Depremli tasarım görünümünün kaynak bağı veya kapsamı uyuşmuyor.');};
+    const hash=x=>typeof x==='string' && /^[0-9a-f]{64}$/.test(x);
+    const numeric=x=>typeof x==='number' && Number.isFinite(x);
+    const count=x=>Number.isSafeInteger(x) && x>=0;
+    const conditional=x=>x && x.final_design_eligible===false && x.normative_qualification==='NOT_PROVEN';
+    if(!s || !p || !replay || !page || s.schema!=='tbdy.next.spectral-design-population.v1' ||
+       !golden || golden.schema!=='tbdy.next.golden-regression-gate.v1' || !hash(golden.result_sha256) ||
+       golden.source_manifest_sha256!=='59dedec19a7e6c3d5f496e8d616b8c708af3c99701e271bd872644e39361bec7' ||
+       golden.normative_qualification!=='NOT_PROVEN' || golden.acceptance_eligible!==false ||
+       golden.gate_status!=='REQUIRED_REPORT_GOLDEN_COVERAGE_INCOMPLETE' || golden.engineering_release!=='NOT_READY' ||
+       p.schema!=='tbdy.next.spectral-pmm-scenarios.v1' || replay.schema!=='tbdy.next.column-spectral-envelopes.v1' ||
+       s.source_run_id!==report.run_id || p.source_run_id!==report.run_id || replay.source_run_id!==report.run_id ||
+       [s,p,replay].some(x=>x.source_archive_sha256!==report.source_archive_sha256 || !hash(x.result_sha256)) ||
+       s.source_bank_result_sha256!==report.result_sha256 || replay.source_bank_result_sha256!==report.result_sha256 ||
+       s.source_replay_result_sha256!==replay.result_sha256 || p.source_population_result_sha256!==s.result_sha256 ||
+       p.source_static_demand_result_sha256!==s.source_static_demand_result_sha256 ||
+       s.permutation_policy!=='CSI_MAX_MIN_P_M2_M3_EIGHT_CORNERS_CONDITIONAL_V1' ||
+       s.applicable_design_rule!=='CSI_ETABS_CONCRETE_FRAME_DESIGN_2_1_MAX_MIN_PERMUTATIONS' ||
+       p.selection_basis!=='MAX_RESOLVED_RADIAL_RATIO_AMONG_ALL_RECORDED_CUTS_AND_EIGHT_SIGN_CANDIDATES' ||
+       p.numerical_policy?.solver_revision!=='VS25_DIRECTION_ROOT' ||
+       [s,p].some(x=>!conditional(x) || x.design_demand_authority!=='DENIED' || x.engineering_release!=='NOT_READY' ||
+         ['physical_concurrency_proven','analysis_generation_qualified','continuous_axial_envelope_complete','second_order_applied'].some(k=>x[k]!==false)) ||
+       s.additional_directional_factor_applied!==false || s.spectrum_scale_reapplied!==false ||
+       !count(s.candidate_count) || !count(s.envelope_count) || s.candidate_count!==8*s.envelope_count ||
+       p.candidate_count!==s.candidate_count || p.assessment_count!==3*s.candidate_count ||
+       p.expected_assessment_count!==3*s.expected_candidate_count ||
+       page.view!==selectedView || page.member_id!==(member.value||null) || page.output_case!==(loadCase.value||null) ||
+       page.member_id!==s.member_id_filter || page.output_case!==s.output_case_filter || page.column_label!==selectedProposal ||
+       s.reinforcement_filter!==selectedProposal || page.offset!==offset || page.limit!==200 || !count(page.total) ||
+       page.raw_population_included!==false || !Array.isArray(page.rows) ||
+       page.rows.length!==Math.max(0,Math.min(page.limit,page.total-offset))) fail();
+    function validateState(r, name) {
+      if(!r || !conditional(r) || r.engineering_status!=='CONDITIONAL' || r.second_order_applied!==false ||
+        r.member_id!==name || r.station_key?.Obj!==name || !r.station_key?.Elm ||
+        !numeric(r.station_key.ObjSta) || r.station_key.ObjSta<0 || !numeric(r.station_key.ElmSta) || r.station_key.ElmSta<0 ||
+        r.reinforcement!==selectedProposal || !hash(r.evaluation_id) || !hash(r.candidate_id) ||
+        !/^P[+-]1_M2[+-]1_M3[+-]1$/.test(r.sign_id) || !r.combination ||
+        (page.output_case!==null && r.combination!==page.output_case) ||
+        ['N_kN','M2_kNm','M3_kNm'].some(k=>!numeric(r.forces?.[k])) ||
+        (r.conditional_pmm_ratio!==null && (!numeric(r.conditional_pmm_ratio) || r.conditional_pmm_ratio<0)) ||
+        !['WITHIN_SCENARIO_SURFACE','EXCEEDS_SCENARIO_SURFACE','AXIAL_ONLY_SCENARIO','OUTSIDE_SCENARIO_AXIAL_RANGE','NUMERIC_UNRESOLVED','BLOCKED_INPUTS'].includes(r.numerical_status) ||
+        (['WITHIN_SCENARIO_SURFACE','EXCEEDS_SCENARIO_SURFACE'].includes(r.numerical_status)!==(r.conditional_pmm_ratio!==null))) fail();
+    }
+    for(const r of page.rows) {
+      if(!conditional(r) || r.engineering_status!=='CONDITIONAL' || r.reinforcement!==selectedProposal ||
+         (page.member_id!==null && r.member_id!==page.member_id)) fail();
+      if(selectedView==='spectral-candidates') {
+        validateState(r,r.member_id);
+        const c=r.design_candidate, e=r.numerical_evidence;
+        if(!c || c.schema!=='tbdy.next.code-design-demand-candidate.v1' || c.candidate_id!==r.candidate_id ||
+           c.source_archive_sha256!==s.source_archive_sha256 || c.source_run_id!==s.source_run_id ||
+           c.source_replay_result_sha256!==replay.result_sha256 || !hash(c.source_envelope_content_sha256) ||
+           c.permutation_policy!==s.permutation_policy || c.applicable_design_rule!==s.applicable_design_rule ||
+           c.source_combination!==r.combination || c.sign_id!==r.sign_id || !conditional(c) ||
+           c.physical_concurrency_proven!==false || c.second_order_applied!==false ||
+           ['Obj','ObjSta','Elm','ElmSta'].some(k=>c.station_key[k]!==r.station_key[k]) ||
+           ['N_kN','M2_kNm','M3_kNm'].some(k=>c.forces[k]!==r.forces[k]) ||
+           (e===null)!==(r.numerical_evidence_id===null) ||
+           (e && (e.solver_revision!=='VS25_DIRECTION_ROOT' || e.N_N!==r.forces.N_kN*1000 ||
+             e.M2_Nmm!==r.forces.M2_kNm*1000000 || e.M3_Nmm!==r.forces.M3_kNm*1000000 ||
+             e.result.status!==r.numerical_status || e.result.utilization!==r.conditional_pmm_ratio))) fail();
+      } else {
+        if(r.continuous_axial_envelope_complete!==false || r.selection_scope!=='FINITE_GENERATED_CANDIDATES_ONLY' ||
+           !count(r.assessment_count) || !count(r.unresolved_or_axial_outside_count)) fail();
+        for(const v of [r.governing_resolved,r.first_unresolved_or_axial_outside].filter(Boolean)) validateState(v,r.member_id);
+        if(r.maximum_resolved_conditional_ratio!==(r.governing_resolved?.conditional_pmm_ratio ?? null) ||
+          (r.unresolved_or_axial_outside_count>0 && (!r.first_unresolved_or_axial_outside || r.numerical_selection_complete))) fail();
+      }
+    }
+    el('columnDemandSummary').append(text('p',`${replay.eligible_combination_count} spektrumlu birleşim · `+
+      `${replay.matched_rows}/${replay.expected_native_row_count} eşleşen Max/Min satırı · ${replay.scalar_comparisons} bileşen kıyası.`));
+    el('columnContext').append(text('p',`${s.candidate_count}/${s.expected_candidate_count} işaret adayı · `+
+      `${p.assessment_count}/${p.expected_assessment_count} PMM değerlendirmesi · ${s.blocked_pair_count} aday üretilemeyen sınır çifti.`));
+    el('columnContext').append(text('p','Kritik oran, bu sonlu adaylar arasındaki en büyük çözülen orandır. Ara N değerleri için tamlık kanıtı yok. '+
+      'İkinci mertebe ve minimum dışmerkezlik uygulanmadı; donatı seçimi ve TBDY tasarım kabulü bekleniyor.','micro'));
+    el('columnContext').append(text('p','Golden rapor kabul kapısı açık. 23+7 eski rapor kontrolü korunuyor; '+
+      'tam algoritma doğrulaması eksik. ETABS kaynak eşleşmesi bu kapıyı kapatmaz.','micro'));
+    el('columnUnits').textContent='Koşullu tasarım adayı: N basınç pozitif (kN), M2/M3 yerel eksenlerde (kN·m), istasyon m. '+
+      'P işaret senaryosu native çekme pozitif P üzerindedir; N=−P. Fiziksel eşzamanlı kuvvet vektörü değildir.';
+    const rows=page.rows.map(r=>{
+      const state=selectedView==='spectral-candidates'?r:r.governing_resolved;
+      let status=state ? (labels[state.numerical_status] || state.numerical_status) : 'Çözülen radyal oran yok';
+      if(r.unresolved_or_axial_outside_count) status=`${r.unresolved_or_axial_outside_count} belirsiz / eksenel sınır aşımı · `+status;
+      else if(selectedView==='spectral-design' && !r.numerical_selection_complete) status='Kaynak kapsamı / sayısal seçim eksik · '+status;
+      return {...r,combo:state?.combination || '—',station:state?`${state.station_key.Elm} · ${displayNumber(state.station_key.ObjSta,4)} / ${displayNumber(state.station_key.ElmSta,4)}`:'—',
+        sign:state?.sign_id || '—',n:displayNumber(state?.forces.N_kN),m2:displayNumber(state?.forces.M2_kNm),m3:displayNumber(state?.forces.M3_kNm),
+        ratio:displayNumber(state?.conditional_pmm_ratio,4),outcome:status,second:'Uygulanmadı',critical:state};
+    });
+    const columns=[['member_id','Kolon'],['story','Kat'],['combo','Kritik birleşim'],['station','Eleman · Obje / Eleman istasyonu (m)'],
+      ['sign','İşaret senaryosu'],['n','N (kN)'],['m2','M2 (kN·m)'],['m3','M3 (kN·m)'],['reinforcement','Öneri donatı'],
+      ['ratio','Koşullu PMM'],['outcome','Sayısal durum'],['second','İkinci mertebe']];
+    if(selectedView==='spectral-design') columns.push(['member_id','Ayrıntı',r=>{
+      const button=text('button','Senaryoları aç');button.type='button';
+      button.addEventListener('click',()=>{member.value=r.member_id;if(r.critical)loadCase.value=r.critical.combination;
+        view.value='spectral-candidates';offset=0;load();});return button;
+    }]);
+    el('columnForces').append(table(columns,rows));
+    const details=(title,...nodes)=>{const d=text('details','');d.append(text('summary',title),...nodes);el('columnOverviewDetails').append(d);};
+    details('Golden rapor doğrulama kapsamı',text('pre',JSON.stringify(golden,null,2)));
+    details('Bileşen farkları · arşivin tamamı',table([['component','Bileşen'],['unit','Birim'],['comparisons','Kıyas'],['mismatches','Tolerans dışı'],['difference','En büyük mutlak fark']],
+      replay.component_differences.map(r=>({...r,difference:r.maximum_absolute_difference.toExponential(5)}))));
+    details('Birleşim sınıfları ve kaynak kapsamı',table([['combination','Birleşim'],['label','Sınıf'],['coverage','Eşleşen / beklenen satır'],['sign_construction_scope','Aday kapsamı'],['reason','Açık neden']],
+      s.classifications.map(r=>({...r,label:labels[r.classification] || r.classification,coverage:`${r.matched_rows} / ${2*r.expected_pairs}`}))));
+    details('Yöntem ve kabul bekleyen koşullar',text('p','C işaretli statik katkı, A katsayılarla ağırlıklı spektrum genliğidir. '+
+      'P/M2/M3 için sekiz bağımsız işaret senaryosu kurulur. Kayıtlı %100/%30 ve ölçek ikinci kez uygulanmaz. '+
+      'CSI tasarım zarfı yaklaşımı; TBDY 4.4.2, 4.4.3, 4.4.4 ve Ek 4B kabulünün yerine geçmez.'),
+      text('pre',JSON.stringify({blockers:p.blockers,direction_diagnostics:s.direction_diagnostics,references:s.references},null,2)));
+    details('Seçili sayfanın kaynak kimlikleri ve hesap ayrıntıları',text('pre',JSON.stringify({
+      replay_result_sha256:replay.result_sha256,population_result_sha256:s.result_sha256,pmm_result_sha256:p.result_sha256,page},null,2)));
+    for(const [title,url] of [['Bu sayfanın HTML raporu','/report/column-bank?'],['Bu sayfanın JSON verisi','/api/export-column-bank?']]) {
+      const a=text('a',title);a.href=url+params;a.target='_blank';a.rel='noopener';el('columnExports').append(a);
+    }
+    const forensic=text('a','Tüm VS26 kaynak ve hesap dökümü · ZIP');
+    forensic.href='/api/export-spectral-design?'+new URLSearchParams({run_id:report.run_id});forensic.target='_blank';forensic.rel='noopener';el('columnExports').append(forensic);
+    total=page.total;
+    el('columnPage').textContent=page.rows.length?`${offset+1}–${offset+page.rows.length} / ${total}`:'Bu filtrede gösterilecek kayıt yok.';
+    el('columnPrevious').disabled=offset===0;el('columnNext').disabled=offset+page.limit>=total;
+  }
+  async function load(resetFilters = false) {
+    const ticket = ++epoch, selected = run.value;
+    clearResult();
+    if (resetFilters) {
+      offset = 0; options(member, [], 'Tüm kolonlar'); options(loadCase, [], 'Tüm çıktılar');
+    }
+    if (!selected) { el('columnStatus').textContent = 'Kolon arşivi seçilmedi.'; return; }
+    const params = new URLSearchParams({run_id:selected, offset:String(offset)});
+    const selectedView = view.value || 'native';
+    const selectedProposal = proposal.value || '16Φ24';
+    const selectedBeamDiameter = Number(beamProposal?.value || 20);
+    el('columnProposalControl').hidden = !['overview','scwb-scenarios','spectral-design','spectral-candidates'].includes(selectedView);
+    el('columnBeamProposalControl').hidden = !['beam-cages','scwb-scenarios'].includes(selectedView);
+    const sectionView = ['reinforcement','stiffness','cages','transverse','joints','joint-ties','stiffness-scenarios','beam-cages'].includes(selectedView);
+    loadCase.disabled = sectionView;
+    if (member.value) params.set('member', member.value);
+    if (loadCase.value && !sectionView) params.set('case', loadCase.value);
+    if (selectedView !== 'native') params.set('view', selectedView);
+    if(selectedView==='scwb-scenarios') {params.set('column_cage',selectedProposal);params.set('beam_diameter',String(selectedBeamDiameter));}
+    if(['spectral-design','spectral-candidates'].includes(selectedView)) params.set('column_cage',selectedProposal);
+    el('columnStatus').textContent = ['pmm','overview','pmm-quality','scwb','scwb-scenarios','spectral-design','spectral-candidates'].includes(selectedView) ? 'Koşullu kolon hesapları hazırlanıyor; ilk açılış biraz sürebilir…' : 'Arşiv doğrulanıyor…';
+    try {
+      const report = await get('/api/column-bank?' + params);
+      if (ticket !== epoch || selected !== run.value) return;
+      if (report.run_id !== selected || report.formal_compliance !== 'NOT_PROVEN' || report.design_demand_authority !== 'DENIED') {
+        throw new Error('Arşiv kimliği veya kapsamı beklenen sözleşmeyle eşleşmiyor.');
+      }
+      if (resetFilters) {
+        options(member, report.members.map(m => [m.frame_name,
+          m.frame_name + ' · ' + (m.context?.frame?.story_label || 'Kat belirsiz')]), 'Tüm kolonlar');
+        options(loadCase, report.case_coverage.map(c => [c.name, c.name + (c.row_count ? '' : ' · veri yok')]), 'Tüm çıktılar');
+      }
+      el('columnStatus').textContent = selected + ' · NOT_PROVEN / NOT_READY';
+      el('columnSummary').append(text('p', `${report.observed_column_count}/${report.selected_column_count} seçili kolon · ${report.force_row_count} kuvvet satırı · ${report.recorded_output_count} kayıtlı vaka/birleşim`));
+      const trace=text('details','');trace.append(text('summary','Arşiv kimliği'),text('p', 'Kaynak SHA-256: ' + report.source_archive_sha256, 'micro'));
+      el('columnSummary').append(trace);
+      if(selectedView==='spectral-envelopes') {renderSpectral(report,params);return;}
+      if(['spectral-design','spectral-candidates'].includes(selectedView)) {renderSpectralDesign(report,params,selectedView,selectedProposal);return;}
+      const chain = report.demand_chain;
+      if (chain) {
+        if (chain.source_run_id !== selected || chain.source_archive_sha256 !== report.source_archive_sha256 ||
+            chain.design_demand_authority !== 'DENIED') throw new Error('Talep görünümü başka bir kaynağa ait.');
+        const d = chain.design_summary;
+        el('columnDemandSummary').append(text('p', `${chain.combination_count} birleşim · ${chain.static_candidate_count} statik kaynak adayı · ` +
+          `${d.row_count} tasarım özeti satırı · ${d.unique_static_links} tekil statik kaynak bağı`));
+        el('columnDemandSummary').append(text('p', 'Bunlar analiz kaynaklarıdır; tasarım birleşimi seçimi, analiz mertebesi ve kapasite kabulü henüz doğrulanmadı.', 'micro'));
+        el('columnDemandRoutes').append(table([['combination','Birleşim'],['label','Sınıf'],
+          ['static_candidate_count','Statik aday'],['case_names','Kaynak vakalar'],['reason','Açık neden']],
+          chain.combinations.map(r => ({...r,label:labels[r.classification] || r.classification}))));
+        el('columnDemandRoutes').append(text('p', `${d.ambiguous_design_station_rows} çift istasyon kaydı; ` +
+          `${d.references_without_exact_station} referansta kesin istasyon eşleşmesi yok. ` +
+          'ETABS PMM oranındaki boş hücreler boş kalır. VMaj/VMin, V2/V3 olarak kendiliğinden eşlenmez.', 'micro'));
+        if (d.reason) el('columnDemandRoutes').append(text('p', d.reason, 'micro'));
+      }
+      const prechecks = report.column_prechecks;
+      if (prechecks) {
+        if (prechecks.source_run_id !== selected || prechecks.source_archive_sha256 !== report.source_archive_sha256 ||
+            prechecks.source_demand_result_sha256 !== chain?.result_sha256 || prechecks.design_demand_authority !== 'DENIED') {
+          throw new Error('Kolon ön hesabı seçili kuvvet zinciriyle eşleşmiyor.');
+        }
+        el('columnDemandSummary').append(text('p', `${prechecks.critical_selection.critical_state_count} kritik statik kayıt · ` +
+          `${prechecks.reinforcement_bounds.calculated_member_count} kolonda boyuna donatı alan sınırı`));
+      }
+      const stability = report.column_stability;
+      if (stability && (stability.source_run_id !== selected || stability.source_archive_sha256 !== report.source_archive_sha256 ||
+          stability.source_demand_result_sha256 !== chain?.result_sha256 || stability.source_prechecks_result_sha256 !== prechecks?.result_sha256 ||
+          stability.design_demand_authority !== 'DENIED' || stability.actual_second_order_applied !== false)) {
+        throw new Error('Rijitlik hesabı seçili kolon kaynağıyla eşleşmiyor.');
+      }
+      const cages = report.column_cages, pmm = report.column_pmm;
+      if (cages && (cages.source_run_id !== selected || cages.source_archive_sha256 !== report.source_archive_sha256 ||
+          cages.source_demand_result_sha256 !== chain?.result_sha256 || cages.source_prechecks_result_sha256 !== prechecks?.result_sha256 ||
+          cages.design_demand_authority !== 'DENIED' || cages.selected_design !== null)) {
+        throw new Error('Donatı önerileri seçili kolon kaynağıyla eşleşmiyor.');
+      }
+      if (pmm && (pmm.schema !== 'tbdy.next.column-pmm-scenarios.v3' ||
+          pmm.numerical_policy?.basis !== 'STRAIN_COMPATIBLE_POINT_AT_FIXED_N_AND_MOMENT_DIRECTION' ||
+          pmm.numerical_policy?.solver_revision !== 'VS25_DIRECTION_ROOT' ||
+          pmm.source_run_id !== selected || pmm.source_archive_sha256 !== report.source_archive_sha256 ||
+          pmm.source_demand_result_sha256 !== chain?.result_sha256 || pmm.source_cages_result_sha256 !== cages?.result_sha256 ||
+          pmm.source_stability_result_sha256 !== stability?.result_sha256 || pmm.design_demand_authority !== 'DENIED' ||
+          pmm.pmm_population_reduced !== false || pmm.actual_second_order_applied !== false ||
+          pmm.minimum_eccentricity_applied !== false || pmm.selected_design !== null || pmm.formal_compliance !== 'NOT_PROVEN')) {
+        throw new Error('PMM hesabının kaynak bağı veya koşullu kapsamı uyuşmuyor.');
+      }
+      const transverse = report.column_transverse, shear = report.column_shear;
+      if (transverse && (transverse.source_run_id !== selected || transverse.source_archive_sha256 !== report.source_archive_sha256 ||
+          transverse.source_demand_result_sha256 !== chain?.result_sha256 || transverse.source_cages_result_sha256 !== cages?.result_sha256 ||
+          transverse.design_demand_authority !== 'DENIED' || transverse.formal_compliance !== 'NOT_PROVEN' || transverse.selected_design !== null ||
+          transverse.proposal_policy?.physical_arrangement_proven !== false)) {
+        throw new Error('Enine donatı önerisinin kaynak bağı veya koşullu kapsamı uyuşmuyor.');
+      }
+      if (shear && (shear.source_run_id !== selected || shear.source_archive_sha256 !== report.source_archive_sha256 ||
+          shear.source_demand_result_sha256 !== chain?.result_sha256 || shear.source_cages_result_sha256 !== cages?.result_sha256 ||
+          shear.source_transverse_result_sha256 !== transverse?.result_sha256 || shear.design_demand_authority !== 'DENIED' ||
+          shear.formal_compliance !== 'NOT_PROVEN' || shear.selected_design !== null || shear.ve_status !== 'NOT_PROVEN' ||
+          shear.source_population_reduced !== false || shear.actual_second_order_applied !== false || shear.vc_zero_gate?.required !== null)) {
+        throw new Error('Kesme hesabının kaynak bağı veya koşullu kapsamı uyuşmuyor.');
+      }
+      const joints = report.column_joints;
+      const kinematics = report.column_kinematics;
+      const sensitivity = report.column_sensitivity;
+      if (sensitivity && (sensitivity.source_run_id !== selected || sensitivity.source_archive_sha256 !== report.source_archive_sha256 ||
+          sensitivity.source_bank_result_sha256 !== report.result_sha256 || sensitivity.source_demand_result_sha256 !== chain?.result_sha256 ||
+          sensitivity.source_stability_result_sha256 !== stability?.result_sha256 ||
+          sensitivity.source_kinematics_result_sha256 !== kinematics?.result_sha256 ||
+          sensitivity.axis_convention !== 'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3' ||
+          sensitivity.policy?.id !== 'TS500_EQ721_RM_0_0P5_1_REFERENCE_FAMILY' ||
+          sensitivity.policy?.radius_basis !== 'TS500_RECTANGLE_0_30_BENDING_DIMENSION' ||
+          sensitivity.policy?.actual_ei_interval_proven !== false || sensitivity.policy?.source_axial_force_is_design_nd !== false ||
+          sensitivity.source_population_reduced !== false || sensitivity.actual_second_order_applied !== false ||
+          sensitivity.actual_effective_length_lk_mm !== null || sensitivity.actual_beta !== null || sensitivity.actual_cm !== null ||
+          sensitivity.actual_creep_ratio !== null || sensitivity.actual_sway_classification !== null ||
+          sensitivity.magnified_design_moments !== null || sensitivity.approximate_method_applicability_proven !== false ||
+          sensitivity.analysis_order !== 'NOT_PROVEN' || sensitivity.design_demand_authority !== 'DENIED' ||
+          sensitivity.formal_compliance !== 'NOT_PROVEN' || sensitivity.engineering_release !== 'NOT_READY')) {
+        throw new Error('Etkin boy duyarlılığının kaynak bağı veya senaryo kapsamı uyuşmuyor.');
+      }
+      if (kinematics && (kinematics.source_run_id !== selected || kinematics.source_archive_sha256 !== report.source_archive_sha256 ||
+          kinematics.source_bank_result_sha256 !== report.result_sha256 || kinematics.source_demand_result_sha256 !== chain?.result_sha256 ||
+          kinematics.source_joints_result_sha256 !== joints?.result_sha256 ||
+          kinematics.axis_convention !== 'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3' ||
+          kinematics.coordinate_contract !== 'ETABS_POINT_OBJECT_UX_UY_UZ_RX_RY_RZ_GLOBAL' ||
+          kinematics.analysis_order !== 'NOT_PROVEN' || kinematics.analysis_generation_qualified !== false ||
+          kinematics.actual_second_order_applied !== false || kinematics.cm !== null || kinematics.beta !== null ||
+          kinematics.magnified_design_moments !== null || kinematics.design_demand_authority !== 'DENIED' ||
+          kinematics.formal_compliance !== 'NOT_PROVEN' || kinematics.engineering_release !== 'NOT_READY')) {
+        throw new Error('Kolon uç hareketlerinin kaynak bağı veya analiz kapsamı uyuşmuyor.');
+      }
+      for (const calculation of [stability,cages,pmm,transverse,shear]) {
+        if (calculation && calculation.axis_convention !== 'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3') {
+          throw new Error('Kesit eksen sözleşmesi eski veya belirsiz; güncel hesap gerekli.');
+        }
+      }
+      if (joints && (joints.source_run_id !== selected || joints.source_archive_sha256 !== report.source_archive_sha256 ||
+          joints.source_bank_result_sha256 !== report.result_sha256 || joints.source_demand_result_sha256 !== chain?.result_sha256 ||
+          joints.source_cages_result_sha256 !== cages?.result_sha256 || joints.source_transverse_result_sha256 !== transverse?.result_sha256 ||
+          joints.design_demand_authority !== 'DENIED' || joints.formal_compliance !== 'NOT_PROVEN' || joints.engineering_release !== 'NOT_READY' ||
+          joints.ve_status !== 'NOT_PROVEN' || joints.scwb_status !== 'NOT_PROVEN' || joints.selected_design !== null ||
+          joints.physical_geometry_proven !== false || joints.physical_joint_population_proven !== false ||
+          joints.scenario !== 'CENTERLINE_AS_SECTION_CENTER_SCENARIO' ||
+          joints.axis_convention !== 'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3')) {
+        throw new Error('Birleşim hesabının kaynak bağı veya koşullu kapsamı uyuşmuyor.');
+      }
+      for (const [label, url] of [
+        ['HTML hesap raporu', '/report/column-bank?'],
+        ['Tam JSON', '/api/export-column-bank?format=json&'],
+        ['SQLite kuvvet bankası', '/api/export-column-bank?format=sqlite&']]) {
+        const link = text('a', label); link.href = url + 'run_id=' + encodeURIComponent(selected);
+        link.target = '_blank'; link.rel = 'noopener'; el('columnExports').append(link);
+      }
+      const chosen = report.members.find(m => m.frame_name === member.value);
+      if (chosen && selectedView !== 'overview') {
+        const ctx = chosen.context || {}, g = chosen.station_geometry || {};
+        el('columnContext').append(text('p', `${ctx.frame?.section_assigned || 'Kesit belirsiz'} · ` +
+          `b2/b3: ${show(ctx.geometry?.T2_cm)}/${show(ctx.geometry?.T3_cm)} cm · Fc/Fy: ${show(ctx.material?.fc_MPa)}/${show(ctx.material?.fy_MPa)} MPa · ` +
+          `I–J: ${show(g.object_i_j_length_m)} m · J offset: ${show(g.offset_j_m)} m · son çıktı J düğümünde: ${show(g.last_station_is_joint_j)}`));
+        el('columnContext').append(text('p', 'Çıktı yüzleri arası mesafe TS500 serbest/etkili boy değildir. Model donatı ayarı gerçek veya seçilmiş donatı kafesi değildir.', 'micro'));
+        if (chosen.reason_codes.length) el('columnContext').append(text('p', chosen.reason_codes.join(' · '), 'warn'));
+      }
+      const page = selectedView === 'native' ? report.force_page : report.demand_page;
+      if ((selectedView === 'critical' || selectedView === 'reinforcement') && !prechecks) throw new Error('Kolon ön hesabı bulunamadı.');
+      if ((selectedView === 'stiffness' || selectedView === 'eccentricity') && !stability) throw new Error('Rijitlik ve dışmerkezlik hesabı bulunamadı.');
+      if (selectedView === 'cages' && !cages) throw new Error('Donatı önerisi bulunamadı.');
+      if (selectedView === 'pmm' && !pmm) throw new Error('Koşullu PMM hesabı bulunamadı.');
+      if (selectedView === 'transverse' && !transverse) throw new Error('Enine donatı önerisi bulunamadı.');
+      if (selectedView === 'shear' && !shear) throw new Error('Koşullu kesme hesabı bulunamadı.');
+      if (['joints','joint-ties'].includes(selectedView) && !joints) throw new Error('Birleşim referansları bulunamadı.');
+      if (['end-forces','kinematics'].includes(selectedView) && !kinematics) throw new Error('Kolon uç kaynak bağı bulunamadı.');
+      if (['stiffness-scenarios','length-sensitivity'].includes(selectedView) && !sensitivity) throw new Error('Etkin boy duyarlılığı bulunamadı.');
+      const overview = report.column_overview;
+      const quality = report.column_pmm_quality;
+      const scwb = report.column_scwb;
+      const beams = report.beam_end_references;
+      const scenarios = report.scwb_scenarios;
+      if(selectedView==='scwb-scenarios' && (!scenarios || scenarios.schema!=='tbdy.next.scwb-proposal-scenarios.v1' ||
+          scenarios.policy!=='COMPLETE_JOINT_SAME_COLUMN_CASE_EXPLICIT_BEAM_N0_SIGNED_PROPOSALS_V1' ||
+          scenarios.axis_convention!=='CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3' ||
+          scenarios.source_run_id!==selected || scenarios.source_archive_sha256!==report.source_archive_sha256 ||
+          scenarios.source_demand_result_sha256!==chain?.result_sha256 || scenarios.source_joints_result_sha256!==joints?.result_sha256 ||
+          scenarios.source_scwb_result_sha256!==scwb?.result_sha256 || scenarios.source_beam_result_sha256!==beams?.result_sha256 ||
+          scenarios.member_id_filter!==(member.value || null) || scenarios.output_case_filter!==(loadCase.value || null) ||
+          scenarios.display_column_label!==selectedProposal || scenarios.display_beam_diameter_mm!==selectedBeamDiameter ||
+          scenarios.neighbouring_participants_retained!==true || scenarios.source_population_reduced!==false ||
+          scenarios.automatic_scenario_selection!==false || scenarios.selected_design!==null || scenarios.actual_or_selected_cages_bound!==false ||
+          scenarios.physical_joint_population_proven!==false || scenarios.physical_joint_moment_transfer_proven!==false ||
+          scenarios.normative_exception_applied!==false || scenarios.earthquake_compatible_minimum_proven!==false ||
+          scenarios.actual_second_order_applied!==false || scenarios.scwb_ratio_count!==0 || scenarios.factor!==1.2 ||
+          scenarios.rotation_basis!=='RIGHT_HAND_ABOUT_GLOBAL_Z_CROSS_DIRECTION' ||
+          scenarios.case_basis!=='COLUMN_STATIC_SOURCE_N_ONLY_BEAM_N0_PROPOSALS_INDEPENDENT_OF_CASE' ||
+          scenarios.ratio_definition!=='SUM_MRC_PROPOSAL_AT_COLUMN_SOURCE_N_OVER_1_2_SUM_MRB_PROPOSAL_AT_N0' ||
+          scenarios.formal_compliance!=='NOT_PROVEN' || scenarios.design_demand_authority!=='DENIED' || scenarios.engineering_release!=='NOT_READY' ||
+          scenarios.filtered_summary_count!==page?.total || !['NATIVE_JOINT_GRAPH_BOUND','BLOCKED_NATIVE_JOINT_GRAPH'].includes(scenarios.source_population_status) ||
+          (scenarios.source_population_status==='NATIVE_JOINT_GRAPH_BOUND' && (scenarios.case_count!==scenarios.expected_case_count ||
+            scenarios.summary_count!==scenarios.expected_summary_count || scenarios.filtered_summary_count!==2*scenarios.filtered_joint_node_count)) ||
+          (scenarios.source_population_status==='BLOCKED_NATIVE_JOINT_GRAPH' && (scenarios.joint_node_count!==null || scenarios.expected_case_count!==null)))) {
+        throw new Error('SCWB öneri senaryolarının kaynak bağı veya kapsamı uyuşmuyor.');
+      }
+      if(selectedView==='beam-cages' && (!beams || beams.schema!=='tbdy.next.beam-end-capacity-scenarios.v1' ||
+          beams.axis_convention!=='CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3' ||
+          beams.policy?.id!=='VS23_SINGLE_ROW_PHI16_20_24_SOURCE_AREA_TARGET_N0_V1' ||
+          beams.policy.cover_basis!=='CSI_FACE_TO_LONGITUDINAL_GROUP_CENTROID' ||
+          beams.policy.axial_force_scenario_n!==0 || beams.policy.source_beam_axial_force_applied!==false ||
+          beams.policy.automatic_design_selection!==false || beams.policy.physical_cage_proven!==false ||
+          JSON.stringify(beams.policy.diameters_mm)!=='[16,20,24]' || ![16,20,24].includes(selectedBeamDiameter) ||
+          beams.source_run_id!==selected || beams.source_archive_sha256!==report.source_archive_sha256 ||
+          beams.source_demand_result_sha256!==chain?.result_sha256 || beams.source_joints_result_sha256!==joints?.result_sha256 ||
+          beams.member_id_filter!==(member.value || null) || beams.source_population_reduced!==false ||
+          beams.selected_design!==null || beams.actual_or_selected_beam_capacity_bound!==false || beams.scwb_ratio!==null ||
+          beams.design_demand_authority!=='DENIED' || beams.formal_compliance!=='NOT_PROVEN' || beams.engineering_release!=='NOT_READY' ||
+          beams.filtered_end_count!==page?.total || !['NATIVE_JOINT_GRAPH_BOUND','BLOCKED_NATIVE_JOINT_GRAPH'].includes(beams.source_population_status) ||
+          (beams.source_population_status==='NATIVE_JOINT_GRAPH_BOUND' && (beams.source_end_count!==beams.expected_end_count ||
+            beams.expected_end_count!==2*beams.target_beam_count || beams.expected_candidate_count!==3*beams.expected_end_count)) ||
+          (beams.source_population_status==='BLOCKED_NATIVE_JOINT_GRAPH' && (beams.expected_end_count!==null || beams.target_beam_count!==null)))) {
+        throw new Error('Kiriş uç hesabının kaynak bağı veya kapsamı uyuşmuyor.');
+      }
+      if (selectedView === 'scwb' && (!scwb || scwb.schema !== 'tbdy.next.scwb-source-references.v1' ||
+          scwb.policy !== 'COMPLETE_JOINT_ROSTER_SAME_STATIC_CASE_COLUMN_AXIS_REFERENCE_V1' ||
+          scwb.axis_convention !== 'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3' ||
+          scwb.source_run_id !== selected || scwb.source_archive_sha256 !== report.source_archive_sha256 ||
+          scwb.source_demand_result_sha256 !== chain?.result_sha256 || scwb.source_cages_result_sha256 !== cages?.result_sha256 ||
+          scwb.source_joints_result_sha256 !== joints?.result_sha256 || scwb.source_kinematics_result_sha256 !== kinematics?.result_sha256 ||
+          scwb.member_id_filter !== (member.value || null) || scwb.output_case_filter !== (loadCase.value || null) ||
+          scwb.source_population_reduced !== false || scwb.neighbouring_participants_retained !== true ||
+          scwb.required_beam_steel_used_as_capacity !== false || scwb.approximate_as_half_fallback_used !== false ||
+          scwb.earthquake_compatible_minimum_proven !== false || scwb.normative_exception_applied !== false ||
+          scwb.physical_joint_population_proven !== false || scwb.scwb_ratio_count !== 0 ||
+          scwb.actual_second_order_applied !== false || scwb.selected_design !== null ||
+          scwb.design_demand_authority !== 'DENIED' || scwb.formal_compliance !== 'NOT_PROVEN' || scwb.engineering_release !== 'NOT_READY' ||
+          !['NATIVE_JOINT_GRAPH_BOUND','BLOCKED_NATIVE_JOINT_GRAPH'].includes(scwb.source_population_status) ||
+          scwb.expected_column_end_count !== 2*scwb.selected_column_count || scwb.summaries.length !== page?.total ||
+          (scwb.source_population_status === 'NATIVE_JOINT_GRAPH_BOUND' &&
+            (scwb.graph_status !== 'NATIVE_ENDPOINT_GRAPH_BOUND' || scwb.joint_case_count !== scwb.expected_joint_case_count ||
+             scwb.column_end_count !== scwb.expected_column_end_count || scwb.column_reference_count !== scwb.expected_column_reference_count ||
+             scwb.filtered_joint_case_count !== scwb.filtered_joint_node_count*scwb.static_cases.length*12)) ||
+          (scwb.source_population_status === 'BLOCKED_NATIVE_JOINT_GRAPH' &&
+            (scwb.graph_status !== 'BLOCKED_INPUTS' || scwb.joint_node_count !== null || scwb.expected_joint_case_count !== null ||
+             scwb.joint_case_count !== 0 || scwb.column_reference_count !== 0)))) {
+        throw new Error('SCWB hesabının kaynak bağı veya kapsamı uyuşmuyor.');
+      }
+      if (selectedView === 'pmm-quality' && (!quality || quality.schema !== 'tbdy.next.column-pmm-numerical-reference.v2' ||
+          quality.policy_id !== 'CRITICAL_PMM_STRIP_GAUSS_BISECTION_WITH_PRIMARY_DIRECTION_ROOT_V2' ||
+          quality.primary_capacity_basis !== 'STRAIN_COMPATIBLE_POINT_AT_FIXED_N_AND_MOMENT_DIRECTION' ||
+          quality.primary_solver_revision !== 'VS25_DIRECTION_ROOT' ||
+          quality.numerical_policy?.primary_direction_absolute_tolerance_nmm !== 1000 ||
+          quality.axis_convention !== 'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3' ||
+          quality.source_run_id !== selected || quality.source_archive_sha256 !== report.source_archive_sha256 ||
+          quality.source_demand_result_sha256 !== chain?.result_sha256 || quality.source_cages_result_sha256 !== cages?.result_sha256 ||
+          quality.source_pmm_result_sha256 !== pmm?.result_sha256 ||
+          quality.member_id_filter !== (member.value || null) || quality.output_case_filter !== (loadCase.value || null) ||
+          quality.critical_subset_only !== true || quality.critical_selection_independently_verified !== false ||
+          quality.full_primary_population_independently_checked !== false || quality.primary_results_changed !== false ||
+          quality.same_declared_material_model !== true || quality.independent_material_model_validation !== false ||
+          quality.continuous_error_bound_proven !== false || quality.global_root_uniqueness_proven !== false ||
+          quality.actual_second_order_applied !== false || quality.selected_design !== null ||
+          quality.design_demand_authority !== 'DENIED' || quality.formal_compliance !== 'NOT_PROVEN' || quality.engineering_release !== 'NOT_READY' ||
+          quality.comparison_count !== quality.critical_target_count || quality.comparison_count !== page?.total ||
+          quality.numerical_policy?.comparison_relative_tolerance !== .002 || quality.numerical_policy?.primary_level_spread_added_to_budget !== false)) {
+        throw new Error('Bağımsız PMM kıyasının kaynak bağı veya kapsamı uyuşmuyor.');
+      }
+      if (selectedView === 'overview' && (!overview || overview.schema !== 'tbdy.next.column-overview.v1' ||
+          overview.policy !== 'EXPLICIT_CAGE_DISPLAY_ONLY_SAME_SOURCE_VECTOR_V1' ||
+          overview.axis_convention !== 'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3' ||
+          overview.source_run_id !== selected || overview.source_archive_sha256 !== report.source_archive_sha256 ||
+          overview.source_demand_result_sha256 !== chain?.result_sha256 || overview.source_cages_result_sha256 !== cages?.result_sha256 ||
+          overview.source_pmm_result_sha256 !== pmm?.result_sha256 || overview.source_shear_result_sha256 !== shear?.result_sha256 ||
+          overview.source_sensitivity_result_sha256 !== sensitivity?.result_sha256 ||
+          overview.member_id_filter !== (member.value || null) || overview.output_case_filter !== (loadCase.value || null) ||
+          overview.automatic_design_selection !== false || overview.selected_design !== null ||
+          overview.underlying_source_population_reduced !== false || overview.actual_second_order_applied !== false ||
+          overview.spectral_design_vectors_formed !== false || overview.design_demand_authority !== 'DENIED' ||
+          overview.formal_compliance !== 'NOT_PROVEN' || overview.engineering_release !== 'NOT_READY' ||
+          !overview.candidate_labels.includes(selectedProposal))) throw new Error('Kolon özetinin kaynak bağı veya kapsamı uyuşmuyor.');
+      if (!page || (selectedView !== 'native' && page.view !== selectedView)) throw new Error('İstenen talep görünümü bulunamadı.');
+      total = page.total; offset = page.offset;
+      const identity = [['Obj','Kolon'], ['Elm','Analiz elemanı'], ['ObjSta','Nesne istasyonu'], ['ElmSta','Eleman istasyonu'],
+        ['LoadCase','Vaka / birleşim'], ['StepType','Adım'], ['StepNum','No']];
+      if (selectedView === 'overview') {
+        renderOverview(report,page,selectedProposal);
+      } else if (selectedView === 'pmm-quality') {
+        renderQuality(quality,page);
+      } else if (selectedView === 'scwb') {
+        renderScwb(scwb,page);
+      } else if (selectedView === 'beam-cages') {
+        renderBeams(beams,page,selectedBeamDiameter);
+      } else if (selectedView === 'scwb-scenarios') {
+        renderScenarios(scenarios,page);
+      } else if (selectedView === 'native') {
+        el('columnUnits').textContent = 'Native işaretler korunur. Kuvvetler kN, momentler kN·m, istasyonlar m.';
+        el('columnForces').append(table([...identity,...['P','V2','V3','T','M2','M3'].map(c => [c,c])], page.rows));
+      } else if (selectedView === 'static' || selectedView === 'critical') {
+        el('columnUnits').textContent = 'N basınç pozitif = −P; çekme negatif kalır. Kuvvetler kN, momentler kN·cm, istasyonlar m; CSI yerel 2–3 eksenleri. Analiz mertebesi doğrulanmadı.';
+        const reason = selectedView === 'critical' ? [['criticalReason','Kritik ölçüt']] : [];
+        if (selectedView === 'critical') {
+          if (!report.critical_scope || report.critical_scope.pmm_population_reduced !== false) throw new Error('Kritik seçim kapsamı doğrulanamadı.');
+          el('columnContext').append(text('p', `${report.critical_scope.candidate_count} filtrelenmiş statik aday içinden kritik kayıtlar. ` +
+            'Eşit kritiklerin tamamı korunur. Bileşen maksimumları tek vektöre birleştirilmez; PMM için tam aday nüfusu saklanır.', 'micro'));
+        }
+        el('columnForces').append(table([...reason,...identity,['N_compression_kN','N (basınç +)'], ['V2_kN','V2'],
+          ['V3_kN','V3'],['T_kNcm','T'],['M2_kNcm','M2'],['M3_kNcm','M3']],
+          page.rows.map(r => ({...r.native_key,...r.domain_values,criticalReason:(r.criteria || []).map(c => labels[c] || c).join(', ')}))));
+      } else if (selectedView === 'reinforcement') {
+        el('columnUnits').textContent = 'TBDY 2018 7.3.2.1 alan hesabı: As,min = %1 Ac; As,max = %4 Ac. Alanlar cm². Birleşimden bağımsızdır; süneklik sınıfı, gerçek donatı, çap/adet ve bindirme uygunluğu bu hesapla doğrulanmaz.';
+        el('columnForces').append(table([['member_id','Kolon'],['story','Kat'],['section_name','Kesit'],
+          ['gross_area_cm2','Ac'],['minimum_as_cm2','As,min'],['maximum_as_cm2','As,max'],['provided_as_cm2','Doğrulanmış mevcut As'],
+          ['sourceMatches','Kaynak AsMin eşleşen'],['sourceAbove','Referans üstünde'],['sourceBelow','Referans altında'],
+          ['sourceUnknown','AsMin belirsiz'],['label','Hesap'],['reason','Açık neden']], page.rows.map(r => ({...r,label:labels[r.status] || r.status,
+            sourceMatches:r.asmin_source_counts.NUMERICAL_MATCH || 0,sourceAbove:r.asmin_source_counts.SOURCE_ABOVE_REFERENCE || 0,
+            sourceBelow:r.asmin_source_counts.SOURCE_BELOW_REFERENCE || 0,
+            sourceUnknown:Object.keys(r.asmin_source_counts).length ? (r.asmin_source_counts.NOT_PROVEN || 0) : 'Kayıt yok'}))));
+      } else if (selectedView === 'stiffness') {
+        const fmt = v => v == null ? null : Number(v.toPrecision(10));
+        el('columnUnits').textContent = 'Brüt kesit: I cm⁴, r mm, E MPa; boylar m. E×I etkili rijitlik değildir. Çıktı aralığı TS500 serbest boyu veya etkili boy sayılmaz.';
+        el('columnContext').append(text('p', `${stability.calculated_section_count} kolon · ${stability.distinct_section_count} farklı kesit · ` +
+          `${stability.native_property_match_count} kaynak özellik eşleşmesi. ` +
+          'İkinci mertebe için serbest boy, k, ötelenebilirlik, sünme ve analiz esası bekleniyor. r=√(I/A) ve 0,30h yaklaşımı ayrı değerlerdir.', 'micro'));
+        el('columnForces').append(table([['member_id','Kolon'],['story','Kat'],['section_name','Kesit'],
+          ['i22','I22'],['i33','I33'],['r22','r22'],['r33','r33'],['e','E'],['object','I–J boyu'],
+          ['span','Çıktı aralığı'],['comparison','Kesit kaynak kıyası']], page.rows.map(r=>({...r,
+            i22:fmt(r.section ? r.section.i22_mm4/1e4 : null),i33:fmt(r.section ? r.section.i33_mm4/1e4 : null),
+            r22:fmt(r.section?.r22_exact_mm),r33:fmt(r.section?.r33_exact_mm),e:fmt(r.elastic?.observed_E_MPa),
+            object:r.lengths.object_i_j_m,span:r.lengths.output_face_span_m,comparison:labels[r.property_comparison_status] || r.property_comparison_status}))));
+      } else if (selectedView === 'eccentricity') {
+        el('columnUnits').textContent = 'TS500 6.16: e,min = 15 + 0,03h (mm); N·e,min referansı kN·cm. Uç momenti hükmü için kaynak kıyasıdır; iç istasyonlara yönetmelik PASS/FAIL verilmez. Kuvvetler değiştirilmez.';
+        el('columnContext').append(text('p', 'Native T3 yerel 2, T2 yerel 3 boyutudur. M2 için h=T2, M3 için h=T3. Basınç olmayan kayıtlarda bu referans uygulanmaz. Tasarım uçlarının ve birleşimlerinin kabulü ayrıca gereklidir.', 'micro'));
+        el('columnForces').append(table([['Obj','Kolon'],['Elm','Analiz elemanı'],['ObjSta','İstasyon (m)'],['LoadCase','Birleşim'],
+          ['n','N (kN)'],['m2','|M2|'],['ref2','M2 referansı'],['s2','M2 kıyası'],['m3','|M3|'],['ref3','M3 referansı'],['s3','M3 kıyası']],
+          page.rows.map(r=>({...r.native_key,n:r.axes[0].n_compression_kn,m2:r.axes[0].source_abs_moment_kNcm,
+            ref2:r.axes[0].reference_minimum_moment_kNcm,s2:labels[r.axes[0].status] || r.axes[0].status,
+            m3:r.axes[1].source_abs_moment_kNcm,ref3:r.axes[1].reference_minimum_moment_kNcm,
+            s3:labels[r.axes[1].status] || r.axes[1].status}))));
+      } else if (selectedView === 'cages') {
+        el('columnUnits').textContent = 'Üç öneri: 16Φ24 / 16Φ28 / 16Φ32; önerilen etriye Φ12. Model örtüsü etriyenin dış yüzünedir. Bunlar mevcut veya seçilmiş donatı değildir.';
+        el('columnContext').append(text('p','Agrega, etriye/çiroz, bindirme ve malzeme katsayılarının proje kabulü açık. Kesitler boyuna yerleşim önerisidir; detay çizimi değildir. Yerel 2 sağa, yerel 3 yukarı.', 'micro'));
+        if (member.value) for (const row of page.rows.filter(r=>r.geometry_status==='PROPOSED_GEOMETRY_CALCULATED')) {
+          el('columnContext').append(cageDrawing(row));
+        }
+        el('columnForces').append(table([['member_id','Kolon'],['story','Kat'],['label','Öneri'],['as','As (cm²)'],
+          ['rho','ρ (%)'],['center_offset_mm','Merkez örtüsü (mm)'],['minimum_clear_spacing_mm','Net aralık (mm)'],
+          ['area','Alan kıyası'],['geometry','Geometri'],['reason','Açık neden']],page.rows.map(r=>({...r,
+            as:rounded(r.as_cm2),rho:rounded(r.rho_percent),area:labels[r.area_ratio_status] || r.area_ratio_status,
+            geometry:labels[r.geometry_status] || r.geometry_status}))));
+      } else if (selectedView === 'pmm') {
+        el('columnUnits').textContent = 'Değiştirilmemiş statik kaynak vektörü × öneri kafesi. M2/M3 ve radyal kapasite kN·m; oran boyutsuzdur. γc=1,5 / γs=1,15 senaryosu; minimum dışmerkezlik ve ikinci mertebe uygulanmadı.';
+        el('columnContext').append(text('p',`${pmm.static_state_count} statik durum × 3 öneri = ${pmm.assessment_count} kıyas (arşivin tamamı). `+
+          'Oran yalnız sayısal olarak çözülen senaryo içindir. Depremli tam tasarım nüfusu ve nihai donatı seçimi henüz doğrulanmadı.', 'micro'));
+        el('columnContext').append(text('p','Kapasite sabit N ve kaynak moment doğrultusunda çözülen gerinim uyumlu noktadır. '+
+          'Kritik kayıtların denge artıkları PMM bağımsız sayısal kıyas görünümündedir.','micro'));
+        el('columnForces').append(table([['Obj','Kolon'],['ObjSta','İstasyon (m)'],['Elm','Eleman'],['LoadCase','Birleşim'],
+          ['candidate_label','Öneri'],['n','N (kN)'],['m2','M2'],['m3','M3'],['capacity','Radyal kapasite'],
+          ['ratio','Koşullu oran'],['label','Sayısal durum'],['reasonLabel','Açık neden']],page.rows.map(r=>({...r.native_key,...r,
+            n:rounded(r.domain_values.N_compression_kN),m2:rounded(r.native_values.M2),m3:rounded(r.native_values.M3),
+            capacity:rounded(r.radial_capacity_kNm),ratio:rounded(r.utilization),label:labels[r.status] || r.status,
+            reasonLabel:labels[r.reason] || r.reason}))));
+      } else if (selectedView === 'transverse') {
+        el('columnUnits').textContent = 'Φ12/100 önerisi: bir dış etriye + her yönde üç çiroz. Ash ve Asw mm², ölçüler mm. Ack dıştan dışa, bk etriye eksenleri arasındadır. Yüksek süneklik referansı; proje kabulü açık.';
+        el('columnContext').append(text('p','İki eksenel yük dalının sargı alanları ayrı gösterilir; statik kuvvetlerden bir dal seçilmez. Serbest boy, gerçek sarılma bölgesi, kanca/kenetlenme ve üç boyutlu yerleşim henüz doğrulanmadı.','micro'));
+        const drawn = new Set();
+        if (member.value) for (const row of page.rows) {
+          const cage = cages?.candidates?.find(c=>c.candidate_id===row.candidate_id);
+          if (cage && row.layout && !drawn.has(row.candidate_id)) {
+            el('columnContext').append(cageDrawing(cage,row.layout)); drawn.add(row.candidate_id);
+          }
+        }
+        el('columnForces').append(table([['member_id','Kolon'],['candidate_label','Boyuna öneri'],['shear_axis','Kesme yönü'],
+          ['bkAxis','bk ekseni'],['bk','bk'],['ash','Öneri Ash'],['reqHigh','Ash · yüksek N'],['reqLow','Ash · düşük N'],
+          ['gap','Yatay kol aralığı'],['smax','Sarılma s üst sınırı'],['label','Hesap'],['reason','Açık neden']],page.rows.map(r=>({...r,
+            bkAxis:r.direction?.bk_axis,bk:rounded(r.direction?.bk_mm),ash:rounded(r.direction?.ash_mm2),
+            reqHigh:rounded(r.direction?.confinement.high_axial_required_ash_mm2),
+            reqLow:rounded(r.direction?.confinement.low_axial_required_ash_mm2),gap:rounded(r.direction?.maximum_lateral_leg_spacing_mm),
+            smax:rounded(r.confinement_spacing_max_mm),label:labels[r.status] || r.status}))));
+      } else if (selectedView === 'shear') {
+        el('columnUnits').textContent = 'Kuvvetler kN. V2: bw=T2, d=T3−merkez örtüsü; V3: bw=T3, d=T2−merkez örtüsü. Vr=Vc+Vw; oran |kaynak V|/Vr. Bunlar statik kaynak kıyaslarıdır; gerçek tasarım Ve doğrulanmadı.';
+        el('columnContext').append(text('p',`${shear.static_state_count} statik durum × 3 öneri × 2 yön = ${shear.assessment_count} kıyas (arşivin tamamı). `+
+          'Vc=0 deprem koşulu seçilmedi; iki senaryo birlikte gösterilir. Burulma etkileşimi, kapasite kesmesi ve nihai donatı seçimi açık.','micro'));
+        el('columnForces').append(table([['Obj','Kolon'],['ObjSta','İstasyon (m)'],['LoadCase','Birleşim'],
+          ['candidate_label','Boyuna öneri'],['shear_axis','Yön'],['v','İşaretli V'],['vc','Vc · TS500'],['vw','Vw'],
+          ['vr','Vr · TS500'],['ratio','|V|/Vr · TS500'],['ratioZero','|V|/Vr · Vc=0'],['label','Hesap'],['reasonLabel','Açık neden']],
+          page.rows.map(r=>({...r.native_key,...r,v:rounded(r.calculation?.source_signed_v_kn),
+            vc:rounded(r.calculation?.branches.ts500.vc_kn),vw:rounded(r.calculation?.branches.zero_concrete.vw_kn),
+            vr:rounded(r.calculation?.branches.ts500.vr_kn),ratio:rounded(r.calculation?.branches.ts500.source_utilization),
+            ratioZero:rounded(r.calculation?.branches.zero_concrete.source_utilization),label:labels[r.status] || r.status,
+            reasonLabel:labels[r.reason] || r.reason}))));
+      } else if (selectedView === 'stiffness-scenarios' || selectedView === 'length-sensitivity') {
+        el('columnContext').append(text('p','Rm = 0 / 0,5 / 1 açık parametre senaryolarıdır; gerçek sünme oranı veya doğrulanmış EI aralığı değildir. ' +
+          'Yarıçap i=0,30h seçildi. 22i ötelenmesi önlenmemiş sınıfın koşullu sınırı; 40i önlenmiş sınıfın yalnız üst sınırı; 100i yaklaşık yöntem tavanıdır.','micro'));
+        if (selectedView === 'stiffness-scenarios') {
+          el('columnUnits').textContent = 'TS500 7.19 / 7.21 · EI=0,4EcIc/(1+Rm), Nk(kN)=π²EI/(1000lk²). Formülde lk: mm; Ec: MPa, Ic: mm⁴, EI: N·mm²; tablodaki boylar: m. Gerçek lk, k veya serbest boy atanmamıştır.';
+          const scientific = v => typeof v === 'number' ? v.toExponential(4) : null;
+          el('columnForces').append(table([['member_id','Kolon'],['axis','Eksen'],['ec_mpa_observed','Ec (MPa)'],
+            ['inertia','Ic (mm⁴)'],['radius','i: 0,30h / √(I/A) (mm)'],['ei','EI: Rm 0 / 0,5 / 1 (N·mm²)'],
+            ['lengths','22i / 40i / 100i (m)'],['label','Kapsam'],['reason','Açık neden']],page.rows.map(r=>({...r,
+              inertia:scientific(r.gross_inertia_mm4),radius:[rounded(r.radius_reference_mm),rounded(r.radius_exact_mm)],
+              ei:r.scenarios.map(s=>scientific(s.effective_ei_nmm2_scenario)),
+              lengths:[r.length_22i_mm,r.length_40i_mm,r.length_100i_mm].map(v=>v==null ? null : rounded(v/1000)),
+              label:labels[r.status] || r.status}))));
+          if (member.value) {
+            const details=text('details','');details.append(text('summary','Referans boylarda Euler yükleri'));
+            details.append(table([['axis','Eksen'],['rm','Rm senaryosu'],['n22','Nk: 22i (kN)'],['n40','Nk: 40i (kN)'],['n100','Nk: 100i (kN)']],
+              page.rows.flatMap(r=>r.scenarios.map(s=>({axis:r.axis,rm:s.creep_ratio_scenario,
+                n22:rounded(s.length_references[0].nk_kn_scenario),n40:rounded(s.length_references[1].nk_kn_scenario),
+                n100:rounded(s.length_references[2].nk_kn_scenario)})))));
+            el('columnContext').append(details);
+          }
+        } else {
+          el('columnUnits').textContent = 'lk,0(mm)=π√[EI/(1,3×1000×Nkaynak(kN))] · EI: N·mm²; Denk. 7.24 paydasının sıfır olduğu matematiksel boy tabloda m olarak gösterilir. İzin verilen boy veya Nk=N boyu değildir. Her statik istasyon ve iki eksen korunur; çekme/sıfır N bu basınç hesabına uygulanmaz.';
+          el('columnContext').append(text('p',`${sensitivity.static_state_count} statik kayıt · ${sensitivity.zero_length_reference_count} payda-sıfır boyu. `+
+            '100i ötesindeki matematiksel boylar yaklaşık yöntemin kapsamını genişletmez; Cm/β ve tasarım momenti üretilmez.','micro'));
+          el('columnForces').append(table([['member_id','Kolon'],['case','Birleşim'],['station','İstasyon (m)'],['axis','Eksen'],
+            ['n_source_compression_kn','Nkaynak (kN, basınç +)'],['lengths','lk,0: Rm 0 / 0,5 / 1 (m)'],
+            ['beyond','100i ötesinde: 0 / 0,5 / 1'],['label','Hesap'],['reason','Açık neden']],page.rows.map(r=>({...r,
+              case:r.native_key.LoadCase,station:r.native_key.ObjSta,
+              lengths:r.scenarios.map(s=>s.zero_denominator_length_mm==null ? '—' : rounded(s.zero_denominator_length_mm/1000)),
+              beyond:r.scenarios.map(s=>s.zero_length_exceeds_100i_reference==null ? '—' : s.zero_length_exceeds_100i_reference ? 'Evet' : 'Hayır'),
+              label:labels[r.status] || r.status}))));
+          if (member.value) {
+            const detail=text('details','');detail.append(text('summary','Kayıtlı eksenel kuvvet değişimi ve yöntemin açık koşulları'));
+            detail.append(table([['output_case','Birleşim'],['recorded_static_station_count','İstasyon'],['n_i_kn','I kesiti N (kN)'],
+              ['n_j_kn','J kesiti N (kN)'],['end_n_j_minus_i_kn','NJ−NI (kN)'],['recorded_range_kn','Tüm kayıtlarda N aralığı (kN)'],
+              ['label','Kaynak']],(sensitivity.axial_profiles || []).map(r=>({...r,label:labels[r.recorded_values_status] || r.recorded_values_status}))));
+            detail.append(text('p','Yaklaşık yöntem için sabit kesit/eksenel kuvvet, doğrusal elastik analiz ve minimum dışmerkezlik esası ayrıca gerekir. Eşit kayıtlı uç değerleri bu koşulları kanıtlamaz.','micro'));
+            el('columnContext').append(detail);
+            const denominator=text('details','');denominator.append(text('summary','Açık referans boylarda 1−1,3Nkaynak/Nk paydası'));
+            denominator.append(table([['case','Birleşim'],['station','İstasyon'],['axis','Eksen'],['rm','Rm'],['lambda','lk/i referansı'],
+              ['lk','lk (m)'],['nk','Nk (kN)'],['value','Payda'],['label','Sayısal kapsam']],page.rows.flatMap(r=>r.scenarios.flatMap(s=>
+                s.at_reference_lengths.map(v=>({case:r.native_key.LoadCase,station:r.native_key.ObjSta,axis:r.axis,rm:s.creep_ratio_scenario,
+                  lambda:v.lk_over_i_reference,lk:rounded(v.effective_length_lk_mm_scenario/1000),nk:rounded(v.nk_kn_scenario),
+                  value:rounded(v.source_denominator),label:labels[v.status] || v.status}))))));
+            el('columnContext').append(denominator);
+          }
+        }
+      } else if (selectedView === 'end-forces' || selectedView === 'kinematics') {
+        el('columnContext').append(text('p',`${kinematics.linked_member_case_count}/${kinematics.expected_member_case_count} kolon–birleşim kaynak bağı. `+
+          'Analiz mertebesi doğrulanmadı; Cm, β ve büyütülmüş moment üretilmez.','micro'));
+        const details = text('details',''); details.append(text('summary','Analiz rijitliği kaynağı'));
+        const names = kinematics.analysis_basis.combinations.find(c=>c.combination===loadCase.value)?.case_names;
+        details.append(table([['case_name','Vaka'],['stiffness_type','Rijitlik ayarı'],['nonlinear_case_raw','Başlangıç vaka kaydı'],
+          ['label','Kaynak durumu'],['reason','Açık neden']],kinematics.analysis_basis.cases.filter(c=>!names || names.includes(c.case_name))
+          .map(c=>({...c,label:labels[c.status] || c.status}))));
+        details.append(text('p','Lineer statik vaka türü birinci mertebe kanıtı değildir; kayıttaki “None” değeri doğrulanmış başlangıç koşulu sayılmaz.','micro'));
+        el('columnContext').append(details);
+        if (selectedView === 'end-forces') {
+          el('columnUnits').textContent = 'Her satır aynı tek değerli statik birleşimde iki kaynak kesitini eşler. P çekme pozitif; kuvvetler kN, momentler kN·m, istasyonlar m. Çıktı kesitleri düğüm veya fiziksel destek yüzü kabul edilmez; ara istasyonlar korunur.';
+          const values = (pair,end,keys) => pair?.[end] ? keys.map(k=>rounded(pair[end].native_values[k])) : null;
+          el('columnForces').append(table([['member_id','Kolon'],['output_case','Birleşim'],['iCut','I: eleman / istasyon'],
+            ['jCut','J: eleman / istasyon'],['iF','I: P / V2 / V3'],['iM','I: T / M2 / M3'],
+            ['jF','J: P / V2 / V3'],['jM','J: T / M2 / M3'],['label','Kaynak bağı'],['reason','Açık neden']],page.rows.map(r=>({...r,
+              iCut:r.force_pair ? [r.force_pair.i.native_key.Elm,r.force_pair.i.native_key.ObjSta] : null,
+              jCut:r.force_pair ? [r.force_pair.j.native_key.Elm,r.force_pair.j.native_key.ObjSta] : null,
+              iF:values(r.force_pair,'i',['P','V2','V3']),iM:values(r.force_pair,'i',['T','M2','M3']),
+              jF:values(r.force_pair,'j',['P','V2','V3']),jM:values(r.force_pair,'j',['T','M2','M3']),
+              label:labels[r.status] || r.status,reason:r.force_reason || r.kinematics_reason}))));
+        } else {
+          el('columnUnits').textContent = 'Global düğüm U/R değerleri kolonun yerel 1–2–3 eksenlerine dönüştürülür. Δu: mm, L: düğümler arası m; α2=−Δu3/L, α3=Δu2/L ve R−α: rad. Bunlar yuvarlanmış düğüm kinematiğidir; kesit eğriliği, P–δ veya kat stabilitesi sonucu değildir.';
+          el('columnForces').append(table([['member_id','Kolon'],['output_case','Birleşim'],['points','I / J düğümü'],
+            ['length','L (m)'],['delta','Δu1 / Δu2 / Δu3 (mm)'],['alpha','α2 / α3 (rad)'],
+            ['ri','I: R2−α2 / R3−α3'],['rj','J: R2−α2 / R3−α3'],['label','Kaynak bağı'],['reason','Açık neden']],page.rows.map(r=>{
+              const c=r.calculation; return {...r,points:[r.point_i,r.point_j],length:c?.object_i_j_length_m,
+                delta:c?.delta_local_m.map(v=>rounded(v*1000)),alpha:c ? [rounded(c.chord_alpha2_rad),rounded(c.chord_alpha3_rad)] : null,
+                ri:c ? [rounded(c.joint_i_relative_r2_rad),rounded(c.joint_i_relative_r3_rad)] : null,
+                rj:c ? [rounded(c.joint_j_relative_r2_rad),rounded(c.joint_j_relative_r3_rad)] : null,
+                label:labels[r.status] || r.status,reason:r.kinematics_reason || r.force_reason};})));
+          el('columnContext').append(text('p','Tabloda sıfır yazması gerçek hareketin sıfır olduğunu kanıtlamaz. Düğüm dönmeleri, releases/offsets bulunan kolonun kesit uç dönmeleri yerine kullanılamaz.','micro'));
+        }
+      } else if (selectedView === 'joints') {
+        el('columnUnits').textContent = 'TBDY 7.5 · Eşmerkez, dik kesit senaryosu. Dört yüzde kiriş ve her genişlik ≥ %75 koşuluyla sınıflandırılır. Kesme sınırları kN; Ve ve SCWB doğrulanmadı.';
+        el('columnContext').append(text('p',`${joints.joint_node_count} düğüm · ${joints.column_end_count} kolon ucu · ${joints.geometric_limit_count} yön sınırı. `+
+          'Her satırın kesiti o uç kolonuna aittir; birleşimin fiziksel yüzleri ve eksantrisitesi henüz bağlı değil.','micro'));
+        if (joints.graph.reason) el('columnContext').append(text('p',joints.graph.reason,'warn'));
+        el('columnForces').append(table([['member_id','Kolon'],['end','Uç'],['point_id','Düğüm'],['label','Eşmerkez sınıf'],
+          ['v2','V2 sınırı'],['v3','V3 sınırı'],['missing_faces','Kirişsiz yüz'],['narrow_faces','Dar kiriş yüzü'],['reasonLabel','Açık neden']],
+          page.rows.map(r=>({...r,label:labels[r.enclosure_scenario || r.status] || r.status,
+            v2:rounded(r.axes.find(a=>a.axis==='V2')?.calculation?.geometric_limit_kn),
+            v3:rounded(r.axes.find(a=>a.axis==='V3')?.calculation?.geometric_limit_kn),reasonLabel:labels[r.reason] || r.reason}))));
+        if (member.value) for (const row of page.rows) {
+          const details = text('details',''); details.append(text('summary',`${row.end} ucu · kiriş genişlikleri ve kaynak bağlantıları`));
+          details.append(table([['face','Kolon yüzü'],['frame_id','Kiriş'],['native_end','Kiriş ucu'],['beam_section_name','Kesit'],
+            ['beam_width_mm','Kiriş eni (mm)'],['column_transverse_width_mm','Kolon eni (mm)']],Object.values(row.faces).filter(Boolean)));
+          el('columnContext').append(details);
+        }
+      } else if (selectedView === 'joint-ties') {
+        el('columnUnits').textContent = 'TBDY 7.5.2.3 · Alt kolonun Denk. 7.1 sargı referansından %40/%60 × Ash/s aktarımı. Alanlar mm², aralık mm. İki N dalı açık kalır; kapasite kesmesi kaynaklı tam donatı ihtiyacı doğrulanmadı.';
+        el('columnContext').append(text('p','Öneri aynı Φ12/100 yerleşimidir. Üst ve alt kolonun eksenleri fiziksel doğrultuyla eşlenir. Kuşatılmış/kuşatılmamış senaryoda aralık sınırı 150/100 mm, çap alt sınırı 8 mm; gerçek birleşim detayı henüz doğrulanmadı.','micro'));
+        el('columnForces').append(table([['member_id','Uç kolonu'],['end','Uç'],['point_id','Düğüm'],['lower_column_id','Alt kolon'],
+          ['axis','Uç yönü'],['lower_axis','Alt kolon yönü'],['candidate_label','Boyuna öneri'],['high','Ash · yüksek N'],
+          ['low','Ash · düşük N'],['ash','Öneri Ash'],['s','Öneri s'],['reasonLabel','Açık neden']],page.rows.map(r=>({...r,
+            high:rounded(r.branches.high?.required_ash_at_joint_spacing_mm2),low:rounded(r.branches.low?.required_ash_at_joint_spacing_mm2),
+            ash:rounded(r.branches.high?.proposed_ash_mm2),s:r.branches.high?.joint_spacing_mm,
+            reasonLabel:labels[r.tie_reason] || r.tie_reason}))));
+      } else {
+        el('columnUnits').textContent = 'ETABS tasarım özetindeki referanslar. Yuvarlanmış veya çift istasyonlardan tekil kuvvet seçilmez; bu görünüm PMM/kesme uygunluğu değildir.';
+        const rows = page.rows.map(r => {
+          const refs = Object.fromEntries(r.references.map(ref => [ref.role, ref]));
+          const link = role => labels[refs[role]?.status] || refs[role]?.status;
+          return {...r.native_design_row, pmmLink:link('PMM'), majorLink:link('MAJOR_SHEAR'), minorLink:link('MINOR_SHEAR')};
+        });
+        el('columnForces').append(table([['UniqueName','Kolon'],['Station','İstasyon (m)'],['DesignSect','Tasarım kesiti'],
+          ['PMMCombo','PMM birleşimi'],['pmmLink','Kaynak bağı'],['PMMRatio','ETABS PMM oranı'],
+          ['VMajCombo','Büyük yön kesme'],['majorLink','Kaynak bağı'],['VMinCombo','Küçük yön kesme'],['minorLink','Kaynak bağı']], rows));
+      }
+      el('columnPage').textContent = total ? `${offset + 1}–${Math.min(offset + page.limit,total)} / ${total}` : 'Bu filtre ve görünüm için gösterilecek kayıt yok.';
+      el('columnPrevious').disabled = offset === 0;
+      el('columnNext').disabled = offset + page.limit >= total;
+      const replay = report.static_replay;
+      el('columnReplay').append(text('p', `${replay.matched_rows} eşleşen statik satır · ${replay.scalar_comparisons} skaler karşılaştırma · en büyük |Δ|: ${replay.maximum_absolute_difference}`));
+      el('columnReplay').append(text('p', 'Bu sonuç kaynak aritmetiğini doğrular. RS, zarf ve iç içe birleşimler bu hesap yoluyla tasarım vektörüne dönüştürülmez.', 'micro'));
+      el('columnReplay').append(table([['combination','Birleşim'],['status','Sayısal kaynak'],['matched_rows','Eşleşen'],
+        ['mismatched_rows','Farklı'],['unresolved_rows','Çözümlenemeyen'],['reason','Neden']], replay.combinations));
+      el('columnCoverage').append(table([['name','Vaka / birleşim'],['row_count','Satır'],['members_with_rows','Verili kolon'],
+        ['expected_members','Beklenen'],['step_types','Adım'],['step_numbers','Adım / mod no'],['missing_members','Eksik kolonlar']], report.case_coverage));
+      el('columnGaps').append(table([['topic','İş paketi'],['available','Kaynak'],['remaining','Tamamlanacak bağ']], report.engineering_gaps));
+    } catch (error) {
+      if (ticket !== epoch || selected !== run.value) return;
+      clearResult(); el('columnStatus').textContent = 'Arşiv gösterilemedi: ' + error.message;
+    }
+  }
+  async function refresh() {
+    const ticket = ++historyEpoch; ++epoch; clearResult();
+    options(run, [], 'Arşivler okunuyor…'); options(member, [], 'Tüm kolonlar'); options(loadCase, [], 'Tüm çıktılar');
+    run.disabled = true;
+    try {
+      const data = await get('/api/column-history');
+      if (ticket !== historyEpoch) return;
+      options(run, data.runs.map(r => [r.run_id, `${r.run_id} · ${r.force_row_count} satır`]), 'Arşiv seçin');
+      el('columnStatus').textContent = data.runs.length ? 'İncelenecek kolon arşivini seçin.' :
+        'Henüz içe aktarılmış kolon arşivi yok. Çevrimdışı ZIP içe aktarıldığında burada görünür.';
+    } catch (error) {
+      if (ticket === historyEpoch) el('columnStatus').textContent = 'Arşiv listesi okunamadı: ' + error.message;
+    } finally { if (ticket === historyEpoch) run.disabled = false; }
+  }
+  window.openColumnBank = () => { if (!opened) { opened = true; refresh(); } };
+  el('columnRefresh').addEventListener('click', refresh);
+  run.addEventListener('change', () => load(true));
+  for (const chooser of [member, loadCase, view, proposal, beamProposal].filter(Boolean)) chooser.addEventListener('change', () => { offset = 0; load(); });
+  el('columnPrevious').addEventListener('click', () => { offset = Math.max(0, offset - 200); load(); });
+  el('columnNext').addEventListener('click', () => { if (offset + 200 < total) { offset += 200; load(); } });
+})();

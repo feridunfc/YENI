@@ -1,0 +1,61 @@
+{
+  "observed_on": "2026-11-10",
+  "baseline_head": "4827e6d06740a6f696290cd7ca1aed4b6e86b4aa",
+  "pr_run": {
+    "id": 42672817318,
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "failure",
+    "attempt": 1,
+    "check_suite_id": 115577150242,
+    "url": "https://github.com/feridunfc/YENI/actions/runs/42672817318"
+  },
+  "commit_check_runs": [
+    {
+      "id": 129349619384,
+      "name": "tests (3.12)",
+      "conclusion": "success",
+      "status": "completed",
+      "details_url": "https://github.com/feridunfc/YENI/actions/runs/42672806070/job/129349619384",
+      "annotations_count": 2
+    },
+    {
+      "id": 129349583207,
+      "name": "tests (3.11)",
+      "conclusion": "success",
+      "status": "completed",
+      "details_url": "https://github.com/feridunfc/YENI/actions/runs/42672817318/job/129349583207",
+      "annotations_count": 2
+    },
+    {
+      "id": 129349581971,
+      "name": "tests (3.12)",
+      "conclusion": "success",
+      "status": "completed",
+      "details_url": "https://github.com/feridunfc/YENI/actions/runs/42672817318/job/129349581971",
+      "annotations_count": 2
+    },
+    {
+      "id": 129349517260,
+      "name": "tests (3.11)",
+      "conclusion": "success",
+      "status": "completed",
+      "details_url": "https://github.com/feridunfc/YENI/actions/runs/42672806070/job/129349517260",
+      "annotations_count": 2
+    },
+    {
+      "id": 129349517133,
+      "name": "windows-b1-http",
+      "conclusion": "success",
+      "status": "completed",
+      "details_url": "https://github.com/feridunfc/YENI/actions/runs/42672806070/job/129349517133",
+      "annotations_count": 1
+    }
+  ],
+  "combined_statuses": [],
+  "finding": "PR run reports failure; the two published PR check runs are successful. No PR Windows check is returned. The same-head push run has a successful Windows job. Root cause is not established by these observations.",
+  "root_cause_status": "NOT_PROVEN",
+  "required_jobs_weakened": false,
+  "vs26_remote_ci": "NOT_RUN_AT_PRE_PUBLICATION_OBSERVATION",
+  "observation_scope": "BEFORE_VS26_AUTHORIZED_BRANCH_PUBLICATION"
+}

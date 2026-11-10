@@ -21,6 +21,403 @@ class ReportUnavailable(ValueError):
     """No verified five-check result exists for this run."""
 
 
+def _column_cage_svg(cage, layout=None):
+    """Draw the stored proposed bar coordinates; no structural calculation."""
+    w,h = cage["t3_mm"],cage["t2_mm"]  # CSI native T3 is along local 2.
+    content = ('<figure><svg xmlns="http://www.w3.org/2000/svg" role="img" width="200" height="200" ' +
+        f'viewBox="{-w/2-60} {-h/2-60} {w+120} {h+120}" aria-label="' + escape(cage["label"],quote=True) +
+        ' öneri kesiti"><rect ' + f'x="{-w/2}" y="{-h/2}" width="{w}" height="{h}" ' +
+        'fill="#edf1f6" stroke="#64748b" stroke-width="3"/>')
+    if layout:
+        for leg in layout["legs"]:
+            a,b = leg["endpoints_mm"]
+            content += (f'<line x1="{a[0]}" y1="{-a[1]}" x2="{b[0]}" y2="{-b[1]}" '+
+                f'stroke="#34786b" stroke-width="{leg["diameter_mm"]}" '+
+                ('stroke-dasharray="12 6" ' if leg["kind"]=="CROSSTIE" else '')+'/>')
+    for bar in cage["bars"]:
+        content += f'<circle cx="{bar["x2_mm"]}" cy="{-bar["x3_mm"]}" r="{bar["diameter_mm"]/2}" fill="#214e78"/>'
+    caption = ' · etriye/çiroz eksen şeması; kanca ve düşey yerleşim doğrulanmadı' if layout else ''
+    return content+'</svg><figcaption>'+escape(cage["label"])+caption+' · yerel 2 sağa, yerel 3 yukarı</figcaption></figure>'
+
+
+def build_column_bank_html(report: Mapping[str, Any]) -> str:
+    """The existing report layer also presents an explicitly selected column archive."""
+    members = []
+    for row in report["members"]:
+        ctx, geom = row.get("context", {}), row.get("station_geometry", {})
+        frame, section, material = ctx.get("frame", {}), ctx.get("geometry") or {}, ctx.get("material") or {}
+        members.append({"member": row["frame_name"], "story": frame.get("story_label"),
+            "section": frame.get("section_assigned"), "rows": row["force_rows"],
+            "elements": row["analysis_elements"], "b2": section.get("T2_cm"), "b3": section.get("T3_cm"),
+            "fc": material.get("fc_MPa"), "fy": material.get("fy_MPa"),
+            "length": geom.get("object_i_j_length_m"), "j_offset": geom.get("offset_j_m"),
+            "face_span": geom.get("observed_output_face_span_m"), "j_is_joint": geom.get("last_station_is_joint_j"),
+            "status": row["force_status"], "reason": row["reason_codes"]})
+    replay = report["static_replay"]
+    content = '<h1>Kolon kuvvet bankası ve statik birleşim doğrulaması</h1><p>' + _val(report["run_id"]) + '</p>'
+    content += ('<p><strong>' + _val(report["observed_column_count"]) + '/' + _val(report["selected_column_count"]) +
+        ' seçili kolon · ' + _val(report["force_row_count"]) + ' kuvvet satırı · ' +
+        _val(report["recorded_output_count"]) + ' kayıtlı vaka/birleşim</strong></p>')
+    content += ('<p>Bu arşivin model ve analiz kimliği seçili başka bir YENI kaydına otomatik bağlanmaz. ' +
+        'Native P, V2, V3, T, M2, M3 işaretleri ve analiz elemanı/istasyon/adım kimlikleri korunur. ' +
+        'RS veya zarfın aynı satırındaki bileşenler eşzamanlı tasarım vektörü olarak onaylanmaz. ' +
+        'Mühendislik uygunluğu <strong>NOT_PROVEN / NOT_READY</strong>.</p>')
+    content += '<h2>Kolonlar ve kaynak kesitleri</h2>' + _table((
+        ("member", "Kolon"), ("story", "Kat"), ("section", "Kaynak kesiti"), ("b2", "b2 (cm)"),
+        ("b3", "b3 (cm)"), ("fc", "Fc (MPa)"), ("fy", "Fy (MPa)"), ("rows", "Satır"),
+        ("elements", "Analiz elemanları"), ("length", "I–J boyu (m)"), ("j_offset", "J offset (m)"),
+        ("face_span", "Çıktı yüzleri arası (m)"), ("j_is_joint", "Son çıktı J düğümünde"),
+        ("status", "Kaynak"), ("reason", "Açık neden")), members)
+    content += ('<p>Çıktı yüzleri arası mesafe, TS500 serbest veya etkili boy kabulü değildir. ' +
+        'Model donatı ayarları gerçek ya da seçilmiş tasarım kafesi yerine kullanılmaz.</p>')
+    content += '<h2>Vaka/birleşim kapsamı</h2>' + _table((
+        ("name", "Kaynak adı"), ("kind", "Tür"), ("case_type", "Native vaka türü"), ("operator", "Native işlem"),
+        ("row_count", "Satır"), ("members_with_rows", "Verili kolon"), ("expected_members", "Beklenen"),
+        ("step_types", "Adım türleri"), ("step_numbers", "Adım/mod numarası"), ("missing_members", "Eksikler")), report["case_coverage"])
+    content += ('<h2>Statik Linear Add yeniden hesabı</h2><p>' + _val(replay["matched_rows"]) +
+        ' satır / ' + _val(replay["scalar_comparisons"]) + ' skaler karşılaştırma. En büyük mutlak fark: ' +
+        _val(replay["maximum_absolute_difference"]) + '. Sayısal tolerans: ' +
+        _val(replay["absolute_tolerance_native"]) + ' + ' + _val(replay["relative_tolerance"]) +
+        ' × max(|hesap|, |kaynak|); ilgili native kN veya kN-m biriminde.</p>')
+    content += _table((("combination", "Birleşim"), ("status", "Kaynak aritmetiği"),
+        ("expected_rows", "Beklenen satır"), ("matched_rows", "Eşleşen"), ("mismatched_rows", "Farklı"),
+        ("unresolved_rows", "Çözümlenemeyen"), ("maximum_absolute_difference", "En büyük |Δ|"),
+        ("reason", "Kapsam / neden")), replay["combinations"])
+    chain = report.get("demand_chain")
+    if chain:
+        design = chain["design_summary"]
+        content += ('<h2>CE-02 · Kolon kuvvet zinciri</h2><p>' + _val(chain["combination_count"]) +
+            ' birleşim; ' + _val(chain["static_candidate_count"]) + ' doğrulanmış statik kaynak adayı. ' +
+            'N basınç pozitif = −P; yerel V2/V3 işaretleri korunur; T/M2/M3 × 100 ile kN·cm birimine çevrilir. ' +
+            'Çekme sıfırlanmaz; J ucunda ek işaret dönüşümü yapılmaz. Analiz mertebesi ve tasarım seçimi ' +
+            'NOT_PROVEN; bunlar büyütülmüş tasarım momentleri değildir.</p>')
+        content += _table((("combination", "Birleşim"), ("classification", "Kaynak sınıfı"),
+            ("case_names", "Kaynak vakalar"), ("static_candidate_count", "Statik aday"),
+            ("reason", "Açık neden")), chain["combinations"])
+        content += ('<h3>ETABS kritik birleşim referansları</h3><p>' + _val(design["row_count"]) +
+            ' tasarım özeti satırı; ' + _val(design["reference_count"]) + ' PMM/VMaj/VMin referansı; ' +
+            _val(design["known_combination_references"]) + ' tanımlı birleşim bağı; ' +
+            _val(design["unique_static_links"]) + ' tekil statik kaynak bağı. ' +
+            _val(design["ambiguous_design_station_rows"]) + ' çift istasyon kaydı ve ' +
+            _val(design["references_without_exact_station"]) + ' kesin istasyon eşleşmesi bulunmayan referans ' +
+            'ayrı sayılır; bu iki eksik örtüşebilir.</p>')
+        content += ('<p>Özet istasyonu yuvarlanmaz, yakın kuvvet satırı seçilmez. PMMRatio alanında ' +
+            _val(design["null_pmm_ratio_rows"]) + ' boş hücre var; boş oran sıfır veya PASS sayılmaz. ' +
+            'VMaj/VMin ile V2/V3 eşlemesi onaylanmadı. ETABS tasarım özeti, tam tasarım birleşimi ' +
+            'seçiminin veya bağımsız kapasite doğrulamasının yerine geçmez.</p>')
+        if design.get("reason"):
+            content += '<p>Özet kaynağı: ' + _val(design["reason"]) + '</p>'
+        content += _table((("member_id", "Kolon"), ("static_candidate_count", "Statik aday"),
+            ("design_rows", "Tasarım satırı"), ("unique_static_links", "Tekil statik bağ"),
+            ("pmm_combinations", "PMM referansları"), ("major_shear_combinations", "Büyük yön kesme"),
+            ("minor_shear_combinations", "Küçük yön kesme")), chain["members"])
+        content += ('<p>Tam JSON çıktısında her adayın yedi alanlı native anahtarı, kaynak satırı, ' +
+            'birleşim katsayıları, altı kuvvet bileşeni ve tasarım özeti satır bağlantıları bulunur. ' +
+            'SQLite mevcut ham kuvvet bankasıdır; bu görünüm okuma sırasında türetilir.</p>')
+        content += '<p>Talep görünümü SHA-256: ' + _val(chain["result_sha256"]) + '</p>'
+    prechecks = report.get("column_prechecks")
+    if prechecks:
+        critical, bounds = prechecks["critical_selection"], prechecks["reinforcement_bounds"]
+        content += ('<h2>VS13 · Kritik statik kayıtlar</h2><p>' + _val(critical["candidate_count"]) +
+            ' statik aday içinden ' + _val(critical["critical_state_count"]) + ' kaynak kaydı kritik ölçütlerle işaretlendi. ' +
+            'Eşit kritikler ve karşıt işaretler korunur. Bu seçim PMM için tam talep nüfusunun yerine geçmez; ' +
+            'ayrı satırların bileşen maksimumları tek vektöre birleştirilmez.</p>')
+        extrema = [{**m, **{c["criterion"]: c["magnitude"] for c in m["criteria"]}} for m in critical["members"]]
+        content += _table((("member_id", "Kolon"), ("candidate_count", "Statik aday"),
+            ("expected_static_states", "Kaynak kapsamı beklenen"), ("source_subset_coverage", "Altküme kapsamı"),
+            ("N_COMPRESSION_MAX", "Basınç (kN)"), ("N_TENSION_MAX", "Çekme büyüklüğü (kN)"),
+            ("M2_ABS_MAX", "|M2| (kN·cm)"), ("M3_ABS_MAX", "|M3| (kN·cm)"),
+            ("V2_ABS_MAX", "|V2| (kN)"), ("V3_ABS_MAX", "|V3| (kN)"), ("T_ABS_MAX", "|T| (kN·cm)")), extrema)
+        content += ('<p>Bu tablodaki sütunlar bağımsız ekstrem büyüklüklerdir. Aynı satırdaki sayılar birlikte ' +
+            'etkiyen bir kuvvet vektörü oluşturmaz. Tam vektörler ve ölçüt→state_id bağları JSON çıktısındadır.</p>')
+        content += ('<h2>Boyuna donatı alan sınırları · TBDY 2018 7.3.2.1</h2><p>' +
+            _val(bounds["calculated_member_count"]) + '/' + _val(bounds["selected_member_count"]) +
+            ' kolon için Ac=b2×b3; As,min=0.01Ac; As,max=0.04Ac hesaplandı. ' +
+            'Sınırlar dahildir; bu alan alt hesabı süneklik sınıfını, gerçek donatı kafesini, çap/adet veya ' +
+            'bindirme koşullarını doğrulamaz. Bindirmeli kesit için %6 sınırı genel %4 üst sınırın yerine geçmez.</p>')
+        content += _table((("member_id", "Kolon"), ("story", "Kat"), ("section_name", "Kesit"),
+            ("gross_area_cm2", "Ac (cm²)"), ("minimum_as_cm2", "As,min (cm²)"), ("maximum_as_cm2", "As,max (cm²)"),
+            ("provided_as_cm2", "Doğrulanmış mevcut As"), ("status", "Alan hesabı"), ("reason", "Açık neden")), bounds["rows"])
+        content += '<p>Kaynak AsMin sayısal kıyası: ' + _val(bounds["source_comparison_counts"]) + '</p>'
+        content += ('<p>Kaynak AsMin, yerleştirilmiş donatı değildir. Referans altından veya üstünden farklı ' +
+            'bir değer görülmesi tek başına yönetmelik ihlali veya mühendislik kabulü üretmez. ' +
+            'Mevcut statik birleşimlerden normatif G+Q+E maksimum eksenel talebi türetilmedi.</p>')
+        content += '<p>Ön hesap SHA-256: ' + _val(prechecks["result_sha256"]) + '</p>'
+    stability = report.get("column_stability")
+    if stability:
+        content += ('<h2>VS14 · Kesit rijitliği ve boylar</h2><p>' + _val(stability["calculated_section_count"]) +
+            ' kolonda ' + _val(stability["distinct_section_count"]) + ' farklı dikdörtgen kesit; ' +
+            _val(stability["native_property_match_count"]) + ' A/I/r kaynak kıyası eşleşti. ' +
+            'E×I gözlenen elastisite modülüyle bulunan brüt rijitliktir; etkili EI veya analiz rijitliği değildir. ' +
+            'r=√(I/A) ile TS500 0,30h yaklaşımı ayrı tutulur.</p>')
+        stiffness_rows = []
+        for row in stability["sections"]:
+            section, elastic = row["section"] or {}, row["elastic"] or {}
+            stiffness_rows.append({**row, **section, **elastic, **row["lengths"]})
+        content += _table((("member_id", "Kolon"), ("section_name", "Kesit"), ("i22_mm4", "I22 (mm⁴)"),
+            ("i33_mm4", "I33 (mm⁴)"), ("r22_exact_mm", "r22 (mm)"), ("r33_exact_mm", "r33 (mm)"),
+            ("observed_E_MPa", "E (MPa)"), ("object_i_j_m", "I–J (m)"), ("output_face_span_m", "Çıktı aralığı (m)"),
+            ("property_comparison_status", "Kaynak kıyası")), stiffness_rows)
+        content += ('<p>Çıktı aralığı serbest boy değildir. TS500 serbest boyu, k, ötelenebilirlik, sünme, ' +
+            'uç momenti eğrilik işareti ve analiz esası bağlanmadan gerçek kuvvetlere büyütme uygulanmaz. ' +
+            '7.29 metnindeki serbest boy ifadesi ile basılı lk sembolü uyuşmadığından bu karar NOT_PROVEN kalır.</p>')
+        ecc = stability["eccentricity"]
+        content += ('<h2>Minimum dışmerkezlik referansı · TS500 6.16</h2><p>Native T3 yerel 2, T2 yerel 3 boyutudur. e,min=15+0,03h (mm); M2 için h=T2, ' +
+            'M3 için h=T3. ' + _val(ecc["state_count"]) + ' statik kaynak kaydında ' + _val(ecc["axis_comparison_count"]) +
+            ' eksen kaydı: ' + _val(ecc["status_counts"]) + '. Basınç olmayan satırlar ayrı tutulur. ' +
+            'Bu hüküm tasarım uç momentine yöneliktir; iç istasyon kıyasları normatif ihlal/başarı sayılmaz. ' +
+            'Kaynak vektörleri değiştirilmez; tam satır izleri JSON çıktısındadır.</p>')
+        content += _table((("member_id", "Kolon"), ("candidate_count", "Statik kayıt"),
+            ("m2_counts", "M2 kaynak kıyası"), ("m3_counts", "M3 kaynak kıyası")), ecc["members"])
+        content += '<p>Rijitlik ve dışmerkezlik SHA-256: ' + _val(stability["result_sha256"]) + '</p>'
+        content += '<p>Dayanak: <a href="' + escape(stability["reference_url"], quote=True) + '">TS500/2000 metin kopyası (EMU)</a>.</p>'
+    cages = report.get("column_cages")
+    if cages:
+        content += ('<h2>VS15 · Öneri donatı yerleşimleri</h2><p>' + _val(cages["bound_member_count"]) +
+            ' kolonda üç öneri: 16Φ24 / 16Φ28 / 16Φ32; önerilen etriye Φ12 (TS500 7.4.1 çap alt sınırı). Bunlar mevcut veya seçilmiş donatı değildir. ' +
+            'CSI örtüsü etriyenin dış yüzünedir; boyuna çubuk merkez mesafesi = model örtüsü + önerilen etriye çapı + φ/2. ' +
+            'Modeldeki çubuk adı bir çap ölçüsü olarak kullanılmaz.</p>')
+        content += _table((("profile_id","Kesit profili"),("label","Öneri"),("as_cm2","As (cm²)"),
+            ("rho_percent","ρ (%)"),("center_offset_mm","Merkez örtüsü (mm)"),
+            ("minimum_clear_spacing_mm","Net aralık (mm)"),("area_ratio_status","Alan kıyası"),
+            ("spacing_status","Aralık kapsamı"),("reason","Açık neden")),cages["candidates"])
+        for cage in cages["candidates"]:
+            layout = next((p["layout"] for p in (report.get("column_transverse") or {}).get("proposals",[])
+                if p["candidate_id"]==cage["candidate_id"]),None)
+            if cage["geometry_status"] == "PROPOSED_GEOMETRY_CALCULATED": content += _column_cage_svg(cage,layout)
+        content += ('<p>Boyuna yerleşim önerisi; etriye/çiroz detay çizimi değildir. Agrega çapı, sargı, bindirme, ' +
+            'çap tedariki ve proje malzeme katsayılarının kabulü açık kalır. Üç aday tüm donatı seçeneklerini kapsamaz; ' +
+            'otomatik seçim veya optimum tasarım üretilmez.</p>')
+        content += '<p>Donatı önerileri SHA-256: '+_val(cages["result_sha256"])+ '</p>'
+    pmm = report.get("column_pmm")
+    if pmm:
+        content += ('<h2>Koşullu PMM · Tam statik kaynak nüfusu</h2><p>' + _val(pmm["static_state_count"]) +
+            ' statik durum × 3 öneri = ' + _val(pmm["assessment_count"]) + ' kıyas. Kaynak kuvvetleri değiştirilmez. ' +
+            'N=−P; M2/M3 CSI yerel işaretindedir. γc=1,5 ve γs=1,15 açık hesap senaryosudur; proje kabulü değildir. ' +
+            'Çelik gerinimi çubuk merkezinde, çubuğun betonla çakışması dairesel disk kesişim alanı ve birinci momentleriyle hesaplanır.</p>')
+        content += '<p>Sayısal durumlar: '+_val(pmm["status_counts"])+'. Açık nedenler: '+_val(pmm["reason_counts"])+'.</p>'
+        summary_rows = []
+        for item in pmm["members"]:
+            summary_rows.append({**item,"maximum_resolved_utilization":round(item["maximum_resolved_utilization"],6)
+                if item["maximum_resolved_utilization"] is not None else None,
+                "critical_keys":[s["native_key"] for s in item["critical_resolved_states"]]})
+        content += _table((("member_id","Kolon"),("story","Kat"),("candidate_label","Öneri"),("as_cm2","As (cm²)"),
+            ("static_state_count","Statik kayıt"),("maximum_resolved_utilization","En büyük çözülen koşullu oran"),
+            ("critical_keys","Kritik kaynak anahtarı"),("status_counts","Sayısal kapsam"),
+            ("numeric_population_complete","Sayısal nüfus tamam")),summary_rows)
+        content += ('<p>72/144/288 açısal örnekle başlanır; gerekirse 1152’ye kadar sıklaştırılır. Kuvvet artığı ≤1 N; ' +
+            'iki ardışık radyal fark ≤0,001 kN·m + %0,2 bağıl bütçe. Bu gözlenen kararlılıktır; sürekli zarf hatası için ' +
+            'kanıt değildir. Belirsiz çözüm veya sayısal sınır bandı kapasite aşımı/başarısı sayılmaz. Koşullu oran, sabit N’deki moment büyüklüğünün ' +
+            'aynı N ve moment doğrultusunda çözülen gerinim uyumlu kapasiteye oranıdır; ETABS tasarım PMM oranı değildir. ' +
+            'En ince açısal kesişim aralığında N(c,θ)=Nkaynak ve M2·u3−M3·u2=0 birlikte çözülür; ' +
+            'doğrultu artığı ≤1000 N·mm. Ara açılarda yeni eksenel denge çözülür; gerinim düzlemi enterpole edilmez.</p>')
+        content += ('<p>Minimum dışmerkezlik ve ikinci mertebe uygulanmadı. Depremli tam tasarım nüfusu, gerçek donatı, ' +
+            'detay koşulları ve nihai seçim doğrulanmadı: <strong>DENIED / NOT_PROVEN / NOT_READY</strong>. ' +
+            'Tam JSON, her kaynak vektörünü, aday kimliğini, yakınsama geçmişini ve çözülen θ/c/N/M2/M3 noktasını içerir.</p>')
+        content += '<p>Koşullu PMM SHA-256: '+_val(pmm["result_sha256"])+ '</p>'
+        content += '<p>Hesap dayanakları: '+', '.join('<a href="'+escape(url,quote=True)+'">'+escape(name)+'</a>'
+            for name,url in cages["references"].items())+'</p>'
+    transverse = report.get("column_transverse")
+    if transverse:
+        content += ('<h2>VS16 · Etriye ve çiroz önerileri</h2><p>' + _val(transverse["bound_member_count"]) +
+            ' kolonda enine donatı malzemesi kendi native kaydından bağlandı. Φ12/100 önerisi: bir kapalı dış etriye ve ' +
+            'her yönde üç çiroz; her yönde beş etkin kol varsayımı. Çizgiler eksen izdüşümüdür; kanca, büküm ve düşey ' +
+            'yerleşimin uygulanabilirliği doğrulanmış değildir. Native etriye adları ve kol sayıları tasarım detayı sayılmaz.</p>')
+        content += _table((("profile_id","Kesit profili"),("confinement_material","Enine donatı malzemesi"),
+            ("observed_fywk_mpa","Kaynak fywk (MPa)"),("scenario_fywd_mpa","Senaryo fywd (MPa)"),
+            ("steel_grade_compliance","Çelik sınıfı kabulü")),transverse["profiles"])
+        proposal_rows = []
+        for p in transverse["proposals"]:
+            for name,axis in p["axes"].items():
+                proposal_rows.append({**p,**axis,**axis["confinement"],"core_area_mm2":p["layout"]["core_area_mm2"]})
+        content += _table((("candidate_label","Boyuna öneri"),("shear_axis","Kesme yönü"),("bk_axis","bk ekseni"),
+            ("core_area_mm2","Ack (mm²)"),("bk_mm","bk (mm)"),("asw_mm2","Asw (mm²)"),("ash_mm2","Ash (mm²)"),
+            ("high_axial_required_ash_mm2","Ash yüksek N (mm²)"),("low_axial_required_ash_mm2","Ash düşük N (mm²)"),
+            ("maximum_lateral_leg_spacing_mm","Yatay kol aralığı (mm)"),("confinement_spacing_max_mm","Sarılma s üst sınırı (mm)")),proposal_rows)
+        content += ('<p>Ack dıştan dışa sargı alanı; bk en dış etriye eksenleri arasıdır (TBDY 7.0). Ash, bk’ya dik kol ' +
+            'izdüşümleri; Asw, kesme yönüne paralel kollardır. Bu ortogonal öneride sayısal olarak eşittir; genel olarak ' +
+            'birbirinin yerine konmaz. Denklem 7.1: max[0,30·s·bk·(Ac/Ack−1)·fck/fywk; 0,075·s·bk·fck/fywk]. ' +
+            'Nd≤0,20Acfck dalı bunun 2/3’üdür. Tam depremli eksenel yük nüfusu bağlı olmadığından iki dal da gösterilir; ' +
+            'hiçbiri seçilmez. 50≤s≤min(bmin/3,6φboyuna,150) ve yatay aralık≤25φetriye ayrı referanslardır.</p>')
+        content += ('<p>Sarılma bölgesinin gerçek uzunluğu henüz hesaplanamaz: kiriş yüzleri arası serbest boy ve konsol ' +
+            'durumu doğrulanmadı. Normal kolon referansı max(ln/6,1,5hmax,500), konsol alt ucu 2hmax. Öneri kancalar ' +
+            '135°/135°, iç büküm çapı≥5φ, düz kuyruk≥max(6φ,80); üç boyutlu imalat detayı değildir. Genel uygunluk ' +
+            've nihai donatı seçimi NOT_PROVEN kalır.</p>')
+        content += '<p>Enine donatı önerisi SHA-256: '+_val(transverse["result_sha256"])+ '</p>'
+    shear = report.get("column_shear")
+    if shear:
+        content += ('<h2>Koşullu kesme · Tam statik kaynak nüfusu</h2><p>' + _val(shear["static_state_count"]) +
+            ' statik vektör × 3 öneri × 2 yerel yön = ' + _val(shear["assessment_count"]) +
+            ' kıyas. V2: bw=T2, d=T3−boyuna merkez örtüsü; V3: bw=T3, d=T2−boyuna merkez örtüsü. ' +
+            'd karşı dış boyuna katmanın merkezine göre bir referanstır; tasarım kesiti kabulü değildir.</p>')
+        content += ('<p>TS500 8.1 senaryosu: fctk=0,35√fck, fctd=fctk/1,5; Vcr=0,65fctd·bw·d·(1+γ|N|/Ac), ' +
+            'basınçta γ=0,07, çekmede γ=−0,30. Vc=0,8Vcr; Vw=(Asw/s)·fywd·d; Vr=Vc+Vw. Ayrı senaryoda Vc=0. ' +
+            'Negatif çatlama çarpanı sıfıra kırpılıp onaylanmaz; beton katkılı dal belirsiz kalır. Denge Asw/s hesabı ' +
+            'yalnız |V|−Vc farkını karşılar; minimum ve detay koşullarının tamamı değildir.</p>')
+        content += ('<p>Gerçek tasarım Ve=NOT_PROVEN. Statik kaynak V, kapasite kesmesi olarak adlandırılmaz. ' +
+            'TBDY 7.3.7.6 için sarılma konumu, yalnız deprem kesmesinin toplam depremli kesmeye oranı&gt;0,5 ve ' +
+            'Nd≤0,05Acfck koşulları bağlanmadığından Vc=0 dalı zorunlu seçilmez. 0,85Ac√fck ve TS500 8.7 ' +
+            '0,22fcd·bw·d üst sınırları JSON’da ayrı kaynak kıyaslarıdır; TS500 kiriş gövde hükmünün kolona uygulanması ' +
+            'bu pakette onaylanmadı. Burulma etkileşimi ve ikinci mertebe değerlendirilmedi.</p>')
+        summary_rows = []
+        for item in shear["members"]:
+            ts,zero = item["branches"]["ts500"],item["branches"]["zero_concrete"]
+            summary_rows.append({**item,"ts500_ratio":ts["maximum_source_utilization"],
+                "zero_ratio":zero["maximum_source_utilization"],
+                "critical_ts500":[r["native_key"] for r in ts["critical_source_states"]],
+                "critical_zero":[r["native_key"] for r in zero["critical_source_states"]]})
+        content += '<p>Sayısal kapsam: '+_val(shear["status_counts"])+'. Açık nedenler: '+_val(shear["reason_counts"])+'.</p>'
+        content += '<details><summary>Kolon, öneri ve yön bazında kaynak kıyasları</summary>'+_table(
+            (("member_id","Kolon"),("story","Kat"),("candidate_label","Boyuna öneri"),("shear_axis","Yön"),
+             ("static_state_count","Statik kayıt"),("ts500_ratio","En büyük |V|/Vr · TS500"),("zero_ratio","En büyük |V|/Vr · Vc=0"),
+             ("critical_ts500","TS500 kritik kaynak"),("critical_zero","Vc=0 kritik kaynak"),("status_counts","Sayısal kapsam")),summary_rows)+'</details>'
+        content += '<p>Kesme hesabı SHA-256: '+_val(shear["result_sha256"])+'. <strong>DENIED / NOT_PROVEN / NOT_READY</strong>.</p>'
+        content += '<p>Hesap dayanakları: '+', '.join('<a href="'+escape(url,quote=True)+'">'+escape(name)+'</a>'
+            for name,url in shear["references"].items())+'</p>'
+    joints = report.get("column_joints")
+    if joints:
+        from .column_engine.column_joints import joint_summaries, joint_tie_summaries
+        content += ('<h2>VS17 · Kolon–kiriş birleşim referansları</h2><p>' + _val(joints["joint_node_count"]) +
+            ' native düğüm · ' + _val(joints["column_end_count"]) + ' kolon ucu · ' + _val(joints["geometric_limit_count"]) +
+            ' yön sınırı. Kesitler düğüm merkezinde eşmerkez ve dik kabul edilen ayrı uç senaryolarıdır. ' +
+            'Her satırın geometrisi uç kolonuna; sargı referansı ayrıca belirtilen alt kolona aittir. ' +
+            'Native uç bağlantıları fiziksel birleşim yüzlerini veya eksantrisiteyi kanıtlamaz.</p>')
+        content += ('<p>TBDY 7.5.1: dört tarafta kiriş ve her kiriş eni ≥ ilgili kolon eninin %75’i. ' +
+            'Kuşatılmış/kuşatılmamış senaryoda sınır 1,7/1,0 × bj × h × √fck. Eşmerkez durumda bj, ' +
+            'kolon eni ve en dar kiriş eni+h sınırıyla belirlenir; boyutlar mm, dayanım MPa, sonuç kN. ' +
+            '<strong>Birleşim Ve ve SCWB: NOT_PROVEN</strong>. Kiriş donatısı ve depremle uyumlu kapasite durumları eksiktir.</p>')
+        content += '<p>Kapsam: '+_val(joints["status_counts"])+'. Uç senaryoları: '+_val(joints["enclosure_counts"])+'.</p>'
+        if joints["graph"].get("reason"): content += '<p>Kaynak bağı: '+_val(joints["graph"]["reason"])+'.</p>'
+        ends = joint_summaries(joints) if "rows" in joints else joints.get("end_summaries",[])
+        content += '<details><summary>Kolon uçları, kiriş bağlantıları ve koşullu kesme sınırları</summary>'+_table((
+            ("member_id","Geometri kolonu"),("end","Uç"),("point_id","Düğüm"),("enclosure_scenario","Eşmerkez sınıf"),
+            ("beam_ids","Kirişler"),("limit_V2_kn","V2 sınırı (kN)"),("limit_V3_kn","V3 sınırı (kN)"),
+            ("missing_faces","Kirişsiz yüz"),("narrow_faces","Dar kiriş yüzü"),("status","Kapsam"),("reason","Açık neden")),ends)+'</details>'
+        content += ('<h3>Birleşim sargı referansları · Denk. 7.1 tabanı</h3><p>Alt kolonun iki eksenel yük dalındaki ' +
+            'Ash/s referansları fiziksel doğrultuya eşlenir. TBDY 7.5.2.3 için %40/%60 oranıyla aynı Φ12/100 önerisine ' +
+            'aktarılır; aralık sınırları 150/100 mm, çap alt sınırı 8 mm. Eksik kapasite kesmesi daha fazla donatı ' +
+            'gerektirebilir; bu hesap tam birleşim donatısı ihtiyacı veya gerçek donatı kabulü değildir.</p>')
+        ties = joint_tie_summaries(joints) if "rows" in joints else joints.get("tie_summaries",[])
+        content += '<details><summary>Alt kolon, yön ve öneri bazında sargı referansları</summary>'+_table((
+            ("member_id","Uç kolonu"),("end","Uç"),("point_id","Düğüm"),("lower_column_id","Alt kolon"),
+            ("axis","Uç yönü"),("lower_axis","Alt kolon yönü"),("candidate_label","Boyuna öneri"),
+            ("required_high_mm2","Ash yüksek N (mm²)"),("required_low_mm2","Ash düşük N (mm²)"),
+            ("proposed_ash_mm2","Öneri Ash (mm²)"),("spacing_mm","Öneri s (mm)"),("tie_reason","Açık neden")),ties)+'</details>'
+        content += '<p>Birleşim türetimi SHA-256: '+_val(joints["result_sha256"])+'. '+', '.join(
+            '<a href="'+escape(url,quote=True)+'">'+escape(name)+'</a>' for name,url in joints["references"].items())+'</p>'
+    kinematics = report.get("column_kinematics")
+    if kinematics:
+        from .column_engine.column_kinematics import kinematic_summaries
+        content += ('<h2>VS18 · Kolon uç kuvvetleri ve düğüm hareketleri</h2><p>' +
+            _val(kinematics["linked_member_case_count"])+'/'+_val(kinematics["expected_member_case_count"])+
+            ' kolon–birleşim kaynak bağı. I/J kuvvetleri aynı tek değerli statik birleşime aittir; '+
+            'ara istasyonlar talep zincirinde korunur. Çıktı kesiti ile uç düğümü ayrı konumlardır. '+
+            '<strong>Analiz mertebesi NOT_PROVEN; Cm, β veya büyütülmüş tasarım momenti üretilmedi.</strong></p>')
+        content += ('<p>Global U/R, doğrulanmış I→J yerel eksenlerine dönüştürülür. '+
+            'L düğümler arasındaki boydur; α2=−Δu3/L, α3=Δu2/L. R−α düğümün kolon doğrusuna göre küçük dönmesidir; '+
+            'kesit uç dönmesi, eğrilik veya bağımsız P–δ hesabı değildir. Deplasmanlar yuvarlanmış tablo değerleridir; '+
+            'sıfır hücre gerçek sıfır hareket kanıtı değildir.</p>')
+        summary = kinematic_summaries(kinematics) if "rows" in kinematics else kinematics.get("summaries", [])
+        content += '<details><summary>Aynı birleşimde kaynak uç kuvvetleri</summary>'+_table((
+            ("member_id","Kolon"),("output_case","Birleşim"),("i_element","I analiz elemanı"),("i_station_m","I istasyon (m)"),
+            ("j_element","J analiz elemanı"),("j_station_m","J istasyon (m)"),("i_P","I P (kN)"),("j_P","J P (kN)"),
+            ("i_M2","I M2 (kN·m)"),("j_M2","J M2 (kN·m)"),("i_M3","I M3 (kN·m)"),("j_M3","J M3 (kN·m)"),
+            ("status","Kaynak bağı"),("force_reason","Açık neden")),summary)+'</details>'
+        content += '<details><summary>Düğüm hareketleri ve kolon doğrusu</summary>'+_table((
+            ("member_id","Kolon"),("output_case","Birleşim"),("point_i","I düğüm"),("point_j","J düğüm"),
+            ("object_i_j_length_m","I–J boyu (m)"),("output_cut_span_m","Çıktı kesitleri arası (m)"),
+            ("delta_local_m","Δu1/2/3 (m)"),("chord_alpha2_rad","α2 (rad)"),("chord_alpha3_rad","α3 (rad)"),
+            ("joint_i_relative_r2_rad","I R2−α2"),("joint_i_relative_r3_rad","I R3−α3"),
+            ("joint_j_relative_r2_rad","J R2−α2"),("joint_j_relative_r3_rad","J R3−α3"),
+            ("kinematics_reason","Açık neden")),summary)+'</details>'
+        content += '<details><summary>Kaydedilmiş analiz rijitliği esası</summary>'+_table((
+            ("case_name","Vaka"),("stiffness_type","Rijitlik ayarı"),("nonlinear_case_raw","Başlangıç vaka kaydı"),
+            ("status","Kaynak durumu"),("reason","Açık neden")),kinematics["analysis_basis"]["cases"])+(
+            '<p>Lineer statik vaka türü birinci mertebeyi kanıtlamaz. P-Delta kaydı tam ikinci mertebe doğrulaması değildir; '+
+            'Nonlinear Case / None kaydı doğrulanmış bir başlangıç koşulu sayılmaz.</p></details>')
+        content += '<p>Uç türetimi SHA-256: '+_val(kinematics["result_sha256"])+'. '+', '.join(
+            '<a href="'+escape(url,quote=True)+'">'+escape(name)+'</a>' for name,url in kinematics["references"].items())+'</p>'
+    sensitivity = report.get("column_sensitivity")
+    if sensitivity:
+        from .column_engine.column_sensitivity import sensitivity_summaries
+        content += ('<h2>VS19 · Etkin boy ve rijitlik duyarlılığı</h2><p>'+
+            _val(sensitivity["static_state_count"])+' statik kaynak kaydı, '+_val(sensitivity["state_axis_count"])+
+            ' eksen kaydı: '+_val(sensitivity["stiffness_scenario_count"])+' EI senaryosu, '+
+            _val(sensitivity["euler_reference_count"])+' Euler referansı, '+_val(sensitivity["zero_length_reference_count"])+
+            ' matematiksel payda-sıfır boyu. Bütün ara istasyonlar ve eşit kritik kaynaklar korunur.</p>')
+        content += ('<p>TS500 7.19/7.21: EI(N·mm²)=0,4EcIc/(1+Rm), Nk(kN)=π²EI/(1000lk(mm)²). Rm=0/0,5/1 açık parametre ailesidir; '+
+            'gerçek sünme oranı veya doğrulanmış EI aralığı değildir. i=0,30h seçilir; √(I/A) ayrı gösterilir. '+
+            '22i ötelenmesi önlenmemiş sınıfın koşullu sınırı, 40i önlenmiş sınıfın yalnız üst sınırı, '+
+            '100i yaklaşık yöntemin narinlik tavanıdır. Bu boylar gerçek lk yerine atanmaz.</p>')
+        content += ('<p>lk,0(mm)=π√[EI/(1,3×1000×Nkaynak(kN))] yalnız Denk.7.24 paydasının sıfır olduğu boydur; '+
+            '<strong>izin verilen boy veya Nk=N Euler boyu değildir.</strong> 100i ötesindeki matematiksel '+
+            'boy, yaklaşık yöntemin kapsamını genişletmez. Pozitif payda mühendislik stabilite kabulü değildir; '+
+            'Cm, β ve tasarım momenti üretilmez.</p>')
+        axes = sensitivity.get("axes", [])
+        axis_rows, euler_rows = [], []
+        for row in axes:
+            axis_rows.append({**row, "ei_family": [format(s["effective_ei_nmm2_scenario"], ".6g") for s in row["scenarios"]]})
+            for scenario in row["scenarios"]:
+                euler_rows.append({"member_id":row["member_id"], "axis":row["axis"], "rm":scenario["creep_ratio_scenario"],
+                    "nk_22":scenario["length_references"][0]["nk_kn_scenario"],
+                    "nk_40":scenario["length_references"][1]["nk_kn_scenario"],
+                    "nk_100":scenario["length_references"][2]["nk_kn_scenario"]})
+        content += '<details><summary>Kesit, yarıçap ve açık EI senaryoları</summary>'+_table((
+            ("member_id","Kolon"),("axis","Eksen"),("ec_mpa_observed","Ec (MPa)"),("gross_inertia_mm4","Ic (mm⁴)"),
+            ("radius_reference_mm","i=0,30h (mm)"),("radius_exact_mm","√(I/A) (mm)"),
+            ("length_22i_mm","22i (mm)"),("length_40i_mm","40i (mm)"),("length_100i_mm","100i (mm)"),
+            ("ei_family","EI: Rm=0/0,5/1 (N·mm²)"),("status","Kaynak"),("reason","Açık neden")),axis_rows)+'</details>'
+        content += '<details><summary>Referans etkin boylarda Euler yükleri</summary>'+_table((
+            ("member_id","Kolon"),("axis","Eksen"),("rm","Rm senaryosu"),("nk_22","Nk: 22i (kN)"),
+            ("nk_40","Nk: 40i (kN)"),("nk_100","Nk: 100i (kN)")),euler_rows)+'</details>'
+        summary = sensitivity_summaries(sensitivity) if "rows" in sensitivity else sensitivity.get("summaries", [])
+        content += '<details><summary>Kolon ve eksen bazında en küçük matematiksel payda-sıfır boyları</summary>'+_table((
+            ("member_id","Kolon"),("axis","Eksen"),("recorded_state_count","Statik kayıt"),
+            ("maximum_source_n_kn","En büyük N kaynağı (kN)"),("minimum_zero_lengths_mm","lk,0: Rm 0/0,5/1 (mm)"),
+            ("zero_lengths_exceed_100i","100i ötesinde"),("critical_source_states","Eşit kritik kaynakların tamamı"),
+            ("status_counts","Sayısal kapsam")),summary)+'</details>'
+        content += '<p>Referans paydaların sayısal kapsamı: '+_val(sensitivity["denominator_status_counts"])+'.</p>'
+        content += '<details><summary>Kaydedilmiş eksenel kuvvet değişimi</summary>'+_table((
+            ("member_id","Kolon"),("output_case","Birleşim"),("recorded_static_station_count","İstasyon"),
+            ("n_i_kn","I N (kN)"),("n_j_kn","J N (kN)"),("end_n_j_minus_i_kn","NJ−NI (kN)"),
+            ("recorded_range_kn","Tüm kayıtların N aralığı (kN)"),("recorded_values_status","Kaynak gözlemi")),
+            sensitivity.get("axial_profiles", []))+('<p>TS500 7.6.2 için sabit kesit ve eksenel kuvvet, doğrusal elastik '+
+            'analiz ve minimum dışmerkezlik esası ayrıca gerekir. Eşit kayıtlı N değerleri bu koşulları kanıtlamaz.</p></details>')
+        content += ('<p>Duyarlılık türetimi SHA-256: '+_val(sensitivity["result_sha256"])+'. '+', '.join(
+            '<a href="'+escape(url,quote=True)+'">'+escape(name)+'</a>' for name,url in sensitivity["references"].items())+
+            ' · <strong>DENIED / NOT_PROVEN / NOT_READY</strong>.</p>')
+    historical = report.get("historical_reconciliation")
+    if historical:
+        content += '<h2>Tarihsel D7-B6 toplamları</h2>' + _table((
+            ("story", "Kat"), ("output_case", "Vaka"), ("column_count", "Kolon"),
+            ("native_signed_p_sum_kN", "Native ΣP (kN)"), ("historical_signed_p_kN", "Tarihsel ΣP (kN)"),
+            ("difference_kN", "Fark (kN)"), ("numeric_match", "Sayısal eşleşme")), historical["items"])
+        content += '<p>Bu karşılaştırma aynı fiziksel kesiti, analiz neslini veya kat φ yetkisini kanıtlamaz.</p>'
+    content += '<h2>Sonraki hesapların girdileri</h2>' + _table((
+        ("topic", "İş paketi"), ("available", "Kaynak / kullanılabilir yol"), ("remaining", "Tamamlanacak bağ")), report["engineering_gaps"])
+    content += ('<h2>İzlenebilirlik</h2><p>Kaynak ZIP SHA-256: ' + _val(report["source_archive_sha256"]) +
+        '<br>Veritabanı SHA-256: ' + _val(report.get("database_sha256")) +
+        '<br>Hesap SHA-256: ' + _val(report["result_sha256"]) + '</p>')
+    if report.get("column_overview"):
+        from .column_overview_report import overview_html
+        from .column_quality_report import quality_html
+        from .scwb_report import scwb_html
+        from .beam_report import beam_html
+        from .scenario_report import scenario_html
+        quality = quality_html(report["column_pmm_quality"]) if report.get("column_pmm_quality") else ""
+        scwb = scwb_html(report["column_scwb"]) if report.get("column_scwb") else ""
+        beams = beam_html(report["beam_end_references"]) if report.get("beam_end_references") else ""
+        scenarios = scenario_html(report['scwb_scenarios']) if report.get('scwb_scenarios') else ''
+        content = overview_html(report["column_overview"]) + scenarios + scwb + beams + quality + '<details class="calculation-details"><summary>Tüm kaynak tabloları, formüller ve ara hesaplar</summary>' + content + '</details>'
+    return ('<!doctype html><html lang="tr"><meta charset="utf-8"><title>YENI · Kolon mühendislik özeti</title>' +
+        '<style>body{font:14px/1.5 system-ui;margin:32px;color:#243345}h1{font-size:23px}h2{margin-top:30px}' +
+        'table{border-collapse:collapse;width:100%;font-size:11px}th,td{border:1px solid #cfd8e3;padding:6px;text-align:left}' +
+        'th{background:#eaf0f6}p{overflow-wrap:anywhere}.overview-scroll{overflow-x:auto}.column-overview td{font-variant-numeric:tabular-nums}' +
+        'details{margin:12px 0;border:1px solid #cfd8e3;border-radius:6px;padding:10px}summary{cursor:pointer;font-weight:600}' +
+        'pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;background:#f4f7fa;padding:12px}' +
+        '@media print{thead{display:table-header-group}tr{break-inside:avoid}}</style>' + content + '</html>')
+
+
 def _load_source(directory: Path, expected_sha: str) -> dict[str, Any]:
     source_file = directory / "input.source"
     if source_file.is_symlink() or not source_file.is_file():
@@ -38,7 +435,11 @@ def _load_source(directory: Path, expected_sha: str) -> dict[str, Any]:
 
 def _vs05_check_inventory(checks: list[dict], story_drift: dict | None,
                           b1: Mapping[str, Any] | None = None,
-                          b1_source_status: str | None = None) -> dict:
+                          b1_source_status: str | None = None,
+                          b2: Mapping[str, Any] | None = None,
+                          wall_geometry: Mapping[str, Any] | None = None,
+                          source_controls: Mapping[str, Any] | None = None,
+                          earthquake_combinations: Mapping[str, Any] | None = None) -> dict:
     """Separate historical checks and source-derived checks; no fake code PASS."""
     entries = [{"check_id": c["check_id"], "evaluation": "BOUNDED_EXISTING"}
                for c in checks]
@@ -82,6 +483,57 @@ def _vs05_check_inventory(checks: list[dict], story_drift: dict | None,
             "formal_compliance": "NOT_PROVEN",
             "engineering_release": "NOT_READY",
         })
+    if b2 is not None:
+        if (b2.get("check_id") != "SOFT_STORY_B2"
+                or b2.get("formal_compliance") != "NOT_PROVEN"
+                or b2.get("engineering_release") != "NOT_READY"):
+            raise ValueError("B2_INVENTORY_SOURCE_CONTRACT_INVALID")
+        entries.append({
+            "check_id": "SOFT_STORY_B2",
+            "evaluation": ("CONDITIONAL_SOURCE_NUMERICAL"
+                           if b2["comparison_coverage"]["resolved"] else "BLOCKED_SOURCE"),
+            "status": b2["numeric_condition"], "source_status": b2["status"],
+            "expected_count": b2["expected_count"],
+            "evaluated_count": b2["evaluated_count"],
+            "comparison_coverage": b2["comparison_coverage"],
+            "formal_compliance": "NOT_PROVEN", "engineering_release": "NOT_READY",
+        })
+    if wall_geometry is not None:
+        if (wall_geometry.get("check_id") != "WALL_GEOMETRY_CHECK"
+                or wall_geometry.get("formal_compliance") != "NOT_PROVEN"
+                or wall_geometry.get("engineering_release") != "NOT_READY"):
+            raise ValueError("WALL_GEOMETRY_INVENTORY_CONTRACT_INVALID")
+        entries.append({"check_id": "WALL_GEOMETRY_CHECK",
+            "evaluation": "CONDITIONAL_SOURCE_NUMERICAL" if wall_geometry["evaluated_count"] else
+                          "NOT_APPLICABLE" if wall_geometry["status"] == "NOT_APPLICABLE" else "BLOCKED_SOURCE",
+            "status": wall_geometry["numeric_condition"], "source_status": wall_geometry["status"],
+            "expected_count": wall_geometry["expected_count"], "evaluated_count": wall_geometry["evaluated_count"],
+            "formal_compliance": "NOT_PROVEN", "engineering_release": "NOT_READY"})
+    if source_controls is not None:
+        from .source_control_bundle import CHECKS as SOURCE_CHECKS
+        allowed = {c.check_id for c in SOURCE_CHECKS}
+        for check in source_controls["checks"]:
+            if (check.get("check_id") not in allowed or check.get("formal_compliance") != "NOT_PROVEN"
+                    or check.get("engineering_release") != "NOT_READY"):
+                raise ValueError("SOURCE_CONTROL_INVENTORY_CONTRACT_INVALID")
+            entries.append({"check_id": check["check_id"],
+                "evaluation": "CONDITIONAL_SOURCE_NUMERICAL" if check["evaluated_count"] else "BLOCKED_SOURCE",
+                "status": check["status"], "expected_count": check["expected_count"],
+                "evaluated_count": check["evaluated_count"], "formal_compliance": "NOT_PROVEN",
+                "engineering_release": "NOT_READY"})
+    if earthquake_combinations is not None:
+        from .earthquake_combinations import CHECKS as COMBINATION_CHECKS
+        allowed = {c.check_id for c in COMBINATION_CHECKS}
+        for check in earthquake_combinations["checks"]:
+            if (check.get("check_id") not in allowed or check.get("formal_compliance") != "NOT_PROVEN"
+                    or check.get("engineering_release") != "NOT_READY"):
+                raise ValueError("EARTHQUAKE_COMBINATION_INVENTORY_CONTRACT_INVALID")
+            entries.append({"check_id": check["check_id"],
+                "evaluation": "CONDITIONAL_SOURCE_NUMERICAL" if check["evaluated_count"] else
+                              "NOT_APPLICABLE" if check["status"] == "NOT_APPLICABLE" else "BLOCKED_SOURCE",
+                "status": check["status"], "expected_count": check["expected_count"],
+                "evaluated_count": check["evaluated_count"], "not_applicable_count": check["not_applicable_count"],
+                "formal_compliance": "NOT_PROVEN", "engineering_release": "NOT_READY"})
     ids = [e["check_id"] for e in entries]
     if len(ids) != len(set(ids)):
         raise ValueError("DUPLICATE_REPORTED_CHECK_ID")
@@ -268,6 +720,9 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
     # B1 is optional: missing/unsupported source cannot break VS01-VS06-C2.
     vs06_b1_result = None
     vs06_b1_source_status = None
+    from .physical_story_scope import review_physical_story_scope, scope_story_drift
+    physical_scope = (review_physical_story_scope(source.get("vs05_delta_source"))
+                      if "vs05_delta_source" in source else None)
     if ("vs06_b1_geometry_source" in source or "vs06_wall_load_source" in source
             or "vs06_b1_geometry_capture_error" in source):
         if (isinstance(source.get("vs06_b1_geometry_source"), Mapping) and
@@ -276,12 +731,42 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
             try:
                 vs06_b1_result = evaluate_b1_sources(
                     source["vs06_b1_geometry_source"],
-                    source["vs06_wall_load_source"])
+                    source["vs06_wall_load_source"], physical_scope=physical_scope,
+                    physical_scope_source=source.get("vs05_delta_source"))
                 vs06_b1_source_status = "SOURCE_BOUND_NUMERICAL"
             except (B1BridgeError, ValueError, TypeError, KeyError) as exc:
                 vs06_b1_source_status = "BLOCKED_SOURCE_BINDING: " + str(exc)
         else:
             vs06_b1_source_status = "BLOCKED_REQUIRED_B1_SOURCES_MISSING"
+
+    # VS07 B2 reuses the SAME sealed source; historical receipts and their
+    # evaluators are unchanged. Invalid B2 is local to this optional check.
+    b2 = None
+    if "vs05_delta_source" in source or "vs05_delta_capture_error" in source:
+        from .soft_story_b2 import bind_soft_story_b2
+        b2 = bind_soft_story_b2(
+            source.get("vs05_delta_source"),
+            capture_error=source.get("vs05_delta_capture_error"), physical_scope=physical_scope)
+
+    # Project only AFTER exact legacy receipt/ledger replay. Never overwrite
+    # archived source, receipts, or the historical candidate DAG denominator.
+    declared_story_drift = story_drift
+    if physical_scope is not None and story_drift is not None:
+        story_drift = scope_story_drift(story_drift, source["vs05_delta_source"], physical_scope)
+
+    wall_geometry = None
+    if "vs06_b1_geometry_source" in source or "vs06_b1_geometry_capture_error" in source:
+        from .wall_geometry import bind_wall_geometry
+        wall_geometry = bind_wall_geometry(source, physical_scope=physical_scope)
+
+    from .source_control_bundle import bind_source_controls
+    source_controls = bind_source_controls(source)
+    if not source_controls["checks"]:
+        source_controls = None
+    earthquake_combinations = None
+    if "vs04_basis_probe" in source:
+        from .earthquake_combinations import bind_earthquake_combinations
+        earthquake_combinations = bind_earthquake_combinations(source)
 
     frame_rows = ((geometry_source or {}).get("tables", {}).get("FRAME_ASSIGNMENTS", {})
                   .get("rows", []) or [])
@@ -317,7 +802,16 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
     elif vs04:
         source_scope += " (E–J historical source evidence if recorded)"
     inventory = _vs05_check_inventory(
-        checks, story_drift, vs06_b1_result, vs06_b1_source_status)
+        checks, story_drift, vs06_b1_result, vs06_b1_source_status, b2, wall_geometry, source_controls,
+        earthquake_combinations)
+    if earthquake_combinations is not None:
+        source_scope += " + VS10 orthogonal combination coefficients / observed directional coverage (TBDY NOT_PROVEN)"
+    if source_controls is not None:
+        source_scope += " + VS09 concrete upper strength / modal method source subconditions (TBDY NOT_PROVEN)"
+    if wall_geometry is not None:
+        source_scope += " + WALL_GEOMETRY_CHECK observed panel subconditions (TBDY NOT_PROVEN)"
+    if b2 is not None:
+        source_scope += " + SOFT_STORY_B2 assumed Avg Drift/h adjacent-source arithmetic (TBDY NOT_PROVEN)"
     if vs06_b1_result is not None:
         pair_count = vs06_b1_result["b1_numerical"]["computed_story_direction_pairs"]
         source_scope += (" + WEAK_STORY_B1 X/Y source numerical "
@@ -362,6 +856,9 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         "vs04_readiness": vs04_readiness,
         "vs04_pipeline": vs04_pipeline,
         **({"story_drift": story_drift} if story_drift is not None else {}),
+        **({"physical_story_scope": physical_scope} if physical_scope is not None else {}),
+        **({"declared_story_drift_source_record": declared_story_drift}
+           if story_drift != declared_story_drift else {}),
         **({"vs06_story_slot_ledger": vs06_slot_ledger}
            if vs06_slot_ledger is not None else {}),
         **({"vs06_physical_source_review": vs06_physical_source_review}
@@ -372,6 +869,10 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
            if vs06_b1_result is not None else {}),
         **({"vs06_b1_source_status": vs06_b1_source_status}
            if vs06_b1_source_status is not None else {}),
+        **({"soft_story_b2": b2} if b2 is not None else {}),
+        **({"wall_geometry": wall_geometry} if wall_geometry is not None else {}),
+        **({"source_controls": source_controls} if source_controls is not None else {}),
+        **({"earthquake_combinations": earthquake_combinations} if earthquake_combinations is not None else {}),
         "vs03": new_checks,
         "checks": checks,
         "modal_source_table": {
@@ -448,6 +949,27 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
     drift_summary = report.get("story_drift")
     if isinstance(drift_summary, Mapping):
         summary_rows.append(_vs05_summary_row(drift_summary))
+    b2 = report.get("soft_story_b2")
+    wall_geometry = report.get("wall_geometry")
+    source_controls = report.get("source_controls")
+    if isinstance(source_controls, Mapping):
+        summary_rows.extend(source_controls["checks"])
+    earthquake_combinations = report.get("earthquake_combinations")
+    if isinstance(earthquake_combinations, Mapping):
+        summary_rows.extend(earthquake_combinations["checks"])
+    if isinstance(wall_geometry, Mapping):
+        summary_rows.append({"check_id": "WALL_GEOMETRY_CHECK", "status": wall_geometry["status"],
+            "expected_count": wall_geometry["expected_count"], "evaluated_count": wall_geometry["evaluated_count"],
+            "met_count": 0, "unmet_count": 0, "not_applicable_count": wall_geometry["not_applicable_count"],
+            "not_proven_count": wall_geometry["expected_count"] - wall_geometry["not_applicable_count"]})
+    if isinstance(b2, Mapping):
+        summary_rows.append({
+            "check_id": "SOFT_STORY_B2", "status": b2["status"],
+            "expected_count": b2["expected_count"],
+            "evaluated_count": b2["evaluated_count"],
+            "met_count": 0, "unmet_count": 0, "not_applicable_count": 0,
+            "not_proven_count": b2["expected_count"],
+        })
     section_cols = (
         ("story", "Kat"), ("element_id", "UniqueName"), ("section", "Atanan kesit"),
         ("material_name", "Malzeme"), ("material_classification", "Malzeme sınıfı"),
@@ -576,6 +1098,20 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
                                            ("conditional_eq_4_19_minimum_term_kn",
                                             "Koşullu alt terim (kN)")),
                                           [conditional]) + '</section>')
+    physical_scope = report.get("physical_story_scope")
+    if isinstance(physical_scope, Mapping):
+        vs04_sections.append(
+            '<section class="percheck"><h2>Fiziksel kat kapsamı · B1 / B2 / STORY_DRIFT</h2>'
+            '<p>Durum: ' + _val(physical_scope["status"]) +
+            '; fiziksel kat: ' + _val(physical_scope["physical_story_count"]) +
+            ' / tanımlı kat: ' + _val(physical_scope["defined_story_count"]) +
+            '. NOT_APPLICABLE yalnız eksiksiz Frame/Area/Wall/Joint envanteriyle boşluğu '
+            'doğrulanan katlara uygulanır. Bu envanter resmî TBDY kabulü değildir.</p>' +
+            _table((("story", "Kat"), ("applicability", "Kapsam"), ("frames", "Frame"),
+                    ("areas", "Area"), ("walls", "Wall (Area alt kümesi)"), ("joints", "Joint"),
+                    ("reason", "Gerekçe")), physical_scope["stories"]) +
+            '<p>Açık neden: ' + _val(physical_scope["reason_codes"]) +
+            ' · Kapsam SHA: ' + _val(physical_scope["scope_sha256"]) + '</p></section>')
     drift_check = report.get("story_drift")
     if isinstance(drift_check, Mapping):
         drift_cols = (("story", "Kat"), ("case", "Analiz vakası"),
@@ -600,6 +1136,8 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
     if isinstance(ledger, Mapping):
         vs04_sections.append(
             '<section class="percheck"><h2>VS06-A · STORY_DRIFT kaynak slot muhasebesi</h2>'
+            '<p>Arşiv kaydı: fiziksel boş kat istisnasından önceki tanımlı kat kapsamıdır. '
+            'Güncel uygulanabilir kapsam yukarıdaki STORY_DRIFT sonucundadır.</p>'
             '<p>Beklenen slot: ' + _val(ledger.get("expected_slot_count")) +
             '; kaynaktan hesaplanan: ' + _val(ledger.get("source_numeric_count")) +
             '; kaynağı eksik: ' + _val(ledger.get("source_missing_count")) +
@@ -615,6 +1153,8 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
     if isinstance(physical, Mapping):
         vs04_sections.append(
             '<section class="percheck"><h2>VS06-B · Fiziksel kaynak ve spektral eşzamanlılık kanıtı</h2>'
+            '<p>Arşivdeki kolon ucu kanıt incelemesi; güncel tam nesne envanteri ve '
+            'boş kat istisnaları ayrı fiziksel kat kapsamı tablosundadır.</p>'
             '<p>Gözlenen kolon bağlantısı: ' + _val(physical.get("endpoint_linked_column_count")) +
             ' / ' + _val(physical.get("observed_column_count")) +
             '; bağımsız RSX/RSY nokta maksimumu: ' +
@@ -645,6 +1185,8 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
     if isinstance(readiness, Mapping):
         vs04_sections.append(
             '<section class="percheck"><h2>VS06-C1 · TBDY 4.9 etkin göreli kat ötelemesi hesap hazırlığı</h2>'
+            '<p>Arşivdeki tanımlı kat muhasebesi korunmuştur; C2 senaryosu doğrulanmış '
+            'boş kat istisnalarını uygular.</p>'
             '<p>94 düğümlü mevcut DAG üzerinden beklenen kat/yön kontrolleri: ' +
             _val(readiness.get("expected_story_direction_instances")) +
             '; ETABS kaynak-nümerik aday bulunan: ' +
@@ -725,6 +1267,7 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
             'kapı/pencere azaltması varsayımdır. Formel uygunluk NOT_PROVEN.</p>'
             '<p>ηci,min: ' + _val(b1_numeric.get("eta_ci_min")) +
             ' · Sayısal karar: ' + _val(b1_numeric.get("numeric_condition")) +
+            ' · Fiziksel kat kapsamı: ' + _val(b1.get("physical_source_coverage", "UNKNOWN")) +
             ' · Gevrek dolgu varsayılanı: ' +
             _val((b1.get("parameters") or {}).get("wall_type")) + '</p>' +
             _table((("story", "Kat"), ("direction", "Yön"),
@@ -748,6 +1291,128 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
             '<section class="percheck"><h2>VS06-D1 · B1 veri eşleştirmesi</h2>'
             '<p>' + _val(report.get("vs06_b1_source_status")) +
             '. Önceki kabul edilmiş alt kontroller korunmuştur.</p></section>')
+
+    if isinstance(b2, Mapping):
+        coverage = b2["comparison_coverage"]
+        vs04_sections.append(
+            '<section class="percheck" data-check-panel="SOFT_STORY_B2">'
+            '<h2>B2 yumuşak kat — koşullu kaynak hesabı</h2>'
+            '<p>TBDY 2018 Tablo 3.6 / §3.6.2.1 · ηki = '
+            '(Avg Driftᵢ / hᵢ) / (Avg Driftⱼ / hⱼ). Üst ve alt komşu ayrı ayrı '
+            'karşılaştırılır; eşik ηki &gt; 2,0. Resmî B2 sınıflandırması: '
+            '<strong>NOT_PROVEN</strong>.</p>'
+            '<p>Kaynak durumu: ' + _val(b2["status"]) + '; hesap: ' +
+            _val(b2["numeric_condition"]) + '. Çözülen komşuluk: ' +
+            _val(coverage["resolved"]) + '/' + _val(coverage["expected"]) +
+            '; çözülemeyen: ' + _val(coverage["unresolved"]) +
+            '; kapsam: ' + _val(b2.get("source_coverage_status", "UNKNOWN")) + '.</p>' +
+            _table((("story", "Kapsam dışı kat"), ("applicability", "Durum"),
+                    ("reason", "Gerekçe")), b2.get("excluded_stories", [])) +
+            '<details><summary>Kat kotu ve ara nokta eşleştirmesi</summary>' +
+            '<p>Yalnız üst düzlem noktaları kat kotunu destekler. Ara ve alt sınır '
+            'noktaları kat yüksekliğini değiştirmez. Tam nesne sayımı ayrı fiziksel kat '
+            'kapsamı tablosunda gösterilir.</p>' +
+            _table((("story", "Kat"), ("lower_elevation_m", "Alt kot (m)"),
+                    ("upper_elevation_m", "Üst kot (m)"), ("at_level_points", "Üst düzlem noktası"),
+                    ("intermediate_points", "Ara kotlu nokta"),
+                    ("lower_boundary_points", "Alt sınır noktası")),
+                   (b2.get("story_order") or {}).get("point_story_span_counts", [])) + '</details>' +
+            _table((("story", "Kat"), ("direction", "Yön"), ("case", "Vaka"),
+                    ("height_m", "h (m)"), ("average_drift_m", "Avg Drift (m)"),
+                    ("status", "Kaynak"), ("reason", "Eksik / hata")),
+                   b2["source_rows"]) +
+            _table((("story", "İncelenen kat"), ("adjacent_story", "Komşu kat"),
+                    ("neighbour_role", "Komşuluk"), ("direction", "Yön"), ("case", "Vaka"),
+                    ("normalized_mean", "Avg Driftᵢ / hᵢ"),
+                    ("adjacent_normalized_mean", "Avg Driftⱼ / hⱼ"),
+                    ("eta_ki_candidate", "ηki adayı"), ("status", "Sayısal durum"),
+                    ("reason_codes", "Açık neden")),
+                   b2["items"]) +
+            '<h3>Hesap kapsamı ve varsayımları</h3><ul>' +
+            ''.join('<li>' + _val(s) + '</li>' for s in b2["assumptions_notes"]) +
+            '</ul><p>Kaynak / hesap: ' + _val(b2["source_payload_sha256"]) +
+            ' / ' + _val(b2["result_sha256"]) + '</p><p>Açık kaynak: ' +
+            _val(b2["reason_codes"]) + '. ENGINEERING_RELEASE=NOT_READY.</p></section>')
+
+    if isinstance(wall_geometry, Mapping):
+        panel_rows = []
+        for row in wall_geometry["items"]:
+            panel_rows.append({**row, **{s["rule"]: s["status"] for s in row["subconditions"]}})
+        vs04_sections.append(
+            '<section class="percheck" data-check-panel="WALL_GEOMETRY_CHECK">'
+            '<h2>Perde kesit geometrisi — koşullu kaynak alt kontrolleri</h2>'
+            '<p>TBDY 2018 7.6.1.2 / 7.6.1.2(a). Hesaplanan panel: ' +
+            _val(wall_geometry["evaluated_count"]) + '/' + _val(wall_geometry["expected_count"]) +
+            '; sayısal alt koşul: ' + _val(wall_geometry["subconditions_evaluated"]) +
+            '; karşılanmayan alt koşul: ' + _val(wall_geometry["subconditions_unmet"]) +
+            '. Resmî uygunluk NOT_PROVEN.</p>' +
+            _table((("story", "Kat"), ("element_id", "ETABS alan ID"), ("section", "Kesit"),
+                    ("story_height_m", "h kat (m)"), ("panel_height_m", "h panel (m)"),
+                    ("panel_length_m", "l panel (m)"), ("thickness_mm", "bw (mm)"),
+                    ("panel_length_thickness_ratio", "l panel / bw"),
+                    ("ordinary_branch_minimum_mm", "Standart dal bw,min (mm)"),
+                    ("panel_ratio", "Oran ≥ 6"), ("thickness_250", "bw ≥ 250 mm"),
+                    ("thickness_h16", "bw ≥ h/16"), ("reason", "Açık neden")), panel_rows) +
+            '<h3>Uygulanabilirlik ve hesap sınırı</h3><ul>' +
+            ''.join('<li>' + _val(s) + '</li>' for s in wall_geometry["assumptions_notes"]) + '</ul>' +
+            _table((("code_ref", "Madde"), ("status", "Durum"), ("reason", "Eksik kanıt")),
+                   wall_geometry["unevaluated_requirements"]) +
+            '<p>Kaynak: ' + _val(wall_geometry["source_payload_sha256"]) +
+            ' · Sonuç: ' + _val(wall_geometry["result_sha256"]) +
+            ' · Kaynak teşhisi: ' + _val(wall_geometry["reason_codes"]) + '</p></section>')
+
+    for bundle in (source_controls, earthquake_combinations):
+        if not isinstance(bundle, Mapping):
+            continue
+        for check in bundle["checks"]:
+            if check["check_id"] == "concrete_fck_80":
+                columns = (("material_name", "Malzeme"), ("fck_mpa", "Fc kaynak (MPa)"),
+                    ("limit", "Üst sınır (MPa)"), ("strength_scope_observation", "Sayısal kapsam"),
+                    ("status", "Alt koşul"), ("reason", "Açık neden"))
+            elif check["check_id"] == "modal_combination_spacing":
+                columns = (("direction", "Yön"), ("source_case", "Vaka"), ("modal_case", "Modal vaka"),
+                    ("modal_combination", "Mod birleştirme"), ("directional_combination", "Yön birleştirme"),
+                    ("mode_count", "Mod sayısı"), ("maximum_period_ratio", "En büyük kısa/uzun oranı"),
+                    ("spacing_status", "SRSS ayrıklık koşulu"), ("method_condition", "Seçilen yöntem koşulu"),
+                    ("reason", "Açık neden"))
+            elif check["check_id"] == "earthquake_100_30":
+                columns = (("combination", "Birleşim"), ("operator", "İşlem"),
+                    ("coefficient_x", "X katsayısı"), ("coefficient_y", "Y katsayısı"),
+                    ("common_factor", "Ortak büyüklük"), ("minor_major_ratio", "Küçük / büyük"),
+                    ("dominant_direction", "Baskın yön"), ("status", "Alt koşul"), ("reason", "Kapsam / teşhis"))
+            else:
+                columns = (("common_factor", "Ortak büyüklük"), ("other_case_coefficients", "Diğer vaka katsayıları"),
+                    ("x_combinations", "X baskın birleşimler"), ("y_combinations", "Y baskın birleşimler"),
+                    ("missing_directions", "Gözlenmeyen yön"), ("observed_sign_patterns", "Gözlenen işaretler"),
+                    ("unresolved_combination", "Çözümlenemeyen birleşim"), ("status", "Kaynak kapsamı"),
+                    ("reason", "Açık neden"))
+            pair_tables = []
+            alternatives = [{"envelope": item["combination"], **term}
+                for item in check["items"] for term in item.get("envelope_alternatives", [])]
+            if alternatives:
+                pair_tables.append('<details><summary>Zarf seçenekleri · toplama yapılmaz</summary>' +
+                    _table((("envelope", "Zarf"), ("ref", "Seçenek"), ("factor", "Çarpan"),
+                            ("ref_type", "Kaynak türü")), alternatives) + '</details>')
+            for item in check["items"]:
+                if item.get("pairs"):
+                    pair_tables.append('<details><summary>' + _val(item["source_case"]) +
+                        ' · ' + _val(item["tested_adjacent_pair_count"]) + ' komşu çift / ' +
+                        _val(item["all_distinct_pair_count"]) + ' farklı çift</summary>' +
+                        _table((("short_mode", "Kısa T modu"), ("long_mode", "Uzun T modu"),
+                            ("short_period_s", "Kısa T (s)"), ("long_period_s", "Uzun T (s)"),
+                            ("period_ratio", "Oran"), ("limit", "Kesin üst sınır (<)"),
+                            ("status", "SRSS ayrıklık koşulu")), item["pairs"]) + '</details>')
+            vs04_sections.append('<section class="percheck" data-check-panel="' +
+                escape(check["check_id"], quote=True) + '"><h2>' + _val(check["title"]) + '</h2><p>' +
+                _val(check["code_ref"]) + ' · Hesaplanan ' + _val(check["evaluated_count"]) + '/' +
+                _val(check["expected_count"]) + ' · Kapsam dışı: ' + _val(check["not_applicable_count"]) +
+                ' · ' + _val(check["status"]) +
+                '. Resmî uygunluk NOT_PROVEN.</p>' + _table(columns, check["items"]) +
+                ''.join(pair_tables) + '<h3>Kapsam ve açık koşullar</h3><ul>' +
+                ''.join('<li>' + _val(n) + '</li>' for n in check["assumptions_notes"]) + '</ul><p>' +
+                _val(check["unevaluated_requirements"]) + '</p><p>Kaynak: ' +
+                _val(check["source_provenance"]) + ' · Hesap: ' + _val(check["result_sha256"]) +
+                ' · Teşhis: ' + _val(check["reason_codes"]) + '</p></section>')
 
     a1_warnings = [
         c for c in extras if c.get("check_id") in ("a1_torsion_x", "a1_torsion_y")

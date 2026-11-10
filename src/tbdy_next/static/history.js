@@ -88,7 +88,7 @@
     }
   }
   window.showModalFullTable = showModalFullTable;
-  function showRun(entry) {
+  function showRun(entry, selectShared = true) {
     const result = entry.result || {};
     const source = entry.source_mode === 'LIVE_ETABS' ? 'CANLI ETABS' : entry.source_mode === 'OFFLINE_ETABS' ? 'OFFLINE ETABS' : 'SENTETİK';
     const label = result.status === 'MEETS_NUMERICAL_CRITERION' ? 'SAYISAL KOŞUL SAĞLANDI' : 'SAYISAL KOŞUL SAĞLANMADI';
@@ -107,6 +107,13 @@
     const stamp = node('p', `Sonuç tarihi: ${entry.captured_at_utc} · Yerel kaynak SHA-256: ${String(entry.input_sha256 || '').slice(0,16)}…`, 'muted small');
     const note = node('p', 'Kaynak, şema ve sonuç kayıtları tekrar doğrulandı. Bu sonuç tam TBDY deprem tasarımı kabulü değildir.', 'muted small');
     statusBox.replaceChildren(heading, context, two, details, stamp, note);
+
+    // The combined UI owns the selected run. A background history refresh
+    // must not replace its sidebars or leave checks from another run visible.
+    if (typeof window.selectSavedEngineeringRun === 'function') {
+      window.selectSavedEngineeringRun(entry, selectShared);
+      return;
+    }
 
     // Also populate the original result surface / result tree on initial load.
     if (typeof showResult === 'function') showResult('Kaydedilmiş modal hesap', {result});
@@ -132,7 +139,7 @@
         return;
       }
       const selected = runs.find(r => r.source_mode === 'LIVE_ETABS') || runs[0];
-      showRun(selected);
+      showRun(selected, false);
       historyBox.replaceChildren(node('span', 'Önceki hesaplar:', 'muted small'));
       for (const entry of runs.slice(0, 12)) {
         const button = node('button', `${entry.source_mode === 'LIVE_ETABS' ? 'ETABS' : 'TEST'} · ${entry.captured_at_utc.slice(0,16).replace('T',' ')} · ${entry.case}`, 'go');

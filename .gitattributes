@@ -1,0 +1,5 @@
+# Golden source bytes are hash-pinned; preserve LF on Windows checkouts.
+src/tbdy_next/verification/data/*.json text eol=lf
+src/tbdy_next/verification/data/*.zip binary
+src/tbdy_next/verification/references/*.py text eol=lf
+src/tbdy_next/verification/*.py text eol=lf

@@ -121,6 +121,8 @@ def evaluate_b1_sources(
     unit_weight_min_kN_m3: str = "6", unit_weight_max_kN_m3: str = "20",
     opening_fraction: str = "0.5", low_load_ratio_cutoff: str = "0.75",
     shear_modulus_mpa: str = "500", R_base: str = "7",
+    physical_scope: Mapping[str, Any] | None = None,
+    physical_scope_source: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Compute source-bound B1 X/Y with every explicit assumption serialized."""
     try:
@@ -299,15 +301,28 @@ def evaluate_b1_sources(
             **inferred,
         })
 
+    from .physical_story_scope import verified_excluded_stories
+    excluded = verified_excluded_stories(physical_scope, geometry, inventory_source=physical_scope_source)
+    scoped_rows = ({r["story"]: r for r in physical_scope["stories"]}
+                   if physical_scope and physical_scope.get("source_inventory_complete") is True else {})
+    if scoped_rows and set(scoped_rows) != set(story_heights):
+        raise B1BridgeError("B1_PHYSICAL_SCOPE_STORY_SET_CONFLICT")
+    elevations = {name: (Decimal(scoped_rows[name]["upper_elevation_m"]) if scoped_rows
+                         else Decimal(name.replace("+", ""))) for name in story_heights}
     levels=[]
-    for story in sorted(story_heights,key=lambda x:Decimal(x.replace("+",""))):
+    for story in sorted(story_heights,key=elevations.get):
         b=by_story[story]
         has_structure=b["columns"] or b["X"]["walls"] or b["Y"]["walls"]
         if not has_structure and any(b[x]["beams"] for x in ("X","Y")):
             raise B1BridgeError("B1_BEAM_LOAD_ON_UNSUPPORTED_STORY")
+        if scoped_rows:
+            if story in excluded and (has_structure or any(b[x]["beams"] for x in ("X", "Y"))):
+                raise B1BridgeError("B1_EMPTY_SCOPE_HAS_RESISTANCE_SOURCE:" + story)
+            if story not in excluded and not has_structure:
+                raise B1BridgeError("B1_PHYSICAL_STORY_VERTICAL_RESISTANCE_UNRESOLVED:" + story)
         # An empty declared ETABS story may be excluded from a *conditional*
         # active-story candidate grain. This is not a complete null/mesh census.
-        entry={"story":story,"elevation_m":story.replace("+",""),"active":bool(has_structure)}
+        entry={"story":story,"elevation_m":str(elevations[story]),"active":bool(has_structure)}
         for d in ("X","Y"):
             v=b[d]
             entry[d]={"Aw_m2":str(v["Aw"]),"Ag_m2":str(v["Ag"]),
@@ -321,6 +336,9 @@ def evaluate_b1_sources(
         info={"story":st,"active":row["active"],
               "column_count":b["columns"],
               "story_height_m":str(story_heights[st])}
+        if scoped_rows:
+            info.update(physical_applicability=scoped_rows[st]["applicability"],
+                        physical_scope_reason=scoped_rows[st]["reason"])
         for d in ("X","Y"):
             v=b[d]
             info[d]={
@@ -371,8 +389,16 @@ def evaluate_b1_sources(
         ],
         "formal_compliance":"NOT_PROVEN",
         "engineering_release":"NOT_READY",
+        "declared_story_count":len(story_heights),
+        "physical_source_coverage":("SOURCE_COVERAGE_COMPLETE" if scoped_rows else "UNKNOWN"),
         "code_refs":["TBDY 2018 Table 3.6","TBDY 2018 3.6.2.3"],
     }
+    if scoped_rows:
+        out.update(physical_scope_sha256=physical_scope["scope_sha256"],
+                   excluded_stories=[scoped_rows[name] for name in sorted(excluded)])
+        out["assumptions_notes"][7] = (
+            "Boş kat istisnası aynı modelin eksiksiz Frame/Area/Wall/Joint kaynak envanterinden gelir; "
+            "bu sayım analiz neslini veya resmî TBDY uygunluğunu yetkilendirmez.")
     out["result_sha256"]=sha256(
         (json.dumps(out,sort_keys=True,separators=(",",":"),ensure_ascii=False)+"\n").encode()).hexdigest()
     return out

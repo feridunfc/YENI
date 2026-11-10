@@ -87,7 +87,9 @@ def make_handler(output_root: Path, *, live_capture=None):
 
         def do_GET(self) -> None:
             url = urlsplit(self.path)
-            if url.path in ("/", "/index.html"):
+            if url.path in ("/api/column-history", "/api/column-bank", "/api/export-column-bank", "/report/column-bank", "/api/export-spectral-design"):
+                self.column_get(url)
+            elif url.path in ("/", "/index.html"):
                 contents = resources.files("tbdy_next").joinpath("static/index.html").read_bytes()
                 self.send_response(200)
                 self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -168,8 +170,8 @@ def make_handler(output_root: Path, *, live_capture=None):
                     self.reply(404, {"error": "VERIFIED_MODAL_TABLE_NOT_FOUND"})
                     return
                 self.reply(200, {"table": table})
-            elif url.path == "/quick.js":
-                source = resources.files("tbdy_next").joinpath("static/quick.js").read_bytes()
+            elif url.path in ("/quick.js", "/column.js"):
+                source = resources.files("tbdy_next").joinpath("static" + url.path).read_bytes()
                 self.send_response(200)
                 self.send_header("Content-Type", "text/javascript; charset=utf-8")
                 self.send_header("Cache-Control", "no-store")
@@ -188,6 +190,107 @@ def make_handler(output_root: Path, *, live_capture=None):
                 self.wfile.write(source)
             else:
                 self.reply(404, {"error": "NOT_FOUND"})
+
+        def column_get(self, url) -> None:
+            """Read only, explicitly selected archive; never join the live run."""
+            import sqlite3
+            from .column_engine.store import column_bank_history, read_column_bank, verified_database
+            from .reporting import build_column_bank_html
+            if url.path == "/api/column-history":
+                self.reply(200, {"runs": column_bank_history(output_root), "engineering_release": "NOT_READY"})
+                return
+            query = parse_qs(url.query, keep_blank_values=True)
+            if url.path == "/api/export-spectral-design":
+                if (set(query) != {"run_id"} or len(query["run_id"]) != 1
+                        or not _RUN_ID_PATTERN.fullmatch(query["run_id"][0])):
+                    self.reply(400, {"error": "FULL_SPECTRAL_EXPORT_REQUIRES_RUN_ONLY_NO_FILTERS"})
+                    return
+                from tempfile import SpooledTemporaryFile
+                from .column_engine.demand_view import verified_spectral_design
+                from .column_engine.spectral_projection import write_spectral_forensic
+                with SpooledTemporaryFile(max_size=8*1024*1024) as stream:
+                    try:
+                        run_id = query["run_id"][0]
+                        _, result = verified_spectral_design(output_root, run_id)
+                        write_spectral_forensic(result, stream)
+                        verified_database(output_root, run_id)
+                    except (OSError, ValueError, KeyError, TypeError, sqlite3.Error):
+                        self.reply(404, {"error": "VERIFIED_COLUMN_BANK_NOT_FOUND"})
+                        return
+                    length = stream.tell(); stream.seek(0)
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/zip")
+                    self.send_header("Cache-Control", "no-store")
+                    self.send_header("X-Content-Type-Options", "nosniff")
+                    self.send_header("Content-Disposition", f'attachment; filename="YENI_{run_id}_VS26_full_forensic.zip"')
+                    self.send_header("Content-Length", str(length)); self.end_headers()
+                    while chunk := stream.read(256*1024): self.wfile.write(chunk)
+                return
+            allowed = {"run_id", "member", "case", "offset", "view", "column_cage", "beam_diameter"} if url.path == "/api/column-bank" else {"run_id", "format", "view", "member", "case", "offset", "column_cage"} if url.path == "/api/export-column-bank" else {"run_id", "view", "member", "case", "offset", "column_cage"}
+            if (set(query) - allowed or any(len(v) != 1 for v in query.values())
+                    or not _RUN_ID_PATTERN.fullmatch(query.get("run_id", [""])[0])):
+                self.reply(400, {"error": "COLUMN_QUERY_INVALID"})
+                return
+            run_id = query["run_id"][0]
+            fmt = query.get("format", ["json"])[0]
+            offset = query.get("offset", ["0"])[0]
+            view = query.get("view", ["native"])[0]
+            column_label=query.get('column_cage',[None])[0]
+            beam_diameter=query.get('beam_diameter',[None])[0]
+            bounded_spectral = view in ("spectral-envelopes", "spectral-design", "spectral-candidates")
+            if (fmt not in ("json", "sqlite") or not offset.isdecimal() or len(offset) > 9
+                    or view not in ("native", "static", "design", "critical", "reinforcement", "stiffness", "eccentricity", "cages", "pmm", "transverse", "shear", "joints", "joint-ties", "end-forces", "kinematics", "stiffness-scenarios", "length-sensitivity", "overview", "pmm-quality", "scwb", "beam-cages", "scwb-scenarios", "spectral-envelopes", "spectral-design", "spectral-candidates")
+                    or url.path != "/api/column-bank" and bool(set(query) & {"view", "member", "case", "offset", "column_cage"}) and not bounded_spectral
+                    or bounded_spectral and fmt != "json"
+                    or column_label is not None and view not in ('scwb-scenarios','spectral-design','spectral-candidates')
+                    or beam_diameter is not None and view!='scwb-scenarios'
+                    or column_label is not None and column_label not in ('16Φ24','16Φ28','16Φ32')
+                    or beam_diameter is not None and beam_diameter not in ('16','20','24')
+                    or (view in ("reinforcement", "stiffness", "cages", "transverse", "joints", "joint-ties", "stiffness-scenarios", "beam-cages") and "case" in query)):
+                self.reply(400, {"error": "COLUMN_QUERY_INVALID"})
+                return
+            try:
+                if url.path == "/api/export-column-bank" and fmt == "sqlite":
+                    database, _ = verified_database(output_root, run_id)
+                    data, mime, extension = database.read_bytes(), "application/vnd.sqlite3", "sqlite"
+                else:
+                    report = read_column_bank(output_root, run_id,
+                        member_id=query.get("member", [None])[0], output_case=query.get("case", [None])[0],
+                        offset=int(offset), view="pmm-quality" if url.path == "/report/column-bank" and not bounded_spectral else view,
+                        column_label=column_label,beam_diameter=int(beam_diameter) if beam_diameter is not None else None,
+                        full=url.path == "/api/export-column-bank" and not bounded_spectral)
+                    if url.path == "/api/column-bank":
+                        self.reply(200, report)
+                        return
+                    if url.path == "/report/column-bank":
+                        if view == "spectral-envelopes":
+                            from .spectral_report import build_spectral_html
+                            data = build_spectral_html(report).encode("utf-8")
+                        elif view in ("spectral-design", "spectral-candidates"):
+                            from .spectral_design_report import build_spectral_design_html
+                            data = build_spectral_design_html(report).encode("utf-8")
+                        else:
+                            data = build_column_bank_html(report).encode("utf-8")
+                        mime, extension = "text/html; charset=utf-8", "html"
+                    else:
+                        data = (json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False) + "\n").encode("utf-8")
+                        mime, extension = "application/json; charset=utf-8", "json"
+            except (OSError, ValueError, KeyError, TypeError, sqlite3.Error):
+                self.reply(404, {"error": "VERIFIED_COLUMN_BANK_NOT_FOUND"})
+                return
+            self.send_response(200)
+            self.send_header("Content-Type", mime)
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.send_header("X-Frame-Options", "DENY")
+            disposition = "inline" if extension == "html" else "attachment"
+            suffix = f"spectral_page_{offset}" if view == "spectral-envelopes" else f"{view}_page_{offset}" if bounded_spectral else "columns"
+            self.send_header("Content-Disposition", f'{disposition}; filename="YENI_{run_id}_{suffix}.{extension}"')
+            if extension == "html":
+                self.send_header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
 
         def do_POST(self) -> None:
             url = urlsplit(self.path)
