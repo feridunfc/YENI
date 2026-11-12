@@ -13,3 +13,10 @@ dist/
 *.source
 *modal_live_capture*.json
 *phase2_capture*.json
+
+# R00 offline ETABS evidence and staging must stay outside Git
+.private_sources/
+.r00_staging/
+*.sqlite
+*.sqlite3
+*.db
