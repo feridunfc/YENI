@@ -53,6 +53,7 @@ def _receipts(bank, receipts):
                     and row.get("bank_zip_sha256") == receipts["bank_zip_sha256"]
                     and row.get("source_archive_file_reverified") is True
                     and row.get("analysis_generation_proven") is False
+                    and row.get("design_demand_authority") == "DENIED"
                     and row.get("static_replay", {}).get("status") == "INDEPENDENT_OFFLINE_NUMERICAL_MATCH"
                     and row.get("static_replay", {}).get("matched_rows") == EXPECTED["static"]
                     and row.get("static_replay", {}).get("component_comparisons") == EXPECTED["static"] * 6,
@@ -65,6 +66,7 @@ def _receipts(bank, receipts):
             require(row.get("selected_physical_columns") == EXPECTED["members"]
                     and row.get("physical_joint_face_population_proven") is False
                     and row.get("analysis_generation_qualified") is False
+                    and row.get("normative_design_authority") == "DENIED"
                     and {m.get("physical_frame_id") for m in row.get("members", ())}
                     == {m["frame_name"] for m in bank["members"]},
                     "R02_ROSTER_OR_FALSE_PHYSICAL_PROOF")
@@ -73,9 +75,12 @@ def _receipts(bank, receipts):
                     and row.get("formal_compliance") == "NOT_PROVEN"
                     and row.get("case_count") == bank["defined_case_count"]
                     and row.get("combination_count") == bank["defined_combination_count"]
-                    and all(c.get("design_role") is None
+                    and {c.get("source_name") for c in row.get("cases", ())}
+                    == {c["name"] for c in bank["case_definitions"]}
+                    and all(c.get("design_role") is None and c.get("role_authority") == "UNASSIGNED"
                             for c in row.get("cases", ()))
-                    and all(v.get("source_name") is None
+                    and set(row.get("normative_load_roles", {})) == {"G", "Q", "S", "H", "EX", "EY", "EZ"}
+                    and all(v.get("source_name") is None and v.get("status") == "NOT_PROVEN"
                             for v in row.get("normative_load_roles", {}).values()),
                     "R03_FALSE_DESIGN_ROLE_PROOF")
             unsigned = {k: v for k, v in row.items() if k != "candidate_graph_sha256"}
