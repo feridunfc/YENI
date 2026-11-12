@@ -1,9 +1,9 @@
 name: Offline vertical-slice checks
 on:
   push:
-    branches: [main, "work/**"]
+    branches: [main, "work/**", "recovery/**"]
   pull_request:
-    branches: [main]
+    branches: [main, "work/**"]
 jobs:
   tests:
     runs-on: ubuntu-latest

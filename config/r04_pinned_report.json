@@ -1,0 +1,17 @@
+{
+  "schema": "tbdy.next.r04-pinned-sources.v1",
+  "historical_report": {
+    "basename": "TBDY_NEXT_RUN-d176de308a3c4742a39ecb7f0128a9b1_all_checks.json",
+    "sha256": "5c05cf39e9faf8c911bf87475212e920dcf960d999bacba6cdf5b3a947846bbb",
+    "run_id": "RUN-d176de308a3c4742a39ecb7f0128a9b1",
+    "source_date": "2026-11-08",
+    "role": "HISTORICAL_MODAL_SPECTRUM_BASE_SHEAR_SOURCE_NUMERICAL_ONLY"
+  },
+  "r01_native_source": {
+    "run_id": "RUN-5cf449b850fc41eeadcdd7528249f932",
+    "date": "2026-11-09",
+    "relation_to_historical_report": "NOT_PROVEN_SAME_ANALYSIS_GENERATION"
+  },
+  "regulatory_authority": "DENIED",
+  "engineering_release": "NOT_READY"
+}

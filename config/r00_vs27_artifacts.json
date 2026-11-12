@@ -1,0 +1,22 @@
+{
+  "schema": "tbdy.next.r00-pinned-offline-artifacts.v1",
+  "repository": "feridunfc/YENI",
+  "base_sha": "14ddf197ca8279ea34107eac0344acbabc7327aa",
+  "base_tree_sha": "260a67f7ddcc02c2cf3d9e1f37d90180276d5f87",
+  "source_zips": {
+    "YENI_VS27_TAM_TEST_SURUMU_20261111.zip": "31a6309c56558a138724a463501bc6ef83af57328d5a7dc44a28bac1cee305ec",
+    "YENI_VS27_1_SECIM_KORUMA_DUZELTMESI_20261112.zip": "6b76b25c2e032264eca3bece539f05d99eee00a2377be04eab775f41bfbef807",
+    "YENI_VS27_2_GECICI_CIKTI_SECIMI_DUZELTMESI_20261112.zip": "30069d923b58271db0b6320aaa435cbd0ee5b5fd4e532d315e880bde65d5eb66",
+    "YENI_VS27_3_GORUNTU_CIKTI_EVRE_DUZELTMESI_20261112.zip": "327a979ec8fb198f8bdbde3762d2906cfe98581745a70c4ff0d896723ee2d0b6"
+  },
+  "historical_failed_87_column_capture": {
+    "file": "YENI_ALL_COLUMNS_20261112T0424500139481Z.zip",
+    "sha256": "0ff4186c60b49adee1c7fab2f1f63c528f74491ed946b163fc5c161eb4f28111",
+    "observed_columns": 87,
+    "native_frameforce_rows": 0,
+    "capture_status": "BLOCKED_NO_NATIVE_FORCE_ROWS",
+    "no_live_etabs": true
+  },
+  "engineering_release": "NOT_READY",
+  "merge": "HOLD"
+}
