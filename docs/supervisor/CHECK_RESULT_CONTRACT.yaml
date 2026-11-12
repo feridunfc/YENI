@@ -1,0 +1,51 @@
+# Proposed rule contract. This is NOT an implementation and never grants authority by itself.
+schema: tbdy.next.rule-contract.proposed.v1
+rule_id: TBDY_7_3_5_SCWB
+scope: JOINT_AXIS_SIGN
+standard:
+  code: TBDY_2018
+  clause: 7.3.5.1-7.3.5.3
+  equation: 7.3
+  relation: sum_Mrc / sum_Mrb >= 1.2
+applicability:
+  project_system: APPROVED_SOURCE_PROFILE
+  required_joint_roles: [joint_id, global_direction, earthquake_sign]
+  exception: ONLY_WITH_VERIFIED_TBDY_7_3_5_3_EVIDENCE
+required_source:
+  - immutable_source_run_sha256
+  - analysis_generation_id_and_methods
+  - physical_joint_and_member_roster
+  - global_and_local_coordinate_transforms
+  - exact_beam_and_column_end_face_references
+  - actual_beam_reinforcement_layout_and_materials
+  - signed_concurrent_Nd_population_for_column_capacity_minimum
+  - explicit_full_demand_denominator
+units:
+  domain: kN-cm-MPa
+  kernel: N-mm-MPa
+  display: kN-m
+numerical_method:
+  numerator: sum_of_signed_column_moment_capacities_at_governing_axial_condition
+  denominator: sum_of_corresponding_actual_beam_end_moment_capacities
+  negative_tests:
+    - missing_beam_cage
+    - missing_member_in_joint_roster
+    - mismatched_analysis_generation
+    - wrong_column_end
+    - reversed_local_axis
+    - unqualified_normal_force
+    - incomplete_output_case_population
+    - invalid_regulatory_exception
+result:
+  keys: [check_instance_id, physical_joint_id, axis, earthquake_sign, method_revision]
+  provenance: [raw_source_hash, model_profile_hash, combo_book_hash, computation_hash, oracle_hash]
+  data_status: [COMPLETE, PARTIAL, CONFLICT, MISSING]
+  numerical_status: [SOLVED, NUMERIC_UNRESOLVED, NOT_RUN]
+  applicability_status: [APPLICABLE, EXEMPT_BY_CODE, UNKNOWN]
+  engineering_decision: [PASS, FAIL, NOT_APPLICABLE, NOT_PROVEN]
+  release_status: [READY, NOT_READY]
+  reason_codes_required_if_not_pass: true
+  no_silent_imputation: true
+  no_summary_promotion_without_full_children: true
+  all_source_rows_retained: true
+  report_recalculation_forbidden: true

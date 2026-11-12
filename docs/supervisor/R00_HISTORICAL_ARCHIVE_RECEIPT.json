@@ -1,0 +1,16 @@
+{
+  "archive_manifest_verified": true,
+  "archive_sha256": "0ff4186c60b49adee1c7fab2f1f63c528f74491ed946b163fc5c161eb4f28111",
+  "commercial_summary_member_count": 0,
+  "engineering_release": "NOT_READY",
+  "member_count": 87,
+  "member_force_count": 0,
+  "member_force_missing_count": 87,
+  "native_force_rows": 0,
+  "normative_design_approved": false,
+  "schema": "tbdy.next.r00-offline-source-gate.v1",
+  "selection_provenance": "GETTERS_ONLY",
+  "source_generation_proven": false,
+  "source_readiness": "BLOCKED_NO_NATIVE_FORCE_ROWS",
+  "spectral_replay_verified": false
+}
