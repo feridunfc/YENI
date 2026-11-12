@@ -109,8 +109,7 @@ def _reconcile_a1(recomputed: Mapping[str, Any], stored: Mapping[str, Any],
                            "A1_NUMERICAL_REPLAY_CONFLICT")
             observed.add((story, direction))
             entries.append({
-                "story": story, "direction": direction, "case": CASE_DIRECTION.keys().__iter__().__next__()
-                if direction == "X" else "RSY",
+                "story": story, "direction": direction, "case": "RSX" if direction == "X" else "RSY",
                 "source_status": row["status"], "eta_bi": row["eta_bi"],
                 "interpretation": "SOURCE_NUMERICAL_A1_ONLY",
                 "normative_status": "NOT_PROVEN",
