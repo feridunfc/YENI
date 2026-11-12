@@ -1,0 +1,20 @@
+{
+  "schema": "tbdy.next.r01-archived-sources.v1",
+  "scope": "SOURCE_NUMERICAL_REPLAY_ONLY",
+  "source_run_id": "RUN-5cf449b850fc41eeadcdd7528249f932",
+  "bank_filename": "YENI_RUN-5cf449b850fc41eeadcdd7528249f932_columns.zip",
+  "bank_zip_sha256": "4a5bc739980178b519b8554f9e323fc222e6510c819a26569c9fbf296a763573",
+  "native_archive_filename": "full-model-evidence.zip",
+  "native_archive_sha256": "3882b659937626bb3bbfe841e6dbd6c57798fcfcce8e6fa54a683a221210fee3",
+  "expected_columns": 87,
+  "expected_force_rows": 34170,
+  "expected_static_combo_rows": 2412,
+  "historical_later_failed_capture": {
+    "filename": "YENI_ALL_COLUMNS_20261112T0424500139481Z.zip",
+    "sha256": "0ff4186c60b49adee1c7fab2f1f63c528f74491ed946b163fc5c161eb4f28111",
+    "force_rows": 0,
+    "do_not_join": true
+  },
+  "analysis_generation_qualified": false,
+  "engineering_release": "NOT_READY"
+}
