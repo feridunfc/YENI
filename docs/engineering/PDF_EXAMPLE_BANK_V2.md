@@ -1,3 +1,5 @@
+> **13 Kasım 2026 — SQLite kanonik teslim düzeltmesi.** Eski `TBDY_Second_Offline_PDF_Reference_Bank.sqlite` dosyası V1 halinde yalnız 261 sayfalık tek raporu barındırıyordu. Yeni doğrulanmış **birleşik** `TBDY_Second_Offline_PDF_Reference_Bank.sqlite` artık tam üç ayrı model içeriyor: `2.pdf` (197 sayfa, 98 ham yapılandırılmış gözlem, 130 sayısal vaka), `3.pdf` (258 sayfa, 147 ham gözlem, 203 vaka) ve önceki PDF (261 sayfa, 134 vaka). Toplam 716 aranabilir sayfa ve 467 aritmetik karşılaştırma. Tam model ve sayfa kapsamı `v_document_import_audit` SQL görünümüyle denetlenir. Kaynak PDF SHA256'ları doğrulandı; orijinal PDF baytları SQLite BLOB olarak eklenmez. Sürümün SQLite/ZIP teslimi sohbet dosyasıdır; **GitHub public depoda PDF veya veritabanı yayımlanmadı.** YENI çalışma zamanı hâlâ bu bankayla çalıştırılıp onaylanmış değil; `ENGINEERING_RELEASE=NOT_READY`.
+
 # PDF Golden Bank V2 — two additional ideCAD reference models
 
 **Date:** 2026-11-13  
