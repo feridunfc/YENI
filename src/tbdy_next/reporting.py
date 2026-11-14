@@ -682,15 +682,15 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
             "r08_second_order_capture_error" in source):
         if (r08_receipt is None or
                 r08_receipt.get("input_sha256") != modal["input_sha256"]):
-            raise ReportUnavailable("R08 SECOND_ORDER_PDELTA receipt missing or foreign")
+            raise ReportUnavailable("R08 GLOBAL_SECOND_ORDER receipt missing or foreign")
         from .story_second_order import bind_story_second_order
         r08_second_order = bind_story_second_order(
             source.get("r08_second_order_source"),
             capture_error=source.get("r08_second_order_capture_error"))
         if r08_second_order != r08_receipt["payload"]:
-            raise ReportUnavailable("R08 SECOND_ORDER_PDELTA source/receipt mismatch")
+            raise ReportUnavailable("R08 GLOBAL_SECOND_ORDER source/receipt mismatch")
     elif r08_receipt is not None:
-        raise ReportUnavailable("Orphan R08 SECOND_ORDER_PDELTA receipt")
+        raise ReportUnavailable("Orphan R08 GLOBAL_SECOND_ORDER receipt")
 
     # VS06-A is a read-only projection of the already-verified VS05 record.
     # Never alter the historical receipt payload: exact replay is required.
@@ -824,7 +824,7 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         earthquake_combinations)
     if r08_second_order is not None:
         inventory["entries"].append({
-            "check_id": "SECOND_ORDER_PDELTA",
+            "check_id": "GLOBAL_SECOND_ORDER",
             "evaluation": ("CONDITIONAL_SOURCE_NUMERICAL" if
                            r08_second_order["evaluated_story_direction_count"] else
                            "BLOCKED_SOURCE"),
@@ -850,7 +850,7 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
     elif vs06_b1_source_status is not None:
         source_scope += " + WEAK_STORY_B1 source BLOCKED (no numeric result)"
     if r08_second_order is not None:
-        source_scope += (" + SECOND_ORDER_PDELTA source-numerical " +
+        source_scope += (" + GLOBAL_SECOND_ORDER source-numerical " +
                          str(r08_second_order["evaluated_story_direction_count"]) +
                          "/" + str(r08_second_order["expected_story_direction_count"]) +
                          " story-direction records (global P-Delta NOT_PROVEN)")
@@ -990,7 +990,7 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
     r08_summary = report.get("r08_second_order")
     if isinstance(r08_summary, Mapping):
         summary_rows.append({
-            "check_id": "SECOND_ORDER_PDELTA",
+            "check_id": "GLOBAL_SECOND_ORDER",
             "status": r08_summary["status"],
             "expected_count": r08_summary["expected_story_direction_count"],
             "evaluated_count": r08_summary["evaluated_story_direction_count"],
@@ -1187,7 +1187,7 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
             {"axis": axis, **(dr.get(axis) or {})} for axis in ("X", "Y")
         ]
         vs04_sections.append(
-            '<section class="percheck" data-check-panel="SECOND_ORDER_PDELTA">'
+            '<section class="percheck" data-check-panel="GLOBAL_SECOND_ORDER">'
             '<h2>R08 · Global ikinci mertebe P–Δ · TBDY 2018 4.9.2</h2>'
             '<p>Kaynak sayısal durum: ' + _val(r08_record.get("status")) +
             '. Bu birinci aşama yalnızca ETABS kaynaklarının sayısal gösterge '
