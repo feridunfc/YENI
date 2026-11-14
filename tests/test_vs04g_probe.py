@@ -69,10 +69,11 @@ class FakeDb:
 
 
 class FakeSap:
-    def __init__(self, *, units_after=None, locked=True, **opts):
+    def __init__(self, *, units_before=6, units_after=None, locked=True, **opts):
         self.DatabaseTables=FakeDb(**opts)
         self.locked=locked
         self.calls=0
+        self.units_before=units_before
         self.units_after=units_after
 
     def GetModelIsLocked(self):
@@ -80,7 +81,7 @@ class FakeSap:
 
     def GetPresentUnits(self):
         self.calls+=1
-        return self.units_after if self.calls>1 and self.units_after is not None else 6
+        return self.units_after if self.calls>1 and self.units_after is not None else self.units_before
 
 
 class Vs04GTests(unittest.TestCase):
@@ -132,6 +133,20 @@ class Vs04GTests(unittest.TestCase):
             capture_diaphragm_modal_probe(FakeSap(locked=False))
         with self.assertRaisesRegex(ModalCaptureError,"UNITS"):
             capture_diaphragm_modal_probe(FakeSap(units_after=7))
+
+    def test_initial_tonf_units_are_rejected_as_unsupported_not_mutation(self):
+        sap=FakeSap(units_before=12)
+        with self.assertRaisesRegex(ModalCaptureError,
+                                    r"VS04G_KN_M_C_REQUIRED:observed=12:expected=6"):
+            capture_diaphragm_modal_probe(sap)
+        self.assertEqual(sap.DatabaseTables.writes, [])
+
+    def test_units_changing_during_capture_report_original_and_observed(self):
+        sap=FakeSap(units_before=6, units_after=12)
+        with self.assertRaisesRegex(ModalCaptureError,
+                                    r"VS04G_PRESENT_UNITS_CHANGED:before=6:after=12"):
+            capture_diaphragm_modal_probe(sap)
+        self.assertEqual(sap.DatabaseTables.selected, ())
 
     def test_original_selection_already_contains_both_cases(self):
         sap=FakeSap(selected=("RSX","RSY"),modal_fails=False)
