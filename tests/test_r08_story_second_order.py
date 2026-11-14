@@ -38,6 +38,15 @@ def fixture():
         {"Story": "+9.00", "Tower": "T1", "Height": "4.5"},
         {"Story": "+4.50", "Tower": "T1", "Height": "4.5"},
     ], {"Height": "m"})
+    base_level = table("Tower and Base Story Definitions",
+        ["Tower", "BSName", "BSElev"], [
+            {"Tower": "T1", "BSName": "Base", "BSElev": "0"}
+        ], {"BSElev": "m"})
+    rs_base = table("Base Reactions",
+        ["OutputCase", "CaseType", "StepType"], [
+            {"OutputCase": case, "CaseType": "LinRespSpec", "StepType": "Max"}
+            for case in ("RSX", "RSY")
+        ])
     forces = table("Story Forces",
         ["Story", "OutputCase", "CaseType", "Location", "VX", "VY"], [
             {"Story": story, "OutputCase": case, "CaseType": "LinRespSpec",
@@ -77,7 +86,9 @@ def fixture():
         "analysis_generation_proven": False, "configuration_approved": False,
         "configuration": dict(CONFIG), "model": MODEL,
         "spectrum_source": sealed({
-            "Story Definitions": defs, "Story Forces": forces,
+            "Story Definitions": defs,
+            "Tower and Base Story Definitions": base_level,
+            "Base Reactions": rs_base, "Story Forces": forces,
             "Story Max Over Avg Drifts": drifts,
             "Load Combination Definitions": combo
         }), "weight_source": sealed({
@@ -125,8 +136,9 @@ class StorySecondOrderEngineTests(unittest.TestCase):
         table_obj["row_count"] = len(table_obj["rows"])
         data["spectrum_source"] = sealed(data["spectrum_source"]["table_reads"])
         result = bind_story_second_order(data)
-        self.assertEqual(result["evaluated_story_direction_count"], 3)
-        self.assertEqual(len(result["missing_story_direction"]), 1)
+        self.assertEqual(result["status"], "BLOCKED_SOURCE_INVALID")
+        self.assertIn("R08_SPECTRAL_STORY_MISSING_NO_INFERRED_ZERO",
+                      result["reason_codes"][0])
         self.assertEqual(result["formal_compliance"], "NOT_PROVEN")
 
     def test_wrong_model_rejected(self):
@@ -142,7 +154,7 @@ class StorySecondOrderEngineTests(unittest.TestCase):
         data["weight_source"] = sealed(data["weight_source"]["table_reads"])
         result = bind_story_second_order(data)
         self.assertEqual(result["status"], "BLOCKED_SOURCE_INVALID")
-        self.assertIn("R08_WGHT_STORY_BASE_BALANCE_MISMATCH", result["reason_codes"][0])
+        self.assertIn("R08_WGHT_BASE_STORY_BALANCE_MISMATCH", result["reason_codes"][0])
 
 
 if __name__ == "__main__":
