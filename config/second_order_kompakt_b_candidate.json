@@ -1,0 +1,34 @@
+{
+  "schema": "tbdy.next.r08.project-candidate-config.v1",
+  "project": "kompakt_b.EDB",
+  "status": "SOURCE_NUMERICAL_CANDIDATE_ONLY",
+  "engineering_approval": false,
+  "source_of_parameters": "ETEX screenshot 2026-11-14; not a regulatory project approval",
+  "parameters": {
+    "live_model_basename": "kompakt_b.EDB",
+    "x_case": "RSX",
+    "y_case": "RSY",
+    "weight_combo": "WGHT",
+    "R": "7",
+    "D": "2.5",
+    "Ch": "0.5"
+  },
+  "wgth_expected_semantics": {
+    "LC_DL": "1",
+    "LC_SDL": "1",
+    "LC_WDL": "1",
+    "LC_DDL": "1",
+    "LC_LL": "0.30",
+    "optional_snow_LC_S_if_present": "0.30"
+  },
+  "policy": {
+    "theta_ii": "SOURCE_NUMERICAL_ONLY",
+    "story_weight": "WGHT cumulative Story Forces Bottom P, kN",
+    "drift": "ETABS Story Max Over Avg Drifts Avg Drift is a candidate, not proven column/wall average",
+    "spectrum": "RSX/RSY use independent Max values; do not fabricate signed concurrent vector",
+    "p_delta": "DO_NOT_APPLY_TO_DESIGN_WITHOUT_ENGINEERING_APPROVAL",
+    "p_small_delta": "SEPARATE_TS500_COLUMN_EVALUATION",
+    "compliance": "NOT_PROVEN",
+    "engineering_release": "NOT_READY"
+  }
+}
