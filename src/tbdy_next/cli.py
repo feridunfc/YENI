@@ -61,7 +61,21 @@ def main(argv: list[str] | None = None) -> int:
     golden_files = golden.add_mutually_exclusive_group()
     golden_files.add_argument("--json", type=Path, dest="json_path")
     golden_files.add_argument("--html", type=Path, dest="html_path")
+    live_column = actions.add_parser(
+        "reconcile-live-column",
+        help="Recompute one live static Grav_Ult PMM and bind R08 geometry (numeric-only)")
+    for name in ("live-receipt", "lc-dl-run", "combo-capture", "combo-pmm", "geometry"):
+        live_column.add_argument("--" + name, type=Path, required=True)
+    live_column.add_argument("--out", type=Path, required=True)
+    story_pdelta = actions.add_parser(
+        "precheck-story-pdelta",
+        help="Screen direction-matched RSX/RSY story shear, G+nQ and drift (numeric-only)")
+    story_pdelta.add_argument("--input", type=Path, required=True)
+    story_pdelta.add_argument("--out", type=Path, required=True)
     args = parser.parse_args(argv)
+    if args.action in ("reconcile-live-column", "precheck-story-pdelta"):
+        from .engineering.cli_adapter import run_cli
+        return run_cli(args)
     if args.action == "serve":
         from .web import serve
         serve(host=args.host, port=args.port, output_root=args.out)
