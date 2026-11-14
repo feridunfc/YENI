@@ -469,6 +469,7 @@
       latestCompleteReport = null;
       latestB2 = null;
       b2LoadNote = 'Seçili kaydın B2 sonucu açılamadı: ' + error.message;
+      eventLog('error', 'ARŞİV RAPORU', error.message);
       if (b1Version === b1Request)
         byId('b1Status').textContent = 'Seçili kaydın B1 sonucu açılamadı: ' + error.message;
     }
@@ -947,6 +948,7 @@
       if (request !== c2Request || selectedRunId !== runId) return;
       activeScenarioQuery = '';
       status.textContent = 'VS06-C2 sayısal hesap başarısız: ' + err.message;
+      eventLog('error', 'KAT ÖTELEMESİ C2', err.message);
       host.replaceChildren();
     } finally {
       if (request === c2Request) button.disabled = false;
@@ -1059,6 +1061,7 @@
     }catch(err){
       if (request !== b1Request) return;
       b1Result=null;status.textContent='B1 sayısal kaynak hesabı reddedildi: '+err.message;
+      eventLog('error', 'B1 KAYNAK', err.message);
       host.replaceChildren();
     }finally{
       if (request === b1Request) btn.disabled=false;
@@ -1104,6 +1107,7 @@
     }catch(err){
       if (request !== b1Request || selectedRunId !== runId) return;
       status.textContent='Seçili ETABS çalışmasından B1 açılamadı: '+err.message;
+      eventLog('error', 'B1 ARŞİV', err.message);
     }finally{if (request === b1Request) btn.disabled=false;}
   }
   byId('b1UseRun')?.addEventListener('click',showB1FromRun);
