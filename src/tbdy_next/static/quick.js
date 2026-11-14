@@ -479,7 +479,7 @@
     const report = latestCompleteReport;
     const run = latestFullRun;
     let record;
-    if (checkId === 'SECOND_ORDER_PDELTA') {
+    if (checkId === 'GLOBAL_SECOND_ORDER') {
       const r08 = report?.r08_second_order || run?.r08_second_order;
       if (!r08) return ['Hesap yok', '', 'R08 ETABS kaynak kaydı henüz bulunmuyor.'];
       const n = r08.evaluated_story_direction_count || 0;
@@ -664,7 +664,7 @@
     const host = byId('storyDriftReport');
     if (!host || !r08) return;
     const section = make('section', undefined, 'quick-check');
-    section.dataset.checkPanel = 'SECOND_ORDER_PDELTA';
+    section.dataset.checkPanel = 'GLOBAL_SECOND_ORDER';
     section.append(make('h3', 'R08 · P–Δ ikinci mertebe · ' + r08.status),
       make('p', 'Kaynak sayısal: ' + r08.evaluated_story_direction_count +
         '/' + r08.expected_story_direction_count +
