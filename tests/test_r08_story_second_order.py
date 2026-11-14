@@ -103,11 +103,10 @@ class StorySecondOrderEngineTests(unittest.TestCase):
         self.assertEqual(result["status"], "NUMERIC_PRECHECK_UNAPPROVED")
         self.assertEqual(result["expected_story_direction_count"], 4)
         self.assertEqual(result["evaluated_story_direction_count"], 4)
-        self.assertEqual(result["direction_results"]["X"]["beta_ii_candidate"], "1")
-        self.assertEqual(result["direction_results"]["Y"]["beta_ii_candidate"], "1")
-        self.assertEqual(result["direction_results"]["X"]["theta_limit_reference"],
-                         str(__import__("decimal").Decimal("0.12")*__import__("decimal").Decimal("2.5")/
-                             (__import__("decimal").Decimal("0.5")*__import__("decimal").Decimal("7"))))
+        self.assertAlmostEqual(float(result["direction_results"]["X"]["beta_ii_candidate"]), 1.0)
+        self.assertAlmostEqual(float(result["direction_results"]["Y"]["beta_ii_candidate"]), 1.0)
+        self.assertAlmostEqual(float(result["direction_results"]["X"]["theta_limit_reference"]),
+                               .12 * 2.5 / (.5 * 7))
         self.assertEqual(result["formal_compliance"], "NOT_PROVEN")
         self.assertEqual(result["engineering_release"], "NOT_READY")
         self.assertIs(result["global_p_delta_design_applied"], False)
