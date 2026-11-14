@@ -7,12 +7,18 @@ Not an exploratory script. Product path:
 ETABS locked SapModel -> live_etabs.read_quick_suite_from_running_etabs
 -> story_second_order_capture.capture_story_second_order
 -> story_second_order.bind_story_second_order
+-> EXISTING engineering.story_pdelta.review_story_pdelta (one theta owner)
 -> /api/live-vs04 RunId + ReceiptRun(r08-second-order)
 -> build_complete_report exact receipt replay -> check_registry/UI/print report.
 
 Reuses the existing product ETABS generic gateway and story_drift_binding source SHA validation.
 Current code branch: work/r08-native-story-pdelta-20261114, based on
 docs/recipe73-source-dag-20261113 (the advanced product branch, NOT VS06-only main).
+The base branch already contains the permanent R07/R09 reconciliation service,
+the engineering.story_pdelta owner and the 94-node DAG. This PR reuses
+those owners rather than duplicating algorithms. The permanent R08 output is
+the already-declared GLOBAL_SECOND_ORDER node; the historical public
+check-registry remains 16 controls until an independently approved catalog revision.
 
 ## Source and engineering contract
 
