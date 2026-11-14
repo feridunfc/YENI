@@ -452,6 +452,16 @@ def make_handler(output_root: Path, *, live_capture=None):
                             payload.get("vs05_delta_source"),
                             capture_error=payload.get("vs05_delta_capture_error"))
                         run.record("vs05-story-drift", story_drift, input_sha256=input_sha)
+                    # R08 is an owned DAG/check-result stage in this SAME run.
+                    # Its source, evaluator and receipt are replayed by report export.
+                    r08_second_order = None
+                    if ("r08_second_order_source" in payload or
+                            "r08_second_order_capture_error" in payload):
+                        from .story_second_order import bind_story_second_order
+                        r08_second_order = bind_story_second_order(
+                            payload.get("r08_second_order_source"),
+                            capture_error=payload.get("r08_second_order_capture_error"))
+                        run.record("r08-second-order", r08_second_order, input_sha256=input_sha)
                     meta = payload.get("capture_metadata") or {}
                     run.record("live-capture", {
                         "status": "SOURCE_CAPTURED", "source_mode": "LIVE_ETABS",
@@ -470,6 +480,8 @@ def make_handler(output_root: Path, *, live_capture=None):
                         "vs04_pipeline": vs04_pipeline,
                         **({"story_drift": story_drift}
                            if story_drift is not None else {}),
+                        **({"r08_second_order": r08_second_order}
+                           if r08_second_order is not None else {}),
                         "formal_compliance": "NOT_PROVEN",
                         "engineering_release": "NOT_READY",
                     })
