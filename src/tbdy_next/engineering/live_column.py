@@ -177,6 +177,15 @@ def _material_and_cage(live: Mapping, lc_run: Mapping, member: str):
     dim2, dim3 = local_dimensions(
         text_number(rect["t2"], "t2") * 1000,
         text_number(rect["t3"], "t3") * 1000)
+    rho = sum(bar.area for bar in bars) / (dim2 * dim3)
+    require(len(bars) == cage.get("bar_count")
+            and .01 <= rho <= .04
+            and abs(rho - number(cage.get("steel_ratio"), "steel_ratio")) <= 1e-12,
+            "PROPOSED_REBAR_AREA_OR_RATIO_MISMATCH")
+    require(cage.get("area_ratio_reference_met") is True
+            and cage.get("spacing_reference_met") is True
+            and cage.get("tie_diameter_reference_met") is True,
+            "PROPOSED_CAGE_GEOMETRY_REFERENCE_GATE")
     return Section(dim2, dim3, bars, material), cage
 
 
@@ -195,6 +204,11 @@ def review_live_column(*, live: dict, lc_run: dict, combo: dict,
             and pmm_run.get("schema") == COMBO_RUN and lc_run.get("schema") == LC_RUN,
             "INCOMPATIBLE_RECEIPT_SCHEMA")
     _gateway_ready(live["gateway_capture"], live["model_filename"])
+    require(live.get("analysis_generation_proven") is False
+            and combo.get("analysis_generation_proven") is False
+            and combo.get("same_cut_proven") is False
+            and combo.get("source_only") is True,
+            "UNPROVEN_SOURCE_AUTHORITY_MISREPRESENTED")
     require(live.get("model_units_before") == live.get("model_units_after") == 6
             and live.get("model_locked_before") is True
             and live.get("model_locked_after") is True
@@ -215,6 +229,15 @@ def review_live_column(*, live: dict, lc_run: dict, combo: dict,
     require(lc_run["source"]["source_sha256"] == live["payload_sha256"]
             and lc_run["source"]["model_edb_sha256"] == combo["model_edb_sha256"],
             "BASELINE_SOURCE_CHANGED")
+    require(lc_run["source"].get("output_case") == "LC_DL"
+            and lc_run.get("design_demand_approved") is False,
+            "LC_DL_BASELINE_NOT_A_SOURCE_ONLY_SCENARIO")
+    identity = live.get("selected_identity")
+    require(isinstance(identity, dict)
+            and identity.get("Obj") == member
+            and identity.get("LoadCase") == "LC_DL"
+            and identity.get("StepType") == "Single Value",
+            "LC_DL_SELECTED_IDENTITY_UNVERIFIED")
     for ci in lc_run["check_instances"]:
         sealed(ci, "instance_sha256")
     require(combo["combo"].get("name") == "Grav_Ult"
@@ -226,6 +249,7 @@ def review_live_column(*, live: dict, lc_run: dict, combo: dict,
     rows = combo.get("rows")
     require(isinstance(rows, list) and len(rows) == combo.get("combo_station_count")
             and len(rows) == pmm_run.get("observed_station_count")
+            and len(rows) == pmm_run.get("numeric_pmm_station_count")
             and len(rows) > 0, "COMBO_ROW_COUNT_MISMATCH")
     section, cage = _material_and_cage(live, lc_run, member)
     owner = solver(section)
