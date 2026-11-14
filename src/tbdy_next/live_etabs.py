@@ -73,6 +73,14 @@ def read_quick_suite_from_running_etabs(case: str, *, with_vs04: bool = False) -
             sap = etabs.SapModel
             if sap is None or sap.GetModelIsLocked() is not True:
                 raise ModalCaptureError("ETABS modeli analizli ve kilitli olmalıdır; analiz başlatılmadı.")
+            # This full-engine path owns dimensional source calculations.
+            # Reject non-kN/m/C display units BEFORE any source read instead
+            # of letting a late VS04-G guard mask an unchanged, wrong unit.
+            observed_units = sap.GetPresentUnits()
+            if type(observed_units) is not int or observed_units != 6:
+                raise ModalCaptureError(
+                    f"ENGINE_SOURCE_UNITS_KN_M_C_REQUIRED:observed={observed_units!r}:expected=6"
+                )
             payload = capture_modal(sap, case)
             payload["capture_metadata"]["live_connection"] = "ATTACHED_EXISTING_SESSION"
             payload["geometry_capture"] = capture_geometry(sap)
