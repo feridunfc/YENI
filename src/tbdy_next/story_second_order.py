@@ -14,7 +14,7 @@ from typing import Any, Mapping
 from .story_delta import dec, tbl, DeltaSourceError
 from .story_drift_binding import _verify_generic_capture
 
-CHECK_ID = "SECOND_ORDER_PDELTA"
+CHECK_ID = "GLOBAL_SECOND_ORDER"
 SCHEMA = "tbdy.next.r08.story-pdelta-source-numerical.v1"
 CAPTURE_SCHEMA = "tbdy.next.r08.story-pdelta-capture.v1"
 WEIGHT_TERMS = {
@@ -36,9 +36,7 @@ def _base(capture_error: str | None) -> dict[str, Any]:
     return {
         "schema": SCHEMA, "check_id": CHECK_ID,
         "dag_node_id": CHECK_ID, "dag_node_type": "REGULATORY_CHECK",
-        "dag_declared_dependencies": [
-            "ANALYSIS_BASIS_GATE", "SEISMIC_DESIGN_BASIS", "STORY_DRIFT"
-        ],
+        "dag_declared_dependencies": ["BASE_SHEAR", "STORY_DRIFT"],
         "dag_execution_authority": "DENIED",
         "code_ref": "TBDY 2018 4.9.2.1–4.9.2.4 / 4.35–4.37",
         "status": "BLOCKED_SOURCE_UNAVAILABLE",
