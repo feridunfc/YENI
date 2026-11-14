@@ -17,6 +17,8 @@
   let c2Request = 0;
   const nav = document.getElementById('nav');
   const byId = id => document.getElementById(id);
+  const eventLog = (level, stage, message) =>
+    window.engineConsole?.log?.(level, stage, message);
   const exportActions = document.createElement('div');
   exportActions.className = 'actions';
   exportActions.id = 'quickExportActions';
@@ -467,6 +469,7 @@
       latestCompleteReport = null;
       latestB2 = null;
       b2LoadNote = 'Seçili kaydın B2 sonucu açılamadı: ' + error.message;
+      eventLog('error', 'ARŞİV RAPORU', error.message);
       if (b1Version === b1Request)
         byId('b1Status').textContent = 'Seçili kaydın B1 sonucu açılamadı: ' + error.message;
     }
@@ -600,6 +603,7 @@
       renderExtras(active);
     } catch (error) {
       byId('quickStatus').textContent = 'Kontrol ağacı yüklenemedi: ' + error.message;
+      eventLog('error', 'KONTROL AĞACI', error.message);
     }
   }
   function renderUnifiedTrees(data) {
@@ -788,6 +792,7 @@
       quickHistoryLoaded = true;
       if (!selectedRunId && initialModalRun) selectSavedRun(initialModalRun);
       byId('quickStatus').textContent = 'Geçmiş kontrol kaydı okunamadı: ' + error.message;
+      eventLog('error', 'ÇALIŞMA GEÇMİŞİ', error.message);
     }
   }
   async function runSuite() {
@@ -799,9 +804,11 @@
       const message = 'Modal vaka adı zorunludur.';
       status.textContent = message;
       liveStatus.textContent = message;
+      eventLog('error', 'ETABS', message);
       return;
     }
     button.disabled = true;
+    eventLog('info', 'ETABS', 'Birleşik canlı tarama başlatıldı · Modal vaka: ' + modal);
     liveStatus.className = 'live-status';
     liveStatus.textContent = 'ETABS verisi okunuyor; kaynaklar, birimler ve kontrol sonuçları hazırlanıyor…';
     status.textContent = liveStatus.textContent;
@@ -810,7 +817,7 @@
       const response = await fetch('/api/live-vs04?case=' + encodeURIComponent(modal),
                                    {method: 'POST', cache: 'no-store'});
       const body = await response.json();
-      if (!response.ok) throw new Error(body.result?.reason || body.reason || 'HTTP ' + response.status);
+      if (!response.ok) throw new Error(body.result?.reason || body.reason || body.error || 'HTTP ' + response.status);
       if (body.engineering_release !== 'NOT_READY' || !body.vs04_schema || !body.vs04_numerics
           || !body.vs04_readiness || !body.geometry || !body.extra_checks || !body.run_id
           || body.vs04_pipeline?.pipeline_contract_version !== 'v2') {
@@ -831,12 +838,30 @@
         + ' · TBDY genel uygunluk: NOT_PROVEN';
       status.textContent = liveStatus.textContent;
       liveStatus.className = 'live-status warn';
+      eventLog('success', 'ETABS', 'Birleşik kaynak ve hesap kaydı oluşturuldu · ' + body.run_id);
+      if (body.r08_second_order) {
+        const record = body.r08_second_order;
+        const level = record.execution_status === 'SOURCE_NUMERICAL_ONLY' ? 'info' : 'warn';
+        eventLog(level, 'R08 GLOBAL P–Δ',
+          record.status + ' · ' + record.evaluated_story_direction_count +
+          '/' + record.expected_story_direction_count + ' kat-yön · NOT_PROVEN');
+        if (record.reason_codes?.length)
+          eventLog('warn', 'R08 ENGELLER', record.reason_codes.join(' | '));
+        if (record.source_capture_error)
+          eventLog('error', 'R08 KAYNAK', record.source_capture_error);
+      }
       await loadRuns();
     } catch (error) {
-      const message = 'Birleşik tarama tamamlanamadı: ' + error.message;
+      const detail = String(error?.message || error);
+      const message = 'Birleşik tarama tamamlanamadı: ' + detail;
       status.textContent = message;
       liveStatus.textContent = message;
       liveStatus.className = 'live-status bad';
+      eventLog('error', 'BİRLEŞİK TARAMA', detail);
+      if (/VS04G_PRESENT_UNITS|LIVE_ETABS_UNITS_KN_M_C_REQUIRED/.test(detail)) {
+        eventLog('warn', 'ETABS BİRİM',
+          'ETABS sağ alt köşede kN, m, C seçin (GetPresentUnits=6); model kilitli kalsın. Sonra aynı düğmeyle yeniden deneyin.');
+      }
     } finally {
       button.disabled = false;
     }
@@ -923,6 +948,7 @@
       if (request !== c2Request || selectedRunId !== runId) return;
       activeScenarioQuery = '';
       status.textContent = 'VS06-C2 sayısal hesap başarısız: ' + err.message;
+      eventLog('error', 'KAT ÖTELEMESİ C2', err.message);
       host.replaceChildren();
     } finally {
       if (request === c2Request) button.disabled = false;
@@ -1035,6 +1061,7 @@
     }catch(err){
       if (request !== b1Request) return;
       b1Result=null;status.textContent='B1 sayısal kaynak hesabı reddedildi: '+err.message;
+      eventLog('error', 'B1 KAYNAK', err.message);
       host.replaceChildren();
     }finally{
       if (request === b1Request) btn.disabled=false;
@@ -1080,6 +1107,7 @@
     }catch(err){
       if (request !== b1Request || selectedRunId !== runId) return;
       status.textContent='Seçili ETABS çalışmasından B1 açılamadı: '+err.message;
+      eventLog('error', 'B1 ARŞİV', err.message);
     }finally{if (request === b1Request) btn.disabled=false;}
   }
   byId('b1UseRun')?.addEventListener('click',showB1FromRun);

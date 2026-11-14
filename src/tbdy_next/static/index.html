@@ -38,6 +38,25 @@
 @media(max-width:1050px){.app{grid-template-columns:230px minmax(0,1fr)}.rail{display:none}main{padding:22px}}
 @media(max-width:700px){.app{display:block}.navlist{display:block;max-height:42vh;overflow:auto}.navitem{width:100%}.navtitle{display:block}main{padding:14px}.top{flex-wrap:wrap}.twocol{grid-template-columns:1fr}.stages{grid-template-columns:1fr}.nav-child{flex-wrap:wrap}}
 
+/* Right-side local execution console; never changes engineering approval. */
+.app{grid-template-columns:258px minmax(450px,1fr) 290px}
+.engine-console{margin-top:17px;border-top:1px solid var(--border);padding-top:14px}
+.engine-console-head{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:7px}
+.engine-console-head h2{margin:0;font-size:12px;line-height:1.4}
+.engine-console-clear{font:11px system-ui;background:transparent;color:var(--muted);border:1px solid var(--border);padding:5px 7px;border-radius:5px;cursor:pointer}
+.engine-console-clear:hover{background:var(--bg)}
+.engine-console-log{list-style:none;padding:7px;margin:0;max-height:390px;min-height:130px;overflow-y:auto;background:#f7f9fc;border:1px solid var(--border);border-radius:7px;font:11px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace}
+.engine-console-entry{padding:8px 6px 8px 9px;margin:0;border-bottom:1px solid #e0e6ef;border-left:3px solid #b7c6d6;overflow-wrap:anywhere;white-space:pre-wrap}
+.engine-console-entry:last-child{border-bottom:0}
+.engine-console-meta{display:block;color:var(--muted);font-weight:700;margin-bottom:3px}
+.engine-console-message{display:block}
+.engine-console-error{border-left-color:#aa4b37;color:#813a2d}
+.engine-console-warn{border-left-color:#996a16}
+.engine-console-success{border-left-color:#22745e}
+.engine-console-empty{color:var(--muted);border-left-color:transparent;font-style:italic}
+.engine-console-note{margin:7px 0 0;font-size:10px;line-height:1.45;color:var(--muted)}
+@media(max-width:1050px){.app{grid-template-columns:230px minmax(0,1fr)}.rail{display:block;grid-column:2;border-left:0;border-top:1px solid var(--border);padding:18px}.engine-console-log{max-height:260px}}
+@media(max-width:700px){.app{display:block}.rail{display:block;grid-column:auto;padding:16px}}
 #columnProposalControl[hidden]{display:none}#columnOverviewDetails details{margin:10px 0;padding:10px;border:1px solid var(--border);border-radius:7px}#columnOverviewDetails summary{cursor:pointer;font-weight:600}#columnOverviewDetails pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px}#columnForces td{font-variant-numeric:tabular-nums}
 </style>
 </head>
@@ -159,7 +178,12 @@
 <div id="plannedcontent" class="hidden notbuilt"><h2 id="plannedtitle"></h2><p>Bu hesap henüz etkinleştirilmedi. Sıradaki dikey dilim ancak kaynak → şema → postprocess → mühendislik kontrolü → rapor zinciri çalışınca açılır.</p><p class="muted small">Burada sahte PASS, hazırmış gibi gösterilen formül veya boş hesap ekranı yok.</p></div>
 <div class="footer">Her kontrol tek, izlenebilir sonuç üretir. Sayısal alt koşulun sağlanması bina uygunluk onayı değildir.</div>
 </main>
-<aside class="rail" aria-label="Kısa çalışma özeti"><div class="section-label">Seçili model</div><ul class="tree" id="modeltree"><li>Kaynak henüz yüklenmedi</li></ul><div class="release-note">Mühendislik kabulü<strong>NOT_READY</strong>Hesap kapsamı ve varsayımlar, ilgili kontrolün içinde gösterilir.</div></aside>
+<aside class="rail" aria-label="Kısa çalışma özeti"><div class="section-label">Seçili model</div><ul class="tree" id="modeltree"><li>Kaynak henüz yüklenmedi</li></ul><div class="release-note">Mühendislik kabulü<strong>NOT_READY</strong>Hesap kapsamı ve varsayımlar, ilgili kontrolün içinde gösterilir.</div>
+<section class="engine-console" aria-labelledby="engineConsoleTitle">
+<div class="engine-console-head"><h2 id="engineConsoleTitle">İşlem / Hata Konsolu</h2><button class="engine-console-clear" id="engineConsoleClear" type="button">Temizle</button></div>
+<ol class="engine-console-log" id="engineConsoleMessages" role="log" aria-live="polite" aria-relevant="additions" data-empty="true"><li class="engine-console-entry engine-console-empty">Henüz işlem kaydı yok.</li></ol>
+<p class="engine-console-note">Yerel oturumdaki son 40 işlem ve hata. Model dosyaları veya hesap verileri buraya yazılmaz.</p>
+</section></aside>
 </div>
 <script>
 const tabs=['Geometri','Malzeme','Kesitler','Atamalar','Yükler ve kütle','Analiz vakaları','Deprem esasları','Modal analiz','Kat/sistem sonuçları','Düzensizlikler','Döşemeler','Kirişler','Kolonlar','Perdeler','Birleşimler','Temeller'];
@@ -171,7 +195,7 @@ function textnode(tag,content,cls){const el=document.createElement(tag);el.textC
 function setTree(id,values){const ul=document.getElementById(id);ul.replaceChildren();values.forEach(v=>ul.append(textnode('li',v)))}
 function showResult(action,payload){result.replaceChildren();if(payload.result){const obj=payload.result;const title=document.createElement('h3');title.textContent=`${obj.status||'SONUÇ'} — ${action}`;title.className=obj.status==='REJECTED'?'bad':obj.status==='SCHEMA_REVIEW_REQUIRED'?'warn':'good';result.append(title);for(const [key,v] of Object.entries(obj)){if(['note','stage','criterion'].includes(key))continue;const line=document.createElement('div');line.className='statline';line.append(textnode('span',key.replaceAll('_',' ')),textnode('strong',Array.isArray(v)?v.join(', '):typeof v==='object'?JSON.stringify(v):v));result.append(line)}if(obj.note)result.append(textnode('p',obj.note,'muted small'));}
 if(payload.run_id){document.getElementById('trail').prepend(textnode('div',payload.run_id+' · '+(payload.result?.status||''),'stamp'));}}
-function err(msg){result.replaceChildren(textnode('p',msg,'bad'))}
+function err(msg){result.replaceChildren(textnode('p',msg,'bad'));window.engineConsole?.log?.('error','DOSYA / İSTEK',msg)}
 async function upload(id,url,action){const file=document.getElementById(id).files[0];if(!file)return err('Önce JSON dosyası seçin.');if(file.size>8*1024*1024)return err('8 MB üzerindeki dosyalar kabul edilmiyor.');const btn=document.activeElement;btn.disabled=true;try{const text=await file.text();JSON.parse(text);const response=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:text});const data=await response.json();showResult(action,data);if(action==='Kaynak keşfi'&&response.ok){const x=data.result;document.getElementById('step1').textContent='DISCOVERED · '+x.available_table_count+' tablo';setTree('modeltree',[`ETABS ${x.etabs_version||'?'}`,`${x.available_table_count} tablo keşfedildi`,`${x.load_case_count} yük vakası`,`${x.load_combination_count} kombinasyon`])}if(action==='Şema inceleme'){document.getElementById('step2').textContent=data.result?.status||'Şema bekleniyor';}if(action==='Modal kontrol'&&response.ok){if(typeof window.showModalFullTable==='function')window.showModalFullTable(data.run_id);const x=data.result;document.getElementById('step2').textContent='SCHEMA_VALID';document.getElementById('step3').textContent=x.status;setTree('resulttree',['VS01 · Modal kütle',`X: ${x.sum_ux}`,`Y: ${x.sum_uy}`,`Eşik: ${x.required_ratio}`,`Sayısal: ${x.status}`,'Mühendislik release: NOT_READY'])}await loadRuns();}catch(ex){err('Dosya/istek hatası: '+ex.message)}finally{btn.disabled=false}}
 async function loadRuns(){try{const res=await fetch('/api/runs');const data=await res.json();const box=document.getElementById('runlist');box.replaceChildren();if(!data.runs?.length){box.append(textnode('div','Henüz kayıt yok.'));return;}data.runs.slice(0,6).forEach(r=>{const line=document.createElement('div');line.className='stamp';line.append(textnode('strong',r.run_id),textnode('span',r.steps.map(s=>s.stage+': '+s.status).join(' | ')));box.append(line)})}catch(ex){document.getElementById('runlist').textContent='Kayıt listesi erişilemedi.'}}
 document.getElementById('discoverBtn').onclick=()=>upload('preflight','/api/discovery','Kaynak keşfi');
@@ -179,6 +203,7 @@ document.getElementById('schemaBtn').onclick=()=>upload('capture','/api/modal-sc
 document.getElementById('modalBtn').onclick=()=>upload('capture','/api/modal?case='+encodeURIComponent(document.getElementById('case').value),'Modal kontrol');
 loadRuns();
 </script>
+<script src="/engine-console.js"></script>
 <script src="/history.js"></script>
 <script src="/quick.js"></script>
 <script src="/column.js"></script>

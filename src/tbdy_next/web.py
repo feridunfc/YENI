@@ -170,7 +170,7 @@ def make_handler(output_root: Path, *, live_capture=None):
                     self.reply(404, {"error": "VERIFIED_MODAL_TABLE_NOT_FOUND"})
                     return
                 self.reply(200, {"table": table})
-            elif url.path in ("/quick.js", "/column.js"):
+            elif url.path in ("/quick.js", "/column.js", "/engine-console.js"):
                 source = resources.files("tbdy_next").joinpath("static" + url.path).read_bytes()
                 self.send_response(200)
                 self.send_header("Content-Type", "text/javascript; charset=utf-8")

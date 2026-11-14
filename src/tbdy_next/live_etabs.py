@@ -73,6 +73,13 @@ def read_quick_suite_from_running_etabs(case: str, *, with_vs04: bool = False) -
             sap = etabs.SapModel
             if sap is None or sap.GetModelIsLocked() is not True:
                 raise ModalCaptureError("ETABS modeli analizli ve kilitli olmalıdır; analiz başlatılmadı.")
+            # Fail before all subsequent VS04G / R08 source reads when the
+            # user's ETABS display has been switched to tonf (code 12) etc.
+            # The engine NEVER sets units, unlocks or reruns analysis.
+            units = sap.GetPresentUnits()
+            if type(units) is not int or units != 6:
+                raise ModalCaptureError(
+                    f"LIVE_ETABS_UNITS_KN_M_C_REQUIRED:expected=6;observed={units!r}")
             payload = capture_modal(sap, case)
             payload["capture_metadata"]["live_connection"] = "ATTACHED_EXISTING_SESSION"
             payload["geometry_capture"] = capture_geometry(sap)
