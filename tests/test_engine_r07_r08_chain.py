@@ -171,6 +171,13 @@ class SourceChainTests(unittest.TestCase):
         self.assertEqual(result["result_sha256"],
                          digest({k: v for k, v in result.items() if k != "result_sha256"}))
 
+    def test_proposed_bar_ratio_is_recomputed(self):
+        from tbdy_next.engineering.live_column import _material_and_cage
+        fixtures = sample_receipts()
+        fixtures["lc_run"]["check_instances"][2]["numeric_detail"]["steel_ratio"] = .02
+        with self.assertRaisesRegex(LiveEvidenceError, "PROPOSED_REBAR_AREA_OR_RATIO_MISMATCH"):
+            _material_and_cage(fixtures["live"], fixtures["lc_run"], "101")
+
     def test_tampered_combo_is_rejected(self):
         fixtures = sample_receipts()
         fixtures["combo"]["rows"][0]["M2"] = 9999.
