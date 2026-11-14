@@ -674,6 +674,24 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
     elif story_drift_receipt is not None:
         raise ReportUnavailable("Orphan VS05 STORY_DRIFT receipt")
 
+    # R08 source/check record: immutable one-run seal, exact re-evaluation
+    # on every export; no new analysis and no trust in stored numeric payload.
+    r08_second_order = None
+    r08_receipt = _read_receipt(directory, "r08-second-order")
+    if ("r08_second_order_source" in source or
+            "r08_second_order_capture_error" in source):
+        if (r08_receipt is None or
+                r08_receipt.get("input_sha256") != modal["input_sha256"]):
+            raise ReportUnavailable("R08 GLOBAL_SECOND_ORDER receipt missing or foreign")
+        from .story_second_order import bind_story_second_order
+        r08_second_order = bind_story_second_order(
+            source.get("r08_second_order_source"),
+            capture_error=source.get("r08_second_order_capture_error"))
+        if r08_second_order != r08_receipt["payload"]:
+            raise ReportUnavailable("R08 GLOBAL_SECOND_ORDER source/receipt mismatch")
+    elif r08_receipt is not None:
+        raise ReportUnavailable("Orphan R08 GLOBAL_SECOND_ORDER receipt")
+
     # VS06-A is a read-only projection of the already-verified VS05 record.
     # Never alter the historical receipt payload: exact replay is required.
     vs06_slot_ledger = None
@@ -804,6 +822,18 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
     inventory = _vs05_check_inventory(
         checks, story_drift, vs06_b1_result, vs06_b1_source_status, b2, wall_geometry, source_controls,
         earthquake_combinations)
+    if r08_second_order is not None:
+        inventory["entries"].append({
+            "check_id": "GLOBAL_SECOND_ORDER",
+            "evaluation": ("CONDITIONAL_SOURCE_NUMERICAL" if
+                           r08_second_order["evaluated_story_direction_count"] else
+                           "BLOCKED_SOURCE"),
+            "status": r08_second_order["status"],
+            "expected_count": r08_second_order["expected_story_direction_count"],
+            "evaluated_count": r08_second_order["evaluated_story_direction_count"],
+            "formal_compliance": "NOT_PROVEN", "engineering_release": "NOT_READY",
+        })
+        inventory["count"] += 1
     if earthquake_combinations is not None:
         source_scope += " + VS10 orthogonal combination coefficients / observed directional coverage (TBDY NOT_PROVEN)"
     if source_controls is not None:
@@ -819,6 +849,11 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
                          + " (infill assumptions; TBDY NOT_PROVEN)")
     elif vs06_b1_source_status is not None:
         source_scope += " + WEAK_STORY_B1 source BLOCKED (no numeric result)"
+    if r08_second_order is not None:
+        source_scope += (" + GLOBAL_SECOND_ORDER source-numerical " +
+                         str(r08_second_order["evaluated_story_direction_count"]) +
+                         "/" + str(r08_second_order["expected_story_direction_count"]) +
+                         " story-direction records (global P-Delta NOT_PROVEN)")
     if story_drift is not None:
         source_scope += (" + STORY_DRIFT ETABS-derived source numerical "
                          + str(story_drift["evaluated_story_case_direction_count"])
@@ -856,6 +891,8 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         "vs04_readiness": vs04_readiness,
         "vs04_pipeline": vs04_pipeline,
         **({"story_drift": story_drift} if story_drift is not None else {}),
+        **({"r08_second_order": r08_second_order}
+           if r08_second_order is not None else {}),
         **({"physical_story_scope": physical_scope} if physical_scope is not None else {}),
         **({"declared_story_drift_source_record": declared_story_drift}
            if story_drift != declared_story_drift else {}),
@@ -900,6 +937,7 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
             "vs04_readiness_receipt_sha256": vs04_readiness_receipt["receipt_sha256"] if vs04_readiness_receipt else None,
             "vs04_pipeline_receipt_sha256": vs04_pipeline_receipt["receipt_sha256"] if vs04_pipeline_receipt else None,
             "story_drift_receipt_sha256": story_drift_receipt["receipt_sha256"] if story_drift_receipt else None,
+            "r08_second_order_receipt_sha256": r08_receipt["receipt_sha256"] if r08_receipt else None,
             "note": "These are local source/receipt fingerprints, not third-party authorization.",
         },
         "source_snapshot": source,  # Full raw 7 tables + exact material facts for independent review.
@@ -949,6 +987,16 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
     drift_summary = report.get("story_drift")
     if isinstance(drift_summary, Mapping):
         summary_rows.append(_vs05_summary_row(drift_summary))
+    r08_summary = report.get("r08_second_order")
+    if isinstance(r08_summary, Mapping):
+        summary_rows.append({
+            "check_id": "GLOBAL_SECOND_ORDER",
+            "status": r08_summary["status"],
+            "expected_count": r08_summary["expected_story_direction_count"],
+            "evaluated_count": r08_summary["evaluated_story_direction_count"],
+            "met_count": 0, "unmet_count": 0, "not_applicable_count": 0,
+            "not_proven_count": r08_summary["expected_story_direction_count"],
+        })
     b2 = report.get("soft_story_b2")
     wall_geometry = report.get("wall_geometry")
     source_controls = report.get("source_controls")
@@ -1132,6 +1180,38 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
             _table((("story", "Kat"), ("case", "Vaka"), ("direction", "Yön")),
                    drift_check.get("missing_story_case_direction", [])) +
             '</section>')
+    r08_record = report.get("r08_second_order")
+    if isinstance(r08_record, Mapping):
+        dr = r08_record.get("direction_results", {})
+        direction_rows = [
+            {"axis": axis, **(dr.get(axis) or {})} for axis in ("X", "Y")
+        ]
+        vs04_sections.append(
+            '<section class="percheck" data-check-panel="GLOBAL_SECOND_ORDER">'
+            '<h2>R08 · Global ikinci mertebe P–Δ · TBDY 2018 4.9.2</h2>'
+            '<p>Kaynak sayısal durum: ' + _val(r08_record.get("status")) +
+            '. Bu birinci aşama yalnızca ETABS kaynaklarının sayısal gösterge '
+            'adayını hesaplar. Kolon/perde ortalama ötelemesi, deprem kütlesi '
+            'ağırlıkları, spektral büyütme ve analiz nesli kabul edilmemiştir. '
+            '<strong>FORMAL COMPLIANCE: NOT_PROVEN · RELEASE: NOT_READY</strong>.</p>' +
+            _table((("story", "Kat"), ("direction", "Yön"), ("case", "Vaka"),
+                    ("story_height_m", "h (m)"),
+                    ("cumulative_seismic_weight_kn_candidate", "Toplam W (kN)"),
+                    ("reduced_story_shear_kn_candidate", "Vi (kN)"),
+                    ("etabs_avg_drift_m_candidate", "Ort. Δ adayı (m)"),
+                    ("theta_ii_candidate", "θII adayı"),
+                    ("source_numeric_status", "Kaynak durumu")),
+                   r08_record.get("results", [])) +
+            '<h3>Yön bazında sayısal adaylar</h3>' +
+            _table((("axis", "Yön"), ("theta_max_candidate", "θmax adayı"),
+                    ("theta_limit_reference", "θ sınır referansı"),
+                    ("beta_ii_candidate", "βII adayı"),
+                    ("applied_to_design_forces", "Tasarım kuvvetlerine uygulandı mı?")),
+                   direction_rows) +
+            '<p>Kaynak engelleri: ' + _val(r08_record.get("reason_codes", [])) +
+            ' · Kabul eksikleri: ' + _val(r08_record.get("missing_authorities", [])) +
+            ' · Kaynak SHA: ' + _val(r08_record.get("source_sha256")) +
+            '</p></section>')
     ledger = report.get("vs06_story_slot_ledger")
     if isinstance(ledger, Mapping):
         vs04_sections.append(

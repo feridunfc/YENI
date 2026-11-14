@@ -459,6 +459,7 @@
         latestFullRun = {...latestFullRun, soft_story_b2: latestB2,
           ...(report.story_drift ? {story_drift: report.story_drift} : {})};
         renderStoryDrift(report.story_drift || latestFullRun.story_drift || null);
+        renderSecondOrder(report.r08_second_order || latestFullRun.r08_second_order || null);
         renderUnifiedTrees(latestFullRun);
       }
     } catch (error) {
@@ -478,6 +479,13 @@
     const report = latestCompleteReport;
     const run = latestFullRun;
     let record;
+    if (checkId === 'GLOBAL_SECOND_ORDER') {
+      const r08 = report?.r08_second_order || run?.r08_second_order;
+      if (!r08) return ['Hesap yok', '', 'R08 ETABS kaynak kaydı henüz bulunmuyor.'];
+      const n = r08.evaluated_story_direction_count || 0;
+      return [n ? (n === r08.expected_story_direction_count ? 'Sayısal' : 'Kısmi') : 'Eksik',
+        'review', r08.status + ' · formal compliance NOT_PROVEN'];
+    }
     if (checkId === 'STORY_DRIFT') {
       record = report?.story_drift || run?.story_drift;
       if (!record) return ['Hesap yok', '', 'Kat öteleme kaynağı yok.'];
@@ -652,6 +660,53 @@
       host.append(make("p", "Eksik kapsam: " + missing, "warn"));
     }
   }
+  function renderSecondOrder(r08) {
+    const host = byId('storyDriftReport');
+    if (!host || !r08) return;
+    const section = make('section', undefined, 'quick-check');
+    section.dataset.checkPanel = 'GLOBAL_SECOND_ORDER';
+    section.append(make('h3', 'R08 · P–Δ ikinci mertebe · ' + r08.status),
+      make('p', 'Kaynak sayısal: ' + r08.evaluated_story_direction_count +
+        '/' + r08.expected_story_direction_count +
+        ' · Bina uygunluğu NOT_PROVEN · Analiz mertebesi NOT_PROVEN', 'warn'));
+    const t = make('table', undefined, 'modal-source-table');
+    const head = make('thead'), hr = make('tr');
+    for (const label of ['Kat', 'Yön', 'Vaka', 'h (m)', 'ΣW (kN)', 'Vi (kN)', 'Ort. Δ (m)', 'θII adayı'])
+      hr.append(make('th', label));
+    head.append(hr); t.append(head);
+    const body = make('tbody');
+    for (const row of (r08.results || [])) {
+      const tr = make('tr');
+      for (const value of [
+        row.story, row.direction, row.case, row.story_height_m,
+        row.cumulative_seismic_weight_kn_candidate,
+        row.reduced_story_shear_kn_candidate,
+        row.etabs_avg_drift_m_candidate, row.theta_ii_candidate
+      ]) tr.append(make('td', value ?? '—'));
+      body.append(tr);
+    }
+    t.append(body);
+    const scroll = make('div', undefined, 'modal-table-scroll');
+    scroll.append(t); section.append(scroll);
+    for (const axis of ['X', 'Y']) {
+      const result = r08.direction_results?.[axis];
+      if (result) section.append(make('p', axis +
+        ': θmax = ' + result.theta_max_candidate +
+        ' · θlimit = ' + result.theta_limit_reference +
+        ' · βII adayı = ' + result.beta_ii_candidate +
+        ' · TASARIMDA UYGULANMADI', 'muted small'));
+    }
+    if (r08.reason_codes?.length || r08.missing_authorities?.length) {
+      const detail = make('details');
+      detail.append(make('summary', 'Açık mühendislik kabul kapıları'),
+        make('pre', JSON.stringify({
+          reason_codes: r08.reason_codes || [],
+          missing_authorities: r08.missing_authorities || []
+        }, null, 2)));
+      section.append(detail);
+    }
+    host.append(section);
+  }
   function useReport(report, extra, vs04, vs04Numerics, vs04Readiness, vs04Pipeline, fullRun) {
     latestFullRun = fullRun ? {...fullRun} : null;
     latestCompleteReport = null;
@@ -677,6 +732,7 @@
     renderUnifiedTrees(fullRun);
     renderVs04();
     renderStoryDrift(fullRun?.story_drift || null);
+    renderSecondOrder(fullRun?.r08_second_order || null);
     renderExtras(active);
     renderQuick(report, 7);
     renderQuick(report, 11);

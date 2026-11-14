@@ -139,6 +139,15 @@ def read_quick_suite_from_running_etabs(case: str, *, with_vs04: bool = False) -
                 except Exception as exc:
                     payload["vs06_b1_geometry_capture_error"] = (
                         f"{type(exc).__name__}: {exc}")
+                # R08: same SapModel / same COM thread; RSX/RSY and WGHT
+                # selections are restored even on source failure. A source
+                # failure blocks ONLY this new check, never accepted VS01–VS06.
+                try:
+                    from .story_second_order_capture import capture_story_second_order
+                    payload["r08_second_order_source"] = capture_story_second_order(sap)
+                except Exception as exc:
+                    payload["r08_second_order_capture_error"] = (
+                        f"{type(exc).__name__}: {exc}")
             return payload
         finally:
             sap = None
