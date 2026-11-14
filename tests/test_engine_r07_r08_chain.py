@@ -54,12 +54,14 @@ def sample_receipts():
     live = seal({
         "schema": "tbdy.next.r07-r09.live-readonly.v1",
         "model_filename": model, "requested_member": member,
+        "selected_identity": {"Obj": member, "LoadCase": "LC_DL", "StepType": "Single Value"},
+        "analysis_generation_proven": False,
         "edb_sha256_before": sha, "edb_sha256_after": sha,
         "model_units_before": 6, "model_units_after": 6,
         "model_locked_before": True, "model_locked_after": True,
         "gateway_capture": gateway(model, base),
     })
-    bars = [{"x2": a, "x3": b, "area": 1200.0}
+    bars = [{"x2": a, "x3": b, "area": 2000.0}
             for a in (-300., 300.) for b in (-300., 300.)]
     cage_sha = "b" * 64
     checks = [
@@ -71,7 +73,10 @@ def sample_receipts():
         {"stage": "R09", "numeric_detail": {
             "role": "PROPOSED", "constructible_scenario": True,
             "cage_revision_sha256": cage_sha,
-            "bar_count": 4, "steel_ratio": 4800./640000.,
+            "bar_count": 4, "steel_ratio": 8000./640000.,
+            "area_ratio_reference_met": True,
+            "spacing_reference_met": True,
+            "tie_diameter_reference_met": True,
             "bar_area_geometry": bars}},
     ]
     for ci in checks:
@@ -80,9 +85,11 @@ def sample_receipts():
         "schema": "tbdy.next.r07-r09.one-column-run-result.v1",
         "source": {
             "source_sha256": live["payload_sha256"],
-            "physical_object_id": member, "model_edb_sha256": sha},
+            "physical_object_id": member, "model_edb_sha256": sha,
+            "output_case": "LC_DL"},
         "cage_revision_sha256": cage_sha,
         "check_instances": checks, "engineering_release": "NOT_READY",
+        "design_demand_approved": False,
     }
     seal(lc, "run_result_sha256")
     terms = [{"case": case, "factor": factor, "case_type": "Linear Static"}
@@ -99,6 +106,8 @@ def sample_receipts():
     combo = seal({
         "schema": "tbdy.next.r07.gravult-combo-live-capture.v1",
         "combo_station_count": 3, "member_id": member, "rows": rows,
+        "source_only": True, "analysis_generation_proven": False,
+        "same_cut_proven": False,
         "combo": {
             "name": "Grav_Ult", "operator": "Linear Add",
             "concrete_design_list": "Strength", "terms": terms},
@@ -122,7 +131,8 @@ def sample_receipts():
         "source_capture_sha256": combo["payload_sha256"],
         "reference_lc_dl_run_sha256": lc["run_result_sha256"],
         "original_cage_sha256": cage_sha, "model_edb_sha256": sha,
-        "observed_station_count": 3, "check_instances": previous,
+        "observed_station_count": 3, "numeric_pmm_station_count": 3,
+        "check_instances": previous,
         "engineering_release": "NOT_READY",
     }
     seal(pmm, "run_result_sha256")
