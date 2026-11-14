@@ -48,12 +48,10 @@ def check_registry() -> list[dict[str, Any]]:
     derived = (
         CheckDefinition("STORY_DRIFT", "Göreli / etkin kat ötelemesi", 8,
                         "TBDY 2018 §4.9.1", "SOURCE_NUMERICAL"),
-        CheckDefinition("SECOND_ORDER_PDELTA", "İkinci mertebe · Global P–Δ", 8,
-                        "TBDY 2018 §4.9.2", "CONDITIONAL_SOURCE_NUMERICAL"),
         CheckDefinition("WEAK_STORY_B1", "B1 zayıf kat — koşullu hesap", 9,
                         "TBDY 2018 Tablo 3.6 / §3.6.2.3", "CONDITIONAL_SOURCE_NUMERICAL"),
     )
-    panels = {"STORY_DRIFT": "storyDriftPanel", "SECOND_ORDER_PDELTA": "storyDriftPanel",
+    panels = {"STORY_DRIFT": "storyDriftPanel",
               "WEAK_STORY_B1": "vs06-b1-panel", "SOFT_STORY_B2": "b2Panel",
               "WALL_GEOMETRY_CHECK": "wallGeometryPanel"}
     panels.update(SOURCE_PANELS)
