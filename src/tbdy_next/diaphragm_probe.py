@@ -46,6 +46,12 @@ def capture_diaphragm_modal_probe(
         raise ModalCaptureError("VS04G_EXACT_DISTINCT_SPECTRUM_CASES_REQUIRED")
     db = sap.DatabaseTables
     units_before = sap.GetPresentUnits()
+    # Validate units at the entry boundary. An unsupported *initial* unit is
+    # not evidence that source-reading code modified ETABS display units.
+    if type(units_before) is not int or units_before != 6:
+        raise ModalCaptureError(
+            f"VS04G_KN_M_C_REQUIRED:observed={units_before!r}:expected=6"
+        )
     original = _selected_cases(db)
     inventory = parse_available_tables(db.GetAvailableTables())
     available = {r["table_key"] for r in inventory}
@@ -96,8 +102,10 @@ def capture_diaphragm_modal_probe(
     if _selected_cases(db) != original:
         raise ModalCaptureError("VS04G_FINAL_CASE_SELECTION_CHANGED")
     units_after = sap.GetPresentUnits()
-    if type(units_before) is not int or units_before != units_after or units_before != 6:
-        raise ModalCaptureError("VS04G_PRESENT_UNITS_CHANGED_OR_UNSUPPORTED")
+    if type(units_after) is not int or units_before != units_after:
+        raise ModalCaptureError(
+            f"VS04G_PRESENT_UNITS_CHANGED:before={units_before!r}:after={units_after!r}"
+        )
 
     return {
         "schema":SCHEMA,"source_mode":"LIVE_ETABS",
