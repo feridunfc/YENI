@@ -55,7 +55,7 @@ const ctx = {
     return null;
   }, createElement() { return new Element(); }},
   window: win,
-  Date,
+  Date, Error,
   Object, Set, String,
 };
 vm.runInNewContext(js, ctx, {filename: 'engine-console.js'});
