@@ -14,6 +14,7 @@ from .story_second_order import CAPTURE_SCHEMA
 
 SPECTRUM_TABLES = (
     "Story Forces", "Story Max Over Avg Drifts", "Story Definitions",
+    "Tower and Base Story Definitions", "Base Reactions",
     "Mass Summary by Story", "Mass Source Definition",
     "Load Combination Definitions", "Load Case Definitions - Summary",
 )
