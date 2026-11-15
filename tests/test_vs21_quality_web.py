@@ -77,9 +77,9 @@ class ColumnQualityWebTests(unittest.TestCase):
 
     def test_report_preserves_summary_and_discloses_numerical_scope_with_closed_details(self):
         with self.get('/report/column-bank?'+self.query) as response:html=response.read().decode()
-        self.assertLess(html.index('Kolon mühendislik özeti · VS20'),html.index('PMM bağımsız sayısal kıyas · VS21'))
-        for phrase in ('Tolerans içinde','Bağımsız kapasite (kN·m)','PMM nüfusunun tamamı bağımsız doğrulanmış değildir',
-                       'aynı malzeme modelini','Ana hesabın üç düzeydeki kapasite yayılımı bütçeye eklenmez'):
+        self.assertLess(html.index('Column engineering summary · VS20'),html.index('Independent numerical PMM comparison · VS21'))
+        for phrase in ('Within tolerance','Independent capacity (kN·m)','Independent verification of governing-record selection and the full PMM population is pending',
+                       'Both methods use the same material model','The tolerance excludes the spread across the three primary levels'):
             self.assertIn(phrase,html)
         page=QualityPage();page.feed(html);self.assertEqual((page.open_details,page.scripts),(0,0))
 
@@ -90,11 +90,11 @@ class ColumnQualityWebTests(unittest.TestCase):
         q['rows'][1].update(status='REFERENCE_UNRESOLVED',reference_capacity_knm=None,reference_utilization=None)
         html=quality_html(q)
         self.assertIn('&lt;script&gt;',html);self.assertNotIn('<script>',html)
-        self.assertIn('Tolerans dışında',html);self.assertIn('Referans çözülemedi',html)
+        self.assertIn('Outside tolerance',html);self.assertIn('Reference unresolved',html)
 
     def test_ui_location_and_cli_have_explicit_comparison_scope(self):
-        with self.get('/') as response:html=response.read().decode()
-        start=html.index('<optgroup label="Donatı ve kapasite">');end=html.index('</optgroup>',start)
+        with self.get('/source') as response:html=response.read().decode()
+        start=html.index('<optgroup label="Reinforcement and capacity">');end=html.index('</optgroup>',start)
         self.assertIn('value="pmm-quality"',html[start:end])
         before=sorted(p.name for p in self.receipts.iterdir());out=io.StringIO()
         with redirect_stdout(out):code=main(['inspect-column-demands','--out',str(self.receipts),'--run-id',self.run_id,'--quality'])
@@ -118,8 +118,8 @@ class ColumnQualityWebTests(unittest.TestCase):
 
     def test_vs25_report_places_root_evidence_in_closed_details(self):
         with self.get('/report/column-bank?'+self.query) as response:html=response.read().decode()
-        self.assertIn('<details><summary>Kritik kayıtların denge noktaları ve yaklaşım farkları</summary>',html)
-        self.assertIn('Basınç normali θ (°)',html)
+        self.assertIn('<details><summary>Governing equilibrium points and approximation differences</summary>',html)
+        self.assertIn('Compression normal θ (°)',html)
         self.assertIn('M2·u3−M3·u2=0',html)
-        self.assertNotIn('üç çözünürlükte bulunan en küçük radyal kapasiteye oranıdır',html)
+        self.assertNotIn('smallest radial capacity at the three resolutions',html)
         page=QualityPage();page.feed(html);self.assertEqual((page.open_details,page.scripts),(0,0))

@@ -66,15 +66,15 @@ class ColumnOverviewWebTests(unittest.TestCase):
 
     def test_html_starts_with_readable_summary_and_details_are_closed(self):
         with self.get('/report/column-bank?'+self.query) as response:html=response.read().decode()
-        self.assertLess(html.index('Kolon mühendislik özeti · VS20'),html.index('Kolon kuvvet bankası ve statik birleşim doğrulaması'))
+        self.assertLess(html.index('Column engineering summary · VS20'),html.index('Column force bank and static combination verification'))
         parsed=FirstTable();parsed.feed(html)
         self.assertEqual(parsed.row_count,3)  # header + one row per member
         self.assertEqual(parsed.open_details,0)
         main_text=' '.join(parsed.text)
-        for text in ('N kaynak (kN)','M2 kaynak (kN·m)','Koşullu PMM','Ve bekleniyor','Girdiler bekleniyor'):
+        for text in ('Source N (kN)','Source M2 (kN·m)','Conditional PMM','Ve pending','Inputs pending'):
             self.assertIn(text,main_text)
         self.assertNotIn('source_row_id',main_text)
-        self.assertIn('Tam hassasiyet, kaynak kimlikleri',html)
+        self.assertIn('Full precision, source identifiers',html)
         self.assertNotIn('<script',html)
 
     def test_full_json_retains_original_calculations_without_database_growth(self):
@@ -89,7 +89,7 @@ class ColumnOverviewWebTests(unittest.TestCase):
         with patch('tbdy_next.column_engine.demand_view._pmm',side_effect=AssertionError('Unexpected PMM')):
             with self.get('/api/column-bank?'+self.query) as response:r=json.load(response)
             self.assertNotIn('column_overview',r)
-        with self.get('/') as response:html=response.read().decode()
+        with self.get('/source') as response:html=response.read().decode()
         self.assertIn('value="overview" selected',html)
         self.assertIn('id="columnProposal"',html)
         self.assertIn('id="columnOverviewDetails"',html)

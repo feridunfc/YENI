@@ -37,7 +37,7 @@ class Element {
   setAttribute(name,value){this.attributes[name]=String(value);}
 }
 const html=fs.readFileSync(path.join(root,'src/tbdy_next/static/index.html'),'utf8');
-assert.match(html,/value="spectral-design">Depremli tasarım talebi/);
+assert.match(html,/value="spectral-design">Seismic design demand/);
 const ids=new Map([...html.matchAll(/id="(column[^"]+)"/g)].map(m=>[m[1],new Element()]));
 ids.get('columnView').value='spectral-design';ids.get('columnProposal').value='16Φ24';
 const pending=[],window={};
@@ -53,12 +53,12 @@ const descendants=e=>[e,...e.children.flatMap(descendants)];
  window.openColumnBank();take().done({runs:['all','blocked'].map(k=>({run_id:samples[k].run_id,force_row_count:100}))});await flush();
  ids.get('columnRun').value=samples.all.run_id;ids.get('columnRun').trigger('change');await flush();
  const first=take();assert.match(first.url,/view=spectral-design/);assert.match(first.url,/column_cage=/);first.done(clone('all'));await flush();
- assert.doesNotMatch(ids.get('columnStatus').textContent,/gösterilemedi/);assert.equal(rows().length,2);
+ assert.doesNotMatch(ids.get('columnStatus').textContent,/Could not display the archive/);assert.equal(rows().length,2);
  assert.equal(ids.get('columnProposalControl').hidden,false);assert.equal(ids.get('columnExports').children.length,3);
- assert.match(ids.get('columnForces').textContent,/CAPTURED_HIGH/);assert.match(ids.get('columnForces').textContent,/Koşullu PMM/);
+ assert.match(ids.get('columnForces').textContent,/CAPTURED_HIGH/);assert.match(ids.get('columnForces').textContent,/Conditional PMM/);
  assert.doesNotMatch(ids.get('columnForces').textContent,/source_row_id|candidate_id|PASS|UYGUN/);
- assert.match(ids.get('columnContext').textContent,/Ara N/);assert.match(ids.get('columnUnits').textContent,/eşzamanlı/);
- assert.match(ids.get('columnContext').textContent,/Golden rapor kabul kapısı açık/);
+ assert.match(ids.get('columnContext').textContent,/Intermediate N/);assert.match(ids.get('columnUnits').textContent,/component bounds/);
+ assert.match(ids.get('columnContext').textContent,/Golden report acceptance remains open/);
  assert.ok(descendants(ids.get('columnOverviewDetails')).filter(e=>e.tag==='details').every(e=>!('open' in e.attributes)));
  const forensic=ids.get('columnExports').children[2];assert.match(forensic.href,/export-spectral-design\?run_id=/);
  assert.doesNotMatch(forensic.href,/view=|member=|case=|offset=/);
@@ -74,9 +74,9 @@ const descendants=e=>[e,...e.children.flatMap(descendants)];
  ids.get('columnProposal').value='16Φ28';ids.get('columnProposal').trigger('change');await flush();take().done(clone('cage'));await flush();stale.done(clone('all'));await flush();
  assert.equal(rows().length,2);assert.match(ids.get('columnForces').textContent,/16Φ28/);
  ids.get('columnProposal').value='16Φ24';ids.get('columnCase').value='SUM';ids.get('columnCase').trigger('change');await flush();take().done(clone('empty'));await flush();
- assert.equal(rows().length,2);assert.match(ids.get('columnForces').textContent,/Çözülen radyal oran yok/);
+ assert.equal(rows().length,2);assert.match(ids.get('columnForces').textContent,/No resolved radial ratio/);
  ids.get('columnRun').value=samples.blocked.run_id;ids.get('columnRun').trigger('change');await flush();take().done(clone('blocked'));await flush();
- assert.match(ids.get('columnForces').textContent,/kapsamı.*eksik/);assert.doesNotMatch(ids.get('columnStatus').textContent,/gösterilemedi/);
+ assert.match(ids.get('columnForces').textContent,/Missing source coverage or numerical selection/);assert.doesNotMatch(ids.get('columnStatus').textContent,/Could not display the archive/);
  ids.get('columnRun').value=samples.all.run_id;ids.get('columnRun').trigger('change');await flush();take().done(clone('all'));await flush();
  for(const bad of ['missing','source','parent','policy','rule','physical','continuous','second_order','factor','solver','scope','page','cage','nonfinite','sign','station','ratio','hide_failure','golden_missing','golden_promotion','golden_manifest','golden_normative']){
    ids.get('columnView').trigger('change');await flush();const r=clone('all'),s=r.column_spectral_design,p=r.spectral_pmm,row=r.demand_page.rows[0],state=row.governing_resolved;
@@ -102,7 +102,7 @@ const descendants=e=>[e,...e.children.flatMap(descendants)];
    if(bad==='golden_promotion')r.golden_regression_gate.acceptance_eligible=true;
    if(bad==='golden_manifest')r.golden_regression_gate.source_manifest_sha256='0'.repeat(64);
    if(bad==='golden_normative')r.golden_regression_gate.normative_qualification='PROVEN';
-   take().done(r);await flush();assert.match(ids.get('columnStatus').textContent,/uyuşmuyor/,bad);
+   take().done(r);await flush();assert.match(ids.get('columnStatus').textContent,/mismatch/,bad);
    assert.equal(ids.get('columnForces').children.length,0);assert.equal(ids.get('columnExports').children.length,0);
  }
  ids.get('columnView').value='spectral-candidates';
@@ -114,7 +114,7 @@ const descendants=e=>[e,...e.children.flatMap(descendants)];
    if(bad==='candidate_rule')c.applicable_design_rule='TBDY_APPROVED';
    if(bad==='evidence_input')row.numerical_evidence.N_N+=1;
    if(bad==='evidence_missing')row.numerical_evidence=null;
-   take().done(r);await flush();assert.match(ids.get('columnStatus').textContent,/uyuşmuyor/,bad);
+   take().done(r);await flush();assert.match(ids.get('columnStatus').textContent,/mismatch/,bad);
    assert.equal(ids.get('columnForces').children.length,0);
  }
  console.log('VS26 design UI: compact governing view, full lineage drilldown, cage/case filters, paging, separate forensic export, stale and authority guards PASS');

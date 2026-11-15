@@ -117,7 +117,7 @@ function boot(history = [entry(1), entry(2), entry(3)]) {
     assert.ok(index >= 0, 'Missing request: ' + prefix);
     return pending.splice(index, 1)[0];
   };
-  const chooser = () => created.find(e => e.attributes['aria-label'] === 'Raporlanacak kayıt');
+  const chooser = () => created.find(e => e.attributes['aria-label'] === 'Run to include in the report');
   const select = async n => { chooser().value = run(n); chooser().trigger('change'); await flush(); };
   return {ids, context, calls, take, chooser, select};
 }
@@ -147,8 +147,8 @@ function boot(history = [entry(1), entry(2), entry(3)]) {
   assert.match(ui.ids.get('concreteUpperResult').textContent, /CONCRETE_RUN_2_ONLY/);
   assert.match(ui.ids.get('modalSpacingResult').textContent, /SPACING_RUN_2_ONLY/);
   assert.match(ui.ids.get('earthquakeRatioResult').textContent, /RATIO_RUN_2_ONLY/);
-  assert.match(ui.ids.get('earthquakeRatioResult').textContent, /Kapsam dışı 1/);
-  assert.match(ui.ids.get('earthquakeRatioResult').textContent, /Zarf seçenekleri/);
+  assert.match(ui.ids.get('earthquakeRatioResult').textContent, /Not applicable 1/);
+  assert.match(ui.ids.get('earthquakeRatioResult').textContent, /Envelope alternatives/);
   assert.match(ui.ids.get('earthquakePairResult').textContent, /DIRECTIONS_RUN_2_ONLY/);
   assert.match(ui.ids.get('earthquakePairResult').textContent, /G: 1/);
   delayedReport.resolve({...report(1), wall_geometry: {...wall, result_sha256: 'STALE_WALL'},
@@ -180,7 +180,7 @@ function boot(history = [entry(1), entry(2), entry(3)]) {
   assert.doesNotMatch(ui.ids.get('wallGeometryResult').textContent, /WALL_RUN_2_ONLY/);
   assert.doesNotMatch(ui.ids.get('b2Result').textContent, /B2_RUN_2_ONLY/);
   ui.take('/api/export-checks?run_id=' + run(3)).resolve(report(3)); await flush();
-  assert.match(ui.ids.get('b2Result').textContent, /eski kayıtta/);
+  assert.match(ui.ids.get('b2Result').textContent, /no story drift source for B2/);
   ui.context.selectTab(1);
   assert.doesNotMatch(ui.ids.get('concreteUpperPanel').className, /hidden/);
   assert.match(ui.ids.get('modalSpacingPanel').className, /hidden/);

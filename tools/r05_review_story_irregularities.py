@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 import sys
 
-from tbdy_next.compiled_dag import read_candidate_catalog
+from tbdy_next.compiled_dag import CANDIDATE_CATALOG_PATH, read_candidate_catalog
 from tbdy_next.r05_story_irregularity import review_r05_story_irregularities
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -28,7 +28,7 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--report", required=True, type=Path)
     ap.add_argument("--manifest", type=Path, default=ROOT / "config/r04_pinned_report.json")
-    ap.add_argument("--catalog", type=Path, default=ROOT / "config/dag/tbdy_r1c_94_candidate.json")
+    ap.add_argument("--catalog", type=Path, default=CANDIDATE_CATALOG_PATH)
     ap.add_argument("--r04", type=Path)
     ap.add_argument("--output", required=True, type=Path)
     args = ap.parse_args(argv)

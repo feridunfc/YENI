@@ -79,7 +79,7 @@ $stamp = Get-Date -Format yyyyMMdd_HHmmss
 & $python tools\audit_vs05_archived_run.py `
   --receipts-root .receipts `
   --run-id RUN-f86e77b043d841b38bc9aec8b689bc8d `
-  --catalog config\dag\tbdy_r1c_94_candidate.json `
+  --catalog src\tbdy_next\config\dag\tbdy_r1c_94_candidate.json `
   --out ".receipts\VS05\VS05_D3_FCR_$stamp.json"
 
 if ($LASTEXITCODE -ne 0) { throw "ARCH-D3 replay failed" }

@@ -10,7 +10,7 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools.etabs_source_gateway_windows import (
     SourceError, available_tables, bind, capture, field_schema, make_template,
-    read_table, resolve_keys, save_new, selected_cases, set_cases, verify,
+    read_table, resolve_keys, save_new, selected_cases, selected_combinations, set_cases, verify,
 )
 
 
@@ -138,6 +138,31 @@ class GatewayTests(unittest.TestCase):
         self.assertEqual(x["case_selection_before"], ["LC_DL"])
         self.assertEqual(x["case_selection_after"], ["LC_DL"])
         self.assertEqual(sap.DatabaseTables.selected, ("LC_DL",))
+
+    def test_combination_selection_reads_populated_prefix_and_empty_com_slots(self):
+        db = FakeDb()
+        for raw, expected in (
+            ((0, ("",), 1), ()),
+            ((0, [None], 0), ()),
+            ((1, ("WGHT", "", None), 0), ("WGHT",)),
+            ((1, ("WGHT", "Grav_Ult"), 0), ("WGHT",)),
+        ):
+            with self.subTest(raw=raw):
+                db.GetLoadCombinationsSelectedForDisplay = lambda: raw
+                self.assertEqual(selected_combinations(db), expected)
+
+    def test_combination_selection_rejects_invalid_or_ambiguous_responses(self):
+        db = FakeDb()
+        for raw in (
+            (1, ("WGHT",), 1),
+            (2, ("WGHT",), 0),
+            (2, ("WGHT", "WGHT"), 0),
+            (1, ("",), 0),
+        ):
+            with self.subTest(raw=raw):
+                db.GetLoadCombinationsSelectedForDisplay = lambda: raw
+                with self.assertRaisesRegex(SourceError, "SELECTED_COMBINATIONS_"):
+                    selected_combinations(db)
 
     def test_empty_table_not_called_captured(self):
         sap = FakeSap()

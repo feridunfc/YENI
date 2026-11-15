@@ -58,14 +58,14 @@ class ColumnTransverseWebTests(unittest.TestCase):
 
     def test_report_draws_only_proposed_axes_and_keeps_check_count_and_scope(self):
         with self.get('/report/column-bank?'+self.query) as response:html=response.read().decode()
-        for value in ('VS16','Φ12/100','Koşullu kesme','Ack dıştan dışa','Vc=0','Ve=NOT_PROVEN',
-                      'TIE_STEEL_SYNTHETIC','kanca ve düşey yerleşim doğrulanmadı','NOT_READY'):
+        for value in ('VS16','Φ12/100','Conditional shear','Ack is the outside-to-outside confined area','Vc=0','Ve is NOT_PROVEN',
+                      'TIE_STEEL_SYNTHETIC','Hook and vertical layouts await verification','NOT_READY'):
             self.assertIn(value,html)
         self.assertEqual(html.count('<circle '),48)
         self.assertEqual(html.count('<line '),30)
         self.assertNotIn('<script',html)
-        with self.get('/') as response:ui=response.read().decode()
-        for value in ('value="transverse"','value="shear"','Kesme ve sargı'):self.assertIn(value,ui)
+        with self.get('/source') as response:ui=response.read().decode()
+        for value in ('value="transverse"','value="shear"','Shear and confinement'):self.assertIn(value,ui)
         with self.get('/api/check-registry') as response:registry=json.load(response)
         self.assertEqual(registry['implemented_check_count'],16)
 

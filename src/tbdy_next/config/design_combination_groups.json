@@ -1,0 +1,23 @@
+{
+  "id": "YENI_DESIGN_GROUPS_V1",
+  "families": {
+    "gravity": {"spectrum": false, "names": ["Grav_Ult", "Grav_TempNeg", "Grav_TempPos"]},
+    "ductile": {"spectrum": true, "names": ["Duct_SeisX", "Duct_SeisX_Soil", "Duct_SeisX_Up", "Duct_SeisX_UpSoil", "Duct_SeisY", "Duct_SeisY_Soil", "Duct_SeisY_Up", "Duct_SeisY_UpSoil"]},
+    "capacity": {"spectrum": true, "names": ["Cap_SeisX", "Cap_SeisX_Soil", "Cap_SeisX_Up", "Cap_SeisX_UpSoil", "Cap_SeisY", "Cap_SeisY_Soil", "Cap_SeisY_Up", "Cap_SeisY_UpSoil"]},
+    "drift": {"spectrum": true, "names": ["Crack_SeisX", "Crack_SeisX_Soil", "Crack_SeisX_Up", "Crack_SeisX_UpSoil", "Crack_SeisY", "Crack_SeisY_Soil", "Crack_SeisY_Up", "Crack_SeisY_UpSoil"]},
+    "weight": {"spectrum": false, "names": ["WGHT"]},
+    "service": {"spectrum": false, "names": ["Grav_Service"]},
+    "soil": {"spectrum": false, "names": ["Soil_Ult", "Soil_Up"]}
+  },
+  "groups": [
+    {"id": "gravity", "title": "Gravity member design", "family": "gravity", "scopes": ["upper", "lower"], "checks": ["4.2", "4.3", "4.4", "4.5", "5.2", "8.1"]},
+    {"id": "ductile", "title": "Ductile seismic member design", "family": "ductile", "scopes": ["upper"], "checks": ["4.2", "4.3", "4.4", "4.5", "5.2", "8.1"]},
+    {"id": "capacity", "title": "Capacity design", "family": "capacity", "scopes": ["upper"], "checks": ["4.7", "5.4"]},
+    {"id": "joint", "title": "Joints and SCWB", "family": "capacity", "scopes": ["upper"], "checks": ["4.8", "6.2", "6.3"]},
+    {"id": "wall", "title": "Wall boundary elements and web", "family": "capacity", "scopes": ["upper"], "checks": ["7.2", "7.3", "7.4", "7.5", "7.6", "7.7"]},
+    {"id": "drift", "title": "Drift and second-order effects", "family": "drift", "scopes": ["upper"], "checks": ["3.1", "3.2", "3.3"]},
+    {"id": "weight", "title": "Second-order weight", "family": "weight", "scopes": ["upper"], "checks": ["3.2"]},
+    {"id": "service", "title": "Serviceability", "family": "service", "scopes": ["upper", "lower"], "checks": []},
+    {"id": "soil", "title": "Substructure earth pressure", "family": "soil", "scopes": ["lower"], "checks": []}
+  ]
+}

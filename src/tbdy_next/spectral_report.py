@@ -30,31 +30,31 @@ def build_spectral_html(report):
             or s["final_design_eligible"] is not False or s["physical_concurrency_proven"] is not False
             or s["code_rule_qualified"] is not False):
         raise ValueError("SPECTRAL_REPORT_CONTRACT_INVALID")
-    labels = {"NUMERICAL_MATCH": "Kaynakla eşleşti", "NUMERICAL_MISMATCH": "Kaynakla uyuşmuyor", "SOURCE_UNRESOLVED": "Kaynak bağı eksik"}
+    labels = {"NUMERICAL_MATCH": "Matches source", "NUMERICAL_MISMATCH": "Source mismatch", "SOURCE_UNRESOLVED": "Source link missing"}
     start = page["offset"] + 1 if page["rows"] else 0
     end = page["offset"] + len(page["rows"]) if page["rows"] else 0
     rows = [(r["member_id"], r["story"], r["output_case"],
              f'{r["station_key"]["Elm"]} · {_number(r["station_key"]["ObjSta"], 4)}',
              *(_interval(r["bounds"], c) for c in ("N", "M2", "M3")), labels[r["status"]]) for r in page["rows"]]
-    body = ["<!doctype html><html lang='tr'><meta charset='utf-8'><title>YENI · Spektral kaynak zarfları</title>",
+    body = ["<!doctype html><html lang='en'><meta charset='utf-8'><title>YENI · Spectral source envelopes</title>",
         "<style>body{font:15px system-ui;margin:2rem;color:#183047}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:8px;border-bottom:1px solid #ccd4dd;text-align:left}th{background:#edf2f7}details{margin:1rem 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}p{max-width:95ch}</style><main>",
-        "<h1>Spektral kaynak zarfları · VS26</h1>",
-        "<p>Her bileşenin alt/üst sınırı ayrı hesaplanır. Fiziksel eşzamanlı kuvvet vektörü ve nihai N<sub>d</sub>/M<sub>d</sub> değildir. Tasarım kabulü: <strong>NOT_PROVEN / NOT_READY</strong>.</p>",
-        f'<p>Arşiv kapsamı: {s["selected_member_count"]} kolon · {s["eligible_combination_count"]} spektral birleşim · {s["matched_rows"]}/{s["expected_native_row_count"]} eşleşen native satır · {s["scalar_comparisons"]} skaler kıyas.</p>',
-        f'<p><strong>Bu rapor seçili sayfadır: {start}–{end} / {page["total"]} filtrelenmiş sınır çifti.</strong> Kolon: {escape(page["member_id"] or "Tümü")} · Birleşim: {escape(page["output_case"] or "Tümü")}.</p>',
-        f'<p>Kaynak kapsamı: {escape(s["source_coverage_status"])} · sayısal sonuç: {escape(s["replay_status"])}. İstasyon nüfusu bilinmeyen kolon: {len(s["members_without_station_population"])}.</p>',
-        "<p>N basınç pozitif, kN; M2/M3 yerel eksenlerde kN·m; istasyon m. N alt=−P üst, N üst=−P alt. Yuvarlama yalnız gösterimdedir.</p>",
-        _table(["Kolon", "Kat", "Birleşim", "Eleman · istasyon (m)", "N alt / üst (kN)", "M2 alt / üst (kN·m)", "M3 alt / üst (kN·m)", "Sayısal kaynak"], rows),
-        "<details><summary>V2, V3 ve T sınırları</summary>",
-        _table(["Kolon", "Birleşim", "Eleman", "Obje istasyonu (m)", "Eleman istasyonu (m)", "V2 alt / üst (kN)", "V3 alt / üst (kN)", "T alt / üst (kN·m)"],
+        "<h1>Spectral source envelopes · VS26</h1>",
+        "<p>Lower and upper bounds are calculated separately for each component. Concurrent force vectors and final N<sub>d</sub>/M<sub>d</sub> require further evidence. Design acceptance is <strong>NOT_PROVEN / NOT_READY</strong>.</p>",
+        f'<p>Archive coverage {s["selected_member_count"]} columns · {s["eligible_combination_count"]} spectral combinations · {s["matched_rows"]}/{s["expected_native_row_count"]} matched native rows · {s["scalar_comparisons"]} scalar comparisons.</p>',
+        f'<p><strong>Current page {start}–{end} / {page["total"]} filtered bound pairs.</strong> Column {escape(page["member_id"] or "All")} · Combination {escape(page["output_case"] or "All")}.</p>',
+        f'<p>Source coverage {escape(s["source_coverage_status"])} · Numerical result {escape(s["replay_status"])}. Columns with unknown station coverage {len(s["members_without_station_population"])}.</p>',
+        "<p>Compression-positive N is in kN, local M2 and M3 are in kN·m, and stations are in m. Lower N=−upper P and upper N=−lower P. Decisions use full precision.</p>",
+        _table(["Column", "Story", "Combination", "Element · station (m)", "Lower / upper N (kN)", "Lower / upper M2 (kN·m)", "Lower / upper M3 (kN·m)", "Numerical source"], rows),
+        "<details><summary>V2, V3 and T bounds</summary>",
+        _table(["Column", "Combination", "Element", "Object station (m)", "Element station (m)", "Lower / upper V2 (kN)", "Lower / upper V3 (kN)", "Lower / upper T (kN·m)"],
             [(r["member_id"], r["output_case"], r["station_key"]["Elm"], _number(r["station_key"]["ObjSta"], 4),
               _number(r["station_key"]["ElmSta"], 4), *(_interval(r["bounds"], c) for c in ("V2", "V3", "T"))) for r in page["rows"]]),
-        "</details><details><summary>Tarif, kaynak katsayıları ve kabul bekleyen girdiler</summary>",
-        "<p>C = işaretli statik toplam; A = Σ |katsayı| × spektral Max genliği; sınırlar C−A / C+A. Kayıtlı birleşim katsayıları bir kez kullanılır. Spektrum ölçeği, %100/%30 ve büyütme yeniden uygulanmaz.</p>",
-        "<p>Kaynak eşleşmesi; proje birleşimi seçimi, spektrum ölçeği/modal kapsam, analiz nesli, ikinci mertebe ve yönetmeliğe göre PMM talebi oluşturma kabulünü tamamlamaz.</p>",
+        "</details><details><summary>Method, source factors and inputs awaiting acceptance</summary>",
+        "<p>C is the signed static sum and A is Σ |factor| × spectral Max amplitude. The bounds are C−A and C+A. Recorded combination factors, spectrum scaling, the 100%/30% rule and amplification enter once.</p>",
+        "<p>Project combination selection, spectrum scale and modal coverage, analysis generation, second-order effects and code-based PMM demand require evidence beyond the numerical source match.</p>",
         "<pre>" + escape(json.dumps({k: v for k, v in s.items() if k not in ("spectral_cases", "combinations")}, ensure_ascii=False, indent=2)) + "</pre>",
-        "</details><details><summary>Birleşim tanımları ve spektrum parametrelerinin kaynakları</summary><pre>",
+        "</details><details><summary>Sources for combination definitions and spectrum parameters</summary><pre>",
         escape(json.dumps({"combinations": s["combinations"], "spectral_cases": s["spectral_cases"]}, ensure_ascii=False, indent=2)),
-        "</pre></details><details><summary>Bu sayfanın tam hassasiyetli hesapları ve native satır bağları</summary><pre>",
+        "</pre></details><details><summary>Full-precision calculations and native row links on this page</summary><pre>",
         escape(json.dumps(page, ensure_ascii=False, indent=2)), "</pre></details></main></html>"]
     return "".join(body)

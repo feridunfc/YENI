@@ -51,13 +51,13 @@ class ColumnPmmWebTests(unittest.TestCase):
 
     def test_report_includes_cage_drawings_and_conditioned_ratios_without_new_completed_check(self):
         with self.get('/report/column-bank?'+self.query) as response:html=response.read().decode()
-        for value in ('VS15','16Φ24','<svg','Koşullu PMM','72/144/288','1152','γc=1,5',
-                      'Minimum dışmerkezlik ve ikinci mertebe uygulanmadı','NOT_READY'):
+        for value in ('VS15','16Φ24','<svg','Conditional PMM','72, 144 and 288','1152','γc=1.5',
+                      'before minimum eccentricity or second-order adjustments','NOT_READY'):
             self.assertIn(value,html)
         self.assertEqual(html.count('<circle '),48)
         self.assertNotIn('<script',html)
-        with self.get('/') as response:ui=response.read().decode()
-        for value in ('value="cages"','value="pmm"','Donatı ve kapasite'):self.assertIn(value,ui)
+        with self.get('/source') as response:ui=response.read().decode()
+        for value in ('value="cages"','value="pmm"','Reinforcement and capacity'):self.assertIn(value,ui)
         with self.get('/api/check-registry') as response:registry=json.load(response)
         self.assertEqual(registry['implemented_check_count'],16)
 

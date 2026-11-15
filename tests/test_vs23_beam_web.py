@@ -88,9 +88,9 @@ class BeamWebTests(unittest.TestCase):
 
     def test_report_has_complete_compact_end_table_and_closed_source_details(self):
         with self.get('/report/column-bank?'+self.query) as response:html=response.read().decode()
-        self.assertLess(html.index('Kolon mühendislik özeti · VS20'),html.index('Kiriş uç donatısı ve kapasitesi · VS23'))
-        for phrase in ('8/8 kaynak ucu','24/24 donatı/kapasite senaryosu','N=0 saf eğilme',
-                       'Gerekli As, uygulanmış donatı değildir','ağırlık merkezine kadardır','SCWB oranı üretilmez'):
+        self.assertLess(html.index('Column engineering summary · VS20'),html.index('Beam end reinforcement and capacity · VS23'))
+        for phrase in ('8/8 source ends','24/24 reinforcement and capacity scenarios','pure bending at N=0',
+                       'Installed reinforcement requires independent evidence','centroid of the longitudinal reinforcement','verification before an SCWB decision'):
             self.assertIn(phrase,html)
         section=html[html.index('<section class="beam-references">'):]
         first=section[section.index('<table>'):section.index('</table>')]
@@ -111,8 +111,8 @@ class BeamWebTests(unittest.TestCase):
         self.assertIn('&lt;script&gt;',html);self.assertNotIn('<script>',html)
 
     def test_ui_group_and_cli_beams_alone_or_with_scwb_keep_authority_denied(self):
-        with self.get('/') as response:html=response.read().decode()
-        start=html.index('<optgroup label="Kolon–kiriş birleşimleri">');end=html.index('</optgroup>',start)
+        with self.get('/source') as response:html=response.read().decode()
+        start=html.index('<optgroup label="Beam-column joints">');end=html.index('</optgroup>',start)
         self.assertIn('value="beam-cages"',html[start:end]);self.assertIn('id="columnBeamProposal"',html)
         before=sorted(p.name for p in self.receipts.iterdir())
         for flags in (['--beams'],['--beams','--scwb']):
@@ -131,4 +131,4 @@ class BeamWebTests(unittest.TestCase):
         b=r['beam_end_references'];self.assertEqual(b['known_column_count'],2)
         self.assertIsNone(b['target_beam_count']);self.assertIsNone(b['expected_end_count'])
         self.assertEqual(r['demand_page']['rows'],[])
-        html=beam_html(b);self.assertIn('2 bilinen kolon korunur',html);self.assertIn('kiriş/uç sayısı bilinmiyor',html)
+        html=beam_html(b);self.assertIn('2 known columns are retained',html);self.assertIn('Beam and end counts are unknown',html)

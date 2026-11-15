@@ -161,8 +161,10 @@ def modal_source_table(root: Path, run_id: str) -> dict[str, Any] | None:
         return None
 
 
-def quick_history(root: Path, *, limit: int = 15) -> list[dict[str, Any]]:
+def quick_history(root: Path, *, limit: int = 15, summary: bool = False) -> list[dict[str, Any]]:
     """Recover only intact quick-suite receipts for locally archived source data."""
+    from .check_labels import display_check_group
+    from .member_groups import material_member_groups
     from .quick_checks import evaluate_geometry_capture
     root = Path(root)
     if not root.is_dir():
@@ -256,12 +258,17 @@ def quick_history(root: Path, *, limit: int = 15) -> list[dict[str, Any]]:
                 continue
         elif stage is not None:
             continue
-        output.append({"run_id": directory.name, "captured_at_utc": modal["captured_at_utc"],
-                       "source_mode": modal["source_mode"], "model_name": modal["model_name"],
-                       "geometry": rechecked, "extra_checks": extra, "vs04_schema": vs04,
+        entry = {key: modal[key] for key in ("run_id", "captured_at_utc", "source_mode", "model_name", "case")}
+        if summary:
+            output.append(entry)
+            continue
+        output.append({**entry,
+                       "geometry": display_check_group(rechecked),
+                       "extra_checks": display_check_group(extra), "vs04_schema": vs04,
+                       "material_member_groups": material_member_groups(rechecked["checks"]),
                        "vs04_numerics": vs04_numerics,
                        "vs04_readiness": vs04_readiness,
-                       "vs04_pipeline": vs04_pipeline,
+                       "vs04_pipeline": display_check_group(vs04_pipeline),
                        **({"story_drift": story_drift} if story_drift is not None else {}),
                        "modal": modal["result"],
                        "engineering_release": "NOT_READY"})

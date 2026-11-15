@@ -255,8 +255,8 @@ class Vs03ReportIntegration(unittest.TestCase):
         self.assertEqual(export['engineering_release'],'NOT_READY')
         with urlopen(self.base+'/report/print?run_id='+rid,timeout=6) as res:
             html=res.read().decode('utf-8')
-        self.assertIn('A1 burulma katsayısı',html)
-        self.assertIn('Kullanılan beton',html)
+        self.assertIn('A1 torsional irregularity',html)
+        self.assertIn('In-use concrete',html)
 
     def test_tampered_extra_receipt_blocks_export(self):
         out=self._run();rid=out['run_id']

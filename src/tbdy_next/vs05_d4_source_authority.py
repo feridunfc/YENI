@@ -86,15 +86,18 @@ def _finite_decimal(raw: Any, label: str) -> Decimal:
 
 
 def _source_table(tables: Mapping[str, Any], key: str,
-                  mandatory: set[str]) -> list[dict[str, str]]:
+                  mandatory: set[str], *, allow_empty: bool = False,
+                  require_key: bool = False) -> list[dict[str, str]]:
     rowset = tables.get(key)
     if not isinstance(rowset, Mapping) or rowset.get("status") != "CAPTURED":
         raise SourceContractError(key + ":NOT_CAPTURED")
+    if require_key and rowset.get("table_key") != key:
+        raise SourceContractError(key + ":TABLE_IDENTITY_CONFLICT")
     fields, rows, info = (rowset.get("fields"), rowset.get("rows"),
                           rowset.get("field_metadata"))
     if (not isinstance(fields, list) or not fields or
             len(fields) != len(set(fields)) or not mandatory.issubset(fields) or
-            not isinstance(rows, list) or not rows or
+            not isinstance(rows, list) or (not rows and not allow_empty) or
             type(rowset.get("row_count")) is not int or
             rowset["row_count"] != len(rows) or
             not isinstance(info, Mapping) or info.get("status") != "OK" or
@@ -108,17 +111,23 @@ def _source_table(tables: Mapping[str, Any], key: str,
     return rows
 
 
-def _case_source(tables: Mapping[str, Any]) -> dict[str, Any]:
-    rows = _source_table(tables, SUMMARY, {"Name", "Type", "GUID"})
+def _case_summary(tables: Mapping[str, Any], *, require_key: bool = False) -> dict[str, dict[str, str]]:
+    rows = _source_table(tables, SUMMARY, {"Name", "Type", "GUID"}, require_key=require_key)
     out = {}
     guids = set()
     for row in rows:
         name = _text(row["Name"], "CASE_NAME")
         guid = _text(row["GUID"], "CASE_GUID")
+        kind = _text(row["Type"], "CASE_TYPE")
         if name in out or guid == "None" or guid in guids:
             raise SourceContractError("CASE_ID_OR_GUID_NOT_UNIQUE")
         guids.add(guid)
-        out[name] = {"type": row["Type"], "guid": guid}
+        out[name] = {"type": kind, "guid": guid}
+    return out
+
+
+def _case_source(tables: Mapping[str, Any]) -> dict[str, Any]:
+    out = _case_summary(tables)
     rs = _source_table(tables, SPECTRUM,
                        {"Name", "LoadName", "ModalCase", "Function"})
     direction_roles = {}
@@ -154,9 +163,9 @@ def _case_source(tables: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def _combo_source(tables: Mapping[str, Any], cases: Mapping[str, Any], *,
-                  include_graph: bool = False) -> dict[str, Any]:
+                  include_graph: bool = False, require_key: bool = False) -> dict[str, Any]:
     rows = _source_table(tables, COMBOS,
-                         {"Name", "Type", "LoadName", "SF", "GUID"})
+                         {"Name", "Type", "LoadName", "SF", "GUID"}, require_key=require_key)
     # ETABS prints Type/GUID on a combination's first row and 'None' on
     # continuation rows. Preserve this distinction; never forward-fill across
     # a different Name, invent an operator or infer design roles by prefixes.

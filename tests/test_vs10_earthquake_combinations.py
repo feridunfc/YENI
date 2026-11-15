@@ -291,7 +291,7 @@ class DeliveryTests(unittest.TestCase):
                 for check in package['checks']:
                     self.assertIn(check['result_sha256'],html)
                     self.assertIn(check['check_id'],html)
-                self.assertIn('Zarf seçenekleri',html)
+                self.assertIn('Envelope alternatives',html)
                 self.assertIn('FULL_PLUS_MINUS_SIGN_ENVELOPE_NOT_PROVEN',html)
                 registry=json.loads(get('/api/check-registry'))
                 self.assertEqual(registry['implemented_check_count'],16)

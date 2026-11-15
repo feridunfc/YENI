@@ -222,7 +222,7 @@ class WallGeometryDeliveryTests(unittest.TestCase):
                 self.assertEqual(wall["evaluated_count"], 2, wall["reason_codes"])
                 self.assertEqual(sum(x["check_id"] == "WALL_GEOMETRY_CHECK" for x in report["check_inventory"]["entries"]), 1)
                 html = get("/report/print?run_id=" + run_id).decode()
-                for value in ("Perde kesit geometrisi", wall["result_sha256"], "UNRESTRAINED_PLAN_LENGTH_NOT_PROVEN", "NOT_PROVEN"):
+                for value in ("Shear wall section geometry", wall["result_sha256"], "UNRESTRAINED_PLAN_LENGTH_NOT_PROVEN", "NOT_PROVEN"):
                     self.assertIn(value, html)
                 checks = json.loads(get("/api/check-registry"))["checks"]
                 entry = next(x for x in checks if x["check_id"] == "WALL_GEOMETRY_CHECK")

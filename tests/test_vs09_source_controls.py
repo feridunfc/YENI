@@ -271,7 +271,7 @@ class DeliveryTests(unittest.TestCase):
                 for check in result["checks"]:
                     self.assertIn(check["check_id"], html)
                     self.assertIn(check["result_sha256"], html)
-                for text in ("CQC_SELECTED_SOURCE_ONLY", "Mod birleştirme", "NOT_PROVEN"):
+                for text in ("CQC_SELECTED_SOURCE_ONLY", "Modal combination", "NOT_PROVEN"):
                     self.assertIn(text, html)
                 registry = json.loads(get("/api/check-registry"))
                 self.assertEqual(registry["implemented_check_count"], 16)

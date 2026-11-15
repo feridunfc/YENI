@@ -21,7 +21,7 @@
     entry.className = 'engine-console-entry engine-console-' + kind;
     const meta = document.createElement('span');
     meta.className = 'engine-console-meta';
-    meta.textContent = new Date().toLocaleTimeString('tr-TR', {
+    meta.textContent = new Date().toLocaleTimeString('en-GB', {
       hour: '2-digit', minute: '2-digit', second: '2-digit'
     }) + ' · ' + kind.toUpperCase() + ' · ' + step;
     const detail = document.createElement('span');
@@ -37,7 +37,7 @@
     if (!host) return;
     const empty = document.createElement('li');
     empty.className = 'engine-console-entry engine-console-empty';
-    empty.textContent = 'Henüz işlem kaydı yok.';
+    empty.textContent = 'No activity yet.';
     host.replaceChildren(empty);
     host.dataset.empty = 'true';
   }
@@ -47,10 +47,10 @@
 
   // Surface unexpected application errors without printing traces or source data.
   window.addEventListener?.('unhandledrejection', event => {
-    const reason = event.reason instanceof Error ? event.reason.message : 'Beklenmeyen asenkron hata';
-    log('error', 'ARAYÜZ', reason);
+    const reason = event.reason instanceof Error ? event.reason.message : 'Unexpected asynchronous error';
+    log('error', 'INTERFACE', reason);
   });
   window.addEventListener?.('error', event => {
-    log('error', 'ARAYÜZ', event.message || 'Beklenmeyen arayüz hatası');
+    log('error', 'INTERFACE', event.message || 'Unexpected interface error');
   });
 })();

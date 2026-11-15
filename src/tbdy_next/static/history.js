@@ -14,7 +14,7 @@
   }
   function percent(ratio) {
     const number = Number(ratio);
-    return Number.isFinite(number) ? `${(number * 100).toFixed(2).replace('.', ',')}%` : '—';
+    return Number.isFinite(number) ? `${(number * 100).toFixed(2)}%` : '—';
   }
   function progress(label, ratio) {
     const col = node('div');
@@ -44,7 +44,7 @@
     const version = ++tableRequestVersion;
     const divider = node('hr', undefined, 'modal-table-divider');
     const section = node('section', undefined, 'modal-table-section');
-    section.append(node('p', 'Tam modal tablo yükleniyor…', 'muted small'));
+    section.append(node('p', 'Loading the full modal table…', 'muted small'));
     host.append(divider, section);
     try {
       const response = await fetch('/api/modal-table?run_id=' + encodeURIComponent(runId), {cache: 'no-store'});
@@ -52,16 +52,16 @@
       const payload = await response.json();
       const record = payload.table;
       if (!record || !Array.isArray(record.fields) || !Array.isArray(record.rows)
-          || record.rows.length !== record.row_count) throw new Error('Eksik veya tutarsız tablo');
+          || record.rows.length !== record.row_count) throw new Error('Incomplete or inconsistent table');
       if (version !== tableRequestVersion || !section.isConnected) return;
       const title = node('div', undefined, 'modal-table-title');
-      title.append(node('h3', 'ETABS modal kaynak tablosu — tam veri'),
-                   node('strong', `${record.row_count} satır · ${record.fields.length} sütun`, 'small'));
-      const caption = node('p', `${record.table_key} · Vaka: ${record.case} · ${record.source_mode}. `
-        + 'Tüm kaydedilen satırlar ve orijinal sütunlar; yalnız seçilen vakadaki modal oranlar hesaplandı.', 'muted small');
+      title.append(node('h3', 'Full ETABS modal source table'),
+                   node('strong', `${record.row_count} rows · ${record.fields.length} columns`, 'small'));
+      const caption = node('p', `${record.table_key} · Case: ${record.case} · ${record.source_mode}. `
+        + 'All recorded rows and original columns. Modal ratios were evaluated for the selected case.', 'muted small');
       const scroll = node('div', undefined, 'modal-table-scroll');
       scroll.setAttribute('role', 'region');
-      scroll.setAttribute('aria-label', 'Tam modal kaynak tablosu');
+      scroll.setAttribute('aria-label', 'Full modal source table');
       scroll.tabIndex = 0;
       const table = node('table', undefined, 'modal-source-table');
       const thead = node('thead');
@@ -83,29 +83,29 @@
       section.replaceChildren(title, caption, scroll);
     } catch (error) {
       if (version === tableRequestVersion && section.isConnected) {
-        section.replaceChildren(node('p', `Tam kaynak tablosu gösterilemedi: ${error.message}`, 'bad'));
+        section.replaceChildren(node('p', `Could not display the full source table: ${error.message}`, 'bad'));
       }
     }
   }
   window.showModalFullTable = showModalFullTable;
   function showRun(entry, selectShared = true) {
     const result = entry.result || {};
-    const source = entry.source_mode === 'LIVE_ETABS' ? 'CANLI ETABS' : entry.source_mode === 'OFFLINE_ETABS' ? 'OFFLINE ETABS' : 'SENTETİK';
-    const label = result.status === 'MEETS_NUMERICAL_CRITERION' ? 'SAYISAL KOŞUL SAĞLANDI' : 'SAYISAL KOŞUL SAĞLANMADI';
+    const source = entry.source_mode === 'LIVE_ETABS' ? 'LIVE ETABS' : entry.source_mode === 'OFFLINE_ETABS' ? 'OFFLINE ETABS' : 'SYNTHETIC';
+    const label = result.status === 'MEETS_NUMERICAL_CRITERION' ? 'NUMERICAL CRITERION MET' : 'NUMERICAL CRITERION NOT MET';
     const heading = node('h3', `${label} · ${source}`, result.status === 'MEETS_NUMERICAL_CRITERION' ? 'good' : 'bad');
-    const context = node('p', `Model: ${entry.model_name || 'kaynak kaydında belirtilmemiş'} · Vaka: ${entry.case} · Çalışma: ${entry.run_id}`, 'muted small');
+    const context = node('p', `Model: ${entry.model_name || 'not specified in the source record'} · Case: ${entry.case} · Run: ${entry.run_id}`, 'muted small');
     const two = node('div', undefined, 'twocol');
-    two.append(progress('X yönü toplam etkin kütle', result.sum_ux), progress('Y yönü toplam etkin kütle', result.sum_uy));
+    two.append(progress('X total effective mass', result.sum_ux), progress('Y total effective mass', result.sum_uy));
     const details = node('div');
-    info(details, 'Okunan tam modal tablo satırı', entry.raw_row_count ?? '—');
-    info(details, 'Seçilen vakadaki mod sayısı', entry.case_row_count ?? '—');
-    info(details, 'Yönetici mod sayısı', result.governing_mode_count ?? '—');
-    info(details, 'Gerekli sınır', percent(result.required_ratio));
-    info(details, 'X yönü >%3 katkılı modlar', (result.significant_modes_x || []).join(', ') || 'Yok');
-    info(details, 'Y yönü >%3 katkılı modlar', (result.significant_modes_y || []).join(', ') || 'Yok');
-    info(details, 'Mühendislik release', 'NOT_READY — yalnız %95 sayısal alt kontrol');
-    const stamp = node('p', `Sonuç tarihi: ${entry.captured_at_utc} · Yerel kaynak SHA-256: ${String(entry.input_sha256 || '').slice(0,16)}…`, 'muted small');
-    const note = node('p', 'Kaynak, şema ve sonuç kayıtları tekrar doğrulandı. Bu sonuç tam TBDY deprem tasarımı kabulü değildir.', 'muted small');
+    info(details, 'Rows read from the full modal table', entry.raw_row_count ?? '—');
+    info(details, 'Modes in the selected case', entry.case_row_count ?? '—');
+    info(details, 'Governing mode count', result.governing_mode_count ?? '—');
+    info(details, 'Required threshold', percent(result.required_ratio));
+    info(details, 'X modes contributing >3%', (result.significant_modes_x || []).join(', ') || 'None');
+    info(details, 'Y modes contributing >3%', (result.significant_modes_y || []).join(', ') || 'None');
+    info(details, 'Engineering release', 'NOT_READY · 95% mass subcondition only');
+    const stamp = node('p', `Result time: ${entry.captured_at_utc} · Local source SHA-256: ${String(entry.input_sha256 || '').slice(0,16)}…`, 'muted small');
+    const note = node('p', 'Source, schema, and result receipts were verified. The result covers the modal mass subcondition of TBDY.', 'muted small');
     statusBox.replaceChildren(heading, context, two, details, stamp, note);
 
     // The combined UI owns the selected run. A background history refresh
@@ -116,14 +116,14 @@
     }
 
     // Also populate the original result surface / result tree on initial load.
-    if (typeof showResult === 'function') showResult('Kaydedilmiş modal hesap', {result});
+    if (typeof showResult === 'function') showResult('Saved modal calculation', {result});
     showModalFullTable(entry.run_id);
-    document.getElementById('step1').textContent = `${source} · ${entry.raw_row_count} satır`;
+    document.getElementById('step1').textContent = `${source} · ${entry.raw_row_count} rows`;
     document.getElementById('step2').textContent = `SCHEMA_VALID · ${entry.case_row_count} mod`;
-    document.getElementById('step3').textContent = result.status || 'Hesap bekleniyor';
+    document.getElementById('step3').textContent = result.status || 'Waiting for calculations';
     if (typeof setTree === 'function') {
-      setTree('modeltree', [entry.model_name || 'Modal kaynak', `Kaynak: ${source}`, `Vaka: ${entry.case}`, `Satır: ${entry.raw_row_count}`]);
-      setTree('resulttree', ['VS01 · Etkin modal kütle', `X: ${percent(result.sum_ux)}`, `Y: ${percent(result.sum_uy)}`, `Yönetici mod: ${result.governing_mode_count ?? '—'}`, `Mod sayısı: ${entry.case_row_count}`, `Sayısal durum: ${label}`, 'Release: NOT_READY']);
+      setTree('modeltree', [entry.model_name || 'Modal source', `Source: ${source}`, `Case: ${entry.case}`, `Rows: ${entry.raw_row_count}`]);
+      setTree('resulttree', ['VS01 · Effective modal mass', `X: ${percent(result.sum_ux)}`, `Y: ${percent(result.sum_uy)}`, `Governing mode: ${result.governing_mode_count ?? '—'}`, `Mode count: ${entry.case_row_count}`, `Numerical status: ${label}`, 'Release: NOT_READY']);
     }
   }
   async function refresh() {
@@ -134,13 +134,13 @@
       const payload = await response.json();
       const runs = Array.isArray(payload.runs) ? payload.runs : [];
       if (!runs.length) {
-        statusBox.replaceChildren(node('p', 'Henüz doğrulanmış modal hesap kaydı bulunamadı. CLI sonucunuzun .receipts klasörüne yazıldığından ve sunucunun aynı proje klasöründen açıldığından emin olun.', 'muted'));
+        statusBox.replaceChildren(node('p', 'No verified modal runs found. Check that the CLI wrote to .receipts and that the server is running from the same project.', 'muted'));
         historyBox.replaceChildren();
         return;
       }
       const selected = runs.find(r => r.source_mode === 'LIVE_ETABS') || runs[0];
       showRun(selected, false);
-      historyBox.replaceChildren(node('span', 'Önceki hesaplar:', 'muted small'));
+      historyBox.replaceChildren(node('span', 'Previous runs:', 'muted small'));
       for (const entry of runs.slice(0, 12)) {
         const button = node('button', `${entry.source_mode === 'LIVE_ETABS' ? 'ETABS' : 'TEST'} · ${entry.captured_at_utc.slice(0,16).replace('T',' ')} · ${entry.case}`, 'go');
         button.type = 'button';
@@ -148,7 +148,7 @@
         historyBox.append(button);
       }
     } catch (error) {
-      statusBox.replaceChildren(node('p', `Kayıtlar okunamadı: ${error.message}`, 'bad'));
+      statusBox.replaceChildren(node('p', `Could not load saved runs:${error.message}`, 'bad'));
     } finally {
       refreshButton.disabled = false;
     }

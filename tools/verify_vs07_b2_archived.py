@@ -32,7 +32,7 @@ def verify(root: Path, run_id: str, *, export_dir: Path | None = None) -> dict:
             or sum(e["check_id"] == "SOFT_STORY_B2" for e in report["check_inventory"]["entries"]) != 1):
         raise ValueError("B2_AUTHORITY_OR_INVENTORY_CONFLICT")
     html = build_printable_html(report)
-    if "B2 yumuşak kat" not in html or b2["result_sha256"] not in html:
+    if 'data-check-panel="SOFT_STORY_B2"' not in html or b2["result_sha256"] not in html:
         raise ValueError("B2_HTML_RESULT_MISSING")
     if export_dir is not None:
         export_dir.mkdir(parents=True, exist_ok=True)

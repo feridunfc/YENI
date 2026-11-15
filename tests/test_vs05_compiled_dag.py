@@ -13,13 +13,12 @@ from tempfile import TemporaryDirectory
 import unittest
 
 from tbdy_next.compiled_dag import (
-    CATALOG_SCHEMA, CompilationRejected, RegulatoryCompiler,
+    CANDIDATE_CATALOG_PATH, CATALOG_SCHEMA, CompilationRejected, RegulatoryCompiler,
     assess_candidate_plan, canonical_json, read_candidate_catalog,
     validate_candidate_catalog,
 )
 
 REPO = Path(__file__).resolve().parents[1]
-CATALOG = REPO / "config" / "dag" / "tbdy_r1c_94_candidate.json"
 
 
 def instances():
@@ -51,7 +50,7 @@ def book():
 
 class Vs05CompiledDagTest(unittest.TestCase):
     def setUp(self):
-        self.catalog=read_candidate_catalog(CATALOG)
+        self.catalog=read_candidate_catalog(CANDIDATE_CATALOG_PATH)
         self.compiler=RegulatoryCompiler(self.catalog)
 
     def test_exact_94_node_140_edge_candidate_graph(self):
@@ -196,7 +195,7 @@ class Vs05CompiledDagTest(unittest.TestCase):
         manifest = REPO / "tests" / "fixtures" / "vs05_candidate_plan_input.json"
         with TemporaryDirectory() as folder:
             target = Path(folder) / "vs05_candidate_audit.json"
-            report = audit(CATALOG, manifest, target)
+            report = audit(CANDIDATE_CATALOG_PATH, manifest, target)
             self.assertEqual(report["dag"]["candidate_nodes"], 94)
             self.assertEqual(report["dag"]["candidate_dependency_edges"], 140)
             self.assertEqual(report["fcr"]["expected_count"], 4)
@@ -206,7 +205,7 @@ class Vs05CompiledDagTest(unittest.TestCase):
             self.assertEqual(report["engineering_release"], "NOT_READY")
             self.assertEqual(json.loads(target.read_text(encoding="utf-8")), report)
             with self.assertRaises(CompilationRejected):
-                audit(CATALOG, manifest, target)
+                audit(CANDIDATE_CATALOG_PATH, manifest, target)
 
     def test_candidate_catalog_mutation_rejected(self):
         data=deepcopy(self.catalog)

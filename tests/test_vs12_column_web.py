@@ -50,8 +50,8 @@ class DemandWebTests(unittest.TestCase):
         chain=data['demand_chain']
         self.assertEqual(len(chain['candidates']),8)
         self.assertEqual(len(chain['design_summary']['rows']),8)
-        for value in ('CE-02','8 doğrulanmış statik kaynak adayı','24 PMM/VMaj/VMin','kN·cm',
-                      'PMMRatio','NOT_PROVEN','çift istasyon','yuvarlanmaz',chain['result_sha256']):
+        for value in ('CE-02','8 verified static source candidates','24 PMM/VMaj/VMin','kN·cm',
+                      'PMMRatio','NOT_PROVEN','duplicate station','exact summary station',chain['result_sha256']):
             self.assertIn(value,html)
         self.assertNotIn('<script',html)
 

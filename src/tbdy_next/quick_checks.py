@@ -10,6 +10,8 @@ from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from typing import Any, Mapping
 
+from .check_labels import display_check
+
 
 @dataclass(frozen=True)
 class CheckDefinition:
@@ -56,19 +58,19 @@ def check_registry() -> list[dict[str, Any]]:
               "WALL_GEOMETRY_CHECK": "wallGeometryPanel"}
     panels.update(SOURCE_PANELS)
     panels.update(COMBINATION_PANELS)
-    return [{**c.as_dict(), **({"panel_id": panels[c.check_id]} if c.check_id in panels else {})}
+    return [{**display_check(c.as_dict()), **({"panel_id": panels[c.check_id]} if c.check_id in panels else {})}
             for c in (*CHECKS, *EXTRA_CHECKS, *derived, B2_CHECK, WALL_CHECK, *SOURCE_CHECKS, *COMBINATION_CHECKS)]
 
 
 def _numeric(raw: object) -> Decimal:
     if isinstance(raw, bool):
-        raise ValueError("Boole değeri boyut olamaz")
+        raise ValueError("A Boolean value is invalid as a dimension")
     try:
         value = Decimal(str(raw).strip())
     except (ValueError, InvalidOperation):
-        raise ValueError(f"Geçersiz kesit boyutu: {raw!r}") from None
+        raise ValueError(f"Invalid section dimension: {raw!r}") from None
     if not value.is_finite() or value <= 0:
-        raise ValueError(f"Pozitif sonlu kesit boyutu gerekli: {raw!r}")
+        raise ValueError(f"A positive finite section dimension is required: {raw!r}")
     return value
 
 

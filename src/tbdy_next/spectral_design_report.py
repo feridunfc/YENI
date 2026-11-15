@@ -55,47 +55,47 @@ def validate_spectral_design_report(report):
 
 def build_spectral_design_html(report):
     s, p, replay, page = validate_spectral_design_report(report)
-    headings = ["Kolon", "Kat", "Birleşim · eleman / istasyon", "İşaret senaryosu", "N (kN)",
-        "M2 (kN·m)", "M3 (kN·m)", "Öneri donatı", "Koşullu PMM", "Açık sayısal durum"]
+    headings = ["Column", "Story", "Combination · Element / station", "Sign scenario", "N (kN)",
+        "M2 (kN·m)", "M3 (kN·m)", "Proposed reinforcement", "Conditional PMM", "Unresolved numerical status"]
     rows = []
     for row in page["rows"]:
         state = row if page["view"] == DETAIL_VIEW else row["governing_resolved"]
         forces = state["forces"] if state else {}
         cut = state["station_key"] if state else None
         status = (state["numerical_status"] if page["view"] == DETAIL_VIEW else
-            f'{row["unresolved_or_axial_outside_count"]} belirsiz / eksenel sınır aşımı; {row["governing_resolved_tie_count"]} eşit kritik kayıt')
+            f'{row["unresolved_or_axial_outside_count"]} unresolved or over the axial limit, {row["governing_resolved_tie_count"]} tied governing records')
         rows.append((row["member_id"], row.get("story"),
-            f'{state["combination"]} · {cut["Elm"]} / {_number(cut["ObjSta"],4)}' if state else "Bu filtrede çözülen radyal oran yok",
+            f'{state["combination"]} · {cut["Elm"]} / {_number(cut["ObjSta"],4)}' if state else "No resolved radial ratio in this filter",
             state["sign_id"] if state else None, *(_number(forces.get(k)) for k in ("N_kN", "M2_kNm", "M3_kNm")),
             row["reinforcement"], _number(state["conditional_pmm_ratio"],4) if state else "—", status))
     start = page["offset"]+1 if page["rows"] else 0
     end = page["offset"]+len(page["rows"]) if page["rows"] else 0
-    body = ["<!doctype html><html lang='tr'><meta charset='utf-8'><title>YENI · Depremli tasarım talebi</title>",
+    body = ["<!doctype html><html lang='en'><meta charset='utf-8'><title>YENI · Seismic design demand</title>",
         "<style>body{font:15px system-ui;margin:2rem;color:#183047}table{border-collapse:collapse;width:100%;font-size:12px}th,td{padding:8px;border-bottom:1px solid #ccd4dd;text-align:left;font-variant-numeric:tabular-nums}th{background:#edf2f7}details{margin:1rem 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px}p{max-width:105ch}</style><main>",
-        "<h1>Kolonlar · Depremli tasarım talebi</h1>",
-        "<p><strong>Koşullu tasarım zarfı · NOT_PROVEN / NOT_READY.</strong> N basınç pozitiftir. Kuvvetler bir tasarım kontrolü için kurulmuştur; fiziksel olarak eşzamanlı analiz vektörü değildir. İkinci mertebe ve minimum dışmerkezlik uygulanmadı.</p>",
-        f'<p>{s["selected_member_count"]} kolon · {replay["eligible_combination_count"]} spektrumlu birleşim · {replay["matched_rows"]}/{replay["expected_native_row_count"]} eşleşen native satır · {replay["scalar_comparisons"]} bileşen karşılaştırması.</p>',
-        f'<p>{s["candidate_count"]}/{s["expected_candidate_count"]} işaret adayı · {p["assessment_count"]}/{p["expected_assessment_count"]} PMM değerlendirmesi · {s["blocked_pair_count"]} aday üretilemeyen sınır çifti. Statik referans nüfusu: {s["static_reference_count"]}.</p>',
-        f'<p><strong>Seçili sayfa: {start}–{end} / {page["total"]}.</strong> Kolon: {escape(page["member_id"] or "Tümü")} · Birleşim: {escape(page["output_case"] or "Tümü")} · Donatı: {escape(page["column_label"])}.</p>',
+        "<h1>Columns · Seismic design demand</h1>",
+        "<p><strong>Conditional design envelope · NOT_PROVEN / NOT_READY.</strong> Compression is positive. Forces are assembled for design screening and physical concurrence remains open. The moments shown are before second-order or minimum-eccentricity adjustments.</p>",
+        f'<p>{s["selected_member_count"]} columns · {replay["eligible_combination_count"]} spectral combinations · {replay["matched_rows"]}/{replay["expected_native_row_count"]} matched native rows · {replay["scalar_comparisons"]} component comparisons.</p>',
+        f'<p>{s["candidate_count"]}/{s["expected_candidate_count"]} sign candidates · {p["assessment_count"]}/{p["expected_assessment_count"]} PMM evaluations · {s["blocked_pair_count"]} bound pairs lacking candidates. Static reference population {s["static_reference_count"]}.</p>',
+        f'<p><strong>Current page {start}–{end} / {page["total"]}.</strong> Column {escape(page["member_id"] or "All")} · Combination {escape(page["output_case"] or "All")} · Reinforcement {escape(page["column_label"])}.</p>',
         _table(headings, rows),
-        "<p>Kritik oran, çözülen sonlu adaylar arasındaki en büyük orandır. Belirsiz çözümler ve eksenel sınır aşımları ayrıca izlenir. Sekiz köşe, ara N değerlerinin tamamı için kapsama kanıtı değildir; donatı önerisi seçilmiş tasarım değildir.</p>",
-        "<p><strong>Golden rapor kabul kapısı açık.</strong> Mevcut 23+7 rapor kontrolleri ayrı doğrulama bankasında korunur. PMM, ikinci mertebe, SCWB, kapasite kesmesi ve kat α için tam rapor doğrulaması tamamlanmadı. ETABS kaynak eşleşmesi bu kapıyı kapatmaz.</p>",
-        "<details><summary>Golden rapor doğrulama kapsamı</summary><pre>"+
+        "<p>The governing ratio is the largest finite resolved result. Unresolved solutions and axial limit exceedances are tracked separately. The eight corners cover the sampled sign scenarios. Intermediate N values and final reinforcement selection require further verification.</p>",
+        "<p><strong>Golden acceptance is pending.</strong> The verification bank retains the 23+7 report checks. Full report verification for PMM, second order, SCWB, capacity shear and story α remains open.</p>",
+        "<details><summary>Golden report verification coverage</summary><pre>"+
         escape(json.dumps(report["golden_regression_gate"],ensure_ascii=False,indent=2,sort_keys=True))+"</pre></details>",
-        "<details><summary>Altı bileşende sayısal kaynak farkları · arşivin tamamı</summary>",
-        _table(["Bileşen", "Birim", "Karşılaştırma", "Tolerans dışı", "En büyük mutlak fark"],
+        "<details><summary>Numerical source differences for six components · Full archive</summary>",
+        _table(["Component", "Unit", "Comparison", "Outside tolerance", "Maximum absolute difference"],
             [(d["component"],d["unit"],d["comparisons"],d["mismatches"],format(d["maximum_absolute_difference"],".6g"))
              for d in replay["component_differences"]]), "</details>",
-        "<details><summary>Birleşim sınıfları ve kaynak kapsamı</summary>",
-        _table(["Birleşim","Sınıf","Eşleşen / beklenen satır","İşaret adayı kapsamı","Açık neden"],
+        "<details><summary>Combination classes and source coverage</summary>",
+        _table(["Combination","Class","Matched / expected rows","Sign candidate coverage","Open issue"],
             [(r["combination"],r["classification"],f'{r["matched_rows"]} / {2*r["expected_pairs"]}',r["sign_construction_scope"],r["reason"])
              for r in s["classifications"]]), "</details>",
-        "<details><summary>Hesap yöntemi ve mühendislik kabul koşulları</summary>",
-        "<p>C işaretli statik katkı, A kayıtlı katsayı mutlak değerleriyle ağırlıklandırılmış spektrum genliğidir. Native P/M2/M3 için bağımsız ± işaretler uygulanır, sonra N=−P dönüşümü yapılır. Kaydedilmiş %100/%30, ölçek ve ortak çarpan ikinci kez uygulanmaz.</p>",
-        "<p>CSI'nin çok değerli tasarım çıktıları için kullandığı işaret permütasyonu, TBDY kabulü değildir. TBDY 4.4.2 doğrultu ve 4.10 iç kuvvet kuralları; 4.4.3 düşey deprem uygulanabilirliği; 4.4.4 diğer yüklerle birleşimler; Ek 4B modal kapsam/ölçekleme ve analiz nesli ayrıca doğrulanmalıdır.</p>",
+        "<details><summary>Method and engineering acceptance criteria</summary>",
+        "<p>C is the signed static contribution. A is the spectral amplitude weighted by the absolute recorded factors. The calculation applies independent ± signs to native P, M2 and M3 and then converts N=−P. Recorded 100%/30%, scale and common factors enter once.</p>",
+        "<p>The sign permutations follow CSI practice for multivalued design output. TBDY acceptance requires independent verification of direction (4.4.2), internal forces (4.10), vertical seismic applicability (4.4.3), combinations with other loads (4.4.4), modal coverage and scaling (Annex 4B), and analysis generation.</p>",
         "<pre>"+escape(json.dumps({"blockers":p["blockers"],"references":s["references"],
             "direction_diagnostics":s["direction_diagnostics"]},ensure_ascii=False,indent=2,sort_keys=True))+"</pre></details>",
-        "<details><summary>Seçili sayfanın tam hassasiyeti ve kaynak kimlikleri</summary><pre>",
+        "<details><summary>Full precision and source identifiers on this page</summary><pre>",
         escape(json.dumps({"run_id":report["run_id"],"source_sha256":report["source_archive_sha256"],
             "replay_result_sha256":replay["result_sha256"],"population_result_sha256":s["result_sha256"],
             "pmm_result_sha256":p["result_sha256"],"page":page},ensure_ascii=False,indent=2,sort_keys=True)),

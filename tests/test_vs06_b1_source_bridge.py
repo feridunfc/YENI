@@ -110,8 +110,8 @@ class B1ActualSourceBindingTests(unittest.TestCase):
         self.assertEqual(high["Y"]["loaded_beam_count"],1)
         self.assertEqual(r["formal_compliance"],"NOT_PROVEN")
         self.assertEqual(r["b1_numerical"]["formal_compliance"],"NOT_PROVEN")
-        self.assertIn("Model varsayımları",render_b1_html(r))
-        self.assertIn("Tablo 3.6",render_b1_html(r))
+        self.assertIn("Model assumptions",render_b1_html(r))
+        self.assertIn("Table 3.6",render_b1_html(r))
 
     def test_real_source_clear_height_is_story_height_minus_beam_depth(self):
         r=evaluate_b1_sources(*sources())

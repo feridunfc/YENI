@@ -13,17 +13,21 @@ from importlib import resources
 import json
 from pathlib import Path
 import re
+from threading import Lock
 from typing import Any, Mapping
 from urllib.parse import parse_qs, urlsplit
 
+from .check_labels import display_check_group
+from .live_etabs import CAPTURE_UNIT_CODE, CAPTURE_UNIT_LABEL, EtabsUnitsError
 from .modal import evaluate_modal_mass
-from .history import modal_history, modal_source_table, quick_history
+from .history import _MAX_SOURCE_BYTES, modal_history, modal_source_table, quick_history
 from .quick_checks import check_registry, evaluate_geometry_capture
 from .next_checks import evaluate_next_capture
 from .analysis_sources import review_analysis_sources
 from .analysis_numerics import evaluate_analysis_numerics
 from .normative_basis import review_normative_readiness
 from .live_source_pipeline import evaluate_single_run_source_pipeline
+from .member_groups import material_member_groups
 from .reporting import ReportUnavailable, build_complete_report, build_printable_html
 from .receipts import ReceiptRun
 from .schema import review_modal_schema
@@ -31,6 +35,49 @@ from .source import SourceError, parse_modal_capture, review_preflight
 
 MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 _RUN_ID_PATTERN = re.compile(r"RUN-[a-f0-9]{32}\Z")
+_LIVE_CAPTURE_LOCK = Lock()
+
+
+def _column_axial_request(query: dict, output_root: Path) -> dict:
+    from .engineering.design_assignments import ASSIGNED_DESIGN, COLUMN_AXIAL_ID, bind_assigned_combinations
+    from .frame_force_capture import MAX_RESPONSE_COMBINATIONS
+
+    base_runs = query.get("base_run_id", [])
+    modes = query.get("combination_source", [])
+    names = query.get("combination", [])
+    offered = query.get("assignments", [])
+    if (set(query) - {"case", "check", "base_run_id", "combination_source", "combination", "assignments"}
+            or query.get("check") != ["column-axial"]
+            or len(base_runs) != 1 or _RUN_ID_PATTERN.fullmatch(base_runs[0]) is None
+            or modes not in (["ETABS_STRENGTH"], ["SAVED_DEFAULTS"], [ASSIGNED_DESIGN])
+            or bool(names) != (modes == ["SAVED_DEFAULTS"])
+            or len(offered) != int(modes == [ASSIGNED_DESIGN])
+            or any(len(value) > 32_000 for value in offered)
+            or len(names) > MAX_RESPONSE_COMBINATIONS or len(set(names)) != len(names)
+            or any(not name or name != name.strip() or len(name) > 160 for name in names)):
+        raise ValueError("Select a live source run and an exact column strength combination set.")
+    report = build_complete_report(output_root, base_runs[0])
+    setup = report.get("analysis_setup") or {}
+    filename = report["capture_metadata"].get("model_filename")
+    if report["source_mode"] != "LIVE_ETABS" or not filename or not setup.get("definition_coverage_known"):
+        raise ValueError("The selected source run has no verified ETABS combination catalog.")
+    assignment = None
+    if offered:
+        assignment = bind_assigned_combinations(
+            report["design_assignments"], check=COLUMN_AXIAL_ID, offered=json.loads(offered[0]),
+            catalog=setup["defined_combination_names"],
+        )
+        names = sorted({name for group in assignment["groups"].values() for name in group})
+        if not 0 < len(names) <= MAX_RESPONSE_COMBINATIONS:
+            raise ValueError("Assign a nonempty column strength combination set within the capture limit.")
+    if not set(names).issubset(setup["defined_combination_names"]):
+        raise ValueError("Saved combinations missing from the selected ETABS catalog.")
+    return {
+        "base_run_id": base_runs[0], "model_filename": filename, "combination_source": modes[0],
+        "combinations": sorted(names), "combination_graph_sha256": setup["typed_graph_source_sha256"],
+        "base_input_sha256": report["source_provenance"]["input_sha256"],
+        **({"design_assignment": assignment} if assignment is not None else {}),
+    }
 
 
 def _runs(root: Path) -> list[dict[str, Any]]:
@@ -66,7 +113,7 @@ def _calculate_modal(payload: Mapping[str, Any], *, case: str, run: ReceiptRun, 
     return result
 
 
-def make_handler(output_root: Path, *, live_capture=None):
+def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None = None):
     """Injectable capture callback makes endpoint testable without Windows COM."""
     class Handler(BaseHTTPRequestHandler):
         server_version = "TBDYNext/VS04-Partial"
@@ -89,8 +136,9 @@ def make_handler(output_root: Path, *, live_capture=None):
             url = urlsplit(self.path)
             if url.path in ("/api/column-history", "/api/column-bank", "/api/export-column-bank", "/report/column-bank", "/api/export-spectral-design"):
                 self.column_get(url)
-            elif url.path in ("/", "/index.html"):
-                contents = resources.files("tbdy_next").joinpath("static/index.html").read_bytes()
+            elif url.path in ("/", "/index.html", "/workspace", "/source"):
+                page = "index.html" if url.path == "/source" else "workspace.html"
+                contents = resources.files("tbdy_next").joinpath("static", page).read_bytes()
                 self.send_response(200)
                 self.send_header("Content-Type", "text/html; charset=utf-8")
                 self.send_header("Cache-Control", "no-store")
@@ -99,13 +147,18 @@ def make_handler(output_root: Path, *, live_capture=None):
                 self.end_headers()
                 self.wfile.write(contents)
             elif url.path == "/api/health":
-                self.reply(200, {"status": "PARTIAL_UNIFIED_VS04_SCREENING", "implemented_slices": ["MODAL_MASS_RATIO", "MATERIAL_FCK_25", "A1_X_Y_SOURCE_CLASSIFICATION"], "source_only_slices": ["VS04_ANALYSIS_SOURCE_SCHEMA", "VS04_ANALYSIS_NUMERIC_SOURCE", "VS04_E_NORMATIVE_READINESS"], "live_web_f_to_j_integrated": True, "single_primary_action": "/api/live-vs04", "formal_compliance": "NOT_PROVEN", "engineering_release": "NOT_READY"})
+                self.reply(200, {"status": "PARTIAL_UNIFIED_VS04_SCREENING", "implemented_slices": ["MODAL_MASS_RATIO", "MATERIAL_FCK_25", "A1_X_Y_SOURCE_CLASSIFICATION"], "source_only_slices": ["VS04_ANALYSIS_SOURCE_SCHEMA", "VS04_ANALYSIS_NUMERIC_SOURCE", "VS04_E_NORMATIVE_READINESS"], "live_web_f_to_j_integrated": True, "single_primary_action": "/api/live-vs04", "on_demand_force_checks": ["column-axial"], "formal_compliance": "NOT_PROVEN", "engineering_release": "NOT_READY"})
             elif url.path == "/api/runs":
                 self.reply(200, {"runs": _runs(output_root)})
             elif url.path == "/api/check-registry":
                 self.reply(200, {"checks": check_registry(), "implemented_check_count": len(check_registry())})
             elif url.path == "/api/quick-history":
-                self.reply(200, {"runs": quick_history(output_root), "engineering_release": "NOT_READY"})
+                query = parse_qs(url.query)
+                if query not in ({}, {"view": ["summary"]}):
+                    self.reply(400, {"error": "QUICK_HISTORY_VIEW_INVALID"})
+                    return
+                self.reply(200, {"runs": quick_history(output_root, summary=bool(query)),
+                                 "engineering_release": "NOT_READY"})
             elif url.path == "/api/modal-history":
                 self.reply(200, {"runs": modal_history(output_root), "engineering_release": "NOT_READY"})
             elif url.path in ("/api/export-checks", "/report/print",
@@ -170,7 +223,7 @@ def make_handler(output_root: Path, *, live_capture=None):
                     self.reply(404, {"error": "VERIFIED_MODAL_TABLE_NOT_FOUND"})
                     return
                 self.reply(200, {"table": table})
-            elif url.path in ("/quick.js", "/column.js", "/engine-console.js"):
+            elif url.path in ("/quick.js", "/column.js", "/engine-console.js", "/workspace.js", "/workspace-source.js"):
                 source = resources.files("tbdy_next").joinpath("static" + url.path).read_bytes()
                 self.send_response(200)
                 self.send_header("Content-Type", "text/javascript; charset=utf-8")
@@ -179,6 +232,32 @@ def make_handler(output_root: Path, *, live_capture=None):
                 self.send_header("Content-Length", str(len(source)))
                 self.end_headers()
                 self.wfile.write(source)
+            elif url.path in ("/api/column-127-gates", "/api/column-127-workspace", "/report/column-127"):
+                try:
+                    from .engineering.live_column import load_and_evaluate_127_from_receipts
+                    from .reporting import build_column_127_gate_html
+                    receipt_dir = output_root / "column_127_receipts"
+                    bundle = load_and_evaluate_127_from_receipts(receipt_dir if receipt_dir.is_dir() else None)
+                    if url.path == "/api/column-127-gates":
+                        self.reply(200, bundle["p0_gate_report"])
+                        return
+                    if url.path == "/api/column-127-workspace":
+                        from .engineering.design_assignments import design_assignments
+                        setup = bundle["p0_gate_report"]["p0c_model_analysis_setup_audit"]
+                        self.reply(200, {**bundle, "source_mode": "ARCHIVED_COLUMN_RECEIPT",
+                                         "design_assignments": design_assignments(setup)})
+                        return
+                    html_bytes = build_column_127_gate_html(bundle).encode("utf-8")
+                except (OSError, ValueError, KeyError, TypeError) as exc:
+                    self.reply(404, {"error": f"COLUMN_127_RECEIPTS_UNAVAILABLE:{exc}"})
+                    return
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Cache-Control", "no-store")
+                self.send_header("X-Content-Type-Options", "nosniff")
+                self.send_header("Content-Length", str(len(html_bytes)))
+                self.end_headers()
+                self.wfile.write(html_bytes)
             elif url.path == "/history.js":
                 source = resources.files("tbdy_next").joinpath("static/history.js").read_bytes()
                 self.send_response(200)
@@ -353,14 +432,14 @@ def make_handler(output_root: Path, *, live_capture=None):
                         "shear_modulus_mpa", "R_base"}:
                         raise ValueError("VS06_B1_PREVIEW_OPTIONS_INVALID")
                     from .b1_source_bridge import evaluate_b1_sources
-                    from tools.verify_vs06_b1_sources import render_b1_html
+                    from .b1_source_bridge import render_b1_html
                     result = evaluate_b1_sources(data["geometry"], data["wall_loads"], **options)
                     self.reply(200, {"result": result, "html": render_b1_html(result)})
                 except (UnicodeError, ValueError, TypeError, KeyError, ArithmeticError) as exc:
                     self.reply(422, {"error": str(exc),
                                      "formal_compliance": "NOT_PROVEN"})
                 return
-            if url.path in ("/api/live-modal", "/api/live-suite", "/api/live-vs04"):
+            if url.path in ("/api/live-modal", "/api/live-suite", "/api/live-vs04", "/api/etabs-session"):
                 # Browser can POST to loopback from a foreign page; reject any
                 # declared cross-site origin before touching the ETABS session.
                 origin = self.headers.get("Origin")
@@ -377,34 +456,71 @@ def make_handler(output_root: Path, *, live_capture=None):
                     self.reply(400, {"status": "REJECTED", "reason": "LIVE_REQUEST_MUST_HAVE_NO_BODY"})
                     return
                 query = parse_qs(url.query)
+                session_only = url.path == "/api/etabs-session"
                 cases = query.get("case", [])
                 case = cases[0] if len(cases) == 1 else ""
-                if not case or case != case.strip() or len(case) > 120:
+                if session_only and query:
+                    self.reply(400, {"status": "REJECTED", "reason": "ETABS_SESSION_TAKES_NO_PARAMETERS"})
+                    return
+                if not session_only and (not case or case != case.strip() or len(case) > 120):
                     self.reply(400, {"status": "REJECTED", "reason": "EXACT_MODAL_CASE_REQUIRED"})
                     return
-                # Import Windows/COM lazily and only after the user clicks the
-                # live button. The request thread owns its COM lifecycle.
+                capture_options = {}
+                if not session_only and set(query) != {"case"}:
+                    try:
+                        if url.path != "/api/live-vs04":
+                            raise ValueError("Use the combined capture for check-specific options.")
+                        capture_options["column_axial_request"] = _column_axial_request(query, output_root)
+                    except (ReportUnavailable, ValueError) as exc:
+                        self.reply(422, {"status": "CAPTURE_REJECTED", "reason": str(exc)})
+                        return
+                # Import COM only for explicit requests. The worker owns its COM lifecycle.
+                if not _LIVE_CAPTURE_LOCK.acquire(blocking=False):
+                    self.reply(409, {"status": "CAPTURE_BUSY", "reason": "ETABS_CAPTURE_ALREADY_RUNNING"})
+                    return
                 try:
+                    if session_only:
+                        from .live_etabs import select_etabs_capture_units
+                        session = select_etabs_capture_units(etabs_pid)["after"]
+                        self.reply(200, {
+                            "etabs_session": session, "required_units_code": CAPTURE_UNIT_CODE,
+                            "required_units_label": CAPTURE_UNIT_LABEL,
+                        })
+                        return
                     if live_capture is not None:
-                        payload = live_capture(case)
+                        payload = live_capture(case, **capture_options)
                     else:
                         if url.path in ("/api/live-suite", "/api/live-vs04"):
                             from .live_etabs import read_quick_suite_from_running_etabs
                             payload = read_quick_suite_from_running_etabs(
-                                case, with_vs04=(url.path == "/api/live-vs04"))
+                                case, with_vs04=(url.path == "/api/live-vs04"), process_id=etabs_pid,
+                                **capture_options)
                         else:
                             from .live_etabs import read_modal_from_running_etabs
-                            payload = read_modal_from_running_etabs(case)
+                            payload = read_modal_from_running_etabs(case, process_id=etabs_pid)
+                except EtabsUnitsError as exc:
+                    self.reply(503, {
+                        "status": "CAPTURE_REJECTED", "reason": f"{type(exc).__name__}: {exc}",
+                        "etabs_session": exc.session, "required_units_code": CAPTURE_UNIT_CODE,
+                        "required_units_label": CAPTURE_UNIT_LABEL, "engineering_release": "NOT_READY",
+                    })
+                    return
                 except Exception as exc:
                     self.reply(503, {
                         "status": "CAPTURE_REJECTED", "reason": f"{type(exc).__name__}: {exc}",
                         "engineering_release": "NOT_READY",
                     })
                     return
+                finally:
+                    _LIVE_CAPTURE_LOCK.release()
                 # Actual OAPI source is now represented by this immutable local
                 # input; it is never sent to GitHub or to another host.
                 if not isinstance(payload, dict) or payload.get("source_mode") != "LIVE_ETABS":
                     self.reply(422, {"status": "CAPTURE_REJECTED", "reason": "LIVE_SOURCE_MODE_REQUIRED"})
+                    return
+                if capture_options and ((payload.get("column_axial") or {}).get("request")
+                                        != capture_options["column_axial_request"]):
+                    self.reply(422, {"status": "CAPTURE_REJECTED", "reason": "COLUMN_AXIAL_SOURCE_REQUEST_UNBOUND"})
                     return
                 if url.path == "/api/live-vs04" and "analysis_sources" not in payload:
                     self.reply(422, {"status": "CAPTURE_REJECTED", "reason": "VS04_CAPTURE_MISSING"})
@@ -417,6 +533,9 @@ def make_handler(output_root: Path, *, live_capture=None):
                                      "reason": "VS04_REQUIRED_SAME_SESSION_SOURCES_MISSING"})
                     return
                 raw = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+                if len(raw) > _MAX_SOURCE_BYTES:
+                    self.reply(422, {"status": "CAPTURE_REJECTED", "reason": "ETABS_SOURCE_ARCHIVE_TOO_LARGE"})
+                    return
                 input_sha = sha256(raw).hexdigest()
                 run = ReceiptRun(output_root)
                 run.archive_input(raw, expected_sha256=input_sha)
@@ -452,16 +571,32 @@ def make_handler(output_root: Path, *, live_capture=None):
                             payload.get("vs05_delta_source"),
                             capture_error=payload.get("vs05_delta_capture_error"))
                         run.record("vs05-story-drift", story_drift, input_sha256=input_sha)
+                    analysis_setup = None
+                    if "vs04_basis_probe" in payload:
+                        from .engineering.analysis_setup import STAGE, bind_analysis_setup
+                        analysis_setup = bind_analysis_setup(payload)
+                        run.record(STAGE, analysis_setup, input_sha256=input_sha)
+                    column_axial = None
+                    if "column_axial" in payload:
+                        from .engineering.column_axial import STAGE as AXIAL_STAGE, evaluate_column_axial
+                        column_axial = evaluate_column_axial(payload, geometry, extra)
+                        run.record(AXIAL_STAGE, column_axial, input_sha256=input_sha)
                     # R08 is an owned DAG/check-result stage in this SAME run.
                     # Its source, evaluator and receipt are replayed by report export.
                     r08_second_order = None
                     if ("r08_second_order_source" in payload or
                             "r08_second_order_capture_error" in payload):
-                        from .story_second_order import bind_story_second_order
+                        from .story_second_order import bind_story_second_order, scope_story_second_order
+                        from .physical_story_scope import review_physical_story_scope
                         r08_second_order = bind_story_second_order(
                             payload.get("r08_second_order_source"),
                             capture_error=payload.get("r08_second_order_capture_error"))
                         run.record("r08-second-order", r08_second_order, input_sha256=input_sha)
+                        if payload.get("vs05_delta_source"):
+                            inventory = payload["vs05_delta_source"]
+                            r08_second_order = scope_story_second_order(
+                                r08_second_order, payload.get("r08_second_order_source"),
+                                inventory, review_physical_story_scope(inventory))
                     meta = payload.get("capture_metadata") or {}
                     run.record("live-capture", {
                         "status": "SOURCE_CAPTURED", "source_mode": "LIVE_ETABS",
@@ -474,10 +609,20 @@ def make_handler(output_root: Path, *, live_capture=None):
                         "model_name": ntpath.basename(str(meta.get("model_filename", ""))),
                         "case_row_count": meta.get("case_row_count"),
                         "source_rows": payload["table"]["row_count"],
-                        "source_mode": "LIVE_ETABS", "geometry": geometry, "extra_checks": extra,
+                        "source_mode": "LIVE_ETABS", "geometry": display_check_group(geometry),
+                        **({"etabs_session": meta["etabs_session"]} if "etabs_session" in meta else {}),
+                        **({"etabs_session_after_scan": meta["etabs_session_after_scan"]}
+                           if "etabs_session_after_scan" in meta else {}),
+                        "extra_checks": display_check_group(extra),
+                        "material_member_groups": material_member_groups(geometry["checks"] if geometry else []),
                         "vs04_schema": vs04, "vs04_numerics": vs04_numerics,
                         "vs04_readiness": vs04_readiness,
-                        "vs04_pipeline": vs04_pipeline,
+                        "vs04_pipeline": display_check_group(vs04_pipeline),
+                        **({"analysis_setup": analysis_setup} if analysis_setup is not None else {}),
+                        **({"column_axial": {key: column_axial[key] for key in (
+                            "status", "expected_column_count", "completed_column_count",
+                            "native_force_row_count", "combination_plan",
+                        )}} if column_axial is not None else {}),
                         **({"story_drift": story_drift}
                            if story_drift is not None else {}),
                         **({"r08_second_order": r08_second_order}
@@ -511,7 +656,7 @@ def make_handler(output_root: Path, *, live_capture=None):
             try:
                 payload = json.loads(raw.decode("utf-8"))
                 if not isinstance(payload, dict):
-                    raise SourceError("Kaynak JSON nesne olmalı")
+                    raise SourceError("The source JSON must be an object")
                 if url.path == "/api/discovery":
                     result = review_preflight(payload)
                     run.record("discovery", result, input_sha256=input_sha)
@@ -522,7 +667,7 @@ def make_handler(output_root: Path, *, live_capture=None):
                     query = parse_qs(url.query)
                     case = query.get("case", [""])[0].strip()
                     if not case:
-                        raise SourceError("Modal vaka adı zorunlu")
+                        raise SourceError("A modal case name is required")
                     result = _calculate_modal(payload, case=case, run=run, input_sha=input_sha)
                 self.reply(200, {"run_id": run.run_id, "result": result, "engineering_release": "NOT_READY"})
             except (ValueError, UnicodeError, KeyError, TypeError) as exc:
@@ -533,9 +678,14 @@ def make_handler(output_root: Path, *, live_capture=None):
     return Handler
 
 
-def serve(*, host: str = "127.0.0.1", port: int = 8765, output_root: Path = Path(".receipts")) -> None:
+def serve(*, host: str = "127.0.0.1", port: int = 8765, output_root: Path = Path(".receipts"),
+          etabs_pid: int | None = None) -> None:
     if host not in ("127.0.0.1", "localhost", "::1"):
         raise ValueError("VS01 web UI accepts localhost only; use a trusted port forward in Codespaces")
-    with ThreadingHTTPServer((host, port), make_handler(Path(output_root))) as server:
-        print(f"TBDY Next Engine VS01: http://{host}:{server.server_port} | receipts: {output_root}")
+    with ThreadingHTTPServer((host, port), make_handler(
+            Path(output_root), etabs_pid=etabs_pid)) as server:
+        target = f"PID {etabs_pid}" if etabs_pid is not None else "active instance"
+        print(f"TBDY Next Engine VS01: http://{host}:{server.server_port} | receipts: {output_root} "
+              f"| ETABS: {target}, connection sets {CAPTURE_UNIT_LABEL}",
+              flush=True)
         server.serve_forever()

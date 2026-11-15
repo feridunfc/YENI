@@ -10,7 +10,7 @@ from decimal import Decimal
 import math
 
 from .native_archive import BankError, finite
-from .csi_geometry import local_dimensions
+from .csi_geometry import LocalSectionDims, NativeSectionDims, local_dimensions, to_local_dimensions
 
 TS500_REFERENCE = "https://staff.emu.edu.tr/cemalgenes/Documents/courses/INSA471_2019_20_Bahar/TS500.pdf"
 SWAY_PREVENTED = "SWAY_PREVENTED"
@@ -58,6 +58,122 @@ def minimum_eccentricity_mm(bending_dimension_mm):
     if not h.is_finite() or h <= 0:
         raise BankError("POSITIVE_BENDING_DIMENSION_REQUIRED")
     return Decimal(15) + Decimal(".03") * h
+
+
+def apply_minimum_eccentricity(
+    *,
+    nd_kn: float,
+    m2_knm: float,
+    m3_knm: float,
+    dims: NativeSectionDims | LocalSectionDims,
+    local_axis_angle_deg: float = 0.0,
+) -> dict:
+    """TS500 §6.3.10 Eq.(6.16) minimum eccentricity demand floor (F02, F08, F09).
+
+    Under axial compression (nd_kn > 0), design moments about local 2 and local 3
+    must be at least Nd * e_min, where e_min = 15 mm + 0.03 * h_bending:
+      - M2 bends in local 1-3 plane through depth along local 3 (= native T2).
+      - M3 bends in local 1-2 plane through depth along local 2 (= native T3).
+    """
+    nd = finite(nd_kn, "nd_kn")
+    m2 = finite(m2_knm, "m2_knm")
+    m3 = finite(m3_knm, "m3_knm")
+    angle = finite(local_axis_angle_deg, "local_axis_angle_deg")
+    local_dims = to_local_dimensions(dims) if isinstance(dims, NativeSectionDims) else dims
+    if not isinstance(local_dims, LocalSectionDims):
+        raise TypeError("NATIVE_OR_LOCAL_SECTION_DIMS_REQUIRED")
+
+    h_m2_mm = local_dims.bending_depth_m2_mm
+    h_m3_mm = local_dims.bending_depth_m3_mm
+    e_min_m2_mm = float(minimum_eccentricity_mm(h_m2_mm))
+    e_min_m3_mm = float(minimum_eccentricity_mm(h_m3_mm))
+
+    if nd > 0:
+        m2_min_knm = nd * e_min_m2_mm / 1000.0
+        m3_min_knm = nd * e_min_m3_mm / 1000.0
+        sign2 = -1.0 if m2 < 0 else 1.0
+        sign3 = -1.0 if m3 < 0 else 1.0
+        m2_design = sign2 * max(abs(m2), m2_min_knm)
+        m3_design = sign3 * max(abs(m3), m3_min_knm)
+        m2_governed = abs(m2) < m2_min_knm
+        m3_governed = abs(m3) < m3_min_knm
+    else:
+        m2_min_knm = 0.0
+        m3_min_knm = 0.0
+        m2_design = m2
+        m3_design = m3
+        m2_governed = False
+        m3_governed = False
+
+    rad = math.radians(angle)
+    c, s = math.cos(rad), math.sin(rad)
+    # Global moment projection of the local design moments for rotated columns
+    mx_global_knm = m2_design * c - m3_design * s
+    my_global_knm = m2_design * s + m3_design * c
+
+    return {
+        "canonical_id": "TS500:6.3.10:MIN_ECCENTRICITY_6_16:COLUMN:2000R2018",
+        "check_code": "CHK-115",
+        "nd_compression_kn": nd,
+        "local2_extent_mm": local_dims.local2_extent_mm,
+        "local3_extent_mm": local_dims.local3_extent_mm,
+        "h_m2_mm": h_m2_mm,
+        "h_m3_mm": h_m3_mm,
+        "e_min_m2_mm": e_min_m2_mm,
+        "e_min_m3_mm": e_min_m3_mm,
+        "m2_min_knm": m2_min_knm,
+        "m3_min_knm": m3_min_knm,
+        "m2_raw_knm": m2,
+        "m3_raw_knm": m3,
+        "m2_design_knm": m2_design,
+        "m3_design_knm": m3_design,
+        "m2_floor_governed": m2_governed,
+        "m3_floor_governed": m3_governed,
+        "local_axis_angle_deg": angle,
+        "mx_global_design_knm": mx_global_knm,
+        "my_global_design_knm": my_global_knm,
+    }
+
+
+def section_axial_limits_kn(*, fck_mpa: float, fcd_mpa: float, ac_mm2: float) -> dict:
+    """TS 500 and TBDY concrete-section limits, independent of cage selection."""
+    fck = positive(fck_mpa, "fck_mpa")
+    fcd = positive(fcd_mpa, "fcd_mpa")
+    ac = positive(ac_mm2, "ac_mm2")
+    return {
+        "ts500_eq_7_7_max_nd_kn": 0.90 * fcd * ac / 1000.0,
+        "tbdy_7_3_1_2_max_ndm_kn": 0.40 * fck * ac / 1000.0,
+    }
+
+
+def axial_compression_caps_kn(
+    *,
+    fck_mpa: float,
+    fcd_mpa: float,
+    fyd_mpa: float,
+    ac_mm2: float,
+    ast_mm2: float = 0.0,
+) -> dict:
+    """Normative axial compression ceilings vs raw plastic N0 (F01: CHK-004 & CHK-005).
+
+    - Raw plastic compression capacity: N0 = (0.85 * fcd * (Ac - Ast) + fyd * Ast) / 1000 kN
+    - TS500 §7.4 Eq.(7.7) (CHK-005): Nd <= 0.90 * fcd * Ac / 1000 kN (NOT 0.80 * N0)
+    - TBDY 2018 §7.3.1.2 (CHK-004): Ndm <= 0.40 * fck * Ac / 1000 kN
+    """
+    limits = section_axial_limits_kn(fck_mpa=fck_mpa, fcd_mpa=fcd_mpa, ac_mm2=ac_mm2)
+    fcd = positive(fcd_mpa, "fcd_mpa")
+    fyd = positive(fyd_mpa, "fyd_mpa")
+    ac = positive(ac_mm2, "ac_mm2")
+    ast = finite(ast_mm2, "ast_mm2")
+    if ast < 0 or ast >= ac:
+        raise BankError("INVALID_REBAR_AREA_AST")
+    n0_kn = (0.85 * fcd * (ac - ast) + fyd * ast) / 1000.0
+    return {
+        "raw_plastic_n0_kn": n0_kn,
+        **limits,
+        "non_ts500_080_n0_reference_kn": 0.80 * n0_kn,
+        "080_n0_is_ts500_7_7": False,
+    }
 
 
 def evaluate_slenderness(*, free_length_ln_mm, k, radius_mm, sway, signed_end_moment_ratio=None):

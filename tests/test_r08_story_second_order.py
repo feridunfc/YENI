@@ -6,7 +6,10 @@ from __future__ import annotations
 import copy
 import unittest
 
-from tbdy_next.story_second_order import bind_story_second_order, CAPTURE_SCHEMA
+from tbdy_next.physical_story_scope import review_physical_story_scope
+from tbdy_next.story_second_order import bind_story_second_order, scope_story_second_order, CAPTURE_SCHEMA
+from test_vs07_physical_story_scope import with_inventory
+from test_vs07_soft_story_b2 import reseal
 from tools.etabs_source_gateway_windows import seal
 
 MODEL = r"C:\tmp\kompakt_b.EDB"
@@ -98,6 +101,41 @@ def fixture():
 
 
 class StorySecondOrderEngineTests(unittest.TestCase):
+    def test_only_verified_empty_story_is_excluded_from_the_reported_coverage(self):
+        data = fixture()
+        tables = data["spectrum_source"]["table_reads"]
+        levels = tables["Story Definitions"]
+        levels["rows"].insert(0, {"Tower": "T1", "Story": "+14.50", "Height": "5.5"})
+        levels["row_count"] = len(levels["rows"])
+        data["spectrum_source"] = sealed(tables)
+
+        inventory = sealed({
+            name: tables[name] for name in ("Story Definitions", "Tower and Base Story Definitions",
+                                            "Story Max Over Avg Drifts")
+        })
+        points = [
+            {"UniqueName": "1", "Story": "+4.50", "X": "0", "Y": "0", "Z": "4.5"},
+            {"UniqueName": "2", "Story": "+9.00", "X": "0", "Y": "0", "Z": "9"},
+        ]
+        inventory["table_reads"]["Point Object Connectivity"] = table(
+            "Point Object Connectivity", list(points[0]), points, {axis: "m" for axis in "XYZ"})
+        inventory = with_inventory(inventory, {"C1": ("Column", ["1", "2"])}, {})
+        declared = bind_story_second_order(data)
+        scope = review_physical_story_scope(inventory)
+        projected = scope_story_second_order(declared, data, inventory, scope)
+        self.assertEqual(declared["expected_story_direction_count"], 6)
+        self.assertEqual(projected["expected_story_direction_count"], 4)
+        self.assertEqual(projected["excluded_stories"][0]["story"], "+14.50")
+        self.assertEqual(projected["not_applicable_story_direction_count"], 2)
+        self.assertEqual(projected["formal_compliance"], "NOT_PROVEN")
+        self.assertEqual(projected["results"], declared["results"])
+
+        changed = copy.deepcopy(inventory)
+        changed["table_reads"]["Story Max Over Avg Drifts"]["rows"][0]["Avg Drift"] = "0.0011"
+        changed = reseal(changed)
+        self.assertEqual(scope_story_second_order(
+            declared, data, changed, review_physical_story_scope(changed)), declared)
+
     def test_all_stories_calculated_without_regulatory_approval(self):
         result = bind_story_second_order(fixture())
         self.assertEqual(result["status"], "NUMERIC_PRECHECK_UNAPPROVED")

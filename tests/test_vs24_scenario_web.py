@@ -91,13 +91,13 @@ class ScenarioWebTests(unittest.TestCase):
 
     def test_html_has_all_nine_options_compact_first_table_and_closed_details(self):
         with self.get('/report/column-bank?'+self.query) as response:html=response.read().decode()
-        self.assertLess(html.index('Kolon mühendislik özeti · VS20'),html.index('SCWB öneri senaryoları · VS24'))
-        for phrase in ('kolon kaynak N','kiriş N=0','senaryo referansı ≥1','minimum verilmez','nihai SCWB oranı üretilmez'):
+        self.assertLess(html.index('Column engineering summary · VS20'),html.index('SCWB proposal scenarios · VS24'))
+        for phrase in ('column source N','beam N=0','scenario reference is ≥1','A minimum requires all participants and cases','before a final SCWB ratio is available'):
             self.assertIn(phrase,html)
         section=html[html.index('<section class="scwb-scenarios">'):]
         first=section[section.index('<table>'):section.index('</table>')];self.assertEqual(first.count('<tr>'),7)
         self.assertNotIn('source_row_id',first);self.assertNotIn('result_id',first)
-        self.assertIn('Kolon 16Φ24 / kiriş Φ20',html);self.assertIn('Kolon 16Φ32 / kiriş Φ24',html)
+        self.assertIn('Column 16Φ24 / Beam Φ20',html);self.assertIn('Column 16Φ32 / Beam Φ24',html)
         page=ScenarioPage();page.feed(html);self.assertEqual((page.open_details,page.scripts),(0,0))
 
     def test_html_escapes_labels_and_keeps_blocked_population(self):
@@ -108,11 +108,11 @@ class ScenarioWebTests(unittest.TestCase):
         source=self.root/'blocked.zip';source.write_bytes(f.build());run=save_column_bank(source,self.receipts)['run_id']
         with self.get('/api/column-bank?view=scwb-scenarios&run_id='+run) as response:r=json.load(response)
         s=r['scwb_scenarios'];self.assertIsNone(s['expected_case_count']);self.assertEqual(s['expected_column_end_count'],4)
-        self.assertIn('2 bilinen kolon / 4 beklenen kolon ucu',scenario_html(s))
+        self.assertIn('2 known columns / 4 expected column ends',scenario_html(s))
 
     def test_ui_group_cli_display_choices_and_combined_beam_export(self):
-        with self.get('/') as response:html=response.read().decode()
-        start=html.index('<optgroup label="Kolon–kiriş birleşimleri">');end=html.index('</optgroup>',start)
+        with self.get('/source') as response:html=response.read().decode()
+        start=html.index('<optgroup label="Beam-column joints">');end=html.index('</optgroup>',start)
         self.assertIn('value="scwb-scenarios"',html[start:end]);before=sorted(p.name for p in self.receipts.iterdir())
         for flags in ([],['--beams'],['--column-cage','16Φ28','--beam-diameter','24']):
             out=io.StringIO()

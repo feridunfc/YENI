@@ -63,7 +63,7 @@ class ColumnWebTests(unittest.TestCase):
         with self.get('/report/column-bank?' + self.query) as response:
             html = response.read().decode()
             self.assertIn("default-src 'none'", response.headers['Content-Security-Policy'])
-        for value in ('2/2', '64 kuvvet satırı', '48 skaler', '3.3', 'NOT_PROVEN / NOT_READY',
+        for value in ('2/2', '64 force rows', '48 scalar', '3.3', 'NOT_PROVEN / NOT_READY',
                       'MISSING', 'SUM', self.saved['source_archive_sha256'], self.saved['result_sha256']):
             self.assertIn(value, html)
         self.assertNotIn('<script', html)
@@ -80,7 +80,7 @@ class ColumnWebTests(unittest.TestCase):
             self.assertEqual(caught.exception.code, code)
 
     def test_ui_panel_is_under_columns_and_script_is_served(self):
-        with self.get('/') as response: html = response.read().decode()
+        with self.get('/source') as response: html = response.read().decode()
         page = PageStructure(html)
         self.assertEqual(page.ids['columnBankPanel'], 1)
         self.assertIn('columncontent', [p[1] for p in page.ancestors['columnBankPanel']])

@@ -14,6 +14,7 @@ from .column_pmm import DIAMETERS, cage_rows
 from .column_prechecks import _number
 from .csi_geometry import AXIS_CONVENTION
 from .native_archive import BankError, digest, finite
+from .section_capacity import k1_factor
 from .section_reference import (ReferenceSection, reference_radial_capacity, reference_state, LEVELS,
     FORCE_TOL_N, DIRECTION_ABS_TOL_NMM, DIRECTION_REL_TOL, INTEGRATION_ABS_TOL_NMM, INTEGRATION_REL_TOL)
 
@@ -180,7 +181,7 @@ def _model(profile,cage):
     material=profile["material"]
     values={"local2_mm":cage["t3_mm"],"local3_mm":cage["t2_mm"],
         "bars":tuple((b["x2_mm"],b["x3_mm"],b["area_mm2"]) for b in cage["bars"]),
-        "block_stress_mpa":.85*material["fcd"],"block_depth_factor":K1[material["fck"]],
+        "block_stress_mpa":.85*material["fcd"],"block_depth_factor":k1_factor(material["fck"]),
         "steel_yield_mpa":material["fyd"],"steel_modulus_mpa":material["es"],"concrete_ultimate_strain":material["ecu"]}
     section=ReferenceSection(**values)
     source={"profile_id":profile["profile_id"],"candidate_id":cage["candidate_id"],"candidate_label":cage["label"],

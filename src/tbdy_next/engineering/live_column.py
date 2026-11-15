@@ -6,13 +6,17 @@ scenario to engineering approval. Inputs are private receipt files, not Git data
 """
 from __future__ import annotations
 
+import json
 import math
-from typing import Mapping
+import ntpath
+from pathlib import Path
+from typing import Any, Mapping
 
 from tbdy_next.column_engine.csi_geometry import local_dimensions
 from tbdy_next.column_engine.native_archive import digest
 from tbdy_next.column_engine.section_capacity import Bar, Material, Section, solver
 from tbdy_next.column_engine.ts500_column import minimum_eccentricity_mm, rectangle_properties
+from tbdy_next.engineering.column_gates import evaluate_column_p0_gates, match_station_with_tolerance
 
 LIVE = "tbdy.next.r07-r09.live-readonly.v1"
 COMBO = "tbdy.next.r07.gravult-combo-live-capture.v1"
@@ -271,10 +275,14 @@ def review_live_column(*, live: dict, lc_run: dict, combo: dict,
                 "NONCONCURRENT_COMBO_STATE")
         native = {field: number(row.get(field), field) for field in FORCES}
         ost, est = (number(row[k], k) for k in ("ObjSta", "ElmSta"))
-        key = (ost, est, "Single Value", 0.0)
-        require(key not in seen and key in prior, "STATION_DUPLICATE_OR_MISSING")
-        seen.add(key)
-        check = prior[key]
+        try:
+            matched_key, check = match_station_with_tolerance(
+                prior, ost, est, "Single Value", 0.0, tol_m=1e-6
+            )
+        except ValueError as exc:
+            raise LiveEvidenceError("STATION_DUPLICATE_OR_MISSING") from exc
+        require(matched_key not in seen, "STATION_DUPLICATE_OR_MISSING")
+        seen.add(matched_key)
         require(check.get("analysis_element_id") == row.get("Elm"), "ELEMENT_ID_CHANGED")
         require(all(abs(native[f] - number(check["signed_source_six"][f], f)) <= 1e-9
                     for f in FORCES), "SIX_SIGNED_FORCE_MISMATCH")
@@ -331,3 +339,44 @@ def review_live_column(*, live: dict, lc_run: dict, combo: dict,
     }
     output["result_sha256"] = digest(output)
     return output
+
+
+def load_and_evaluate_127_from_receipts(receipt_dir: Path | str | None = None) -> dict[str, Any]:
+    """Read the archived source and its digest-linked run, then replay the P0 gates."""
+    directory = Path(receipt_dir) if receipt_dir is not None else (
+        Path.cwd() / ".private_sources" / "from_R07_R09_GITHUB"
+    )
+    live = json.loads((directory / "r07_r09_live.json").read_text(encoding="utf-8"))
+    combo = json.loads((directory / "r07_127_gravult_capture.json").read_text(encoding="utf-8"))
+    pmm_run = json.loads((directory / "r07_127_gravult_numeric_result.json").read_text(encoding="utf-8"))
+    geometry = json.loads((directory / "r08_127_live_offsets_axes_points.json").read_text(encoding="utf-8"))
+
+    if live.get("schema") == LIVE:
+        run_sha = pmm_run["reference_lc_dl_run_sha256"]
+        matching_runs = []
+        for path in (directory / "r07_r09_results").glob("*/run_result.json"):
+            run = json.loads(path.read_text(encoding="utf-8"))
+            if run.get("run_result_sha256") == run_sha:
+                matching_runs.append(run)
+        require(len(matching_runs) == 1, "LC_DL_RUN_RECEIPT_MISSING_OR_AMBIGUOUS")
+        (lc_run,) = matching_runs
+    else:
+        lc_run = live["run_result"]
+        live = live["live_capture"]
+
+    setup_path = directory / "r07_live_combinations.json"
+    setup_capture = json.loads(setup_path.read_text(encoding="utf-8")) if setup_path.is_file() else None
+    receipts = dict(live=live, lc_run=lc_run, combo=combo, pmm_run=pmm_run, geometry=geometry)
+    reconciled = review_live_column(**receipts)
+    p0_report = evaluate_column_p0_gates(**receipts, setup_capture=setup_capture)
+    _, _, rect = _profile(live, reconciled["member"])
+    r07 = next(row for row in lc_run["check_instances"] if row["stage"] == "R07")
+    return {
+        "reconciled": reconciled,
+        "p0_gate_report": p0_report,
+        "source_context": {
+            "model_name": ntpath.basename(live["model_filename"]),
+            "concrete_material": rect["Material"],
+            "material_owner": r07["numeric_detail"]["kernel_inputs"]["material_owner"],
+        },
+    }

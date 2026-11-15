@@ -21,8 +21,8 @@ from .story_drift_binding import _verify_generic_capture
 from .story_geometry import StoryLevel, read_source_table as _read, read_story_levels as _levels
 
 CHECK = CheckDefinition(
-    "SOFT_STORY_B2", "B2 yumuşak kat — koşullu kaynak hesabı", 9,
-    "TBDY 2018 Tablo 3.6 / §3.6.2.1", "CONDITIONAL_SOURCE_NUMERICAL")
+    "SOFT_STORY_B2", "B2 soft story · Conditional source calculation", 9,
+    "TBDY 2018 Table 3.6 / §3.6.2.1", "CONDITIONAL_SOURCE_NUMERICAL")
 STORIES = "Story Definitions"
 BASE = "Tower and Base Story Definitions"
 AVERAGES = "Story Max Over Avg Drifts"
@@ -189,11 +189,11 @@ def bind_soft_story_b2(source: Mapping[str, Any] | None, *,
             "MODEL_ANALYSIS_GENERATION_NOT_INDEPENDENTLY_PROVEN",
         ],
         "assumptions_notes": [
-            "ETABS Avg Drift / h, ortalama göreli kat ötelemesi oranı ADAYI olarak alınır; ortalama tanımı henüz normatif olarak doğrulanmamıştır.",
-            "RSX/X ve RSY/Y aynı vaka ve Max izdüşümünde karşılaştırılır. ±%5 dışmerkezlik kolları ve TBDY 4.7 hesabı bu kayıttan kanıtlanmaz.",
-            "Kat kotları, mevcut ETABS üstten alta tablo sırası ve temel kotuyla kurulur. Kat içi ara noktalar yükseklikleri değiştirmez; yalnız üst düzlem noktaları kotu destekler, kat aralığı dışındaki noktalar reddedilir.",
-            "Yalnız eksiksiz nesne envanteriyle boşluğu doğrulanan katlar NOT_APPLICABLE olarak ayrılır. Bilinmeyen/eksik katlar korunur; bodrum uygulanabilirliği ayrıca onaylanmalıdır.",
-            "ηki > 2,0 yalnız koşullu kaynak hesabında eşik aşımıdır; yönetmelik B2 VAR/YOK veya bina PASS kararı değildir. Yuvarlatılmış kaynak hassasiyeti korunur.",
+            "ETABS Avg Drift / h gives a candidate mean interstory drift ratio. The code definition of the mean requires separate verification.",
+            "RSX/X and RSY/Y are compared at the same case and Max projection. The ±5% eccentricity branches and TBDY 4.7 calculation require separate evidence.",
+            "Elevations follow the ETABS top-to-bottom story order and base elevation. Only top-plane points support the elevation. Intermediate points preserve story height and out-of-range points are rejected.",
+            "NOT_APPLICABLE requires a complete object inventory that verifies an empty story. Unknown or incomplete stories remain in scope. Basement applicability requires separate acceptance.",
+            "ηki > 2.0 flags an exceedance in this conditional calculation. Code B2 classification and building compliance remain open. The displayed source precision is preserved.",
         ],
     }
     if capture_error or not isinstance(source, Mapping):

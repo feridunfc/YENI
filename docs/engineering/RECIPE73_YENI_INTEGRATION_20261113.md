@@ -7,7 +7,7 @@
 
 ## 1. Bu entegrasyon neyi çözer?
 
-Yeni bir 73-kontrollü motor yazmak yerine mevcut `YENI` motorunun **Model Tree → Source/Feature Graph → Engineering DAG → Design Solvers → CheckResult → RunResult/Report** yoluna dış reçeteyi adapte eder. Harici ZIP'in `config/check_registry/checks.json` içindeki 73 kısa kimliği, `YENI` içinde kendi başına normatif otorite haline gelmez. `YENI`'nin mevcut `config/dag/tbdy_r1c_94_candidate.json` tanımı **94 düğüm** (16 kaynak kapısı + 10 türetim + 32 düzenleyici + 36 tasarım kontrolü) olan farklı düzeyde bir aday DAG'dır. 73→94 **1:1 eşleme varsayımı yasaktır.** Bir dış CHECK birden çok atomik kuralı, türetim düğümünü veya uygulama koşulunu temsil edebilir.
+Yeni bir 73-kontrollü motor yazmak yerine mevcut `YENI` motorunun **Model Tree → Source/Feature Graph → Engineering DAG → Design Solvers → CheckResult → RunResult/Report** yoluna dış reçeteyi adapte eder. Harici ZIP'in `config/check_registry/checks.json` içindeki 73 kısa kimliği, `YENI` içinde kendi başına normatif otorite haline gelmez. `YENI`'nin mevcut `src/tbdy_next/config/dag/tbdy_r1c_94_candidate.json` tanımı **94 düğüm** (16 kaynak kapısı + 10 türetim + 32 düzenleyici + 36 tasarım kontrolü) olan farklı düzeyde bir aday DAG'dır. 73→94 **1:1 eşleme varsayımı yasaktır.** Bir dış CHECK birden çok atomik kuralı, türetim düğümünü veya uygulama koşulunu temsil edebilir.
 
 73 reçete bağımsız kaynak olarak `docs/engineering/reference/RECIPE_73_CANDIDATE_20261113.md` dosyasına değişmeden alınmıştır. Aşağıdaki tablo `YENI`'ye özel **migration/owner planıdır**, mevcut kodun eksiksiz uygulandığını iddia etmez.
 

@@ -59,14 +59,14 @@ const rows=()=>ids.get('columnForces').children[0].children[1].children;
   window.openColumnBank();take().done({runs:['all','blocked','mismatch'].map(key=>({run_id:samples[key].run_id,force_row_count:64}))});await flush();
   ids.get('columnRun').value=samples.all.run_id;ids.get('columnRun').trigger('change');await flush();
   const initial=take();assert.match(initial.url,/view=spectral-envelopes/);initial.done(clone('all'));await flush();
-  assert.doesNotMatch(ids.get('columnStatus').textContent,/gösterilemedi/);
-  assert.equal(rows().length,200);assert.match(ids.get('columnForces').textContent,/Kaynakla eşleşti/);
+  assert.doesNotMatch(ids.get('columnStatus').textContent,/Could not display the archive/);
+  assert.equal(rows().length,200);assert.match(ids.get('columnForces').textContent,/Matches source/);
   assert.doesNotMatch(ids.get('columnForces').textContent,/source_row_id|UYGUN|PASS|final_design/);
-  assert.match(ids.get('columnUnits').textContent,/N alt=−P üst/);assert.match(ids.get('columnUnits').textContent,/eşzamanlı/);
-  assert.match(ids.get('columnOverviewDetails').textContent,/V2, V3 ve T/);
+  assert.match(ids.get('columnUnits').textContent,/N lower=−P upper/);assert.match(ids.get('columnUnits').textContent,/individual components/);
+  assert.match(ids.get('columnOverviewDetails').textContent,/V2, V3, and T/);
   assert.ok(descendants(ids.get('columnOverviewDetails')).filter(e=>e.tag==='details').every(e=>!('open' in e.attributes)));
   assert.equal(ids.get('columnNext').disabled,false);assert.equal(ids.get('columnExports').children.length,2);
-  for(const a of ids.get('columnExports').children) {assert.match(a.textContent,/Bu sayfanın/);assert.match(a.href,/view=spectral-envelopes/);}
+  for(const a of ids.get('columnExports').children) {assert.match(a.textContent,/this page/);assert.match(a.href,/view=spectral-envelopes/);}
   ids.get('columnNext').trigger('click');await flush();const next=take();assert.match(next.url,/offset=200/);
   next.done(clone('next'));await flush();assert.equal(rows().length,56);assert.equal(ids.get('columnNext').disabled,true);
   assert.match(ids.get('columnPage').textContent,/201–256 \/ 256/);
@@ -76,15 +76,15 @@ const rows=()=>ids.get('columnForces').children[0].children[1].children;
   ids.get('columnMember').value='C_SYNTHETIC_1';ids.get('columnCase').value='RS_SUM';ids.get('columnCase').trigger('change');await flush();
   const member=take();assert.match(member.url,/member=C_SYNTHETIC_1/);assert.match(member.url,/case=RS_SUM/);
   member.done(clone('member'));await flush();stale.done(clone('all'));await flush();assert.equal(rows().length,64);
-  assert.match(ids.get('columnForces').textContent,/76,00 \/ 99,00/);
+  assert.match(ids.get('columnForces').textContent,/76\.00 \/ 99\.00/);
   for(const a of ids.get('columnExports').children) {assert.match(a.href,/member=C_SYNTHETIC_1/);assert.match(a.href,/case=RS_SUM/);}
   ids.get('columnCase').value='SUM';ids.get('columnCase').trigger('change');await flush();take().done(clone('empty'));await flush();
-  assert.equal(rows().length,0);assert.match(ids.get('columnPage').textContent,/gösterilecek kayıt yok/);
+  assert.equal(rows().length,0);assert.match(ids.get('columnPage').textContent,/No records for this filter/);
   ids.get('columnRun').value=samples.blocked.run_id;ids.get('columnRun').trigger('change');await flush();take().done(clone('blocked'));await flush();
-  assert.doesNotMatch(ids.get('columnStatus').textContent,/gösterilemedi/);
-  assert.match(ids.get('columnForces').textContent,/Kaynak bağı eksik/);assert.match(ids.get('columnContext').textContent,/PARTIAL/);
+  assert.doesNotMatch(ids.get('columnStatus').textContent,/Could not display the archive/);
+  assert.match(ids.get('columnForces').textContent,/Missing source link/);assert.match(ids.get('columnContext').textContent,/PARTIAL/);
   ids.get('columnRun').value=samples.mismatch.run_id;ids.get('columnRun').trigger('change');await flush();take().done(clone('mismatch'));await flush();
-  assert.match(ids.get('columnForces').textContent,/Kaynakla uyuşmuyor/);
+  assert.match(ids.get('columnForces').textContent,/Source mismatch/);
   ids.get('columnRun').value=samples.all.run_id;ids.get('columnRun').trigger('change');await flush();take().done(clone('all'));await flush();
   for(const bad of ['missing','source','bank','policy','tolerance','code','physical','double_factor','unit','scope',
       'page','nd','nonfinite','reversed_n','source_key','source_factor','target_step','comparison_component','row_approval']) {
@@ -108,7 +108,7 @@ const rows=()=>ids.get('columnForces').children[0].children[1].children;
     if(bad==='target_step')row.native_steps[0].native_key.StepNum=1;
     if(bad==='comparison_component')row.comparisons[0].component='M1';
     if(bad==='row_approval')row.final_design_eligible=true;
-    take().done(r);await flush();assert.match(ids.get('columnStatus').textContent,/uyuşmuyor/,'guard '+bad);
+    take().done(r);await flush();assert.match(ids.get('columnStatus').textContent,/mismatch/,'guard '+bad);
     assert.equal(ids.get('columnForces').children.length,0);assert.equal(ids.get('columnExports').children.length,0);
     assert.equal(ids.get('columnOverviewDetails').children.length,0);
   }

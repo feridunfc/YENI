@@ -51,17 +51,17 @@ class OneButtonProductPath(unittest.TestCase):
 
     def test_one_primary_etabs_calculation_button_and_exact_route(self):
         html=self.get("/")
-        js=self.get("/quick.js")
-        self.assertEqual(html.count('id="runAllBtn"'),1)
+        js=self.get("/workspace-source.js")
+        self.assertEqual(html.count('id="deskLive"'),1)
         for old in ('id="liveModalBtn"','id="quickSuiteBtn"','id="vs04SourceBtn"'):
             self.assertNotIn(old,html)
-        self.assertIn('id="liveCase"',html)
-        self.assertIn('ETABS’tan Oku ve Hesapla',html)
+        self.assertIn('id="deskModalCase"',html)
+        self.assertIn('Read ETABS and calculate',html)
         self.assertEqual(html.count('id="resulttree"'),1)
         self.assertLess(html.index('id="resulttree"'),html.index('<main>'),
                         "CheckResult tree must be in the left sidebar")
-        self.assertIn("MÜHENDİSLİK KABULÜ · NOT_READY",html)
-        self.assertIn("runAllBtn",js)
+        self.assertIn("Engineering release <strong>NOT_READY",html)
+        self.assertIn("deskRunForm",js)
         self.assertIn("/api/live-vs04?case=",js)
         self.assertNotIn("/api/live-suite?case=",js)
         self.assertNotIn("quickSuiteBtn",js)

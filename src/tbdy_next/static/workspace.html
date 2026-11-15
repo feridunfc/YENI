@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TBDY Next Engine ? Engineering Workspace</title>
+<style>
+/* Engineering workspace. Source/legacy panels retain their original styles. */
+:root{--ink:#243345;--muted:#64748b;--ok:#22745e;--warn:#996a16;--red:#aa4b37;--border:#dde4ee;--desk-blue:#25628e;--desk-navy:#15293d;--desk-line:#dce4ed;--desk-paper:#fff;--desk-bg:#f3f6fa;--desk-muted:#5c7187}
+*{box-sizing:border-box}body{margin:0;font:14px/1.5 "Inter","Segoe UI",sans-serif;color:var(--ink)}
+h1,h2,h3,p{margin-top:0}h2{font-size:16px}h3{font-size:13px}.workspace-shell{display:grid}
+.engine-console-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.engine-console-head h2{margin:0}
+.engine-console-clear{background:#fff;color:#526c83;border:1px solid var(--desk-line);border-radius:4px;padding:5px 7px;font-size:10px;cursor:pointer}
+.engine-console-log{list-style:none;padding:0;margin:0;overflow:auto;border:1px solid var(--desk-line);border-radius:6px;font-family:ui-monospace,Consolas,monospace}
+.engine-console-meta,.engine-console-message{display:block;overflow-wrap:anywhere}.engine-console-meta{margin-bottom:4px}
+.tree{list-style:none;padding:0;margin:0}.tree li{padding:7px 0;border-bottom:1px solid var(--desk-line);font-size:11px;overflow-wrap:anywhere}
+.desk-preview-ribbon{padding:7px 24px;color:#5a6f81;background:#eaf2f8;border-bottom:1px solid #d5e3ed;font-size:11px}
+[hidden]{display:none!important}
+body{background:var(--desk-bg)}
+button,input,select{font:inherit}
+button:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #2a88bd;outline-offset:3px}
+.desk-header{display:flex;align-items:center;gap:28px;padding:17px 24px;background:var(--desk-navy);color:#f4f8fc;min-width:0}
+.desk-brand{display:flex;align-items:center;gap:11px;flex:1;min-width:0}
+.brand-mark{display:grid;place-items:center;width:34px;height:38px;border:1px solid #7298b6;border-radius:6px;color:#b2def4;font-weight:800;font-size:22px;flex-shrink:0}
+.desk-brand strong{font-size:20px;letter-spacing:-.5px}.desk-brand strong span{font-weight:400;color:#b0c4d6}
+.desk-brand small,.desk-model small{display:block;color:#b0c4d6;font-size:11px;letter-spacing:.25px;margin-top:1px}
+.desk-model{display:flex;align-items:center;gap:10px;font-size:12px}.model-dot{height:7px;width:7px;border-radius:50%;background:#91bfd6}
+.desk-header-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.desk-header-actions .desk-badge{background:#203b52;color:#c7deed;border-color:#3d5d75}
+.workspace-shell{grid-template-columns:240px minmax(0,1fr) 290px;min-height:calc(100vh - 150px);align-items:stretch}
+.workspace-shell>.check-sidebar{padding:20px 12px;background:#fff;color:var(--ink);border-right:1px solid var(--desk-line);min-width:0;display:flex;flex-direction:column}
+.sidebar-caption{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 9px 13px;font-size:10px;letter-spacing:.8px;font-weight:700;color:var(--desk-muted)}.sidebar-caption>span:last-child{font-variant-numeric:tabular-nums;background:#eef2f7;border-radius:4px;padding:2px 6px}
+.check-group{margin-bottom:5px}.check-group>summary{list-style:none;display:flex;align-items:center;gap:9px;position:relative;padding:11px 8px;color:#42596d;font-size:12px;font-weight:650;cursor:pointer;border-radius:6px}
+.check-group>summary::-webkit-details-marker{display:none}.check-group>summary::after{content:'›';margin-left:auto;color:#73889b;font-size:18px}.check-group[open]>summary::after{transform:rotate(90deg)}.check-group[open]>summary{color:#174d74;background:#eef4f9}
+.check-group .group-number{font:10px ui-monospace,Consolas,monospace;background:#e5edf4;color:#335675;border-radius:4px;padding:3px 5px}
+.desk-check-items{display:grid;gap:3px;padding:6px 0 7px 8px}.desk-check-item{display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:start;gap:7px;width:100%;background:none;border:0;border-radius:5px;padding:9px 7px;text-align:left;font-size:11px;line-height:1.5;color:#485f74;cursor:pointer}
+.desk-check-item>span:first-child{color:#698197;font-variant-numeric:tabular-nums}.desk-check-item:hover{background:#f3f7fa}.desk-check-item[aria-current=true]{background:#e4f1fa;color:#155b88;box-shadow:inset 3px 0 #2a7eb3}.desk-check-item small{font-size:10px;color:#6d8194;display:block;margin-top:2px}
+.check-indicator{width:6px;height:6px;background:#a5b5c3;border-radius:50%;margin-top:6px}.check-indicator.observed{background:#287d68}.check-indicator.review{background:#bc8318}
+.sidebar-bottom{margin-top:auto;padding:18px 3px 0;display:grid;gap:8px}.settings-trigger{width:100%;justify-content:space-between}
+.desk-button{display:inline-flex;justify-content:center;align-items:center;gap:7px;padding:9px 12px;border:1px solid #cddbe7;background:#fff;color:#31536e;border-radius:6px;font-size:12px;font-weight:600;line-height:1.45;cursor:pointer;max-width:100%;text-align:center;white-space:normal}
+.desk-header .desk-button:hover:not(:disabled){background:#2d506c;border-color:#7a9bb2;color:#fff}
+.desk-button:hover:not(:disabled){background:#f0f6fa;border-color:#8baac1}.desk-button.primary{background:var(--desk-blue);border-color:var(--desk-blue);color:#fff}.desk-button.primary:hover{background:#1c4d71}.desk-button.quiet{background:none;border-color:transparent;color:#57748b;font-weight:400}.desk-button:disabled{opacity:.5;cursor:not-allowed}.desk-header .desk-button{background:#23415b;color:#e8f3fa;border-color:#54748e}
+.desk-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 7px;border-radius:4px;border:1px solid #dce5ed;background:#f2f6fa;color:#566c80;font-size:10px;font-weight:650;line-height:1.4;white-space:normal}
+.desk-badge.warning{background:#fff6dd;color:#855810;border-color:#f0dfb0}.desk-badge.success{background:#e7f5ee;color:#1f6954;border-color:#b9dccd}.desk-badge.danger{background:#fff0ee;color:#a23d30;border-color:#ecc8c1}
+.workspace-shell>main{padding:23px 25px 30px;min-width:0}
+.desk-context{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:19px;color:var(--desk-muted);font-size:11px}.desk-context>span:first-child{text-transform:uppercase;letter-spacing:.7px}
+.desk-check-header{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:20px}.desk-check-header>div{min-width:0}.desk-check-header h1{font-size:23px;line-height:1.28;letter-spacing:-.5px;margin:6px 0 7px;font-weight:700;overflow-wrap:normal;word-break:normal}.desk-check-header p{margin:0;color:#5c7187;font-size:12px}.desk-kicker{color:#6a8093;font-size:10px;letter-spacing:.7px;font-weight:650}.desk-check-header>.desk-badge{flex-shrink:0;max-width:135px}
+.desk-combo-strip{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 0 17px;border-top:1px solid var(--desk-line);margin-bottom:4px}.desk-combo-strip>div{min-width:0}.desk-label{display:block;color:#63798c;font-size:11px}.combo-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.combo-tags .desk-badge{font-weight:400;color:#315b7c;background:#eaf2f8;border-color:#d5e4ef;overflow-wrap:anywhere}.desk-combo-strip>.desk-button{flex-shrink:0}
+.desk-card{border:1px solid var(--desk-line);border-radius:9px;background:var(--desk-paper);padding:19px;margin-bottom:16px;min-width:0}.desk-card-heading{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:16px}.desk-card-heading h2{margin:0;font-size:14px;letter-spacing:-.2px}.desk-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px 20px}
+.desk-field{display:grid;gap:5px;font-size:12px;min-width:0}.desk-field span{color:#576f84;font-size:11px}.desk-field input{border:1px solid #dde5ed;border-radius:5px;padding:9px 10px;width:100%;min-width:0;color:#243c52;background:#f9fbfd;font-size:13px;font-variant-numeric:tabular-nums}
+.desk-actionbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.desk-actionbar .primary{margin-right:auto}.desk-inline-status{color:#65798a;font-size:11px;margin:10px 0 18px;line-height:1.6;overflow-wrap:anywhere}.desk-inline-status.error{color:#a23d30}
+.results-card{padding:19px 0 0;overflow:hidden}.results-card>.desk-card-heading{padding:0 19px}.desk-table-wrap{overflow:auto;max-width:100%}.desk-table{width:100%;border-collapse:collapse;font-size:12px;line-height:1.5;font-variant-numeric:tabular-nums}.desk-table th{font-size:10px;letter-spacing:.25px;font-weight:650;background:#eff4f8;color:#506b81;text-align:left}.desk-table th,.desk-table td{padding:11px 12px;border-bottom:1px solid #e5ebf1;vertical-align:top}.desk-table td.numeric{text-align:right;white-space:nowrap}.desk-table .status-cell{min-width:96px}.desk-table tbody tr:last-child td{border-bottom:0}.desk-table td small{display:block;color:#60788e;font-size:10px;margin-top:3px}.desk-table .row-selected{background:#edf6fc}
+.desk-result-note{margin:0;padding:13px 19px;background:#f8fafc;border-top:1px solid #e4ebf1;font-size:11px;color:#5c7285;line-height:1.65;overflow-wrap:anywhere}.desk-result-note strong{font-weight:650;color:#3b546b}.desk-empty{padding:24px 19px;color:#647c90;font-size:12px}.desk-empty strong{display:block;color:#3c5870;margin-bottom:7px}
+.workspace-shell>.inspector-rail{background:#fff;color:var(--ink);padding:0;min-width:0;border-left:1px solid var(--desk-line)}
+.inspector-rail>.release-note{padding:14px 16px 12px;border-top:0;font-size:10px;color:#63798c;display:flex;justify-content:space-between;align-items:center;gap:8px}.inspector-rail>.release-note strong{margin:0;font-size:10px;color:#956316}
+.inspector-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-bottom:1px solid var(--desk-line)}.inspector-tabs button{padding:12px 3px;background:#f4f7fa;border:0;border-bottom:2px solid transparent;color:#657c90;font-size:11px;line-height:1.4;cursor:pointer}.inspector-tabs button[aria-selected=true]{background:#fff;color:#1c6695;border-bottom-color:#267fae}
+.inspector-rail>[role=tabpanel]{padding:17px 13px}.inspector-rail h2{font-size:12px;margin:0 0 12px}.inspector-rail h3{font-size:11px;margin:20px 0 8px}.inspector-rail .engine-console{border-top:0;margin:0;padding:17px 12px}.inspector-rail .engine-console-head h2{font-size:11px;color:#3d5870}
+.inspector-rail .engine-console-log{background:#152639;border-color:#263b50;min-height:330px;max-height:650px;padding:8px 7px;color:#dce7f1;font-size:11px;line-height:1.65}.inspector-rail .engine-console-meta{color:#a8bed0;font-weight:400;font-size:10px}.inspector-rail .engine-console-entry{color:#e0ebf4;border-bottom-color:#304459;border-left-color:#7196b6;padding:11px 6px 11px 9px}.inspector-rail .engine-console-error{color:#ffc2b5;border-left-color:#ef947d}.inspector-rail .engine-console-warn{color:#f8deb1;border-left-color:#d5a24e}.inspector-rail .engine-console-success{color:#b8e8d6;border-left-color:#79bfa5}.inspector-rail .engine-console-empty{color:#c2d4e2}.inspector-rail .engine-console-message{color:inherit}.inspector-rail .engine-console-note{font-size:10px;color:#61788b;margin-top:10px}
+.section-svg{display:block;width:100%;height:auto;max-width:270px;margin:auto}.section-svg text{font-family:system-ui,sans-serif;font-size:12px;fill:#4e6780}.section-svg .concrete{fill:#f0f4f8;stroke:#486b87;stroke-width:1.3}.section-svg .hoop{fill:none;stroke:#2d779f;stroke-width:1.5}.section-svg .bar{fill:#25638b}.section-svg .dimension{stroke:#a0b2c1;stroke-width:1;fill:none}
+.reinforcement-role{padding:9px 0;border-bottom:1px solid var(--desk-line);font-size:11px}.reinforcement-role strong{display:block;letter-spacing:.4px;font-size:10px;color:#58728a}.reinforcement-role span{display:block;margin-top:4px;line-height:1.6}.rail-kv{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--desk-line);font-size:11px}.rail-kv span{color:#5b738a}.rail-kv strong{font-weight:650;text-align:right}.inspector-rail code{font-size:10px;overflow-wrap:anywhere}
+.desk-settings-heading{display:grid;gap:15px;margin:0 0 18px}.desk-settings-heading h2{font-size:15px;margin:0 0 4px}.desk-settings-heading p{font-size:11px;margin:0;color:#677d90}.desk-settings-heading>.desk-button{justify-self:start}
+.settings-section-nav{display:flex;flex-wrap:wrap;gap:6px;border-bottom:1px solid var(--desk-line);padding-bottom:13px;margin-bottom:22px}
+.settings-section-nav button{border:1px solid transparent;background:none;color:#627b8f;padding:9px 11px;font:600 12px/1.5 system-ui,sans-serif;cursor:pointer;border-radius:5px}
+.settings-section-nav button[aria-selected=true]{background:#e5f0f8;border-color:#c9deed;color:#235d85}
+.desk-audit-box>.desk-button{margin-top:12px}
+.irregularity-group{padding:18px 19px}.irregularity-group+.irregularity-group{border-top:1px solid var(--desk-line)}
+.irregularity-group>h3{font-size:13px;color:#3c5e7a;margin:0 0 12px}
+.irregularity-row{display:grid;grid-template-columns:minmax(0,1fr) 120px 130px;gap:12px;align-items:center;border-top:1px solid #e7edf3;padding:16px 0}
+.irregularity-row strong{font-size:12px;font-weight:650}.irregularity-row p{font-size:11px;color:#627b8e;line-height:1.6;margin:5px 0 0}
+.irregularity-row .desk-badge{justify-self:start}
+.desk-scope-row{display:flex;gap:14px;align-items:end;flex-wrap:wrap;margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid var(--desk-line)}.desk-scope-row>label{font-size:11px;color:#4e6880;display:grid;gap:5px;flex:1;min-width:110px}.desk-scope-row input[type=number],.desk-scope-row select{border:1px solid #cedde9;padding:8px 9px;border-radius:5px;background:white;color:#2d4960;min-width:0;width:100%;font-size:12px}.desk-scope-row .desk-checkbox{display:flex;gap:7px;align-items:center;min-width:115px;flex:0 0 auto;padding-bottom:9px}.desk-checkbox input{accent-color:#24668f}
+.desk-matrix-select{background:transparent;border:0;color:#315d7f;padding:0;text-align:left;font-size:12px;cursor:pointer;line-height:1.5}.desk-matrix-select small{display:block;color:#647c91;font-size:10px;margin-top:3px}.desk-count{display:inline-block;background:#e9f0f6;color:#3e6787;padding:2px 7px;border-radius:4px;font-size:11px}.desk-combo-editor{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:22px 0 18px}.desk-combo-editor section{min-width:0}.desk-combo-editor h3{font-size:12px;margin:0 0 8px}.desk-combo-editor select{display:block;width:100%;margin:7px 0 10px;border:1px solid #cfdae6;border-radius:5px;padding:7px;background:#fff;color:#34526a;font:11px/1.5 ui-monospace,Consolas,monospace}.desk-combo-editor option{padding:4px}.desk-combo-editor .desk-button{width:100%}
+.desk-audit-box{padding:13px 14px;margin:16px 0;border:1px solid #e6d6ae;border-radius:6px;background:#fff8e9;color:#77541f;font-size:11px;line-height:1.65}.desk-audit-box strong{display:block;margin-bottom:5px}.desk-audit-box ul{margin:8px 0;padding-left:16px;overflow-wrap:anywhere}.desk-audit-box details{margin-top:7px}.desk-audit-box summary{cursor:pointer}.desk-audit-box .audit-detail{font:10px/1.7 ui-monospace,Consolas,monospace;margin-top:8px;white-space:normal;overflow-wrap:anywhere}
+.desk-integrity{display:flex;gap:10px 23px;justify-content:center;flex-wrap:wrap;padding:13px 20px;border-top:1px solid var(--desk-line);background:#edf2f6;color:#677c8f;font-size:10px}.desk-integrity strong{font-weight:600;color:#5d7080}
+.legacy-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:19px;font-size:11px;color:#5e758a}.check-sidebar #legacyNavigation{margin:18px 0 0;color:#526d84;font-size:11px}.check-sidebar #legacyNavigation summary{cursor:pointer}.check-sidebar #nav{background:#1c344b;border-radius:7px;padding:8px;margin-top:10px}.desk-mobile-picker{display:none}
+@media(min-width:1600px){.workspace-shell{grid-template-columns:260px minmax(0,1fr) 320px}.workspace-shell>main{padding:28px 34px}.desk-fields{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:1199px){.workspace-shell{grid-template-columns:220px minmax(0,1fr)}.workspace-shell>.inspector-rail{grid-column:2;border-left:0;border-top:1px solid var(--desk-line)}.inspector-rail .engine-console-log{min-height:180px;max-height:300px}.inspector-rail>[role=tabpanel]{padding:18px 23px}.desk-header{gap:20px;padding:15px 20px}.desk-header-actions>.desk-badge{display:none}.desk-brand strong{font-size:18px}.desk-model{font-size:11px}.desk-group-tab{padding:12px 10px;gap:6px;font-size:11px}.desk-check-header{gap:12px}.desk-check-header h1{font-size:22px}}
+@media(max-width:820px){.desk-model{display:none}.desk-group-tabs{grid-template-columns:repeat(4,minmax(0,1fr))}.desk-group-tab{min-height:46px}.desk-check-header{display:block}.desk-check-header>.desk-badge{margin-top:10px}.workspace-shell>main{padding:20px}.desk-combo-strip{display:block}.desk-combo-strip>.desk-button{padding-left:0;margin-top:8px}.desk-actionbar .primary{width:100%;margin:0}.desk-actionbar .desk-button:not(.primary){flex:1}.desk-fields{gap:12px}}
+@media(max-width:700px){.workspace-shell{display:block;min-height:0}.workspace-shell>.check-sidebar{padding:10px 15px;border-right:0;border-bottom:1px solid var(--desk-line)}.sidebar-caption,#resulttree{display:none}.sidebar-bottom{display:flex;flex-wrap:wrap;padding:0;gap:4px}.sidebar-bottom .settings-trigger{width:auto}.workspace-shell>main{padding:18px 15px 22px}.workspace-shell>.inspector-rail{display:block}.desk-check-header h1{font-size:22px}.desk-mobile-picker{display:grid;gap:5px;padding:10px 15px;background:#fff;font-size:11px;color:#526c81;border-bottom:1px solid var(--desk-line)}.desk-mobile-picker select{width:100%;padding:10px;border:1px solid var(--desk-line);border-radius:5px;background:#f8fafc;color:#35566f;min-width:0;font-size:13px}.desk-header{padding:13px 15px;gap:12px}.desk-brand strong{font-size:17px}.desk-brand small{font-size:10px}.brand-mark{display:none}.desk-header-actions .desk-button{font-size:11px;padding:7px}.desk-card{padding:16px}.results-card{padding:16px 0 0}.desk-card-heading .desk-label{font-size:10px}.desk-integrity{justify-content:start;gap:7px 15px}.desk-combo-editor{gap:12px}.desk-scope-row{gap:10px}.desk-scope-row>label{flex-basis:40%}.desk-actionbar .desk-button{font-size:11px}.desk-header-actions{flex-shrink:0}.legacy-toolbar{flex-wrap:wrap}}
+@media(max-width:420px){.desk-fields{grid-template-columns:1fr}.desk-group-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}.desk-group-tab{font-size:11px}.desk-group-tab:last-child{grid-column:span 3}.desk-header-actions .desk-button{max-width:90px}.desk-combo-editor{grid-template-columns:1fr}.desk-check-header h1{font-size:21px}.desk-context{font-size:10px}}
+@media(pointer:coarse){.desk-button,.desk-check-item,.desk-matrix-select,.inspector-tabs button{min-height:44px}.desk-scope-row input,.desk-scope-row select{font-size:16px}}
+@media(max-width:820px){.irregularity-row{grid-template-columns:1fr auto}.irregularity-row>div{grid-column:1/-1}.irregularity-row>.desk-button{justify-self:end}}
+.desk-runbar{padding:10px 24px;display:flex;align-items:end;gap:12px;flex-wrap:wrap;background:#fff;border-bottom:1px solid var(--desk-line)}
+.desk-runbar label{display:grid;gap:4px;color:var(--desk-muted);font-size:11px;min-width:0}
+.desk-runbar label:first-child{flex:1;min-width:200px}.desk-runbar .modal-case{width:125px}
+.desk-runbar select,.desk-runbar input{width:100%;min-width:0;padding:7px 9px;border:1px solid #cedde9;border-radius:5px;background:#f8fafc;color:#2d4960}
+.desk-runbar .desk-button,.desk-actionbar a{width:auto;min-width:max-content}.desk-actionbar a{text-decoration:none}
+.desk-run-status{margin:0;padding:7px 24px;background:#eaf2f8;border-bottom:1px solid #d5e3ed;color:#425c73;font-size:11px;overflow-wrap:anywhere}
+.desk-run-status.error{color:#a23d30;background:#fff1ef}.desk-audit-box,.desk-table td{overflow-wrap:anywhere}.desk-table td{white-space:pre-line}
+.desk-etabs-connection{display:flex;align-items:center;justify-content:space-between;gap:8px 16px;flex-wrap:wrap}
+.desk-etabs-connection .desk-button{padding:3px 8px;min-height:26px;font-size:11px}
+.desk-force-filters{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 12px}
+.desk-force-filters label{display:grid;gap:4px;font-size:11px;color:var(--desk-muted);min-width:0;max-width:100%}
+.desk-force-filters select{max-width:100%;padding:6px 8px;border:1px solid var(--desk-line);border-radius:5px;background:#f8fafc;color:var(--ink)}
+#deskStrengthSummary{white-space:pre-line;overflow-wrap:anywhere}
+.engine-console-entry{list-style:none;border-bottom:1px solid;border-left:3px solid}.engine-console-entry:last-child{border-bottom:0}
+.desk-result-note:empty{display:none}.desk-combo-controls{padding:0 15px}
+.desk-combo-editor .desk-button+.desk-button{margin-top:6px}
+.desk-reference-layout{display:grid;grid-template-columns:minmax(200px,270px) minmax(0,1fr);gap:16px;align-items:start;margin-top:14px}
+.desk-reference-layout .desk-card{margin-bottom:0}.desk-reference-layout .desk-fields{grid-template-columns:1fr;gap:10px}
+.desk-reference-layout .desk-field{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:10px}
+.desk-reference-layout .desk-field input,.desk-reference-layout .desk-field select{padding:6px 8px;font-size:12px}
+.desk-reference-layout .desk-field input[data-unavailable]{color:#64788c}.desk-reference-content{min-width:0}
+.desk-reference-content .desk-card{margin-bottom:16px}.desk-field-group+.desk-field-group{border-top:1px solid var(--desk-line);margin-top:16px;padding-top:14px}
+.desk-field-group h3{margin:0 0 10px}.desk-field-group .desk-field+.desk-field{margin-top:7px}
+.desk-spectrum{background:#f7fafc;border:1px solid var(--desk-line);border-radius:6px;padding:12px;margin:0 0 12px}
+.desk-spectrum canvas{display:block;width:100%;height:230px}.desk-spectrum figcaption{font-size:11px;color:var(--desk-muted);margin-bottom:8px}
+.desk-table .member-list{min-width:150px}.desk-table .status-cell{min-width:88px}
+@media(max-width:820px){.desk-reference-layout{grid-template-columns:minmax(0,1fr)}.desk-reference-layout .desk-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:580px){.desk-reference-layout .desk-fields{grid-template-columns:1fr}}
+@media(max-width:700px){.desk-runbar{padding:10px 15px;gap:8px}.desk-runbar label:first-child{flex-basis:100%}.desk-runbar .modal-case{flex:1;width:auto}.desk-run-status{padding-inline:15px}}
+</style>
+</head>
+<body>
+<header class="desk-header">
+  <div class="desk-brand"><span class="brand-mark" aria-hidden="true">T</span><div><strong>TBDY Next <span>Engine</span></strong><small>Engineering workspace</small></div></div>
+  <div class="desk-model"><span class="model-dot" aria-hidden="true"></span><div><strong id="deskModel">No model selected</strong><small id="deskFocus"></small></div></div>
+  <div class="desk-header-actions"><span class="desk-badge" id="deskSourceState">Loading sources</span><button class="desk-button" type="button" data-desk-action="settings">Settings</button></div>
+</header>
+<form id="deskRunForm" class="desk-runbar">
+  <label>Source run<select id="deskRun" disabled></select></label>
+  <label class="modal-case">Modal case<input id="deskModalCase" value="Modal" maxlength="120" required></label>
+  <button class="desk-button primary" id="deskLive" type="submit">Read ETABS and calculate</button>
+</form>
+<p id="deskRunStatus" class="desk-run-status" role="status" aria-live="polite">Loading verified runs&hellip;</p>
+<div class="desk-run-status desk-etabs-connection" id="deskEtabsConnection">
+  <span id="deskEtabsUnits" role="status">Required ETABS units kN·m·°C (API code 6)</span>
+  <button class="desk-button quiet" type="button" id="deskEtabsProbe">Connect to ETABS</button>
+</div>
+<div class="app workspace-shell">
+  <aside class="check-sidebar" aria-label="Engineering check navigation">
+    <div class="sidebar-caption"><span>MODEL &amp; DESIGN</span></div>
+    <div id="resulttree"><nav id="deskCheckTree" aria-label="Engineering checks by category"></nav></div>
+    <div class="sidebar-bottom">
+      <button class="desk-button settings-trigger" type="button" data-desk-action="settings">Settings <span class="desk-badge warning" id="f04Badge">R03</span></button>
+      <button class="desk-button quiet" type="button" data-desk-action="source">Source &amp; analysis views</button>
+    </div>
+  </aside>
+  <main>
+    <section id="deskWorkspace" aria-labelledby="deskTitle">
+      <div class="desk-context"><span id="deskBreadcrumb"></span><span class="desk-badge" id="deskContextFocus"></span></div>
+      <header class="desk-check-header">
+        <div><div class="desk-kicker" id="deskCheckCode"></div><h1 id="deskTitle">Engineering checks</h1><p id="deskClause"></p></div>
+        <span class="desk-badge" id="deskCheckState"></span>
+      </header>
+      <div class="desk-combo-strip">
+        <div><span class="desk-label">Working combination assignments</span><div id="deskActiveCombos" class="combo-tags"></div></div>
+        <button class="desk-button quiet" type="button" data-settings-section="combos">Edit assignments</button>
+      </div>
+      <div id="deskCheckView">
+        <section class="desk-card" id="deskInputCard" hidden><header class="desk-card-heading"><h2>Check parameters</h2></header><div id="deskInputs" class="desk-fields"></div></section>
+        <div class="desk-actionbar">
+          <button class="desk-button primary" id="deskReadColumnForces" type="button" hidden disabled>Read forces and check</button>
+          <button class="desk-button primary" id="deskQuickResult" type="button" disabled>Replay saved run</button>
+          <button class="desk-button" id="deskExcel" type="button" disabled>Export Excel</button>
+          <a class="desk-button" id="deskReport" hidden>Engineering report</a>
+          <a class="desk-button" id="deskJson" hidden>Source JSON</a>
+        </div>
+        <p id="deskLoadStatus" class="desk-inline-status" role="status" aria-live="polite"></p>
+        <section id="deskReferenceView" class="desk-reference-layout" hidden aria-label="Source inputs and evidence">
+          <aside class="desk-card" id="deskReferenceFields"></aside>
+          <div class="desk-reference-content" id="deskReferenceContent"></div>
+        </section>
+        <section class="desk-card results-card" id="deskResultsCard"><header class="desk-card-heading"><h2>Check results</h2><span class="desk-label" id="deskTableScope"></span></header><div id="deskResultTable" class="desk-table-wrap"></div><div id="deskResultNote" class="desk-result-note"></div></section>
+        <section class="desk-card" id="deskNativeForces" hidden>
+          <header class="desk-card-heading"><h2>Native column forces</h2><span class="desk-label" id="deskForceSemantics"></span></header>
+          <div class="desk-force-filters">
+            <label>Column Unique ID<select id="deskForceColumn"></select></label>
+            <label>Combination<select id="deskForceCombination"></select></label>
+          </div>
+          <div id="deskForceResult" class="desk-table-wrap"></div>
+        </section>
+      </div>
+      <section id="deskSettingsView" hidden aria-labelledby="deskTitle">
+        <div class="settings-section-nav" role="tablist" aria-label="Settings sections">
+          <button id="settingsGeneralTab" type="button" role="tab" aria-controls="deskGeneralSettings" aria-selected="true" data-settings-section="general">General model checks</button>
+          <button id="settingsCombosTab" type="button" role="tab" aria-controls="deskComboSettings" aria-selected="false" data-settings-section="combos">Combination assignments</button>
+        </div>
+        <section id="deskGeneralSettings" role="tabpanel" aria-labelledby="settingsGeneralTab">
+          <header class="desk-settings-heading"><div><h2>Model setup and evidence</h2><p>Inspect the captured geometry, materials, assignments, stiffness and analysis settings.</p></div><button class="desk-button" type="button" id="deskGeneralCheck">Refresh model evidence</button></header>
+          <p id="deskGeneralAuditStatus" class="desk-inline-status" role="status"></p>
+          <div id="deskGeneralAuditTable" class="desk-table-wrap"></div>
+          <div id="deskStiffnessEvidence" class="desk-audit-box"></div>
+        </section>
+        <section id="deskComboSettings" role="tabpanel" aria-labelledby="settingsCombosTab" hidden>
+          <header class="desk-settings-heading"><div><h2>Assigned design combinations</h2><p>Project defaults come from the model catalog. Changes are saved for this model in this browser.</p></div><button class="desk-button" type="button" id="deskF04Check">Refresh analysis setup</button></header>
+          <section class="desk-card">
+            <header class="desk-card-heading"><h2>4.3 · Column axial compression</h2></header>
+            <div class="desk-force-filters">
+              <label>Combination source<select id="deskStrengthSource">
+                <option value="ASSIGNED_DESIGN">Assigned design combinations</option>
+                <option value="ETABS_STRENGTH">ETABS Strength selections</option>
+                <option value="SAVED_DEFAULTS">Custom 4.3 selection</option>
+              </select></label>
+              <label id="deskStrengthDefaultsField" hidden>Combinations for 4.3
+                <select id="deskStrengthDefaults" multiple size="5"></select>
+              </label>
+            </div>
+            <button class="desk-button quiet" id="deskResetStrength" type="button" hidden>Use assigned design combinations</button>
+            <p class="desk-label" id="deskStrengthSummary"></p>
+          </section>
+          <div class="desk-scope-row"><label class="desk-checkbox"><input type="checkbox" id="deskBasement"> Model has a basement</label><label>Separation elevation (m)<input id="deskBasementLevel" type="number" step="0.01" value="0"></label><label>Assignment scope<select id="deskComboScope"><option value="upper">Superstructure</option><option value="lower">Substructure</option></select></label></div>
+          <div id="deskComboMatrix" class="desk-table-wrap"></div>
+          <div class="desk-combo-editor">
+            <section><h3 id="deskRegionTitle">Selected design region</h3><label class="desk-label" for="deskAssigned">Assigned combinations</label><select id="deskAssigned" multiple size="8"></select><button class="desk-button" type="button" id="deskRemoveCombo">Remove from region</button><button class="desk-button quiet" type="button" id="deskResetRegion">Use design defaults</button></section>
+            <section><h3 id="deskModelComboTitle">Model combinations</h3><label class="desk-label" for="deskAvailable">Combinations observed in the source</label><select id="deskAvailable" multiple size="8"></select><button class="desk-button" type="button" id="deskAddCombo">Add to region</button></section>
+          </div>
+          <p class="desk-result-note" id="deskAssignmentNote" role="status"></p>
+          <div class="desk-result-note" id="deskComboReferences"></div>
+          <div class="desk-audit-box" id="deskF04Result"></div>
+        </section>
+      </section>
+    </section>
+  </main>
+  <aside class="rail inspector-rail" aria-label="Source inspector and activity log">
+    <div class="release-note">Engineering release<strong>NOT_READY</strong></div>
+    <div class="inspector-tabs" role="tablist" aria-label="Inspector panels">
+      <button id="inspectorTabConsole" type="button" role="tab" aria-controls="inspectorConsole" aria-selected="true">Messages</button>
+      <button id="inspectorTabSection" type="button" role="tab" aria-controls="inspectorSection" aria-selected="false">Section</button>
+      <button id="inspectorTabCombos" type="button" role="tab" aria-controls="inspectorCombos" aria-selected="false">Combinations</button>
+    </div>
+    <section class="engine-console" id="inspectorConsole" role="tabpanel" aria-labelledby="inspectorTabConsole">
+      <div class="engine-console-head"><h2 id="engineConsoleTitle">Activity and errors</h2><button class="engine-console-clear" id="engineConsoleClear" type="button">Clear</button></div>
+      <ol class="engine-console-log" id="engineConsoleMessages" role="log" aria-live="polite" aria-relevant="additions" data-empty="true"><li class="engine-console-entry engine-console-empty">No activity yet.</li></ol>
+    </section>
+    <section id="inspectorSection" role="tabpanel" aria-labelledby="inspectorTabSection" hidden><h2 id="deskSectionTitle">Section</h2><div id="deskSectionDrawing"></div><div id="deskRebarSummary"></div><h3>Selected source</h3><ul class="tree" id="runSummaryTree"></ul></section>
+    <section id="inspectorCombos" role="tabpanel" aria-labelledby="inspectorTabCombos" hidden><h2>Combination summary</h2><div id="deskComboSummary"></div><div id="deskInspectorF04" class="desk-audit-box"></div><button class="desk-button" type="button" data-settings-section="combos">Open assignments</button></section>
+  </aside>
+</div>
+<footer class="desk-integrity"><span>Formal compliance <strong>NOT_PROVEN</strong></span><span>Engineering release <strong>NOT_READY</strong></span></footer>
+<script src="/engine-console.js" defer></script>
+<script src="/workspace.js" defer></script>
+<script src="/workspace-source.js" defer></script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 
 Example:
  python tools/audit_vs05_candidate_dag.py \
-   --catalog config/dag/tbdy_r1c_94_candidate.json \
+   --catalog src/tbdy_next/config/dag/tbdy_r1c_94_candidate.json \
    --plan-input tests/fixtures/vs05_candidate_plan_input.json \
    --out .receipts/VS05/CANDIDATE_DAG_FCR.json
 

@@ -346,7 +346,7 @@ class LiveQuickSuiteWeb(unittest.TestCase):
         self.assertEqual(self.calls, [])
 
     def test_ui_contains_combined_button_and_registry_tree(self):
-        with urlopen(self.base + '/', timeout=4) as response:
+        with urlopen(self.base + '/source', timeout=4) as response:
             html = response.read().decode('utf-8')
         self.assertIn('id="runAllBtn"', html)
         self.assertNotIn('id="quickSuiteBtn"', html)
@@ -355,7 +355,7 @@ class LiveQuickSuiteWeb(unittest.TestCase):
         with urlopen(self.base + '/quick.js', timeout=4) as response:
             js = response.read().decode('utf-8')
         self.assertIn('definitions.filter(d => d.tab_id === index)', js)
-        self.assertIn('Beton dışı:', js)
+        self.assertIn('Non-concrete:', js)
         self.assertIn('item.material_classification', js)
         self.assertNotIn('10 CHECK', js)
 

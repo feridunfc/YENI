@@ -22,9 +22,9 @@ from .story_geometry import read_source_table
 
 
 CHECKS = (
-    CheckDefinition("concrete_fck_80", "Beton üst dayanım sınırı ≤ 80 MPa", 1,
+    CheckDefinition("concrete_fck_80", "Concrete upper strength limit ≤80 MPa", 1,
                     "TBDY 2018 7.1.3 / 7.2.5.3(a)", "MATERIAL_SCREENING"),
-    CheckDefinition("modal_combination_spacing", "Yakın modlar · SRSS / CQC seçimi", 7,
+    CheckDefinition("modal_combination_spacing", "Closely spaced modes · SRSS / CQC selection", 7,
                     "TBDY 2018 4B.2.4(d)", "SOURCE_NUMERICAL"),
 )
 PANELS = {"concrete_fck_80": "concreteUpperPanel",
@@ -157,10 +157,10 @@ def _concrete(snapshot: Mapping[str, Any]) -> dict:
         rows = [{"material_name": name, "status": UNKNOWN, "reason": str(exc)}
                 for name in (observed_names or [None])]
     return _finish(CHECKS[0], rows, notes=[
-        "Önceden gözlenen kullanılan beton malzemeleri ve aynı Fc birim dönüşümü kullanılır; malzeme adından dayanım çıkarılmaz.",
-        "Bu yeni alt koşul yalnız fck ≤ 80 MPa sınırıdır; fck ≥ 25 MPa hesabı mevcut kontrolde korunur.",
-        "7.2.5.3(a) deprem etkisini karşılayan betonarme elemanları kapsar. Kaynak Fc sayısı tek başına TS EN 206 sınıfı veya malzeme kabulü değildir.",
-        "80 MPa üstü gözlem, sıradan dayanım yetersizliği olarak değil 7.1.3 yönetmelik dayanım kapsamının aşılması olarak işaretlenir.",
+        "Uses the observed in-use concrete materials and the existing Fc unit conversion. Strength comes from source values.",
+        "This criterion is fck ≤80 MPa. The existing check covers fck ≥25 MPa.",
+        "Clause 7.2.5.3(a) covers reinforced-concrete elements resisting seismic effects. Source Fc requires separate TS EN 206 classification and material acceptance.",
+        "A value above 80 MPa exceeds the material strength scope of TBDY 7.1.3.",
     ], gaps=["SEISMIC_RESISTING_MEMBER_APPLICABILITY_NOT_PROVEN",
              "TS_EN_206_CONCRETE_CLASS_AGE_AND_QUALITY_NOT_PROVEN",
              "FULL_MATERIAL_USAGE_POPULATION_NOT_PROVEN"],
@@ -262,10 +262,10 @@ def _spacing(snapshot: Mapping[str, Any]) -> dict:
         for item in rows:
             item.update(status=UNKNOWN, reason=str(exc))
     return _finish(CHECKS[1], rows, notes=[
-        "4B.2.4(d): farklı modların kısa/uzun periyot oranları 0,8'den küçükse SRSS seçeneği kullanılabilir. Eşitlik yeterli değildir.",
-        "Pozitif periyotlar sıralanır; komşu çiftlerin en büyük oranı bütün farklı çiftleri sınırlar. Bütün seçilmiş modlar kapsama alınır.",
-        "ModalCombo mod birleştirme, DirCombo yön birleştirme seçimidir. DirCombo=SRSS, modların SRSS ile birleştirildiği anlamına gelmez.",
-        "CQC seçiminin gözlenmesi, korelasyon katsayıları veya birleşmiş kuvvetlerin doğrulandığı anlamına gelmez. Bu ayrıklık koşuluna ayrıca %5 sönüm şartı eklenmez.",
+        "Under 4B.2.4(d), SRSS may be used when the shorter-to-longer period ratio of every distinct pair is strictly below 0.8.",
+        "Positive periods are sorted. The largest ratio of adjacent pairs bounds all distinct pairs. Coverage includes every selected mode.",
+        "ModalCombo specifies modal combination. DirCombo specifies directional combination, so DirCombo=SRSS identifies the directional method.",
+        "Observed CQC selection requires separate verification of correlation coefficients and combined forces. The separation criterion has no additional 5% damping requirement.",
     ], gaps=["UNROUNDED_SOLVER_PERIODS_AND_ANALYSIS_GENERATION_NOT_PROVEN",
              "CQC_CORRELATION_DAMPING_AND_COMBINED_FORCES_NOT_EVALUATED",
              "FULL_MODAL_AND_DIRECTIONAL_ANALYSIS_COMPLIANCE_NOT_PROVEN"],

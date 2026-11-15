@@ -246,7 +246,7 @@ class Vs04WebIntegration(unittest.TestCase):
         self.assertIn("vs04_schema_receipt_sha256", report["source_provenance"])
         with urlopen(self.base + "/report/print?run_id=" + run_id, timeout=6) as response:
             html = response.read().decode("utf-8")
-        self.assertIn("VS04 · Analiz kaynak şeması", html)
+        self.assertIn("VS04 · Unverified analysis source schema", html)
         self.assertIn("Modal Periods And Frequencies", html)
         self.assertIn("Story Drifts", html)
         self.assertEqual(self.calls, ["Modal"], "GET must never attach to ETABS")

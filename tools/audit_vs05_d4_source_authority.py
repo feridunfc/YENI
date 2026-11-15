@@ -5,7 +5,7 @@ promotes normalized source facts into regulatory PASS.
 
 Run from project root with configured Python path, for example:
 python -m tools.audit_vs05_d4_source_authority --receipts-root .receipts \
-    --run-id RUN-... --catalog config/dag/tbdy_r1c_94_candidate.json \
+    --run-id RUN-... --catalog src/tbdy_next/config/dag/tbdy_r1c_94_candidate.json \
     --out .receipts/VS05/VS05_D4_NEW.json
 """
 from __future__ import annotations
