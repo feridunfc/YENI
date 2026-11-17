@@ -19,7 +19,7 @@ from .design_scenario import _digest
 
 SCHEMA = "tbdy.next.alpha-design-iteration.v1"
 DEMAND_SCHEMA = "tbdy.next.alpha-demand-revision.v1"
-METHOD = "alpha-feedback.signed-same-cut.v1"
+METHOD = "alpha-feedback.mixed-signed-same-cut.v2"
 MAX_ITERATIONS = 8
 
 
@@ -45,60 +45,8 @@ def _axis_indices(frame, direction):
 
 
 def _earthquake_shear_provenance(source, names, plan):
-    """Restrict the first branch to captured quake-only signed linear cases.
-
-    A design-group label alone cannot qualify earthquake shear. Mixed G/Q/E
-    combinations require separate component forces and are deliberately blocked.
-    Existing typed graph/table owners validate native definitions; no name heuristics.
-    """
-    from ..vs05_d4_source_authority import _case_summary, _combo_source, _source_table
-    tables = (source.get("vs04_basis_probe") or {}).get("table_reads") or {}
-    cases = _case_summary(tables, require_key=True)
-    parsed = _combo_source(tables, cases, include_graph=True, require_key=True)
-    if not parsed["candidate_operator_reference_shape_observed"]:
-        raise ValueError("ALPHA_COMBINATION_GRAPH_UNQUALIFIED")
-    graph = parsed["typed_graph"]
-    static = _source_table(tables, "Load Case Definitions - Linear Static",
-                           {"Name", "LoadType", "LoadName", "SF"}, require_key=True)
-    patterns = _source_table(tables, "Load Pattern Definitions",
-                            {"LoadPat", "DesignType", "SelfWtMult"}, require_key=True)
-    by_pattern = {}
-    for row in patterns:
-        if row["LoadPat"] in by_pattern:
-            raise ValueError("ALPHA_LOAD_PATTERN_DUPLICATE")
-        by_pattern[row["LoadPat"]] = row
-    declared = {r["name"]: set(r.get("case_names", ())) for r in plan["combinations"]}
-    def leaves(name):
-        group = graph[name]
-        if group["operator_etabs"] != "Linear Add":
-            raise ValueError("ALPHA_NONLINEAR_COMBINATION_OPERATOR")
-        found = set()
-        for row in group["rows"]:
-            if row["ref_type"] == "CASE": found.add(row["ref"])
-            else: found.update(leaves(row["ref"]))
-        return found
-    result = {}
-    for name in names:
-        actual = leaves(name)
-        if not actual or actual != declared.get(name):
-            raise ValueError("ALPHA_SEISMIC_CASE_LINEAGE_CONFLICT:" + name)
-        for case in actual:
-            rows = [r for r in static if r["Name"] == case]
-            if cases[case]["type"] != "Linear Static" or not rows:
-                raise ValueError("ALPHA_LINEAR_EARTHQUAKE_CASE_UNAVAILABLE:" + case)
-            for row in rows:
-                pattern = by_pattern.get(row["LoadName"]) or {}
-                if (row["LoadType"] != "Load" or pattern.get("DesignType") not in ("Quake", "Seismic")
-                        or float(pattern.get("SelfWtMult", "nan")) != 0.0
-                        or not math.isfinite(float(row["SF"]))):
-                    raise ValueError("ALPHA_EARTHQUAKE_ONLY_SHEAR_NOT_SEPARATED:" + name)
-        result[name] = sorted(actual)
-    return {"basis": "CAPTURED_QUAKE_ONLY_LINEAR_CASES_ZERO_SELF_WEIGHT",
-            "combination_cases": result,
-            "native_definitions_sha256": _digest({k: tables[k] for k in (
-                "Load Case Definitions - Summary", "Load Combination Definitions",
-                "Load Case Definitions - Linear Static", "Load Pattern Definitions")}),
-            "load_role_engineering_approval": "NOT_PROVEN"}
+    from .mixed_demands import earthquake_partition
+    return earthquake_partition(source, names, plan)
 
 
 def qualify_story_alpha(source, axial, scope, dependencies, r10):
@@ -109,6 +57,7 @@ SCWB is still a selected-candidate reference, not engineering approval.
 """
     from .column_r10_live import _build_frame_catalog
     from .design_dependencies import story_blockers
+    from .mixed_demands import earthquake_row
 
     plan = (axial or {}).get("combination_plan") or {}
     groups = (plan.get("design_assignment") or {}).get("groups") or {}
@@ -157,7 +106,10 @@ SCWB is still a selected-candidate reference, not engineering approval.
                             and abs(r[3] - cut["element_station_m"]) <= station_budget(r[3], cut["element_station_m"], grid["length_m"])]
                         if len(matching) != 1:
                             raise ValueError("ALPHA_SAME_CUT_FORCE_MISSING_OR_AMBIGUOUS")
-                        row = matching[0]
+                        target = matching[0]
+                        row, component_rows = earthquake_row(
+                            list(native_frame_force_rows(rowsets[uid], uid)), target,
+                            seismic_basis["recipes"][combo], length=grid["length_m"])
                         k = 0 if direction == "X" else 1
                         shear = row[8]*frame["axes_global"][1][k] + row[9]*frame["axes_global"][2][k]
                         if not math.isfinite(shear):
@@ -177,7 +129,8 @@ SCWB is still a selected-candidate reference, not engineering approval.
                             checks.extend(r["reference_satisfied"] for r in cr)
                         terms.append({"member_id": uid, "source_cut": cut, "shear_kn": shear,
                                       "two_end_scwb_satisfied": all(checks), "source_row_key": list(row[:7]),
-                                      "source_force_sha256": _digest(row)})
+                                      "source_force_sha256": _digest(target), "earthquake_component_sha256": _digest(row),
+                                      "earthquake_component_rows": component_rows})
                     except (KeyError, ValueError, TypeError, ArithmeticError) as exc:
                         codes.append(uid + ":" + str(exc))
                 if len(terms) != len(uids):
@@ -208,7 +161,7 @@ SCWB is still a selected-candidate reference, not engineering approval.
               "REANALYSIS_REQUIRED" if any(r["status"] == "REANALYSIS_REQUIRED" for r in results) else "QUALIFIED_REFERENCE")
     return {"status": status, "reason_codes": sorted({c for r in results for c in r["reason_codes"]}),
             "cases": results, "seismic_shear_provenance": seismic_basis,
-            "basis": "ORIGINAL_SIGNED_QUAKE_ONLY_FORCES_COMMON_BOTTOM_CUT_NO_LOW_N_CREDIT"}
+            "basis": "ORIGINAL_SIGNED_EARTHQUAKE_COMPONENT_COMMON_BOTTOM_CUT_NO_LOW_N_CREDIT"}
 
 
 def build_demand_revision(source, cases, *, input_sha):
@@ -236,7 +189,7 @@ def build_demand_revision(source, cases, *, input_sha):
     return _sealed({"schema": DEMAND_SCHEMA, "method": METHOD, "input_sha256": input_sha,
                     "source_payload_sha256": _digest(source), "factors": factors,
                     "base_rowset_sha256": {u: _digest(rows[u]) for u in factors},
-                    "basis": "ABSOLUTE_ON_ORIGINAL_SIGNED_M_V_ONLY_N_AND_T_UNCHANGED"})
+                    "basis": "ABSOLUTE_ON_ORIGINAL_COMBINED_SIGNED_M_V_ONLY_N_AND_T_UNCHANGED"})
 
 
 def revised_force_rows(rowset, uid, revision=None):

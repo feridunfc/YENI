@@ -1,6 +1,8 @@
 # Single pipeline owner — 2026-11-15
 
-Status: working tree only. `COMMIT=HOLD · PUSH=HOLD · MERGE=HOLD`.
+Historical baseline: 2026-11-15. The original working-tree-only status below was superseded by the published D1–D3 audit-branch commits. Current user authorization permits commit/push on `audit/pipeline-pmm-v6-20261117`; `main` merge remains HOLD.
+
+D3B continuation: [mixed demands, spectral interval evidence and remaining acceptance limits](OFFLINE_D3B_MIXED_DEMANDS_20261117.md). Coverage counts in the historical sections are not engineering completion percentages.
 
 ## What was four islands
 

@@ -1200,6 +1200,8 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
                                              report["source_provenance"]["column_pmm_receipt_sha256"],
                                              report.get("column_pmm_reinforcement"),
                                              (report.get("r10_live") or {}).get("engineer_column_selection")))
+    if report.get("mixed_demand_components") is not None:
+        vs04_sections.append(_mixed_components_html(report["mixed_demand_components"]))
     pmm_scope = report.get("column_pmm_expected_instances")
     if pmm_scope is not None:
         mesh = pmm_scope.get("analysis_mesh") or {}
@@ -2440,3 +2442,22 @@ def build_column_127_gate_html(bundle: Mapping[str, Any]) -> str:
         + f"<p><strong>Summary decision</strong> {_val(verdict)}</p>"
         + "</body></html>"
     )
+
+
+def _mixed_components_html(record):
+    """Read-only scalar-envelope evidence; no inference or recomputation."""
+    rows = [{"member_id": r["member_id"], "combination": r["combination"], "status": r["status"],
+             "expected_cut_count": r["expected_cut_count"], "required_cut_count": r["required_cut_count"],
+             "observed_interval_count": len(r["cuts"]), "reason_codes": r["reason_codes"]}
+            for r in record.get("rows", ())]
+    return ('<section class="percheck"><h2>Recorded mixed/spectral scalar intervals</h2>'
+            '<p>Native local P/V2/V3/T/M2/M3 bounds. Compression N reverses the P limits. '
+            'Midpoint and radius describe observed extrema, not independently replayed load-case contributions. '
+            'No additional 100/30 or spectrum factor is applied. These intervals are NOT concurrent force '
+            'vectors, and do NOT authorize story alpha or final design.</p>'
+            + '<p>Expected member-combination pairs: ' + _val(record.get("expected_pair_count"))
+            + ' · record SHA-256: ' + _val(record.get("sha256")) + '</p>'
+            + _table((("member_id", "Column"), ("combination", "Combination"), ("status", "Evidence status"),
+                      ("required_cut_count", "Configured required cuts"), ("expected_cut_count", "All scoped cuts"),
+                      ("observed_interval_count", "Observed intervals"), ("reason_codes", "Gaps")), rows)
+            + '</section>')

@@ -55,6 +55,7 @@ _AXIAL_FORCES = ArtifactContract("force_source", "schema", "tbdy.next.etabs-fram
 _AXIAL_RESULT = ArtifactContract("column_axial", "schema", "tbdy.next.column-axial-check.v1")
 _PMM_SECTION = ArtifactContract("pmm_section_source", "schema", "tbdy.next.etabs-column-pmm-section-source.v1")
 _PMM_RESULT = ArtifactContract("column_pmm", "schema", "tbdy.next.column-pmm-check.v1")
+_MIXED_COMPONENTS = ArtifactContract("mixed_demand_components", "schema", "tbdy.next.mixed-demand-components.v1")
 _PMM_SCOPE = ArtifactContract("pmm_scope", "schema", "tbdy.next.column-pmm-expected-instances.v1")
 _R08_LOCAL_RESULT = ArtifactContract("r08_local_slenderness", "schema", "tbdy.next.column-r08-local-live.v1")
 _DESIGN_SCOPE = ArtifactContract("design_dependencies", "schema", "tbdy.next.member-design-dependencies.v1")
@@ -108,6 +109,10 @@ STAGES: tuple[StageSpec, ...] = (
               "Offline member/joint scope and fail-closed source dependencies; not a new code check",
               "DESIGN_SCENARIO", consumes=(_AXIAL_GEOMETRY, _PMM_SCOPE), produces=(_DESIGN_SCOPE,),
               method_version="offline-member-dependencies.d2.v1"),
+    StageSpec("mixed-demand-components", LIVE, "tbdy_next.engineering.mixed_demands", (), (),
+              "Recorded native mixed spectral scalar intervals; no concurrent vector or alpha authority",
+              "SPECTRAL_PMM_SCOPE", consumes=(_AXIAL_RESULT, _PMM_SCOPE),
+              produces=(_MIXED_COMPONENTS,), method_version="native-linear-component-algebra.v1"),
     StageSpec("column-gates", LIVE, "tbdy_next.engineering.column_live_gates", (),
               ("COLUMN_REBAR", "COLUMN_AXIAL", "COLUMN_PMM"),
               "CHK-004/CHK-005 caps, reinforcement role and open gates over the SAME axial/PMM results "
@@ -130,7 +135,7 @@ STAGES: tuple[StageSpec, ...] = (
     StageSpec("alpha-feedback", LIVE, "tbdy_next.engineering.alpha_iteration", (), (),
               "Bounded qualified signed alpha demand revision and dirty-member rechecks", "EXPLICIT_DESIGN_SCENARIO",
               consumes=(_DESIGN_SCOPE, _PMM_SCOPE, _PMM_RESULT, _R10_RESULT, _R08_LOCAL_RESULT),
-              produces=(_ALPHA_ITERATION,), method_version="alpha-feedback.signed-same-cut.v1"),
+              produces=(_ALPHA_ITERATION,), method_version="alpha-feedback.mixed-signed-same-cut.v2"),
     StageSpec("design-revisions", LIVE, "tbdy_next.engineering.design_dependencies", (), (),
               "Recorded candidate/demand to joint/story/Ve/R14 dependency revisions and consumed alpha feedback; no persistent cache",
               "DESIGN_SCENARIO", consumes=(_DESIGN_SCOPE,), produces=(_DESIGN_REVISIONS,),
@@ -627,6 +632,16 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
             )
             if column_pmm is not None:
                 run.record(PMM_STAGE, column_pmm, input_sha256=input_sha)
+    mixed_components = None
+    if pmm_scope is not None:
+        from .mixed_demands import spectral_component_evidence
+        component_stage = next(s for s in STAGES if s.key == "mixed-demand-components")
+        component_blockers = _stage_input_blockers(component_stage, {"column_axial": column_axial, "pmm_scope": pmm_scope})
+        component_scope = {**pmm_scope, "dependency_blockers": sorted(set(
+            pmm_scope.get("dependency_blockers", ()) + component_blockers))}
+        mixed_components = spectral_component_evidence(payload, column_axial, component_scope, input_sha=input_sha)
+        if mixed_components is not None and not _MIXED_COMPONENTS.accepts(mixed_components):
+            raise ValueError("INVALID_STAGE_OUTPUT:mixed-demand-components")
     design_dependencies = build_member_dependency_plan(payload, pmm_scope, input_sha=input_sha) if scenario else None
     if scenario is not None and not _DESIGN_SCOPE.accepts(design_dependencies):
         raise ValueError("INVALID_STAGE_OUTPUT:design-dependencies")
@@ -747,6 +762,8 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
         out["report_evidence"]["column_axial_expected_instances"] = axial_ledger
     if pmm_scope is not None:
         out["report_evidence"]["column_pmm_expected_instances"] = pmm_scope
+    if mixed_components is not None:
+        out["report_evidence"]["mixed_demand_components"] = mixed_components
     if scenario is not None:
         out["report_evidence"]["design_scenario"] = scenario
         out["report_evidence"]["design_dependencies"] = design_dependencies

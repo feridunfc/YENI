@@ -326,3 +326,24 @@ def spectral_projection(result, *, member_id=None, output_case=None, offset=0, l
     return deepcopy({"column_spectral_envelopes": summary,
         "demand_page": {"view": VIEW, "member_id": member_id, "output_case": output_case,
             "offset": offset, "limit": limit, "total": len(rows), "rows": rows[offset:offset+limit]}})
+
+
+def observed_component_interval(lower, upper):
+    """Decompose six RECORDED scalar limits, without inventing signed concurrence.
+
+    Only the calling source adapter may qualify the direct Linear Add route.
+    Midpoint/radius arithmetic is not independent evidence of leaf contributions.
+    Native P remains tension-positive; PMM compression bounds are reversed.
+    """
+    if len(lower) != 6 or len(upper) != 6:
+        raise BankError("SCALAR_INTERVAL_SHAPE_INVALID")
+    lo, hi = [tuple(_fraction(v) for v in values) for values in (lower, upper)]
+    if any(a > b for a, b in zip(lo, hi)):
+        raise BankError("NATIVE_ENVELOPE_ORDER_INVALID")
+    center = tuple(_as_float((a+b)/2) for a, b in zip(lo, hi))
+    radius = tuple(_as_float((b-a)/2) for a, b in zip(lo, hi))
+    return {"center_native": dict(zip(COMPONENTS, center)),
+            "radius_native": dict(zip(COMPONENTS, radius)),
+            "nd_bounds_kn": [-float(hi[0]), -float(lo[0])],
+            "coordinate_basis": "CSI_FRAME_LOCAL_1_2_3", "units": "kN_m_C",
+            "physical_concurrency_proven": False}

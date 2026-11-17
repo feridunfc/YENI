@@ -19,6 +19,7 @@ WHEEL_TESTS = (
     "test_offline_design_scenario",
     "test_design_member_dependencies",
     "test_alpha_design_iteration",
+    "test_mixed_design_demands",
 )
 
 
