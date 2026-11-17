@@ -1,0 +1,395 @@
+{
+  "schema": "yeni.project-memory.engineering-gaps.v2",
+  "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
+  "updated_at_utc": "2026-11-17T18:28:52.048097+00:00",
+  "repository": "feridunfc/YENI",
+  "baseline_implementation_commit": "60938da94b770631c6a5c34a545c8863162ac8a4",
+  "local_reconciled": true,
+  "scope_note": "18 stable historical GAP IDs. Narrow verified scopes are preserved; no complete normative GAP was newly closed by the memory/branch operation.",
+  "status_policy": {
+    "allowed": [
+      "OPEN",
+      "PARTIAL",
+      "CLOSED"
+    ],
+    "closed_requires": [
+      "exact_scope",
+      "source_and_method_identity",
+      "independent_verification",
+      "linked_evidence_ids",
+      "supervisor_acceptance"
+    ],
+    "partial_is_not_ready": true,
+    "preserve_verified_subscopes": true
+  },
+  "priority_focus": [
+    "GAP-018",
+    "GAP-013",
+    "GAP-016"
+  ],
+  "active_task": "SPECTRAL-MODAL-SOURCE-QUALIFICATION",
+  "gaps": [
+    {
+      "id": "GAP-001",
+      "title": "Approved model profile",
+      "status": "OPEN",
+      "priority": "P0",
+      "achieved_scope": "Existing basis and role contracts remain available.",
+      "blocker": "Project-approved applicability, roles and parameters are not established.",
+      "closure_criteria": "Version the applicable standard edition, structural roles and parameters with source and approval evidence.",
+      "owner_paths": [
+        "src/tbdy_next/candidate_model_contracts.py",
+        "src/tbdy_next/engineering/analysis_setup.py"
+      ],
+      "evidence_refs": [
+        "EV-D3B"
+      ],
+      "closure_evidence_refs": [],
+      "local_update_needed": false
+    },
+    {
+      "id": "GAP-002",
+      "title": "Combination book and design family scope",
+      "status": "PARTIAL",
+      "priority": "P0",
+      "achieved_scope": "Mixed signed Linear Add partition and same-source scalar spectral replay are implemented.",
+      "blocker": "Complete required G/Q/E families, roles, scales and design-method acceptance remain open.",
+      "closure_criteria": "Independently verify every required family, sign, direction, operator and factor against a frozen expected scope.",
+      "owner_paths": [
+        "src/tbdy_next/engineering/mixed_demands.py",
+        "src/tbdy_next/engineering/design_assignments.py"
+      ],
+      "evidence_refs": [
+        "EV-D3B",
+        "EV-LOCAL-SPECTRAL"
+      ],
+      "closure_evidence_refs": [],
+      "local_update_needed": false
+    },
+    {
+      "id": "GAP-003",
+      "title": "Model and analysis generation",
+      "status": "OPEN",
+      "priority": "P0",
+      "achieved_scope": "Source/result SHA lineage and same-acquisition identities are preserved.",
+      "blocker": "Model lock and file hashes alone do not establish analysis generation.",
+      "closure_criteria": "Bind model contents and consumed results to the same analysis generation with traceable evidence.",
+      "owner_paths": [
+        "src/tbdy_next/engineering/analysis_setup.py"
+      ],
+      "evidence_refs": [
+        "EV-D3B-REPLAY",
+        "EV-LOCAL-NATIVE"
+      ],
+      "closure_evidence_refs": [],
+      "local_update_needed": false
+    },
+    {
+      "id": "GAP-004",
+      "title": "Native schema, units and selection transactions",
+      "status": "PARTIAL",
+      "priority": "P1",
+      "achieved_scope": "Native field aliases, all-mode capture and output/pattern/mode restoration have source and failure-path evidence. The user authorized setting API units to code 6 on connect.",
+      "blocker": "Complete supported-version/schema matrix acceptance remains open.",
+      "closure_criteria": "Verify supported native schemas and unit conversions. Restore temporary output/pattern/mode selections and fail on restoration errors. Do not restore the old tonf units contrary to the explicit kN/m/C user instruction.",
+      "owner_paths": [
+        "src/tbdy_next/etabs_source_gateway_windows.py",
+        "src/tbdy_next/live_etabs.py",
+        "src/tbdy_next/frame_force_capture.py",
+        "src/tbdy_next/basis_probe.py"
+      ],
+      "evidence_refs": [
+        "EV-PMM6",
+        "EV-LOCAL-NATIVE"
+      ],
+      "closure_evidence_refs": [],
+      "local_update_needed": false
+    },
+    {
+      "id": "GAP-005",
+      "title": "Complete expected check population",
+      "status": "PARTIAL",
+      "priority": "P0",
+      "achieved_scope": "87 columns / 957 design pairs and expected supporting cut/mode populations remain in their ledgers.",
+      "blocker": "A general ExpectedCheckInstance census and execution for every check family are not implemented.",
+      "closure_criteria": "Freeze each rule population at the correct grain before calculation; account for missing data and proven exceptions explicitly.",
+      "owner_paths": [
+        "src/tbdy_next/engineering/pipeline.py",
+        "src/tbdy_next/compiled_dag.py"
+      ],
+      "evidence_refs": [
+        "EV-PMM6",
+        "EV-D2",
+        "EV-LOCAL-NATIVE"
+      ],
+      "closure_evidence_refs": [],
+      "local_update_needed": false
+    },
+    {
+      "id": "GAP-006",
+      "title": "Same-cut mesh, offsets and physical faces",
+      "status": "PARTIAL",
+      "priority": "P0",
+      "achieved_scope": "Supported MinStations=3 / zero-I-offset subset: 4422/4422 required cuts, including both sides in 14 meshed columns.",
+      "blocker": "Full cut census, other station/offset branches, physical faces and TS500 clear/effective lengths remain separate gaps.",
+      "closure_criteria": "Establish all supported cut/face/mesh identities independently of force results; reject missing or ambiguous side matches.",
+      "owner_paths": [
+        "src/tbdy_next/engineering/column_pmm.py",
+        "src/tbdy_next/column_engine/csi_geometry.py"
+      ],
+      "evidence_refs": [
+        "EV-PMM6",
+        "EV-LOCAL-NATIVE",
+        "EV-LOCAL-SPECTRAL"
+      ],
+      "closure_evidence_refs": [],
+      "local_update_needed": false
+    },
+    {
+      "id": "GAP-007",
+      "title": "Exact static Linear Add",
+      "status": "PARTIAL",
+      "priority": "P0",
+      "achieved_scope": "Signed E partition remains supported. The newer acquisition now supplies 22 native patterns and the required primitive case-force records.",
+      "blocker": "Broader nested/operator/role and full real signed design-example acceptance remain open; the old missing-primitive blocker applies only to its old source.",
+      "closure_criteria": "Verify supported same-source signed expressions and nested role/operator scope with independent expected values and tolerances.",
+      "owner_paths": [
+        "src/tbdy_next/engineering/mixed_demands.py",
+        "src/tbdy_next/engineering/demand_sources.py"
+      ],
+      "evidence_refs": [
+        "EV-D3B",
+        "EV-LOCAL-NATIVE",
+        "EV-LOCAL-ORACLE"
+      ],
+      "closure_evidence_refs": [],
+      "local_update_needed": false
+    },
+    {
+      "id": "GAP-008",
+      "title": "Design demand in the same generation",
+      "status": "PARTIAL",
+      "priority": "P0",
+      "achieved_scope": "Parent/scenario/result identities, native case GUIDs and exact cut/side/step lineage are retained.",
+      "blocker": "Full analysis-generation proof and applicable seismic design policy are not approved.",
+      "closure_criteria": "Bind every consumed design vector to the same generation/cut/step/role without equating similar case names or load patterns.",
+      "owner_paths": [
+        "src/tbdy_next/engineering/design_scenario.py",
+        "src/tbdy_next/engineering/mixed_demands.py"
+      ],
+      "evidence_refs": [
+        "EV-D1",
+        "EV-D3B-REPLAY",
+        "EV-LOCAL-SPECTRAL"
+      ],
+      "closure_evidence_refs": [],
+      "local_update_needed": false
+    },
+    {
+      "id": "GAP-009",
+      "title": "Global and local second-order effects",
+      "status": "PARTIAL",
+      "priority": "P0",
+      "achieved_scope": "Selected candidates can bind same-run R08 inputs; EI/Nk and second-order reference calculations exist.",
+      "blocker": "k/sway/Rm/free length, creep and second-order components already included in native analysis are not approved.",
+      "closure_criteria": "Independently verify both-axis clear/effective lengths and EI, prevent double counting, and prove consumption of the qualified demands.",
+      "owner_paths": [
+        "src/tbdy_next/column_engine/ts500_column.py",
+        "src/tbdy_next/engineering/column_r08_local_live.py",
+        "src/tbdy_next/engineering/story_pdelta.py"
+      ],
+      "evidence_refs": [
+        "EV-D1",
+        "EV-D2",
+        "EV-D3"
+      ],
+      "closure_evidence_refs": [],
+      "local_update_needed": false
+    },
+    {
+      "id": "GAP-010",
+      "title": "Independent PMM capacity acceptance",
+      "status": "PARTIAL",
+      "priority": "P0",
+      "achieved_scope": "PMM solver and required-cut checks remain active; latest plain replay evaluates 1206 signed-static station rows with zero observed exceedances.",
+      "blocker": "Full normative load/cut/axis/cage scope and independent complete-design oracle acceptance remain open.",
+      "closure_criteria": "Use independent capacity solutions and normative prerequisite evidence with explicit source identities and tolerances.",
+      "owner_paths": [
+        "src/tbdy_next/column_engine/section_capacity.py",
+        "src/tbdy_next/engineering/column_pmm.py"
+      ],
+      "evidence_refs": [
+        "EV-PMM6",
+        "EV-D3",
+        "EV-LOCAL-REPORT"
+      ],
+      "closure_evidence_refs": [],
+      "local_update_needed": false
+    },
+    {
+      "id": "GAP-011",
+      "title": "Reinforcement selection and detailing",
+      "status": "PARTIAL",
+      "priority": "P0",
+      "achieved_scope": "87 algorithm-selected candidates can bind source/revision; selection must supply at least 0.01 Ac.",
+      "blocker": "Candidates are not engineer-approved or as-built. Complete crosstie, anchorage and detailing acceptance remains open.",
+      "closure_criteria": "Separately verify cage role, bar/leg geometry, cover, clear spacing, pitch, area and anchorage; retain actual-vs-proposed distinction.",
+      "owner_paths": [
+        "src/tbdy_next/engineering/rebar_selection.py",
+        "src/tbdy_next/column_engine/transverse_kernel.py"
+      ],
+      "evidence_refs": [
+        "EV-D1",
+        "EV-D2"
+      ],
+      "closure_evidence_refs": [],
+      "local_update_needed": false
+    },
+    {
+      "id": "GAP-012",
+      "title": "Beam capacity and end topology",
+      "status": "PARTIAL",
+      "priority": "P0",
+      "achieved_scope": "180 beam candidate scenarios and shared-joint dependencies exist in the prior scenario scope.",
+      "blocker": "Complete selected/constructible end/direction/sign and anchorage scope remains open.",
+      "closure_criteria": "Bind every incident beam physical face, selected bars and signed capacities to independent verification.",
+      "owner_paths": [
+        "src/tbdy_next/engineering/beam_r10_live.py",
+        "src/tbdy_next/column_engine/beam_capacity.py"
+      ],
+      "evidence_refs": [
+        "EV-D1",
+        "EV-D2"
+      ],
+      "closure_evidence_refs": [],
+      "local_update_needed": false
+    },
+    {
+      "id": "GAP-013",
+      "title": "SCWB and alpha demand feedback",
+      "status": "PARTIAL",
+      "priority": "P0",
+      "achieved_scope": "Bounded signed-reference iteration and mixed signed E partition exist. Scalar spectral replay is now independently matched.",
+      "blocker": "Governing Nd and story-shear allocation are not qualified. Prior real spectral scenario is BLOCKED_INPUTS / 0 iterations; latest plain replay executes no alpha iteration.",
+      "closure_criteria": "Prove alpha-to-demand-to-cage-to-PMM/shear/joint feedback at the same story/cut with all neighbors in an independent complete example, including correct nonconvergence states.",
+      "owner_paths": [
+        "src/tbdy_next/engineering/alpha_iteration.py",
+        "src/tbdy_next/column_engine/story_alpha.py",
+        "src/tbdy_next/engineering/design_dependencies.py"
+      ],
+      "evidence_refs": [
+        "EV-D2",
+        "EV-D3",
+        "EV-D3B-REPLAY",
+        "EV-LOCAL-SPECTRAL"
+      ],
+      "closure_evidence_refs": [],
+      "local_update_needed": false
+    },
+    {
+      "id": "GAP-014",
+      "title": "Capacity shear, ties and joint panel",
+      "status": "PARTIAL",
+      "priority": "P0",
+      "achieved_scope": "Existing Ve owner can reevaluate revised Vd and retain revision lineage.",
+      "blocker": "Post-alpha joint equilibrium, clear faces/anchorage and all normative branches are not approved.",
+      "closure_criteria": "Independently accept capacity shear, brittle limits, transverse reinforcement and panel/anchorage for every face/sign/cage.",
+      "owner_paths": [
+        "src/tbdy_next/engineering/column_r10_live.py",
+        "src/tbdy_next/column_engine/joint_kernel.py",
+        "src/tbdy_next/column_engine/transverse_kernel.py"
+      ],
+      "evidence_refs": [
+        "EV-D3"
+      ],
+      "closure_evidence_refs": [],
+      "local_update_needed": false
+    },
+    {
+      "id": "GAP-015",
+      "title": "Wall/pier factor and wall design",
+      "status": "OPEN",
+      "priority": "P1",
+      "achieved_scope": "Existing reference/source work is retained; no new wall acceptance is claimed.",
+      "blocker": "Same-cut frame/wall/pier population, double counting and full wall detailing remain open.",
+      "closure_criteria": "Complete the real wall topology/forces, normative calculation, independent oracle and sealed-report slice.",
+      "owner_paths": [
+        "src/tbdy_next/wall_geometry.py"
+      ],
+      "evidence_refs": [],
+      "closure_evidence_refs": [],
+      "local_update_needed": false
+    },
+    {
+      "id": "GAP-016",
+      "title": "Golden coverage and complete independent example",
+      "status": "PARTIAL",
+      "priority": "P0",
+      "achieved_scope": "Historical 467-fixture bank, 10 alpha targets and 115776 separate-bank scalar comparisons are retained; new same-source oracle matches 38592 native comparisons and 45024 derived values.",
+      "blocker": "44 production golden records are not a complete mapping of 467. Positive iteration fixtures and scalar arithmetic are not a complete independent building oracle.",
+      "closure_criteria": "Run the production owner on a complete independent example with inputs, intermediate values, tolerances, identities and a sealed result chain.",
+      "owner_paths": [
+        "src/tbdy_next/verification/golden_gate.py",
+        "src/tbdy_next/verification/report_oracles.py"
+      ],
+      "evidence_refs": [
+        "EV-GOLDEN",
+        "EV-ALPHA-GOLDEN",
+        "EV-BANK-ARITHMETIC",
+        "EV-LOCAL-ORACLE",
+        "EV-LOCAL-TESTS"
+      ],
+      "closure_evidence_refs": [],
+      "local_update_needed": false
+    },
+    {
+      "id": "GAP-017",
+      "title": "One pipeline, dependency graph and sealed reports",
+      "status": "PARTIAL",
+      "priority": "P0",
+      "achieved_scope": "One runner and finalized v2 remain; current same-source stage repeats 16/16 IDENTICAL, and report projection makes zero calls with 21 entry points disabled.",
+      "blocker": "General catalog-wide topological execution and complete CHECK-instance ledger remain open; legacy compatibility still exists.",
+      "closure_criteria": "Execute one registry with typed dependencies and complete expected scope; block missing upstreams and project the same sealed result in UI/CLI/report.",
+      "owner_paths": [
+        "src/tbdy_next/engineering/pipeline.py",
+        "src/tbdy_next/engineering/pipeline_snapshot.py",
+        "src/tbdy_next/compiled_dag.py"
+      ],
+      "evidence_refs": [
+        "EV-D1",
+        "EV-D2",
+        "EV-D3B-REPLAY",
+        "EV-LOCAL-REPORT"
+      ],
+      "closure_evidence_refs": [],
+      "local_update_needed": false
+    },
+    {
+      "id": "GAP-018",
+      "title": "Spectral design demands and simultaneity",
+      "status": "PARTIAL",
+      "priority": "P0",
+      "achieved_scope": "100-mode supporting force coverage and same-source primitive-to-combination intervals are verified for 696 pairs / 3216 cuts, with independent scalar agreement.",
+      "blocker": "Native modal amplitudes, active damping and accidental-torsion contributions are unqualified. Modal/directional combination, governing Nd and story-shear allocation lack common normative acceptance.",
+      "closure_criteria": "Bind amplitude/damping/torsion sources through the existing gateway; independently verify modal/directional aggregation before SCWB/alpha consumption and then accept a complete example. Never label scalar intervals as simultaneous vectors.",
+      "owner_paths": [
+        "src/tbdy_next/engineering/demand_sources.py",
+        "src/tbdy_next/engineering/mixed_demands.py",
+        "src/tbdy_next/column_engine/spectral_envelope.py",
+        "src/tbdy_next/engineering/alpha_iteration.py",
+        "src/tbdy_next/basis_probe.py",
+        "src/tbdy_next/etabs_source_gateway_windows.py"
+      ],
+      "evidence_refs": [
+        "EV-D3B",
+        "EV-BANK-ARITHMETIC",
+        "EV-D3B-REPLAY",
+        "EV-LOCAL-NATIVE",
+        "EV-LOCAL-SPECTRAL",
+        "EV-LOCAL-ORACLE"
+      ],
+      "closure_evidence_refs": [],
+      "local_update_needed": false
+    }
+  ]
+}
