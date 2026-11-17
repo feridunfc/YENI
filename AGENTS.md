@@ -31,6 +31,12 @@ milestones and before handoff; do not wait until the context is nearly full.
 
 - Local code and local evidence are primary. GitHub is a requested sharing/backup
   checkpoint; updating memory does not require a push. No automatic sync schedule.
+- `baseline/local_import` is the active integration base (the project's logical
+  main), per the user's 2026-11-17 instruction. Start scoped `work/<scope>` branches
+  from the current local baseline. Develop and checkpoint locally; integrate reviewed,
+  verified milestones into this baseline. Keep unfinished work on its work branch.
+  The old `main` and audit branches are historical references unless the user changes
+  this policy. Publish only at an explicitly requested GitHub checkpoint.
 - Select files explicitly for commits. Preserve unrelated files. No `git add .`,
   reset/clean, force-push or unsolicited main merge. Use the requested branch.
 - Keep stable GAP IDs. Append new verification IDs; retain historical records and

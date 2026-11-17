@@ -8,14 +8,20 @@
     "checkpoint_cadence": "EACH_SPRINT_AND_HANDOFF",
     "github_sync_cadence": "USER_REQUESTED_CHECKPOINT",
     "automatic_push": false,
-    "imported_cadence_note": "The source guide suggested 3-5 sprints; this is not an automatic schedule or authorization."
+    "imported_cadence_note": "The source guide suggested 3-5 sprints; this is not an automatic schedule or authorization.",
+    "integration_base_branch": "baseline/local_import",
+    "integration_base_role": "LOGICAL_MAIN",
+    "work_branch_pattern": "work/<scope>",
+    "active_local_branch": "work/spectral-modal-source",
+    "integration_policy": "Start scoped branches from the current local baseline; integrate reviewed, verified milestones. Keep unfinished work on the work branch.",
+    "publication_policy": "LOCAL_ONLY_UNTIL_EXPLICIT_GITHUB_CHECKPOINT_REQUEST"
   },
   "local_checkpoint": {
-    "status": "RECONCILED_LOCAL_IMPLEMENTATION_PRESERVED",
-    "branch": "baseline/local_import",
+    "status": "LOCAL_WORK_BRANCH_READY",
+    "branch": "work/spectral-modal-source",
     "implementation_checkpoint_commit": "60938da94b770631c6a5c34a545c8863162ac8a4",
     "implementation_tree": "e7f90011df7b2986923d53fb6ff87de53727f47f",
-    "head_resolution": "git rev-parse HEAD (context commit follows implementation commit)",
+    "head_resolution": "git rev-parse HEAD; branch policy is checkpointed locally after the published baseline",
     "tested_base_commit": "85e720d18683a71737c1919d32e393c9d903737b",
     "tests_ran_on_dirty_worktree": true,
     "tested_manifest_path": "docs/context/TESTED_FILES_20261117.json",
@@ -66,7 +72,10 @@
       "EV-LOCAL-TESTS"
     ],
     "new_engineering_tests_in_memory_operation": "NOT_RUN_CONTEXT_ONLY",
-    "remote_publication_receipt": "Exported MANIFEST.json and private local-context-import-20261117/publication.json; do not infer publication from this pre-push file."
+    "remote_publication_receipt": "The existing ZIP manifest and private local-context-import-20261117/publication.json identify the published baseline, not this local work branch.",
+    "integration_base_branch": "baseline/local_import",
+    "branch_start_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+    "runtime_changes_during_branch_setup": false
   },
   "last_observed_remote_implementation": {
     "branch": "audit/pipeline-pmm-v6-20261117",
@@ -881,6 +890,33 @@
         "Preserved checkpoint binds identical source/test bytes; tests were executed before the checkpoint commit.",
         "Old D3B GitHub CI is not CI for this baseline."
       ]
+    },
+    {
+      "id": "EV-LOCAL-BRANCH-POLICY",
+      "observed_at": "2026-11-17T18:41:24.247530+00:00",
+      "status": "LOCAL_BRANCH_CREATED_FROM_VERIFIED_BASELINE",
+      "scope": "User-directed local branch policy and durable context update; no engineering implementation or test execution.",
+      "source": "Explicit user instruction: baseline acts as the new main; create work branches on it and continue locally.",
+      "base_branch": "baseline/local_import",
+      "base_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "work_branch": "work/spectral-modal-source",
+      "commands": [
+        "git status --short --branch",
+        "git rev-parse HEAD",
+        "git branch --list",
+        "git switch -c work/spectral-modal-source baseline/local_import"
+      ],
+      "public_reference_paths": [
+        "AGENTS.md",
+        "docs/CURRENT_STATE.md"
+      ],
+      "engineering_release_granted": false,
+      "engineering_tests": "NOT_RUN_DOCUMENTATION_ONLY",
+      "live_etabs_actions": false,
+      "git_push": false,
+      "main_merge": false,
+      "force_push": false,
+      "historical_validation_scope": "CONTEXT_VALIDATION_20261117.json and the exported ZIP are retained for b255c3030c09c88a17bbec766fc2bb22682ad027 only."
     }
   ],
   "new_record_template": {
@@ -905,7 +941,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-17T18:28:52.048097+00:00",
+  "updated_at_utc": "2026-11-17T18:41:24.247530+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",

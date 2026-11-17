@@ -8,7 +8,9 @@ recorded arithmetic scope. Modal aggregation and complete design acceptance rema
 
 | Item | Checkpoint |
 | --- | --- |
-| Repository / branch | `feridunfc/YENI` / `baseline/local_import` |
+| Repository / active local branch | `feridunfc/YENI` / `work/spectral-modal-source` |
+| Integration base (logical main) | `baseline/local_import` |
+| Published starting checkpoint | `b255c3030c09c88a17bbec766fc2bb22682ad027` |
 | Preserved implementation commit | `60938da94b770631c6a5c34a545c8863162ac8a4` |
 | Base of the previously tested dirty tree | `85e720d18683a71737c1919d32e393c9d903737b` |
 | Imported context reference | `8df69d2991338b3668f53a35c43f772a9bc4fa5e`, documentation only; not the parent of this local baseline |
@@ -23,7 +25,7 @@ manifest; its acceptance prose was updated after tests. Source, test, tool and c
 bytes still match. Git normalizes text line endings: exact raw fingerprints are from
 the recorded Windows checkout, not a promise of equal raw bytes on every OS.
 
-This context commit follows the implementation commit. Resolve the actual HEAD with
+The published context checkpoint follows the implementation commit. Resolve the actual HEAD with
 `git rev-parse HEAD`; resolve context history with
 `git log -1 --format=%H -- AGENTS.md docs/CURRENT_STATE.md`.
 The exported ZIP manifest records its full published SHA after remote verification.
@@ -34,6 +36,21 @@ left untracked. They are not new application work. No reset/clean or main merge.
 Private evidence remains under `.receipts`; it is not in Git or the context ZIP.
 GitHub publication is a checkpoint, not a synchronization service. The imported
 guide's suggested 3–5 sprint cadence is not an automatic push schedule.
+
+## Current local branch policy
+
+The user designated `baseline/local_import` as the new integration base on
+2026-11-17. The active `work/spectral-modal-source` branch was created directly from
+its published checkpoint `b255c3030c09c88a17bbec766fc2bb22682ad027`.
+New scoped work branches start from the current local baseline; reviewed, verified
+milestones return to it. Development and commits remain local until GitHub publication
+is explicitly requested. The old `main` and audit branches remain historical references.
+
+This branch setup changes guidance and context only; modal-source implementation has
+not started on this branch yet. The existing ZIP and
+`docs/context/CONTEXT_VALIDATION_20261117.json` remain evidence of the published baseline
+checkpoint, not validation of later context edits. See `EV-LOCAL-BRANCH-POLICY` for
+this local workflow change. The next engineering task below remains the same.
 
 ## Last completed work and evidence
 
