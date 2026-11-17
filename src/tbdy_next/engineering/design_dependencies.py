@@ -271,6 +271,17 @@ an explicit open dependency rather than pretending the original Ve is revised.
     details = r10.get("per_member") if r10.get("per_member") is not None else {r10.get("member_id"): r10}
     locals_ = r08.get("per_member") if r08.get("per_member") is not None else {r08.get("member_id"): r08}
     candidate_rows = {r["member_id"]: r for r in (candidate_ledger or {}).get("rows", ())}
+    feedback = r10.get("alpha_iteration")
+    feedback_consumed = False
+    if feedback is not None:
+        from .alpha_iteration import validate_record, SCHEMA as ALPHA_SCHEMA
+        validate_record(feedback, ALPHA_SCHEMA)
+        if (feedback.get("input_sha256") != input_sha
+                or feedback.get("expected_member_ids") != sorted(plan["members"])
+                or feedback.get("final_candidate_ledger_sha256") != _digest(candidate_ledger)):
+            raise ValueError("ALPHA_FINAL_CANDIDATE_OR_SCOPE_MISMATCH")
+        feedback_consumed = (feedback.get("status") == "FIXED_POINT_REFERENCE"
+                             and feedback.get("feedback_consumed") is True)
     columns = {}
     for uid, member in plan["members"].items():
         demand = add("demand:" + uid, member["demand_revision_sha256"], [])
@@ -295,6 +306,9 @@ an explicit open dependency rather than pretending the original Ve is revised.
         joints = sorted({j for uid in members for j in (plan["members"].get(uid) or {}).get("joint_ids", ())})
         add("alpha:" + story, {"expected_columns": members, "result": alpha_by_story[story]},
             ["scwb:" + jid for jid in joints if jid in plan["joints"]])
+    if feedback is not None:
+        add("alpha-iteration", feedback, ["alpha:" + str(st) for st in plan["story_columns"]]
+            + ["candidate:" + u for u in plan["members"]] + ["r08:" + u for u in plan["members"]])
     for uid, member in plan["members"].items():
         reasons = member_joint_blockers(plan, uid)
         selected = candidate_rows.get(uid) or {}
@@ -304,25 +318,32 @@ an explicit open dependency rather than pretending the original Ve is revised.
             reasons.append("SELECTED_CAGE_REVISION_CHANGED_AFTER_R10")
         story = member.get("story")
         alpha = alpha_by_story.get(story, [])
-        if (len(alpha) != 2 or {r.get("direction") for r in alpha} != {"X", "Y"}
+        if not feedback_consumed and (len(alpha) != 2 or {r.get("direction") for r in alpha} != {"X", "Y"}
                 or any(r.get("demand_feedback_action") != "NONE" for r in alpha)):
             reasons.append("DESIGN_ALPHA_FEEDBACK_NOT_RESOLVED_OR_NOT_CONSUMED")
+        if feedback is not None and not feedback_consumed:
+            reasons.append("ALPHA_ITERATION:" + feedback["status"])
         reasons.extend("STORY:" + c for c in story_blockers(plan, story))
         deps = ["candidate:" + uid, "demand:" + uid]
         deps += ["scwb:" + jid for jid in member["joint_ids"] if jid in plan["joints"]]
         alpha_key = "alpha:" + str(story)
         if alpha_key in artifacts:
             deps.append(alpha_key)
+        if feedback is not None:
+            deps.append("alpha-iteration")
         det = details.get(uid) or {}
         ve = add("ve-review:" + uid, {"reference": det.get("column_transverse_and_shear"),
                  "feedback_consumed": not reasons, "open_dependencies": sorted(set(reasons))}, deps)
         closure_key = add("r14-input:" + uid, {"blockers": sorted(set(reasons))}, [ve, "r08:" + uid])
         columns[uid] = {"member_id": uid, "open_gates": sorted(set(reasons)),
                         "artifact_id": closure_key, "input_revision_sha256": artifacts[closure_key]["revision_sha256"],
-                        "reference_ve_is_revised_design_demand": False}
+                        "reference_ve_is_revised_design_demand": False,
+                        "alpha_feedback_consumed": feedback_consumed}
     result = {"schema": REVISION_SCHEMA, "method_revision": METHOD, "input_sha256": input_sha,
               "artifacts": artifacts, "columns": columns, "cache_reuse_performed": False,
-              "alpha_demand_iteration_implemented": False, "engineering_release": "NOT_READY"}
+              "alpha_demand_iteration_implemented": feedback is not None,
+              "alpha_iteration_status": feedback.get("status") if feedback else None,
+              "engineering_release": "NOT_READY"}
     result["ledger_sha256"] = _digest(result)
     return result
 

@@ -888,6 +888,7 @@ def _evaluate_column_shear_and_confinement_for_id(
     source: Mapping[str, Any],
     geometry: Mapping[str, Any],
     axial: Mapping[str, Any],
+    *, demand_revision: Mapping[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     """Evaluate TBDY 7.3.4.1(d) confinement and TS500 8.1 / zero-concrete shear refs for one column."""
     from .column_axial import _columns
@@ -906,7 +907,7 @@ def _evaluate_column_shear_and_confinement_for_id(
     except (ValueError, KeyError, TypeError, ArithmeticError) as exc:
         return {"member_id": uid, "status": "BLOCKED_INPUTS", "reason": str(exc), "formal_compliance": "NOT_PROVEN"}
 
-    return _finish_column_shear_and_confinement(uid, section, ev, pmm_source, rowset, axial)
+    return _finish_column_shear_and_confinement(uid, section, ev, pmm_source, rowset, axial, demand_revision=demand_revision)
 
 
 def _evaluate_column_shear_and_confinement(
@@ -926,6 +927,7 @@ def _finish_column_shear_and_confinement(
     pmm_source: Mapping[str, Any],
     rowset: Mapping[str, Any],
     axial: Mapping[str, Any],
+    *, demand_revision: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
 
     spacing_mm = ev.get("tie_spacing_mm")
@@ -981,7 +983,8 @@ def _finish_column_shear_and_confinement(
         }
         gamma_c = float(ev["fck_mpa"]) / float(ev["fcd_mpa"])
         gamma_s = float(ev["gamma_s"])
-        for row in sorted(native_frame_force_rows(rowset, uid), key=lambda r: (r[4], r[:4])):
+        from .alpha_iteration import revised_force_rows
+        for row in sorted(revised_force_rows(rowset, uid, demand_revision), key=lambda r: (r[4], r[:4])):
             _, sta, elm, elm_sta, combo, _, _, p, v2, v3, _, _, _ = row
             if combo not in static_names:
                 continue
@@ -1103,6 +1106,7 @@ def _compute_capacity_shear_axes(
     section: Any,
     use_engineer: bool,
     vr_lookup: Any,
+    demand_revision: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Compute CHK-126 Ve = (Ma + Mü) / ln axes for either ETABS template or engineer selection."""
     c_axes = col_frame["axes_global"]
@@ -1155,6 +1159,15 @@ def _compute_capacity_shear_axes(
                 continue
             ve_unred = (mp_i_unred + mp_j_unred) / ln_m
             ve_eff = (mp_i_eff + mp_j_eff) / ln_m
+            vd_floor = None
+            if demand_revision is not None:
+                # 7.3.7.5: revised Vd is a lower bound, not a factor on Mr.
+                values = [abs(float(st["v2_kn" if v_axis == "V2" else "v3_kn"]))
+                          for st in stations if st["combination"] == combo]
+                if not values:
+                    continue
+                vd_floor = max(values)
+                ve_eff = max(ve_eff, vd_floor)
             vr_min, vr_z_min = vr_lookup(combo, v_axis, ve_eff)
             cases_ve.append({
                 "combination": combo,
@@ -1162,6 +1175,7 @@ def _compute_capacity_shear_axes(
                 "mp_j_basis": j_basis,
                 "ve_unreduced_kn": ve_unred,
                 "ve_scwb_scenario_kn": ve_eff,
+                **({"revised_vd_floor_kn": vd_floor, "alpha_demand_revision_sha256": demand_revision["sha256"]} if demand_revision is not None else {}),
                 "vr_ts500_min_kn": vr_min,
                 "vr_zero_concrete_min_kn": vr_z_min,
                 "utilization_ts500": (ve_eff / vr_min) if vr_min else None,
@@ -1199,6 +1213,7 @@ def _column_capacity_shear_ve(
     engineer_col_section: Any = None,
     engineer_column_selection: Mapping[str, Any] | None = None,
     use_engineer_selection: bool = False,
+    demand_revision: Mapping[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     """TBDY 2018 §7.3.7 (CHK-126) conditional column capacity shear Ve = (Ma + Mü) / ln."""
     if not col_frame or not transverse_shear or not col_frame.get("axes_global"):
@@ -1280,7 +1295,7 @@ def _column_capacity_shear_ve(
     axes_out = _compute_capacity_shear_axes(
         uid=uid, col_frame=col_frame, ln_m=ln_m, scwb_joints=scwb_joints,
         stations=stations, static_combos=static_combos, rowset=rowset,
-        section=active_section, use_engineer=use_engineer_selection, vr_lookup=vr_lookup,
+        section=active_section, use_engineer=use_engineer_selection, vr_lookup=vr_lookup, demand_revision=demand_revision,
     )
     if not axes_out:
         return None
@@ -1303,6 +1318,9 @@ def _evaluate_engineer_column_selection(
     geometry: Mapping[str, Any],
     axial: Mapping[str, Any],
     angle_deg: float | None,
+    demand_revision: Mapping[str, Any] | None = None,
+    additional_demands: Sequence[Mapping[str, Any]] = (),
+    additional_shears: Sequence[Mapping[str, Any]] = (),
 ) -> tuple[dict[str, Any] | None, Section | None]:
     """Run deterministic engineer column rebar & Φ8/10 -> Φ10/Φ12 tie selection when configured."""
     if source.get("column_selection") is None or not uid:
@@ -1354,7 +1372,8 @@ def _evaluate_engineer_column_selection(
     }
     demand_vectors = []
     shear_demands = []
-    for row in sorted(native_frame_force_rows(rowset, uid), key=lambda r: (r[4], r[:4])):
+    from .alpha_iteration import revised_force_rows
+    for row in sorted(revised_force_rows(rowset, uid, demand_revision), key=lambda r: (r[4], r[:4])):
         _, sta, _, _, combo, _, _, p, v2, v3, _, m2, m3 = row
         if combo not in static_names:
             continue
@@ -1365,6 +1384,8 @@ def _evaluate_engineer_column_selection(
         })
         shear_demands.append({"nd_kn": nd, "v2_kn": float(v2), "v3_kn": float(v3)})
 
+    shear_demands.extend(additional_shears)
+    demand_vectors.extend(additional_demands)  # Same-run R08 constraints, not source mutations.
     res = select_column_rebar(
         t2_mm=base_sec.t2,
         t3_mm=base_sec.t3,
@@ -1383,6 +1404,9 @@ def _evaluate_engineer_column_selection(
     )
     res["member_id"] = uid
     res["policy"] = col_policy
+    if demand_revision is not None:
+        res["alpha_demand_revision_sha256"] = demand_revision["sha256"]
+        res["r08_additional_constraint_count"] = len(additional_demands)
     sel_sec = None
     sel = res.get("selected")
     if sel and sel.get("num_bars_2_dir") and sel.get("selected_transverse"):
@@ -1837,6 +1861,7 @@ def _evaluate_single_member_r10_details(
     beam_sel_active: bool,
     pmm_single: Mapping[str, Any] | None,
     dependency_plan: Mapping[str, Any] | None = None,
+    demand_revision: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     angle_deg = member_local_axis_angle_deg(source, uid)
     scwb_joints = _evaluate_scwb_at_joint_ends(
@@ -1846,7 +1871,7 @@ def _evaluate_single_member_r10_details(
         engineer_col_sections=eng_col_sections,
         col_sections_cache=col_sections_cache, dependency_plan=dependency_plan,
     )
-    transverse_shear = _evaluate_column_shear_and_confinement_for_id(uid, source, geometry, axial)
+    transverse_shear = _evaluate_column_shear_and_confinement_for_id(uid, source, geometry, axial, demand_revision=demand_revision)
     dependency_blockers = []
     if dependency_plan is not None:
         from .design_dependencies import member_joint_blockers
@@ -1854,7 +1879,7 @@ def _evaluate_single_member_r10_details(
     capacity_ve = (
         _column_capacity_shear_ve(
             uid=uid, col_frame=frames.get(uid), scwb_joints=scwb_joints,
-            transverse_shear=transverse_shear, source=source, geometry=geometry, axial=axial,
+            transverse_shear=transverse_shear, source=source, geometry=geometry, axial=axial, demand_revision=demand_revision,
         )
         if transverse_shear and not dependency_blockers
         else None
@@ -1863,7 +1888,7 @@ def _evaluate_single_member_r10_details(
     if transverse_shear and not dependency_blockers and (eng_col_res and eng_col_res.get("selected") or beam_sel_active):
         eng_capacity_ve = _column_capacity_shear_ve(
             uid=uid, col_frame=frames.get(uid), scwb_joints=scwb_joints,
-            transverse_shear=transverse_shear, source=source, geometry=geometry, axial=axial,
+            transverse_shear=transverse_shear, source=source, geometry=geometry, axial=axial, demand_revision=demand_revision,
             engineer_col_section=eng_col_sections.get(uid),
             engineer_column_selection=eng_col_res,
             use_engineer_selection=True,
@@ -1902,11 +1927,39 @@ def project_column_r10_live(
     target_member_ids: Sequence[str] | None = None,
     selected_cages_out: MutableMapping[str, SelectedColumnCage] | None = None,
     dependency_plan: Mapping[str, Any] | None = None,
+    demand_revision: Mapping[str, Any] | None = None,
+    previous_result: Mapping[str, Any] | None = None,
+    previous_cages: Mapping[str, SelectedColumnCage] | None = None,
+    reselect_member_ids: Sequence[str] | None = None,
+    additional_demands: Mapping[str, Sequence[Mapping[str, Any]]] | None = None,
+    additional_shears: Mapping[str, Sequence[Mapping[str, Any]]] | None = None,
 ) -> dict[str, Any] | None:
     """Deterministic R10-R13 projection (joints, 7.5 Ve/7.5.2.3, SCWB, story alpha_i, shear/Ve)."""
     if dependency_plan is not None:
         from .design_dependencies import verify_dependency_source
         verify_dependency_source(dependency_plan, source)
+    if demand_revision is not None:
+        from .alpha_iteration import validate_record, DEMAND_SCHEMA
+        from .design_scenario import _digest
+        validate_record(demand_revision, DEMAND_SCHEMA)
+        if (dependency_plan is None or demand_revision["input_sha256"] != dependency_plan["input_sha256"]
+                or demand_revision["source_payload_sha256"] != _digest(source)):
+            raise ValueError("ALPHA_DEMAND_SOURCE_MISMATCH")
+    if previous_result is not None:
+        if dependency_plan is None or reselect_member_ids is None:
+            raise ValueError("ALPHA_REUSE_CONTEXT_REQUIRED")
+        from .design_dependencies import verify_dependency_source
+        verify_dependency_source(previous_result.get("member_dependencies") or {}, source)
+        from .design_scenario import _digest
+        prior_factors = previous_result.get("alpha_demand_factors") or {}
+        next_factors = (demand_revision or {}).get("factors") or {}
+        for uid in set(prior_factors) | set(next_factors):
+            if prior_factors.get(uid) != next_factors.get(uid) and uid not in reselect_member_ids:
+                raise ValueError("ALPHA_CHANGED_DEMAND_OMITTED_FROM_RESELECTION:" + uid)
+        for uid, cage in (previous_cages or {}).items():
+            if (cage.input_sha256 != dependency_plan["input_sha256"]
+                    or cage.candidate_sha256 != _digest({"selection": cage.selection, "section": asdict(cage.section)})):
+                raise ValueError("ALPHA_PREVIOUS_CAGE_REVISION_INVALID:" + uid)
     if selected_cages_out:
         raise ValueError("R10_SELECTED_CAGE_OUTPUT_MUST_BE_EMPTY")
     if axial is None or geometry is None or "column_axial" not in source:
@@ -1952,13 +2005,23 @@ def project_column_r10_live(
     is_all_mode = bool(pmm and (pmm.get("scope") == "ALL_COLUMNS" or pmm_id == "ALL")) or (target_member_ids is not None)
     eng_col_selections: dict[str, dict[str, Any]] = {}
     eng_col_sections: dict[str, Section] = {}
+    reselect = set(eval_uids if reselect_member_ids is None else reselect_member_ids)
+    if reselect - set(eval_uids):
+        raise ValueError("ALPHA_RESELECT_MEMBER_OUTSIDE_SCOPE")
     if source.get("column_selection") is not None and eval_uids:
         for uid in eval_uids:
             if dependency_plan is not None and not (dependency_plan["members"].get(uid) or {}).get("source_execution_allowed"):
                 continue
+            if previous_result is not None and uid not in reselect:
+                cage = (previous_cages or {}).get(uid)
+                if cage is not None:
+                    eng_col_selections[uid], eng_col_sections[uid] = cage.selection, cage.section
+                continue
             ang = member_local_axis_angle_deg(source, uid)
             e_res, e_sec = _evaluate_engineer_column_selection(
                 uid=uid, source=source, geometry=geometry, axial=axial, angle_deg=ang,
+                demand_revision=demand_revision, additional_demands=(additional_demands or {}).get(uid, ()),
+                additional_shears=(additional_shears or {}).get(uid, ()),
             )
             if e_res is not None:
                 eng_col_selections[uid] = e_res
@@ -1973,6 +2036,11 @@ def project_column_r10_live(
     col_sel_active = source.get("column_selection") is not None
     col_sections_cache: dict[str, tuple[Any, dict]] = {}
 
+    affected = set(eval_uids) if previous_result is None else set(reselect)
+    if dependency_plan is not None and previous_result is not None:
+        for joint in dependency_plan["joints"].values():
+            if set(joint["column_ids"]) & reselect:
+                affected.update(joint["column_ids"])
     per_member: dict[str, dict[str, Any]] = {}
     all_scwb_joints: list[dict[str, Any]] = []
     transverse_by_uid: dict[str, dict[str, Any]] = {}
@@ -1983,12 +2051,21 @@ def project_column_r10_live(
                               "member_joint_ends": [r for r in end_rows if r["member_id"] == uid],
                               "scwb_joints": [], "column_transverse_and_shear": None, "global_moment_projections": []}
             continue
+        if previous_result is not None and uid not in affected:
+            det = (previous_result.get("per_member") or {}).get(uid)
+            if det is None:
+                raise ValueError("ALPHA_PREVIOUS_MEMBER_RESULT_MISSING:" + uid)
+            per_member[uid] = det
+            all_scwb_joints.extend(det["scwb_joints"])
+            if det["column_transverse_and_shear"]:
+                transverse_by_uid[uid] = det["column_transverse_and_shear"]
+            continue
         det = _evaluate_single_member_r10_details(
             uid=uid, frames=frames, points=points, adjacency=adjacency, source=source,
             geometry=geometry, axial=axial, end_rows=end_rows, beam_live=beam_live,
             eng_col_res=eng_col_selections.get(uid), eng_col_sections=eng_col_sections,
             col_sections_cache=col_sections_cache, beam_sel_active=beam_sel_active,
-            pmm_single=pmm_members_map.get(uid), dependency_plan=dependency_plan,
+            pmm_single=pmm_members_map.get(uid), dependency_plan=dependency_plan, demand_revision=demand_revision,
         )
         per_member[uid] = det
         all_scwb_joints.extend(det["scwb_joints"])
@@ -2007,6 +2084,8 @@ def project_column_r10_live(
             row["design_dependency"] = {"status": "BLOCKED_DEPENDENCY" if codes else "REFERENCE_INPUTS_BOUND",
                                         "reason_codes": codes}
         target_end_rows = [row for row in target_end_rows if not joint_blockers(dependency_plan, row["point_id"])]
+    if previous_result is not None:
+        target_end_rows = [r for r in target_end_rows if r["member_id"] in affected]
     if target_end_rows and (beam_sel_active or col_sel_active):
         _attach_r13_joint_shear_and_transverse(
             end_rows=target_end_rows, frames=frames, points=points, adjacency=adjacency,
@@ -2037,6 +2116,11 @@ def project_column_r10_live(
     transverse_shear = single_det["column_transverse_and_shear"] if single_det else None
     eng_col_res = single_det.get("engineer_column_selection") if single_det else None
 
+    if demand_revision is not None:
+        for uid in affected:
+            if uid in per_member:
+                per_member[uid]["alpha_joint_recheck_basis"] = "ORIGINAL_EQUILIBRIUM_VKOL_NOT_AMPLIFIED_SUBTRACTION"
+                per_member[uid]["alpha_joint_recheck_open_gate"] = "JOINT_EQUILIBRIUM_AFTER_ALPHA_REVIEW_REQUIRED"
     if selected_cages_out is not None:
         for uid, section in eng_col_sections.items():
             selection = eng_col_selections.get(uid)
@@ -2050,6 +2134,8 @@ def project_column_r10_live(
 
     return {
         "schema": SCHEMA,
+        **({"alpha_recalculation": {"selected_member_ids": sorted(reselect), "joint_consumer_member_ids": sorted(affected)}} if previous_result is not None else {}),
+        **({"alpha_demand_factors": demand_revision["factors"]} if demand_revision is not None else {}),
         "scope": "ALL_COLUMNS" if is_all_mode else "SINGLE_COLUMN",
         "member_id": pmm_id,
         "evaluated_column_ids": ([uid for uid in eval_uids if dependency_plan["members"][uid]["source_execution_allowed"]]

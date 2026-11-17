@@ -43,3 +43,15 @@ def evaluate_story_alpha_reference(*, vis_kn, vik_kn):
         "formal_compliance": "NOT_PROVEN",
         "engineering_release": "NOT_READY",
     }
+
+
+def alpha_feedback_factor(reference):
+    """TBDY 7.3.6.2, inclusive .70..1.00; below threshold needs system review.
+
+Caller must qualify two-end SCWB eligibility and same-cut story population.
+This number grants no model or normative execution authority.
+"""
+    alpha = _shear_kn(reference.get("alpha"), "ALPHA")
+    if alpha > 1:
+        raise BankError("STORY_ALPHA_ABOVE_ONE")
+    return float(Decimal(1) / alpha) if alpha >= LIMIT else None

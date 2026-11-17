@@ -18,6 +18,7 @@ WHEEL_TESTS = (
     "test_etabs_source_gateway.GatewayTests.test_pmm_reads_unrounded_native_coordinates_only_for_meshed_columns",
     "test_offline_design_scenario",
     "test_design_member_dependencies",
+    "test_alpha_design_iteration",
 )
 
 

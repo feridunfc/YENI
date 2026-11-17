@@ -59,6 +59,8 @@ _PMM_SCOPE = ArtifactContract("pmm_scope", "schema", "tbdy.next.column-pmm-expec
 _R08_LOCAL_RESULT = ArtifactContract("r08_local_slenderness", "schema", "tbdy.next.column-r08-local-live.v1")
 _DESIGN_SCOPE = ArtifactContract("design_dependencies", "schema", "tbdy.next.member-design-dependencies.v1")
 _DESIGN_REVISIONS = ArtifactContract("design_revisions", "schema", "tbdy.next.design-artifact-revisions.v1")
+_R10_RESULT = ArtifactContract("r10_live", "schema", "tbdy.next.column-r10-live.v1")
+_ALPHA_ITERATION = ArtifactContract("alpha_iteration", "schema", "tbdy.next.alpha-design-iteration.v1")
 _CAPTURE_ARTIFACTS = (_AXIAL_FORCES, _PMM_SECTION)
 
 
@@ -117,16 +119,20 @@ STAGES: tuple[StageSpec, ...] = (
     StageSpec("column-r10", LIVE, "tbdy_next.engineering.column_r10_live", (),
               ("JOINT_TOPOLOGY_CHECK", "JOINT_SHEAR", "SCWB", "COLUMN_SHEAR", "COLUMN_SHEAR_REBAR"),
               "TBDY 7.3.6 SCWB, 7.5 joint shear & 7.3.4.1/TS500 8.1 confinement/shear projection "
-              "(computed by pipeline; persisted in engine-results)", "COLUMN_REQUEST"),
+              "(computed by pipeline; persisted in engine-results)", "COLUMN_REQUEST", produces=(_R10_RESULT,)),
     StageSpec("second-order", LIVE, "tbdy_next.story_second_order", ("r08-second-order",),
               ("GLOBAL_SECOND_ORDER",), "TBDY 4.33 story second-order precheck", "R08_SOURCE"),
     StageSpec("column-r08-local", LIVE, "tbdy_next.engineering.column_r08_local_live", (),
               ("COLUMN_SLENDERNESS", "COLUMN_PMM"),
               "TS500 local slenderness, EI, Nk and beta reference scenarios (computed by pipeline; persisted in engine-results)",
               "COLUMN_PMM_MEMBER", consumes=(_AXIAL_GEOMETRY, _AXIAL_RESULT, _PMM_RESULT, _PMM_SCOPE),
-              produces=(_R08_LOCAL_RESULT,), method_version="column-r08-local.v4"),
+              produces=(_R08_LOCAL_RESULT,), method_version="column-r08-local.v5"),
+    StageSpec("alpha-feedback", LIVE, "tbdy_next.engineering.alpha_iteration", (), (),
+              "Bounded qualified signed alpha demand revision and dirty-member rechecks", "EXPLICIT_DESIGN_SCENARIO",
+              consumes=(_DESIGN_SCOPE, _PMM_SCOPE, _PMM_RESULT, _R10_RESULT, _R08_LOCAL_RESULT),
+              produces=(_ALPHA_ITERATION,), method_version="alpha-feedback.signed-same-cut.v1"),
     StageSpec("design-revisions", LIVE, "tbdy_next.engineering.design_dependencies", (), (),
-              "Recorded candidate/demand to joint/story/Ve/R14 dependency revisions; no cache or alpha iteration",
+              "Recorded candidate/demand to joint/story/Ve/R14 dependency revisions and consumed alpha feedback; no persistent cache",
               "DESIGN_SCENARIO", consumes=(_DESIGN_SCOPE,), produces=(_DESIGN_REVISIONS,),
               method_version="offline-member-dependencies.d2.v1"),
     StageSpec("report-evidence", LIVE, "tbdy_next.engineering.pipeline", (), (),
@@ -698,6 +704,18 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
             )
             if not all(contract.accepts(r08_local_slenderness) for contract in stage.produces):
                 raise ValueError("INVALID_STAGE_OUTPUT:column-r08-local")
+    alpha_iteration = None
+    if scenario is not None and design_dependencies is not None:
+        from .alpha_iteration import run_alpha_design_iteration
+        alpha_state, candidate_ledger, alpha_iteration = run_alpha_design_iteration(
+            source=payload, geometry=geometry, axial=column_axial, pmm=column_pmm, extra=extra,
+            scope=pmm_scope or {}, dependencies=design_dependencies, r10=r10_live,
+            r08=r08_local_slenderness, cages=selected_cages, beam=beam_r10,
+            global_pdelta=r08_second_order, input_sha=input_sha)
+        if not _ALPHA_ITERATION.accepts(alpha_iteration):
+            raise ValueError("INVALID_STAGE_OUTPUT:alpha-feedback")
+        r10_live, r08_local_slenderness = alpha_state["r10"], alpha_state["r08"]
+        selected_cages, design_dependencies = alpha_state["cages"], alpha_state["dependencies"]
     dependency_revisions = None
     if scenario is not None:
         dependency_revisions = build_revision_evidence(
@@ -733,11 +751,13 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
         out["report_evidence"]["design_scenario"] = scenario
         out["report_evidence"]["design_dependencies"] = design_dependencies
         out["report_evidence"]["design_revisions"] = dependency_revisions
+        out["report_evidence"]["alpha_iteration"] = alpha_iteration
         if r14_closure is not None:
             # The report projects this exact recorded block, without a second calculation.
             r14_closure["design_scenario"] = scenario
             r14_closure["design_dependencies"] = design_dependencies
             r14_closure["design_revisions"] = dependency_revisions
+            r14_closure["alpha_iteration"] = alpha_iteration
     snapshot = record_snapshot(run, input_sha=input_sha, results=out, registry=stage_registry())
     meta = payload.get("capture_metadata") or {}
     run.record("live-capture", {

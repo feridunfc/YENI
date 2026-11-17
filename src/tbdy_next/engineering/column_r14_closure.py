@@ -91,6 +91,9 @@ def _evaluate_single_r14_column(
         else:
             open_gates.extend("D2:" + code for code in dependency_row["open_gates"])
 
+    if (r10_det or {}).get("alpha_joint_recheck_open_gate"):
+        open_gates.append(r10_det["alpha_joint_recheck_open_gate"])
+    alpha_consumed = bool(dependency_row and dependency_row.get("alpha_feedback_consumed") is True)
     # 1. Combination approval gate
     combo_approved_source = plan.get("source") == "ASSIGNED_DESIGN" and not plan.get("blockers")
     if not combo_approved_source:
@@ -218,7 +221,7 @@ def _evaluate_single_r14_column(
             open_gates.append("STORY_ALPHA_I_PARTIAL_COLUMN_DENOMINATOR")
         if any(s.get("demand_feedback_action") == "STORY_SCWB_BELOW_0_70_SYSTEM_R_AND_DUCTILITY_REVIEW_REQUIRED" for s in story_alpha_rows):
             normative_failures.append("STORY_ALPHA_I_BELOW_0_70")
-        elif any(s.get("demand_feedback_action") == "AMPLIFY_COLUMN_DEMANDS_BY_1_OVER_ALPHA" for s in story_alpha_rows):
+        elif not alpha_consumed and any(s.get("demand_feedback_action") == "AMPLIFY_COLUMN_DEMANDS_BY_1_OVER_ALPHA" for s in story_alpha_rows):
             open_gates.append("STORY_ALPHA_I_BETWEEN_0_70_AND_1_00_AMPLIFY_1_OVER_ALPHA_REQUIRED")
 
     # 7. Beam-column joint Vj & 7.5.2.3

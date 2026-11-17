@@ -363,6 +363,9 @@ def _project_single_r08_local(
             mag_rows.append({
                 "combination": cname,
                 "object_station_m": row.get("object_station_m"),
+                "analysis_element_id": row.get("analysis_element_id"),
+                "element_station_m": row.get("element_station_m"),
+                "nd_kn": row.get("nd_kn"),
                 "beta_m2": b_m2,
                 "beta_m3": b_m3,
                 "global_beta_ii_applied": g_fac,
@@ -566,6 +569,9 @@ def project_column_r08_local_live(
     r10_live: Mapping[str, Any] | None = None,
     selected_cages: Mapping[str, SelectedColumnCage] | None = None,
     dependency_plan: Mapping[str, Any] | None = None,
+    demand_revision: Mapping[str, Any] | None = None,
+    previous_result: Mapping[str, Any] | None = None,
+    recompute_member_ids: list[str] | None = None,
 ) -> dict[str, Any] | None:
     """Project R08 reference scenarios using the same candidate section as R10 when supplied."""
     if pmm is None or axial is None or "column_axial" not in source:
@@ -574,6 +580,15 @@ def project_column_r08_local_live(
         from .design_dependencies import verify_dependency_source
         verify_dependency_source(dependency_plan, source)
     col_selection_enabled = source.get("column_selection") is not None
+    if demand_revision is not None:
+        from .alpha_iteration import validate_record, DEMAND_SCHEMA
+        from .design_scenario import _digest
+        validate_record(demand_revision, DEMAND_SCHEMA)
+        if (dependency_plan is None or demand_revision["input_sha256"] != dependency_plan["input_sha256"]
+                or demand_revision["source_payload_sha256"] != _digest(source)):
+            raise ValueError("ALPHA_DEMAND_SOURCE_MISMATCH")
+    if previous_result is not None and recompute_member_ids is None:
+        raise ValueError("ALPHA_R08_REUSE_SCOPE_REQUIRED")
 
     def _reported_selection(uid: str) -> Mapping[str, Any] | None:
         if not r10_live:
@@ -622,10 +637,31 @@ def project_column_r08_local_live(
         e_res, e_sec = _eng_section_for(uid) if uid else (None, None)
         if dependency_plan is not None and col_selection_enabled and e_sec is None:
             return blocked_member_result(uid, [_SELECTED_CAGE_UNAVAILABLE], schema=SCHEMA)
+        binding = None
+        if dependency_plan is not None:
+            from .design_scenario import _digest
+            binding = _digest({"input_sha256": dependency_plan["input_sha256"],
+                "pmm_member": member, "candidate": selected_cages[uid].candidate_sha256
+                    if selected_cages and uid in selected_cages else None,
+                "global_second_order": global_pdelta,
+                "absolute_alpha_factors": (demand_revision or {}).get("factors", {}).get(uid, {})})
+        if previous_result is not None and uid not in recompute_member_ids:
+            prior = (previous_result.get("per_member") or {}).get(uid)
+            if prior is None:
+                raise ValueError("ALPHA_PREVIOUS_R08_MEMBER_MISSING:" + str(uid))
+            if binding is None or prior.get("input_binding_sha256") != binding:
+                raise ValueError("ALPHA_PREVIOUS_R08_INPUT_REVISION_CHANGED:" + str(uid))
+            return prior
+        from .alpha_iteration import revised_pmm_member
+        revised_member = revised_pmm_member(member, source, demand_revision)
         result = _project_single_r08_local(
-            source, geometry, axial, member, global_pdelta,
+            source, geometry, axial, revised_member, global_pdelta,
             eng_col_res=e_res, eng_col_section=e_sec,
         )
+        if binding is not None:
+            result["input_binding_sha256"] = binding
+        if demand_revision is not None:
+            result["alpha_demand_revision_sha256"] = demand_revision["sha256"]
         if selected_cages is not None and col_selection_enabled and e_sec is None:
             result["open_gates"].append(_SELECTED_CAGE_UNAVAILABLE)
         return result

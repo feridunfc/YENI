@@ -1253,6 +1253,8 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
     if report.get("column_slenderness_evidence") is not None:
         vs04_sections.append(_column_slenderness_html(report["column_slenderness_evidence"],
                                                       report.get("r08_local_slenderness")))
+    if report.get("alpha_iteration") is not None:
+        vs04_sections.append(_alpha_feedback_html(report["alpha_iteration"]))
     if report.get("r14_closure") is not None:
         vs04_sections.append(_column_r14_r15_html(report["r14_closure"]))
     if report.get("vs04"):
@@ -2199,6 +2201,33 @@ def _column_slenderness_html(evidence: Mapping[str, Any], local: Mapping[str, An
                   scenario_rows) if scenario_rows else '')
         + '<h3>Inputs requiring verification</h3><ul>' + inputs + '</ul></section>'
     )
+
+
+def _alpha_feedback_html(record: Mapping[str, Any]) -> str:
+    """Display stored iteration evidence. No qualification, solver or arithmetic."""
+    qualification = record.get("final_qualification") or {}
+    reasons = qualification.get("reason_codes") or (record.get("final_feasibility") or {}).get("reason_codes") or []
+    cases = [{**case, "eligible": ", ".join(case.get("eligible_member_ids", ())),
+              "reasons": ", ".join(case.get("reason_codes", ()))}
+             for case in qualification.get("cases", ())]
+    trace = [{"iteration": step["iteration"], "members": ", ".join(step["changed_member_ids"]),
+              "demand_sha": step["demand_revision_sha256"],
+              "joint_consumers": ", ".join((step.get("actions") or {}).get("joint_consumer_member_ids", ()))}
+             for step in record.get("trace", ())]
+    return ('<section class="percheck"><h2>D3 · Recorded alpha demand feedback</h2>'
+        '<p>Bounded conditional reference iteration; not engineering acceptance. '
+        'Moments and shears are revised from the original signed source, not multiplied cumulatively. '
+        'Unsupported spectral or mixed-load shear provenance remains blocked.</p>'
+        + _table((("status", "Terminal state"), ("iteration_count", "Iterations"),
+                  ("max_iterations", "Limit"), ("feedback_consumed", "Reference feedback consumed"),
+                  ("sha256", "Recorded revision")), [record])
+        + ('<p>' + escape(", ".join(reasons)) + '</p>' if reasons else '')
+        + _table((("story", "Story"), ("direction", "Direction"), ("combination", "Combination"),
+                  ("alpha", "Alpha"), ("factor", "Factor"), ("eligible", "Eligible columns"),
+                  ("status", "Input status"), ("reasons", "Open reasons")), cases)
+        + _table((("iteration", "Iteration"), ("members", "Re-selected columns"),
+                  ("joint_consumers", "Rechecked joint consumers"), ("demand_sha", "Demand revision")), trace)
+        + '</section>')
 
 
 def _column_r14_r15_html(r14: Mapping[str, Any]) -> str:
