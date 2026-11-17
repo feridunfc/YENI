@@ -549,7 +549,10 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
     """Execute the live-source stage sequence once; receipts are written in registry order."""
     from .pipeline_snapshot import SCHEMA, record_snapshot
 
+    from .design_scenario import design_dependency_ledger, selected_candidate_ledger, verify_archived_scenario
+
     _validate_dependency_contracts()
+    scenario = verify_archived_scenario(run.root, payload)
     out: dict[str, Any] = {
         "result": calculate_modal(payload, case=case, run=run, input_sha=input_sha, receipt_schema=SCHEMA),
     }
@@ -607,11 +610,13 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
             )
             if column_pmm is not None:
                 run.record(PMM_STAGE, column_pmm, input_sha256=input_sha)
+    design_dependencies = design_dependency_ledger(pmm_scope, input_sha=input_sha) if scenario else None
+    design_allowed = design_dependencies is None or design_dependencies["candidate_execution_allowed"]
     selected_cages = {}
     if axial_ledger is not None and not axial_ledger["dependency_blockers"]:
         from .column_live_gates import project_column_gates
 
-        if pmm_target is None or (column_pmm is not None and column_pmm["evaluated_station_count"] > 0):
+        if design_allowed and (pmm_target is None or (column_pmm is not None and column_pmm["evaluated_station_count"] > 0)):
             from .beam_r10_live import project_beam_r10_live
             from .column_r10_live import project_column_r10_live
 
@@ -624,6 +629,16 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
             payload, column_axial, column_pmm,
             local_axis_angle_deg=(r10_live or {}).get("local_axis_angle_deg"),
         )
+
+    candidate_ledger = None
+    if scenario is not None and payload.get("column_selection") is not None:
+        candidate_ledger = selected_candidate_ledger(pmm_scope or {}, selected_cages, r10_live, input_sha=input_sha)
+        if not candidate_ledger["downstream_execution_allowed"]:
+            design_allowed = False
+            design_dependencies["blockers"] = sorted(set(design_dependencies["blockers"]) |
+                                                       {"DESIGN_COHORT_SELECTED_CAGE_INCOMPLETE"})
+        design_dependencies["selected_candidates"] = candidate_ledger
+        design_dependencies["downstream_execution_allowed"] = design_allowed
 
     physical_scope = None
     if "vs05_delta_source" in payload:
@@ -650,6 +665,8 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
         })
         if column_pmm is not None and not column_pmm["evaluated_station_count"]:
             r08_blockers.append("NO_EVALUATED_SIGNED_PMM_STATIONS")
+        if not design_allowed:
+            r08_blockers.extend(design_dependencies["blockers"])
         pmm_scope["local_second_order_dependency_blockers"] = r08_blockers
         if not r08_blockers:
             from .column_r08_local_live import project_column_r08_local_live
@@ -683,6 +700,13 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
         out["report_evidence"]["column_axial_expected_instances"] = axial_ledger
     if pmm_scope is not None:
         out["report_evidence"]["column_pmm_expected_instances"] = pmm_scope
+    if scenario is not None:
+        out["report_evidence"]["design_scenario"] = scenario
+        out["report_evidence"]["design_dependencies"] = design_dependencies
+        if r14_closure is not None:
+            # The report projects this exact recorded block, without a second calculation.
+            r14_closure["design_scenario"] = scenario
+            r14_closure["design_dependencies"] = design_dependencies
     snapshot = record_snapshot(run, input_sha=input_sha, results=out, registry=stage_registry())
     meta = payload.get("capture_metadata") or {}
     run.record("live-capture", {

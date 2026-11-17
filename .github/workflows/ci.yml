@@ -1,7 +1,7 @@
 name: Offline vertical-slice checks
 on:
   push:
-    branches: [main, "work/**", "recovery/**", "integration/**", "docs/**"]
+    branches: [main, "work/**", "recovery/**", "integration/**", "docs/**", "audit/**"]
   pull_request:
     branches: [main, "work/**", "docs/**"]
 jobs:

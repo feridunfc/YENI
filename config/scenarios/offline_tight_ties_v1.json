@@ -1,0 +1,15 @@
+{
+  "schema": "tbdy.next.offline-design-scenario.v1",
+  "scenario_id": "offline-tight-ties-v1",
+  "parent_input_sha256": "85129fae59e4652a66022348f2f130e83f9128b64e814ce769c66b5cb987f71a",
+  "beam_selection": {
+    "stirrup_confinement": {"diameter_mm": 10, "spacing_mm": 90.0, "legs": 4},
+    "stirrup_span": {"diameter_mm": 10, "spacing_mm": 90.0, "legs": 4}
+  },
+  "column_selection": {
+    "stirrup_confinement_spacing_mm": 90.0,
+    "stirrup_span_spacing_mm": 90.0,
+    "min_rho": 0.01,
+    "max_rho": 0.04
+  }
+}

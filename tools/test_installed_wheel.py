@@ -1,4 +1,4 @@
-"""Install the wheel in a clean environment and replay the drift report test."""
+"""Install the wheel in isolation; verify reports, PMM v6 and offline scenarios."""
 
 import argparse
 from pathlib import Path
@@ -9,9 +9,14 @@ import venv
 
 
 TESTS = Path(__file__).resolve().parents[1] / "tests"
-DRIFT_REPORT_TEST = (
-    "test_vs06_c2_drift_scenario.Vs06C2HttpIntegration."
-    "test_live_once_then_scenario_and_json_html_no_com"
+WHEEL_TESTS = (
+    "test_vs06_c2_drift_scenario.Vs06C2HttpIntegration.test_live_once_then_scenario_and_json_html_no_com",
+    "test_audit_hardening.PmmAnalysisMeshContracts",
+    "test_audit_hardening.SpectrumPopulationContracts",
+    "test_r08_local_live.R08LocalUnitTests",
+    "test_etabs_source_gateway.GatewayTests.test_pmm_reads_mesh_and_station_assignments_through_one_connected_model",
+    "test_etabs_source_gateway.GatewayTests.test_pmm_reads_unrounded_native_coordinates_only_for_meshed_columns",
+    "test_offline_design_scenario",
 )
 
 
@@ -46,8 +51,8 @@ def main() -> None:
                 "if not package.is_relative_to(Path(sys.prefix).resolve()):\n"
                 "    raise SystemExit(f'Expected the isolated wheel installation, got {package}')\n"
                 "sys.path.append(sys.argv[1])\n"
-                "unittest.main(module=None, argv=['unittest', '-v', sys.argv[2]])\n",
-                str(TESTS), DRIFT_REPORT_TEST,
+                "unittest.main(module=None, argv=['unittest', '-v', *sys.argv[2:]])\n",
+                str(TESTS), *WHEEL_TESTS,
             ],
             cwd=isolated, check=True,
         )

@@ -86,6 +86,7 @@ def main(argv: list[str] | None = None) -> int:
     replay.add_argument("--case", required=True, help="Exact modal case used by that run")
     replay.add_argument("--out", type=Path, required=True, help="Receipt root for the replay run")
     replay.add_argument("--compare-run", type=Path, help="Existing RUN-* directory; every stage payload must match")
+    replay.add_argument("--design-scenario", type=Path, help="Explicit source-bound offline design scenario JSON")
     replay.add_argument("--beam-selection", help="'default' or path to JSON beam selection policy")
     replay.add_argument("--column-selection", help="'default' or path to JSON column selection policy")
     args = parser.parse_args(argv)

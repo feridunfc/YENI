@@ -104,6 +104,21 @@ def read_snapshot(directory: Path, *, input_sha: str,
             or value.get("results_sha256") != _digest(results)):
         raise ValueError("PIPELINE_SNAPSHOT_SOURCE_OR_RESULTS_INVALID")
     if schema == SCHEMA:
+        from ..column_engine.native_archive import decode
+        from .design_scenario import verify_archived_scenario
+
+        source = directory / "input.source"
+        if source.is_symlink() or not source.is_file() or not 0 < source.stat().st_size <= 32 * 1024 * 1024:
+            raise ValueError("PIPELINE_SOURCE_MISSING_OR_UNSAFE")
+        raw = source.read_bytes()
+        if sha256(raw).hexdigest() != input_sha:
+            raise ValueError("PIPELINE_SOURCE_HASH_MISMATCH")
+        source_payload = decode(raw)
+        if not isinstance(source_payload, Mapping):
+            raise ValueError("PIPELINE_SOURCE_NOT_OBJECT")
+        scenario = verify_archived_scenario(directory, source_payload)
+        if scenario != results["report_evidence"].get("design_scenario"):
+            raise ValueError("PIPELINE_SCENARIO_SNAPSHOT_MISMATCH")
         expected_link = {"schema": SCHEMA, "snapshot_sha256": _digest(value),
                          "results_sha256": value["results_sha256"]}
         if (declared_schema != SCHEMA or link != expected_link
