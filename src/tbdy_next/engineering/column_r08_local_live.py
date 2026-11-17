@@ -565,10 +565,14 @@ def project_column_r08_local_live(
     *,
     r10_live: Mapping[str, Any] | None = None,
     selected_cages: Mapping[str, SelectedColumnCage] | None = None,
+    dependency_plan: Mapping[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     """Project R08 reference scenarios using the same candidate section as R10 when supplied."""
     if pmm is None or axial is None or "column_axial" not in source:
         return None
+    if dependency_plan is not None:
+        from .design_dependencies import verify_dependency_source
+        verify_dependency_source(dependency_plan, source)
     col_selection_enabled = source.get("column_selection") is not None
 
     def _reported_selection(uid: str) -> Mapping[str, Any] | None:
@@ -591,6 +595,12 @@ def project_column_r08_local_live(
                     or not cage.selection.get("selected") or not isinstance(cage.section, Section)
                     or (r10_live is not None and reported is not cage.selection)):
                 return None, None
+            if dependency_plan is not None:
+                from .design_scenario import _digest
+                from dataclasses import asdict
+                if (cage.input_sha256 != dependency_plan["input_sha256"]
+                        or cage.candidate_sha256 != _digest({"selection": cage.selection, "section": asdict(cage.section)})):
+                    return None, None
             return cage.selection, cage.section
 
         # Legacy callers may only have archived JSON; retain their original reference path.
@@ -604,7 +614,14 @@ def project_column_r08_local_live(
 
     def _project_member(member: Mapping[str, Any]) -> dict[str, Any]:
         uid = member.get("member_id")
+        if dependency_plan is not None:
+            from .design_dependencies import blocked_member_result
+            dep = dependency_plan["members"].get(uid) or {}
+            if not dep.get("source_execution_allowed"):
+                return blocked_member_result(uid, list(dep.get("reason_codes") or ["DESIGN_MEMBER_INPUT_UNAVAILABLE"]), schema=SCHEMA)
         e_res, e_sec = _eng_section_for(uid) if uid else (None, None)
+        if dependency_plan is not None and col_selection_enabled and e_sec is None:
+            return blocked_member_result(uid, [_SELECTED_CAGE_UNAVAILABLE], schema=SCHEMA)
         result = _project_single_r08_local(
             source, geometry, axial, member, global_pdelta,
             eng_col_res=e_res, eng_col_section=e_sec,
@@ -627,7 +644,10 @@ def project_column_r08_local_live(
             "schema": SCHEMA,
             "scope": "ALL_COLUMNS",
             "member_id": "ALL",
-            "evaluated_column_count": len(per_member),
+            "evaluated_column_count": sum(r.get("execution_status") != "NOT_RUN" for r in per_member.values()),
+            **({"expected_column_count": len(per_member),
+                "blocked_column_count": sum(r.get("execution_status") == "NOT_RUN" for r in per_member.values())}
+               if dependency_plan is not None else {}),
             "per_member": per_member,
             "open_gates": open_gates,
             "status": "REFERENCE_SLENDERNESS_CALCULATED" if per_member else "OBSERVED_EVIDENCE_ONLY",

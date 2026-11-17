@@ -53,6 +53,8 @@ class SelectedColumnCage:
 
     selection: Mapping[str, Any]
     section: Section
+    input_sha256: str | None = None
+    candidate_sha256: str | None = None
 
 
 def _capture_analysis_joint_coordinates(
@@ -549,6 +551,7 @@ def _evaluate_scwb_at_joint_ends(
     engineer_col_section: Any = None,
     engineer_col_sections: Mapping[str, Any] | None = None,
     col_sections_cache: dict[str, tuple[Any, dict]] | None = None,
+    dependency_plan: Mapping[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     """Build TBDY 7.3.6 / CHK-125 SCWB reference summaries at I/J joints of `uid`."""
     from .column_axial import _columns
@@ -581,6 +584,20 @@ def _evaluate_scwb_at_joint_ends(
 
     for end, pt_id in (("I", target_col["point_i"]), ("J", target_col["point_j"])):
         incident = adjacency.get(pt_id, [])
+        if dependency_plan is not None:
+            from .design_dependencies import joint_blockers
+            blocked = joint_blockers(dependency_plan, pt_id)
+            if blocked:
+                for direction in ("X", "Y"):
+                    joint_summaries.append({
+                        "joint_id": pt_id, "target_member_id": uid, "target_end": end,
+                        "direction": direction, "column_ids": [r["frame_id"] for r in incident if r["type"] == "Column"],
+                        "beam_ids": [r["frame_id"] for r in incident if r["type"] == "Beam"],
+                        "status": "BLOCKED_DEPENDENCY", "execution_status": "NOT_RUN", "reasons": blocked,
+                        "cases": [], "scenario_reference_satisfied": None,
+                        "sampled_minimum_normalized_ratio": None, "formal_compliance": "NOT_PROVEN",
+                    })
+                continue
         if pt_id not in points:
             continue
         inc_cols = [frames[item["frame_id"]] for item in incident if item["type"] == "Column"]
@@ -1633,6 +1650,7 @@ def _evaluate_story_alpha_summary(
     force_rowsets: Mapping[str, Any],
     axial: Mapping[str, Any],
     use_engineer_selection: bool,
+    dependency_plan: Mapping[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     """TBDY 2018 §7.3.6.1 Eq. 7.4 story alpha_i = sum(V_is)/sum(V_ik) & 7.3.6.2 demand feedback."""
     static_combos, seismic_combos = _combo_roles(axial)
@@ -1666,6 +1684,23 @@ def _evaluate_story_alpha_summary(
         if not full_story_denom:
             any_partial_scope = True
 
+        if dependency_plan is not None:
+            from .design_dependencies import story_blockers
+            blocked = story_blockers(dependency_plan, story)
+            if blocked:
+                for direction in ("X", "Y"):
+                    stories_out.append({
+                        "story": story, "direction": direction, "story_column_count": len(st_cols),
+                        "evaluated_column_count": len(eval_in_story),
+                        "denominator_status": "FULL_STORY_COLUMN_DENOMINATOR",
+                        "status": "BLOCKED_DEPENDENCY", "execution_status": "NOT_RUN",
+                        "governing_combination": None, "governing_alpha_i": None, "governing_band": None,
+                        "moment_magnification_factor_7_3_6_2": None,
+                        "demand_feedback_action": "BLOCKED_DEPENDENCY", "reason_codes": blocked,
+                        "cases": [{"combination": combo, "execution_status": "NOT_RUN",
+                                   "reason_codes": blocked} for combo in target_combos],
+                    })
+                continue
         for direction, dir_vec in (("X", [1.0, 0.0, 0.0]), ("Y", [0.0, 1.0, 0.0])):
             combo_rows: list[dict[str, Any]] = []
             for combo in target_combos:
@@ -1801,6 +1836,7 @@ def _evaluate_single_member_r10_details(
     col_sections_cache: dict[str, tuple[Any, dict]],
     beam_sel_active: bool,
     pmm_single: Mapping[str, Any] | None,
+    dependency_plan: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     angle_deg = member_local_axis_angle_deg(source, uid)
     scwb_joints = _evaluate_scwb_at_joint_ends(
@@ -1808,19 +1844,23 @@ def _evaluate_single_member_r10_details(
         beam_live=beam_live,
         engineer_col_section=eng_col_sections.get(uid),
         engineer_col_sections=eng_col_sections,
-        col_sections_cache=col_sections_cache,
+        col_sections_cache=col_sections_cache, dependency_plan=dependency_plan,
     )
     transverse_shear = _evaluate_column_shear_and_confinement_for_id(uid, source, geometry, axial)
+    dependency_blockers = []
+    if dependency_plan is not None:
+        from .design_dependencies import member_joint_blockers
+        dependency_blockers = member_joint_blockers(dependency_plan, uid)
     capacity_ve = (
         _column_capacity_shear_ve(
             uid=uid, col_frame=frames.get(uid), scwb_joints=scwb_joints,
             transverse_shear=transverse_shear, source=source, geometry=geometry, axial=axial,
         )
-        if transverse_shear
+        if transverse_shear and not dependency_blockers
         else None
     )
     eng_capacity_ve = None
-    if transverse_shear and (eng_col_res and eng_col_res.get("selected") or beam_sel_active):
+    if transverse_shear and not dependency_blockers and (eng_col_res and eng_col_res.get("selected") or beam_sel_active):
         eng_capacity_ve = _column_capacity_shear_ve(
             uid=uid, col_frame=frames.get(uid), scwb_joints=scwb_joints,
             transverse_shear=transverse_shear, source=source, geometry=geometry, axial=axial,
@@ -1829,6 +1869,10 @@ def _evaluate_single_member_r10_details(
             use_engineer_selection=True,
         )
     if transverse_shear is not None:
+        if dependency_blockers:
+            transverse_shear["capacity_shear_dependency"] = {
+                "status": "BLOCKED_DEPENDENCY", "execution_status": "NOT_RUN", "reason_codes": dependency_blockers,
+            }
         transverse_shear["capacity_shear_ve"] = capacity_ve
         if eng_capacity_ve is not None:
             transverse_shear["engineer_capacity_shear_ve"] = eng_capacity_ve
@@ -1857,8 +1901,12 @@ def project_column_r10_live(
     beam_live: Mapping[str, Any] | None = None,
     target_member_ids: Sequence[str] | None = None,
     selected_cages_out: MutableMapping[str, SelectedColumnCage] | None = None,
+    dependency_plan: Mapping[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     """Deterministic R10-R13 projection (joints, 7.5 Ve/7.5.2.3, SCWB, story alpha_i, shear/Ve)."""
+    if dependency_plan is not None:
+        from .design_dependencies import verify_dependency_source
+        verify_dependency_source(dependency_plan, source)
     if selected_cages_out:
         raise ValueError("R10_SELECTED_CAGE_OUTPUT_MUST_BE_EMPTY")
     if axial is None or geometry is None or "column_axial" not in source:
@@ -1906,6 +1954,8 @@ def project_column_r10_live(
     eng_col_sections: dict[str, Section] = {}
     if source.get("column_selection") is not None and eval_uids:
         for uid in eval_uids:
+            if dependency_plan is not None and not (dependency_plan["members"].get(uid) or {}).get("source_execution_allowed"):
+                continue
             ang = member_local_axis_angle_deg(source, uid)
             e_res, e_sec = _evaluate_engineer_column_selection(
                 uid=uid, source=source, geometry=geometry, axial=axial, angle_deg=ang,
@@ -1915,6 +1965,9 @@ def project_column_r10_live(
             if e_sec is not None:
                 eng_col_sections[uid] = e_sec
 
+    if dependency_plan is not None:
+        from .design_dependencies import bind_joint_candidates
+        dependency_plan = bind_joint_candidates(dependency_plan, eng_col_sections, eng_col_selections, beam_live)
     beam_by_id = {b["member_id"]: b for b in (beam_live or {}).get("beams") or ()}
     beam_sel_active = bool((beam_live or {}).get("beam_selection_policy"))
     col_sel_active = source.get("column_selection") is not None
@@ -1924,12 +1977,18 @@ def project_column_r10_live(
     all_scwb_joints: list[dict[str, Any]] = []
     transverse_by_uid: dict[str, dict[str, Any]] = {}
     for uid in eval_uids:
+        if dependency_plan is not None and not (dependency_plan["members"].get(uid) or {}).get("source_execution_allowed"):
+            from .design_dependencies import blocked_member_result
+            per_member[uid] = {**blocked_member_result(uid, dependency_plan["members"][uid]["reason_codes"], schema=SCHEMA),
+                              "member_joint_ends": [r for r in end_rows if r["member_id"] == uid],
+                              "scwb_joints": [], "column_transverse_and_shear": None, "global_moment_projections": []}
+            continue
         det = _evaluate_single_member_r10_details(
             uid=uid, frames=frames, points=points, adjacency=adjacency, source=source,
             geometry=geometry, axial=axial, end_rows=end_rows, beam_live=beam_live,
             eng_col_res=eng_col_selections.get(uid), eng_col_sections=eng_col_sections,
             col_sections_cache=col_sections_cache, beam_sel_active=beam_sel_active,
-            pmm_single=pmm_members_map.get(uid),
+            pmm_single=pmm_members_map.get(uid), dependency_plan=dependency_plan,
         )
         per_member[uid] = det
         all_scwb_joints.extend(det["scwb_joints"])
@@ -1941,6 +2000,13 @@ def project_column_r10_live(
     force_rowsets = (feature.get("force_source") or {}).get("rowsets") or {}
     eval_uid_set = set(eval_uids)
     target_end_rows = [r for r in end_rows if r["member_id"] in eval_uid_set] if eval_uid_set else []
+    if dependency_plan is not None:
+        from .design_dependencies import joint_blockers
+        for row in target_end_rows:
+            codes = joint_blockers(dependency_plan, row["point_id"])
+            row["design_dependency"] = {"status": "BLOCKED_DEPENDENCY" if codes else "REFERENCE_INPUTS_BOUND",
+                                        "reason_codes": codes}
+        target_end_rows = [row for row in target_end_rows if not joint_blockers(dependency_plan, row["point_id"])]
     if target_end_rows and (beam_sel_active or col_sel_active):
         _attach_r13_joint_shear_and_transverse(
             end_rows=target_end_rows, frames=frames, points=points, adjacency=adjacency,
@@ -1957,7 +2023,7 @@ def project_column_r10_live(
         scwb_joints=all_scwb_joints,
         force_rowsets=force_rowsets,
         axial=axial,
-        use_engineer_selection=beam_sel_active,
+        use_engineer_selection=beam_sel_active, dependency_plan=dependency_plan,
     )
 
     narrow_ends = [
@@ -1975,13 +2041,20 @@ def project_column_r10_live(
         for uid, section in eng_col_sections.items():
             selection = eng_col_selections.get(uid)
             if selection and selection.get("member_id") == uid and selection.get("selected"):
-                selected_cages_out[uid] = SelectedColumnCage(selection=selection, section=section)
+                selected_cages_out[uid] = SelectedColumnCage(
+                    selection=selection, section=section,
+                    input_sha256=dependency_plan["input_sha256"] if dependency_plan is not None else None,
+                    candidate_sha256=(dependency_plan["members"][uid]["candidate_revision_sha256"]
+                                      if dependency_plan is not None else None),
+                )
 
     return {
         "schema": SCHEMA,
         "scope": "ALL_COLUMNS" if is_all_mode else "SINGLE_COLUMN",
         "member_id": pmm_id,
-        "evaluated_column_ids": eval_uids,
+        "evaluated_column_ids": ([uid for uid in eval_uids if dependency_plan["members"][uid]["source_execution_allowed"]]
+                                 if dependency_plan is not None else eval_uids),
+        **({"expected_column_ids": eval_uids, "member_dependencies": dependency_plan} if dependency_plan is not None else {}),
         "local_axis_angle_deg": angle_deg,
         "global_moment_projections": global_moments,
         "graph": graph_meta,

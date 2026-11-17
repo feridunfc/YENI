@@ -74,6 +74,7 @@ def _evaluate_single_r14_column(
     story_alpha: Mapping[str, Any] | None,
     analysis_setup_reconciliation: Mapping[str, Any] | None = None,
     pmm_cut_census_proven: bool | None = None,
+    dependency_evidence: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     plan = axial.get("combination_plan") or {}
     normative_failures: list[str] = []
@@ -82,6 +83,13 @@ def _evaluate_single_r14_column(
         ("TS500_CREEP_RATIO_RM_NOT_APPROVED" if (cracked_verified and g == "CREEP_RATIO_RM_AND_CRACKED_SECTION_STIFFNESS_NOT_APPROVED") else g)
         for g in _STANDARD_R14_OPEN_GATES
     ]
+
+    dependency_row = (dependency_evidence.get("columns", {}).get(uid) if dependency_evidence is not None else None)
+    if dependency_evidence is not None:
+        if dependency_row is None:
+            open_gates.append("DESIGN_MEMBER_REVISION_EVIDENCE_MISSING")
+        else:
+            open_gates.extend("D2:" + code for code in dependency_row["open_gates"])
 
     # 1. Combination approval gate
     combo_approved_source = plan.get("source") == "ASSIGNED_DESIGN" and not plan.get("blockers")
@@ -419,6 +427,7 @@ def _evaluate_single_r14_column(
                 "max_vj_utilization": max(vj_utils) if vj_utils else None,
             },
         },
+        **({"design_dependency_revision": dependency_row} if dependency_evidence is not None else {}),
         "normative_failures": dedup_failures,
         "open_gates": dedup_open,
         "formal_compliance": "FAIL" if dedup_failures else "NOT_PROVEN",
@@ -437,10 +446,14 @@ def project_column_r14_and_r15_closure(
     r10_live: Mapping[str, Any] | None,
     analysis_setup_reconciliation: Mapping[str, Any] | None = None,
     pmm_cut_census_proven: bool | None = None,
+    dependency_evidence: Mapping[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     """Project R14 end-to-end single-column closure or R15 full-population ledger."""
     if axial is None or pmm is None or geometry is None:
         return None
+    if dependency_evidence is not None:
+        from .design_dependencies import validate_revision_evidence
+        validate_revision_evidence(dependency_evidence)
     beam_by_id = {b["member_id"]: b for b in (beam_r10 or {}).get("beams") or ()}
     axial_by_id = {c["element_id"]: c for c in axial.get("columns", ())}
     story_alpha = (r10_live or {}).get("story_alpha")
@@ -461,7 +474,7 @@ def project_column_r14_and_r15_closure(
             r10_det=r10_live,
             story_alpha=story_alpha,
             analysis_setup_reconciliation=analysis_setup_reconciliation,
-            pmm_cut_census_proven=pmm_cut_census_proven,
+            pmm_cut_census_proven=pmm_cut_census_proven, dependency_evidence=dependency_evidence,
         )
         return {
             "schema": SCHEMA,
@@ -501,7 +514,7 @@ def project_column_r14_and_r15_closure(
             r10_det=r10_by_id.get(uid),
             story_alpha=story_alpha,
             analysis_setup_reconciliation=analysis_setup_reconciliation,
-            pmm_cut_census_proven=pmm_cut_census_proven,
+            pmm_cut_census_proven=pmm_cut_census_proven, dependency_evidence=dependency_evidence,
         ))
 
     closed_n = sum(c["status"] == "R14_NUMERICALLY_CLOSED_WITH_OPEN_SOURCE_GATES" for c in columns_out)

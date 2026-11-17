@@ -57,6 +57,8 @@ _PMM_SECTION = ArtifactContract("pmm_section_source", "schema", "tbdy.next.etabs
 _PMM_RESULT = ArtifactContract("column_pmm", "schema", "tbdy.next.column-pmm-check.v1")
 _PMM_SCOPE = ArtifactContract("pmm_scope", "schema", "tbdy.next.column-pmm-expected-instances.v1")
 _R08_LOCAL_RESULT = ArtifactContract("r08_local_slenderness", "schema", "tbdy.next.column-r08-local-live.v1")
+_DESIGN_SCOPE = ArtifactContract("design_dependencies", "schema", "tbdy.next.member-design-dependencies.v1")
+_DESIGN_REVISIONS = ArtifactContract("design_revisions", "schema", "tbdy.next.design-artifact-revisions.v1")
 _CAPTURE_ARTIFACTS = (_AXIAL_FORCES, _PMM_SECTION)
 
 
@@ -100,6 +102,10 @@ STAGES: tuple[StageSpec, ...] = (
               ("COLUMN_PMM", "COLUMN_SECTION_CAPACITY"), "Signed-station P-M2-M3 with TS500 6.16 minimum eccentricity",
               "COLUMN_PMM_MEMBER", consumes=(_AXIAL_GEOMETRY, _AXIAL_FORCES, _AXIAL_RESULT, _PMM_SECTION),
               produces=(_PMM_RESULT, _PMM_SCOPE), method_version="column-pmm.v6"),
+    StageSpec("design-dependencies", LIVE, "tbdy_next.engineering.design_dependencies", (), (),
+              "Offline member/joint scope and fail-closed source dependencies; not a new code check",
+              "DESIGN_SCENARIO", consumes=(_AXIAL_GEOMETRY, _PMM_SCOPE), produces=(_DESIGN_SCOPE,),
+              method_version="offline-member-dependencies.d2.v1"),
     StageSpec("column-gates", LIVE, "tbdy_next.engineering.column_live_gates", (),
               ("COLUMN_REBAR", "COLUMN_AXIAL", "COLUMN_PMM"),
               "CHK-004/CHK-005 caps, reinforcement role and open gates over the SAME axial/PMM results "
@@ -119,6 +125,10 @@ STAGES: tuple[StageSpec, ...] = (
               "TS500 local slenderness, EI, Nk and beta reference scenarios (computed by pipeline; persisted in engine-results)",
               "COLUMN_PMM_MEMBER", consumes=(_AXIAL_GEOMETRY, _AXIAL_RESULT, _PMM_RESULT, _PMM_SCOPE),
               produces=(_R08_LOCAL_RESULT,), method_version="column-r08-local.v4"),
+    StageSpec("design-revisions", LIVE, "tbdy_next.engineering.design_dependencies", (), (),
+              "Recorded candidate/demand to joint/story/Ve/R14 dependency revisions; no cache or alpha iteration",
+              "DESIGN_SCENARIO", consumes=(_DESIGN_SCOPE,), produces=(_DESIGN_REVISIONS,),
+              method_version="offline-member-dependencies.d2.v1"),
     StageSpec("report-evidence", LIVE, "tbdy_next.engineering.pipeline", (), (),
               "Scoped story checks, source controls, design assignments and member evidence", "SUITE"),
     StageSpec("engine-results", LIVE, "tbdy_next.engineering.pipeline_snapshot", ("engine-results",), (),
@@ -549,7 +559,8 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
     """Execute the live-source stage sequence once; receipts are written in registry order."""
     from .pipeline_snapshot import SCHEMA, record_snapshot
 
-    from .design_scenario import design_dependency_ledger, selected_candidate_ledger, verify_archived_scenario
+    from .design_scenario import selected_candidate_ledger, verify_archived_scenario
+    from .design_dependencies import build_member_dependency_plan, build_revision_evidence, bind_joint_candidates
 
     _validate_dependency_contracts()
     scenario = verify_archived_scenario(run.root, payload)
@@ -610,7 +621,9 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
             )
             if column_pmm is not None:
                 run.record(PMM_STAGE, column_pmm, input_sha256=input_sha)
-    design_dependencies = design_dependency_ledger(pmm_scope, input_sha=input_sha) if scenario else None
+    design_dependencies = build_member_dependency_plan(payload, pmm_scope, input_sha=input_sha) if scenario else None
+    if scenario is not None and not _DESIGN_SCOPE.accepts(design_dependencies):
+        raise ValueError("INVALID_STAGE_OUTPUT:design-dependencies")
     design_allowed = design_dependencies is None or design_dependencies["candidate_execution_allowed"]
     selected_cages = {}
     if axial_ledger is not None and not axial_ledger["dependency_blockers"]:
@@ -624,19 +637,26 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
             r10_live = project_column_r10_live(
                 payload, geometry, column_axial, column_pmm, extra, beam_live=beam_r10,
                 selected_cages_out=selected_cages,
+                **({"dependency_plan": design_dependencies} if scenario else {}),
             )
+            if scenario and r10_live is not None:
+                design_dependencies = r10_live["member_dependencies"]
         column_gates = project_column_gates(
             payload, column_axial, column_pmm,
             local_axis_angle_deg=(r10_live or {}).get("local_axis_angle_deg"),
         )
 
+    if scenario is not None and r10_live is None:
+        design_dependencies = bind_joint_candidates(design_dependencies, {}, {}, beam_r10)
     candidate_ledger = None
     if scenario is not None and payload.get("column_selection") is not None:
         candidate_ledger = selected_candidate_ledger(pmm_scope or {}, selected_cages, r10_live, input_sha=input_sha)
-        if not candidate_ledger["downstream_execution_allowed"]:
-            design_allowed = False
-            design_dependencies["blockers"] = sorted(set(design_dependencies["blockers"]) |
-                                                       {"DESIGN_COHORT_SELECTED_CAGE_INCOMPLETE"})
+        ready = [r["member_id"] for r in candidate_ledger["rows"] if r["status"] == "SAME_RUN_CANDIDATE_BOUND"]
+        if candidate_ledger["unexpected_column_ids"]:
+            ready = []
+            design_dependencies["blockers"].append("DESIGN_UNEXPECTED_SELECTED_CAGE")
+        design_dependencies["r08_ready_member_ids"] = ready
+        design_allowed = bool(ready)
         design_dependencies["selected_candidates"] = candidate_ledger
         design_dependencies["downstream_execution_allowed"] = design_allowed
 
@@ -665,8 +685,8 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
         })
         if column_pmm is not None and not column_pmm["evaluated_station_count"]:
             r08_blockers.append("NO_EVALUATED_SIGNED_PMM_STATIONS")
-        if not design_allowed:
-            r08_blockers.extend(design_dependencies["blockers"])
+        if not design_allowed and design_dependencies is not None:
+            r08_blockers.extend(design_dependencies["blockers"] or ["DESIGN_NO_ELIGIBLE_MEMBER_CANDIDATES"])
         pmm_scope["local_second_order_dependency_blockers"] = r08_blockers
         if not r08_blockers:
             from .column_r08_local_live import project_column_r08_local_live
@@ -674,9 +694,17 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
             r08_local_slenderness = project_column_r08_local_live(
                 payload, geometry, column_axial, column_pmm, r08_second_order, r10_live=r10_live,
                 selected_cages=selected_cages,
+                **({"dependency_plan": design_dependencies} if scenario else {}),
             )
             if not all(contract.accepts(r08_local_slenderness) for contract in stage.produces):
                 raise ValueError("INVALID_STAGE_OUTPUT:column-r08-local")
+    dependency_revisions = None
+    if scenario is not None:
+        dependency_revisions = build_revision_evidence(
+            design_dependencies, candidate_ledger, r10_live, r08_local_slenderness, input_sha=input_sha,
+        )
+        if not _DESIGN_REVISIONS.accepts(dependency_revisions):
+            raise ValueError("INVALID_STAGE_OUTPUT:design-revisions")
     if column_pmm is not None:
         from .column_r14_closure import project_column_r14_and_r15_closure
 
@@ -686,6 +714,7 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
             beam_r10=beam_r10, r10_live=r10_live,
             analysis_setup_reconciliation=analysis_setup_reconciliation,
             pmm_cut_census_proven=pmm_scope["independent_cut_census_proven"],
+            **({"dependency_evidence": dependency_revisions} if scenario else {}),
         )
     out.update(story_drift=story_drift, analysis_setup=analysis_setup,
                analysis_setup_reconciliation=analysis_setup_reconciliation, column_axial=column_axial,
@@ -703,10 +732,12 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
     if scenario is not None:
         out["report_evidence"]["design_scenario"] = scenario
         out["report_evidence"]["design_dependencies"] = design_dependencies
+        out["report_evidence"]["design_revisions"] = dependency_revisions
         if r14_closure is not None:
             # The report projects this exact recorded block, without a second calculation.
             r14_closure["design_scenario"] = scenario
             r14_closure["design_dependencies"] = design_dependencies
+            r14_closure["design_revisions"] = dependency_revisions
     snapshot = record_snapshot(run, input_sha=input_sha, results=out, registry=stage_registry())
     meta = payload.get("capture_metadata") or {}
     run.record("live-capture", {
