@@ -2447,6 +2447,21 @@ def build_column_127_gate_html(bundle: Mapping[str, Any]) -> str:
 
 
 def _native_demand_sources_html(record):
+    modal = record.get("spectral_modal_parameters") or {}
+    modal_html = ('<h3>Native response-spectrum modal parameters</h3>'
+        f'<p>{_val(modal.get("status"))} · {_val(modal.get("bound_mode_rows"))} / '
+        f'{_val(modal.get("expected_mode_rows"))} case–mode rows. '
+        'Uses the recorded selected-case table; the failed initial unselected read remains unchanged.</p>'
+        '<p>Amplitudes and active damping retain native display precision. They are not yet qualified '
+        'for modal force reconstruction. Eccentricity definitions do not prove accidental-torsion '
+        'contributions. No concurrent vector or story-alpha authority is granted.</p>'
+        + _table((("case", "Spectrum case"), ("modal_case", "Modal case"), ("active_axis", "Local excitation axis"),
+                  ("bound_mode_count", "Bound modes"), ("expected_mode_count", "Expected modes"),
+                  ("active_damping_min", "Min active damping ratio"), ("active_damping_max", "Max active damping ratio"),
+                  ("modal_combination", "Modal combination"), ("directional_combination", "Directional combination"),
+                  ("eccentricity_ratio", "Defined eccentricity ratio"), ("accidental_torsion_status", "Torsion evidence"),
+                  ("status", "Parameter status"), ("reason_codes", "Source gaps")), modal.get("cases", []))
+        + f'<p>Remaining requirements: {_val(modal.get("remaining_requirements"))}</p>') if modal else ''
     return ('<section class="percheck"><h2>Native load-case and modal force coverage</h2>'
             f'<p>{_val(record["status"])} · {_val(record.get("completed_member_case_count"))} / '
             f'{_val(record.get("expected_member_case_count"))} member–case pairs. '
@@ -2464,7 +2479,7 @@ def _native_demand_sources_html(record):
                       ("expected_cut_slices", "Required cut/step rows"),
                       ("matched_cut_slices", "Matched cut/step rows"),
                       ("status", "Source status"), ("reason_codes", "Evidence gaps")), record.get("rows", []))
-            + '</section>')
+            + modal_html + '</section>')
 
 
 def _mixed_components_html(record):

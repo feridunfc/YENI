@@ -8,10 +8,13 @@ from decimal import Decimal
 
 from ..analysis_sources import _digest
 from ..column_engine.source_bank import native_frame_force_rows
+from ..diaphragm_linkage import MODAL_FIELDS, MODAL_UNITS, _decimal, _read_table
+from ..diaphragm_probe import SCHEMA as MODAL_PROBE_SCHEMA, SPECTRUM_MODAL_TABLE
 from ..vs05_d4_source_authority import _case_summary, _source_table
 
 SUPPORT_SCHEMA = "tbdy.next.native-demand-support.v1"
 EVIDENCE_SCHEMA = "tbdy.next.native-demand-source-evidence.v1"
+MODAL_PARAMETER_SCHEMA = "tbdy.next.spectral-modal-parameters.v1"
 
 
 def demand_capture_plan(source, combination_plan):
@@ -114,6 +117,167 @@ def component_force_rows(source, uid, combination_plan):
     return rows
 
 
+def spectral_modal_parameters(source, plan):
+    """Bind existing selected-case output, never the failed initial display read.
+
+    Reuse the strict native table/number contracts. Expected modes come from the
+    independent period inventory, not from successfully returned parameter rows.
+    Binding displayed parameters does not qualify modal response reconstruction.
+    """
+    bindings = plan["spectrum_modal_bindings"]
+    result = {"schema": MODAL_PARAMETER_SCHEMA, "status": "BLOCKED_SOURCE",
+              "source_path": "vs04_diaphragm_probe.spectrum_modal_selected_cases",
+              "expected_case_count": len(bindings), "bound_case_count": 0,
+              "expected_mode_rows": sum(len(plan["modal_modes"][m]) for m in bindings.values()),
+              "bound_mode_rows": 0, "cases": [], "reason_codes": [],
+              "native_full_precision_proven": False, "physical_concurrency_proven": False,
+              "modal_superposition_qualified": False, "spectral_alpha_authorized": False,
+              "engineering_release": "NOT_READY",
+              "remaining_requirements": ["MODAL_OUTPUT_PRECISION_NOT_QUALIFIED",
+                  "ACCIDENTAL_TORSION_CONTRIBUTIONS_NOT_BOUND",
+                  "MODAL_DIRECTIONAL_AGGREGATION_NOT_INDEPENDENTLY_VERIFIED",
+                  "SCWB_AXIAL_POLICY_AND_STORY_SHEAR_ALLOCATION_NOT_APPROVED"]}
+    if not bindings:
+        result.update(status="NOT_REQUIRED_NO_SPECTRAL_LEAVES", remaining_requirements=[])
+        result["sha256"] = _digest(result)
+        return result
+    for case, modal in sorted(bindings.items()):
+        result["cases"].append({"case": case, "case_guid": plan["case_definitions"][case]["guid"],
+            "modal_case": modal, "modal_case_guid": plan["case_definitions"][modal]["guid"],
+            "expected_modes": list(plan["modal_modes"][modal]), "expected_mode_count": len(plan["modal_modes"][modal]),
+            "bound_mode_count": 0, "status": "BLOCKED_SOURCE", "mode_rows": [], "reason_codes": []})
+    try:
+        probe = source.get("vs04_diaphragm_probe") or {}
+        analysis = source.get("analysis_sources") or {}
+        basis = source.get("vs04_basis_probe") or {}
+        selection = probe.get("temporary_display_cases")
+        if (not isinstance(probe, dict) or probe.get("schema") != MODAL_PROBE_SCHEMA
+                or (source.get("capture_metadata") or {}).get("vs04_same_session_capture") is not True
+                or probe.get("display_selection_restored") is not True
+                or type(probe.get("units_before")) is not int or probe["units_before"] != 6
+                or type(probe.get("units_after")) is not int or probe["units_after"] != 6
+                or not isinstance(selection, list) or any(not isinstance(n, str) or not n for n in selection)
+                or len(set(selection)) != len(selection) or not set(bindings).issubset(selection)):
+            raise ValueError("SPECTRAL_MODAL_SELECTED_CAPTURE_CONTEXT_INVALID")
+        if (basis.get("schema") != "tbdy.next.vs04e.basis-source-probe.v1"
+                or basis.get("read_only_invariant_proven") is not True
+                or type(basis.get("units_before")) is not int or basis["units_before"] != 6
+                or type(basis.get("units_after")) is not int or basis["units_after"] != 6
+                or not isinstance(basis.get("display_cases_before"), list)
+                or basis["display_cases_before"] != basis.get("display_cases_after")):
+            raise ValueError("SPECTRAL_MODAL_BASIS_CAPTURE_CONTEXT_INVALID")
+        if (analysis.get("schema") != "tbdy.next.vs04.analysis-sources.v1"
+                or analysis.get("display_selection_restored") is not True
+                or type(analysis.get("units_before")) is not int or analysis["units_before"] != 6
+                or type(analysis.get("units_after")) is not int or analysis["units_after"] != 6):
+            raise ValueError("SPECTRAL_MODAL_PERIOD_CAPTURE_CONTEXT_INVALID")
+        table = probe.get("spectrum_modal_selected_cases")
+        rows = _read_table(table, SPECTRUM_MODAL_TABLE, set(MODAL_FIELDS),
+                          {**MODAL_UNITS, "DampRatio": "", "Mode": "", "SpecCase": "", "ModalCase": ""})
+        if any(r["SpecCase"] not in selection for r in rows):
+            raise ValueError("SPECTRAL_MODAL_ROW_OUTSIDE_SELECTED_CASES")
+        period_table = (analysis.get("tables") or {}).get("Modal Periods And Frequencies")
+        periods = _read_table(period_table, "Modal Periods And Frequencies", {"Case", "Mode", "Period"}, {"Period": "sec"})
+        definitions_table = (basis.get("table_reads") or {}).get("Load Case Definitions - Response Spectrum")
+        definitions = _read_table(definitions_table, "Load Case Definitions - Response Spectrum",
+            {"Name", "ModalCase", "GUID", "LoadName", "CoordSys", "Angle", "Function", "TransAccSF",
+             "ModalCombo", "DirCombo", "RigidResp", "EccenRatio"},
+            {"Angle": "deg", "TransAccSF": "m/sec2", "EccenRatio": ""})
+        result["source_table_sha256"] = _digest(table)
+        result["period_table_sha256"] = _digest(period_table)
+        result["case_definition_table_sha256"] = _digest(definitions_table)
+        result["initial_unselected_read_status"] = (probe.get("spectrum_modal_original_selection") or {}).get("status")
+        result["selection_restored"] = True
+    except (ValueError, KeyError, TypeError, ArithmeticError, AttributeError) as exc:
+        result["reason_codes"] = [str(exc)]
+        for case in result["cases"]:
+            case["reason_codes"] = [str(exc)]
+        result["sha256"] = _digest(result)
+        return result
+    for case in result["cases"]:
+        try:
+            name, modal = case["case"], case["modal_case"]
+            matches = [r for r in definitions if r["Name"] == name]
+            if len(matches) != 1:
+                raise ValueError("SPECTRAL_CASE_DEFINITION_MISSING_DUPLICATE_OR_MULTICOMPONENT")
+            definition = matches[0]
+            if definition["GUID"] != case["case_guid"] or definition["ModalCase"] != modal:
+                raise ValueError("SPECTRAL_CASE_GUID_OR_MODAL_BINDING_CONFLICT")
+            axis = definition["LoadName"]
+            if axis not in ("U1", "U2", "U3"):
+                raise ValueError("SPECTRAL_ACCELERATION_AXIS_UNSUPPORTED")
+            for key in ("CoordSys", "Function", "ModalCombo", "DirCombo", "RigidResp"):
+                if not definition[key].strip() or definition[key] == "None":
+                    raise ValueError("SPECTRAL_CASE_DEFINITION_INCOMPLETE:" + key)
+            _decimal(definition["Angle"])
+            _decimal(definition["TransAccSF"])
+            eccentricity = _decimal(definition["EccenRatio"])
+            if eccentricity < 0:
+                raise ValueError("SPECTRAL_ECCENTRICITY_RATIO_INVALID")
+            case.update(active_axis=axis, coordinate_system=definition["CoordSys"], angle_deg=definition["Angle"],
+                modal_combination=definition["ModalCombo"], directional_combination=definition["DirCombo"],
+                rigid_response=definition["RigidResp"], spectrum_function=definition["Function"],
+                acceleration_scale_m_s2=definition["TransAccSF"], eccentricity_ratio=definition["EccenRatio"],
+                accidental_torsion_status="DEFINED_NONZERO_CONTRIBUTIONS_UNBOUND" if eccentricity else "DEFINED_ZERO_APPLIED_EFFECT_UNPROVEN",
+                case_definition_sha256=_digest(definition))
+            period_by_mode = {}
+            for row in periods:
+                if row["Case"] != modal:
+                    continue
+                mode = _decimal(row["Mode"], positive=True)
+                if mode != mode.to_integral_value() or int(mode) in period_by_mode:
+                    raise ValueError("SPECTRAL_PERIOD_MODE_IDENTITY_INVALID")
+                period_by_mode[int(mode)] = _decimal(row["Period"], positive=True)
+            if set(period_by_mode) != set(case["expected_modes"]):
+                raise ValueError("SPECTRAL_PERIOD_MODE_POPULATION_CONFLICT")
+            selected = {}
+            duplicate = set()
+            for row in rows:
+                if row["SpecCase"] != name:
+                    continue
+                mode = _decimal(row["Mode"], positive=True)
+                if mode != mode.to_integral_value():
+                    raise ValueError("SPECTRAL_PARAMETER_MODE_IDENTITY_INVALID")
+                mode = int(mode)
+                if mode in selected:
+                    duplicate.add(mode)
+                selected[mode] = row
+            case["missing_modes"] = sorted(set(case["expected_modes"]) - set(selected))
+            case["unexpected_modes"] = sorted(set(selected) - set(case["expected_modes"]))
+            case["duplicate_modes"] = sorted(duplicate)
+            if case["missing_modes"] or case["unexpected_modes"] or duplicate:
+                case["reason_codes"].append("SPECTRAL_PARAMETER_MODE_POPULATION_CONFLICT")
+            for mode in case["expected_modes"]:
+                if mode not in selected or mode in duplicate:
+                    continue
+                row = selected[mode]
+                try:
+                    if row["ModalCase"] != modal or _decimal(row["Period"], positive=True) != period_by_mode[mode]:
+                        raise ValueError("SPECTRAL_PARAMETER_MODAL_CASE_OR_PERIOD_CONFLICT")
+                    damping = _decimal(row["DampRatio"])
+                    if not 0 <= damping <= 1:
+                        raise ValueError("SPECTRAL_PARAMETER_ACTIVE_DAMPING_INVALID")
+                    for direction in ("U1", "U2", "U3"):
+                        acceleration, amplitude = _decimal(row[direction + "Acc"]), _decimal(row[direction + "Amp"])
+                        if direction != axis and (acceleration != 0 or amplitude != 0):
+                            raise ValueError("SPECTRAL_PARAMETER_UNEXPECTED_AXIS_RESPONSE")
+                    case["mode_rows"].append({"mode": mode, "native_values": dict(row), "source_row_sha256": _digest(row)})
+                except (ValueError, KeyError, TypeError, ArithmeticError) as exc:
+                    case["reason_codes"].append(f"MODE_{mode}:{exc}")
+            case["bound_mode_count"] = len(case["mode_rows"])
+            if case["mode_rows"]:
+                damping = [_decimal(r["native_values"]["DampRatio"]) for r in case["mode_rows"]]
+                case.update(active_damping_min=str(min(damping)), active_damping_max=str(max(damping)))
+            case["status"] = "NATIVE_MODAL_PARAMETERS_BOUND" if not case["reason_codes"] else "SOURCE_PARTIAL"
+        except (ValueError, KeyError, TypeError, ArithmeticError) as exc:
+            case["reason_codes"].append(str(exc))
+    result["bound_case_count"] = sum(r["status"] == "NATIVE_MODAL_PARAMETERS_BOUND" for r in result["cases"])
+    result["bound_mode_rows"] = sum(r["bound_mode_count"] for r in result["cases"])
+    result["status"] = ("NATIVE_MODAL_PARAMETERS_BOUND" if result["bound_case_count"] == result["expected_case_count"] else "SOURCE_PARTIAL")
+    result["sha256"] = _digest(result)
+    return result
+
+
 def native_demand_source_evidence(source, axial, scope, *, input_sha):
     """Check every configured element-side cut in every independently expected mode."""
     from .column_pmm import _required_cut_coverage
@@ -141,6 +305,7 @@ def native_demand_source_evidence(source, axial, scope, *, input_sha):
                       reason_codes=result["reason_codes"] + [str(exc)])
         result["sha256"] = _digest(result)
         return result
+    result["spectral_modal_parameters"] = spectral_modal_parameters(source, plan)
     grids = (scope or {}).get("configured_output_cuts") or {}
     members = sorted({x["element_id"] for x in (scope or {}).get("instances", ())})
     result["expected_member_case_count"] = len(members) * len(plan["cases"])

@@ -17,65 +17,47 @@
     "publication_policy": "LOCAL_ONLY_UNTIL_EXPLICIT_GITHUB_CHECKPOINT_REQUEST"
   },
   "local_checkpoint": {
-    "status": "LOCAL_WORK_BRANCH_READY",
+    "status": "LOCAL_MODAL_SOURCE_BINDING_VERIFIED",
     "branch": "work/spectral-modal-source",
-    "implementation_checkpoint_commit": "60938da94b770631c6a5c34a545c8863162ac8a4",
-    "implementation_tree": "e7f90011df7b2986923d53fb6ff87de53727f47f",
-    "head_resolution": "git rev-parse HEAD; branch policy is checkpointed locally after the published baseline",
-    "tested_base_commit": "85e720d18683a71737c1919d32e393c9d903737b",
+    "integration_base_branch": "baseline/local_import",
+    "integration_base_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+    "tested_base_commit": "0f9437f9f3624c76690f559ecbf74a1f2343fcd3",
     "tests_ran_on_dirty_worktree": true,
-    "tested_manifest_path": "docs/context/TESTED_FILES_20261117.json",
-    "tested_manifest_sha256": "c49e60d4376f6ce12c0e50c0b5695700eca1a6c7e1210f10d530abd0d6d014b5",
-    "tested_manifest_entries": 401,
-    "same_raw_bytes_at_context_import": 400,
+    "head_resolution": "git rev-parse HEAD; local checkpoint commit includes this record after verification",
+    "tested_manifest_path": "docs/context/TESTED_FILES_MODAL_PARAMETERS_20261117.json",
+    "tested_manifest_sha256": "c1383dba3909dad76a2ef4d868ce27866db56d9a65c1df442942335117250369",
+    "tested_manifest_entries": 409,
+    "same_raw_bytes_before_documentation_update": 409,
     "document_only_post_test_changes": [
-      "docs/engineering/PIPELINE_UNIFICATION_20261115.md"
-    ],
-    "runtime_or_test_changes_during_context_import": false,
-    "line_endings": "Test manifest and method fingerprint bind raw Windows checkout bytes. Git stores normalized text; fresh checkouts must verify their own fingerprints. Staged files were compared after CRLF/LF normalization.",
-    "precommit_diff_sha256": "20e9e137db4d62d026ef4caf16a30e6c29d63a8912bd40b6ec428ff36f5afd0c",
-    "changed_paths_preserved": [
+      "docs/CURRENT_STATE.md",
+      "docs/ENGINEERING_GAPS.yaml",
+      "docs/VERIFICATION_LEDGER.json",
       "docs/engineering/PIPELINE_UNIFICATION_20261115.md",
-      "src/tbdy_next/basis_probe.py",
-      "src/tbdy_next/column_engine/spectral_envelope.py",
-      "src/tbdy_next/engineering/alpha_iteration.py",
-      "src/tbdy_next/engineering/column_axial.py",
-      "src/tbdy_next/engineering/design_scenario.py",
-      "src/tbdy_next/engineering/mixed_demands.py",
-      "src/tbdy_next/engineering/pipeline.py",
-      "src/tbdy_next/engineering/pipeline_snapshot.py",
-      "src/tbdy_next/etabs_source_gateway_windows.py",
-      "src/tbdy_next/frame_force_capture.py",
-      "src/tbdy_next/history.py",
-      "src/tbdy_next/reporting.py",
-      "tests/test_column_axial_live.py",
-      "tools/test_installed_wheel.py",
-      "src/tbdy_next/engineering/demand_sources.py",
-      "tests/test_native_demand_sources.py",
-      "tests/test_same_source_spectral_replay.py"
+      "docs/context/TESTED_FILES_MODAL_PARAMETERS_20261117.json"
     ],
-    "untracked_code_preserved": [
-      "src/tbdy_next/engineering/demand_sources.py",
-      "tests/test_native_demand_sources.py",
-      "tests/test_same_source_spectral_replay.py"
+    "method": {
+      "python_implementation": "CPython",
+      "python_version": "3.12.10",
+      "package_sha256": "07cb453700ee00d5b8914290dcd53bd02031ed78de8b7e0e301967cf2fdcf8c0",
+      "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+      "file_count": 126,
+      "configuration_file_count": 9
+    },
+    "pipeline_method": "same-source-spectral-components.v4",
+    "latest_local_evidence_ids": [
+      "EV-LOCAL-MODAL-PARAMETERS",
+      "EV-LOCAL-MODAL-BINDING-AUDIT",
+      "EV-LOCAL-MODAL-REPORT",
+      "EV-LOCAL-MODAL-TESTS"
     ],
+    "private_proof_directory": ".receipts/verification/modal-parameters-final-20261117T185349Z",
+    "published": false,
+    "historical_context_bundle": "The exported ZIP and CONTEXT_VALIDATION_20261117.json still describe the published b255c303 baseline; neither was rewritten.",
     "unrelated_files_left_untracked": [
       ".idea/",
       "build.zip",
       "YENI_MASTER_HANDOFF_ENGINEERING_RECIPE_2026-11-14.md"
-    ],
-    "latest_local_evidence_ids": [
-      "EV-LOCAL-NATIVE",
-      "EV-LOCAL-SPECTRAL",
-      "EV-LOCAL-ORACLE",
-      "EV-LOCAL-REPORT",
-      "EV-LOCAL-TESTS"
-    ],
-    "new_engineering_tests_in_memory_operation": "NOT_RUN_CONTEXT_ONLY",
-    "remote_publication_receipt": "The existing ZIP manifest and private local-context-import-20261117/publication.json identify the published baseline, not this local work branch.",
-    "integration_base_branch": "baseline/local_import",
-    "branch_start_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
-    "runtime_changes_during_branch_setup": false
+    ]
   },
   "last_observed_remote_implementation": {
     "branch": "audit/pipeline-pmm-v6-20261117",
@@ -154,11 +136,17 @@
       "in_public_repo": false,
       "relationship": "Distinct capture; do not join identity-free rows from the old archive or separate native bank.",
       "limitations": [
-        "Response Spectrum Modal Info has metadata but no captured rows.",
-        "Active per-mode damping and accidental-torsion contribution lineage are not qualified.",
+        "The initial unselected modal table read failed; the existing selected-case table contains 200 rows, now bound in the v4 demand artifact.",
+        "Native modal display precision, accidental-torsion contributions and modal/directional aggregation remain unqualified.",
         "Configured required cut subset is not a full independent physical-cut census.",
         "Model lock is not analysis-generation proof."
-      ]
+      ],
+      "source_limit_correction": {
+        "previous_claim": "Response Spectrum Modal Info has metadata but no captured rows.",
+        "corrected_scope": "The initial unselected read failed. The same accepted source already held 200 rows under vs04_diaphragm_probe.spectrum_modal_selected_cases. Source bytes were not changed.",
+        "supersedes": "Only the source-absence assertion in the earlier v3 handoff, not its arithmetic results or logs.",
+        "evidence_ref": "EV-LOCAL-MODAL-PARAMETERS"
+      }
     }
   ],
   "records": [
@@ -917,6 +905,501 @@
       "main_merge": false,
       "force_push": false,
       "historical_validation_scope": "CONTEXT_VALIDATION_20261117.json and the exported ZIP are retained for b255c3030c09c88a17bbec766fc2bb22682ad027 only."
+    },
+    {
+      "observed_at": "2026-11-17T19:03:15.137496+00:00",
+      "tested_base_commit": "0f9437f9f3624c76690f559ecbf74a1f2343fcd3",
+      "work_branch": "work/spectral-modal-source",
+      "dirty_worktree_at_execution": true,
+      "tested_method": {
+        "python_implementation": "CPython",
+        "python_version": "3.12.10",
+        "package_sha256": "07cb453700ee00d5b8914290dcd53bd02031ed78de8b7e0e301967cf2fdcf8c0",
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 126,
+        "configuration_file_count": 9
+      },
+      "environment": {
+        "os": "Windows-11-10.0.26200-SP0",
+        "python": "3.12.10",
+        "node": "v24.22.1"
+      },
+      "tested_file_manifest": "docs/context/TESTED_FILES_MODAL_PARAMETERS_20261117.json",
+      "tested_file_manifest_sha256": "c1383dba3909dad76a2ef4d868ce27866db56d9a65c1df442942335117250369",
+      "source_id": "SRC-LIVE-NATIVE-ALL-MODES",
+      "source_sha256": "8b4851511cdcae04734866924bbacb079f9e7903a01d6c7a9b2bd8ebcd32a311",
+      "run_id": "RUN-808308d1a3e54129b9612b5f0920b92a",
+      "results_sha256": "e831cd7cd9ee28279b1eefa62a291584bb4ace131f6db32f6cea107489dd1469",
+      "engineering_release_granted": false,
+      "new_live_etabs_capture": false,
+      "git_push": false,
+      "public_reference_paths": [
+        "docs/engineering/PIPELINE_UNIFICATION_20261115.md",
+        "docs/CURRENT_STATE.md"
+      ],
+      "id": "EV-LOCAL-MODAL-PARAMETERS",
+      "status": "NATIVE_MODAL_PARAMETERS_BOUND",
+      "scope": "Bind the existing same-acquisition selected-case modal table to the existing mixed-demand-components stage; no new capture, solver or stage.",
+      "pipeline_method": "same-source-spectral-components.v4",
+      "result": {
+        "case_count": 2,
+        "case_mode_rows": 200,
+        "exact_native_numeric_fields": 1600,
+        "independent_period_matches": 200,
+        "mismatches": 0,
+        "cases": [
+          {
+            "case": "RSX",
+            "axis": "U1",
+            "mode_count": 100,
+            "active_damping_min": "0.05",
+            "active_damping_max": "0.05"
+          },
+          {
+            "case": "RSY",
+            "axis": "U2",
+            "mode_count": 100,
+            "active_damping_min": "0.05",
+            "active_damping_max": "0.05"
+          }
+        ]
+      },
+      "parameter_artifact_sha256": "4498f3193e8a86588e17d9288419570c8341a3f3ee7dfafff660a44c89a132f0",
+      "correction": {
+        "previous_claim": "Response Spectrum Modal Info has metadata but no captured rows.",
+        "corrected_scope": "The initial unselected read failed. The same accepted source already held 200 rows under vs04_diaphragm_probe.spectrum_modal_selected_cases. Source bytes were not changed.",
+        "supersedes": "Only the source-absence assertion in the earlier v3 handoff, not its arithmetic results or logs.",
+        "evidence_ref": "EV-LOCAL-MODAL-PARAMETERS"
+      },
+      "commands": [
+        [
+          "<repo>\\.venv\\Scripts\\python.exe",
+          "-B",
+          "-m",
+          "tbdy_next.cli",
+          "run-pipeline",
+          "--source",
+          ".receipts/RUN-14ac327ed55f46f6b45a74c29030a07f/input.source",
+          "--case",
+          "Modal",
+          "--out",
+          ".receipts"
+        ]
+      ],
+      "private_artifacts": [
+        {
+          "private_path": ".receipts/verification/modal-parameters-final-20261117T185349Z/final-summary.json",
+          "sha256": "ca4b36dbd2f29876514749d84549e76e511afd932ab16cab2110dfa75b73fa42"
+        },
+        {
+          "private_path": ".receipts/verification/modal-parameters-final-20261117T185349Z/replay-commands.json",
+          "sha256": "497c8398f3eb88f3281fc3585c014b1604805630de2902c22d245946bf8e34a4"
+        },
+        {
+          "private_path": ".receipts/verification/modal-parameters-final-20261117T185349Z/replay.log",
+          "sha256": "777af25cc8033fd812c83dd2735867b8f431654b37aed6364548d10f0737ac64"
+        }
+      ],
+      "limits": [
+        "Native display precision retained; full precision is not qualified.",
+        "Defined eccentricity is not bound accidental-torsion output.",
+        "No modal-force reconstruction, concurrency, SCWB/alpha authority or normative closure."
+      ]
+    },
+    {
+      "observed_at": "2026-11-17T19:03:15.137496+00:00",
+      "tested_base_commit": "0f9437f9f3624c76690f559ecbf74a1f2343fcd3",
+      "work_branch": "work/spectral-modal-source",
+      "dirty_worktree_at_execution": true,
+      "tested_method": {
+        "python_implementation": "CPython",
+        "python_version": "3.12.10",
+        "package_sha256": "07cb453700ee00d5b8914290dcd53bd02031ed78de8b7e0e301967cf2fdcf8c0",
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 126,
+        "configuration_file_count": 9
+      },
+      "environment": {
+        "os": "Windows-11-10.0.26200-SP0",
+        "python": "3.12.10",
+        "node": "v24.22.1"
+      },
+      "tested_file_manifest": "docs/context/TESTED_FILES_MODAL_PARAMETERS_20261117.json",
+      "tested_file_manifest_sha256": "c1383dba3909dad76a2ef4d868ce27866db56d9a65c1df442942335117250369",
+      "source_id": "SRC-LIVE-NATIVE-ALL-MODES",
+      "source_sha256": "8b4851511cdcae04734866924bbacb079f9e7903a01d6c7a9b2bd8ebcd32a311",
+      "run_id": "RUN-808308d1a3e54129b9612b5f0920b92a",
+      "results_sha256": "e831cd7cd9ee28279b1eefa62a291584bb4ace131f6db32f6cea107489dd1469",
+      "engineering_release_granted": false,
+      "new_live_etabs_capture": false,
+      "git_push": false,
+      "public_reference_paths": [
+        "docs/engineering/PIPELINE_UNIFICATION_20261115.md",
+        "docs/CURRENT_STATE.md"
+      ],
+      "id": "EV-LOCAL-MODAL-BINDING-AUDIT",
+      "status": "EXACT_SOURCE_BINDING_MATCH",
+      "scope": "Independent direct source-to-sealed-result identity/field audit with no application imports; not a CQC arithmetic oracle.",
+      "result": {
+        "scope": "Independent binding/identity audit; not modal-force reconstruction or CQC arithmetic",
+        "command": [
+          "<repo>\\.venv\\Scripts\\python.exe",
+          "-B",
+          "<repo>\\.receipts\\verification\\modal-parameters-final-20261117T185349Z\\independent_binding_audit.py"
+        ],
+        "cwd": "<repo>",
+        "audit_file_sha256": "ea9536e82bd713d9b7d7386c683eb9846bc4d803833ccdc62c9d9dd6338f52cd",
+        "run_id": "RUN-808308d1a3e54129b9612b5f0920b92a",
+        "source_sha256": "8b4851511cdcae04734866924bbacb079f9e7903a01d6c7a9b2bd8ebcd32a311",
+        "results_sha256": "e831cd7cd9ee28279b1eefa62a291584bb4ace131f6db32f6cea107489dd1469",
+        "case_count": 2,
+        "case_mode_rows": 200,
+        "exact_native_numeric_fields": 1600,
+        "independent_period_matches": 200,
+        "mismatches": 0,
+        "cases": [
+          {
+            "case": "RSX",
+            "axis": "U1",
+            "mode_count": 100,
+            "active_damping_min": "0.05",
+            "active_damping_max": "0.05"
+          },
+          {
+            "case": "RSY",
+            "axis": "U2",
+            "mode_count": 100,
+            "active_damping_min": "0.05",
+            "active_damping_max": "0.05"
+          }
+        ],
+        "initial_failed_read_preserved": true,
+        "same_source_unchanged": true,
+        "mixed_component_artifact_unchanged": true,
+        "force_coverage_rows_unchanged": true,
+        "full_precision_proven": false,
+        "modal_reconstruction_qualified": false,
+        "engineering_release": "NOT_READY"
+      },
+      "commands": [
+        [
+          "<repo>\\.venv\\Scripts\\python.exe",
+          "-B",
+          "<repo>\\.receipts\\verification\\modal-parameters-final-20261117T185349Z\\independent_binding_audit.py"
+        ]
+      ],
+      "private_artifacts": [
+        {
+          "private_path": ".receipts/verification/modal-parameters-final-20261117T185349Z/independent_binding_audit.py",
+          "sha256": "ea9536e82bd713d9b7d7386c683eb9846bc4d803833ccdc62c9d9dd6338f52cd"
+        },
+        {
+          "private_path": ".receipts/verification/modal-parameters-final-20261117T185349Z/independent-binding.json",
+          "sha256": "8b6e29f1b7adbbe1691ffa0a6a8f5aeec5c5a994b2a02bc39ad2f1358dab8de3"
+        }
+      ],
+      "limits": [
+        "1600 native numeric-field matches and 200 period matches are source binding evidence, not force reconstruction.",
+        "Previous mixed-component and force-coverage artifacts are unchanged; previous independent arithmetic is not relabeled as a new execution."
+      ]
+    },
+    {
+      "observed_at": "2026-11-17T19:03:15.137496+00:00",
+      "tested_base_commit": "0f9437f9f3624c76690f559ecbf74a1f2343fcd3",
+      "work_branch": "work/spectral-modal-source",
+      "dirty_worktree_at_execution": true,
+      "tested_method": {
+        "python_implementation": "CPython",
+        "python_version": "3.12.10",
+        "package_sha256": "07cb453700ee00d5b8914290dcd53bd02031ed78de8b7e0e301967cf2fdcf8c0",
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 126,
+        "configuration_file_count": 9
+      },
+      "environment": {
+        "os": "Windows-11-10.0.26200-SP0",
+        "python": "3.12.10",
+        "node": "v24.22.1"
+      },
+      "tested_file_manifest": "docs/context/TESTED_FILES_MODAL_PARAMETERS_20261117.json",
+      "tested_file_manifest_sha256": "c1383dba3909dad76a2ef4d868ce27866db56d9a65c1df442942335117250369",
+      "source_id": "SRC-LIVE-NATIVE-ALL-MODES",
+      "source_sha256": "8b4851511cdcae04734866924bbacb079f9e7903a01d6c7a9b2bd8ebcd32a311",
+      "run_id": "RUN-808308d1a3e54129b9612b5f0920b92a",
+      "results_sha256": "e831cd7cd9ee28279b1eefa62a291584bb4ace131f6db32f6cea107489dd1469",
+      "engineering_release_granted": false,
+      "new_live_etabs_capture": false,
+      "git_push": false,
+      "public_reference_paths": [
+        "docs/engineering/PIPELINE_UNIFICATION_20261115.md",
+        "docs/CURRENT_STATE.md"
+      ],
+      "id": "EV-LOCAL-MODAL-REPORT",
+      "status": "SEALED_PROJECTION_AND_REPEAT_MATCH",
+      "scope": "Existing report and HTTP owners project sealed results with 22 calculation entry points disabled; repeat uses existing CLI.",
+      "result": {
+        "command": [
+          "<repo>\\.venv\\Scripts\\python.exe",
+          "-B",
+          "<repo>\\.receipts\\verification\\modal-parameters-final-20261117T185349Z\\verify_report_projection.py"
+        ],
+        "cwd": "<repo>",
+        "run_id": "RUN-808308d1a3e54129b9612b5f0920b92a",
+        "results_sha256": "e831cd7cd9ee28279b1eefa62a291584bb4ace131f6db32f6cea107489dd1469",
+        "method": "same-source-spectral-components.v4",
+        "disabled_calculators": {
+          "tbdy_next.engineering.pipeline.run_source_pipeline": 0,
+          "tbdy_next.engineering.pipeline.derive_report_evidence": 0,
+          "tbdy_next.engineering.column_pmm.evaluate_column_pmm": 0,
+          "tbdy_next.engineering.column_axial.evaluate_column_axial": 0,
+          "tbdy_next.engineering.column_r10_live.project_column_r10_live": 0,
+          "tbdy_next.engineering.column_r08_local_live.project_column_r08_local_live": 0,
+          "tbdy_next.engineering.beam_r10_live.project_beam_r10_live": 0,
+          "tbdy_next.engineering.mixed_demands.spectral_component_evidence": 0,
+          "tbdy_next.engineering.mixed_demands.earthquake_partition": 0,
+          "tbdy_next.engineering.alpha_iteration.run_alpha_design_iteration": 0,
+          "tbdy_next.engineering.alpha_iteration.qualify_story_alpha": 0,
+          "tbdy_next.engineering.alpha_iteration.build_demand_revision": 0,
+          "tbdy_next.b1_source_bridge.evaluate_b1_sources": 0,
+          "tbdy_next.soft_story_b2.bind_soft_story_b2": 0,
+          "tbdy_next.column_engine.section_capacity.solver": 0,
+          "tbdy_next.reporting._build_legacy_report": 0,
+          "tbdy_next.quick_checks.evaluate_geometry_capture": 0,
+          "tbdy_next.engineering.demand_sources.native_demand_source_evidence": 0,
+          "tbdy_next.reporting.evaluate_geometry_capture": 0,
+          "tbdy_next.engineering.pipeline.EnginePipelineRunner.run": 0,
+          "tbdy_next.column_engine.spectral_envelope.replay_component_envelope": 0,
+          "tbdy_next.engineering.demand_sources.spectral_modal_parameters": 0
+        },
+        "calculator_call_count": 0,
+        "live_capture_calls": 0,
+        "native_modal_projection_equal": true,
+        "mixed_projection_equal": true,
+        "http_json_equal": true,
+        "http_html_equal": true,
+        "http_scope": "Temporary localhost server using the existing web.make_handler; closed after verification",
+        "user_server_8876": "NOT_RUNNING_CONNECTION_REFUSED",
+        "html_bytes": 1475653,
+        "html_sha256": "ba6a14678395d7bc7932084647cb4a9e472d317345032925aba03f0cda9ea5d3",
+        "engineering_release": "NOT_READY"
+      },
+      "repeat": {
+        "reference_stages": 16,
+        "current_stages": 16,
+        "mismatched_stages": [],
+        "missing_stages": [],
+        "extra_stages": [],
+        "source_identical": true,
+        "sealed_stage_coverage": true,
+        "comparison_scope": "PIPELINE_RESULTS_REPORT_EVIDENCE_AND_ALL_RECORDED_RECEIPTS",
+        "status": "IDENTICAL"
+      },
+      "repeat_run_id": "RUN-57c3e232233f4b80b260b54438b6a28e",
+      "commands": [
+        [
+          "<repo>\\.venv\\Scripts\\python.exe",
+          "-B",
+          "<repo>\\.receipts\\verification\\modal-parameters-final-20261117T185349Z\\verify_report_projection.py"
+        ],
+        [
+          "<repo>\\.venv\\Scripts\\python.exe",
+          "-B",
+          "-m",
+          "tbdy_next.cli",
+          "run-pipeline",
+          "--source",
+          ".receipts\\RUN-808308d1a3e54129b9612b5f0920b92a\\input.source",
+          "--case",
+          "Modal",
+          "--out",
+          "<repo>\\.receipts\\verification\\modal-parameters-final-20261117T185349Z\\repeat",
+          "--compare-run",
+          ".receipts\\RUN-808308d1a3e54129b9612b5f0920b92a"
+        ]
+      ],
+      "private_artifacts": [
+        {
+          "private_path": ".receipts/verification/modal-parameters-final-20261117T185349Z/verify_report_projection.py",
+          "sha256": "9704efb626662bfce8685086bffda94d07f8a0fd83c3c080bd7471fd7561ea89"
+        },
+        {
+          "private_path": ".receipts/verification/modal-parameters-final-20261117T185349Z/report-projection.json",
+          "sha256": "e5e6df1df03a7a92781bbc43dda2e2c8dcb3029cd5fc0891af65278a60b02c2d"
+        },
+        {
+          "private_path": ".receipts/verification/modal-parameters-final-20261117T185349Z/engineering-report.html",
+          "sha256": "ba6a14678395d7bc7932084647cb4a9e472d317345032925aba03f0cda9ea5d3"
+        },
+        {
+          "private_path": ".receipts/verification/modal-parameters-final-20261117T185349Z/repeat-commands.json",
+          "sha256": "7039de2981dc3461f8bfec77705b7cddf5b00b1221b84234bfaf88eb204a9a3b"
+        },
+        {
+          "private_path": ".receipts/verification/modal-parameters-final-20261117T185349Z/repeat.log",
+          "sha256": "32a25b4e152099eed663d97904d902f66411b0eae8a343d57d11989f7da943a7"
+        }
+      ],
+      "limits": [
+        "HTTP verification used a temporary localhost server with the production web.make_handler and no live capture; it was closed afterward.",
+        "The user server on port 8876 was not running at observation; no restart or live ETABS acceptance is claimed."
+      ]
+    },
+    {
+      "observed_at": "2026-11-17T19:03:15.137496+00:00",
+      "tested_base_commit": "0f9437f9f3624c76690f559ecbf74a1f2343fcd3",
+      "work_branch": "work/spectral-modal-source",
+      "dirty_worktree_at_execution": true,
+      "tested_method": {
+        "python_implementation": "CPython",
+        "python_version": "3.12.10",
+        "package_sha256": "07cb453700ee00d5b8914290dcd53bd02031ed78de8b7e0e301967cf2fdcf8c0",
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 126,
+        "configuration_file_count": 9
+      },
+      "environment": {
+        "os": "Windows-11-10.0.26200-SP0",
+        "python": "3.12.10",
+        "node": "v24.22.1"
+      },
+      "tested_file_manifest": "docs/context/TESTED_FILES_MODAL_PARAMETERS_20261117.json",
+      "tested_file_manifest_sha256": "c1383dba3909dad76a2ef4d868ce27866db56d9a65c1df442942335117250369",
+      "source_id": "SRC-LIVE-NATIVE-ALL-MODES",
+      "source_sha256": "8b4851511cdcae04734866924bbacb079f9e7903a01d6c7a9b2bd8ebcd32a311",
+      "run_id": "RUN-808308d1a3e54129b9612b5f0920b92a",
+      "results_sha256": "e831cd7cd9ee28279b1eefa62a291584bb4ace131f6db32f6cea107489dd1469",
+      "engineering_release_granted": false,
+      "new_live_etabs_capture": false,
+      "git_push": false,
+      "public_reference_paths": [
+        "docs/engineering/PIPELINE_UNIFICATION_20261115.md",
+        "docs/CURRENT_STATE.md"
+      ],
+      "id": "EV-LOCAL-MODAL-TESTS",
+      "status": "SOFTWARE_REGRESSIONS_PASS",
+      "scope": "Actual Windows regression on the recorded dirty worktree and its clean tracked-file wheel build.",
+      "result": {
+        "focused": 143,
+        "python": 1368,
+        "python_skipped": 1,
+        "skip_reason": "OS disallows creating symlinks",
+        "javascript_files": 10,
+        "installed_wheel": 202,
+        "result": "PASS",
+        "new_modal_parameter_tests": 21
+      },
+      "initial_sandbox_attempts": {
+        "focused_errors": 14,
+        "offline_errors": 177,
+        "offline_skipped": 1,
+        "wheel_errors": 2,
+        "cause": "Local HTTP socket access denied before network permission; original logs retained",
+        "resolution": "Granted network access; all suites rerun without source/test changes; successful logs carry network-enabled suffix"
+      },
+      "wheel": {
+        "filename": "tbdy_next_engine-0.1.0-py3-none-any.whl",
+        "sha256": "ca1b5b220e41fbc22108f069a59f0d4a6d95c4b20a67989206c7bd9909a47988",
+        "source": "Clean tracked-file copy made before verification"
+      },
+      "commands": {
+        "focused-network-enabled": [
+          [
+            "<repo>\\.venv\\Scripts\\python.exe",
+            "-B",
+            "-m",
+            "unittest",
+            "test_native_demand_sources",
+            "test_same_source_spectral_replay",
+            "test_mixed_design_demands",
+            "test_pipeline_unification",
+            "test_vs04g_probe",
+            "test_vs04h_linkage",
+            "test_report_export",
+            "-q"
+          ]
+        ],
+        "offline-network-enabled": [
+          [
+            "<repo>\\.venv\\Scripts\\python.exe",
+            "-B",
+            "tools/test_offline.py"
+          ]
+        ],
+        "wheel": [
+          [
+            "<repo>\\.venv\\Scripts\\python.exe",
+            "-m",
+            "pip",
+            "wheel",
+            "--no-build-isolation",
+            "--disable-pip-version-check",
+            "--no-deps",
+            "--wheel-dir",
+            "<repo>\\.receipts\\verification\\modal-parameters-final-20261117T185349Z\\wheel",
+            "<repo>\\.receipts\\verification\\modal-parameters-final-20261117T185349Z\\wheel-source"
+          ],
+          [
+            "<repo>\\.venv\\Scripts\\python.exe",
+            "-B",
+            "tools/test_installed_wheel.py",
+            "<repo>\\.receipts\\verification\\modal-parameters-final-20261117T185349Z\\wheel"
+          ]
+        ],
+        "wheel-check-network-enabled": [
+          [
+            "<repo>\\.venv\\Scripts\\python.exe",
+            "-B",
+            "tools/test_installed_wheel.py",
+            "<repo>\\.receipts\\verification\\modal-parameters-final-20261117T185349Z\\wheel"
+          ]
+        ]
+      },
+      "private_artifacts": [
+        {
+          "private_path": ".receipts/verification/modal-parameters-final-20261117T185349Z/environment.json",
+          "sha256": "8a317962693e72a8b5a828b67493d9542fadb497e822f75a003e040b5996994d"
+        },
+        {
+          "private_path": ".receipts/verification/modal-parameters-final-20261117T185349Z/tested-files.json",
+          "sha256": "c1383dba3909dad76a2ef4d868ce27866db56d9a65c1df442942335117250369"
+        },
+        {
+          "private_path": ".receipts/verification/modal-parameters-final-20261117T185349Z/working-tree.patch",
+          "sha256": "f32111e7a66086072abd3c4d5e017965872073bf48ce4b8f43b49b8560a1803f"
+        },
+        {
+          "private_path": ".receipts/verification/modal-parameters-final-20261117T185349Z/focused-network-enabled.log",
+          "sha256": "baededad5f4677e3f61795b4599853dd41417ddb31e983a339f961a8f2c6848e"
+        },
+        {
+          "private_path": ".receipts/verification/modal-parameters-final-20261117T185349Z/offline-network-enabled.log",
+          "sha256": "b57f174b14d2de81f9cc4b8d2034fc51037db14bdec4e41d930a0d008d95cbd4"
+        },
+        {
+          "private_path": ".receipts/verification/modal-parameters-final-20261117T185349Z/wheel.log",
+          "sha256": "be6ac8f0d33736fb5341673a184b2c907aac346aa53334ca029489b3286388e9"
+        },
+        {
+          "private_path": ".receipts/verification/modal-parameters-final-20261117T185349Z/wheel-check-network-enabled.log",
+          "sha256": "49f0ebe0586a8547a754ca0411b53b9cb9275a3e07bd96ad9233a18e0157cdb0"
+        },
+        {
+          "private_path": ".receipts/verification/modal-parameters-final-20261117T185349Z/focused.log",
+          "sha256": "139534f022e9809b9fd4543d74754c74a54deae079798ce3c05a33a978813bf1"
+        },
+        {
+          "private_path": ".receipts/verification/modal-parameters-final-20261117T185349Z/offline.log",
+          "sha256": "9be54e6d6fde45a53b589cf58a166efa3d92a5a77011f80dee94ee9753720df8"
+        },
+        {
+          "private_path": ".receipts/verification/modal-parameters-final-20261117T185349Z/final-summary.json",
+          "sha256": "ca4b36dbd2f29876514749d84549e76e511afd932ab16cab2110dfa75b73fa42"
+        }
+      ],
+      "limits": [
+        "One OS symlink skip. Focused/wheel/new tests are subsets, not extra engineering CHECKs.",
+        "No GitHub CI executed or claimed. Existing R14/R15 0 closed / 87 partial and NOT_READY remain."
+      ]
     }
   ],
   "new_record_template": {
@@ -941,7 +1424,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-17T18:41:24.247530+00:00",
+  "updated_at_utc": "2026-11-17T19:03:15.137496+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -962,5 +1445,66 @@
       "EV-GOLDEN"
     ],
     "historical_provenance_scope": "All imported records describe their original delivery/memory session. GITHUB_JOBS_RECHECKED_DURING_MEMORY_SETUP in EV-D3B-CI refers to that prior session, not this local import."
+  },
+  "previous_local_checkpoint": {
+    "status": "LOCAL_WORK_BRANCH_READY",
+    "branch": "work/spectral-modal-source",
+    "implementation_checkpoint_commit": "60938da94b770631c6a5c34a545c8863162ac8a4",
+    "implementation_tree": "e7f90011df7b2986923d53fb6ff87de53727f47f",
+    "head_resolution": "git rev-parse HEAD; branch policy is checkpointed locally after the published baseline",
+    "tested_base_commit": "85e720d18683a71737c1919d32e393c9d903737b",
+    "tests_ran_on_dirty_worktree": true,
+    "tested_manifest_path": "docs/context/TESTED_FILES_20261117.json",
+    "tested_manifest_sha256": "c49e60d4376f6ce12c0e50c0b5695700eca1a6c7e1210f10d530abd0d6d014b5",
+    "tested_manifest_entries": 401,
+    "same_raw_bytes_at_context_import": 400,
+    "document_only_post_test_changes": [
+      "docs/engineering/PIPELINE_UNIFICATION_20261115.md"
+    ],
+    "runtime_or_test_changes_during_context_import": false,
+    "line_endings": "Test manifest and method fingerprint bind raw Windows checkout bytes. Git stores normalized text; fresh checkouts must verify their own fingerprints. Staged files were compared after CRLF/LF normalization.",
+    "precommit_diff_sha256": "20e9e137db4d62d026ef4caf16a30e6c29d63a8912bd40b6ec428ff36f5afd0c",
+    "changed_paths_preserved": [
+      "docs/engineering/PIPELINE_UNIFICATION_20261115.md",
+      "src/tbdy_next/basis_probe.py",
+      "src/tbdy_next/column_engine/spectral_envelope.py",
+      "src/tbdy_next/engineering/alpha_iteration.py",
+      "src/tbdy_next/engineering/column_axial.py",
+      "src/tbdy_next/engineering/design_scenario.py",
+      "src/tbdy_next/engineering/mixed_demands.py",
+      "src/tbdy_next/engineering/pipeline.py",
+      "src/tbdy_next/engineering/pipeline_snapshot.py",
+      "src/tbdy_next/etabs_source_gateway_windows.py",
+      "src/tbdy_next/frame_force_capture.py",
+      "src/tbdy_next/history.py",
+      "src/tbdy_next/reporting.py",
+      "tests/test_column_axial_live.py",
+      "tools/test_installed_wheel.py",
+      "src/tbdy_next/engineering/demand_sources.py",
+      "tests/test_native_demand_sources.py",
+      "tests/test_same_source_spectral_replay.py"
+    ],
+    "untracked_code_preserved": [
+      "src/tbdy_next/engineering/demand_sources.py",
+      "tests/test_native_demand_sources.py",
+      "tests/test_same_source_spectral_replay.py"
+    ],
+    "unrelated_files_left_untracked": [
+      ".idea/",
+      "build.zip",
+      "YENI_MASTER_HANDOFF_ENGINEERING_RECIPE_2026-11-14.md"
+    ],
+    "latest_local_evidence_ids": [
+      "EV-LOCAL-NATIVE",
+      "EV-LOCAL-SPECTRAL",
+      "EV-LOCAL-ORACLE",
+      "EV-LOCAL-REPORT",
+      "EV-LOCAL-TESTS"
+    ],
+    "new_engineering_tests_in_memory_operation": "NOT_RUN_CONTEXT_ONLY",
+    "remote_publication_receipt": "The existing ZIP manifest and private local-context-import-20261117/publication.json identify the published baseline, not this local work branch.",
+    "integration_base_branch": "baseline/local_import",
+    "branch_start_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+    "runtime_changes_during_branch_setup": false
   }
 }

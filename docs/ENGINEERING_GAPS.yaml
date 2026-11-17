@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-17T18:28:52.048097+00:00",
+  "updated_at_utc": "2026-11-17T19:03:15.137496+00:00",
   "repository": "feridunfc/YENI",
   "baseline_implementation_commit": "60938da94b770631c6a5c34a545c8863162ac8a4",
   "local_reconciled": true,
-  "scope_note": "18 stable historical GAP IDs. Narrow verified scopes are preserved; no complete normative GAP was newly closed by the memory/branch operation.",
+  "scope_note": "18 stable GAP IDs. Existing selected-case modal parameter binding is verified; no full normative GAP is newly closed.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -27,7 +27,7 @@
     "GAP-013",
     "GAP-016"
   ],
-  "active_task": "SPECTRAL-MODAL-SOURCE-QUALIFICATION",
+  "active_task": "SPECTRAL-MODAL-PRECISION-AND-TORSION-QUALIFICATION",
   "gaps": [
     {
       "id": "GAP-001",
@@ -281,7 +281,8 @@
         "EV-D2",
         "EV-D3",
         "EV-D3B-REPLAY",
-        "EV-LOCAL-SPECTRAL"
+        "EV-LOCAL-SPECTRAL",
+        "EV-LOCAL-MODAL-PARAMETERS"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false
@@ -325,7 +326,7 @@
       "title": "Golden coverage and complete independent example",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Historical 467-fixture bank, 10 alpha targets and 115776 separate-bank scalar comparisons are retained; new same-source oracle matches 38592 native comparisons and 45024 derived values.",
+      "achieved_scope": "Historical 467-fixture bank, 10 alpha targets and 115776 separate-bank scalar comparisons are retained; new same-source oracle matches 38592 native comparisons and 45024 derived values. A separate source-binding audit matches 1600 native modal fields and 200 periods; this is not a new building arithmetic oracle.",
       "blocker": "44 production golden records are not a complete mapping of 467. Positive iteration fixtures and scalar arithmetic are not a complete independent building oracle.",
       "closure_criteria": "Run the production owner on a complete independent example with inputs, intermediate values, tolerances, identities and a sealed result chain.",
       "owner_paths": [
@@ -337,7 +338,9 @@
         "EV-ALPHA-GOLDEN",
         "EV-BANK-ARITHMETIC",
         "EV-LOCAL-ORACLE",
-        "EV-LOCAL-TESTS"
+        "EV-LOCAL-TESTS",
+        "EV-LOCAL-MODAL-BINDING-AUDIT",
+        "EV-LOCAL-MODAL-TESTS"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false
@@ -369,9 +372,9 @@
       "title": "Spectral design demands and simultaneity",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "100-mode supporting force coverage and same-source primitive-to-combination intervals are verified for 696 pairs / 3216 cuts, with independent scalar agreement.",
-      "blocker": "Native modal amplitudes, active damping and accidental-torsion contributions are unqualified. Modal/directional combination, governing Nd and story-shear allocation lack common normative acceptance.",
-      "closure_criteria": "Bind amplitude/damping/torsion sources through the existing gateway; independently verify modal/directional aggregation before SCWB/alpha consumption and then accept a complete example. Never label scalar intervals as simultaneous vectors.",
+      "achieved_scope": "Existing 100-mode supporting force coverage and same-source scalar replay remain verified. Existing selected-case amplitudes/active damping are now bound: 2 cases x 100 modes; 1600 exact native numeric fields and 200 independent period matches.",
+      "blocker": "Native displayed modal precision is not qualified for force reconstruction. Applied accidental-torsion contributions, modal/directional aggregation, governing Nd and story-shear allocation still lack common acceptance.",
+      "closure_criteria": "Preserve the existing bound modal sources; qualify precision and accidental-torsion contributions through existing owners, then independently verify aggregation before SCWB/alpha consumption and a complete example. Never call scalar intervals simultaneous vectors.",
       "owner_paths": [
         "src/tbdy_next/engineering/demand_sources.py",
         "src/tbdy_next/engineering/mixed_demands.py",
@@ -386,7 +389,11 @@
         "EV-D3B-REPLAY",
         "EV-LOCAL-NATIVE",
         "EV-LOCAL-SPECTRAL",
-        "EV-LOCAL-ORACLE"
+        "EV-LOCAL-ORACLE",
+        "EV-LOCAL-MODAL-PARAMETERS",
+        "EV-LOCAL-MODAL-BINDING-AUDIT",
+        "EV-LOCAL-MODAL-REPORT",
+        "EV-LOCAL-MODAL-TESTS"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false

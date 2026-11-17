@@ -13,6 +13,7 @@ from tbdy_next.frame_force_capture import capture_frame_forces, ForceSelectionRe
 from tbdy_next.etabs_source_gateway_windows import DisplaySelectionRestoreError
 from tbdy_next.engineering.demand_sources import (
     SUPPORT_SCHEMA, demand_capture_plan, component_force_rows, native_demand_source_evidence,
+    spectral_modal_parameters,
 )
 from tbdy_next.engineering.mixed_demands import earthquake_partition, earthquake_row, native_load_patterns
 
@@ -341,6 +342,215 @@ class DemandCoverageContracts(unittest.TestCase):
         with patch('tbdy_next.engineering.demand_sources.native_demand_source_evidence',side_effect=AssertionError('recalculation')) as calc:
             html=_native_demand_sources_html(result)
         calc.assert_not_called(); self.assertNotIn('<script>',html); self.assertIn('&lt;script&gt;',html)
+
+
+def modal_parameter_fixture():
+    """Three independent modes and a renamed U2 case; no fixed 100/RSX assumptions."""
+    source, axial, scope = support_fixture()
+    def native_table(key, rows, units):
+        result = table(key, rows)
+        result['field_metadata'].update(field_count=len(result['fields']))
+        result['field_metadata']['units_by_field'].update(units)
+        return result
+    source['capture_metadata'] = {'vs04_same_session_capture': True}
+    source['vs04_basis_probe'].update(schema='tbdy.next.vs04e.basis-source-probe.v1',
+        read_only_invariant_proven=True, units_before=6, units_after=6,
+        display_cases_before=[], display_cases_after=[])
+    key = 'Load Case Definitions - Response Spectrum'
+    source['vs04_basis_probe']['table_reads'][key] = native_table(key, [{
+        'Name': 'RS', 'ModalCase': 'M', 'GUID': 'rs', 'LoadName': 'U2', 'CoordSys': 'Global',
+        'Angle': '0', 'Function': 'FUNC', 'TransAccSF': '10', 'ModalCombo': 'CQC',
+        'DirCombo': 'SRSS', 'RigidResp': 'No', 'EccenRatio': '0.05'}],
+        {'Angle': 'deg', 'TransAccSF': 'm/sec2'})
+    key = 'Modal Periods And Frequencies'
+    periods = ['1', '0.5', '0.25']
+    source['analysis_sources'].update(schema='tbdy.next.vs04.analysis-sources.v1',
+        display_selection_restored=True, units_before=6, units_after=6)
+    source['analysis_sources']['tables'][key] = native_table(key,
+        [{'Case': 'M', 'Mode': str(i+1), 'Period': p} for i,p in enumerate(periods)], {'Period':'sec'})
+    key = 'Response Spectrum Modal Info'
+    rows = [{'SpecCase': 'RS', 'ModalCase': 'M', 'Mode': str(i+1), 'Period': p,
+        'DampRatio': ['0.025', '0.05', '0.06'][i], 'U1Acc': '0', 'U2Acc': '1.2', 'U3Acc': '0',
+        'U1Amp': '0', 'U2Amp': ['0.123456', '-0.234567', '0'][i], 'U3Amp': '0'} for i,p in enumerate(periods)]
+    units = {'Period':'sec', **{a+'Acc':'m/sec2' for a in ('U1','U2','U3')},
+             **{a+'Amp':'m' for a in ('U1','U2','U3')}}
+    source['vs04_diaphragm_probe'] = {'schema':'tbdy.next.vs04g.diaphragm-modal-probe.v1',
+        'display_selection_restored':True, 'units_before':6, 'units_after':6,
+        'original_display_cases':[], 'temporary_display_cases':['RS'],
+        'spectrum_modal_original_selection': {'table_key': key, 'status':'CAPTURE_ERROR'},
+        'spectrum_modal_selected_cases':native_table(key, rows, units)}
+    return source, axial, scope
+
+
+class SpectralModalParameterTests(unittest.TestCase):
+    def bind(self, args):
+        return native_demand_source_evidence(*args, input_sha='source')['spectral_modal_parameters']
+
+    def test_existing_selected_capture_reconciles_unselected_failure_without_rewriting_source(self):
+        args=modal_parameter_fixture(); before=deepcopy(args[0]); result=self.bind(args)
+        self.assertEqual(result['status'],'NATIVE_MODAL_PARAMETERS_BOUND')
+        self.assertEqual((result['expected_mode_rows'],result['bound_mode_rows']),(3,3))
+        self.assertEqual(result['initial_unselected_read_status'],'CAPTURE_ERROR')
+        self.assertEqual(args[0],before)
+        self.assertEqual(result['cases'][0]['case_guid'],'rs')
+        self.assertEqual(result['cases'][0]['modal_case_guid'],'m')
+
+    def test_variable_native_damping_signed_amplitude_and_display_precision_are_preserved(self):
+        result=self.bind(modal_parameter_fixture()); case=result['cases'][0]
+        self.assertEqual((case['active_damping_min'],case['active_damping_max']),('0.025','0.06'))
+        self.assertEqual([r['native_values']['U2Amp'] for r in case['mode_rows']],['0.123456','-0.234567','0'])
+        self.assertEqual(case['active_axis'],'U2')
+        self.assertEqual(case['acceleration_scale_m_s2'],'10')
+        self.assertFalse(result['native_full_precision_proven'])
+
+    def test_modal_parameters_do_not_grant_torsion_or_alpha_or_concurrency_authority(self):
+        result=self.bind(modal_parameter_fixture())
+        self.assertEqual(result['cases'][0]['accidental_torsion_status'],'DEFINED_NONZERO_CONTRIBUTIONS_UNBOUND')
+        self.assertTrue(all(result[k] is False for k in ('spectral_alpha_authorized','physical_concurrency_proven','modal_superposition_qualified')))
+        self.assertEqual(result['engineering_release'],'NOT_READY')
+
+    def test_zero_eccentricity_definition_alone_does_not_prove_applied_torsion_absent(self):
+        args=modal_parameter_fixture()
+        args[0]['vs04_basis_probe']['table_reads']['Load Case Definitions - Response Spectrum']['rows'][0]['EccenRatio']='0'
+        self.assertEqual(self.bind(args)['cases'][0]['accidental_torsion_status'],'DEFINED_ZERO_APPLIED_EFFECT_UNPROVEN')
+
+    def test_missing_selected_table_does_not_fall_back_to_initial_read_or_lose_denominator(self):
+        args=modal_parameter_fixture(); probe=args[0]['vs04_diaphragm_probe']
+        probe['spectrum_modal_original_selection']=probe.pop('spectrum_modal_selected_cases')
+        result=self.bind(args)
+        self.assertEqual(result['status'],'BLOCKED_SOURCE')
+        self.assertEqual((result['expected_mode_rows'],result['bound_mode_rows']),(3,0))
+
+    def test_missing_modal_row_stays_in_expected_population(self):
+        args=modal_parameter_fixture(); t=args[0]['vs04_diaphragm_probe']['spectrum_modal_selected_cases']
+        t['rows'].pop(1);t['row_count']-=1
+        result=self.bind(args)
+        self.assertEqual((result['expected_mode_rows'],result['bound_mode_rows']),(3,2))
+        self.assertEqual(result['cases'][0]['missing_modes'],[2])
+        self.assertEqual(result['status'],'SOURCE_PARTIAL')
+
+    def test_duplicate_mode_is_not_silently_overwritten(self):
+        args=modal_parameter_fixture(); t=args[0]['vs04_diaphragm_probe']['spectrum_modal_selected_cases']
+        t['rows'].append(deepcopy(t['rows'][0]));t['row_count']+=1
+        result=self.bind(args)
+        self.assertEqual(result['cases'][0]['duplicate_modes'],[1])
+        self.assertEqual(result['bound_mode_rows'],2)
+        self.assertEqual(result['status'],'SOURCE_PARTIAL')
+
+    def test_unexpected_mode_never_expands_the_denominator(self):
+        args=modal_parameter_fixture(); t=args[0]['vs04_diaphragm_probe']['spectrum_modal_selected_cases']
+        t['rows'].append({**t['rows'][0],'Mode':'4'});t['row_count']+=1
+        result=self.bind(args)
+        self.assertEqual(result['expected_mode_rows'],3)
+        self.assertEqual(result['cases'][0]['unexpected_modes'],[4])
+        self.assertEqual(result['status'],'SOURCE_PARTIAL')
+
+    def test_modal_period_and_case_must_match_independent_inventory(self):
+        for field,value in [('Period','0.9'),('ModalCase','OTHER')]:
+            args=modal_parameter_fixture()
+            args[0]['vs04_diaphragm_probe']['spectrum_modal_selected_cases']['rows'][0][field]=value
+            result=self.bind(args)
+            with self.subTest(field=field):
+                self.assertEqual(result['bound_mode_rows'],2)
+                self.assertEqual(result['status'],'SOURCE_PARTIAL')
+
+    def test_case_guid_and_multicomponent_definition_are_not_guessed(self):
+        for defect in ('guid','multi','axis'):
+            args=modal_parameter_fixture(); t=args[0]['vs04_basis_probe']['table_reads']['Load Case Definitions - Response Spectrum']
+            if defect=='guid': t['rows'][0]['GUID']='another-capture'
+            elif defect=='axis': t['rows'][0]['LoadName']='X'
+            else: t['rows'].append(deepcopy(t['rows'][0]));t['row_count']+=1
+            with self.subTest(defect=defect): self.assertEqual(self.bind(args)['bound_mode_rows'],0)
+
+    def test_wrong_units_metadata_or_row_count_block_source(self):
+        for defect in ('amplitude','damping','count','metadata'):
+            args=modal_parameter_fixture(); t=args[0]['vs04_diaphragm_probe']['spectrum_modal_selected_cases']
+            if defect=='amplitude': t['field_metadata']['units_by_field']['U2Amp']='mm'
+            elif defect=='damping': t['field_metadata']['units_by_field']['DampRatio']='percent'
+            elif defect=='count': t['row_count']+=1
+            else: t['field_metadata']['status']='METADATA_ERROR'
+            with self.subTest(defect=defect): self.assertEqual(self.bind(args)['status'],'BLOCKED_SOURCE')
+
+    def test_nonfinite_numeric_fields_do_not_bind(self):
+        for field in ('Period','DampRatio','U1Acc','U2Acc','U3Acc','U1Amp','U2Amp','U3Amp'):
+            args=modal_parameter_fixture()
+            args[0]['vs04_diaphragm_probe']['spectrum_modal_selected_cases']['rows'][0][field]='NaN'
+            with self.subTest(field=field): self.assertEqual(self.bind(args)['bound_mode_rows'],2)
+
+    def test_out_of_range_active_damping_is_rejected(self):
+        for value in ('-0.01','1.01'):
+            args=modal_parameter_fixture()
+            args[0]['vs04_diaphragm_probe']['spectrum_modal_selected_cases']['rows'][0]['DampRatio']=value
+            with self.subTest(value=value): self.assertEqual(self.bind(args)['bound_mode_rows'],2)
+
+    def test_unexpected_inactive_direction_is_not_folded_into_active_axis(self):
+        for field in ('U1Acc','U3Amp'):
+            args=modal_parameter_fixture()
+            args[0]['vs04_diaphragm_probe']['spectrum_modal_selected_cases']['rows'][0][field]='0.2'
+            with self.subTest(field=field): self.assertEqual(self.bind(args)['bound_mode_rows'],2)
+
+    def test_selection_restoration_same_session_and_capture_units_are_required(self):
+        for defect in ('selection','restore','session','units','period_units','basis_restore'):
+            args=modal_parameter_fixture(); s=args[0]; p=s['vs04_diaphragm_probe']
+            if defect=='selection': p['temporary_display_cases']=[]
+            elif defect=='restore': p['display_selection_restored']=False
+            elif defect=='session': s['capture_metadata']['vs04_same_session_capture']=False
+            elif defect=='units': p['units_before']=12
+            elif defect=='period_units': s['analysis_sources']['units_after']=12
+            else: s['vs04_basis_probe']['display_cases_after']=['CHANGED']
+            with self.subTest(defect=defect): self.assertEqual(self.bind(args)['status'],'BLOCKED_SOURCE')
+
+    def test_case_outside_selected_names_is_rejected(self):
+        args=modal_parameter_fixture(); args[0]['vs04_diaphragm_probe']['spectrum_modal_selected_cases']['rows'][0]['SpecCase']='OTHER'
+        self.assertEqual(self.bind(args)['status'],'BLOCKED_SOURCE')
+
+    def test_one_bad_case_does_not_hide_the_other_case_or_change_population(self):
+        args=modal_parameter_fixture(); source=args[0]
+        plan=demand_capture_plan(source,args[1]['combination_plan'])
+        plan['spectrum_modal_bindings']['OTHER_RS']='M'
+        plan['case_definitions']['OTHER_RS']={'guid':'other','type':'Response Spectrum'}
+        definitions=source['vs04_basis_probe']['table_reads']['Load Case Definitions - Response Spectrum']
+        definitions['rows'].append({**definitions['rows'][0],'Name':'OTHER_RS','GUID':'other'})
+        definitions['row_count']+=1
+        probe=source['vs04_diaphragm_probe'];probe['temporary_display_cases'].append('OTHER_RS')
+        t=probe['spectrum_modal_selected_cases']
+        t['rows'] += [{**r,'SpecCase':'OTHER_RS'} for r in list(t['rows'])]
+        t['row_count']=len(t['rows'])
+        t['rows'][0]['Period']='999'
+        result=spectral_modal_parameters(source,plan)
+        self.assertEqual((result['expected_case_count'],result['bound_case_count']),(2,1))
+        self.assertEqual((result['expected_mode_rows'],result['bound_mode_rows']),(6,5))
+        self.assertEqual(next(c for c in result['cases'] if c['case']=='OTHER_RS')['status'],'NATIVE_MODAL_PARAMETERS_BOUND')
+
+    def test_row_order_does_not_change_mode_identity_or_counts(self):
+        args=modal_parameter_fixture(); t=args[0]['vs04_diaphragm_probe']['spectrum_modal_selected_cases']
+        t['rows'].reverse()
+        result=self.bind(args)
+        self.assertEqual([r['mode'] for r in result['cases'][0]['mode_rows']],[1,2,3])
+        self.assertEqual(result['bound_mode_rows'],3)
+
+    def test_no_spectral_leaves_is_proven_by_the_plan_not_by_empty_returned_rows(self):
+        args=modal_parameter_fixture(); plan=demand_capture_plan(args[0],args[1]['combination_plan'])
+        plan['spectrum_modal_bindings']={};plan['modal_modes']={}
+        result=spectral_modal_parameters({},plan)
+        self.assertEqual(result['status'],'NOT_REQUIRED_NO_SPECTRAL_LEAVES')
+        self.assertEqual(result['expected_mode_rows'],0)
+
+    def test_binding_repeats_identically_and_keeps_a_record_hash(self):
+        args=modal_parameter_fixture()
+        a,b=self.bind(args),self.bind(args)
+        self.assertEqual(a,b);self.assertEqual(len(a['sha256']),64)
+        self.assertTrue(all(len(r['source_row_sha256'])==64 for r in a['cases'][0]['mode_rows']))
+
+    def test_report_projects_parameters_without_calling_the_binder(self):
+        from tbdy_next.reporting import _native_demand_sources_html
+        result=native_demand_source_evidence(*modal_parameter_fixture(),input_sha='s')
+        result['spectral_modal_parameters']['cases'][0]['case']='<script>bad</script>'
+        with patch('tbdy_next.engineering.demand_sources.spectral_modal_parameters',side_effect=AssertionError('recalculation')) as calc:
+            html=_native_demand_sources_html(result)
+        calc.assert_not_called()
+        self.assertIn('Native response-spectrum modal parameters',html)
+        self.assertIn('&lt;script&gt;',html);self.assertNotIn('<script>',html)
 
 
 if __name__ == '__main__':

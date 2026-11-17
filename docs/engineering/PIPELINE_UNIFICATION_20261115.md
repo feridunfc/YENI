@@ -1,8 +1,92 @@
 # Single pipeline owner — 2026-11-15
 
-Historical baseline: 2026-11-15. The original working-tree-only status below was superseded by the published D1–D3 audit-branch commits. On 2026-11-17 the user requested the current local implementation and durable context to be preserved on `baseline/local_import`. The working-tree verification below predates that checkpoint; it is identified by its base commit and file/method hashes, not presented as a new test run. `main` merge remains HOLD.
+Historical baseline: 2026-11-15. The original working-tree-only status below was superseded by the published D1–D3 audit-branch commits. On 2026-11-17 the local implementation and durable context were preserved on `baseline/local_import`, now the logical integration base. Older verification sections retain their own base commits and file/method hashes. The newest local increment is identified separately below; no GitHub push or old `main` merge was performed.
 
 D3B continuation: [mixed demands, spectral interval evidence and remaining acceptance limits](OFFLINE_D3B_MIXED_DEMANDS_20261117.md). Coverage counts in the historical sections are not engineering completion percentages.
+
+## Native modal parameter binding — 2026-11-17 local work branch
+
+The existing `engineering/demand_sources.py` owner now binds selected-case modal
+parameters into the existing `mixed-demand-components` stage, registered as
+`same-source-spectral-components.v4`. The same runner, gateway, stage contracts and
+report owner remain in use. This increment adds no solver, acquisition route, stage
+or model operation. It reuses the strict native table and numeric contracts from
+`diaphragm_linkage.py`, without adopting that older review's fixed case/mode assumptions.
+
+**Source correction:** the earlier statement that `Response Spectrum Modal Info`
+had no rows described the initial unselected read only. The unchanged accepted
+capture already contains **200 rows** at
+`vs04_diaphragm_probe.spectrum_modal_selected_cases`. Its existing temporary selection
+and restoration evidence are reused. The failed initial read remains recorded.
+This corrects the handoff's source inventory; it does not replace the previous scalar
+arithmetic evidence or pretend that a new live capture occurred.
+
+Expected cases come from native combination leaves and case definitions. Expected
+modes come from the separate modal period inventory, never successful parameter rows.
+Each bound row retains case/modal GUID lineage, local excitation axis, period, active
+damping, three accelerations and three amplitudes, native strings and hashes. Missing,
+duplicate or unexpected modes remain visible; wrong periods, GUIDs, units, axis data,
+nonfinite numbers or unverified restoration block the affected scope. The single-axis
+definition branch rejects ambiguous/multicomponent definitions rather than inferring
+their decomposition. Variable per-mode damping is supported by the binding contract.
+
+The report shows case-mode coverage, active damping, combination settings and torsion
+limits from the sealed artifact. **Bound parameters are not qualified reconstructed
+forces.** Display precision is retained and explicitly unqualified for reconstruction.
+No spectrum scale is applied here. A defined eccentricity ratio does not establish
+applied accidental-torsion contributions; no concurrent force vector or story-alpha
+authority is granted. CSI describes modal/directional combination and spectrum scaling
+as separate settings in its [response-spectrum case documentation](https://docs.csiamerica.com/help-files/etabs/Menus/Define/Load_Cases/Response_Spectrum.htm).
+
+### Acceptance actually executed on this increment
+
+Local branch: `work/spectral-modal-source`; dirty-tree base
+`0f9437f9f3624c76690f559ecbf74a1f2343fcd3`. Tested Windows package SHA:
+`07cb453700ee00d5b8914290dcd53bd02031ed78de8b7e0e301967cf2fdcf8c0`.
+Configuration SHA remains
+`244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1`.
+The 409-file raw manifest is `docs/context/TESTED_FILES_MODAL_PARAMETERS_20261117.json`;
+all 409 matched before this acceptance/context update. Source/test/tool/config bytes
+were not changed after the successful tests. Environment: Windows 11, CPython 3.12.10,
+Node 24.22.1. Resolve the eventual local checkpoint SHA with `git rev-parse HEAD`.
+
+| Verified scope | Result |
+| --- | --- |
+| Native selected-case rows | RSX/U1: 100/100; RSY/U2: 100/100; active damping 0.05 |
+| Independent source binding audit, no application imports | 1,600 exact native numeric fields; 200 independent period matches; zero mismatches |
+| Existing CLI replay and repeat | 16/16 IDENTICAL receipts |
+| Sealed report projection | 22 disabled calculation entry points; zero calculation/live calls; HTTP JSON and HTML equal local projection |
+| Focused source/pipeline/report suite | 143 tests, OK |
+| `python -B tools/test_offline.py` | 1,368 tests, OK; one OS symlink skip; 10/10 JavaScript files passed |
+| Clean tracked-file wheel and `python -B tools/test_installed_wheel.py <wheel-directory>` | 202 tests, OK |
+
+The 21 new modal-binding tests are included in those totals; they are not new
+engineering CHECKs. Initial sandbox attempts failed on localhost socket permissions.
+After permission was granted, unchanged code passed the network-enabled retries.
+Both failed and successful logs are retained. No GitHub CI result is claimed.
+
+Replay: `RUN-808308d1a3e54129b9612b5f0920b92a`; result SHA
+`e831cd7cd9ee28279b1eefa62a291584bb4ace131f6db32f6cea107489dd1469`.
+Source remains `8b4851511cdcae04734866924bbacb079f9e7903a01d6c7a9b2bd8ebcd32a311`.
+Repeat: `RUN-57c3e232233f4b80b260b54438b6a28e`.
+The prior mixed-component artifact and force-coverage rows are identical. This preserves
+the prior 38,592-comparison arithmetic evidence; that independent arithmetic program
+was not rerun and relabeled. The new independent audit verifies source binding only.
+
+Private evidence directory:
+`.receipts/verification/modal-parameters-final-20261117T185349Z/` contains exact commands,
+logs, file hashes, clean wheel, binding audit, repeat and report projection records.
+The user's port 8876 server was not running at observation. HTTP validation used a
+temporary localhost instance of the existing `web.make_handler`, closed afterward;
+no user-server restart or live ETABS acceptance is claimed. An offline HTML report
+is retained in that directory. Ledger IDs: `EV-LOCAL-MODAL-PARAMETERS`,
+`EV-LOCAL-MODAL-BINDING-AUDIT`, `EV-LOCAL-MODAL-REPORT`, `EV-LOCAL-MODAL-TESTS`.
+
+R14/R15 remains **0 closed / 87 partial**; 1,206 signed-static PMM station evaluations
+are unchanged and no alpha iteration ran. Engineering release remains `NOT_READY`.
+Next acceptance work is modal precision and applied accidental-torsion lineage, then
+independent aggregation within each mode before combination. Only after qualification
+can common SCWB axial-demand and story-shear/alpha policies consume those demands.
 
 ## Same-source spectral component replay — 2026-11-17 working tree
 
@@ -39,8 +123,10 @@ full offline checks and clean wheel installation. Final verification is recorded
 This step validates case-to-combination arithmetic. It does not establish modal response
 reconstruction, a concurrent six-component force vector, SCWB governing axial selection
 or an alpha denominator. The current source has CQC/SRSS case settings with 5% accidental
-eccentricity; `Response Spectrum Modal Info` has metadata but no captured rows. Modal
-amplitudes/active damping and the accidental-torsion contributions must be bound before
+eccentricity. The original handoff stated that `Response Spectrum Modal Info` had
+metadata but no captured rows; this inventory claim is superseded by the selected-case
+source correction above. Modal amplitudes/active damping and accidental-torsion
+contributions must be qualified before
 modal story-shear aggregation can be qualified. Separate constituent maxima cannot be
 summed into an assumed concurrent story response. CSI documents the
 [modal amplitudes](https://wikicsiamerica.atlassian.net/wiki/spaces/kb/pages/2006323/Response-spectrum%2Banalysis%2BFAQ)
