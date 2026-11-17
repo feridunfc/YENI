@@ -1,0 +1,310 @@
+schema: yeni.project-memory.engineering-gaps.v1
+updated_on: '2026-11-17'
+repository: feridunfc/YENI
+baseline_implementation_commit: 85e720d18683a71737c1919d32e393c9d903737b
+local_reconciled: false
+scope_note: D3B uzak bazının başlangıç envanteri; yerelde daha yeni sprintler olabilir. 18 tarihsel GAP kimliği
+  korunur; bu tam atomik CHECK kataloğu değildir.
+status_policy:
+  allowed:
+  - OPEN
+  - PARTIAL
+  - CLOSED
+  closed_requires:
+  - exact_scope
+  - source_and_method_identity
+  - independent_verification
+  - linked_evidence_ids
+  - supervisor_acceptance
+  partial_is_not_ready: true
+  preserve_verified_subscopes: true
+priority_focus:
+- GAP-018
+- GAP-013
+- GAP-016
+gaps:
+- id: GAP-001
+  title: ApprovedModelProfile
+  status: OPEN
+  priority: P0
+  achieved_scope: Proje basis/role kayıtları için mevcut sözleşmeler var.
+  blocker: Proje bazlı onaylı profil kanıtı tamamlanmadı.
+  closure_criteria: Uygulanabilir norm baskısı, taşıyıcı roller ve parametreler kaynak ve onay kaydıyla sürümlenir.
+  owner_paths:
+  - src/tbdy_next/candidate_model_contracts.py
+  - src/tbdy_next/engineering/analysis_setup.py
+  evidence_refs:
+  - EV-D3B
+  closure_evidence_refs: []
+  local_update_needed: true
+- id: GAP-002
+  title: ComboBook ve tasarım birleşimi kapsamı
+  status: PARTIAL
+  priority: P0
+  achieved_scope: D3B desteklenen karma imzalı Linear Add ifadelerini case kimliğiyle ayrıştırıyor.
+  blocker: Tam zorunlu G/Q/E ailesi, rol/ölçek/yöntem kabulü açık.
+  closure_criteria: Tüm gerekli aileler, işaret/yön/operatör ve katsayılar bağımsız oracle ve tam kapsamla
+    doğrulanır.
+  owner_paths:
+  - src/tbdy_next/engineering/mixed_demands.py
+  - src/tbdy_next/engineering/design_assignments.py
+  evidence_refs:
+  - EV-D3B
+  closure_evidence_refs: []
+  local_update_needed: true
+- id: GAP-003
+  title: Model ve analiz nesli
+  status: OPEN
+  priority: P0
+  achieved_scope: Kaynak ve makbuz SHA zinciri mevcut.
+  blocker: Model locked veya dosya hash değeri analiz neslini tek başına kanıtlamaz.
+  closure_criteria: Model içeriği ile kullanılan sonuçların aynı analiz nesline ait olduğu izlenebilir kanıtla
+    doğrulanır.
+  owner_paths:
+  - src/tbdy_next/engineering/analysis_setup.py
+  evidence_refs:
+  - EV-D3B-REPLAY
+  closure_evidence_refs: []
+  local_update_needed: true
+- id: GAP-004
+  title: Native şema ve birimler
+  status: PARTIAL
+  priority: P1
+  achieved_scope: PMM v6 native koordinat/eleman/istasyon yolu ve negatif testler mevcut.
+  blocker: Desteklenen sürüm/şema matrisi ve capture sonrası kullanıcı birimlerinin iadesi tamamen kabul edilmedi.
+  closure_criteria: Desteklenen şemalar birim ve hata testlerinden geçer; canlı transaction eski birim/seçimleri
+    geri yükler.
+  owner_paths:
+  - src/tbdy_next/etabs_source_gateway_windows.py
+  - src/tbdy_next/live_etabs.py
+  evidence_refs:
+  - EV-PMM6
+  closure_evidence_refs: []
+  local_update_needed: true
+- id: GAP-005
+  title: Tam fiziksel kontrol paydası
+  status: PARTIAL
+  priority: P0
+  achieved_scope: 87 kolon ve 957 çift PMM ledger içinde korunuyor.
+  blocker: Bütün kontrol aileleri için genel ExpectedCheckInstance census/yürütmesi açık.
+  closure_criteria: Her kuralın doğru grain nüfusu hesap öncesi dondurulur; eksikler ve istisnalar gerekçeyle
+    tekil sayılır.
+  owner_paths:
+  - src/tbdy_next/engineering/pipeline.py
+  - src/tbdy_next/compiled_dag.py
+  evidence_refs:
+  - EV-PMM6
+  - EV-D2
+  closure_evidence_refs: []
+  local_update_needed: true
+- id: GAP-006
+  title: SAME_CUT, mesh, ofset ve fiziksel yüz
+  status: PARTIAL
+  priority: P0
+  achieved_scope: MinStations=3/sıfır I ofseti desteklenen dalda 4422/4422 gerekli alt-kesit; 14 mesh kolonun
+    iki tarafı doğrulandı.
+  blocker: Tam kesit census, diğer ofset/istasyon dalları, fiziksel yüz ve TS500 net boy ayrı açık.
+  closure_criteria: Desteklenen bütün cut/face/mesh kimlikleri kuvvetten bağımsız geometriyle kurulur; eksik/çift
+    eşleşme reddedilir.
+  owner_paths:
+  - src/tbdy_next/engineering/column_pmm.py
+  - src/tbdy_next/column_engine/csi_geometry.py
+  evidence_refs:
+  - EV-PMM6
+  closure_evidence_refs: []
+  local_update_needed: true
+- id: GAP-007
+  title: Exact static Linear Add
+  status: PARTIAL
+  priority: P0
+  achieved_scope: D3B kesin rasyonel katsayı ve aynı taraf/step satırıyla deprem functional ayrıştırmasını
+    destekliyor.
+  blocker: Gerçek yeni capture gerekli primitive kuvvet ve load-pattern tanımlarını içermiyor.
+  closure_criteria: Gerçek aynı-source karma signed örnekleri, nested operatör/rol kapsamı ve bağımsız toleranslı
+    kıyas tamamlanır.
+  owner_paths:
+  - src/tbdy_next/engineering/mixed_demands.py
+  evidence_refs:
+  - EV-D3B
+  closure_evidence_refs: []
+  local_update_needed: true
+- id: GAP-008
+  title: Aynı nesilde tasarım talebi
+  status: PARTIAL
+  priority: P0
+  achieved_scope: Parent/senaryo/sonuç kimliği ve native case ayrımı korunuyor.
+  blocker: Tam analysis-generation ve uygulanabilir deprem tasarım politikası kabulü yok.
+  closure_criteria: Her tasarım vektörü aynı generation/cut/step/rol kanıtıyla bağlanır; case benzerliği ile
+    eşitleme olmaz.
+  owner_paths:
+  - src/tbdy_next/engineering/design_scenario.py
+  - src/tbdy_next/engineering/mixed_demands.py
+  evidence_refs:
+  - EV-D1
+  - EV-D3B-REPLAY
+  closure_evidence_refs: []
+  local_update_needed: true
+- id: GAP-009
+  title: Global P–Δ ve yerel P–δ
+  status: PARTIAL
+  priority: P0
+  achieved_scope: Aynı run seçilmiş aday R08 girdisine bağlı; EI/Nk ve ikinci mertebe referans hesapları var.
+  blocker: k/sway/Rm/serbest boy ve analizde kapsanan ikinci mertebe bileşenleri onaysız.
+  closure_criteria: İki eksende doğru net/etkin boy ve EI, no-double-count ve gerçek talep tüketimi bağımsız
+    örnekte kanıtlanır.
+  owner_paths:
+  - src/tbdy_next/column_engine/ts500_column.py
+  - src/tbdy_next/engineering/column_r08_local_live.py
+  - src/tbdy_next/engineering/story_pdelta.py
+  evidence_refs:
+  - EV-D1
+  - EV-D2
+  - EV-D3
+  closure_evidence_refs: []
+  local_update_needed: true
+- id: GAP-010
+  title: PMM bağımsız kapasite kabulü
+  status: PARTIAL
+  priority: P0
+  achieved_scope: Mevcut solver, minimum dışmerkezlik/eksen ve gerekli kesit kontrolleri çalışıyor.
+  blocker: Tam normatif yük/cut/axis/cage kapsamı ve bağımsız tam tasarım oracle kabulü açık.
+  closure_criteria: Bağımsız çözümler kapasiteyi ve normatif ön koşulları doğru kaynak/toleransla doğrular.
+  owner_paths:
+  - src/tbdy_next/column_engine/section_capacity.py
+  - src/tbdy_next/engineering/column_pmm.py
+  evidence_refs:
+  - EV-PMM6
+  - EV-D3
+  closure_evidence_refs: []
+  local_update_needed: true
+- id: GAP-011
+  title: Donatı seçimi ve detay
+  status: PARTIAL
+  priority: P0
+  achieved_scope: 87 algoritma-seçilmiş aday ayrı kaynak/revizyonla bağlanabiliyor.
+  blocker: Bu adaylar mühendis-onaylı/as-built değil; tüm çiroz, ankraj ve uygulanabilir detay kabulü açık.
+  closure_criteria: Kafes rolü, bar/leg geometrisi, örtü, açıklık, adım, alan ve ankraj ayrı kanıtlarla doğrulanır.
+  owner_paths:
+  - src/tbdy_next/engineering/rebar_selection.py
+  - src/tbdy_next/column_engine/transverse_kernel.py
+  evidence_refs:
+  - EV-D1
+  - EV-D2
+  closure_evidence_refs: []
+  local_update_needed: true
+- id: GAP-012
+  title: Kiriş kapasitesi ve uç topolojisi
+  status: PARTIAL
+  priority: P0
+  achieved_scope: 180 kiriş aday senaryosu ve ortak düğüm bağımlılıkları mevcut.
+  blocker: Gerçek seçilmiş/uygulanabilir tüm uç/yön/işaret ve ankraj kapsamı tamamlanmadı.
+  closure_criteria: Bütün incident kirişlerin fiziksel yüzleri, selected bars ve signed kapasiteleri bağımsız
+    kıyasla bağlı olur.
+  owner_paths:
+  - src/tbdy_next/engineering/beam_r10_live.py
+  - src/tbdy_next/column_engine/beam_capacity.py
+  evidence_refs:
+  - EV-D1
+  - EV-D2
+  closure_evidence_refs: []
+  local_update_needed: true
+- id: GAP-013
+  title: SCWB / α talep geri beslemesi
+  status: PARTIAL
+  priority: P0
+  achieved_scope: D3 sınırlı imzalı referans döngüsü; D3B karma signed E ayrıştırması var.
+  blocker: Gerçek spektral modelde α BLOCKED_INPUTS, 0 iterasyon; bağımsız tam yakınsama örneği yok.
+  closure_criteria: Aynı kat/kesit ve tüm komşularda α→talep→kafes→PMM/Ve/joint gerçek bağımsız örnekte yakınsar
+    veya doğru son durumu verir.
+  owner_paths:
+  - src/tbdy_next/engineering/alpha_iteration.py
+  - src/tbdy_next/column_engine/story_alpha.py
+  - src/tbdy_next/engineering/design_dependencies.py
+  evidence_refs:
+  - EV-D2
+  - EV-D3
+  - EV-D3B-REPLAY
+  closure_evidence_refs: []
+  local_update_needed: true
+- id: GAP-014
+  title: Ve, etriye ve birleşim paneli
+  status: PARTIAL
+  priority: P0
+  achieved_scope: Ve mevcut owner ile yeniden hesaplanır; revize Vd ve revizyon izi var.
+  blocker: Joint equilibrium after alpha, net yüz/ankraj ve tüm norm dalları onaysız.
+  closure_criteria: Her face/sign/cage için kapasite kesmesi, gevrek sınır, enine donatı ve panel/ankraj bağımsız
+    normatif kabul alır.
+  owner_paths:
+  - src/tbdy_next/engineering/column_r10_live.py
+  - src/tbdy_next/column_engine/joint_kernel.py
+  - src/tbdy_next/column_engine/transverse_kernel.py
+  evidence_refs:
+  - EV-D3
+  closure_evidence_refs: []
+  local_update_needed: true
+- id: GAP-015
+  title: Perde/pier φ ve perde tasarımı
+  status: OPEN
+  priority: P1
+  achieved_scope: Önceki referans/kaynak çalışmaları korunur; bu hafıza kaydı yeni kabul vermez.
+  blocker: Same-cut frame/wall/pier nüfusu, çifte sayım ve tam perde detay kabulü açık.
+  closure_criteria: Gerçek wall topology/forces→norm→independent oracle→kayıtlı rapor vertical slice tamamlanır.
+  owner_paths:
+  - src/tbdy_next/wall_geometry.py
+  evidence_refs: []
+  closure_evidence_refs: []
+  local_update_needed: true
+- id: GAP-016
+  title: Golden ve bağımsız tam örnek
+  status: PARTIAL
+  priority: P0
+  achieved_scope: Canonical 467 fixture; 10 α aritmetik kıyası; ayrı bankada 115776 skaler kıyas mevcut.
+  blocker: 44 üretim golden kaydı 467 ile tam eşlenmedi; olumlu iterasyon fixtureları tam bağımsız bina oracle
+    değil.
+  closure_criteria: Production owner gerçek bağımsız tam örneği çalıştırır; tüm girdiler, ara değerler, tolerans,
+    kimlik ve sonuç zinciri kayıtlı olur.
+  owner_paths:
+  - src/tbdy_next/verification/golden_gate.py
+  - src/tbdy_next/verification/report_oracles.py
+  evidence_refs:
+  - EV-GOLDEN
+  - EV-ALPHA-GOLDEN
+  - EV-BANK-ARITHMETIC
+  closure_evidence_refs: []
+  local_update_needed: true
+- id: GAP-017
+  title: Tek DAG / RunResult / UI / rapor
+  status: PARTIAL
+  priority: P0
+  achieved_scope: Tek runner, finalized v2, source lineage ve yeni raporda sıfır hesap çağrısı korunuyor.
+  blocker: Genel katalog-wide topolojik yürütme ve tüm CHECK ledgerı henüz yok; legacy yollar ayrı.
+  closure_criteria: Tek registry typed dependencies ve tam kapsamla yürütür; eksik upstream bloke eder; UI/CLI/report
+    aynı mühürlü sonucu sunar.
+  owner_paths:
+  - src/tbdy_next/engineering/pipeline.py
+  - src/tbdy_next/engineering/pipeline_snapshot.py
+  - src/tbdy_next/compiled_dag.py
+  evidence_refs:
+  - EV-D1
+  - EV-D2
+  - EV-D3B-REPLAY
+  closure_evidence_refs: []
+  local_update_needed: true
+- id: GAP-018
+  title: Spektral tasarım talebi ve concurrence
+  status: PARTIAL
+  priority: P0
+  achieved_scope: D3B native aralıkları kaydeder; ayrı bankada constituent aritmetiği bağımsız kıyaslandı.
+  blocker: Mod/yön birleşimi, governing Nd ve kat kesmesi paylaşımı ortak normatif kabulde değil.
+  closure_criteria: Açık desteklenen spektral tasarım politikası bağımsız tam örnekte uygulanır; zarflar fiziksel
+    eşzamanlı vektör diye etiketlenmez.
+  owner_paths:
+  - src/tbdy_next/engineering/mixed_demands.py
+  - src/tbdy_next/column_engine/spectral_envelope.py
+  - src/tbdy_next/engineering/alpha_iteration.py
+  evidence_refs:
+  - EV-D3B
+  - EV-BANK-ARITHMETIC
+  - EV-D3B-REPLAY
+  closure_evidence_refs: []
+  local_update_needed: true

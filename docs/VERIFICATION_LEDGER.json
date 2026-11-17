@@ -1,0 +1,353 @@
+{
+  "schema": "yeni.project-memory.verification-ledger.v1",
+  "repository": "feridunfc/YENI",
+  "updated_on": "2026-11-17",
+  "purpose": "Kalıcı kanıt indeksi; source receipts ve formal engineering acceptance yerine geçmez.",
+  "workflow": {
+    "primary_workspace": "LOCAL_CODEX",
+    "checkpoint_cadence": "EACH_SPRINT_AND_HANDOFF",
+    "github_sync_cadence": "USER_CONTROLLED_EVERY_3_TO_5_SPRINTS",
+    "automatic_push": false
+  },
+  "local_checkpoint": {
+    "status": "NOT_INSPECTED",
+    "branch": null,
+    "head_sha": null,
+    "working_tree_dirty": null,
+    "sprints_since_sync": null,
+    "latest_local_evidence_ids": []
+  },
+  "last_observed_remote_implementation": {
+    "branch": "audit/pipeline-pmm-v6-20261117",
+    "commit_sha": "85e720d18683a71737c1919d32e393c9d903737b",
+    "git_tree_sha": "069342dfd21b828bbaeba73d601db5f49aafb6e3",
+    "observed_on": "2026-11-17"
+  },
+  "record_policy": {
+    "append_new_ids": true,
+    "never_retarget_old_test_to_new_commit": true,
+    "dirty_tests_require_file_manifest_and_diff_identity": true,
+    "missing_private_artifact_means_not_replayed": true,
+    "historical_tests_rerun_during_memory_setup": false
+  },
+  "release_at_baseline": {
+    "formal_compliance": "NOT_PROVEN",
+    "engineering_release": "NOT_READY",
+    "full_building_iteration_acceptance": "NOT_PROVEN"
+  },
+  "private_sources": [
+    {
+      "id": "SRC-LIVE-NATIVE",
+      "kind": "archived_same_source_ETABS_capture",
+      "sha256": "85129fae59e4652a66022348f2f130e83f9128b64e814ce769c66b5cb987f71a",
+      "capture_run": "RUN-ed5b6588e770423282450e08018f818c",
+      "replay_run": "RUN-5f870820872545a6bac7492becab9032",
+      "local_path": null,
+      "in_public_repo": false,
+      "limitations": [
+        "Primitive force records and Load Pattern Definitions absent for new mixed signed branch.",
+        "Supported configured cut subset is not full physical cut census."
+      ]
+    },
+    {
+      "id": "SRC-DESIGN-SCENARIO",
+      "kind": "derived_policy_input",
+      "sha256": "4a09900abe873a35adab736fe44f2ebb12a951a33e1af2bf62b22529de3d709f",
+      "parent_id": "SRC-LIVE-NATIVE",
+      "policy_path": "config/scenarios/offline_tight_ties_v1.json",
+      "local_path": null,
+      "in_public_repo": false
+    },
+    {
+      "id": "SRC-SEPARATE-BANK",
+      "kind": "native_archive_and_sqlite",
+      "source_sha256": "3882b659937626bb3bbfe841e6dbd6c57798fcfcce8e6fa54a683a221210fee3",
+      "database_sha256": "e65b3fd77f7d2107b7ead484dcccbc8d9a297670b9b280ea382d3d99e5d98499",
+      "local_path": null,
+      "in_public_repo": false,
+      "join_to_live_permitted": false,
+      "limitations": [
+        "Only mode 1 frame-force records observed; no complete modal signed story-force proof."
+      ]
+    },
+    {
+      "id": "SRC-PDF-V2",
+      "kind": "canonical_independent_pdf_bank",
+      "database_sha256": "82cb722ce8418e4b812a7f0081bcb9b2046661cda8a93c9f7e84a3cfa8d632aa",
+      "documents": 3,
+      "pages": 716,
+      "reference_cases": 467,
+      "local_path": null,
+      "in_public_repo": false,
+      "join_to_live_permitted": false
+    }
+  ],
+  "records": [
+    {
+      "id": "EV-PMM6",
+      "implementation_commit": "b6a95a09b5df459a5ab25ec504994fb7c5b579b0",
+      "status": "VERIFIED_REQUIRED_SUBSET",
+      "scope": "MinStations=3; zero I offset; supported directed vertical single/meshed columns",
+      "result": {
+        "columns": 87,
+        "member_combination_pairs": 957,
+        "required_cuts": 4422,
+        "matched_cuts": 4422,
+        "single_columns": 73,
+        "single_cuts": 2409,
+        "meshed_columns": 14,
+        "meshed_cuts": 2013,
+        "native_joint_coordinates": 100,
+        "internal_joints": 72
+      },
+      "public_reference_paths": [
+        "docs/engineering/PIPELINE_UNIFICATION_20261115.md"
+      ],
+      "provenance": "RECORDED_DELIVERY_EVIDENCE_NOT_RERUN_IN_MEMORY_SETUP",
+      "engineering_release_granted": false,
+      "source_id": "SRC-LIVE-NATIVE",
+      "not_proven": [
+        "all possible analysis cuts",
+        "TS500 clear/effective length",
+        "normative PMM release"
+      ]
+    },
+    {
+      "id": "EV-D1",
+      "implementation_commit": "4b47511380fbf28d70a2a2a72cc90ccd87c85faa",
+      "status": "SOFTWARE_SLICE_TESTED",
+      "scope": "source-bound scenario and conservative group dependency guard",
+      "result": {
+        "python_tests": 1203,
+        "js_test_files": 10,
+        "wheel_tests": 37
+      },
+      "public_reference_paths": [
+        "docs/engineering/OFFLINE_DESIGN_SCENARIO_20261117.md"
+      ],
+      "provenance": "RECORDED_DELIVERY_EVIDENCE_NOT_RERUN_IN_MEMORY_SETUP",
+      "engineering_release_granted": false
+    },
+    {
+      "id": "EV-D2",
+      "implementation_commit": "efc4f4801546878a6a2fb862163f8bde2322db34",
+      "status": "SOFTWARE_SLICE_TESTED",
+      "scope": "member/joint/story dependency qualification and revision trace",
+      "result": {
+        "python_tests": 1225,
+        "js_test_files": 10,
+        "wheel_tests": 59,
+        "missing_member_negative_test": "210 missing side blocks own candidate/R08 and affected joints; 86 other candidates/R08 continue"
+      },
+      "public_reference_paths": [
+        "docs/engineering/OFFLINE_D2_MEMBER_DEPENDENCIES_20261117.md"
+      ],
+      "provenance": "RECORDED_DELIVERY_EVIDENCE_NOT_RERUN_IN_MEMORY_SETUP",
+      "engineering_release_granted": false
+    },
+    {
+      "id": "EV-D3",
+      "implementation_commit": "929b51e93a2cfd91d20c43ad0e571490f6c6cd2a",
+      "status": "REFERENCE_SCOPE_TESTED",
+      "scope": "bounded signed alpha feedback; positive convergence software fixtures, not full independent building oracle",
+      "result": {
+        "python_tests": 1275,
+        "new_tests_included": 50,
+        "wheel_tests": 109,
+        "real_model_alpha_iterations": 0
+      },
+      "public_reference_paths": [
+        "docs/engineering/OFFLINE_D3_ALPHA_ITERATION_20261117.md"
+      ],
+      "provenance": "RECORDED_DELIVERY_EVIDENCE_NOT_RERUN_IN_MEMORY_SETUP",
+      "engineering_release_granted": false
+    },
+    {
+      "id": "EV-D3B",
+      "implementation_commit": "85e720d18683a71737c1919d32e393c9d903737b",
+      "status": "SOFTWARE_SLICE_TESTED",
+      "scope": "mixed signed case algebra plus recorded nonconcurrent spectral intervals",
+      "result": {
+        "python_tests": 1307,
+        "new_tests_included": 32,
+        "focused_D3_D3B_tests": 82,
+        "js_test_files": 10,
+        "wheel_tests": 141
+      },
+      "public_reference_paths": [
+        "docs/engineering/OFFLINE_D3B_MIXED_DEMANDS_20261117.md"
+      ],
+      "provenance": "RECORDED_DELIVERY_EVIDENCE_NOT_RERUN_IN_MEMORY_SETUP",
+      "engineering_release_granted": false,
+      "environment": {
+        "os": "Linux",
+        "python": "3.13.5",
+        "node": "22.16.0"
+      },
+      "commands": [
+        "python tools/test_offline.py",
+        "PYTHONPATH=tests python -m unittest test_mixed_design_demands test_alpha_design_iteration -v",
+        "python tools/test_installed_wheel.py <isolated-wheel-directory>"
+      ],
+      "counts_are_not_engineering_checks": true
+    },
+    {
+      "id": "EV-D3B-CI",
+      "implementation_commit": "85e720d18683a71737c1919d32e393c9d903737b",
+      "status": "PASS",
+      "scope": "offline GitHub matrix for exact D3B commit",
+      "result": {
+        "run_id": 44109479090,
+        "jobs": [
+          {
+            "id": 134130825608,
+            "os": "ubuntu-latest",
+            "python": "3.11",
+            "conclusion": "success"
+          },
+          {
+            "id": 134130824956,
+            "os": "ubuntu-latest",
+            "python": "3.12",
+            "conclusion": "success"
+          },
+          {
+            "id": 134130825459,
+            "os": "windows-latest",
+            "python": "3.12",
+            "conclusion": "success"
+          }
+        ]
+      },
+      "public_reference_paths": [
+        ".github/workflows/ci.yml"
+      ],
+      "provenance": "GITHUB_JOBS_RECHECKED_DURING_MEMORY_SETUP",
+      "engineering_release_granted": false,
+      "url": "https://github.com/feridunfc/YENI/actions/runs/44109479090",
+      "live_etabs_test": false
+    },
+    {
+      "id": "EV-D3B-REPLAY",
+      "implementation_commit": "85e720d18683a71737c1919d32e393c9d903737b",
+      "status": "REPLAY_IDENTICAL_ENGINEERING_BLOCKED",
+      "scope": "same-source recorded scenario; sealed JSON/HTML projection",
+      "result": {
+        "run": "RUN-0aba6b44b1b94d8594dfdbd1dfb12fd0",
+        "repeat": "RUN-90867669d1e341968ca527d9a12733c1",
+        "receipt_count": 16,
+        "result_sha256": "616530acdd10cc620fdc46133af974663c3351c87ee87f8b92999a2a79f0c0a2",
+        "expected_pairs": 957,
+        "columns": 87,
+        "spectral_pairs": 696,
+        "spectral_interval_cuts": 3216,
+        "repeat_status": "IDENTICAL",
+        "disabled_calculators": 17,
+        "calculator_calls": 0,
+        "alpha_status": "BLOCKED_INPUTS",
+        "alpha_iterations": 0,
+        "numerically_closed_columns": 0,
+        "partial_or_unbound_columns": 87,
+        "recorded_normative_fail_columns": 0
+      },
+      "public_reference_paths": [
+        "docs/engineering/OFFLINE_D3B_MIXED_DEMANDS_20261117.md"
+      ],
+      "provenance": "RECORDED_DELIVERY_EVIDENCE_NOT_RERUN_IN_MEMORY_SETUP",
+      "engineering_release_granted": false,
+      "source_id": "SRC-DESIGN-SCENARIO",
+      "private_evidence_locator": "D3B delivery: evidence/final_evidence.json and evidence/report-and-repeat.json",
+      "private_artifacts_available_in_this_checkout": "UNKNOWN"
+    },
+    {
+      "id": "EV-BANK-ARITHMETIC",
+      "implementation_commit": "85e720d18683a71737c1919d32e393c9d903737b",
+      "status": "NUMERICAL_MATCH",
+      "scope": "separate native bank scalar constituent arithmetic; NOT concurrent forces or iteration",
+      "result": {
+        "spectral_combinations": 24,
+        "case_cut_pairs": 9648,
+        "max_min_rows": 19296,
+        "scalar_comparisons": 115776,
+        "tolerance_violations": 0,
+        "absolute_tolerance_native": 1e-09,
+        "relative_tolerance": 1e-12,
+        "max_abs_difference_kN": "1.058e-12",
+        "max_abs_difference_kNm": "4.505e-13",
+        "independent_method": "Decimal(80), production arithmetic not imported"
+      },
+      "public_reference_paths": [
+        "docs/engineering/OFFLINE_D3B_MIXED_DEMANDS_20261117.md"
+      ],
+      "provenance": "RECORDED_DELIVERY_EVIDENCE_NOT_RERUN_IN_MEMORY_SETUP",
+      "engineering_release_granted": false,
+      "source_id": "SRC-SEPARATE-BANK",
+      "private_evidence_locator": "D3B delivery: evidence/bank-independent-arithmetic.json"
+    },
+    {
+      "id": "EV-ALPHA-GOLDEN",
+      "implementation_commit": "929b51e93a2cfd91d20c43ad0e571490f6c6cd2a",
+      "status": "NUMERICAL_MATCH",
+      "scope": "ten printed alpha arithmetic targets only",
+      "result": {
+        "references": 10,
+        "matched": 10,
+        "alpha_below_0_70": 2,
+        "alpha_equal_one": 8,
+        "nontrivial_convergent_building_case_present": false,
+        "absolute_tolerance": 6e-05
+      },
+      "public_reference_paths": [
+        "docs/engineering/OFFLINE_D3_ALPHA_ITERATION_20261117.md"
+      ],
+      "provenance": "RECORDED_DELIVERY_EVIDENCE_NOT_RERUN_IN_MEMORY_SETUP",
+      "engineering_release_granted": false,
+      "source_id": "SRC-PDF-V2",
+      "private_evidence_locator": "D3 delivery: evidence/canonical-alpha.json"
+    },
+    {
+      "id": "EV-GOLDEN",
+      "implementation_commit": "85e720d18683a71737c1919d32e393c9d903737b",
+      "status": "ACCEPTANCE_NOT_ELIGIBLE",
+      "scope": "44-record production golden subset; not the entire 467 bank",
+      "result": {
+        "records": 44,
+        "NUMERICAL_MATCH": 15,
+        "INSUFFICIENT_SOURCE": 25,
+        "ENGINEERING_INTERPRETATION_DIFFERENCE": 4,
+        "acceptance_eligible": false,
+        "full_467_pipeline_mapping": "NOT_PROVEN"
+      },
+      "public_reference_paths": [
+        "docs/engineering/OFFLINE_D3B_MIXED_DEMANDS_20261117.md"
+      ],
+      "provenance": "RECORDED_DELIVERY_EVIDENCE_NOT_RERUN_IN_MEMORY_SETUP",
+      "engineering_release_granted": false,
+      "commands": [
+        "python -m tbdy_next.cli inspect-golden-regression --require-complete --json <report.json>"
+      ]
+    }
+  ],
+  "new_record_template": {
+    "id": "EV-<LOCAL-SPRINT>-<SCOPE>-<SEQUENCE>",
+    "observed_at": null,
+    "implementation_commit": null,
+    "dirty_worktree": null,
+    "tested_file_manifest_sha256": null,
+    "diff_sha256": null,
+    "untracked_code_included": null,
+    "source_ids": [],
+    "scope": null,
+    "commands": [],
+    "environment": {},
+    "status": "NOT_RUN",
+    "exit_code": null,
+    "counts": {},
+    "tolerances": {},
+    "log_path_private": null,
+    "log_sha256": null,
+    "public_reference_paths": [],
+    "engineering_release_granted": false,
+    "supersedes": null
+  }
+}
