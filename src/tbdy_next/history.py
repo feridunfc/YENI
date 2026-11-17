@@ -17,7 +17,9 @@ from .receipts import canonical_bytes
 from .source import SourceError, parse_modal_capture
 
 _RUN = re.compile(r"RUN-[0-9a-f]{32}\Z")
-_MAX_SOURCE_BYTES = 32 * 1024 * 1024
+# One bound for capture, replay, reports and scenario parent verification.
+# Same-run primitive and all-mode frame arrays can exceed the former 32 MiB cap.
+_MAX_SOURCE_BYTES = 64 * 1024 * 1024
 
 
 def _read_receipt(directory: Path, stage: str) -> dict[str, Any] | None:

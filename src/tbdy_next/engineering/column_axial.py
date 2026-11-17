@@ -153,6 +153,23 @@ def capture_column_axial(sap, snapshot: dict, request: dict) -> dict:
         raise
     except Exception as exc:
         captured["force_source_error"] = f"{type(exc).__name__}: {exc}"[:400]
+    if pmm_member in targets or pmm_member == "ALL":
+        from .demand_sources import SUPPORT_SCHEMA, demand_capture_plan
+
+        # Supporting cases share the same session and native force adapter.
+        # They remain separate from the selected design-combination denominator.
+        support = {"schema": SUPPORT_SCHEMA}
+        try:
+            support["plan"] = demand_capture_plan(snapshot, plan)
+            support["force_source"] = capture_frame_forces(
+                sap, members=targets, cases=tuple(support["plan"]["cases"]),
+                modal_modes=support["plan"]["modal_modes"] or None,
+            )
+        except ForceSelectionRestoreError:
+            raise
+        except Exception as exc:
+            support["capture_error"] = f"{type(exc).__name__}: {exc}"[:400]
+        captured["demand_support"] = support
     return captured
 
 

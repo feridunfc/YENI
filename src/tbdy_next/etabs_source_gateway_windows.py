@@ -54,6 +54,10 @@ class SourceError(ValueError):
     pass
 
 
+class DisplaySelectionRestoreError(SourceError):
+    """The original DatabaseTables display selection could not be restored."""
+
+
 def canonical(value: Any) -> bytes:
     return (json.dumps(value, ensure_ascii=False, sort_keys=True,
                        separators=(",", ":"), allow_nan=False) + "\n").encode("utf-8")
@@ -382,6 +386,71 @@ def set_combinations(db: Any, values: tuple[str, ...]) -> None:
     code = return_code(db.SetLoadCombinationsSelectedForDisplay(request), "SetSelectedCombinations")
     if code != 0:
         raise SourceError(f"SET_SELECTED_COMBINATIONS_RET_{code}")
+
+
+def selected_load_patterns(db: Any) -> tuple[str, ...]:
+    """Read the separate load-pattern display filter, including its empty state."""
+    raw = db.GetLoadPatternsSelectedForDisplay(0, [])
+    if not isinstance(raw, (list, tuple)) or len(raw) != 3:
+        raise SourceError("SELECTED_LOAD_PATTERNS_ABI_UNKNOWN")
+    count, names, code = raw
+    if type(count) is not int or count < 0 or type(code) is not int:
+        raise SourceError("SELECTED_LOAD_PATTERNS_INVALID")
+    if count == 0 and code in (0, 1) and (names is None or names == "" or
+            isinstance(names, (list, tuple)) and all(n is None or n == "" for n in names)):
+        return ()
+    if (code != 0 or not isinstance(names, (list, tuple)) or len(names) < count
+            or any(not isinstance(n, str) or not n or n != n.strip() for n in names[:count])
+            or len(set(names[:count])) != count):
+        raise SourceError("SELECTED_LOAD_PATTERNS_RET_OR_ARRAY_INVALID")
+    return tuple(sorted(names[:count]))
+
+
+def set_load_patterns(db: Any, values: tuple[str, ...]) -> None:
+    request = list(values) if values else [""]
+    code = return_code(db.SetLoadPatternsSelectedForDisplay(request), "SetSelectedLoadPatterns")
+    if code != 0:
+        raise SourceError(f"SET_SELECTED_LOAD_PATTERNS_RET_{code}")
+
+
+def capture_load_pattern_definitions(sap: Any) -> dict[str, Any]:
+    """Capture the whole native pattern catalog on the caller's existing SapModel.
+
+    Only its display filter changes temporarily. Even a setter that mutates and
+    then fails runs the restoration hook; a restoration failure aborts capture.
+    """
+    key = "Load Pattern Definitions"
+    raw = sap.LoadPatterns.GetNameList(0, [])
+    if (not isinstance(raw, (tuple, list)) or len(raw) != 3 or type(raw[0]) is not int
+            or not 0 < raw[0] <= 20_000 or type(raw[2]) is not int or raw[2] != 0
+            or not isinstance(raw[1], (tuple, list)) or len(raw[1]) != raw[0]
+            or any(not isinstance(n, str) or not n or n != n.strip() for n in raw[1])
+            or len(set(raw[1])) != raw[0]):
+        raise SourceError("LOAD_PATTERN_NATIVE_CATALOG_INVALID")
+    names = tuple(sorted(raw[1]))
+    db = sap.DatabaseTables
+    before = selected_load_patterns(db)
+    try:
+        if before != names:
+            set_load_patterns(db, names)
+        during = selected_load_patterns(db)
+        if during != names:
+            raise SourceError("LOAD_PATTERN_DISPLAY_SELECTION_UNVERIFIED")
+        table = read_table(db, key, max_rows=20_000)
+        table["field_metadata"] = field_schema(db, key)
+        if selected_load_patterns(db) != during:
+            raise SourceError("LOAD_PATTERN_DISPLAY_SELECTION_CHANGED")
+    finally:
+        try:
+            set_load_patterns(db, before)
+            after = selected_load_patterns(db)
+            if after != before:
+                raise SourceError("LOAD_PATTERN_DISPLAY_RESTORE_MISMATCH")
+        except Exception as exc:
+            raise DisplaySelectionRestoreError("LOAD_PATTERN_DISPLAY_RESTORE_FAILED") from exc
+    table["display_pattern_selection"] = {"before": list(before), "during": list(during), "after": list(after)}
+    table["native_pattern_names"] = list(names)
+    return table
 
 
 def get_results_setup_state(setup: Any, *, cases: Sequence[str] = (), combos: Sequence[str] = ()) -> dict[str, dict[str, bool]]:

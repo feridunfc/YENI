@@ -58,6 +58,7 @@ SCWB is still a selected-candidate reference, not engineering approval.
     from .column_r10_live import _build_frame_catalog
     from .design_dependencies import story_blockers
     from .mixed_demands import earthquake_row
+    from .demand_sources import component_force_rows
 
     plan = (axial or {}).get("combination_plan") or {}
     groups = (plan.get("design_assignment") or {}).get("groups") or {}
@@ -108,7 +109,7 @@ SCWB is still a selected-candidate reference, not engineering approval.
                             raise ValueError("ALPHA_SAME_CUT_FORCE_MISSING_OR_AMBIGUOUS")
                         target = matching[0]
                         row, component_rows = earthquake_row(
-                            list(native_frame_force_rows(rowsets[uid], uid)), target,
+                            component_force_rows(source, uid, plan), target,
                             seismic_basis["recipes"][combo], length=grid["length_m"])
                         k = 0 if direction == "X" else 1
                         shear = row[8]*frame["axes_global"][1][k] + row[9]*frame["axes_global"][2][k]

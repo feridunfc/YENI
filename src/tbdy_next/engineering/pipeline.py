@@ -56,6 +56,7 @@ _AXIAL_RESULT = ArtifactContract("column_axial", "schema", "tbdy.next.column-axi
 _PMM_SECTION = ArtifactContract("pmm_section_source", "schema", "tbdy.next.etabs-column-pmm-section-source.v1")
 _PMM_RESULT = ArtifactContract("column_pmm", "schema", "tbdy.next.column-pmm-check.v1")
 _MIXED_COMPONENTS = ArtifactContract("mixed_demand_components", "schema", "tbdy.next.mixed-demand-components.v1")
+_DEMAND_SOURCE = ArtifactContract("native_demand_sources", "schema", "tbdy.next.native-demand-source-evidence.v1")
 _PMM_SCOPE = ArtifactContract("pmm_scope", "schema", "tbdy.next.column-pmm-expected-instances.v1")
 _R08_LOCAL_RESULT = ArtifactContract("r08_local_slenderness", "schema", "tbdy.next.column-r08-local-live.v1")
 _DESIGN_SCOPE = ArtifactContract("design_dependencies", "schema", "tbdy.next.member-design-dependencies.v1")
@@ -110,9 +111,9 @@ STAGES: tuple[StageSpec, ...] = (
               "DESIGN_SCENARIO", consumes=(_AXIAL_GEOMETRY, _PMM_SCOPE), produces=(_DESIGN_SCOPE,),
               method_version="offline-member-dependencies.d2.v1"),
     StageSpec("mixed-demand-components", LIVE, "tbdy_next.engineering.mixed_demands", (), (),
-              "Recorded native mixed spectral scalar intervals; no concurrent vector or alpha authority",
-              "SPECTRAL_PMM_SCOPE", consumes=(_AXIAL_RESULT, _PMM_SCOPE),
-              produces=(_MIXED_COMPONENTS,), method_version="native-linear-component-algebra.v1"),
+              "Native primitive/modal cut coverage and same-source spectral component replay; no concurrent vector or alpha authority",
+              "PMM_SCOPE", consumes=(_AXIAL_RESULT, _PMM_SCOPE),
+              produces=(_MIXED_COMPONENTS, _DEMAND_SOURCE), method_version="same-source-spectral-components.v3"),
     StageSpec("column-gates", LIVE, "tbdy_next.engineering.column_live_gates", (),
               ("COLUMN_REBAR", "COLUMN_AXIAL", "COLUMN_PMM"),
               "CHK-004/CHK-005 caps, reinforcement role and open gates over the SAME axial/PMM results "
@@ -633,8 +634,10 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
             if column_pmm is not None:
                 run.record(PMM_STAGE, column_pmm, input_sha256=input_sha)
     mixed_components = None
+    demand_sources = None
     if pmm_scope is not None:
         from .mixed_demands import spectral_component_evidence
+        from .demand_sources import native_demand_source_evidence
         component_stage = next(s for s in STAGES if s.key == "mixed-demand-components")
         component_blockers = _stage_input_blockers(component_stage, {"column_axial": column_axial, "pmm_scope": pmm_scope})
         component_scope = {**pmm_scope, "dependency_blockers": sorted(set(
@@ -642,6 +645,9 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
         mixed_components = spectral_component_evidence(payload, column_axial, component_scope, input_sha=input_sha)
         if mixed_components is not None and not _MIXED_COMPONENTS.accepts(mixed_components):
             raise ValueError("INVALID_STAGE_OUTPUT:mixed-demand-components")
+        demand_sources = native_demand_source_evidence(payload, column_axial, component_scope, input_sha=input_sha)
+        if not _DEMAND_SOURCE.accepts(demand_sources):
+            raise ValueError("INVALID_STAGE_OUTPUT:native-demand-sources")
     design_dependencies = build_member_dependency_plan(payload, pmm_scope, input_sha=input_sha) if scenario else None
     if scenario is not None and not _DESIGN_SCOPE.accepts(design_dependencies):
         raise ValueError("INVALID_STAGE_OUTPUT:design-dependencies")
@@ -764,6 +770,8 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
         out["report_evidence"]["column_pmm_expected_instances"] = pmm_scope
     if mixed_components is not None:
         out["report_evidence"]["mixed_demand_components"] = mixed_components
+    if demand_sources is not None:
+        out["report_evidence"]["native_demand_sources"] = demand_sources
     if scenario is not None:
         out["report_evidence"]["design_scenario"] = scenario
         out["report_evidence"]["design_dependencies"] = design_dependencies

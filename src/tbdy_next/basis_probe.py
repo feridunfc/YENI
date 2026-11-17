@@ -1,8 +1,9 @@
-"""VS04-E targeted ETABS basis-table probe with NO display-case or model setters.
+"""VS04-E targeted ETABS basis-table probe with no model or display-case setters.
 
 The inventory returns table name candidates (not approved semantic bindings).
 It reads fields and complete rows only for a bounded, explicitly recorded
 subset of listed keys; uncaptured candidates remain visible in the ledger.
+The load-pattern display filter is temporarily selected and verified restored.
 """
 from __future__ import annotations
 
@@ -12,6 +13,7 @@ from .analysis_sources import _full_metadata
 from .engineering.analysis_setup import DESIGN_COMBOS
 from .etabs_geometry import _read_one
 from .etabs_modal import ModalCaptureError, _selected_cases
+from .etabs_source_gateway_windows import capture_load_pattern_definitions, DisplaySelectionRestoreError
 
 
 def parse_available_tables(raw: Any) -> list[dict]:
@@ -38,6 +40,7 @@ def _candidate_roles(name: str) -> list[str]:
         ("story_geometry", ("story definitions", "story data", "story information")),
         ("seismic_mass", ("mass summary", "mass source", "assembled joint masses")),
         ("case_definition", ("load case definitions",)),
+        ("load_pattern_definition", ("load pattern definitions",)),
         ("spectrum_function", ("response spectrum functions", "functions - response spectrum")),
         ("combination_definition", ("load combination definitions",)),
         ("spectrum_or_scaling", ("response spectrum",)),
@@ -71,6 +74,8 @@ def capture_basis_probe(sap: Any, *, max_tables: int = 24) -> dict:
     reads = {}
     for item in selected:
         key = item["table_key"]
+        if key == "Load Pattern Definitions":
+            continue  # The gateway reads this with a complete, restored pattern filter.
         try:
             table = _read_one(db,key)
         except Exception as exc:
@@ -79,18 +84,25 @@ def capture_basis_probe(sap: Any, *, max_tables: int = 24) -> dict:
                      "error":f"{type(exc).__name__}: {exc}"}
         table["field_metadata"] = _full_metadata(db,key)
         reads[key]=table
-    # This selection table describes concrete design setup, independently of
-    # the VS04 spectral reconstruction inventory and its numerical coverage.
-    try:
-        if any(item["table_key"] == DESIGN_COMBOS for item in inventory):
-            design_selection = _read_one(db, DESIGN_COMBOS)
-            design_selection["field_metadata"] = _full_metadata(db, DESIGN_COMBOS)
-        else:
-            design_selection = {"table_key": DESIGN_COMBOS, "status": "NOT_LISTED"}
-    except Exception as exc:
-        design_selection = {"table_key": DESIGN_COMBOS, "status": "CAPTURE_ERROR",
-                            "error": f"{type(exc).__name__}: {exc}"}
-    reads[DESIGN_COMBOS] = design_selection
+    # These exact source definitions are required independently of the discovery budget.
+    for key in (DESIGN_COMBOS, "Load Pattern Definitions"):
+        if key in reads:
+            continue
+        try:
+            if any(item["table_key"] == key for item in inventory):
+                if key == "Load Pattern Definitions":
+                    table = capture_load_pattern_definitions(sap)
+                else:
+                    table = _read_one(db, key)
+                    table["field_metadata"] = _full_metadata(db, key)
+            else:
+                table = {"table_key": key, "status": "NOT_LISTED"}
+        except DisplaySelectionRestoreError:
+            raise
+        except Exception as exc:
+            table = {"table_key": key, "status": "CAPTURE_ERROR",
+                     "error": f"{type(exc).__name__}: {exc}"}
+        reads[key] = table
     after_units = sap.GetPresentUnits()
     restored = _selected_cases(db)
     if restored != original:
@@ -107,7 +119,7 @@ def capture_basis_probe(sap: Any, *, max_tables: int = 24) -> dict:
         "candidate_table_count":len(relevant),
         "candidate_tables":relevant,
         "read_table_keys":[k for k, v in reads.items() if v["status"] != "NOT_LISTED"],
-        "not_read_table_keys":[x["table_key"] for x in relevant[max_tables:]],
+        "not_read_table_keys":[x["table_key"] for x in relevant if x["table_key"] not in reads],
         "table_reads":reads,
         "schema_roles_approved":False,
         "analysis_generation_proven":False,

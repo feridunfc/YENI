@@ -1202,6 +1202,8 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
                                              (report.get("r10_live") or {}).get("engineer_column_selection")))
     if report.get("mixed_demand_components") is not None:
         vs04_sections.append(_mixed_components_html(report["mixed_demand_components"]))
+    if report.get("native_demand_sources") is not None:
+        vs04_sections.append(_native_demand_sources_html(report["native_demand_sources"]))
     pmm_scope = report.get("column_pmm_expected_instances")
     if pmm_scope is not None:
         mesh = pmm_scope.get("analysis_mesh") or {}
@@ -2444,20 +2446,56 @@ def build_column_127_gate_html(bundle: Mapping[str, Any]) -> str:
     )
 
 
+def _native_demand_sources_html(record):
+    return ('<section class="percheck"><h2>Native load-case and modal force coverage</h2>'
+            f'<p>{_val(record["status"])} · {_val(record.get("completed_member_case_count"))} / '
+            f'{_val(record.get("expected_member_case_count"))} member–case pairs. '
+            f'Load patterns captured: {_val(record.get("load_pattern_definitions_captured"))}.</p>'
+            '<p>Coverage uses the configured analysis-element-side cuts and the independently captured '
+            'modal period inventory. Complete source coverage does not prove spectral force concurrence, '
+            'SCWB axial-demand policy, story shear allocation or engineering acceptance.</p>'
+            '<p>Primitive response-spectrum cases retain native scalar Max results. No Min row or '
+            'simultaneous six-component force vector is synthesized.</p>'
+            f'<p>Source gaps: {_val(record.get("reason_codes"))}</p>'
+            + _table((("member_id", "ETABS Unique ID"), ("case", "Native case"),
+                      ("case_type", "Case type"), ("force_semantics", "Force semantics"),
+                      ("expected_mode_count", "Expected modes"),
+                      ("observed_mode_count", "Observed modes"),
+                      ("expected_cut_slices", "Required cut/step rows"),
+                      ("matched_cut_slices", "Matched cut/step rows"),
+                      ("status", "Source status"), ("reason_codes", "Evidence gaps")), record.get("rows", []))
+            + '</section>')
+
+
 def _mixed_components_html(record):
     """Read-only scalar-envelope evidence; no inference or recomputation."""
+    replay = record.get("primitive_replay") or {}
+    replay_text = ('<p>Same-capture primitive-case replay: ' + _val(replay.get("status"))
+        + ' · matched cuts ' + _val(replay.get("matched_cut_count")) + ' / ' + _val(replay.get("expected_cut_count"))
+        + ' · scalar comparisons ' + _val(replay.get("scalar_comparisons"))
+        + ' · outside tolerance ' + _val(replay.get("over_tolerance_components"))
+        + '. Static centers and spectral radii are reconstructed from the recorded case forces and '
+        'combination coefficients, then compared with both native limits.</p>') if replay and replay.get("status") != "NOT_CAPTURED" else (
+        '<p>Observed midpoint and radius only. Separate primitive case forces were not captured for this record.</p>')
     rows = [{"member_id": r["member_id"], "combination": r["combination"], "status": r["status"],
              "expected_cut_count": r["expected_cut_count"], "required_cut_count": r["required_cut_count"],
-             "observed_interval_count": len(r["cuts"]), "reason_codes": r["reason_codes"]}
+             "observed_interval_count": len(r["cuts"]), "reason_codes": r["reason_codes"],
+             "primitive_replay_status": (r.get("primitive_replay") or {}).get("status", "NOT_CAPTURED"),
+             "matched_cut_count": (r.get("primitive_replay") or {}).get("matched_cut_count"),
+             "mismatched_cut_count": (r.get("primitive_replay") or {}).get("mismatched_cut_count"),
+             "unresolved_cut_count": (r.get("primitive_replay") or {}).get("unresolved_cut_count")}
             for r in record.get("rows", ())]
     return ('<section class="percheck"><h2>Recorded mixed/spectral scalar intervals</h2>'
             '<p>Native local P/V2/V3/T/M2/M3 bounds. Compression N reverses the P limits. '
-            'Midpoint and radius describe observed extrema, not independently replayed load-case contributions. '
             'No additional 100/30 or spectrum factor is applied. These intervals are NOT concurrent force '
             'vectors, and do NOT authorize story alpha or final design.</p>'
+            + replay_text
             + '<p>Expected member-combination pairs: ' + _val(record.get("expected_pair_count"))
             + ' · record SHA-256: ' + _val(record.get("sha256")) + '</p>'
             + _table((("member_id", "Column"), ("combination", "Combination"), ("status", "Evidence status"),
                       ("required_cut_count", "Configured required cuts"), ("expected_cut_count", "All scoped cuts"),
-                      ("observed_interval_count", "Observed intervals"), ("reason_codes", "Gaps")), rows)
+                      ("observed_interval_count", "Observed intervals"),
+                      ("primitive_replay_status", "Primitive replay"), ("matched_cut_count", "Matched cuts"),
+                      ("mismatched_cut_count", "Mismatched cuts"), ("unresolved_cut_count", "Unresolved cuts"),
+                      ("reason_codes", "Gaps")), rows)
             + '</section>')

@@ -171,6 +171,63 @@ def _bind_bank(bank, archive):
             raise BankError("SPECTRAL_NATIVE_STORY_BINDING_MISMATCH")
 
 
+def replay_component_envelope(terms, lower, upper):
+    """One arithmetic owner for bank and same-capture live Linear Add bounds.
+
+    Adapters must bind each primitive row to one native cut/step first. Signed
+    static coefficients form the center; absolute spectral coefficients multiply
+    native nonnegative Max amplitudes once. No modal/concurrency policy is implied.
+    """
+    if not terms or len(lower) != 6 or len(upper) != 6:
+        raise BankError("SPECTRAL_REPLAY_OPERAND_SHAPE_INVALID")
+    center, radius = dict.fromkeys(COMPONENTS, Fraction(0)), dict.fromkeys(COMPONENTS, Fraction(0))
+    seen = set()
+    for term in terms:
+        name, kind, values = term["name"], term["case_type"], term["values"]
+        if (not isinstance(name, str) or not name or name in seen
+                or type(kind) is not int or kind not in (1, 4) or len(values) != 6):
+            raise BankError("SPECTRAL_REPLAY_TERM_INVALID")
+        seen.add(name)
+        factor = term["factor"] if isinstance(term["factor"], Fraction) else _fraction(term["factor"])
+        for component, raw in zip(COMPONENTS, values):
+            value = _fraction(raw)
+            if kind == 4:
+                if value < 0:
+                    raise BankError("NEGATIVE_SPECTRAL_MAX_AMPLITUDE:" + name + ":" + component)
+                radius[component] += abs(factor) * value
+            else:
+                center[component] += factor * value
+    observed = {step: dict(zip(COMPONENTS, map(_fraction, values)))
+                for step, values in (("Min", lower), ("Max", upper))}
+    if any(observed["Min"][c] > observed["Max"][c] for c in COMPONENTS):
+        raise BankError("NATIVE_ENVELOPE_ORDER_INVALID")
+    native_bounds = {c: {"lower": _as_float(center[c] - radius[c]),
+                         "upper": _as_float(center[c] + radius[c])} for c in COMPONENTS}
+    comparisons, maxima = [], {"kN": 0.0, "kNm": 0.0}
+    for step, sign in (("Max", 1), ("Min", -1)):
+        for component in COMPONENTS:
+            value = center[component] + sign * radius[component]
+            native = observed[step][component]
+            delta = abs(value - native)
+            budget = ATOL + RTOL * max(abs(value), abs(native))
+            unit = "kN" if component in ("P", "V2", "V3") else "kNm"
+            difference = _as_float(delta)
+            maxima[unit] = max(maxima[unit], difference)
+            comparisons.append({"step_type": step, "component": component, "unit": unit,
+                "calculated": _as_float(value), "observed": _as_float(native),
+                "absolute_difference": difference, "tolerance": _as_float(budget), "match": delta <= budget})
+    matched = sum(all(c["match"] for c in comparisons if c["step_type"] == step) for step in ("Max", "Min"))
+    bounds = {"N": {"lower": -native_bounds["P"]["upper"], "upper": -native_bounds["P"]["lower"]},
+              **{c: native_bounds[c] for c in COMPONENTS if c != "P"}}
+    return {"status": "NUMERICAL_MATCH" if matched == 2 else "NUMERICAL_MISMATCH",
+            "bounds": bounds, "native_bounds": native_bounds,
+            "center": {c: _as_float(center[c]) for c in COMPONENTS},
+            "spectral_radius": {c: _as_float(radius[c]) for c in COMPONENTS}, "comparisons": comparisons,
+            "matched_rows": matched, "mismatched_rows": 2-matched, "scalar_comparisons": 12,
+            "over_tolerance_components": sum(not c["match"] for c in comparisons),
+            "maximum_absolute_difference_by_unit": maxima}
+
+
 def _pair(cut, definition, cases, index, member, source_sha):
     name = definition["name"]
     key = dict(zip(FIELDS[:4], cut))
@@ -190,7 +247,7 @@ def _pair(cut, definition, cases, index, member, source_sha):
         if (len(target) != 2 or {r["StepType"] for r in target} != {"Max", "Min"}
                 or any(r["StepNum"] != 0 for r in target)):
             raise BankError("EXACT_MAX_MIN_PAIR_MISSING_OR_AMBIGUOUS")
-        center, radius = dict.fromkeys(COMPONENTS, Fraction(0)), dict.fromkeys(COMPONENTS, Fraction(0))
+        terms = []
         for term in definition["terms"]:
             kind = cases[term["name"]]["case_type"]
             rows = index.get((cut, term["name"]), ())
@@ -199,46 +256,12 @@ def _pair(cut, definition, cases, index, member, source_sha):
             row = rows[0]
             if row["StepType"] != ("Max" if kind == 4 else "Single Value") or row["StepNum"] != 0:
                 raise BankError("LEAF_STEP_OUTSIDE_RECIPE:" + term["name"])
-            factor = _fraction(term["factor"])
             item["source_terms"].append({"case_type": kind, "factor": term["factor"], **_source_ref(row)})
-            for component in COMPONENTS:
-                value = _fraction(row[component])
-                if kind == 4:
-                    if value < 0:
-                        raise BankError("NEGATIVE_SPECTRAL_MAX_AMPLITUDE:" + term["name"] + ":" + component)
-                    radius[component] += abs(factor) * value
-                else:
-                    center[component] += factor * value
+            terms.append({"name": term["name"], "factor": term["factor"], "case_type": kind,
+                          "values": [row[c] for c in COMPONENTS]})
         observed = {r["StepType"]: r for r in target}
-        if any(observed["Min"][c] > observed["Max"][c] for c in COMPONENTS):
-            raise BankError("NATIVE_ENVELOPE_ORDER_INVALID")
-        native_bounds = {c: {"lower": _as_float(center[c] - radius[c]),
-                             "upper": _as_float(center[c] + radius[c])} for c in COMPONENTS}
-        comparisons, maxima = [], {"kN": 0.0, "kNm": 0.0}
-        for step, sign in (("Max", 1), ("Min", -1)):
-            actual = observed[step]
-            for component in COMPONENTS:
-                value = center[component] + sign * radius[component]
-                native = _fraction(actual[component])
-                delta = abs(value - native)
-                budget = ATOL + RTOL * max(abs(value), abs(native))
-                unit = "kN" if component in ("P", "V2", "V3") else "kNm"
-                difference = _as_float(delta)
-                maxima[unit] = max(maxima[unit], difference)
-                comparisons.append({"step_type": step, "component": component, "unit": unit,
-                    "calculated": _as_float(value), "observed": _as_float(native),
-                    "absolute_difference": difference, "tolerance": _as_float(budget), "match": delta <= budget})
-        matched = sum(all(c["match"] for c in comparisons if c["step_type"] == step) for step in ("Max", "Min"))
-        # N=-P reverses lower/upper. Other CSI local component signs are retained.
-        bounds = {"N": {"lower": -native_bounds["P"]["upper"], "upper": -native_bounds["P"]["lower"]},
-                  **{c: native_bounds[c] for c in COMPONENTS if c != "P"}}
-        item.update(status="NUMERICAL_MATCH" if matched == 2 else "NUMERICAL_MISMATCH",
-            bounds=bounds, native_bounds=native_bounds,
-            center={c: _as_float(center[c]) for c in COMPONENTS},
-            spectral_radius={c: _as_float(radius[c]) for c in COMPONENTS}, comparisons=comparisons,
-            matched_rows=matched, mismatched_rows=2-matched, scalar_comparisons=12,
-            over_tolerance_components=sum(not c["match"] for c in comparisons),
-            maximum_absolute_difference_by_unit=maxima)
+        item.update(replay_component_envelope(terms, [observed["Min"][c] for c in COMPONENTS],
+                                             [observed["Max"][c] for c in COMPONENTS]))
     except (ValueError, KeyError, TypeError, OverflowError) as exc:
         item["reason"] = str(exc)
     return item

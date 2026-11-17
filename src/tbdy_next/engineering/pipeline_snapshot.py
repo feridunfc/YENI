@@ -7,7 +7,7 @@ from pathlib import Path
 import platform
 from typing import Any, Mapping
 
-from ..history import _read_receipt
+from ..history import _MAX_SOURCE_BYTES, _read_receipt
 from ..receipts import ReceiptRun
 
 STAGE = "engine-results"
@@ -108,7 +108,7 @@ def read_snapshot(directory: Path, *, input_sha: str,
         from .design_scenario import verify_archived_scenario
 
         source = directory / "input.source"
-        if source.is_symlink() or not source.is_file() or not 0 < source.stat().st_size <= 32 * 1024 * 1024:
+        if source.is_symlink() or not source.is_file() or not 0 < source.stat().st_size <= _MAX_SOURCE_BYTES:
             raise ValueError("PIPELINE_SOURCE_MISSING_OR_UNSAFE")
         raw = source.read_bytes()
         if sha256(raw).hexdigest() != input_sha:

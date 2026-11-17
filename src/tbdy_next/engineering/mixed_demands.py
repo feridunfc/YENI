@@ -7,7 +7,7 @@ external bank join, inferred analysis generation, or additional 100/30 scaling.
 """
 from __future__ import annotations
 
-from collections import Counter
+from collections import Counter, defaultdict
 from fractions import Fraction
 from decimal import Decimal, InvalidOperation
 import math
@@ -20,6 +20,7 @@ from .design_scenario import _digest
 
 SCHEMA = "tbdy.next.mixed-demand-components.v1"
 METHOD = "native-linear-component-algebra.v1"
+SPECTRAL_METHOD = "same-source-primitive-component-replay.v1"
 
 
 def _number(value):
@@ -107,6 +108,35 @@ def represent_linear_effect(target, observations):
     return {name: str(value) for name, value in sorted(solution.items())}
 
 
+def native_load_patterns(tables):
+    """Bind the observed ETABS 23 fields and the archived field contract explicitly."""
+    key = "Load Pattern Definitions"
+    fields = set((tables.get(key) or {}).get("fields") or ())
+    bindings = [(name, role) for name, role in (("Name", "Type"), ("LoadPat", "DesignType"))
+                if {name, role} <= fields]
+    if not bindings:
+        raise ValueError("LOAD_PATTERN_FIELD_BINDING_UNAVAILABLE")
+    rows = _source_table(tables, key, {"SelfWtMult", *[k for pair in bindings for k in pair]}, require_key=True)
+    patterns = {}
+    for row in rows:
+        names, roles = ({row[p[i]] for p in bindings} for i in (0, 1))
+        if len(names) != 1 or len(roles) != 1:
+            raise ValueError("LOAD_PATTERN_FIELD_BINDINGS_CONFLICT")
+        name, role = next(iter(names)), next(iter(roles))
+        if not name or name != name.strip() or not role or role != role.strip() or name in patterns:
+            raise ValueError("LOAD_PATTERN_IDENTITY_INVALID")
+        _number(row["SelfWtMult"])
+        patterns[name] = {"role": role, "self_weight_multiplier": row["SelfWtMult"]}
+    native_names = tables[key].get("native_pattern_names")
+    if native_names is not None:
+        selection = tables[key].get("display_pattern_selection") or {}
+        if (not isinstance(native_names, list) or len(set(native_names)) != len(native_names)
+                or set(native_names) != set(patterns) or selection.get("during") != native_names
+                or not isinstance(selection.get("before"), list) or selection["before"] != selection.get("after")):
+            raise ValueError("LOAD_PATTERN_CATALOG_OR_SELECTION_MISMATCH")
+    return patterns
+
+
 def _static_roles(tables, required, cases):
     key = "Load Case Definitions - Linear Static"
     table = tables.get(key) or {}
@@ -116,12 +146,7 @@ def _static_roles(tables, required, cases):
     if not factor_fields:
         raise ValueError("STATIC_LOAD_FACTOR_FIELD_UNAVAILABLE")
     rows = _source_table(tables, key, {"Name", "LoadType", "LoadName", *factor_fields}, require_key=True)
-    patterns = _source_table(tables, "Load Pattern Definitions", {"LoadPat", "DesignType", "SelfWtMult"}, require_key=True)
-    by_pattern = {}
-    for p in patterns:
-        if p["LoadPat"] in by_pattern:
-            raise ValueError("COMPONENT_LOAD_PATTERN_DUPLICATE")
-        by_pattern[p["LoadPat"]] = p
+    by_pattern = native_load_patterns(tables)
     roles = {}
     for case in sorted(required):
         loads = [r for r in rows if r["Name"] == case]
@@ -137,8 +162,8 @@ def _static_roles(tables, required, cases):
             pattern = by_pattern.get(load["LoadName"])
             if load["LoadType"] != "Load" or pattern is None:
                 raise ValueError("COMPONENT_PATTERN_BINDING_UNAVAILABLE:" + case)
-            role = pattern["DesignType"]
-            weight = _number(pattern["SelfWtMult"])
+            role = pattern["role"]
+            weight = _number(pattern["self_weight_multiplier"])
             if role in ("Quake", "Seismic"):
                 if weight:
                     raise ValueError("EARTHQUAKE_ONLY_SHEAR_NOT_SEPARATED:SELF_WEIGHT:" + case)
@@ -163,7 +188,8 @@ def earthquake_partition(source, names, plan):
             raise ValueError("ALPHA_SEISMIC_CASE_LINEAGE_CONFLICT:" + name)
     roles = _static_roles(tables, {c for d in definitions.values() for c in d}, cases)
     rowsets = ((source.get("column_axial") or {}).get("force_source") or {}).get("rowsets") or {}
-    observed_names = {row[4] for uid, rowset in rowsets.items() for row in native_frame_force_rows(rowset, uid)
+    from .demand_sources import component_force_rows
+    observed_names = {row[4] for uid in rowsets for row in component_force_rows(source, uid, plan)
                       if row[5] in ("Single Value", "") and row[6] == 0}
     observations = {}
     for name in sorted(observed_names):
@@ -212,13 +238,14 @@ def earthquake_row(rows, target, recipe, *, length):
 
 
 def spectral_component_evidence(source, axial, scope, *, input_sha):
-    """Persist observed Max/Min intervals. This is NOT independent leaf replay.
+    """Record intervals and, when available, replay same-capture primitive cases.
 
     Uses the existing spectral owner's interval arithmetic; the configured cut
     ledger remains explicit. Missing required pairs remain in the denominator.
     The result cannot authorize signed SCWB or alpha on aggregate RSA maxima.
     """
-    from ..column_engine.spectral_envelope import observed_component_interval
+    from ..column_engine.spectral_envelope import observed_component_interval, replay_component_envelope
+    from .demand_sources import _verified_support
     plan = (axial or {}).get("combination_plan") or {}
     names = sorted(c["name"] for c in plan.get("combinations", ()) if c.get("force_semantics") == "SCALAR_COMPONENT_ENVELOPE")
     if not names:
@@ -241,8 +268,26 @@ def spectral_component_evidence(source, axial, scope, *, input_sha):
     except (ValueError, KeyError, TypeError, RecursionError) as exc:
         cases, graph = {}, {}
         errors.append("COMPONENT_GRAPH_UNAVAILABLE:" + str(exc))
+    support, support_error = None, None
+    support_present = "demand_support" in (source.get("column_axial") or {})
+    if support_present:
+        try:
+            _, support = _verified_support(source, plan)
+        except (ValueError, KeyError, TypeError, ArithmeticError) as exc:
+            support_error = "PRIMITIVE_SOURCE_UNVERIFIED:" + str(exc)
     for uid in members:
         member_errors = []
+        primitive_rows = defaultdict(list)
+        primitive_error = support_error
+        if support is not None:
+            try:
+                for primitive in native_frame_force_rows(support["rowsets"][uid], uid):
+                    if primitive[4] not in cases:
+                        raise ValueError("PRIMITIVE_CASE_IDENTITY_UNAVAILABLE")
+                    if cases[primitive[4]]["type"] in ("Linear Static", "Response Spectrum"):
+                        primitive_rows[primitive[4]].append(primitive)
+            except (ValueError, KeyError, TypeError, ArithmeticError) as exc:
+                primitive_error = "PRIMITIVE_MEMBER_SOURCE_UNAVAILABLE:" + str(exc)
         try:
             native = list(native_frame_force_rows(rowsets[uid], uid)) if uid in rowsets else []
         except (ValueError, KeyError, TypeError, ArithmeticError) as exc:
@@ -269,6 +314,10 @@ def spectral_component_evidence(source, axial, scope, *, input_sha):
             item = {"member_id": uid, "combination": name, "status": "OBSERVED_INTERVALS_DECOMPOSED",
                     "expected_cut_count": len(cuts), "required_cut_count": len(grid.get("cuts", ())),
                     "cuts": [], "reason_codes": [*errors, *member_errors]}
+            item["primitive_replay"] = {"status": "NOT_CAPTURED" if not support_present else "SOURCE_UNRESOLVED",
+                "expected_cut_count": len(cuts), "matched_cut_count": 0, "mismatched_cut_count": 0,
+                "unresolved_cut_count": len(cuts), "scalar_comparisons": 0, "over_tolerance_components": 0,
+                "maximum_absolute_difference_by_unit": {"kN": 0.0, "kNm": 0.0}}
             if instances:
                 pair = instance_map.get((uid, name))
                 if pair is None:
@@ -283,6 +332,7 @@ def spectral_component_evidence(source, axial, scope, *, input_sha):
                                 or coverage.get("unmapped_analysis_element_ids")):
                             item["reason_codes"].append("UPSTREAM_" + label.upper() + "_UNRESOLVED")
             group = graph.get(name) or {}
+            coefficients = None
             try:
                 coefficients = linear_coefficients(name, graph, cases)
                 if (any(r.get("ref_type") != "CASE" for r in group.get("rows", ()))
@@ -293,6 +343,7 @@ def spectral_component_evidence(source, axial, scope, *, input_sha):
                 item["static_case_coefficients"] = {c: str(v) for c, v in coefficients.items() if cases[c]["type"] == "Linear Static"}
                 item["spectral_case_coefficients"] = {c: str(v) for c, v in coefficients.items() if cases[c]["type"] == "Response Spectrum"}
             except (KeyError, ValueError, TypeError) as exc:
+                coefficients = None
                 item["reason_codes"].append(str(exc))
             if not cuts or grid.get("status") != "REQUIRED_SUBSET_BOUND":
                 item["reason_codes"].append("CONFIGURED_CUT_SUBSET_UNVERIFIED")
@@ -303,18 +354,83 @@ def spectral_component_evidence(source, axial, scope, *, input_sha):
                         raise ValueError("EXACT_MAX_MIN_PAIR_MISSING_OR_AMBIGUOUS")
                     by_step = {r[5]: r for r in matches}
                     detail = observed_component_interval(by_step["Min"][7:], by_step["Max"][7:])
+                    if support_present:
+                        try:
+                            if primitive_error:
+                                raise ValueError(primitive_error)
+                            if coefficients is None:
+                                raise ValueError("PRIMITIVE_COMBINATION_DEFINITION_UNVERIFIED")
+                            terms, lineage = [], []
+                            for case, factor in coefficients.items():
+                                values = [r for r in primitive_rows[case] if r[2] == cut[2]
+                                          and abs(r[1]-cut[1]) <= station_budget(r[1], cut[1], length)
+                                          and abs(r[3]-cut[3]) <= station_budget(r[3], cut[3], length)]
+                                if len(values) != 1:
+                                    raise ValueError("PRIMITIVE_CUT_MISSING_OR_AMBIGUOUS:" + case)
+                                primitive = values[0]
+                                spectral = cases[case]["type"] == "Response Spectrum"
+                                if primitive[5] not in (("Max",) if spectral else ("Single Value", "")) or primitive[6] != 0:
+                                    raise ValueError("PRIMITIVE_STEP_UNQUALIFIED:" + case)
+                                terms.append({"name": case, "case_type": 4 if spectral else 1,
+                                              "factor": factor, "values": primitive[7:]})
+                                lineage.append({"case": case, "native_key": list(primitive[:7]), "factor": str(factor),
+                                                "case_guid": cases[case]["guid"], "source_row_sha256": _digest(primitive)})
+                            replay = replay_component_envelope(terms, by_step["Min"][7:], by_step["Max"][7:])
+                            # Keep lineage and unrounded reconstructed values, without
+                            # repeating both full bounds and 12 verbose passing comparisons
+                            # at every cut. Failed comparisons retain all their operands.
+                            detail["primitive_replay"] = {
+                                "status": replay["status"], "source_terms": lineage,
+                                "center_native": replay["center"], "radius_native": replay["spectral_radius"],
+                                "nd_bounds_kn": [replay["bounds"]["N"]["lower"], replay["bounds"]["N"]["upper"]],
+                                "scalar_comparisons": replay["scalar_comparisons"],
+                                "over_tolerance_components": replay["over_tolerance_components"],
+                                "maximum_absolute_difference_by_unit": replay["maximum_absolute_difference_by_unit"],
+                                "comparison_sha256": _digest(replay["comparisons"]),
+                                "failed_comparisons": [c for c in replay["comparisons"] if not c["match"]]}
+                            agg = item["primitive_replay"]
+                            agg["matched_cut_count" if replay["status"] == "NUMERICAL_MATCH" else "mismatched_cut_count"] += 1
+                            agg["unresolved_cut_count"] -= 1
+                            for field in ("scalar_comparisons", "over_tolerance_components"):
+                                agg[field] += replay[field]
+                            for unit in ("kN", "kNm"):
+                                agg["maximum_absolute_difference_by_unit"][unit] = max(
+                                    agg["maximum_absolute_difference_by_unit"][unit], replay["maximum_absolute_difference_by_unit"][unit])
+                            if replay["status"] != "NUMERICAL_MATCH":
+                                item["reason_codes"].append("PRIMITIVE_REPLAY_NUMERICAL_MISMATCH:" + str(cut))
+                        except (ValueError, KeyError, TypeError, ArithmeticError) as exc:
+                            detail["primitive_replay"] = {"status": "SOURCE_UNRESOLVED", "reason": str(exc)}
+                            item["reason_codes"].append(str(exc) + ":" + str(cut))
                     item["cuts"].append({"native_cut": list(cut), "configured_required_cut": cut in required_native,
                                          **detail, "source_rows_sha256": _digest(matches)})
                 except (ValueError, KeyError, TypeError) as exc:
                     item["reason_codes"].append(str(exc) + ":" + str(cut))
+            if support_present:
+                agg = item["primitive_replay"]
+                agg["status"] = ("SOURCE_UNRESOLVED" if agg["unresolved_cut_count"] or not cuts else
+                                 "NUMERICAL_MISMATCH" if agg["mismatched_cut_count"] else "NUMERICAL_MATCH")
+                item["status"] = "SAME_SOURCE_COMPONENT_REPLAY_MATCH"
             if item["reason_codes"]:
                 item["status"] = "NOT_PROVEN"
             rows.append(item)
-    result = {"schema": SCHEMA, "method": METHOD, "input_sha256": input_sha,
+    replay_summary = {field: sum(row["primitive_replay"][field] for row in rows) for field in (
+        "expected_cut_count", "matched_cut_count", "mismatched_cut_count", "unresolved_cut_count",
+        "scalar_comparisons", "over_tolerance_components")}
+    replay_summary["status"] = ("NOT_CAPTURED" if not support_present else
+        "SOURCE_UNRESOLVED" if replay_summary["unresolved_cut_count"] or not rows else
+        "NUMERICAL_MISMATCH" if replay_summary["mismatched_cut_count"] else "NUMERICAL_MATCH")
+    replay_summary["qualified_pair_count"] = sum(r["status"] == "SAME_SOURCE_COMPONENT_REPLAY_MATCH" for r in rows)
+    replay_summary["maximum_absolute_difference_by_unit"] = {unit: max(
+        (r["primitive_replay"]["maximum_absolute_difference_by_unit"][unit] for r in rows), default=0.0) for unit in ("kN", "kNm")}
+    result = {"schema": SCHEMA, "method": SPECTRAL_METHOD, "input_sha256": input_sha,
               "source_payload_sha256": _digest(source), "expected_member_ids": members,
               "expected_combinations": names, "expected_pair_count": len(members)*len(names),
               "rows": rows, "status_counts": dict(Counter(r["status"] for r in rows)), "reason_codes": errors,
-              "basis": "OBSERVED_DIRECT_LINEAR_ADD_INTERVALS_NOT_INDEPENDENT_CONSTITUENT_REPLAY",
+              "primitive_replay": replay_summary,
+              "absolute_tolerance_native": "1e-9", "relative_tolerance": "1e-12",
+              "primitive_source_sha256": _digest(source["column_axial"]["demand_support"]) if support_present else None,
+              "basis": "SAME_CAPTURE_PRIMITIVE_REPLAY_AND_OBSERVED_INTERVALS" if support_present else
+                       "OBSERVED_DIRECT_LINEAR_ADD_INTERVALS_NOT_INDEPENDENT_CONSTITUENT_REPLAY",
               "additional_directional_or_scale_factor_applied": False,
               "physical_concurrency_proven": False, "signed_alpha_input_eligible": False,
               "independent_full_cut_census_proven": False, "engineering_release": "NOT_READY"}

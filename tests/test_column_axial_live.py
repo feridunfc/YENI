@@ -237,6 +237,10 @@ class ColumnAxialIntegration(unittest.TestCase):
         html = self.get("/report/print?run_id=" + rid)
         self.assertIn(b"Column PMM and minimum eccentricity", html)
         self.assertIn(b"Tie spacing (mm)", html)
+        self.assertEqual(result["native_demand_sources"]["status"], "BLOCKED_SOURCE")
+        self.assertIn(b"Native load-case and modal force coverage", html)
+        snapshot = json.loads(next((self.root / rid).glob("*-engine-results.json")).read_bytes())["payload"]
+        self.assertEqual(snapshot["results"]["report_evidence"]["native_demand_sources"], result["native_demand_sources"])
         receipt = next((self.root / rid).glob("*-column-pmm.json"))
         record = json.loads(receipt.read_bytes())
         self.assertEqual(record["receipt_sha256"], result["source_provenance"]["column_pmm_receipt_sha256"])

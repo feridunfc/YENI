@@ -1,8 +1,202 @@
 # Single pipeline owner — 2026-11-15
 
-Historical baseline: 2026-11-15. The original working-tree-only status below was superseded by the published D1–D3 audit-branch commits. Current user authorization permits commit/push on `audit/pipeline-pmm-v6-20261117`; `main` merge remains HOLD.
+Historical baseline: 2026-11-15. The original working-tree-only status below was superseded by the published D1–D3 audit-branch commits. On 2026-11-17 the user requested the current local implementation and durable context to be preserved on `baseline/local_import`. The working-tree verification below predates that checkpoint; it is identified by its base commit and file/method hashes, not presented as a new test run. `main` merge remains HOLD.
 
 D3B continuation: [mixed demands, spectral interval evidence and remaining acceptance limits](OFFLINE_D3B_MIXED_DEMANDS_20261117.md). Coverage counts in the historical sections are not engineering completion percentages.
+
+## Same-source spectral component replay — 2026-11-17 working tree
+
+The existing `mixed-demand-components` stage now reconstructs a direct Linear Add
+combination from the **same acquisition's primitive case forces**, and compares all six
+components against both recorded Max/Min limits. The bank and live adapters call the
+same `column_engine.spectral_envelope.replay_component_envelope` arithmetic owner.
+There is no extra solver, COM attachment, analysis run or pipeline entry point.
+
+The registered method is `same-source-spectral-components.v3`. Exact rational case
+coefficients form the signed static center and nonnegative spectral radius; 100/30,
+response-spectrum scale and strength factors are not applied a second time. N = -P
+reverses the axial interval. Every contributing native row retains its case GUID,
+full object/analysis-element-side/station/step identity and source-row hash. The existing
+unique ULP station matcher is reused. Opposite element sides, ambiguous matches,
+unknown steps, missing leaves or changed source/selection contracts block qualification.
+
+The existing scalar source tolerance remains `1e-9 + 1e-12 * max(abs(calculated), abs(native))`
+in kN or kN·m. All expected member/combination/cut denominators remain visible. Recorded
+arithmetic agreement and upstream scope qualification are separate: a blocked mesh cannot
+become a qualified demand just because its scalar arithmetic matches.
+
+The sealed artifact stores unrounded reconstructed centers/radii, compression bounds,
+row lineage, comparison hashes, counts and per-unit maximum discrepancies. Failed
+comparisons additionally retain their operands and tolerance. Passing comparison operands
+are not redundantly repeated at every cut; the captured source is retained in full.
+JSON/HTML project this artifact without rerunning the arithmetic. Older captures without
+primitive forces remain explicitly observed-only (`NOT_CAPTURED` for primitive replay).
+
+Acceptance requires a real same-source replay, a separate Decimal(80) arithmetic oracle,
+failure-path tests, unchanged bank behavior, sealed-report projection, repeat identity,
+full offline checks and clean wheel installation. Final verification is recorded below.
+
+This step validates case-to-combination arithmetic. It does not establish modal response
+reconstruction, a concurrent six-component force vector, SCWB governing axial selection
+or an alpha denominator. The current source has CQC/SRSS case settings with 5% accidental
+eccentricity; `Response Spectrum Modal Info` has metadata but no captured rows. Modal
+amplitudes/active damping and the accidental-torsion contributions must be bound before
+modal story-shear aggregation can be qualified. Separate constituent maxima cannot be
+summed into an assumed concurrent story response. CSI documents the
+[modal amplitudes](https://wikicsiamerica.atlassian.net/wiki/spaces/kb/pages/2006323/Response-spectrum%2Banalysis%2BFAQ)
+and [aggregate-before-combination rule](https://web.wiki.csiamerica.com/wiki/spaces/kb/pages/2003704/Base%2Breactions%2Bfor%2Bresponse-spectrum%2Banalysis).
+R14/R15 and engineering release remain unchanged at `NOT_READY`.
+
+### Same-source replay acceptance
+
+Final replay: `RUN-357f6e5379d546f99aa3de9fbdd50898`. Input is the unchanged live
+acquisition `8b4851511cdcae04734866924bbacb079f9e7903a01d6c7a9b2bd8ebcd32a311`;
+this work did not run ETABS analysis or acquire another model. The final result SHA-256 is
+`b44579fb7339fb9a9a4799e11e1a98ef832094aa89c8117dd62484b53cd57557`.
+
+| Final recorded scope | Result |
+| --- | ---: |
+| Columns / spectral combinations | 87 / 8 |
+| Qualified member–combination pairs | 696/696 |
+| Replayed combination-cut pairs | 3,216/3,216 |
+| Six components × Max/Min comparisons | 38,592 |
+| Outside source arithmetic tolerance | 0 |
+| Largest force / moment discrepancy | 1.111e-12 kN / 1.369e-13 kN·m |
+
+An independent evidence-only Python program using `Decimal(80)` reads native definitions,
+case rows and combination rows directly, with no `tbdy_next` imports or production arithmetic.
+It independently agrees on all 38,592 comparisons. It also checks **45,024** recorded
+center/radius/compression-bound values; none exceed tolerance (maximum discrepancy 3.90e-13).
+This is independent arithmetic verification, not a complete structural design oracle.
+
+Repeat `RUN-e07b130d13944616834fce19d6ed9e85` uses the same source and method and gives
+**16/16 IDENTICAL** receipt payloads. The report opens with **21** calculator/runner entry
+points disabled, zero calls; its mixed-demand artifact equals the sealed snapshot.
+The user restarted the server and `/api/pipeline` reports `same-source-spectral-components.v3`.
+HTTP JSON and HTML exports equal the locally verified report, including the new replay columns.
+
+Evidence directory: `.receipts/verification/same-source-spectral-final-20261117T180150Z/`.
+It contains commands, logs, tested file hashes, clean wheel source, the independent oracle,
+`independent-decimal.json`, repeat comparison and `report-projection.json`. Environment:
+Windows 11 / CPython 3.12.10 / Node 24.22.1. Tested uncommitted working tree is based on
+`85e720d18683a71737c1919d32e393c9d903737b`, package fingerprint
+`0c6cab8550af2e036a4368a96ed4c4e40c7921d7ed06952ea3676757ef3b89ea`.
+Acceptance prose is updated after testing; tested source/test files remain unchanged.
+
+| Verification actually run on this version | Result |
+| --- | --- |
+| Focused live/bank/component/native-source suite | 98 tests, OK |
+| `python -B tools/test_offline.py` | 1,347 tests, OK; 1 skipped (OS disallows symlinks); 10/10 JavaScript test files passed |
+| Clean wheel build and `python -B tools/test_installed_wheel.py <wheel-directory>` | 181 tests, OK |
+| Evidence-only `independent_decimal.py` | 38,592 native comparisons and 45,024 recorded derived values, zero outside tolerance |
+| Existing CLI `run-pipeline --compare-run` | 16/16 IDENTICAL |
+
+The 957 design pairs, 1,206 evaluated signed-static PMM station rows, and 0 observed
+signed-static PMM exceedances are retained. No design scenario or alpha iteration was
+applied. R14/R15 still has **0 closed / 87 partial**. The next bounded task is capture and
+qualification of native modal amplitudes, active damping and accidental-torsion terms,
+then independent verification of modal aggregation before SCWB/alpha policy consumes it.
+
+## Native demand source continuation — 2026-11-17 working tree
+
+The existing basis probe now reads the exact `Load Pattern Definitions` table even
+when the discovery-table budget would omit it. Its separate native pattern filter is
+set to the full pattern catalog and restored, with failed restoration aborting the capture.
+The observed ETABS 23 `Name`/`Type` fields and archived `LoadPat`/`DesignType` fields use
+one explicit binding in the existing component algebra; conflicting aliases are rejected.
+PMM capture uses the same attached
+SapModel and `capture_frame_forces` adapter for a separate supporting case selection.
+The selected design-combination denominator remains unchanged. Supporting cases come
+from the native combination leaves; response-spectrum definitions identify their modal
+cases, and the same-capture modal period table supplies the expected mode inventory.
+
+`Results.Setup.SetOptionModeShape(..., True)` requests all modes. Case/combination
+output selections and the previous mode range are independently restored and verified,
+including failure paths. No analysis, model save, load assignment or design edit is run.
+The existing 100,000-row force-capture bound remains enforced. Complete modal arrays may
+exceed the old 32 MiB source limit, so capture, replay, scenario parents and report readers
+now share the existing history owner's 64 MiB archive limit. Oversize captures fail;
+native force rows are not rounded or silently truncated to fit.
+
+The existing `mixed-demand-components` stage records `native_demand_sources` in the
+sealed report evidence. Every member/case and every expected modal step is checked
+against the existing PMM configured cut ledger, including analysis-element side identity.
+A union of mode IDs is insufficient: a missing cut in one mode remains a source gap.
+Primitive static rows feed the existing exact mixed-component algebra at the same native
+cut and step. No bank from another acquisition is joined and no new solver is introduced.
+Primitive response-spectrum cases retain one native scalar `Max` at each cut. This is
+distinct from mixed-combination `Max`/`Min` intervals; no missing minimum or concurrent
+force vector is manufactured. The registered source method is `native-demand-source-coverage.v2`.
+
+Acceptance for this increment requires load-pattern capture, complete required primitive
+and modal cut coverage, verified restoration, unchanged design-combination scope, sealed
+report projection and focused/full offline regressions. These are source acceptance criteria;
+they do not authorize modal/directional force concurrence, SCWB axial demand selection,
+story shear allocation, alpha iteration or a `READY` engineering release.
+
+### Live source acceptance and exact-version verification
+
+The final user-launched server captured `RUN-14ac327ed55f46f6b45a74c29030a07f` through
+the existing `POST /api/live-vs04` operation on 2026-11-17. The locked `kompakt_b.EDB`
+model, PID 11788 and API units 6 were unchanged before/after. The 22-pattern display
+filter, all output case/combination flags and mode range were restored. The native
+mode range was `[1, 1, false]` before/after and `[1, 100, true]` during capture.
+
+| Source acceptance scope | Final same-run evidence |
+| --- | ---: |
+| Native load-pattern definitions | 22/22 |
+| Columns / requested native cases | 87 / 13 |
+| Required member–case coverage | 1,131/1,131 |
+| Static cases / configured cut rows | 10 / 4,020 |
+| Primitive RSX and RSY scalar maxima | 804/804 cut rows |
+| Modal cases / modes / configured mode-cut rows | 1 / 100 / 40,200/40,200 |
+| All required supporting cut-step rows | 45,024/45,024 |
+| Design column–combination pairs (unchanged) | 957 |
+| 73 single-element columns, required combination cuts | 2,409/2,409 |
+| 14 meshed columns, required combination cuts | 2,013/2,013 |
+
+Input SHA-256: `8b4851511cdcae04734866924bbacb079f9e7903a01d6c7a9b2bd8ebcd32a311`.
+Results SHA-256: `1cd749cf6f62e774a7a04928d43edcf80634687185f14ef69b8416d5b3b07933`.
+The original archive SHA-256 `85129fae59e4652a66022348f2f130e83f9128b64e814ce769c66b5cb987f71a`
+was rechecked unchanged. The first acquisition, `RUN-098bf9d688264b569bb6b98b88478423`,
+is retained as partial evidence; it exposed the empty pattern filter and the primitive
+spectrum Max-only shape and is not represented as a successful final acceptance.
+
+Offline replay `RUN-9cfdc4ce37b3475fab2e057387b37fa0` matched all **16/16** recorded
+stage payloads (`IDENTICAL`, same source and method). The complete report opened with
+20 calculator/runner entry points disabled: zero calls, and its native-source, mixed-demand
+and R14 projections matched the sealed result. The HTTP JSON export matched too.
+
+Final verification used Windows 11, CPython 3.12.10 and Node 24.22.1, on the uncommitted
+working tree based on `85e720d18683a71737c1919d32e393c9d903737b`. The tested package
+fingerprint is `0ca9fb62e4604d7a17f721cc3bcca88cfe4ce91747140a7f6d290b532c69531a`.
+The final logs, command arrays, clean wheel source, file hashes and live/replay evidence
+are in `.receipts/verification/native-demands-final-20261117T163344Z/` (local evidence).
+
+| Verification actually run | Result |
+| --- | --- |
+| Focused native/column/mixed/alpha/R03/basis suite | 133 tests, OK |
+| `python -B tools/test_offline.py` | 1,334 tests, OK; 1 skipped; 10/10 JavaScript files passed |
+| Clean wheel build and `python -B tools/test_installed_wheel.py <wheel-directory>` | 168 tests, OK |
+| `python -B -m tbdy_next.cli run-pipeline --source <live-input> --case Modal --out <replay-dir> --compare-run <live-run>` | 16/16 IDENTICAL |
+
+The focused suite preceded the final registry-version/report wording edits; those edits
+were included in the full suite, clean wheel and live replay. No earlier Linux/CI result
+is counted as a new run here. Exact tested file hashes are in `tested-files.json`; this
+acceptance text was updated afterwards, without changing the tested source or tests.
+
+This live acquisition applies no selected-design scenario or alpha iteration. Signed
+static PMM evaluates 1,206/1,206 station rows with zero observed exceedances, while
+R14/R15 remains **0 closed, 87 partial/unbound** and engineering release is `NOT_READY`.
+The next acceptance requires one shared modal/directional demand method, SCWB axial-demand
+selection and story-shear allocation, verified against an independent complete example.
+The required-cut subset above is not an independently established census of every possible cut.
+
+CSI API references: [mode selection](https://docs.csiamerica.com/help-files/etabs-api-2016/html/060c0e63-1f87-d64c-f72a-892899bc88df.htm)
+and [mode selection readback](https://docs.csiamerica.com/help-files/etabs-api-2016/html/e21463f2-d1c7-c0f6-c414-a651d5390634.htm).
+The installed ETABSv1 COM type library also exposes the three mode-range parameters and
+the separate load-pattern display getter/setter. Native force fields follow
+[CSI FrameForce](https://docs.csiamerica.com/help-files/etabs-api-2016/html/87689f3e-4175-1627-618b-c4ebae5e89b5.htm).
 
 ## What was four islands
 

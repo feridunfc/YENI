@@ -20,6 +20,8 @@ WHEEL_TESTS = (
     "test_design_member_dependencies",
     "test_alpha_design_iteration",
     "test_mixed_design_demands",
+    "test_native_demand_sources",
+    "test_same_source_spectral_replay",
 )
 
 

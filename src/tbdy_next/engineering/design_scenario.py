@@ -14,6 +14,7 @@ import re
 from typing import Any, Mapping
 
 from ..column_engine.native_archive import decode
+from ..history import _MAX_SOURCE_BYTES
 from .rebar_selection import (
     DEFAULT_BEAM_SELECTION_POLICY, DEFAULT_COLUMN_SELECTION_POLICY,
     normalize_beam_selection_policy, normalize_column_selection_policy,
@@ -140,7 +141,7 @@ def verify_archived_scenario(directory: Path, payload: Mapping[str, Any]) -> dic
     item = validate_design_scenario(payload)
     if item is not None:
         parent = directory / PARENT_FILE
-        if parent.is_symlink() or not parent.is_file() or not 0 < parent.stat().st_size <= 32 * 1024 * 1024:
+        if parent.is_symlink() or not parent.is_file() or not 0 < parent.stat().st_size <= _MAX_SOURCE_BYTES:
             raise ValueError("SCENARIO_PARENT_SOURCE_MISSING_OR_UNSAFE")
         verify_parent(payload, parent.read_bytes())
     return item
