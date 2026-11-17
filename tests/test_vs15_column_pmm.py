@@ -142,7 +142,9 @@ class SectionCapacityOracles(unittest.TestCase):
     def test_kernel_rejects_bool_nonfinite_and_unsupported_concrete(self):
         for value in (True,float('nan'),float('inf')):
             with self.assertRaises(ValueError): solver(self.section).assess(value,0,0)
-        with self.assertRaises(ValueError): Material(37,24,400)
+        for fck in (15, 51):
+            with self.assertRaisesRegex(ValueError, "PMM_MATERIAL_OUTSIDE_KERNEL_SCOPE"):
+                Material(fck, fck / 1.5, 400)
         with self.assertRaises(ValueError): perimeter(800,800,40,10,24,n2=True)
 
 

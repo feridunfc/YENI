@@ -24,6 +24,44 @@ ATOL = Fraction("1e-9")  # kN / kN-m source replay, not a design tolerance
 RTOL = Fraction("1e-12")
 
 
+def engineering_evidence_gaps(report):
+    """Describe verified source coverage without changing the bank's stored digest."""
+    coverage = report["native_context_coverage"]
+    count = report["selected_column_count"]
+    return [
+        {
+            "topic": "CE-02 Design demand",
+            "available": f"{report['force_row_count']} native six-component rows and "
+                         f"{report['defined_combination_count']} defined combinations",
+            "remaining": "Design combination selection, spectral sign and concurrence rules, and analysis generation",
+        },
+        {
+            "topic": "CE-04 Second order",
+            "available": f"{coverage['complete_station_geometry']}/{count} columns with geometry, "
+                         "transformation matrices, releases, offsets and supports",
+            "remaining": "TS500 clear and effective lengths, k/EI, sidesway and P–Δ/P–δ policy",
+        },
+        {
+            "topic": "CE-05 PMM and longitudinal reinforcement",
+            "available": f"Sections {coverage['section_geometry']}/{count}, concrete and steel "
+                         f"{coverage['concrete_and_steel']}/{count}, model reinforcement settings "
+                         f"{coverage['model_rebar_settings']}/{count}",
+            "remaining": "Installed or explicitly designed cage, verified demand and convergence",
+        },
+        {
+            "topic": "CE-06 Shear and confinement",
+            "available": "Recorded V2 and V3 components and model reinforcement settings where available",
+            "remaining": "Approved end capacities, capacity shear and physical tie and crosstie topology",
+        },
+        {
+            "topic": "CE-03 / CE-07 Stories and joints",
+            "available": "Column force bank and source geometry",
+            "remaining": "Complete member and joint population, connected wall and pier data, "
+                         "the same physical cut, story φ and SCWB capacity evidence",
+        },
+    ]
+
+
 @dataclass(frozen=True, slots=True)
 class NativeForceState:
     """kN-m-C native tuple, with source and analysis-element identity intact."""
@@ -47,22 +85,15 @@ class NativeForceState:
             "source_row_index": self.source_row_index}
 
 
-def _read_forces(archive, name, entry):
-    if (entry.get("status") != "OBSERVED" or entry.get("exact_shape") is not True
-            or entry.get("frame_name") != name):
-        raise BankError("COLUMN_FORCE_NOT_OBSERVED")
-    observed = archive.native("Results.FrameForce", "frame", name, FORCE_SIGNATURE)
-    if observed is None:
-        raise BankError("COLUMN_FORCE_CALL_MISSING")
-    rowset, proof = observed
-    if entry.get("call_id") != proof["call_id"] or entry.get("shard") != proof["shard_path"]:
-        raise BankError("FORCE_INVENTORY_CALL_MISMATCH")
-    n = rowset["NumberResults"]
-    if (type(n) is not int or not 0 < n <= 200000 or n != entry.get("declared_rows")
-            or any(not isinstance(rowset[k], list) or len(rowset[k]) != n for k in FIELDS)):
+def native_frame_force_rows(rowset, name):
+    """Parse the CSI ObjectElm result arrays without changing native identity or values."""
+    n = rowset.get("NumberResults")
+    if (type(rowset.get("pRetVal")) is not int or rowset["pRetVal"] != 0
+            or type(n) is not int or not 0 < n <= 200000
+            or any(not isinstance(rowset.get(k), (tuple, list)) or len(rowset[k]) != n for k in FIELDS)):
         raise BankError("FORCE_ARRAY_LENGTH_MISMATCH")
-    states, seen, counts = [], set(), Counter()
-    for i, vals in enumerate(zip(*(rowset[k] for k in FIELDS))):
+    seen = set()
+    for vals in zip(*(rowset[k] for k in FIELDS)):
         if vals[0] != name:
             raise BankError("FORCE_FRAME_ID_MISMATCH")
         for j in (0, 2, 4):
@@ -73,7 +104,25 @@ def _read_forces(archive, name, entry):
             finite(vals[j], FIELDS[j])
         if vals[1] < 0 or vals[3] < 0 or vals[:7] in seen:
             raise BankError("FORCE_STATION_NEGATIVE_OR_FULL_KEY_DUPLICATE")
-        seen.add(vals[:7]); counts[vals[4]] += 1
+        seen.add(vals[:7])
+        yield vals
+
+
+def _read_forces(archive, name, entry):
+    if (entry.get("status") != "OBSERVED" or entry.get("exact_shape") is not True
+            or entry.get("frame_name") != name):
+        raise BankError("COLUMN_FORCE_NOT_OBSERVED")
+    observed = archive.native("Results.FrameForce", "frame", name, FORCE_SIGNATURE)
+    if observed is None:
+        raise BankError("COLUMN_FORCE_CALL_MISSING")
+    rowset, proof = observed
+    if entry.get("call_id") != proof["call_id"] or entry.get("shard") != proof["shard_path"]:
+        raise BankError("FORCE_INVENTORY_CALL_MISMATCH")
+    if rowset.get("NumberResults") != entry.get("declared_rows"):
+        raise BankError("FORCE_ARRAY_LENGTH_MISMATCH")
+    states, counts = [], Counter()
+    for i, vals in enumerate(native_frame_force_rows(rowset, name)):
+        counts[vals[4]] += 1
         row_id = digest({"archive": archive.sha256, "call": proof["call_id"], "index": i, "values": vals})
         states.append(NativeForceState(row_id, proof["call_id"], proof["shard_sha256"], i, vals))
     if dict(counts) != entry.get("case_or_combination_rows"):

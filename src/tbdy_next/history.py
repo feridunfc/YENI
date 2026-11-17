@@ -1,7 +1,7 @@
-"""Read-only, local-only presentation of existing CLI/modal VS01 receipts.
+"""Read-only, local-only history of verified run receipts.
 
-No ETABS connection and no second engineering calculator. Stored inputs are
-revalidated with the same parser/evaluator used for the original VS01 run.
+Finalized runs are projected from sealed results. Legacy runs retain their
+original parser and evaluator checks.
 """
 from __future__ import annotations
 
@@ -43,7 +43,23 @@ def _read_receipt(directory: Path, stage: str) -> dict[str, Any] | None:
         return None
 
 
-def _read_modal_run(directory: Path) -> dict[str, Any] | None:
+def _read_finalized_stages(directory: Path, *, input_sha: str) -> dict[str, Any] | None:
+    from .engineering.pipeline_snapshot import SCHEMA, STAGE, TERMINAL, read_receipts, read_snapshot
+
+    discovery = _read_receipt(directory, "schema-discovery")
+    if discovery is None and any(directory.glob("[0-9][0-9]-schema-discovery.json")):
+        raise ValueError("PIPELINE_SCHEMA_DISCOVERY_RECEIPT_INVALID")
+    if ((discovery or {}).get("receipt_schema") is None
+            and not any(directory.glob(f"[0-9][0-9]-{STAGE}.json"))):
+        final_receipt = _read_receipt(directory, TERMINAL)
+        if (final_receipt or {}).get("payload", {}).get("engine_snapshot") is None:
+            return None
+    receipts = read_receipts(directory, input_sha=input_sha)
+    snapshot = read_snapshot(directory, input_sha=input_sha, receipts=receipts)
+    return snapshot["results"] if snapshot is not None and snapshot["schema"] == SCHEMA else None
+
+
+def _read_modal_with_stages(directory: Path) -> tuple[dict[str, Any], dict[str, Any] | None] | None:
     if not directory.is_dir() or directory.is_symlink() or not _RUN.fullmatch(directory.name):
         return None
     modal = _read_receipt(directory, "modal")
@@ -57,7 +73,8 @@ def _read_modal_run(directory: Path) -> dict[str, Any] | None:
         if source_file.is_symlink() or not source_file.is_file() or source_file.stat().st_size > _MAX_SOURCE_BYTES:
             return None
         raw = source_file.read_bytes()
-        if sha256(raw).hexdigest() != modal.get("input_sha256"):
+        input_sha = sha256(raw).hexdigest()
+        if input_sha != modal.get("input_sha256"):
             return None
         source = json.loads(raw)
         if not isinstance(source, dict):
@@ -66,16 +83,21 @@ def _read_modal_run(directory: Path) -> dict[str, Any] | None:
         case = recorded.get("case")
         if not isinstance(case, str) or not case:
             return None
-        table = parse_modal_capture(source, case=case)
-        recalculated = evaluate_modal_mass(table).as_dict()
-        if recalculated != recorded:
-            return None
         expected_schema = schema["payload"]
-        if (expected_schema.get("status") != "SCHEMA_VALID"
-                or expected_schema.get("target_case") != case
-                or expected_schema.get("case_row_count") != len(table.rows)
-                or expected_schema.get("raw_row_count") != table.all_rows_count
-                or expected_schema.get("source_mode") != table.origin):
+        if expected_schema.get("status") != "SCHEMA_VALID" or expected_schema.get("target_case") != case:
+            return None
+        stages = _read_finalized_stages(directory, input_sha=input_sha)
+        origin = expected_schema.get("source_mode")
+        case_count = expected_schema.get("case_row_count")
+        raw_count = expected_schema.get("raw_row_count")
+        if stages is None:
+            table = parse_modal_capture(source, case=case)
+            if (evaluate_modal_mass(table).as_dict() != recorded or origin != table.origin
+                    or case_count != len(table.rows) or raw_count != table.all_rows_count):
+                return None
+        elif (stages["result"] != recorded or origin != "LIVE_ETABS" or origin != source.get("source_mode")
+              or type(case_count) is not int or type(raw_count) is not int
+              or not 0 < case_count <= raw_count or raw_count != source["table"]["row_count"]):
             return None
         meta = source.get("capture_metadata")
         model_name = ntpath.basename(str(meta.get("model_filename", ""))) if isinstance(meta, dict) else ""
@@ -85,18 +107,23 @@ def _read_modal_run(directory: Path) -> dict[str, Any] | None:
         return {
             "run_id": directory.name,
             "captured_at_utc": timestamp,
-            "source_mode": table.origin,
+            "source_mode": origin,
             "model_name": model_name or None,
             "case": case,
-            "raw_row_count": table.all_rows_count,
-            "case_row_count": len(table.rows),
+            "raw_row_count": raw_count,
+            "case_row_count": case_count,
             "receipt_sha256": modal["receipt_sha256"],
             "input_sha256": modal["input_sha256"],
-            "result": recalculated,
+            "result": recorded,
             "engineering_release": "NOT_READY",
-        }
+        }, stages
     except (OSError, UnicodeError, ValueError, TypeError, KeyError, SourceError):
         return None
+
+
+def _read_modal_run(directory: Path) -> dict[str, Any] | None:
+    result = _read_modal_with_stages(directory)
+    return result[0] if result is not None else None
 
 
 def modal_history(root: Path, *, limit: int = 20) -> list[dict[str, Any]]:
@@ -138,8 +165,8 @@ def modal_source_table(root: Path, run_id: str) -> dict[str, Any] | None:
         table = source["table"]
         fields = table["fields"]
         rows = table["rows"]
-        # parse_modal_capture has checked the selected case and row shape; retain
-        # the original column ordering and *all* captured rows for inspection.
+        # The run verifies the selected case. Keep the original column order
+        # and all captured rows for inspection.
         if (not isinstance(fields, list) or not isinstance(rows, list)
                 or table["row_count"] != len(rows)
                 or any(not isinstance(row, dict) or set(row) != set(fields) for row in rows)):
@@ -161,7 +188,25 @@ def modal_source_table(root: Path, run_id: str) -> dict[str, Any] | None:
         return None
 
 
-def quick_history(root: Path, *, limit: int = 15) -> list[dict[str, Any]]:
+def _quick_view(entry: dict[str, Any], modal: dict[str, Any], stages: dict[str, Any]) -> dict[str, Any]:
+    from .check_labels import display_check_group
+    from .member_groups import material_member_groups
+
+    geometry = stages["geometry"]
+    story_drift = stages["story_drift"]
+    return {**entry,
+            "geometry": display_check_group(geometry),
+            "extra_checks": display_check_group(stages["extra"]), "vs04_schema": stages["vs04"],
+            "material_member_groups": material_member_groups(geometry["checks"]),
+            "vs04_numerics": stages["vs04_numerics"],
+            "vs04_readiness": stages["vs04_readiness"],
+            "vs04_pipeline": display_check_group(stages["vs04_pipeline"]),
+            **({"story_drift": story_drift} if story_drift is not None else {}),
+            "modal": modal["result"],
+            "engineering_release": "NOT_READY"}
+
+
+def quick_history(root: Path, *, limit: int = 15, summary: bool = False) -> list[dict[str, Any]]:
     """Recover only intact quick-suite receipts for locally archived source data."""
     from .quick_checks import evaluate_geometry_capture
     root = Path(root)
@@ -169,9 +214,28 @@ def quick_history(root: Path, *, limit: int = 15) -> list[dict[str, Any]]:
         return []
     output: list[dict[str, Any]] = []
     for directory in root.glob("RUN-*"):
-        modal = _read_modal_run(directory)
+        found = _read_modal_with_stages(directory)
+        if found is None:
+            continue
+        modal, stages = found
         quick = _read_receipt(directory, "quick-geometry")
-        if modal is None or quick is None or quick.get("input_sha256") != modal["input_sha256"]:
+        if quick is None or quick.get("input_sha256") != modal["input_sha256"]:
+            continue
+        entry = {key: modal[key] for key in ("run_id", "captured_at_utc", "source_mode", "model_name", "case")}
+        if stages is not None:
+            if stages["geometry"] != quick["payload"]:
+                continue
+            try:
+                if summary:
+                    member = (stages["column_pmm"] or {}).get("member_id")
+                    if isinstance(member, str) and member:
+                        entry["pmm_member_id"] = member
+                    output.append(entry)
+                else:
+                    evidence = stages["report_evidence"]
+                    output.append(_quick_view(entry, modal, {**stages, "story_drift": evidence.get("story_drift")}))
+            except (AttributeError, KeyError, TypeError, ValueError):
+                continue
             continue
         try:
             source = json.loads((directory / "input.source").read_text(encoding="utf-8"))
@@ -256,13 +320,20 @@ def quick_history(root: Path, *, limit: int = 15) -> list[dict[str, Any]]:
                 continue
         elif stage is not None:
             continue
-        output.append({"run_id": directory.name, "captured_at_utc": modal["captured_at_utc"],
-                       "source_mode": modal["source_mode"], "model_name": modal["model_name"],
-                       "geometry": rechecked, "extra_checks": extra, "vs04_schema": vs04,
-                       "vs04_numerics": vs04_numerics,
-                       "vs04_readiness": vs04_readiness,
-                       "vs04_pipeline": vs04_pipeline,
-                       **({"story_drift": story_drift} if story_drift is not None else {}),
-                       "modal": modal["result"],
-                       "engineering_release": "NOT_READY"})
+        if summary:
+            axial = source.get("column_axial")
+            request = axial.get("request") if isinstance(axial, dict) else None
+            member = request.get("pmm_member") if isinstance(request, dict) else None
+            if isinstance(member, str) and member:
+                pmm = _read_receipt(directory, "column-pmm")
+                if (pmm is not None and pmm.get("input_sha256") == modal["input_sha256"]
+                        and pmm["payload"].get("schema") == "tbdy.next.column-pmm-check.v1"
+                        and pmm["payload"].get("member_id") == member):
+                    entry["pmm_member_id"] = member
+            output.append(entry)
+            continue
+        output.append(_quick_view(entry, modal, {
+            "geometry": rechecked, "extra": extra, "vs04": vs04, "vs04_numerics": vs04_numerics,
+            "vs04_readiness": vs04_readiness, "vs04_pipeline": vs04_pipeline, "story_drift": story_drift,
+        }))
     return sorted(output, key=lambda x: (x["captured_at_utc"], x["run_id"]), reverse=True)[:limit]

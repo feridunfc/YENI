@@ -8,7 +8,7 @@ The architecture contract comes from the user-supplied
 `TBDY_Mimari_DAG_TamRapor(1).txt` and
 `TBDY_DAG_94_Dugum(1).mmd` (R1-C/R1-B research dated 2026-11-06).
 An exact source graph is preserved in
-`config/dag/tbdy_r1c_94_candidate.json`.
+`src/tbdy_next/config/dag/tbdy_r1c_94_candidate.json`.
 
 The imported graph has:
 - **94 distinct nodes**
@@ -77,7 +77,7 @@ Source-only receipt for diagnostic review
 
 ```powershell
 python tools/audit_vs05_candidate_dag.py `
-  --catalog config/dag/tbdy_r1c_94_candidate.json `
+  --catalog src/tbdy_next/config/dag/tbdy_r1c_94_candidate.json `
   --plan-input tests/fixtures/vs05_candidate_plan_input.json `
   --out .receipts/VS05/CANDIDATE_DAG_FCR.json
 ```

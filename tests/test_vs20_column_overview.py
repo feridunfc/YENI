@@ -95,7 +95,7 @@ class ColumnOverviewTests(unittest.TestCase):
         self.assertEqual(pm['maximum_resolved_utilization'], .1)
         self.assertEqual(pm['status'], 'AXIAL_RANGE_EXCEEDED')
         self.assertEqual(pm['representative']['state_id'], rows[-1]['state_id'])
-        self.assertIn('Eksenel sınır aşılıyor', pmm_text(pm))
+        self.assertIn('Axial limit exceeded', pmm_text(pm))
         self.assertNotIn('0,1000', pmm_text(pm))
 
     def test_unresolved_trial_ratio_never_competes_with_resolved_pmm(self):
@@ -114,12 +114,12 @@ class ColumnOverviewTests(unittest.TestCase):
         self.assertEqual(pm['maximum_axial_utilization'], .8)
         self.assertEqual(pm['axial_only_count'], 1)
         self.assertNotEqual(pm['representative']['state_id'], rows[0]['state_id'])
-        self.assertIn('ayrıca 1 yalnız N', pmm_text(pm))
+        self.assertIn('also 1 axial-only', pmm_text(pm))
         for row in rows:row.update(status='AXIAL_ONLY_SCENARIO',utilization=None,axial_utilization=.3)
         pm = self.scenario()['pmm']
         self.assertIsNone(pm['maximum_resolved_utilization'])
         self.assertEqual(pm['status'], 'AXIAL_ONLY_REFERENCES')
-        self.assertIn('Yalnız N:', pmm_text(pm))
+        self.assertIn('Axial only', pmm_text(pm))
 
     def test_no_silent_switch_from_blocked_display_cage_to_another_cage(self):
         rows = self.pmm_rows()

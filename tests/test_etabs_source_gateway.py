@@ -7,10 +7,15 @@ import sys
 from tempfile import TemporaryDirectory
 import unittest
 
+from tbdy_next.engineering.column_r10_live import (
+    ANALYSIS_FRAME_ELEMENTS, ANALYSIS_JOINT_COORDINATE_SCHEMA, ANALYSIS_JOINT_ELEMENTS,
+    FRAME_OUTPUT_STATIONS, capture_r10_sources,
+)
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools.etabs_source_gateway_windows import (
     SourceError, available_tables, bind, capture, field_schema, make_template,
-    read_table, resolve_keys, save_new, selected_cases, set_cases, verify,
+    read_table, resolve_keys, save_new, selected_cases, selected_combinations, set_cases, verify,
 )
 
 
@@ -88,6 +93,76 @@ class FakeSap:
 
 
 class GatewayTests(unittest.TestCase):
+    def test_pmm_reads_mesh_and_station_assignments_through_one_connected_model(self):
+        db = FakeDb()
+        db.fake_rows[ANALYSIS_FRAME_ELEMENTS] = (
+            ("Story", "ElmName", "ObjType", "ObjLabel", "ObjName", "ElmJtI", "ElmJtJ"),
+            [("L1", "C1-1", "Column", "C1", "C1", "P1", "P2")], {},
+        )
+        db.fake_rows[ANALYSIS_JOINT_ELEMENTS] = (
+            ("Story", "ElmName", "ObjType", "ObjLabel", "ObjName", "GlobalX", "GlobalY", "GlobalZ"),
+            [("L1", "P2", "Point", "P2", "P2", "0", "0", "4.5")],
+            {"GlobalX": "m", "GlobalY": "m", "GlobalZ": "m"},
+        )
+        db.fake_rows[FRAME_OUTPUT_STATIONS] = (
+            ("Story", "Label", "UniqueName", "StationOpt", "MaxSpacing", "MinStations"),
+            [("L1", "C1", "C1", "Min Stations", "", "3")], {"MaxSpacing": "m"},
+        )
+        sap = FakeSap(db)
+        captured = capture_r10_sources(sap)
+        mesh = captured["table_reads"][ANALYSIS_FRAME_ELEMENTS]
+        joints = captured["table_reads"][ANALYSIS_JOINT_ELEMENTS]
+        stations = captured["table_reads"][FRAME_OUTPUT_STATIONS]
+        self.assertEqual(mesh["rows"][0]["ElmName"], "C1-1")
+        self.assertEqual(joints["rows"][0]["ElmName"], mesh["rows"][0]["ElmJtJ"])
+        self.assertEqual(joints["rows"][0]["GlobalZ"], "4.5")
+        self.assertEqual(joints["field_metadata"]["units_by_field"]["GlobalZ"], "m")
+        self.assertEqual(stations["rows"][0]["MinStations"], "3")
+        self.assertEqual(stations["field_metadata"]["units_by_field"]["MaxSpacing"], "m")
+        self.assertEqual((captured["units_before"], captured["units_after"]), (6, 6))
+        self.assertTrue(captured["model_locked_before"] and captured["model_locked_after"])
+        self.assertEqual(db.set_calls, [])
+
+        db.corrupt_return = ANALYSIS_JOINT_ELEMENTS
+        captured = capture_r10_sources(sap)
+        self.assertEqual(captured["table_reads"][ANALYSIS_JOINT_ELEMENTS]["status"], "CAPTURE_ERROR")
+        self.assertEqual(captured["table_reads"][ANALYSIS_FRAME_ELEMENTS]["status"], "CAPTURED")
+        self.assertEqual(captured["table_reads"][FRAME_OUTPUT_STATIONS]["status"], "CAPTURED")
+
+    def test_pmm_reads_unrounded_native_coordinates_only_for_meshed_columns(self):
+        db = FakeDb()
+        db.fake_rows[ANALYSIS_FRAME_ELEMENTS] = (
+            ("Story", "ElmName", "ObjType", "ObjLabel", "ObjName", "ElmJtI", "ElmJtJ"),
+            [("L1", "C1-1", "Frame", "C1", "C1", "P1", "P2"),
+             ("L1", "C1-2", "Frame", "C1", "C1", "P2", "P3"),
+             ("L1", "C2", "Frame", "C2", "C2", "U1", "U2"),
+             ("L1", "B1-1", "Frame", "B1", "B1", "B1i", "B1m"),
+             ("L1", "B1-2", "Frame", "B1", "B1", "B1m", "B1j")], {},
+        )
+        db.fake_rows[ANALYSIS_JOINT_ELEMENTS] = (
+            ("ElmName", "GlobalX", "GlobalY", "GlobalZ"),
+            [("P2", "0", "0", "0.85833")], {"GlobalX": "m", "GlobalY": "m", "GlobalZ": "m"},
+        )
+        calls = []
+
+        class FakePointElm:
+            def GetCoordCartesian(self, name, x, y, z, csys):
+                calls.append((name, x, y, z, csys))
+                return {"P1": (0.0, 0.0, 0.0, 0), "P2": [0.0, 0.0, 0.8583333589, 0],
+                        "P3": (0.0, 0.0, 0.0, 1)}[name]
+
+        sap = FakeSap(db)
+        sap.PointElm = FakePointElm()
+        captured = capture_r10_sources(sap, column_members=("C1", "C2"))
+        native = captured["analysis_joint_coordinates"]
+        self.assertEqual(native["schema"], ANALYSIS_JOINT_COORDINATE_SCHEMA)
+        self.assertEqual((native["coordinate_system"], native["units"]), ("Global", "m"))
+        self.assertEqual(native["coordinates"], {"P1": [0.0, 0.0, 0.0], "P2": [0.0, 0.0, 0.8583333589]})
+        self.assertIn("POINT_ELM_COORDINATES_RETURN_CODE:1", native["errors"]["P3"])
+        self.assertEqual(calls, [(name, 0.0, 0.0, 0.0, "Global") for name in ("P1", "P2", "P3")])
+        self.assertEqual(captured["table_reads"][ANALYSIS_JOINT_ELEMENTS]["rows"][0]["GlobalZ"], "0.85833")
+        self.assertEqual(db.set_calls, [])
+
     def test_realistic_etabs_abi_inventory_and_field_units(self):
         db = FakeDb()
         self.assertEqual(len(available_tables(db)), 5)
@@ -138,6 +213,31 @@ class GatewayTests(unittest.TestCase):
         self.assertEqual(x["case_selection_before"], ["LC_DL"])
         self.assertEqual(x["case_selection_after"], ["LC_DL"])
         self.assertEqual(sap.DatabaseTables.selected, ("LC_DL",))
+
+    def test_combination_selection_reads_populated_prefix_and_empty_com_slots(self):
+        db = FakeDb()
+        for raw, expected in (
+            ((0, ("",), 1), ()),
+            ((0, [None], 0), ()),
+            ((1, ("WGHT", "", None), 0), ("WGHT",)),
+            ((1, ("WGHT", "Grav_Ult"), 0), ("WGHT",)),
+        ):
+            with self.subTest(raw=raw):
+                db.GetLoadCombinationsSelectedForDisplay = lambda: raw
+                self.assertEqual(selected_combinations(db), expected)
+
+    def test_combination_selection_rejects_invalid_or_ambiguous_responses(self):
+        db = FakeDb()
+        for raw in (
+            (1, ("WGHT",), 1),
+            (2, ("WGHT",), 0),
+            (2, ("WGHT", "WGHT"), 0),
+            (1, ("",), 0),
+        ):
+            with self.subTest(raw=raw):
+                db.GetLoadCombinationsSelectedForDisplay = lambda: raw
+                with self.assertRaisesRegex(SourceError, "SELECTED_COMBINATIONS_"):
+                    selected_combinations(db)
 
     def test_empty_table_not_called_captured(self):
         sap = FakeSap()

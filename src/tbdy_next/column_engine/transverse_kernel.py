@@ -57,6 +57,11 @@ def confinement_reference(*, area_mm2, core_area_mm2, bk_mm, spacing_mm,
     return result
 
 
+def max_shear_web_kn(*, fcd_mpa, bw_mm, d_mm):
+    """TS 500 Eq. 8.5 / TBDY 7.4.5.3 maximum concrete compression strut V_r,max (kN)."""
+    return .22*positive(fcd_mpa,"fcd")*positive(bw_mm,"bw")*positive(d_mm,"d")/1000
+
+
 def shear_reference(*, n_compression_kn, shear_kn, area_mm2, bw_mm, d_mm,
                     fck_mpa, fywk_mpa, asw_mm2, spacing_mm, gamma_c, gamma_s):
     """Compare one signed static source component with two explicit scenarios.
@@ -92,7 +97,7 @@ unapproved. Neither source V nor this comparison supplies TBDY design Ve.
                 balance_spacing_bound_mm=asw/required if required>0 else None,
                 status="WITHIN_REFERENCE_RESISTANCE" if abs(v)<=resistance else "EXCEEDS_REFERENCE_RESISTANCE")
         branches[name] = item
-    web = .22*fcd*bw*d/1000
+    web = max_shear_web_kn(fcd_mpa=fcd, bw_mm=bw, d_mm=d)
     brittle = .85*ac*math.sqrt(fc)/1000
     result = {"source_signed_v_kn":v,"source_abs_v_kn":abs(v),"n_compression_kn":n,
         "axial_stress_mpa":stress,"axial_factor":factor,"fctk_mpa":fctk,"fctd_mpa":fctd,

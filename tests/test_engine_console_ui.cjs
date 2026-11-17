@@ -35,7 +35,7 @@ class Element {
 }
 
 const start = html.indexOf('<aside class="rail"');
-const release = html.indexOf('Mühendislik kabulü<strong>NOT_READY', start);
+const release = html.indexOf('Engineering release<strong>NOT_READY', start);
 const consoleAt = html.indexOf('<section class="engine-console"', start);
 assert.ok(start >= 0 && release > start && consoleAt > release);
 assert.equal((html.match(/id="engineConsoleMessages"/g) || []).length, 1);
@@ -85,5 +85,5 @@ assert.ok(entries.children[0].textContent.includes('RENDER_FAILURE'));
 clear.events.click();
 assert.equal(entries.dataset.empty, 'true');
 assert.equal(entries.children.length, 1);
-assert.ok(entries.children[0].textContent.includes('Henüz işlem kaydı yok'));
+assert.ok(entries.children[0].textContent.includes('No activity yet.'));
 console.log('Engine right console: order, safety, bounded events, clear and errors PASS');

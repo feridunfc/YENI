@@ -62,12 +62,12 @@ class ColumnJointWebTests(unittest.TestCase):
 
     def test_html_and_ui_distinguish_joint_geometry_from_actual_design(self):
         with self.get('/report/column-bank?'+self.query) as response:html=response.read().decode()
-        for value in ('VS17','Kolon–kiriş birleşim referansları','Denk. 7.1 tabanı','≥ ilgili kolon eninin %75',
-                      'Ve ve SCWB: NOT_PROVEN','BX+','Ash yüksek N (mm²)'):
+        for value in ('VS17','Column–beam joint references','Eq. 7.1 basis','≥75% of the corresponding column width',
+                      'Ve and SCWB are NOT_PROVEN','BX+','Ash at high N (mm²)'):
             self.assertIn(value,html)
         self.assertNotIn('<script',html)
-        with self.get('/') as response:ui=response.read().decode()
-        self.assertIn('label="Kolon–kiriş birleşimleri"',ui)
+        with self.get('/source') as response:ui=response.read().decode()
+        self.assertIn('label="Beam-column joints"',ui)
         self.assertIn('value="joints"',ui);self.assertIn('value="joint-ties"',ui)
         with self.get('/api/check-registry') as response:r=json.load(response)
         self.assertEqual(r['implemented_check_count'],16)

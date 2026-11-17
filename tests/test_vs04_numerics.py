@@ -287,7 +287,7 @@ class Vs04NumericalReportTests(unittest.TestCase):
         self.assertEqual(len(self.calls), 1)
         with urlopen(self.base + "/report/print?run_id=" + rid, timeout=7) as resp:
             html = resp.read().decode("utf-8")
-        self.assertIn("VS04 · Sayısal kaynak tutarlılığı", html)
+        self.assertIn("VS04 · Numerical source consistency", html)
         self.assertIn("BASE_REACTION_X", html)
         self.assertEqual(len(self.calls), 1, "Exports must not call ETABS")
 

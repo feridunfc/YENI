@@ -33,6 +33,18 @@ def number(value, name, *, positive=False):
     return float(value)
 
 
+def k1_factor(fck):
+    """Continuous TS500 §7.1 rectangular stress-block depth factor k1(fck) for 16 <= fck <= 50 MPa (F10)."""
+    val = number(fck, "fck", positive=True)
+    if val in K1:
+        return K1[val]
+    if not 16.0 <= val <= 50.0:
+        raise ValueError("PMM_MATERIAL_OUTSIDE_KERNEL_SCOPE")
+    if val <= 25.0:
+        return 0.85
+    return max(0.70, round(0.85 - 0.006 * (val - 25.0), 12))
+
+
 @dataclass(frozen=True)
 class Bar:
     x2: float
@@ -54,12 +66,13 @@ class Material:
     def __post_init__(self):
         for key in ("fck", "fcd", "fyd", "es", "ecu"):
             number(getattr(self, key), key, positive=True)
-        if self.fck not in K1 or self.fcd > self.fck or self.fyd / self.es >= .1:
+        k1_factor(self.fck)
+        if self.fcd > self.fck or self.fyd / self.es >= .1:
             raise ValueError("PMM_MATERIAL_OUTSIDE_KERNEL_SCOPE")
 
     @property
     def k1(self):
-        return K1[self.fck]
+        return k1_factor(self.fck)
 
 
 @dataclass(frozen=True)

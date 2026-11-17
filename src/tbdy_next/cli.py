@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import sys
 from .source import SourceError, artifact_sha256, parse_modal_capture, read_json, review_preflight
 from .modal import evaluate_modal_mass
 from .receipts import ReceiptRun
@@ -22,6 +23,11 @@ def main(argv: list[str] | None = None) -> int:
     service.add_argument("--host", default="127.0.0.1")
     service.add_argument("--port", type=int, default=8765)
     service.add_argument("--out", type=Path, default=Path(".receipts"))
+    service.add_argument("--etabs-pid", type=int, help="Attach only to this ETABS process ID")
+    service.add_argument("--prepare-etabs-units", action="store_true", help=argparse.SUPPRESS)
+    units = actions.add_parser("etabs-units", help="Inspect or select the API units of one ETABS process")
+    units.add_argument("--etabs-pid", type=int, required=True, help="Running ETABS process ID")
+    units.add_argument("--use-kn-m-c", action="store_true", help="Select kN, m, C for the locked model")
     columns = actions.add_parser("import-column-bank", help="Verify an offline native column ZIP; no ETABS call")
     columns.add_argument("--input", type=Path, required=True)
     columns.add_argument("--historical-db", type=Path)
@@ -72,13 +78,36 @@ def main(argv: list[str] | None = None) -> int:
         help="Screen direction-matched RSX/RSY story shear, G+nQ and drift (numeric-only)")
     story_pdelta.add_argument("--input", type=Path, required=True)
     story_pdelta.add_argument("--out", type=Path, required=True)
+    actions.add_parser("pipeline-plan", help="Print the single stage registry and its 94-node DAG coverage")
+    replay = actions.add_parser(
+        "run-pipeline",
+        help="Replay one archived LIVE_ETABS input.source through the same pipeline the web console runs")
+    replay.add_argument("--source", type=Path, required=True, help="Archived input.source of a live run")
+    replay.add_argument("--case", required=True, help="Exact modal case used by that run")
+    replay.add_argument("--out", type=Path, required=True, help="Receipt root for the replay run")
+    replay.add_argument("--compare-run", type=Path, help="Existing RUN-* directory; every stage payload must match")
+    replay.add_argument("--beam-selection", help="'default' or path to JSON beam selection policy")
+    replay.add_argument("--column-selection", help="'default' or path to JSON column selection policy")
     args = parser.parse_args(argv)
-    if args.action in ("reconcile-live-column", "precheck-story-pdelta"):
+    if args.action in ("reconcile-live-column", "precheck-story-pdelta", "pipeline-plan", "run-pipeline"):
         from .engineering.cli_adapter import run_cli
         return run_cli(args)
     if args.action == "serve":
         from .web import serve
-        serve(host=args.host, port=args.port, output_root=args.out)
+        if args.etabs_pid is not None and not 1 <= args.etabs_pid <= 2_147_483_647:
+            service.error("--etabs-pid requires a positive Windows process ID.")
+        serve(host=args.host, port=args.port, output_root=args.out, etabs_pid=args.etabs_pid)
+        return 0
+    if args.action == "etabs-units":
+        from .etabs_modal import ModalCaptureError
+        from .live_etabs import read_etabs_session, select_etabs_capture_units
+        try:
+            result = (select_etabs_capture_units(args.etabs_pid) if args.use_kn_m_c
+                      else read_etabs_session(args.etabs_pid))
+        except (ModalCaptureError, OSError, ImportError) as exc:
+            print(f"ETABS unit setup failed: {exc}", file=sys.stderr)
+            return 2
+        print(json.dumps(result))
         return 0
     if args.action == "inspect-golden-regression":
         from .verification.golden_gate import build_golden_gate, build_golden_html

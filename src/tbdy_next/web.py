@@ -7,23 +7,29 @@ ETABS analysis; localhost only. Existing offline import remains optional.
 from __future__ import annotations
 
 from hashlib import sha256
+from html import escape
 import ntpath
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from importlib import resources
 import json
 from pathlib import Path
 import re
+from threading import Lock
 from typing import Any, Mapping
 from urllib.parse import parse_qs, urlsplit
 
+from . import __version__
+from .check_labels import display_check_group
+from .live_etabs import CAPTURE_UNIT_CODE, CAPTURE_UNIT_LABEL, EtabsConnectionError, EtabsUnitsError
 from .modal import evaluate_modal_mass
-from .history import modal_history, modal_source_table, quick_history
+from .history import _MAX_SOURCE_BYTES, modal_history, modal_source_table, quick_history
 from .quick_checks import check_registry, evaluate_geometry_capture
 from .next_checks import evaluate_next_capture
 from .analysis_sources import review_analysis_sources
 from .analysis_numerics import evaluate_analysis_numerics
 from .normative_basis import review_normative_readiness
 from .live_source_pipeline import evaluate_single_run_source_pipeline
+from .member_groups import material_member_groups
 from .reporting import ReportUnavailable, build_complete_report, build_printable_html
 from .receipts import ReceiptRun
 from .schema import review_modal_schema
@@ -31,6 +37,204 @@ from .source import SourceError, parse_modal_capture, review_preflight
 
 MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 _RUN_ID_PATTERN = re.compile(r"RUN-[a-f0-9]{32}\Z")
+_LIVE_CAPTURE_LOCK = Lock()
+
+
+def _parse_rebar_selection_spec(raw_value: Any, kind: str) -> dict[str, Any]:
+    from .engineering.rebar_selection import (
+        normalize_beam_selection_policy,
+        normalize_column_selection_policy,
+    )
+
+    if isinstance(raw_value, str):
+        if len(raw_value) > 32_000:
+            raise ValueError(f"Rebar selection payload too large: {kind}")
+        parsed = "default" if raw_value.strip().lower() in ("default", "true", "1") else json.loads(raw_value)
+    else:
+        parsed = raw_value
+    return (
+        normalize_beam_selection_policy(parsed)
+        if kind == "beam"
+        else normalize_column_selection_policy(parsed)
+    )
+
+
+def _execute_and_reply_live_payload(
+    handler: Any,
+    output_root: Path,
+    payload: dict[str, Any],
+    case: str,
+    *,
+    suite: bool,
+) -> None:
+    raw = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    if len(raw) > _MAX_SOURCE_BYTES:
+        handler.reply(422, {"status": "CAPTURE_REJECTED", "reason": "ETABS_SOURCE_ARCHIVE_TOO_LARGE"})
+        return
+    input_sha = sha256(raw).hexdigest()
+    run = ReceiptRun(output_root)
+    run.archive_input(raw, expected_sha256=input_sha)
+    try:
+        # One owner for stage order: engineering/pipeline.py (registry + runner).
+        from .engineering.pipeline import EnginePipelineRunner
+        stages = EnginePipelineRunner().run(payload, case=case, run=run, input_sha=input_sha, suite=suite)
+        result, geometry, extra = stages["result"], stages["geometry"], stages["extra"]
+        vs04, vs04_numerics = stages["vs04"], stages["vs04_numerics"]
+        vs04_readiness, vs04_pipeline = stages["vs04_readiness"], stages["vs04_pipeline"]
+        story_drift, analysis_setup = stages["story_drift"], stages["analysis_setup"]
+        analysis_setup_reconciliation = stages.get("analysis_setup_reconciliation")
+        column_axial, column_pmm = stages["column_axial"], stages["column_pmm"]
+        column_gates, beam_r10, r10_live = stages["column_gates"], stages.get("beam_r10"), stages["r10_live"]
+        r08_second_order, r08_local_slenderness = stages["r08_second_order"], stages.get("r08_local_slenderness")
+        r14_closure = stages.get("r14_closure")
+        axial_ledger = stages["report_evidence"].get("column_axial_expected_instances")
+        pmm_scope = stages["report_evidence"].get("column_pmm_expected_instances")
+        meta = payload.get("capture_metadata") or {}
+        handler.reply(200, {
+            "run_id": run.run_id, "result": result,
+            "engine_snapshot": stages["engine_snapshot"],
+            "model_name": ntpath.basename(str(meta.get("model_filename", ""))),
+            "case_row_count": meta.get("case_row_count"),
+            "source_rows": payload["table"]["row_count"],
+            "source_mode": "LIVE_ETABS", "geometry": display_check_group(geometry),
+            **({"etabs_session": meta["etabs_session"]} if "etabs_session" in meta else {}),
+            **({"etabs_session_after_scan": meta["etabs_session_after_scan"]}
+               if "etabs_session_after_scan" in meta else {}),
+            "extra_checks": display_check_group(extra),
+            "material_member_groups": material_member_groups(geometry["checks"] if geometry else []),
+            "vs04_schema": vs04, "vs04_numerics": vs04_numerics,
+            "vs04_readiness": vs04_readiness,
+            "vs04_pipeline": display_check_group(vs04_pipeline),
+            **({"analysis_setup": analysis_setup} if analysis_setup is not None else {}),
+            **({"analysis_setup_reconciliation": analysis_setup_reconciliation} if analysis_setup_reconciliation is not None else {}),
+            **({"column_axial": {key: column_axial[key] for key in (
+                "status", "expected_column_count", "completed_column_count",
+                "native_force_row_count", "combination_plan",
+            )}} if column_axial is not None else {}),
+            **({"column_axial_coverage": {key: axial_ledger[key] for key in (
+                "scope_complete", "expected_count", "evaluated_count", "not_proven_count", "dependency_blockers",
+            )}} if axial_ledger is not None else {}),
+            **({"column_pmm": {key: column_pmm[key] for key in (
+                "member_id", "status", "expected_station_count", "evaluated_station_count",
+            )}} if column_pmm is not None else {}),
+            **({"column_pmm_coverage": {key: pmm_scope[key] for key in (
+                "expected_member_combination_count", "numerically_complete_signed_pair_count",
+                "independent_cut_census_proven", "dependency_blockers", "local_second_order_dependency_blockers",
+            )}} if pmm_scope is not None else {}),
+            **({"column_gates": column_gates} if column_gates is not None else {}),
+            **({"beam_r10": {
+                "target_member_id": beam_r10.get("target_member_id"),
+                "beam_count": beam_r10.get("beam_count"),
+                "calculated_beam_count": beam_r10.get("calculated_beam_count"),
+                "engineer_selection_active": "beam_selection_policy" in beam_r10,
+                "status": beam_r10.get("status"),
+                "formal_compliance": beam_r10.get("formal_compliance"),
+                "engineering_release": beam_r10.get("engineering_release"),
+            }} if beam_r10 is not None else {}),
+            **({"r10_live": {
+                "member_id": r10_live.get("member_id"),
+                "local_axis_angle_deg": r10_live.get("local_axis_angle_deg"),
+                "joint_end_count": r10_live.get("joint_end_count"),
+                "joint_status_counts": r10_live.get("joint_status_counts"),
+                "enclosure_counts": r10_live.get("enclosure_counts"),
+                "narrow_beam_joint_count": r10_live.get("narrow_beam_joint_count"),
+                "scwb_joint_count": len(r10_live.get("scwb_joints") or ()),
+                "column_transverse_status": (r10_live.get("column_transverse_and_shear") or {}).get("status"),
+                **({"engineer_column_selection_status": r10_live["engineer_column_selection"].get("status")}
+                   if r10_live.get("engineer_column_selection") is not None else {}),
+                "formal_compliance": r10_live.get("formal_compliance"),
+                "engineering_release": r10_live.get("engineering_release"),
+            }} if r10_live is not None else {}),
+            **({"r08_local_slenderness": {
+                "member_id": r08_local_slenderness.get("member_id"),
+                "scope": r08_local_slenderness.get("scope"),
+                "evaluated_column_count": r08_local_slenderness.get("evaluated_column_count"),
+                "status": r08_local_slenderness.get("status"),
+                "candidate_span_mm": r08_local_slenderness.get("candidate_span_mm"),
+                "span_basis": r08_local_slenderness.get("span_basis"),
+                "max_reference_beta_sway_prevented": r08_local_slenderness.get("max_reference_beta_sway_prevented"),
+                "formal_compliance": r08_local_slenderness.get("formal_compliance"),
+                "engineering_release": r08_local_slenderness.get("engineering_release"),
+            }} if r08_local_slenderness is not None else {}),
+            **({"r14_closure": {
+                "scope": r14_closure.get("scope"),
+                "member_id": r14_closure.get("member_id"),
+                "status": r14_closure.get("status"),
+                "expected_column_count": r14_closure.get("expected_column_count"),
+                "evaluated_column_count": r14_closure.get("evaluated_column_count"),
+                "numerically_closed_count": r14_closure.get("numerically_closed_count"),
+                "normative_fail_count": r14_closure.get("normative_fail_count"),
+                "formal_compliance": r14_closure.get("formal_compliance"),
+                "engineering_release": r14_closure.get("engineering_release"),
+            }} if r14_closure is not None else {}),
+            **({"story_drift": story_drift}
+               if story_drift is not None else {}),
+            **({"r08_second_order": r08_second_order}
+               if r08_second_order is not None else {}),
+            "formal_compliance": "NOT_PROVEN",
+            "engineering_release": "NOT_READY",
+        })
+    except (ValueError, TypeError, KeyError) as exc:
+        result = {"status": "REJECTED", "reason": str(exc), "engineering_release": "NOT_READY"}
+        run.record("rejected", result, input_sha256=input_sha)
+        handler.reply(422, {"run_id": run.run_id, "result": result})
+
+
+def _column_axial_request(query: dict, output_root: Path) -> dict:
+    from .engineering.design_assignments import ASSIGNED_DESIGN, COLUMN_AXIAL_ID, bind_assigned_combinations
+    from .frame_force_capture import MAX_RESPONSE_COMBINATIONS
+
+    base_runs = query.get("base_run_id", [])
+    modes = query.get("combination_source", [])
+    names = query.get("combination", [])
+    offered = query.get("assignments", [])
+    checks = query.get("check", [])
+    pmm = checks == ["column-pmm"]
+    members = query.get("member", [])
+    if (set(query) - {"case", "check", "base_run_id", "combination_source", "combination", "assignments", "member"}
+            or checks not in (["column-axial"], ["column-pmm"])
+            or len(members) != int(pmm)
+            or any(not uid or uid != uid.strip() or len(uid) > 160 for uid in members)
+            or len(base_runs) != 1 or _RUN_ID_PATTERN.fullmatch(base_runs[0]) is None
+            or modes not in (["ETABS_STRENGTH"], ["SAVED_DEFAULTS"], [ASSIGNED_DESIGN])
+            or bool(names) != (modes == ["SAVED_DEFAULTS"])
+            or len(offered) != int(modes == [ASSIGNED_DESIGN])
+            or any(len(value) > 32_000 for value in offered)
+            or len(names) > MAX_RESPONSE_COMBINATIONS or len(set(names)) != len(names)
+            or any(not name or name != name.strip() or len(name) > 160 for name in names)):
+        raise ValueError("Select a live source run and an exact column strength combination set.")
+    report = build_complete_report(output_root, base_runs[0])
+    setup = report.get("analysis_setup") or {}
+    filename = report["capture_metadata"].get("model_filename")
+    if report["source_mode"] != "LIVE_ETABS" or not filename or not setup.get("definition_coverage_known"):
+        raise ValueError("The selected source run has no verified ETABS combination catalog.")
+    assignment_check = COLUMN_AXIAL_ID
+    if pmm:
+        from .engineering.column_pmm import COLUMN_PMM_ID
+
+        assignment_check = COLUMN_PMM_ID
+        if members[0] != "ALL":
+            roster = next((check["items"] for check in report["checks"] if check["check_id"] == "column_rect_min"), ())
+            if sum(row["element_id"] == members[0] and row["status"] != "NOT_APPLICABLE" for row in roster) != 1:
+                raise ValueError("Select a column by its exact ETABS Unique ID from the verified source run.")
+    assignment = None
+    if offered:
+        assignment = bind_assigned_combinations(
+            report["design_assignments"], check=assignment_check, offered=json.loads(offered[0]),
+            catalog=setup["defined_combination_names"],
+        )
+        names = sorted({name for group in assignment["groups"].values() for name in group})
+        if not 0 < len(names) <= MAX_RESPONSE_COMBINATIONS:
+            raise ValueError("Assign a nonempty column strength combination set within the capture limit.")
+    if not set(names).issubset(setup["defined_combination_names"]):
+        raise ValueError("Saved combinations missing from the selected ETABS catalog.")
+    return {
+        "base_run_id": base_runs[0], "model_filename": filename, "combination_source": modes[0],
+        "combinations": sorted(names), "combination_graph_sha256": setup["typed_graph_source_sha256"],
+        "base_input_sha256": report["source_provenance"]["input_sha256"],
+        **({"design_assignment": assignment} if assignment is not None else {}),
+        **({"pmm_member": members[0]} if pmm else {}),
+    }
 
 
 def _runs(root: Path) -> list[dict[str, Any]]:
@@ -51,23 +255,22 @@ def _runs(root: Path) -> list[dict[str, Any]]:
     return output
 
 
-def _calculate_modal(payload: Mapping[str, Any], *, case: str, run: ReceiptRun, input_sha: str) -> dict[str, Any]:
-    """One authoritative postprocess path for both live and imported data."""
-    schema_review = review_modal_schema(payload)
-    run.record("schema-discovery", schema_review, input_sha256=input_sha)
-    table = parse_modal_capture(payload, case=case)
-    run.record("schema", {
-        "stage": "MODAL_ROW_VALIDATION", "status": "SCHEMA_VALID", "target_case": case,
-        "case_row_count": len(table.rows), "raw_row_count": table.all_rows_count,
-        "source_mode": table.origin, "engineering_release": "NOT_READY",
-    }, input_sha256=input_sha)
-    result = evaluate_modal_mass(table).as_dict()
-    run.record("modal", result, input_sha256=input_sha)
-    return result
+from .engineering.pipeline import calculate_modal as _calculate_modal  # noqa: E402
 
 
-def make_handler(output_root: Path, *, live_capture=None):
+def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None = None):
     """Injectable capture callback makes endpoint testable without Windows COM."""
+    # Each serving process uses the UI assets it started with and its own engine.
+    static = resources.files("tbdy_next").joinpath("static")
+    scripts = {name: static.joinpath(name).read_bytes() for name in (
+        "quick.js", "column.js", "engine-console.js", "workspace.js", "workspace-source.js",
+    )}
+    version_label = f'<span class="app-version"> · v{escape(__version__)}</span>'.encode("utf-8")
+    pages = {
+        name: static.joinpath(name).read_bytes().replace(b'<span class="app-version" hidden></span>', version_label)
+        for name in ("workspace.html", "index.html")
+    }
+
     class Handler(BaseHTTPRequestHandler):
         server_version = "TBDYNext/VS04-Partial"
 
@@ -89,8 +292,9 @@ def make_handler(output_root: Path, *, live_capture=None):
             url = urlsplit(self.path)
             if url.path in ("/api/column-history", "/api/column-bank", "/api/export-column-bank", "/report/column-bank", "/api/export-spectral-design"):
                 self.column_get(url)
-            elif url.path in ("/", "/index.html"):
-                contents = resources.files("tbdy_next").joinpath("static/index.html").read_bytes()
+            elif url.path in ("/", "/index.html", "/workspace", "/source"):
+                page = "index.html" if url.path == "/source" else "workspace.html"
+                contents = pages[page]
                 self.send_response(200)
                 self.send_header("Content-Type", "text/html; charset=utf-8")
                 self.send_header("Cache-Control", "no-store")
@@ -99,13 +303,22 @@ def make_handler(output_root: Path, *, live_capture=None):
                 self.end_headers()
                 self.wfile.write(contents)
             elif url.path == "/api/health":
-                self.reply(200, {"status": "PARTIAL_UNIFIED_VS04_SCREENING", "implemented_slices": ["MODAL_MASS_RATIO", "MATERIAL_FCK_25", "A1_X_Y_SOURCE_CLASSIFICATION"], "source_only_slices": ["VS04_ANALYSIS_SOURCE_SCHEMA", "VS04_ANALYSIS_NUMERIC_SOURCE", "VS04_E_NORMATIVE_READINESS"], "live_web_f_to_j_integrated": True, "single_primary_action": "/api/live-vs04", "formal_compliance": "NOT_PROVEN", "engineering_release": "NOT_READY"})
+                self.reply(200, {"status": "PARTIAL_UNIFIED_VS04_SCREENING", "implemented_slices": ["MODAL_MASS_RATIO", "MATERIAL_FCK_25", "A1_X_Y_SOURCE_CLASSIFICATION"], "source_only_slices": ["VS04_ANALYSIS_SOURCE_SCHEMA", "VS04_ANALYSIS_NUMERIC_SOURCE", "VS04_E_NORMATIVE_READINESS"], "live_web_f_to_j_integrated": True, "single_primary_action": "/api/live-vs04", "on_demand_force_checks": ["column-axial", "column-pmm"], "formal_compliance": "NOT_PROVEN", "engineering_release": "NOT_READY"})
+            elif url.path == "/api/pipeline":
+                from .engineering.pipeline import dag_coverage, stage_registry
+                self.reply(200, {"stages": stage_registry(), "dag_coverage": dag_coverage(),
+                                 "engineering_release": "NOT_READY"})
             elif url.path == "/api/runs":
                 self.reply(200, {"runs": _runs(output_root)})
             elif url.path == "/api/check-registry":
                 self.reply(200, {"checks": check_registry(), "implemented_check_count": len(check_registry())})
             elif url.path == "/api/quick-history":
-                self.reply(200, {"runs": quick_history(output_root), "engineering_release": "NOT_READY"})
+                query = parse_qs(url.query)
+                if query not in ({}, {"view": ["summary"]}):
+                    self.reply(400, {"error": "QUICK_HISTORY_VIEW_INVALID"})
+                    return
+                self.reply(200, {"runs": quick_history(output_root, summary=bool(query)),
+                                 "engineering_release": "NOT_READY"})
             elif url.path == "/api/modal-history":
                 self.reply(200, {"runs": modal_history(output_root), "engineering_release": "NOT_READY"})
             elif url.path in ("/api/export-checks", "/report/print",
@@ -170,8 +383,8 @@ def make_handler(output_root: Path, *, live_capture=None):
                     self.reply(404, {"error": "VERIFIED_MODAL_TABLE_NOT_FOUND"})
                     return
                 self.reply(200, {"table": table})
-            elif url.path in ("/quick.js", "/column.js", "/engine-console.js"):
-                source = resources.files("tbdy_next").joinpath("static" + url.path).read_bytes()
+            elif url.path in ("/quick.js", "/column.js", "/engine-console.js", "/workspace.js", "/workspace-source.js"):
+                source = scripts[url.path[1:]]
                 self.send_response(200)
                 self.send_header("Content-Type", "text/javascript; charset=utf-8")
                 self.send_header("Cache-Control", "no-store")
@@ -179,6 +392,32 @@ def make_handler(output_root: Path, *, live_capture=None):
                 self.send_header("Content-Length", str(len(source)))
                 self.end_headers()
                 self.wfile.write(source)
+            elif url.path in ("/api/column-127-gates", "/api/column-127-workspace", "/report/column-127"):
+                try:
+                    from .engineering.live_column import load_and_evaluate_127_from_receipts
+                    from .reporting import build_column_127_gate_html
+                    receipt_dir = output_root / "column_127_receipts"
+                    bundle = load_and_evaluate_127_from_receipts(receipt_dir if receipt_dir.is_dir() else None)
+                    if url.path == "/api/column-127-gates":
+                        self.reply(200, bundle["p0_gate_report"])
+                        return
+                    if url.path == "/api/column-127-workspace":
+                        from .engineering.design_assignments import design_assignments
+                        setup = bundle["p0_gate_report"]["p0c_model_analysis_setup_audit"]
+                        self.reply(200, {**bundle, "source_mode": "ARCHIVED_COLUMN_RECEIPT",
+                                         "design_assignments": design_assignments(setup)})
+                        return
+                    html_bytes = build_column_127_gate_html(bundle).encode("utf-8")
+                except (OSError, ValueError, KeyError, TypeError) as exc:
+                    self.reply(404, {"error": f"COLUMN_127_RECEIPTS_UNAVAILABLE:{exc}"})
+                    return
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Cache-Control", "no-store")
+                self.send_header("X-Content-Type-Options", "nosniff")
+                self.send_header("Content-Length", str(len(html_bytes)))
+                self.end_headers()
+                self.wfile.write(html_bytes)
             elif url.path == "/history.js":
                 source = resources.files("tbdy_next").joinpath("static/history.js").read_bytes()
                 self.send_response(200)
@@ -353,14 +592,56 @@ def make_handler(output_root: Path, *, live_capture=None):
                         "shear_modulus_mpa", "R_base"}:
                         raise ValueError("VS06_B1_PREVIEW_OPTIONS_INVALID")
                     from .b1_source_bridge import evaluate_b1_sources
-                    from tools.verify_vs06_b1_sources import render_b1_html
+                    from .b1_source_bridge import render_b1_html
                     result = evaluate_b1_sources(data["geometry"], data["wall_loads"], **options)
                     self.reply(200, {"result": result, "html": render_b1_html(result)})
                 except (UnicodeError, ValueError, TypeError, KeyError, ArithmeticError) as exc:
                     self.reply(422, {"error": str(exc),
                                      "formal_compliance": "NOT_PROVEN"})
                 return
-            if url.path in ("/api/live-modal", "/api/live-suite", "/api/live-vs04"):
+            if url.path == "/api/apply-rebar-selection":
+                origin = self.headers.get("Origin")
+                host = self.headers.get("Host", "")
+                if (self.headers.get("Sec-Fetch-Site") == "cross-site"
+                        or (origin and origin not in ("http://" + host,))):
+                    self.reply(403, {"status": "REJECTED", "reason": "CROSS_ORIGIN_DENIED"})
+                    return
+                try:
+                    length = int(self.headers.get("Content-Length", "0") or "0")
+                except ValueError:
+                    self.reply(400, {"status": "REJECTED", "reason": "INVALID_CONTENT_LENGTH"})
+                    return
+                if not 0 <= length <= 65_536 or self.headers.get("Transfer-Encoding"):
+                    self.reply(400, {"status": "REJECTED", "reason": "INVALID_BODY_LENGTH"})
+                    return
+                try:
+                    body = json.loads(self.rfile.read(length).decode("utf-8")) if length > 0 else {}
+                    if not isinstance(body, dict):
+                        raise ValueError("JSON_OBJECT_REQUIRED")
+                    q = parse_qs(url.query)
+                    base_run_id = body.get("base_run_id") or (q.get("base_run_id") or [""])[0]
+                    if not isinstance(base_run_id, str) or _RUN_ID_PATTERN.fullmatch(base_run_id) is None:
+                        raise ValueError("VALID_BASE_RUN_ID_REQUIRED")
+                    base_report = build_complete_report(output_root, base_run_id)
+                    if base_report["source_mode"] != "LIVE_ETABS":
+                        raise ValueError("LIVE_ETABS_BASE_RUN_REQUIRED")
+                    payload = dict(base_report["source_snapshot"])
+                    beam_raw = body.get("beam_selection") if "beam_selection" in body else (q.get("beam_selection") or [None])[0]
+                    col_raw = body.get("column_selection") if "column_selection" in body else (q.get("column_selection") or [None])[0]
+                    if beam_raw is not None:
+                        payload["beam_selection"] = _parse_rebar_selection_spec(beam_raw, "beam")
+                    if col_raw is not None:
+                        payload["column_selection"] = _parse_rebar_selection_spec(col_raw, "column")
+                    case = base_report["modal_case"]
+                except ReportUnavailable as exc:
+                    self.reply(404, {"status": "REJECTED", "reason": str(exc)})
+                    return
+                except (ValueError, TypeError, json.JSONDecodeError) as exc:
+                    self.reply(422, {"status": "REJECTED", "reason": str(exc)})
+                    return
+                _execute_and_reply_live_payload(self, output_root, payload, case, suite=True)
+                return
+            if url.path in ("/api/live-modal", "/api/live-suite", "/api/live-vs04", "/api/etabs-session"):
                 # Browser can POST to loopback from a foreign page; reject any
                 # declared cross-site origin before touching the ETABS session.
                 origin = self.headers.get("Origin")
@@ -377,34 +658,89 @@ def make_handler(output_root: Path, *, live_capture=None):
                     self.reply(400, {"status": "REJECTED", "reason": "LIVE_REQUEST_MUST_HAVE_NO_BODY"})
                     return
                 query = parse_qs(url.query)
+                session_only = url.path == "/api/etabs-session"
                 cases = query.get("case", [])
                 case = cases[0] if len(cases) == 1 else ""
-                if not case or case != case.strip() or len(case) > 120:
+                if session_only and query:
+                    self.reply(400, {"status": "REJECTED", "reason": "ETABS_SESSION_TAKES_NO_PARAMETERS"})
+                    return
+                if not session_only and (not case or case != case.strip() or len(case) > 120):
                     self.reply(400, {"status": "REJECTED", "reason": "EXACT_MODAL_CASE_REQUIRED"})
                     return
-                # Import Windows/COM lazily and only after the user clicks the
-                # live button. The request thread owns its COM lifecycle.
+                capture_options = {}
+                rebar_selection_opts: dict[str, Any] = {}
+                if not session_only and set(query) != {"case"}:
+                    try:
+                        if url.path != "/api/live-vs04":
+                            raise ValueError("Use the combined capture for check-specific options.")
+                        for sel_key, sel_kind in (("beam_selection", "beam"), ("column_selection", "column")):
+                            if sel_key in query:
+                                vals = query[sel_key]
+                                if len(vals) != 1:
+                                    raise ValueError(f"Multiple {sel_key} parameters are not allowed.")
+                                rebar_selection_opts[sel_key] = _parse_rebar_selection_spec(vals[0], sel_kind)
+                        axial_query = {
+                            k: v for k, v in query.items()
+                            if k not in ("beam_selection", "column_selection")
+                        }
+                        if set(axial_query) - {"case"}:
+                            capture_options["column_axial_request"] = _column_axial_request(axial_query, output_root)
+                    except (ReportUnavailable, ValueError, TypeError) as exc:
+                        self.reply(422, {"status": "CAPTURE_REJECTED", "reason": str(exc)})
+                        return
+                # Import COM only for explicit requests. The worker owns its COM lifecycle.
+                if not _LIVE_CAPTURE_LOCK.acquire(blocking=False):
+                    self.reply(409, {"status": "CAPTURE_BUSY", "reason": "ETABS_CAPTURE_ALREADY_RUNNING"})
+                    return
                 try:
+                    if session_only:
+                        from .live_etabs import select_etabs_capture_units
+                        session = select_etabs_capture_units(etabs_pid)["after"]
+                        self.reply(200, {
+                            "etabs_session": session, "required_units_code": CAPTURE_UNIT_CODE,
+                            "required_units_label": CAPTURE_UNIT_LABEL,
+                        })
+                        return
                     if live_capture is not None:
-                        payload = live_capture(case)
+                        payload = live_capture(case, **capture_options)
                     else:
                         if url.path in ("/api/live-suite", "/api/live-vs04"):
                             from .live_etabs import read_quick_suite_from_running_etabs
                             payload = read_quick_suite_from_running_etabs(
-                                case, with_vs04=(url.path == "/api/live-vs04"))
+                                case, with_vs04=(url.path == "/api/live-vs04"), process_id=etabs_pid,
+                                **capture_options)
                         else:
                             from .live_etabs import read_modal_from_running_etabs
-                            payload = read_modal_from_running_etabs(case)
+                            payload = read_modal_from_running_etabs(case, process_id=etabs_pid)
+                except EtabsConnectionError as exc:
+                    self.reply(503, {
+                        "status": "CAPTURE_REJECTED", "code": "ETABS_CONNECTION_UNAVAILABLE",
+                        "reason": str(exc), "engineering_release": "NOT_READY",
+                    })
+                    return
+                except EtabsUnitsError as exc:
+                    self.reply(503, {
+                        "status": "CAPTURE_REJECTED", "reason": f"{type(exc).__name__}: {exc}",
+                        "etabs_session": exc.session, "required_units_code": CAPTURE_UNIT_CODE,
+                        "required_units_label": CAPTURE_UNIT_LABEL, "engineering_release": "NOT_READY",
+                    })
+                    return
                 except Exception as exc:
                     self.reply(503, {
                         "status": "CAPTURE_REJECTED", "reason": f"{type(exc).__name__}: {exc}",
                         "engineering_release": "NOT_READY",
                     })
                     return
+                finally:
+                    _LIVE_CAPTURE_LOCK.release()
                 # Actual OAPI source is now represented by this immutable local
                 # input; it is never sent to GitHub or to another host.
                 if not isinstance(payload, dict) or payload.get("source_mode") != "LIVE_ETABS":
                     self.reply(422, {"status": "CAPTURE_REJECTED", "reason": "LIVE_SOURCE_MODE_REQUIRED"})
+                    return
+                if capture_options and ((payload.get("column_axial") or {}).get("request")
+                                        != capture_options["column_axial_request"]):
+                    self.reply(422, {"status": "CAPTURE_REJECTED", "reason": "COLUMN_AXIAL_SOURCE_REQUEST_UNBOUND"})
                     return
                 if url.path == "/api/live-vs04" and "analysis_sources" not in payload:
                     self.reply(422, {"status": "CAPTURE_REJECTED", "reason": "VS04_CAPTURE_MISSING"})
@@ -416,79 +752,12 @@ def make_handler(output_root: Path, *, live_capture=None):
                     self.reply(422, {"status": "CAPTURE_REJECTED",
                                      "reason": "VS04_REQUIRED_SAME_SESSION_SOURCES_MISSING"})
                     return
-                raw = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
-                input_sha = sha256(raw).hexdigest()
-                run = ReceiptRun(output_root)
-                run.archive_input(raw, expected_sha256=input_sha)
-                try:
-                    result = _calculate_modal(payload, case=case, run=run, input_sha=input_sha)
-                    geometry = None
-                    if url.path in ("/api/live-suite", "/api/live-vs04"):
-                        geometry = evaluate_geometry_capture(payload.get("geometry_capture"))
-                        run.record("quick-geometry", geometry, input_sha256=input_sha)
-                    extra = None
-                    if url.path in ("/api/live-suite", "/api/live-vs04") and "next_capture" in payload:
-                        extra = evaluate_next_capture(payload["next_capture"], payload.get("geometry_capture"))
-                        run.record("quick-extra", extra, input_sha256=input_sha)
-                    vs04 = None
-                    vs04_numerics = None
-                    vs04_readiness = None
-                    vs04_pipeline = None
-                    if "analysis_sources" in payload:
-                        vs04 = review_analysis_sources(payload["analysis_sources"])
-                        run.record("vs04-schema", vs04, input_sha256=input_sha)
-                        vs04_numerics = evaluate_analysis_numerics(payload["analysis_sources"])
-                        run.record("vs04-numerics", vs04_numerics, input_sha256=input_sha)
-                        vs04_readiness = review_normative_readiness(payload["analysis_sources"])
-                        run.record("vs04-readiness", vs04_readiness, input_sha256=input_sha)
-                        if payload["analysis_sources"].get("pipeline_stage_required") is True:
-                            vs04_pipeline = evaluate_single_run_source_pipeline(payload)
-                            run.record("vs04-pipeline", vs04_pipeline, input_sha256=input_sha)
-                    story_drift = None
-                    if ("vs05_delta_source" in payload or
-                            "vs05_delta_capture_error" in payload):
-                        from .story_drift_binding import bind_story_drift
-                        story_drift = bind_story_drift(
-                            payload.get("vs05_delta_source"),
-                            capture_error=payload.get("vs05_delta_capture_error"))
-                        run.record("vs05-story-drift", story_drift, input_sha256=input_sha)
-                    # R08 is an owned DAG/check-result stage in this SAME run.
-                    # Its source, evaluator and receipt are replayed by report export.
-                    r08_second_order = None
-                    if ("r08_second_order_source" in payload or
-                            "r08_second_order_capture_error" in payload):
-                        from .story_second_order import bind_story_second_order
-                        r08_second_order = bind_story_second_order(
-                            payload.get("r08_second_order_source"),
-                            capture_error=payload.get("r08_second_order_capture_error"))
-                        run.record("r08-second-order", r08_second_order, input_sha256=input_sha)
-                    meta = payload.get("capture_metadata") or {}
-                    run.record("live-capture", {
-                        "status": "SOURCE_CAPTURED", "source_mode": "LIVE_ETABS",
-                        "case": case, "source_rows": payload["table"]["row_count"],
-                        "display_selection_restored": bool(meta.get("display_selection_restored")),
-                        "engineering_release": "NOT_READY",
-                    }, input_sha256=input_sha)
-                    self.reply(200, {
-                        "run_id": run.run_id, "result": result,
-                        "model_name": ntpath.basename(str(meta.get("model_filename", ""))),
-                        "case_row_count": meta.get("case_row_count"),
-                        "source_rows": payload["table"]["row_count"],
-                        "source_mode": "LIVE_ETABS", "geometry": geometry, "extra_checks": extra,
-                        "vs04_schema": vs04, "vs04_numerics": vs04_numerics,
-                        "vs04_readiness": vs04_readiness,
-                        "vs04_pipeline": vs04_pipeline,
-                        **({"story_drift": story_drift}
-                           if story_drift is not None else {}),
-                        **({"r08_second_order": r08_second_order}
-                           if r08_second_order is not None else {}),
-                        "formal_compliance": "NOT_PROVEN",
-                        "engineering_release": "NOT_READY",
-                    })
-                except (ValueError, TypeError, KeyError) as exc:
-                    result = {"status": "REJECTED", "reason": str(exc), "engineering_release": "NOT_READY"}
-                    run.record("rejected", result, input_sha256=input_sha)
-                    self.reply(422, {"run_id": run.run_id, "result": result})
+                if rebar_selection_opts:
+                    payload = {**payload, **rebar_selection_opts}
+                _execute_and_reply_live_payload(
+                    self, output_root, payload, case,
+                    suite=url.path in ("/api/live-suite", "/api/live-vs04"),
+                )
                 return
             if url.path not in ("/api/discovery", "/api/modal", "/api/modal-schema"):
                 self.reply(404, {"error": "NOT_FOUND"})
@@ -511,7 +780,7 @@ def make_handler(output_root: Path, *, live_capture=None):
             try:
                 payload = json.loads(raw.decode("utf-8"))
                 if not isinstance(payload, dict):
-                    raise SourceError("Kaynak JSON nesne olmalı")
+                    raise SourceError("The source JSON must be an object")
                 if url.path == "/api/discovery":
                     result = review_preflight(payload)
                     run.record("discovery", result, input_sha256=input_sha)
@@ -522,7 +791,7 @@ def make_handler(output_root: Path, *, live_capture=None):
                     query = parse_qs(url.query)
                     case = query.get("case", [""])[0].strip()
                     if not case:
-                        raise SourceError("Modal vaka adı zorunlu")
+                        raise SourceError("A modal case name is required")
                     result = _calculate_modal(payload, case=case, run=run, input_sha=input_sha)
                 self.reply(200, {"run_id": run.run_id, "result": result, "engineering_release": "NOT_READY"})
             except (ValueError, UnicodeError, KeyError, TypeError) as exc:
@@ -533,9 +802,14 @@ def make_handler(output_root: Path, *, live_capture=None):
     return Handler
 
 
-def serve(*, host: str = "127.0.0.1", port: int = 8765, output_root: Path = Path(".receipts")) -> None:
+def serve(*, host: str = "127.0.0.1", port: int = 8765, output_root: Path = Path(".receipts"),
+          etabs_pid: int | None = None) -> None:
     if host not in ("127.0.0.1", "localhost", "::1"):
         raise ValueError("VS01 web UI accepts localhost only; use a trusted port forward in Codespaces")
-    with ThreadingHTTPServer((host, port), make_handler(Path(output_root))) as server:
-        print(f"TBDY Next Engine VS01: http://{host}:{server.server_port} | receipts: {output_root}")
+    with ThreadingHTTPServer((host, port), make_handler(
+            Path(output_root), etabs_pid=etabs_pid)) as server:
+        target = f"PID {etabs_pid}" if etabs_pid is not None else "active instance"
+        print(f"TBDY Next Engine VS01: http://{host}:{server.server_port} | receipts: {output_root} "
+              f"| ETABS: {target}, connection sets {CAPTURE_UNIT_LABEL}",
+              flush=True)
         server.serve_forever()

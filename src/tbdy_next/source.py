@@ -29,41 +29,41 @@ def read_json(path: Path) -> Mapping[str, Any]:
     try:
         result = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError) as exc:
-        raise SourceError(f"Kaynak JSON okunamadı: {exc}") from exc
+        raise SourceError(f"Could not read source JSON: {exc}") from exc
     if not isinstance(result, dict):
-        raise SourceError("Kaynak JSON üst düzeyi nesne olmalıdır")
+        raise SourceError("The source JSON must be an object")
     return result
 
 
 def review_preflight(payload: Mapping[str, Any]) -> dict[str, Any]:
     """Only says DISCOVERED, never that table columns/results are verified."""
     if payload.get("schema") != "tbdy.next.etabs.readonly.preflight.v1":
-        raise SourceError("Bilinmeyen preflight şeması")
+        raise SourceError("Unknown preflight schema")
     if payload.get("status") != "DISCOVERY_OK":
-        raise SourceError("Preflight keşif başarılı değil")
+        raise SourceError("Preflight discovery failed")
     obs = payload.get("observations")
     if not isinstance(obs, dict):
         raise SourceError("observations eksik")
     tables = obs.get("available_tables", {})
     names = tables.get("tables", [])
     if not isinstance(names, list) or tables.get("status") != "OK" or tables.get("ret_code") != 0:
-        raise SourceError("Tablo envanteri başarısız")
+        raise SourceError("Table inventory failed")
     if tables.get("count") != len(names):
-        raise SourceError("Tablo envanteri sayısı tutarsız")
+        raise SourceError("Inconsistent table inventory count")
     table_keys = [x.get("key") for x in names if isinstance(x, dict)]
     if len(table_keys) != len(names) or any(not isinstance(x, str) or not x for x in table_keys):
-        raise SourceError("Tablo anahtarı eksik")
+        raise SourceError("Table key is missing")
     if len(table_keys) != len(set(table_keys)):
-        raise SourceError("Tekrarlanan tablo anahtarı")
+        raise SourceError("Duplicate table key")
     for key in ("load_cases", "load_combinations"):
         row = obs.get(key, {})
         if row.get("status") != "OK" or row.get("ret_code") != 0:
-            raise SourceError(f"{key} listeleme başarısız")
+            raise SourceError(f"{key} listing failed")
         names = row.get("names")
         if not isinstance(names, list) or row.get("count") != len(names):
-            raise SourceError(f"{key} sayısı tutarsız")
+            raise SourceError(f"{key} count is inconsistent")
         if len(names) != len(set(names)):
-            raise SourceError(f"{key} adları tekrarlı")
+            raise SourceError(f"{key} names are duplicated")
     return {
         "stage": "SOURCE_DISCOVERY",
         "status": "DISCOVERED",
@@ -85,9 +85,9 @@ def _decimal(value: Any, label: str) -> Decimal:
     try:
         number = Decimal(str(value).strip())
     except (InvalidOperation, ValueError, AttributeError) as exc:
-        raise SourceError(f"{label} sayısal değil") from exc
+        raise SourceError(f"{label} must be numeric") from exc
     if not number.is_finite():
-        raise SourceError(f"{label} sonlu değil")
+        raise SourceError(f"{label} must be finite")
     return number
 
 
@@ -113,25 +113,25 @@ class ModalTable:
 def parse_modal_capture(payload: Mapping[str, Any], *, case: str) -> ModalTable:
     """Validate full ETABS modal table coverage before numerical evaluation."""
     if payload.get("schema") != "tbdy.next.modal.capture.v1":
-        raise SourceError("Modal capture şema sürümü yanlış")
+        raise SourceError("Invalid modal capture schema version")
     if payload.get("source_mode") not in {"SYNTHETIC", "OFFLINE_ETABS", "LIVE_ETABS"}:
-        raise SourceError("Bilinmeyen kaynak modu")
+        raise SourceError("Unknown source mode")
     if not isinstance(case, str) or not case.strip():
         raise SourceError("Modal case zorunlu")
     table = payload.get("table")
     if not isinstance(table, dict) or table.get("table_key") != "Modal Participating Mass Ratios":
-        raise SourceError("Modal tablo anahtarı uyuşmuyor")
+        raise SourceError("Modal table key does not match")
     fields = table.get("fields")
     rows = table.get("rows")
     if not isinstance(fields, list) or len(fields) != len(set(fields)):
-        raise SourceError("Tablo alanları hatalı veya tekrarlı")
+        raise SourceError("Invalid or duplicate table fields")
     expected = {"Case", "Mode", "UX", "UY", "SumUX", "SumUY"}
     if not expected.issubset(set(fields)):
         raise SourceError(f"Eksik modal alanlar: {sorted(expected - set(fields))}")
     if not isinstance(rows, list) or table.get("row_count") != len(rows):
-        raise SourceError("Tablo satır sayısı eksik veya uyumsuz")
+        raise SourceError("Missing or inconsistent table row count")
     if any(not isinstance(row, dict) or set(row) != set(fields) for row in rows):
-        raise SourceError("Modal satır kolonları tablo şemasıyla uyuşmuyor")
+        raise SourceError("Modal row columns do not match the table schema")
     selected: list[ModalRow] = []
     for row in rows:
         if str(row["Case"]).strip() != case:
@@ -139,24 +139,24 @@ def parse_modal_capture(payload: Mapping[str, Any], *, case: str) -> ModalTable:
         try:
             mode = int(str(row["Mode"]).strip())
         except ValueError as exc:
-            raise SourceError("Mod numarası tam sayı değil") from exc
+            raise SourceError("Mode number must be an integer") from exc
         if str(row["Mode"]).strip() != str(mode):
-            raise SourceError("Mod numarası kanonik tam sayı değil")
+            raise SourceError("Mode number must use canonical integer notation")
         numbers = [_decimal(row[k], f"Mode {mode}: {k}") for k in ("UX", "UY", "SumUX", "SumUY")]
         if any(value < 0 or value > 1 for value in numbers):
-            raise SourceError(f"Mode {mode}: oran 0..1 aralığında değil")
+            raise SourceError(f"Mode {mode}: ratio is outside [0, 1]")
         selected.append(ModalRow(case, mode, *numbers))
     if not selected:
-        raise SourceError(f"İstenen modal vaka bulunamadı: {case}")
+        raise SourceError(f"Requested modal case was unavailable: {case}")
     modes = [row.mode for row in selected]
     if modes != list(range(1, len(modes) + 1)):
-        raise SourceError("Modlar 1..N sıralı, kesintisiz ve tekrarsız olmalı")
+        raise SourceError("Modes must run from 1 through N in order and without gaps or duplicates")
     cumulative_x = cumulative_y = Decimal("0")
     tolerance = Decimal("0.002")  # ETABS' export rounding; not a code-limit tolerance.
     for row in selected:
         cumulative_x += row.ux
         cumulative_y += row.uy
         if abs(cumulative_x - row.sum_ux) > tolerance or abs(cumulative_y - row.sum_uy) > tolerance:
-            raise SourceError(f"Mode {row.mode}: kümülatif oran ve satır toplamı uyuşmuyor")
+            raise SourceError(f"Mode {row.mode}: cumulative ratio does not match the running row sum")
     identity = str(payload.get("source_identity", "UNKNOWN"))
     return ModalTable(case, payload["source_mode"], tuple(selected), len(rows), identity)

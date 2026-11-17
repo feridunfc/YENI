@@ -72,12 +72,12 @@ class SpectralWebTests(unittest.TestCase):
         query = self.query + '&member=C_SYNTHETIC_1&case=RS_SUM&offset=2'
         with self.get('/report/column-bank?' + query) as response:
             html = response.read().decode(); self.assertIn("default-src 'none'", response.headers['Content-Security-Policy'])
-        self.assertIn('seçili sayfadır: 3–4 / 4', html)
+        self.assertIn('Current page 3–4 / 4', html)
         first_table = html[html.index('<table>'):html.index('</table>')]
         self.assertEqual(first_table.count('<tr>'), 3)
         self.assertNotIn('source_row_id', first_table)
-        self.assertIn('V2, V3 ve T sınırları', html)
-        self.assertIn('N alt=−P üst', html)
+        self.assertIn('V2, V3 and T bounds', html)
+        self.assertIn('Lower N=−upper P', html)
         self.assertIn('NOT_PROVEN / NOT_READY', html)
         parsed = ParsedPage(); parsed.feed(html)
         self.assertEqual((parsed.open_details, parsed.scripts), (0, 0))
@@ -139,8 +139,8 @@ class SpectralWebTests(unittest.TestCase):
         self.assertEqual(code, 0)
         result = json.loads(out.getvalue()); self.assertEqual(result['matched_rows'], 32)
         self.assertNotIn('rows', result); self.assertNotIn('spectral_cases', result)
-        with self.get('/') as response: html = response.read().decode()
-        group = html[html.index('<optgroup label="Kuvvetler ve birleşimler">'):]
+        with self.get('/source') as response: html = response.read().decode()
+        group = html[html.index('<optgroup label="Forces and combinations">'):]
         self.assertIn('value="spectral-envelopes"', group[:group.index('</optgroup>')])
 
     def test_html_does_not_accept_a_foreign_or_approved_result(self):

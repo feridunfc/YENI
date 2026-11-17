@@ -12,10 +12,16 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from threading import Thread
 import unittest
+from unittest.mock import Mock, patch
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 from tbdy_next.history import modal_history
+from tbdy_next.etabs_modal import ModalCaptureError
+from tbdy_next.live_etabs import (
+    EtabsConnectionError, EtabsUnitsError, _attach_etabs, _session_info, read_quick_suite_from_running_etabs,
+    select_etabs_capture_units,
+)
 from tbdy_next.web import make_handler
 
 FIXTURE = Path(__file__).parent / 'fixtures/modal_meets.json'
@@ -71,7 +77,8 @@ class TestLiveModalFromUI(unittest.TestCase):
         self.assertEqual(body['result']['status'],'MEETS_NUMERICAL_CRITERION')
         self.assertEqual(body['engineering_release'],'NOT_READY')
         path=Path(self.temp.name)/body['run_id']
-        self.assertEqual(len(list(path.glob('*.json'))),4)
+        self.assertEqual({json.loads(p.read_text())["stage"] for p in path.glob("*.json")},
+                         {"schema-discovery", "schema", "modal", "engine-results", "live-capture"})
         self.assertTrue((path/'input.source').is_file())
         hist=modal_history(Path(self.temp.name))
         self.assertEqual(len(hist),1)
@@ -113,6 +120,130 @@ class TestLiveModalFromUI(unittest.TestCase):
         self.assertEqual(payload['status'],'CAPTURE_REJECTED')
         self.assertNotIn('result',payload)
         self.assertEqual(list(Path(self.temp.name).glob('RUN-*')),[])
+
+    def test_units_diagnostic_and_scan_rejection_retain_attached_model(self):
+        sap = Mock()
+        sap.GetModelFilename.return_value = r'C:\tmp\kompakt_b.EDB'
+        sap.GetPresentUnits.return_value = 12
+        sap.GetPresentUnits_2.return_value = (6, 6, 2, 0)
+        session = _session_info(sap, 2056, True)
+        self.assertEqual(session, {
+            'model_name': 'kompakt_b.EDB', 'model_locked': True, 'process_id': 2056,
+            'attachment': 'PROCESS_ID', 'units_code': 12, 'units_label': 'tonf·m·°C',
+            'units_api_agree': True,
+        })
+        self.server.RequestHandlerClass = make_handler(Path(self.temp.name), etabs_pid=2056)
+        connected = {**session, 'units_code': 6, 'units_label': 'kN·m·°C'}
+        with patch('tbdy_next.live_etabs.select_etabs_capture_units',
+                   return_value={'before': session, 'after': connected}) as connect:
+            status, diagnostic = self.send(path='/api/etabs-session')
+            self.assertEqual(status, 200)
+            self.assertEqual(diagnostic['etabs_session'], connected)
+            self.assertEqual(diagnostic['required_units_code'], 6)
+            self.assertEqual(self.send(path='/api/etabs-session?pid=9')[0], 400)
+            self.assertEqual(self.send(path='/api/etabs-session', origin='https://external.example')[0], 403)
+            connect.assert_called_once_with(2056)
+        with patch('tbdy_next.live_etabs.read_quick_suite_from_running_etabs',
+                   side_effect=EtabsUnitsError(session)) as read_suite:
+            status, rejection = self.send(path='/api/live-vs04?case=Modal')
+            self.assertEqual(status, 503)
+            self.assertEqual(rejection['etabs_session'], session)
+            self.assertIn('expected=6;observed=12', rejection['reason'])
+            read_suite.assert_called_once_with('Modal', with_vs04=True, process_id=2056)
+        self.assertEqual(list(Path(self.temp.name).glob('RUN-*')), [])
+
+    def test_explicit_pid_never_falls_back_to_another_analysed_model(self):
+        client = Mock()
+        helper = client.CreateObject.return_value
+        helper.GetObjectProcess.return_value = None
+        with self.assertRaisesRegex(ModalCaptureError, 'PID 2056 is unavailable'):
+            _attach_etabs(client, 2056)
+        helper.GetObjectProcess.assert_called_once_with('CSI.ETABS.API.ETABSObject', 2056)
+        client.GetActiveObject.assert_not_called()
+
+    def test_unavailable_active_object_is_reported_as_connection_failure(self):
+        client = Mock()
+        unavailable = OSError("Operation unavailable")
+        unavailable.winerror = -2147221021
+        client.GetActiveObject.side_effect = unavailable
+
+        with self.assertRaisesRegex(EtabsConnectionError, '--etabs-pid'):
+            _attach_etabs(client, None)
+
+        with patch('tbdy_next.live_etabs.select_etabs_capture_units',
+                   side_effect=lambda _: _attach_etabs(client, None)):
+            status, diagnostic = self.send(path='/api/etabs-session')
+        self.assertEqual(status, 503)
+        self.assertEqual(diagnostic['code'], 'ETABS_CONNECTION_UNAVAILABLE')
+        self.assertNotIn('required_units_code', diagnostic)
+        self.assertNotIn('etabs_session', diagnostic)
+
+    def test_unit_setters_must_verify_matching_getters_before_numeric_capture(self):
+        sap = Mock()
+        sap.GetModelFilename.return_value = r'C:\tmp\kompakt_b.EDB'
+        sap.GetModelIsLocked.return_value = True
+        sap.GetPresentUnits.return_value = 6
+        sap.GetPresentUnits_2.return_value = (6, 6, 2, 0)
+        sap.SetPresentUnits.return_value = 0
+        sap.SetPresentUnits_2.return_value = 0
+        with patch('tbdy_next.live_etabs.sys.platform', 'win32'), \
+                patch('tbdy_next.live_etabs._with_etabs', side_effect=lambda _, action: action(sap)), \
+                patch('tbdy_next.live_etabs.capture_modal') as capture:
+            with self.assertRaises(EtabsUnitsError) as error:
+                read_quick_suite_from_running_etabs('Modal', with_vs04=True)
+            self.assertIs(error.exception.session['units_api_agree'], False)
+            sap.SetPresentUnits.assert_called_once_with(6)
+            sap.SetPresentUnits_2.assert_called_once_with(4, 6, 2)
+            capture.assert_not_called()
+
+    def test_pid_bound_unit_setup_can_use_both_csi_setters(self):
+        sap = Mock()
+        sap.GetModelFilename.return_value = r'C:\tmp\kompakt_b.EDB'
+        sap.GetModelIsLocked.return_value = True
+        sap.GetPresentUnits.side_effect = (12, 12, 6)
+        sap.GetPresentUnits_2.side_effect = ((6, 6, 2, 0), (6, 6, 2, 0), (4, 6, 2, 0))
+        sap.SetPresentUnits.return_value = 0
+        sap.SetPresentUnits_2.return_value = 0
+        with patch('tbdy_next.live_etabs._with_etabs', side_effect=lambda _, action: action(sap)) as attach:
+            result = select_etabs_capture_units(2056)
+        self.assertEqual(attach.call_args.args[0], 2056)
+        self.assertEqual(result['before']['units_code'], 12)
+        self.assertEqual(result['after']['units_code'], 6)
+        sap.SetPresentUnits.assert_called_once_with(6)
+        sap.SetPresentUnits_2.assert_called_once_with(4, 6, 2)
+
+    def test_scan_selects_units_and_leaves_them_selected(self):
+        events = []
+        sap = Mock()
+        sap.GetModelFilename.return_value = r'C:\tmp\kompakt_b.EDB'
+        sap.GetModelIsLocked.return_value = True
+        def set_units(code):
+            sap.GetPresentUnits.return_value = code
+            sap.GetPresentUnits_2.return_value = ((4 if code == 6 else 6), 6, 2, 0)
+            events.append(code)
+            return 0
+        sap.SetPresentUnits.side_effect = set_units
+        set_units(12)
+        def capture(_, case):
+            events.append(f'capture {case}')
+            self.assertEqual(sap.GetPresentUnits(), 6)
+            return live_fixture(case)
+        with patch('tbdy_next.live_etabs.sys.platform', 'win32'), \
+                patch('tbdy_next.live_etabs._with_etabs', side_effect=lambda _, action: action(sap)), \
+                patch('tbdy_next.live_etabs.capture_modal', side_effect=capture) as modal, \
+                patch('tbdy_next.etabs_geometry.capture_geometry', return_value={}), \
+                patch('tbdy_next.next_capture.capture_next_facts', return_value={}):
+            payload = read_quick_suite_from_running_etabs('Modal', process_id=2056)
+            self.assertEqual(events, [12, 6, 'capture Modal'])
+            meta = payload['capture_metadata']
+            self.assertEqual(meta['etabs_session']['units_code'], 6)
+            self.assertEqual(meta['etabs_session_before_scan']['units_code'], 12)
+            self.assertEqual(meta['etabs_session_after_scan']['units_code'], 6)
+            modal.side_effect = ModalCaptureError('source unavailable')
+            with self.assertRaisesRegex(ModalCaptureError, 'source unavailable'):
+                read_quick_suite_from_running_etabs('Modal', process_id=2056)
+            self.assertEqual(events, [12, 6, 'capture Modal'])
+            self.assertEqual(sap.GetPresentUnits(), 6)
 
     def test_live_source_invalid_schema_is_rejected_and_archived(self):
         def invalid(case):
@@ -168,7 +299,7 @@ class TestLiveModalFromUI(unittest.TestCase):
         self.assertEqual(raised.exception.code, 404)
 
     def test_full_table_ui_is_below_numerical_note(self):
-        with urlopen(self.base + '/', timeout=5) as response:
+        with urlopen(self.base + '/source', timeout=5) as response:
             html = response.read().decode('utf-8')
         self.assertIn('modal-table-divider', html)
         self.assertIn('window.showModalFullTable(data.run_id)', html)
@@ -179,11 +310,11 @@ class TestLiveModalFromUI(unittest.TestCase):
         self.assertIn('for (const row of record.rows)', script)
 
     def test_ui_has_direct_connection_no_mandatory_file_selection(self):
-        with urlopen(self.base+'/',timeout=5) as response:
+        with urlopen(self.base+'/source',timeout=5) as response:
             html=response.read().decode('utf-8')
         self.assertIn('id="runAllBtn"',html)
         self.assertNotIn('id="liveModalBtn"',html)
-        self.assertIn('Geliştirici / çevrimdışı kaynak testi',html)
+        self.assertIn('Developer tools and offline source import',html)
         self.assertIn('/history.js',html)
         with urlopen(self.base+'/quick.js',timeout=5) as response:
             js=response.read().decode('utf-8')

@@ -29,8 +29,60 @@ def _write_new(path: Path, value: dict) -> None:
         out.write("\n")
 
 
+def _load_selection_arg(value: str | None, kind: str) -> dict | None:
+    from .rebar_selection import normalize_beam_selection_policy, normalize_column_selection_policy
+
+    if not value:
+        return None
+    raw = "default" if value.strip().lower() == "default" else _read(Path(value))
+    return normalize_beam_selection_policy(raw) if kind == "beam" else normalize_column_selection_policy(raw)
+
+
+def _run_pipeline_replay(args) -> int:
+    from hashlib import sha256
+    from tbdy_next.receipts import ReceiptRun
+    from .pipeline import EnginePipelineRunner
+
+    raw = args.source.read_bytes()
+    payload = json.loads(raw.decode("utf-8"))
+    if not isinstance(payload, dict) or payload.get("source_mode") != "LIVE_ETABS":
+        raise ValueError("LIVE_ETABS_ARCHIVED_SOURCE_REQUIRED")
+    beam_sel = _load_selection_arg(getattr(args, "beam_selection", None), "beam")
+    col_sel = _load_selection_arg(getattr(args, "column_selection", None), "column")
+    if beam_sel is not None:
+        payload["beam_selection"] = beam_sel
+    if col_sel is not None:
+        payload["column_selection"] = col_sel
+    if beam_sel is not None or col_sel is not None:
+        raw = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    input_sha = sha256(raw).hexdigest()
+    run = ReceiptRun(args.out)
+    run.archive_input(raw, expected_sha256=input_sha)
+    suite = "geometry_capture" in payload or "analysis_sources" in payload
+    stages = EnginePipelineRunner().run(payload, case=args.case, run=run, input_sha=input_sha, suite=suite)
+    summary = {"run_dir": str(run.root), "input_sha256": input_sha,
+               "engine_snapshot": stages["engine_snapshot"],
+               "stages_recorded": sorted(path.name for path in run.root.glob("[0-9][0-9]-*.json")),
+               "column_gates": (stages["column_gates"] or {}).get("status"),
+               "beam_r10": (stages.get("beam_r10") or {}).get("status"),
+               "r10_joints": (stages.get("r10_live") or {}).get("joint_end_count"),
+               "r08_local_slenderness": (stages.get("r08_local_slenderness") or {}).get("status"),
+               "engineering_release": "NOT_READY", "engineering_verdict": "NOT_PROVEN"}
+    if args.compare_run is not None:
+        from .pipeline_snapshot import compare_runs
+        summary["compare"] = compare_runs(args.compare_run, run.root)
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+    return 0 if summary.get("compare", {}).get("status", "IDENTICAL") == "IDENTICAL" else 3
+
 def run_cli(args) -> int:
     try:
+        if args.action == "pipeline-plan":
+            from .pipeline import dag_coverage, stage_registry
+            print(json.dumps({"stages": stage_registry(), "dag_coverage": dag_coverage(),
+                              "engineering_release": "NOT_READY"}, ensure_ascii=False, indent=2))
+            return 0
+        if args.action == "run-pipeline":
+            return _run_pipeline_replay(args)
         if args.action == "reconcile-live-column":
             receipt = review_live_column(
                 live=_read(args.live_receipt), lc_run=_read(args.lc_dl_run),

@@ -12,6 +12,7 @@ from hashlib import sha256
 import json
 from typing import Any, Mapping
 
+from .basis_linkage import LoadRoleBook, _story_floor_rank
 from .story_drift_binding import _verify_generic_capture
 from .weak_story_b1 import evaluate_b1
 
@@ -115,6 +116,46 @@ def inferred_wall(q: Decimal, h: Decimal, nominal_gamma: Decimal,
     }
 
 
+def _resolve_story_elevations(
+    geometry: Mapping[str, Any],
+    story_heights: Mapping[str, Decimal],
+    scoped_rows: Mapping[str, Any],
+) -> dict[str, Decimal]:
+    if scoped_rows:
+        return {name: Decimal(scoped_rows[name]["upper_elevation_m"]) for name in story_heights}
+    parsed: dict[str, Decimal] = {}
+    for name in story_heights:
+        try:
+            parsed[name] = Decimal(name.replace("+", ""))
+        except InvalidOperation:
+            parsed = {}
+            break
+    if parsed:
+        return parsed
+
+    # F11: Non-numeric story labels (e.g. "Zemin", "1. Kat", "2. Kat").
+    # Resolve cumulative elevations from BSElev + Height bottom-up.
+    base_elev = Decimal("0")
+    base_table = (geometry.get("table_reads") or {}).get("Tower and Base Story Definitions")
+    if isinstance(base_table, Mapping) and base_table.get("status") == "CAPTURED":
+        base_rows = base_table.get("rows") or []
+        if base_rows and "BSElev" in base_rows[0]:
+            base_elev = dec(base_rows[0]["BSElev"], "BASE_ELEV")
+
+    names = list(story_heights.keys())
+    ranks = [_story_floor_rank(n) for n in names]
+    if all(r is not None for r in ranks) and len(names) >= 2:
+        paired = sorted(zip(ranks, range(len(names)), names), key=lambda item: (item[0], item[1]))
+        names = [item[2] for item in paired]
+
+    out: dict[str, Decimal] = {}
+    curr = base_elev
+    for name in names:
+        curr = curr + story_heights[name]
+        out[name] = curr
+    return out
+
+
 def evaluate_b1_sources(
     geometry: Mapping[str, Any], wall_loads: Mapping[str, Any],
     *, wall_type: str = "BRITTLE", unit_weight_kN_m3: str = "10",
@@ -123,8 +164,12 @@ def evaluate_b1_sources(
     shear_modulus_mpa: str = "500", R_base: str = "7",
     physical_scope: Mapping[str, Any] | None = None,
     physical_scope_source: Mapping[str, Any] | None = None,
+    wall_load_pattern: str = "LC_WDL",
+    role_book: Mapping[str, Any] | LoadRoleBook | None = None,
 ) -> dict[str, Any]:
     """Compute source-bound B1 X/Y with every explicit assumption serialized."""
+    roles = LoadRoleBook.from_any(role_book) if role_book is not None else None
+    active_wall_pattern = roles.wall_load_pattern if (roles is not None and wall_load_pattern == "LC_WDL") else wall_load_pattern
     try:
         _verify_generic_capture(geometry)
         _verify_generic_capture(wall_loads)
@@ -146,7 +191,6 @@ def evaluate_b1_sources(
     shear=dec(shear_modulus_mpa,"SHEAR_MODULUS",positive=True)
     if wall_type not in ("BRITTLE", "FLEXIBLE"):
         raise B1BridgeError("B1_WALL_TYPE_UNKNOWN")
-    geom_tables=geometry["table_reads"]
     pts=id_index(captured(geometry,"Point Object Connectivity",
                          {"UniqueName","X","Y","Z"},
                          {"X":"m","Y":"m","Z":"m"}), "POINT")
@@ -228,7 +272,7 @@ def evaluate_b1_sources(
         raise B1BridgeError("B1_LC_WDL_OBJECT_PROBE_INCOMPLETE")
     loads=defaultdict(list)
     for row in probe["rows"]:
-        if row["LoadPattern"]!="LC_WDL" or row["MyType"]!="1" or row["Dir"]!="10":
+        if row["LoadPattern"]!=active_wall_pattern or row["MyType"]!="1" or row["Dir"]!="10":
             continue
         name=row["UniqueName"]
         if name not in beam_by_id:
@@ -307,8 +351,7 @@ def evaluate_b1_sources(
                    if physical_scope and physical_scope.get("source_inventory_complete") is True else {})
     if scoped_rows and set(scoped_rows) != set(story_heights):
         raise B1BridgeError("B1_PHYSICAL_SCOPE_STORY_SET_CONFLICT")
-    elevations = {name: (Decimal(scoped_rows[name]["upper_elevation_m"]) if scoped_rows
-                         else Decimal(name.replace("+", ""))) for name in story_heights}
+    elevations = _resolve_story_elevations(geometry, story_heights, scoped_rows)
     levels=[]
     for story in sorted(story_heights,key=elevations.get):
         b=by_story[story]
@@ -377,15 +420,15 @@ def evaluate_b1_sources(
         "beam_assumptions":beam_details,
         "b1_numerical":numeric,
         "assumptions_notes":[
-            "ETABS LC_WDL yayılı ölü yükü, dolgu duvar yerleşiminin kesin kanıtı değil; kiriş üzerindeki duvar adayı olarak kabul edilmiştir.",
-            "Dolgu kalınlığı, seçilen nominal tuğla birim hacim ağırlığına göre 0,09 m / 0,19 m adayları arasından, ölçülen kN/m değeriyle karşılaştırılarak tahmin edilmiştir.",
-            "Varsayımsal net duvar yüksekliği = ETABS Story Definitions.Height − ilgili üst kirişin gerçek t3 yüksekliği. Mimari döşeme, sıva ve derz ayrıntıları hesaba katılmamıştır.",
-            "q/(γ_nominal×t×h_net) değeri seçilen eşikten küçük ve %50 açıklık varsayımı seçilen γ aralığında makulse etkin dolgu kesit alanı %50 azaltılmıştır.",
-            "Düşük yayılı yük yalnız kapı/pencere boşluğunu göstermez; düşük yoğunluklu blok, farklı dolgu kalınlığı veya yük giriş yöntemi de aynı sonucu verebilir. Varsayılan açıklık gerçek rölöve değildir.",
-            "B1 için Ak = duvar kalınlığı × kirişin yüklenmiş uzunluğu × varsayılan net doluluk oranı olarak alınmıştır; kiriş uzunluğu × duvar yüksekliği ile bulunan cephe alanı değildir.",
-            "K_proxy = Gm×Ak/h_net yalnız duyarlılık amaçlı bağımsız kayma rijitliği göstergesidir; ETABS modelinin gerçek rijitliği, eşdeğer basınç çubuğu veya yönetmelik B2 hesabı değildir.",
-            "ETABS Story etiketi ilgili fiziksel kolon/perde diliminin üst sınırı olarak yorumlanmıştır; Null ve mesh nesnelerinin eksiksiz fiziksel envanteri ayrıca onaylanmamıştır.",
-            "TBDY 4.9.1.3(b) kapsamındaki esnek bağlantılı dolgularda B1 Ak=0 kabul edilir. Yalnız esnek seçim yapılması bağlantının deneysel kapasitesini kanıtlamaz.",
+            "The ETABS LC_WDL distributed dead load identifies a candidate infill on a beam. Its physical location requires separate evidence.",
+            "Infill thickness is estimated from the 0.09 m and 0.19 m nominal brick options by comparing their unit weights with the observed kN/m.",
+            "Assumed net wall height equals ETABS Story Definitions.Height minus the actual t3 depth of the corresponding upper beam. Slabs, plaster and joints are outside this estimate.",
+            "The effective infill area is reduced by 50% when q/(γ_nominal×t×h_net) is below the selected threshold and the 50% opening is plausible within the selected γ range.",
+            "A low distributed load can also reflect a low-density block, another infill thickness or a different modeling convention. Actual openings require a survey.",
+            "B1 uses Ak = wall thickness × loaded beam length × assumed solid fraction. Beam length × wall height is the separate face area.",
+            "K_proxy = Gm×Ak/h_net is an independent shear stiffness indicator for sensitivity. ETABS stiffness, equivalent compression struts and the code B2 check require separate calculations.",
+            "The ETABS Story label is treated as the upper boundary of the relevant physical column or wall slice. A complete inventory of Null and mesh objects requires separate acceptance.",
+            "TBDY 4.9.1.3(b) uses B1 Ak=0 for qualifying flexible connections. Connection capacity requires experimental evidence.",
         ],
         "formal_compliance":"NOT_PROVEN",
         "engineering_release":"NOT_READY",
@@ -397,8 +440,75 @@ def evaluate_b1_sources(
         out.update(physical_scope_sha256=physical_scope["scope_sha256"],
                    excluded_stories=[scoped_rows[name] for name in sorted(excluded)])
         out["assumptions_notes"][7] = (
-            "Boş kat istisnası aynı modelin eksiksiz Frame/Area/Wall/Joint kaynak envanterinden gelir; "
-            "bu sayım analiz neslini veya resmî TBDY uygunluğunu yetkilendirmez.")
+            "The empty-story exclusion comes from the complete Frame, Area, Wall and Joint source inventory in the same model. "
+            "Analysis generation and formal TBDY compliance require additional evidence.")
     out["result_sha256"]=sha256(
         (json.dumps(out,sort_keys=True,separators=(",",":"),ensure_ascii=False)+"\n").encode()).hexdigest()
     return out
+
+
+def _td(value: object) -> str:
+    from html import escape
+    return "<td>" + escape("—" if value is None else str(value)) + "</td>"
+
+
+def render_b1_html(report: dict) -> str:
+    from html import escape
+    s=report["story_direction_areas"]
+    parts=[]
+    for level in s:
+        for d in ("X","Y"):
+            x=level[d]
+            parts.append("<tr>"+ "".join(_td(v) for v in [
+                level["story"], d, level["column_count"],x["wall_count"],
+                x["loaded_beam_count"],x["loaded_beam_length_m"],
+                x["column_Aw_m2"],x["wall_Ag_m2"],x["infill_Ak_assumed_m2"],
+                x["infill_shear_stiffness_proxy_kN_m"],
+            ])+"</tr>")
+    pairs=[]
+    for p in report["b1_numerical"]["paired_results"]:
+        pairs.append("<tr>"+"".join(_td(p.get(v)) for v in [
+            "lower_story","upper_story","direction","Ae_lower_m2",
+            "Ae_upper_m2","eta_ci","numeric_condition",
+            "infill_omitted_because_lower_more_than_upper",
+        ])+"</tr>")
+    beam_rows=[]
+    for b in report["beam_assumptions"]:
+        beam_rows.append("<tr>"+"".join(_td(b.get(v)) for v in [
+            "beam_id","story","direction","beam_length_m","clear_wall_height_m",
+            "line_load_total_kN_m","thickness_m","assumed_opening_fraction",
+            "assumed_Ak_m2","assumed_stiffness_proxy_kN_m",
+        ])+"</tr>")
+    notes="<ol>"+ "".join("<li>"+escape(t)+"</li>" for t in report["assumptions_notes"])+"</ol>"
+    def h(*headers):
+        return "<thead><tr>"+"".join("<th>"+escape(x)+"</th>" for x in headers)+"</tr></thead>"
+    css="""body{font:14px/1.5 system-ui,sans-serif;max-width:1200px;margin:40px auto;padding:0 24px;color:#263444}table{border-collapse:collapse;width:100%;font-size:12px}td,th{border:1px solid #d0dae4;padding:8px;text-align:right}td:first-child,th:first-child{text-align:left}th{background:#edf4fa}h1,h2{color:#244e70}section{padding:14px 0}p.warning{border-left:4px solid #ae7940;padding:8px;background:#fff9ec}small{color:#687b8c}"""
+    numerical=report["b1_numerical"]
+    html=("<!doctype html><html lang='en'><head><meta charset='utf-8'>"
+          "<meta name='viewport' content='width=device-width, initial-scale=1'><title>B1 — VS06-D1</title>"
+          "<style>"+css+"</style></head><body>"
+          "<h1>VS06-D1 · B1 weak story · X/Y source geometry and assumed infill</h1>"
+          "<p class='warning'><strong>Numerical calculation complete. Formal TBDY compliance is NOT_PROVEN.</strong> "
+          "Physical infill layout requires evidence beyond the ETABS load pattern.</p>"
+          "<p>TBDY 2018 Table 3.6 and §3.6.2.3 give ΣAe = ΣAw + ΣAg + 0.15ΣAk. "
+          "ηci = lower Ae / upper Ae. Columns and walls use actual ETABS sections and coordinates. "
+          "Infill areas use estimates based on observed loads.</p>"
+          "<p>ηci,min = <strong>"+escape(numerical["eta_ci_min"])+"</strong>; "
+          "Numerical status = <strong>"+escape(numerical["numeric_condition"])+"</strong>; "
+          "R multiplier = "+escape(str(numerical["R_multiplier_both_directions"]))+"</p>"
+          "<section><h2>Effective areas (m²) and scenario stiffness values (kN/m) by story and direction</h2><table>"+
+          h("Story","Direction","Column","Shear wall","Loaded beams","L (m)","Aw (m²)","Ag (m²)","Scenario Ak (m²)","K proxy (kN/m)")+
+          "<tbody>"+"".join(parts)+"</tbody></table></section>"
+          "<section><h2>B1 interstory comparison</h2><table>"+
+          h("Lower story","Upper story","Direction","Lower Ae (m²)","Upper Ae (m²)","ηci","Decision","Ak excluded")+
+          "<tbody>"+"".join(pairs)+"</tbody></table></section>"
+          "<section><h2>LC_WDL, height, masonry and opening assumptions by beam</h2><table>"+
+          h("ETABS ID","Story","Direction","L (m)","Net h (m)","q (kN/m)","t (m)","Opening fraction","Ak (m²)","K proxy (kN/m)")+
+          "<tbody>"+"".join(beam_rows)+"</tbody></table></section>"
+          "<section><h2>Model assumptions and scope</h2>"+notes+"</section>"
+          "<small>Geometry source SHA-256 "+escape(report["provenance"]["geometry_capture_sha256"])+
+          " · Load source SHA-256 "+escape(report["provenance"]["wall_load_capture_sha256"])+
+          " · Result SHA-256 "+escape(report["result_sha256"])+
+          ". Analysis generation, model identity and actual wall layout require independent acceptance.</small>"
+          "</body></html>")
+    return html

@@ -64,11 +64,11 @@ class ColumnKinematicsWebTests(unittest.TestCase):
 
     def test_html_and_ui_keep_kinematics_separate_from_design_acceptance(self):
         with self.get("/report/column-bank?"+self.query) as response: html = response.read().decode()
-        for value in ("VS18", "2/2 kolon–birleşim", "α2=−Δu3/L", "P-Delta", "Nonlinear Case", "NOT_PROVEN", "P1"):
+        for value in ("VS18", "2/2 column–combination", "α2=−Δu3/L", "P-Delta", "Nonlinear Case", "NOT_PROVEN", "P1"):
             self.assertIn(value, html)
         self.assertNotIn("<script", html)
-        with self.get("/") as response: ui = response.read().decode()
-        for value in ('label="İkinci mertebe girdileri"', 'value="end-forces"', 'value="kinematics"'):
+        with self.get("/source") as response: ui = response.read().decode()
+        for value in ('label="Second-order inputs"', 'value="end-forces"', 'value="kinematics"'):
             self.assertIn(value, ui)
         with self.get("/api/check-registry") as response: self.assertEqual(json.load(response)["implemented_check_count"], 16)
 

@@ -34,7 +34,7 @@ class ModalCaptureError(RuntimeError):
 def _code(raw: Any, op: str) -> int:
     v = raw[-1] if isinstance(raw, (list, tuple)) and raw else raw
     if type(v) is not int:
-        raise ModalCaptureError(f"{op}: dönüş kodu tanınmıyor: {raw!r}")
+        raise ModalCaptureError(f"{op}: unrecognized return code: {raw!r}")
     return v
 
 
@@ -45,18 +45,18 @@ def _selected_cases(db: Any) -> tuple[str, ...]:
     except TypeError:
         raw = method(0, [])
     if not isinstance(raw, (list, tuple)) or len(raw) < 3:
-        raise ModalCaptureError("GetLoadCasesSelectedForDisplay: beklenmeyen dönüş şekli")
+        raise ModalCaptureError("GetLoadCasesSelectedForDisplay: unexpected return shape")
     count, payload = raw[0], raw[1]
     code = _code(raw, "GetLoadCasesSelectedForDisplay")
     if type(count) is not int or count < 0 or not isinstance(payload, (list, tuple)) or len(payload) < count:
-        raise ModalCaptureError("GetLoadCasesSelectedForDisplay: sayı/dizi tutarsız")
+        raise ModalCaptureError("GetLoadCasesSelectedForDisplay: inconsistent count and array")
     if count == 0 and code == 1 and all(v is None or v == "" for v in payload):
         return ()  # Observed ETABS 23.2 empty-selection projection
     if code != 0:
         raise ModalCaptureError(f"GetLoadCasesSelectedForDisplay: ret_code={code}")
     names = tuple(payload[:count])
     if any(not isinstance(x, str) or not x.strip() for x in names) or len(set(names)) != count:
-        raise ModalCaptureError("GetLoadCasesSelectedForDisplay: geçersiz seçim")
+        raise ModalCaptureError("GetLoadCasesSelectedForDisplay: invalid selection")
     return names
 
 
@@ -78,27 +78,27 @@ def _read_table(db: Any, table_key: str = TABLE_KEY) -> tuple[tuple[str, ...], l
         try:
             raw = db.GetTableForDisplayArray(*args)
             if not isinstance(raw, (list, tuple)) or len(raw) < 6:
-                raise ModalCaptureError("dönüş şekli altı alan içermiyor")
+                raise ModalCaptureError("expected six return fields")
             code = _code(raw, "GetTableForDisplayArray")
             if code != 0:
                 raise ModalCaptureError(f"ret_code={code}")
             fields_raw, count_raw, data_raw = raw[2], raw[3], raw[4]
             if not isinstance(fields_raw, (tuple, list)) or not isinstance(data_raw, (tuple, list)):
-                raise ModalCaptureError("alanlar ve veri dizisi bekleniyor")
+                raise ModalCaptureError("expected field and data arrays")
             fields = tuple(fields_raw)
             if not fields or any(not isinstance(f, str) or not f for f in fields) or len(set(fields)) != len(fields):
-                raise ModalCaptureError("alan listesi geçersiz veya tekrarlı")
+                raise ModalCaptureError("invalid or duplicate field list")
             if type(count_raw) is not int or count_raw < 0:
-                raise ModalCaptureError("kayıt sayısı geçersiz")
+                raise ModalCaptureError("invalid record count")
             cells = list(data_raw)
             if len(cells) != count_raw * len(fields):
-                raise ModalCaptureError(f"hücre eksik/fazla: {len(cells)} != {count_raw}×{len(fields)}")
+                raise ModalCaptureError(f"incorrect cell count: {len(cells)} != {count_raw}×{len(fields)}")
             rows = [dict(zip(fields, (str(v) for v in cells[i:i+len(fields)])))
                     for i in range(0, len(cells), len(fields))]
             return fields, rows, count_raw, name
         except (ModalCaptureError, TypeError, ValueError, AttributeError) as exc:
             diagnostics.append(f"{name}: {type(exc).__name__}: {exc}")
-    raise ModalCaptureError(f"ETABS tablo {table_key!r} alınamadı; " + " | ".join(diagnostics))
+    raise ModalCaptureError(f"Could not read ETABS table {table_key!r}. " + " | ".join(diagnostics))
 
 
 def _model_name(sap: Any) -> str:
@@ -106,13 +106,13 @@ def _model_name(sap: Any) -> str:
     if isinstance(raw, (tuple, list)):
         raw = raw[0]
     if not isinstance(raw, str) or not raw:
-        raise ModalCaptureError("Aktif model adı okunamadı")
+        raise ModalCaptureError("Could not read the active model name")
     return raw
 
 
 def capture_modal(sap: Any, case: str) -> dict[str, Any]:
     if not isinstance(case, str) or not case.strip() or case != case.strip():
-        raise ModalCaptureError("--case: kesin, boş olmayan vaka adı gerekli")
+        raise ModalCaptureError("--case requires an exact, nonempty case name")
     db = sap.DatabaseTables
     model_name = _model_name(sap)
     original = _selected_cases(db)  # Snapshot before any temporary display mutation
@@ -126,16 +126,16 @@ def capture_modal(sap: Any, case: str) -> dict[str, Any]:
             _set_cases(db, (case,))
             selected = _selected_cases(db)
             if selected != (case,):
-                raise ModalCaptureError(f"Geçici modal seçim doğrulanamadı: {selected!r}")
+                raise ModalCaptureError(f"Could not verify the temporary modal case selection: {selected!r}")
         fields, rows, count, signature = _read_table(db)
         if not rows:
-            raise ModalCaptureError("Modal tablo boş; seçili analiz vakası ve mod ayarları incelenmeli")
+            raise ModalCaptureError("The modal table is empty. Check the selected case and its mode settings.")
         if "Case" not in fields:
             # Do not rewrite schema or silently approve aliases.
-            raise ModalCaptureError(f"Canlı sütunlarda 'Case' yok: {fields!r}; hedefli şema incelemesi gerekli")
+            raise ModalCaptureError(f"The live columns omit 'Case': {fields!r}. Review the target schema.")
         selected_rows = [r for r in rows if r.get("Case") == case]
         if not selected_rows:
-            raise ModalCaptureError(f"Modal tabloda '{case}' vakasının satırı yok")
+            raise ModalCaptureError(f"Modal tabloda '{case}' case has no rows")
         result = {
             "schema": SCHEMA,
             "source_mode": "LIVE_ETABS",
@@ -161,9 +161,9 @@ def capture_modal(sap: Any, case: str) -> dict[str, Any]:
                 _set_cases(db, original)
                 restored = _selected_cases(db)
                 if restored != original:
-                    raise ModalCaptureError(f"Eski ETABS vaka seçimi geri yüklenmedi: {restored!r} != {original!r}")
+                    raise ModalCaptureError(f"The previous ETABS case selection was not restored: {restored!r} != {original!r}")
             except Exception as restore_exc:
-                raise ModalCaptureError(f"ETABS görüntüleme seçimi geri yüklenemedi: {restore_exc}") from restore_exc
+                raise ModalCaptureError(f"Could not restore the ETABS display selection: {restore_exc}") from restore_exc
     if active_exc is not None:
         raise ModalCaptureError(str(active_exc)) from active_exc
     assert result is not None

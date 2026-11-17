@@ -16,7 +16,7 @@ from .story_delta import dec
 from .story_drift_binding import _verify_generic_capture
 from .story_geometry import read_source_table, read_story_levels
 
-CHECK = CheckDefinition("WALL_GEOMETRY_CHECK", "Perde kesit geometrisi — kaynak alt koşulları",
+CHECK = CheckDefinition("WALL_GEOMETRY_CHECK", "Shear wall section geometry · Source checks",
                         13, "TBDY 2018 7.6.1.2 / 7.6.1.2(a)", "GEOMETRY_SCREENING")
 TOL = Decimal("0.000001")
 WALLS = "Wall Object Connectivity"
@@ -118,11 +118,11 @@ def bind_wall_geometry(snapshot: Mapping[str, Any], *,
             {"code_ref": "7.6.1.1", "status": "NOT_PROVEN", "reason": "NET_SECTION_AXIAL_RESISTANCE_NOT_EVALUATED"},
         ],
         "assumptions_notes": [
-            "Uzunluk, ETABS alan nesnesinin panel uzunluğudur; bütün fiziksel perde/kol boyu olduğu onaylanmamıştır.",
-            "Standart 7.6.1.2(a) dalında bw ≥ max(250 mm, h_kat/16) sayısal olarak karşılaştırılır. Panelin kısmi yüksekliği kat yüksekliğinin yerine kullanılmaz.",
-            "Bodrum, iki ucundan perdeyle tutulu kol ve 7.6.1.3 istisnaları kesit adından veya kat kotundan seçilmez.",
-            "7.6.1.2(b) için tutulmamış plan boyu kanıtlanmadığından bu koşul hesaplanmaz; panel boyu yerine geçirilmez.",
-            "Sayısal alt koşul sonucu resmî perde geometrisi, eksenel dayanım veya bina uygunluğu kararı değildir.",
+            "The length comes from the ETABS area-object panel. The complete physical wall or leg length requires separate verification.",
+            "The standard 7.6.1.2(a) branch compares bw ≥ max(250 mm, h_story/16). It uses the full story height.",
+            "Basements, legs restrained by walls at both ends and the 7.6.1.3 exceptions require physical evidence independent of the section name and story elevation.",
+            "The 7.6.1.2(b) criterion requires a verified unrestrained plan length. Panel length alone leaves this calculation open.",
+            "The results cover numerical criteria. Formal wall geometry, axial capacity and building compliance require further evidence.",
         ]}
     try:
         geometry = snapshot.get("vs06_b1_geometry_source")

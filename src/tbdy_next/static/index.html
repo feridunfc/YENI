@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TBDY Next Engine — Workspace</title>
@@ -16,7 +16,7 @@
 .modal-table-scroll{max-height:520px;overflow:auto;border:1px solid var(--border);border-radius:8px;margin-top:12px}
 .modal-source-table{width:100%;min-width:max-content;border-collapse:separate;border-spacing:0;font-size:12px;font-variant-numeric:tabular-nums}
 .modal-source-table th,.modal-source-table td{padding:8px 12px;border-bottom:1px solid #e7edf3;white-space:nowrap;text-align:right}
-.modal-source-table th:first-child,.modal-source-table td:first-child{text-align:left}
+.modal-source-table th:first-child,.modal-source-table td:first-child{text-align:left}.modal-source-table td{white-space:pre-line}
 .modal-source-table thead th{position:sticky;top:0;background:#eaf0f7;color:#314960;z-index:1;border-bottom:2px solid #c7d5e2}
 .modal-source-table tbody tr:nth-child(even){background:#f7f9fc}
 .modal-source-table tbody tr:hover{background:#eef5fb}
@@ -62,145 +62,161 @@
 </head>
 <body>
 <div class="app">
-<aside><div class="logo">TBDY Next Engine</div><div class="tagline">ETABS → Hesap → Rapor</div><nav class="navlist" id="nav" aria-label="Sınıflandırılmış mühendislik kontrolleri"></nav><div class="navtitle">Seçili çalışmanın özeti</div><ul class="tree aside-check-tree" id="resulttree"><li>Hesap bekleniyor · NOT_PROVEN</li></ul></aside>
+<aside><div class="logo">TBDY Next Engine</div><div class="tagline">Source &amp; analysis<span class="app-version" hidden></span><br><a id="workspaceReturn" href="/">Engineering workspace ↗</a></div><nav class="navlist" id="nav" aria-label="Engineering checks by category"></nav><div class="navtitle">Selected run summary</div><ul class="tree aside-check-tree" id="resulttree"><li>Waiting for calculations · NOT_PROVEN</li></ul></aside>
 <main>
-<div class="top"><div><div class="eyebrow">Yapısal değerlendirme</div><h1 id="heading">Modal analiz</h1><div class="muted small" id="subhead">Kontroller, kaynakları ve hesap kapsamıyla birlikte gösterilir.</div></div><div class="chip">MÜHENDİSLİK KABULÜ · NOT_READY</div></div>
+<div class="top"><div><div class="eyebrow">Structural assessment</div><h1 id="heading">Modal analysis</h1><div class="muted small" id="subhead">Each check shows its sources and coverage.</div></div><div class="chip">ENGINEERING RELEASE · NOT_READY</div></div>
 <section class="box compact-run" id="quick-panel">
-<div id="quickStatus" class="muted small">Henüz birleşik ETABS kaydı yok.</div>
-<details><summary>Eleman kontrollerinin toplu özeti</summary><div id="quickReport"></div></details>
+<div id="quickStatus" class="muted small">No combined ETABS run yet.</div>
+<details><summary>Member check summary</summary><div id="quickReport"></div></details>
 </section>
 <div id="activecontent">
-<div class="stages"><div class="step"><em>Aşama 1</em><strong id="step1">Kaynak keşfi bekleniyor</strong></div><div class="step"><em>Aşama 2</em><strong id="step2">Şema doğrulaması bekleniyor</strong></div><div class="step"><em>Aşama 3</em><strong id="step3">Hesap bekleniyor</strong></div></div>
-<section class="box live-panel" id="live-modal-panel"><header><div><div class="live-label">Tek canlı hesap akışı</div><h2>ETABS → Kaynak → Şema → Hesap → Sonuç → Rapor</h2><div class="muted small">ETABS 23.2.0 Windows oturumunda açık ve analiz edilmiş model kullanılır. Dosya seçimi gerekmez; geometri tabloları gerçek şemaya göre birleştirilir.</div></div></header>
-<div class="actions"><label for="liveCase" class="small">Modal vaka</label><input class="field" id="liveCase" value="Modal" maxlength="120" aria-label="ETABS modal vaka adı"><button class="go live-action" type="button" id="runAllBtn">ETABS’tan Oku ve Hesapla</button></div>
-<div class="live-status" id="liveModalStatus" role="status" aria-live="polite">Henüz canlı bağlantı başlatılmadı.</div><p class="micro">Mevcut analiz sonuçları okunur; desteklenen kontroller aynı çalışma kaydında hesaplanır. Her kontrol kendi veri kapsamını gösterir. Koşullu sayısal sonuçlar, bina için resmî uygunluk onayı değildir.</p></section>
-<details class="offline"><summary>Geliştirici / çevrimdışı kaynak testi (normal canlı hesap için gerekli değil)</summary>
+<div class="stages"><div class="step"><em>Stage 1</em><strong id="step1">Waiting for source discovery</strong></div><div class="step"><em>Stage 2</em><strong id="step2">Waiting for schema validation</strong></div><div class="step"><em>Stage 3</em><strong id="step3">Waiting for calculations</strong></div></div>
+<section class="box live-panel" id="live-modal-panel"><header><div><div class="live-label">Live ETABS workflow</div><h2>ETABS → Source → Schema → Calculation → Results → Report</h2><div class="muted small">Uses the analyzed model already open in ETABS 23.2.0 on Windows. Geometry is joined using the captured table schema.</div></div></header>
+<div class="actions"><label for="liveCase" class="small">Modal case</label><input class="field" id="liveCase" value="Modal" maxlength="120" aria-label="ETABS modal case name"><button class="go live-action" type="button" id="runAllBtn">Read ETABS and calculate</button></div>
+<div class="live-status" id="liveModalStatus" role="status" aria-live="polite">No live connection yet.</div><p class="micro">Reads existing analysis results and calculates supported checks in one run. Each check reports its coverage. Building compliance remains unverified.</p></section>
+<details class="offline"><summary>Developer tools and offline source import</summary>
 <div class="twocol">
-<section class="box"><header><div><h2>01 · ETABS kaynak keşfi</h2><div class="muted small">Ön test JSON'unda gerçek tablo anahtarları; henüz sonuç satırı değil</div></div></header><div class="drop"><label for="preflight">Preflight JSON seç</label><input type="file" id="preflight" accept=".json,application/json"></div><div class="actions"><button class="go" id="discoverBtn">Kaynağı incele</button></div></section>
-<section class="box"><header><div><h2>02 · Modal tablo / şema</h2><div class="muted small">Tam tablo satırları ve seçilen modal vaka</div></div></header><div class="drop"><label for="capture">Modal capture JSON seç</label><input type="file" id="capture" accept=".json,application/json"></div><div class="actions"><label class="small" for="case">Vaka</label><input class="field" type="text" id="case" value="Modal" maxlength="120"><button class="go" id="schemaBtn">Şemayı incele</button><button class="go" id="modalBtn">Doğrula + hesapla</button></div></section>
+<section class="box"><header><div><h2>01 · Discover ETABS sources</h2><div class="muted small">The preflight JSON lists ETABS table keys.</div></div></header><div class="drop"><label for="preflight">Select preflight JSON</label><input type="file" id="preflight" accept=".json,application/json"></div><div class="actions"><button class="go" id="discoverBtn">Inspect source</button></div></section>
+<section class="box"><header><div><h2>02 · Modal table and schema</h2><div class="muted small">Full table and selected modal case</div></div></header><div class="drop"><label for="capture">Select modal capture JSON</label><input type="file" id="capture" accept=".json,application/json"></div><div class="actions"><label class="small" for="case">Case</label><input class="field" type="text" id="case" value="Modal" maxlength="120"><button class="go" id="schemaBtn">Inspect schema</button><button class="go" id="modalBtn">Validate and calculate</button></div></section>
 </div></details>
-<section class="box"><header><div><h2>03 · İnceleme ve sonuç</h2><div class="muted small">Gözlenen veriyle yetkili mühendislik kararı birbirinden ayrı tutulur</div></div></header><div id="result"><div class="empty">Canlı ETABS'a bağlanıp hesaplamak için üstteki yeşil düğmeyi kullanın. Önceki CLI sonuçları da aşağıdaki kayıt panelinde otomatik gösterilir.</div></div></section>
-<section class="box" id="saved-modal-panel"><header><div><h2>04 · Kaydedilmiş gerçek modal hesaplar</h2><div class="muted small">CLI ile hesaplanan sonuçlar yeniden dosya yüklemeden görüntülenir; sentetik olanlar ayrıca işaretlenir.</div></div><button class="go" id="refreshSaved">Yenile</button></header>
-<div id="saved-modal-body" class="muted small">Yerel çalışma kayıtları okunuyor…</div><div id="saved-modal-history" class="actions"></div></section>
-<section class="box" id="modalSpacingPanel" data-check-panel="modal_combination_spacing"><h2>Yakın modlar · SRSS / CQC seçimi</h2><div id="modalSpacingResult" aria-live="polite">Seçili kaydın periyot ve yöntem karşılaştırması burada gösterilir.</div></section>
-<details class="box"><summary>Çalışma geçmişi ve aşama kayıtları</summary><div id="trail" class="muted small">Yeni kayıt yok.</div><div id="runlist" class="muted small">Henüz kayıt bulunamadı.</div></details>
+<section class="box"><header><div><h2>03 · Review results</h2><div class="muted small">Source observations and engineering approval have separate statuses.</div></div></header><div id="result"><div class="empty">Use the green button above to read live ETABS results. Earlier CLI runs appear in the history below.</div></div></section>
+<section class="box" id="saved-modal-panel"><header><div><h2>04 · Saved modal runs</h2><div class="muted small">CLI results load from local storage. Synthetic runs are labeled.</div></div><button class="go" id="refreshSaved">Refresh</button></header>
+<div id="saved-modal-body" class="muted small">Loading local runs…</div><div id="saved-modal-history" class="actions"></div></section>
+<section class="box" id="modalSpacingPanel" data-check-panel="modal_combination_spacing"><h2>Closely spaced modes · SRSS / CQC</h2><div id="modalSpacingResult" aria-live="polite">Periods and combination methods from the selected run appear here.</div></section>
+<details class="box"><summary>Run and stage history</summary><div id="trail" class="muted small">No new runs.</div><div id="runlist" class="muted small">No saved runs found.</div></details>
 </div>
 <div id="analysiscontent" class="hidden">
-<section class="box" id="earthquakeRatioPanel" data-check-panel="earthquake_100_30"><h2>Deprem birleşimleri · %100 / %30</h2><div id="earthquakeRatioResult" aria-live="polite">Seçili kaydın birleşim katsayıları burada gösterilir.</div></section>
-<section class="box" id="earthquakePairPanel" data-check-panel="earthquake_direction_pairs"><h2>Birleşimlerde X / Y yön kapsamı</h2><div id="earthquakePairResult" aria-live="polite">Aynı diğer yükler ve ortak çarpan altında iki baskın yön karşılaştırılır.</div></section>
+<section class="box" id="analysisSetupPanel" data-check-panel="ANALYSIS_BASIS_GATE"><h2>R03 · ETABS analysis and concrete design setup</h2><div id="analysisSetupResult" aria-live="polite"></div></section>
+<section class="box" id="earthquakeRatioPanel" data-check-panel="earthquake_100_30"><h2>Seismic combinations · 100% / 30%</h2><div id="earthquakeRatioResult" aria-live="polite">Combination coefficients from the selected run appear here.</div></section>
+<section class="box" id="earthquakePairPanel" data-check-panel="earthquake_direction_pairs"><h2>X and Y direction coverage in combinations</h2><div id="earthquakePairResult" aria-live="polite">Compares combinations with different dominant directions and identical other loads and common factor.</div></section>
 </div>
 <div id="systemcontent" class="hidden">
-<section class="box" id="storyDriftPanel" data-check-panel="STORY_DRIFT"><h2>Göreli kat ötelemesi — kaynak hesabı</h2><div id="storyDriftReport">Seçili çalışmanın kat öteleme kayıtları burada gösterilir.</div></section>
+<section class="box" id="storyDriftPanel" data-check-panel="STORY_DRIFT"><h2>Relative story drift — source calculation</h2><div id="storyDriftReport">Story drift from the selected run appears here.</div></section>
 <section class="box" id="vs06c2-panel">
-  <header><div><div class="eyebrow">VS06-C2 · TBDY 2018 §4.9.1</div><h2>Etkin göreli kat ötelemesi — sayısal senaryo</h2>
-  <p class="muted small">Kayıtlı gerçek ETABS Story Drifts × kat yüksekliği kaynak değerlerini R/I ve DD-3/DD-2 λ ile hesaplar. Kaynak nümeriği gerçek eşzamanlı tasarım deplasmanı olarak onaylanmadıkça formel uygunluk NOT_PROVEN kalır.</p></div></header>
+  <header><div><div class="eyebrow">VS06-C2 · TBDY 2018 §4.9.1</div><h2>Effective relative story drift — numerical scenario</h2>
+  <p class="muted small">Applies R/I and the DD-3/DD-2 factor λ to the recorded ETABS story drift ratio multiplied by story height. Formal compliance requires verified concurrent design displacements.</p></div></header>
   <div class="twocol">
-    <div><label for="c2WallType">Dolgu duvar bağlantısı</label>
-      <select class="field" id="c2WallType" style="width:100%"><option value="BRITTLE" selected>Gevrek dolgu — bitişik / derzsiz (varsayılan)</option><option value="FLEXIBLE">Esnek derzli / esnek bağlantılı</option></select></div>
-    <div><label for="c2Material">Taşıyıcı sistem</label>
-      <select class="field" id="c2Material" style="width:100%"><option value="RC" selected>Betonarme · κ=1</option><option value="STEEL">Çelik · κ=0.5</option></select></div>
-    <div><label for="c2R">Davranış katsayısı R (senaryo)</label><input class="field" id="c2R" type="number" min=".01" step="any" value="7"></div>
-    <div><label for="c2I">Bina önem katsayısı I (senaryo)</label><input class="field" id="c2I" type="number" min=".01" step="any" value="1.5"></div>
+    <div><label for="c2WallType">Infill wall connection</label>
+      <select class="field" id="c2WallType" style="width:100%"><option value="BRITTLE" selected>Brittle infill — in contact, without gaps (default)</option><option value="FLEXIBLE">Flexible joints or connections</option></select></div>
+    <div><label for="c2Material">Structural system</label>
+      <select class="field" id="c2Material" style="width:100%"><option value="RC" selected>Reinforced concrete · κ=1</option><option value="STEEL">Steel · κ=0.5</option></select></div>
+    <div><label for="c2R">Behavior factor R (scenario)</label><input class="field" id="c2R" type="number" min=".01" step="any" value="7"></div>
+    <div><label for="c2I">Building importance factor I (scenario)</label><input class="field" id="c2I" type="number" min=".01" step="any" value="1.5"></div>
     <div><label for="c2Lambda">λ = Sae(DD-3,Tp) / Sae(DD-2,Tp)</label><input class="field" id="c2Lambda" type="number" min=".001" step="any" value="0.5"></div>
-    <div><label for="c2WallMode">Dolgu kaynak kabulü</label><select class="field" id="c2WallMode" style="width:100%"><option value="LOAD_PATTERN_BEAM_CANDIDATE" selected>Seçili yük deseni atanmış kirişler = dolgu adayı</option><option value="MANUAL">Yalnız kullanıcı alan varsayımı</option></select></div>
-    <div><label for="c2WallLoadPattern">Duvar yük deseni (ETABS, varsayılan LC_WDL)</label><input class="field" id="c2WallLoadPattern" type="text" maxlength="120" value="LC_WDL"></div>
-    <div><label for="c2WallHeight">Varsayılan dolgu yüksekliği (m)</label><input class="field" id="c2WallHeight" type="number" min=".01" step="any" value="2.8"></div>
-    <div><label for="c2Coverage">Duvar kaplama oranı (%)</label><input class="field" id="c2Coverage" type="number" min="0" max="100" step="any" value="100"></div>
-    <div><label for="c2Opening">Kapı/pencere boşluğu (%)</label><input class="field" id="c2Opening" type="number" min="0" max="100" step="any" value="0"></div>
-    <div><label for="c2Thickness">Dolgu kalınlığı (m)</label><input class="field" id="c2Thickness" type="number" min=".01" step="any" value="0.19"></div>
-    <div><label for="c2ManualLength">Elle varsayılan duvar uzunluğu (m, 0=bilinmiyor)</label><input class="field" id="c2ManualLength" type="number" min="0" step="any" value="0"></div>
+    <div><label for="c2WallMode">Infill source assumption</label><select class="field" id="c2WallMode" style="width:100%"><option value="LOAD_PATTERN_BEAM_CANDIDATE" selected>Beams with the selected load pattern are candidate infill locations</option><option value="MANUAL">User-defined area assumption</option></select></div>
+    <div><label for="c2WallLoadPattern">Wall load pattern (ETABS, default LC_WDL)</label><input class="field" id="c2WallLoadPattern" type="text" maxlength="120" value="LC_WDL"></div>
+    <div><label for="c2WallHeight">Assumed infill height (m)</label><input class="field" id="c2WallHeight" type="number" min=".01" step="any" value="2.8"></div>
+    <div><label for="c2Coverage">Wall coverage (%)</label><input class="field" id="c2Coverage" type="number" min="0" max="100" step="any" value="100"></div>
+    <div><label for="c2Opening">Door and window openings (%)</label><input class="field" id="c2Opening" type="number" min="0" max="100" step="any" value="0"></div>
+    <div><label for="c2Thickness">Infill thickness (m)</label><input class="field" id="c2Thickness" type="number" min=".01" step="any" value="0.19"></div>
+    <div><label for="c2ManualLength">Assumed wall length (m, 0 = unknown)</label><input class="field" id="c2ManualLength" type="number" min="0" step="any" value="0"></div>
   </div>
-  <p class="small"><label><input type="checkbox" id="c2FlexibleProven"> Esnek bağlantının deneysel yatay ötelenme kapasitesini belgeledim</label></p>
-  <p class="micro">R=7, I=1.5, λ=0.5, duvar h=2.8 m ve dolgu oranı %100 başlangıç SENARYO varsayımlarıdır; modelden otomatik onaylanmış değerler değildir. Dolgu oranı TBDY 4.34 limitini oransal değiştirmez. LC_WDL yük ataması yalnız duvar adayıdır, gerçek duvar kanıtı değildir.</p>
-  <div class="actions"><button class="go" id="c2Calculate" type="button">Kaydedilmiş ETABS verisiyle hesapla</button></div>
-  <div id="c2Status" class="live-status" role="status" aria-live="polite">Önce mevcut ETABS kaydını seçip hesabı çalıştırın.</div>
+  <p class="small"><label><input type="checkbox" id="c2FlexibleProven"> I have documented the tested lateral displacement capacity of the flexible connection</label></p>
+  <p class="micro">Initial scenario inputs are R=7, I=1.5, λ=0.5, wall height 2.8 m, and 100% infill coverage. Coverage does not scale the TBDY 4.34 limit. The LC_WDL assignment identifies candidate infill locations.</p>
+  <div class="actions"><button class="go" id="c2Calculate" type="button">Calculate from saved ETABS data</button></div>
+  <div id="c2Status" class="live-status" role="status" aria-live="polite">Select an ETABS run, then calculate.</div>
   <div id="c2Report"></div>
 </section>
-<details class="box"><summary>Analiz kaynakları ve hesap dayanakları</summary><div id="vs04Report">Seçili çalışmanın kaynak dayanakları burada gösterilir.</div></details>
+<details class="box"><summary>Analysis sources and calculation basis</summary><div id="vs04Report">Source evidence from the selected run appears here.</div></details>
 </div>
-<div id="geometrycontent" class="hidden"><section class="box"><h2 id="geometryTitle">Geometri kontrolleri</h2><p class="muted small">Son canlı ETABS taramasından eleman bazında sonuçlar. Yeni hesap için Modal Analiz sekmesindeki tek hesap düğmesini kullanın.</p><div id="geomTabPanel">Henüz hesap yok.</div></section></div>
+<div id="geometrycontent" class="hidden"><section class="box"><h2 id="geometryTitle">Geometry checks</h2><p class="muted small">Member results from the last live ETABS run. To calculate again, use the button on the Modal analysis tab.</p><div id="geomTabPanel">No calculation yet.</div></section></div>
 <div id="columncontent" class="hidden"><section class="box" id="columnBankPanel">
-<h2>Kolon sonuçları · çevrimdışı hesap</h2>
-<p class="muted small">Bu panel seçtiğiniz arşivi gösterir. Canlı ETABS kaydıyla model ve analiz kimliği henüz eşleştirilmemiştir. Tasarım kabulü: <strong>NOT_PROVEN</strong>.</p>
-<div class="actions"><label for="columnRun">Arşiv</label><select id="columnRun" class="field" style="width:100%;max-width:580px"></select><button type="button" class="go" id="columnRefresh">Arşivleri yenile</button></div>
-<div id="columnStatus" class="live-status" role="status" aria-live="polite">Kolon arşivi seçilmedi.</div>
+<h2>Column results · Offline calculations</h2>
+<p class="muted small">This panel displays the selected archive. Its model and analysis identity have yet to be matched to a live ETABS run. Design acceptance <strong>NOT_PROVEN</strong>.</p>
+<div class="actions"><label for="columnRun">Archive</label><select id="columnRun" class="field" style="width:100%;max-width:580px"></select><button type="button" class="go" id="columnRefresh">Refresh archives</button></div>
+<div id="columnStatus" class="live-status" role="status" aria-live="polite">No column archive selected.</div>
 <div id="columnSummary"></div><div id="columnExports" class="actions"></div>
 <div id="columnDemandSummary" class="small"></div>
-<div class="actions"><label for="columnMember">Kolon</label><select id="columnMember" class="field"></select><label for="columnCase">Vaka / birleşim</label><select id="columnCase" class="field" style="width:230px"></select></div>
-<div class="actions"><label for="columnView">Görünüm</label><select id="columnView" class="field" style="width:280px"><option value="overview" selected>Kolon sonuç özeti</option><optgroup label="Kuvvetler ve birleşimler"><option value="spectral-design">Depremli tasarım talebi</option><option value="spectral-candidates">Depremli işaret adayları · ayrıntı</option><option value="native">Kaydedilmiş tüm kuvvetler</option><option value="static">Statik kuvvet adayları</option><option value="spectral-envelopes">Spektral kuvvet sınırları</option><option value="critical">Kritik statik kayıtlar</option><option value="design">ETABS kritik birleşim izleri</option></optgroup><optgroup label="Kesit ve ön hesaplar"><option value="reinforcement">Boyuna donatı alan sınırları</option><option value="stiffness">Kesit rijitliği ve boylar</option><option value="eccentricity">Minimum dışmerkezlik referansı</option></optgroup><optgroup label="İkinci mertebe girdileri"><option value="end-forces">Aynı birleşimde uç kuvvetleri</option><option value="kinematics">Düğüm hareketleri ve kolon doğrusu</option><option value="stiffness-scenarios">Rijitlik ve Euler referansları</option><option value="length-sensitivity">Etkin boy duyarlılığı</option></optgroup><optgroup label="Donatı ve kapasite"><option value="cages">Öneri donatı yerleşimleri</option><option value="pmm">Koşullu PMM kıyasları</option><option value="pmm-quality">PMM bağımsız sayısal kıyas</option></optgroup><optgroup label="Kesme ve sargı"><option value="transverse">Etriye ve çiroz önerileri</option><option value="shear">Koşullu kesme kıyasları</option></optgroup><optgroup label="Kolon–kiriş birleşimleri"><option value="scwb">Güçlü kolon–zayıf kiriş (SCWB)</option><option value="scwb-scenarios">SCWB öneri senaryoları</option><option value="beam-cages">Kiriş uç donatısı ve kapasitesi</option><option value="joints">Birleşim geometrisi</option><option value="joint-ties">Birleşim sargı referansları</option></optgroup></select></div>
-<div id="columnProposalControl" class="actions" hidden><label for="columnProposal">Donatı senaryosu</label><select id="columnProposal" class="field"><option value="16Φ24">16Φ24</option><option value="16Φ28">16Φ28</option><option value="16Φ32">16Φ32</option></select><span class="micro">Görüntüleme seçimi; mevcut veya tasarlanmış donatı değildir.</span></div>
-<div id="columnBeamProposalControl" class="actions" hidden><label for="columnBeamProposal">Kiriş çap senaryosu</label><select id="columnBeamProposal" class="field"><option value="16">Φ16</option><option value="20" selected>Φ20</option><option value="24">Φ24</option></select><span class="micro">Kaynak alan hedeflerine göre tek sıra önerisi; nihai donatı seçimi değildir.</span></div>
+<div class="actions"><label for="columnMember">Column</label><select id="columnMember" class="field"></select><label for="columnCase">Case / combination</label><select id="columnCase" class="field" style="width:230px"></select></div>
+<div class="actions"><label for="columnView">View</label><select id="columnView" class="field" style="width:280px"><option value="overview" selected>Column results overview</option><optgroup label="Forces and combinations"><option value="spectral-design">Seismic design demand</option><option value="spectral-candidates">Seismic sign candidates · Details</option><option value="native">All recorded forces</option><option value="static">Static force candidates</option><option value="spectral-envelopes">Spectral force bounds</option><option value="critical">Critical static records</option><option value="design">ETABS critical combination references</option></optgroup><optgroup label="Sections and preliminary calculations"><option value="reinforcement">Longitudinal reinforcement area bounds</option><option value="stiffness">Section stiffness and lengths</option><option value="eccentricity">Minimum eccentricity reference</option></optgroup><optgroup label="Second-order inputs"><option value="end-forces">End forces in the same combination</option><option value="kinematics">Joint displacements and column chord</option><option value="stiffness-scenarios">Stiffness and Euler references</option><option value="length-sensitivity">Effective length sensitivity</option></optgroup><optgroup label="Reinforcement and capacity"><option value="cages">Proposed reinforcement layouts</option><option value="pmm">Conditional PMM comparisons</option><option value="pmm-quality">Independent PMM numerical comparison</option></optgroup><optgroup label="Shear and confinement"><option value="transverse">Proposed stirrups and crossties</option><option value="shear">Conditional shear comparisons</option></optgroup><optgroup label="Beam-column joints"><option value="scwb">Strong column–weak beam (SCWB)</option><option value="scwb-scenarios">SCWB proposal scenarios</option><option value="beam-cages">Beam-end reinforcement and capacity</option><option value="joints">Joint geometry</option><option value="joint-ties">Joint confinement references</option></optgroup></select></div>
+<div id="columnProposalControl" class="actions" hidden><label for="columnProposal">Reinforcement scenario</label><select id="columnProposal" class="field"><option value="16Φ24">16Φ24</option><option value="16Φ28">16Φ28</option><option value="16Φ32">16Φ32</option></select><span class="micro">Select a reinforcement scenario to inspect. Actual reinforcement requires separate evidence.</span></div>
+<div id="columnBeamProposalControl" class="actions" hidden><label for="columnBeamProposal">Beam bar diameter scenario</label><select id="columnBeamProposal" class="field"><option value="16">Φ16</option><option value="20" selected>Φ20</option><option value="24">Φ24</option></select><span class="micro">Single-row proposal based on the source area targets.</span></div>
 <div id="columnContext" class="muted small"></div>
-<p id="columnUnits" class="micro">Native kuvvet işaretleri korunur. Kuvvetler kN, momentler kN·m, istasyonlar m.</p>
+<p id="columnUnits" class="micro">Native force signs are preserved. Forces are in kN, moments in kN·m, and stations in m.</p>
 <div id="columnForces" class="modal-table-scroll"></div>
 <div id="columnOverviewDetails"></div>
-<div class="actions"><button type="button" id="columnPrevious" disabled>Önceki 200</button><span id="columnPage" class="small"></span><button type="button" id="columnNext" disabled>Sonraki 200</button></div>
-<details><summary>Birleşim sınıfları ve talep sınırları</summary><div id="columnDemandRoutes" class="modal-table-scroll"></div></details>
-<details><summary>Birleşim hesabı ve kaynak kapsamı</summary><div id="columnReplay"></div><div id="columnCoverage" class="modal-table-scroll"></div></details>
-<details><summary>Sonraki kolon kontrollerinin girdileri</summary><div id="columnGaps"></div></details>
+<div class="actions"><button type="button" id="columnPrevious" disabled>Previous 200</button><span id="columnPage" class="small"></span><button type="button" id="columnNext" disabled>Next 200</button></div>
+<details><summary>Combination classes and demand bounds</summary><div id="columnDemandRoutes" class="modal-table-scroll"></div></details>
+<details><summary>Combination replay and source coverage</summary><div id="columnReplay"></div><div id="columnCoverage" class="modal-table-scroll"></div></details>
+<details><summary>Inputs for downstream column checks</summary><div id="columnGaps"></div></details>
 </section></div>
-<div id="extraContent" class="hidden"><section class="box"><h2 id="extraTitle">Mühendislik kontrolleri</h2><div id="extraTabPanel"></div></section>
-<section class="box hidden" id="concreteUpperPanel" data-check-panel="concrete_fck_80"><h2>Beton üst dayanım sınırı</h2><div id="concreteUpperResult" aria-live="polite">Seçili kaydın beton dayanım kapsamı burada gösterilir.</div></section>
+<div id="extraContent" class="hidden"><section class="box"><h2 id="extraTitle">Engineering checks</h2><div id="extraTabPanel"></div></section>
+<section class="box hidden" id="concreteUpperPanel" data-check-panel="concrete_fck_80"><h2>Concrete compressive strength upper limit</h2><div id="concreteUpperResult" aria-live="polite">Concrete strength coverage from the selected run appears here.</div></section>
 <section class="box" id="vs06-b1-panel" data-check-panel="WEAK_STORY_B1">
-<header><div><div class="eyebrow">VS06-D1 · TBDY 2018 Tablo 3.6, §3.6.2.3</div>
-<h2>B1 zayıf kat — koşullu kaynak hesabı</h2>
-<p class="muted small">Seçili ETABS kaydının B1 sonucu aşağıda gösterilir. Ayrı kaynaklarla hesap için iki JSON dosyasını seçin. Kolon/perde alanları gerçek kesit ve koordinatlardan alınır; tuğla kesit alanları yük şiddetinden yapılan, belgeli varsayımlardır.</p></div></header>
+<header><div><div class="eyebrow">VS06-D1 · TBDY 2018 Table 3.6, §3.6.2.3</div>
+<h2>B1 weak story — conditional source calculation</h2>
+<p class="muted small">The selected ETABS run supplies the B1 result. To calculate from separate sources, select two JSON files. Column and wall areas come from source sections and coordinates. Masonry areas are inferred from load intensity using stated assumptions.</p></div></header>
 <div class="twocol">
- <div><label for="b1WallType">Dolgu bağlantısı (senaryo)</label><select class="field" id="b1WallType"><option value="BRITTLE" selected>Gevrek dolgu</option><option value="FLEXIBLE">Esnek bağlantı</option></select></div>
- <div><label for="b1R">R katsayısı (senaryo)</label><input class="field" id="b1R" type="number" min=".01" step="any" value="7"></div>
- <div><label for="b1GeometryFile">B1_GEOMETRY kaynak JSON</label><input class="field" style="width:100%" id="b1GeometryFile" type="file" accept=".json,application/json"></div>
- <div><label for="b1WallFile">LC_WDL_OBJECT kaynak JSON</label><input class="field" style="width:100%" id="b1WallFile" type="file" accept=".json,application/json"></div>
- <div><label for="b1Gamma">Tuğla için varsayılan birim hacim ağırlığı (kN/m³)</label><input class="field" id="b1Gamma" type="number" step="any" value="10" min="1"></div>
- <div><label for="b1GammaMin">İnceleme alt yoğunluk sınırı (kN/m³)</label><input class="field" id="b1GammaMin" type="number" step="any" value="6" min="1"></div>
- <div><label for="b1GammaMax">İnceleme üst yoğunluk sınırı (kN/m³)</label><input class="field" id="b1GammaMax" type="number" step="any" value="20" min="1"></div>
- <div><label for="b1Shear">Dolgu kayma modülü Gm varsayımı (MPa)</label><input class="field" id="b1Shear" type="number" step="any" value="500" min="1"></div>
- <div><label for="b1Opening">Düşük yükte varsayılan açıklık oranı (0–1)</label><input class="field" id="b1Opening" type="number" step="0.05" min="0" max=".99" value="0.5"></div>
- <div><label for="b1Cutoff">Açıklık hipotezi q/q_tam tetik oranı</label><input class="field" id="b1Cutoff" type="number" step="0.05" min=".05" max=".99" value="0.75"></div>
+ <div><label for="b1WallType">Infill connection (scenario)</label><select class="field" id="b1WallType"><option value="BRITTLE" selected>Brittle infill</option><option value="FLEXIBLE">Flexible connection</option></select></div>
+ <div><label for="b1R">R factor (scenario)</label><input class="field" id="b1R" type="number" min=".01" step="any" value="7"></div>
+ <div><label for="b1GeometryFile">B1_GEOMETRY source JSON</label><input class="field" style="width:100%" id="b1GeometryFile" type="file" accept=".json,application/json"></div>
+ <div><label for="b1WallFile">LC_WDL_OBJECT source JSON</label><input class="field" style="width:100%" id="b1WallFile" type="file" accept=".json,application/json"></div>
+ <div><label for="b1Gamma">Assumed masonry unit weight (kN/m³)</label><input class="field" id="b1Gamma" type="number" step="any" value="10" min="1"></div>
+ <div><label for="b1GammaMin">Lower unit weight bound (kN/m³)</label><input class="field" id="b1GammaMin" type="number" step="any" value="6" min="1"></div>
+ <div><label for="b1GammaMax">Upper unit weight bound (kN/m³)</label><input class="field" id="b1GammaMax" type="number" step="any" value="20" min="1"></div>
+ <div><label for="b1Shear">Assumed infill shear modulus Gm (MPa)</label><input class="field" id="b1Shear" type="number" step="any" value="500" min="1"></div>
+ <div><label for="b1Opening">Assumed opening fraction for low loads (0–1)</label><input class="field" id="b1Opening" type="number" step="0.05" min="0" max=".99" value="0.5"></div>
+ <div><label for="b1Cutoff">Opening hypothesis trigger q/q_full</label><input class="field" id="b1Cutoff" type="number" step="0.05" min=".05" max=".99" value="0.75"></div>
 </div>
-<p class="micro">Dosya hesabında bu paneldeki dolgu bağlantısı ve R kullanılır; seçili arşiv kaydı kendi varsayılanlarıyla hesaplanır. Başlangıç senaryosu: <strong>Gevrek dolgu</strong>. Ak için <strong>9 cm veya 19 cm</strong> kalınlık yüke göre tahmin edilir; kat yüksekliğinden kaynak kirişinin t3 kesit yüksekliği çıkarılır. Düşük kN/m için <strong>%50 açıklık</strong> alternatif kabulü yalnız senaryodur. Gm, gerçek tuğla/harç deney değerinin yerine geçmez.</p>
-<div class="actions"><button class="go" type="button" id="b1Calculate">Gerçek iki ETABS kaynağından B1 hesapla</button>
-<button type="button" id="b1UseRun">Son seçili tek tuş ETABS kaydındaki B1'i göster</button>
-<button type="button" id="b1Json" disabled>Sayısal B1 JSON indir</button>
-<button type="button" id="b1Html" disabled>Varsayımlı B1 HTML raporu aç</button></div>
-<div id="b1Status" class="live-status" role="status" aria-live="polite">Birleşik ETABS kaydı seçildiğinde B1 sonucu burada gösterilir.</div>
+<p class="micro">File-based calculations use the selected infill connection and R. Archived runs use their saved assumptions. Initial scenario: <strong>Brittle infill</strong>. For Ak, <strong>9 cm or 19 cm</strong> thickness is inferred from load. The source beam t3 depth is subtracted from story height. Low line loads use the alternative <strong>50% opening</strong> scenario. Confirm the masonry shear modulus Gm from test data for design use.</p>
+<div class="actions"><button class="go" type="button" id="b1Calculate">Calculate B1 from two ETABS sources</button>
+<button type="button" id="b1UseRun">Show B1 from the selected ETABS run</button>
+<button type="button" id="b1Json" disabled>Download B1 numerical JSON</button>
+<button type="button" id="b1Html" disabled>Open B1 scenario report</button></div>
+<div id="b1Status" class="live-status" role="status" aria-live="polite">Select a combined ETABS run to show B1 results.</div>
 <div id="b1Result"></div>
 </section>
 <section class="box hidden" id="b2Panel" data-check-panel="SOFT_STORY_B2">
-<h2>B2 yumuşak kat — koşullu kaynak hesabı</h2>
-<p class="muted small">Seçili ETABS kaydının ortalama öteleme adayları kat yüksekliğine bölünür; her kat üst ve alt komşusuyla ayrı karşılaştırılır. Eşik: ηki &gt; 2,0. Ortalama tanımı, bodrum kapsamı ve ±%5 dışmerkezlik esası onaylanıncaya kadar resmî B2 sınıflandırması NOT_PROVEN.</p>
-<div id="b2Result" aria-live="polite">Birleşik ETABS kaydı seçildiğinde sonuçlar burada gösterilir.</div>
+<h2>B2 soft story — conditional source calculation</h2>
+<p class="muted small">Divides average drift candidates by story height and compares each story with its adjacent stories. The screening threshold is ηki &gt; 2.0. Formal B2 classification requires a verified average drift definition, basement scope, and ±5% eccentricity basis.</p>
+<div id="b2Result" aria-live="polite">Select a combined ETABS run to show results.</div>
 </section></div>
 <div id="wallcontent"><section class="box hidden" id="wallGeometryPanel" data-check-panel="WALL_GEOMETRY_CHECK">
-<h2>Perde kesit geometrisi</h2>
-<p class="muted small">ETABS panel uzunluğu, gerçek kalınlık ve kat yüksekliğiyle 7.6.1.2 ve standart (a) dalının sayısal alt koşulları karşılaştırılır. Panelin bütün perde/kol boyuna eşdeğerliği, bodrum ve özel durumlar ayrıca doğrulanmalıdır.</p>
-<div id="wallGeometryResult" aria-live="polite">Seçili ETABS kaydının perde geometrisi burada gösterilir.</div>
+<h2>Shear wall section geometry</h2>
+<p class="muted small">Screens the numerical conditions in §7.6.1.2 and its standard branch (a) using ETABS panel length, thickness, and story height. Full wall length, basement applicability, and exceptions require separate evidence.</p>
+<div id="wallGeometryResult" aria-live="polite">Select an ETABS run to show wall geometry.</div>
 </section></div>
-<div id="plannedcontent" class="hidden notbuilt"><h2 id="plannedtitle"></h2><p>Bu hesap henüz etkinleştirilmedi. Sıradaki dikey dilim ancak kaynak → şema → postprocess → mühendislik kontrolü → rapor zinciri çalışınca açılır.</p><p class="muted small">Burada sahte PASS, hazırmış gibi gösterilen formül veya boş hesap ekranı yok.</p></div>
-<div class="footer">Her kontrol tek, izlenebilir sonuç üretir. Sayısal alt koşulun sağlanması bina uygunluk onayı değildir.</div>
+<div id="plannedcontent" class="hidden notbuilt"><h2 id="plannedtitle"></h2><p>This check requires a verified source, calculation, and report.</p><p class="muted small">Engineering calculations for this tab are pending.</p></div>
+<div class="footer">Each check produces one traceable result. Numerical subconditions and building compliance have separate statuses.</div>
 </main>
-<aside class="rail" aria-label="Kısa çalışma özeti"><div class="section-label">Seçili model</div><ul class="tree" id="modeltree"><li>Kaynak henüz yüklenmedi</li></ul><div class="release-note">Mühendislik kabulü<strong>NOT_READY</strong>Hesap kapsamı ve varsayımlar, ilgili kontrolün içinde gösterilir.</div>
+<aside class="rail" aria-label="Run summary"><div class="section-label">Selected model</div><ul class="tree" id="modeltree"><li>No source loaded yet</li></ul><div class="release-note">Engineering release<strong>NOT_READY</strong>Each check shows its scope and assumptions.</div>
 <section class="engine-console" aria-labelledby="engineConsoleTitle">
-<div class="engine-console-head"><h2 id="engineConsoleTitle">İşlem / Hata Konsolu</h2><button class="engine-console-clear" id="engineConsoleClear" type="button">Temizle</button></div>
-<ol class="engine-console-log" id="engineConsoleMessages" role="log" aria-live="polite" aria-relevant="additions" data-empty="true"><li class="engine-console-entry engine-console-empty">Henüz işlem kaydı yok.</li></ol>
-<p class="engine-console-note">Yerel oturumdaki son 40 işlem ve hata. Model dosyaları veya hesap verileri buraya yazılmaz.</p>
+<div class="engine-console-head"><h2 id="engineConsoleTitle">Activity and error console</h2><button class="engine-console-clear" id="engineConsoleClear" type="button">Clear</button></div>
+<ol class="engine-console-log" id="engineConsoleMessages" role="log" aria-live="polite" aria-relevant="additions" data-empty="true"><li class="engine-console-entry engine-console-empty">No activity yet.</li></ol>
+<p class="engine-console-note">Shows up to 40 recent activities and errors from this local session.</p>
 </section></aside>
 </div>
 <script>
-const tabs=['Geometri','Malzeme','Kesitler','Atamalar','Yükler ve kütle','Analiz vakaları','Deprem esasları','Modal analiz','Kat/sistem sonuçları','Düzensizlikler','Döşemeler','Kirişler','Kolonlar','Perdeler','Birleşimler','Temeller'];
+const tabs=['Geometry','Materials','Sections','Assignments','Loads and mass','Analysis cases','Seismic design basis','Modal analysis','Story and system results','Irregularities','Slabs','Beams','Columns','Shear walls','Joints','Foundations'];
 const nav=document.getElementById('nav');let active=7;
-function selectTab(i){active=i;for(const b of nav.querySelectorAll('[data-nav-tab]'))b.classList.toggle('active',Number(b.dataset.navTab)===i);document.getElementById('heading').textContent=tabs[i];document.getElementById('activecontent').classList.toggle('hidden',i!==7);document.getElementById('geometrycontent').classList.toggle('hidden',i!==11&&i!==12);document.getElementById('columncontent').classList.toggle('hidden',i!==12);if(i===12&&typeof window.openColumnBank==='function')window.openColumnBank();document.getElementById('systemcontent').classList.toggle('hidden',i!==8);document.getElementById('extraContent').classList.toggle('hidden',i!==1&&i!==9);document.getElementById('analysiscontent').classList.toggle('hidden',i!==5);document.getElementById('plannedcontent').classList.toggle('hidden',[1,5,7,8,9,11,12,13].includes(i));document.getElementById('extraTitle').textContent=tabs[i]+' · kontroller';document.getElementById('geometryTitle').textContent=tabs[i]+' · geometrik alt kontroller';document.getElementById('plannedtitle').textContent=`${String(i+1).padStart(2,'0')} · ${tabs[i]} — PLANLANDI`;if(typeof window.renderQuickChecksForTab==='function')window.renderQuickChecksForTab(i);}
+const sourceQuery = new URLSearchParams(location.search);
+const sourceRun = sourceQuery.get('run');
+const workspaceColumnViews = new Map([
+  ['reinforcement', {check: '4.2', label: '4.2 Reinforcement'}],
+  ['pmm', {check: '4.4', label: '4.4 PMM'}],
+  ['length-sensitivity', {check: '4.5', label: '4.5 Slenderness'}],
+]);
+const workspaceColumnView = workspaceColumnViews.get(sourceQuery.get('column_view'));
+if (workspaceColumnView && /^RUN-[0-9a-f]{32}$/.test(sourceRun)) {
+  const workspaceReturn = document.getElementById('workspaceReturn');
+  workspaceReturn.href = '/?' + new URLSearchParams({run: sourceRun, check: workspaceColumnView.check});
+  workspaceReturn.textContent = 'Engineering workspace · ' + workspaceColumnView.label + ' ↗';
+}
+function selectTab(i){active=i;for(const b of nav.querySelectorAll('[data-nav-tab]'))b.classList.toggle('active',Number(b.dataset.navTab)===i);document.getElementById('heading').textContent=tabs[i];document.getElementById('activecontent').classList.toggle('hidden',i!==7);document.getElementById('geometrycontent').classList.toggle('hidden',i!==11&&i!==12);document.getElementById('columncontent').classList.toggle('hidden',i!==12);if(i===12&&typeof window.openColumnBank==='function')window.openColumnBank();document.getElementById('systemcontent').classList.toggle('hidden',i!==8);document.getElementById('extraContent').classList.toggle('hidden',i!==1&&i!==9);document.getElementById('analysiscontent').classList.toggle('hidden',i!==5);document.getElementById('plannedcontent').classList.toggle('hidden',[1,5,7,8,9,11,12,13].includes(i));document.getElementById('extraTitle').textContent=tabs[i]+' · Checks';document.getElementById('geometryTitle').textContent=tabs[i]+' · Geometry checks';document.getElementById('plannedtitle').textContent=`${String(i+1).padStart(2,'0')} · ${tabs[i]} — Planned`;if(typeof window.renderQuickChecksForTab==='function')window.renderQuickChecksForTab(i);}
 tabs.forEach((t,i)=>{const b=document.createElement('button');b.className='navitem'+(i===7?' active':'');b.innerHTML=`<span>${String(i+1).padStart(2,'0')}</span><span></span><span class="signal ${i===7?'live':''}">${i===7?'VS01':'PLAN'}</span>`;b.children[1].textContent=t;b.dataset.navTab=String(i);b.onclick=()=>selectTab(i);nav.append(b)});
+const sourceTab = Number(sourceQuery.get('tab'));
+if (sourceQuery.has('tab') && Number.isInteger(sourceTab) && tabs[sourceTab]) selectTab(sourceTab);
 const result=document.getElementById('result');
 function textnode(tag,content,cls){const el=document.createElement(tag);el.textContent=String(content);if(cls)el.className=cls;return el}
 function setTree(id,values){const ul=document.getElementById(id);ul.replaceChildren();values.forEach(v=>ul.append(textnode('li',v)))}
-function showResult(action,payload){result.replaceChildren();if(payload.result){const obj=payload.result;const title=document.createElement('h3');title.textContent=`${obj.status||'SONUÇ'} — ${action}`;title.className=obj.status==='REJECTED'?'bad':obj.status==='SCHEMA_REVIEW_REQUIRED'?'warn':'good';result.append(title);for(const [key,v] of Object.entries(obj)){if(['note','stage','criterion'].includes(key))continue;const line=document.createElement('div');line.className='statline';line.append(textnode('span',key.replaceAll('_',' ')),textnode('strong',Array.isArray(v)?v.join(', '):typeof v==='object'?JSON.stringify(v):v));result.append(line)}if(obj.note)result.append(textnode('p',obj.note,'muted small'));}
+function showResult(action,payload){result.replaceChildren();if(payload.result){const obj=payload.result;const title=document.createElement('h3');title.textContent=`${obj.status||'RESULT'} — ${action}`;title.className=obj.status==='REJECTED'?'bad':obj.status==='SCHEMA_REVIEW_REQUIRED'?'warn':'good';result.append(title);for(const [key,v] of Object.entries(obj)){if(['note','stage','criterion'].includes(key))continue;const line=document.createElement('div');line.className='statline';line.append(textnode('span',key.replaceAll('_',' ')),textnode('strong',Array.isArray(v)?v.join(', '):typeof v==='object'?JSON.stringify(v):v));result.append(line)}if(obj.note)result.append(textnode('p',obj.note,'muted small'));}
 if(payload.run_id){document.getElementById('trail').prepend(textnode('div',payload.run_id+' · '+(payload.result?.status||''),'stamp'));}}
-function err(msg){result.replaceChildren(textnode('p',msg,'bad'));window.engineConsole?.log?.('error','DOSYA / İSTEK',msg)}
-async function upload(id,url,action){const file=document.getElementById(id).files[0];if(!file)return err('Önce JSON dosyası seçin.');if(file.size>8*1024*1024)return err('8 MB üzerindeki dosyalar kabul edilmiyor.');const btn=document.activeElement;btn.disabled=true;try{const text=await file.text();JSON.parse(text);const response=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:text});const data=await response.json();showResult(action,data);if(action==='Kaynak keşfi'&&response.ok){const x=data.result;document.getElementById('step1').textContent='DISCOVERED · '+x.available_table_count+' tablo';setTree('modeltree',[`ETABS ${x.etabs_version||'?'}`,`${x.available_table_count} tablo keşfedildi`,`${x.load_case_count} yük vakası`,`${x.load_combination_count} kombinasyon`])}if(action==='Şema inceleme'){document.getElementById('step2').textContent=data.result?.status||'Şema bekleniyor';}if(action==='Modal kontrol'&&response.ok){if(typeof window.showModalFullTable==='function')window.showModalFullTable(data.run_id);const x=data.result;document.getElementById('step2').textContent='SCHEMA_VALID';document.getElementById('step3').textContent=x.status;setTree('resulttree',['VS01 · Modal kütle',`X: ${x.sum_ux}`,`Y: ${x.sum_uy}`,`Eşik: ${x.required_ratio}`,`Sayısal: ${x.status}`,'Mühendislik release: NOT_READY'])}await loadRuns();}catch(ex){err('Dosya/istek hatası: '+ex.message)}finally{btn.disabled=false}}
-async function loadRuns(){try{const res=await fetch('/api/runs');const data=await res.json();const box=document.getElementById('runlist');box.replaceChildren();if(!data.runs?.length){box.append(textnode('div','Henüz kayıt yok.'));return;}data.runs.slice(0,6).forEach(r=>{const line=document.createElement('div');line.className='stamp';line.append(textnode('strong',r.run_id),textnode('span',r.steps.map(s=>s.stage+': '+s.status).join(' | ')));box.append(line)})}catch(ex){document.getElementById('runlist').textContent='Kayıt listesi erişilemedi.'}}
-document.getElementById('discoverBtn').onclick=()=>upload('preflight','/api/discovery','Kaynak keşfi');
-document.getElementById('schemaBtn').onclick=()=>upload('capture','/api/modal-schema','Şema inceleme');
-document.getElementById('modalBtn').onclick=()=>upload('capture','/api/modal?case='+encodeURIComponent(document.getElementById('case').value),'Modal kontrol');
+function err(msg){result.replaceChildren(textnode('p',msg,'bad'));window.engineConsole?.log?.('error','FILE / REQUEST',msg)}
+async function upload(id,url,action){const file=document.getElementById(id).files[0];if(!file)return err('Select a JSON file first.');if(file.size>8*1024*1024)return err('The file must be 8 MB or smaller.');const btn=document.activeElement;btn.disabled=true;try{const text=await file.text();JSON.parse(text);const response=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:text});const data=await response.json();showResult(action,data);if(action==='Source discovery'&&response.ok){const x=data.result;document.getElementById('step1').textContent='DISCOVERED · '+x.available_table_count+' tables';setTree('modeltree',[`ETABS ${x.etabs_version||'?'}`,`${x.available_table_count} tables discovered`,`${x.load_case_count} load cases`,`${x.load_combination_count} combinations`])}if(action==='Review schema'){document.getElementById('step2').textContent=data.result?.status||'Waiting for schema';}if(action==='Modal check'&&response.ok){if(typeof window.showModalFullTable==='function')window.showModalFullTable(data.run_id);const x=data.result;document.getElementById('step2').textContent='SCHEMA_VALID';document.getElementById('step3').textContent=x.status;setTree('resulttree',['VS01 · Modal mass',`X: ${x.sum_ux}`,`Y: ${x.sum_uy}`,`Threshold: ${x.required_ratio}`,`Numerical status: ${x.status}`,'Engineering release: NOT_READY'])}await loadRuns();}catch(ex){err('File or request error: '+ex.message)}finally{btn.disabled=false}}
+async function loadRuns(){try{const res=await fetch('/api/runs');const data=await res.json();const box=document.getElementById('runlist');box.replaceChildren();if(!data.runs?.length){box.append(textnode('div','No saved runs yet.'));return;}data.runs.slice(0,6).forEach(r=>{const line=document.createElement('div');line.className='stamp';line.append(textnode('strong',r.run_id),textnode('span',r.steps.map(s=>s.stage+': '+s.status).join(' | ')));box.append(line)})}catch(ex){document.getElementById('runlist').textContent='Could not load the run list.'}}
+document.getElementById('discoverBtn').onclick=()=>upload('preflight','/api/discovery','Source discovery');
+document.getElementById('schemaBtn').onclick=()=>upload('capture','/api/modal-schema','Review schema');
+document.getElementById('modalBtn').onclick=()=>upload('capture','/api/modal?case='+encodeURIComponent(document.getElementById('case').value),'Modal check');
 loadRuns();
 </script>
 <script src="/engine-console.js"></script>

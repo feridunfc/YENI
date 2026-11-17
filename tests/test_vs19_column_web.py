@@ -72,11 +72,11 @@ class ColumnSensitivityWebTests(unittest.TestCase):
 
     def test_html_ui_and_registry_expose_references_without_design_acceptance(self):
         with self.get("/report/column-bank?"+self.query) as response: html = response.read().decode()
-        for value in ("VS19", "Etkin boy ve rijitlik duyarlılığı", "Rm=0/0,5/1", "i=0,30h", "Nk=N Euler boyu değildir",
-                      "40i önlenmiş sınıfın yalnız üst sınırı", "NOT_PROVEN", "RECORDED_AXIAL_VALUES_DIFFER"):
+        for value in ("VS19", "Effective length and stiffness sensitivity", "Rm=0, 0.5 and 1", "i=0.30h", "Euler length for Nk=N are separate quantities",
+                      "40i is an upper bound for sidesway prevented", "NOT_PROVEN", "RECORDED_AXIAL_VALUES_DIFFER"):
             self.assertIn(value, html)
         self.assertNotIn("<script", html)
-        with self.get("/") as response: ui = response.read().decode()
+        with self.get("/source") as response: ui = response.read().decode()
         self.assertIn('value="stiffness-scenarios"', ui); self.assertIn('value="length-sensitivity"', ui)
         with self.get("/api/check-registry") as response: self.assertEqual(json.load(response)["implemented_check_count"], 16)
 

@@ -40,14 +40,19 @@ class TestLocalWeb(unittest.TestCase):
         except HTTPError as exc:
             return exc.code, exc.read(), dict(exc.headers)
 
-    def test_local_ui_contains_16_navigation_slots(self):
+    def test_local_ui_serves_english_workspace_and_source_views(self):
         status, data, headers = self.request("/")
         self.assertEqual(status, 200)
         self.assertIn(b"text/html", headers["Content-Type"].encode())
-        self.assertIn(b'id="resulttree"', data)
-        self.assertIn("Seçili çalışmanın özeti".encode("utf-8"), data)
-        self.assertIn("Birleşimler".encode(), data)
-        self.assertIn("PLANLANDI".encode(), data)
+        self.assertIn(b'<html lang="en">', data)
+        self.assertIn(b'id="deskCheckTree"', data)
+        self.assertIn(b'id="deskRun"', data)
+        self.assertIn(b'/workspace-source.js', data)
+        self.assertNotIn(b'tbdyPreviewData', data)
+        status, data, _ = self.request("/source")
+        self.assertEqual(status, 200)
+        self.assertIn(b'id="nav"', data)
+        self.assertIn(b'/quick.js', data)
 
     def test_health_explicitly_not_ready(self):
         status, data, _ = self.request("/api/health")

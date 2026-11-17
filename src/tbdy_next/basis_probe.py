@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import Any
 
 from .analysis_sources import _full_metadata
+from .engineering.analysis_setup import DESIGN_COMBOS
 from .etabs_geometry import _read_one
 from .etabs_modal import ModalCaptureError, _selected_cases
 
@@ -78,6 +79,18 @@ def capture_basis_probe(sap: Any, *, max_tables: int = 24) -> dict:
                      "error":f"{type(exc).__name__}: {exc}"}
         table["field_metadata"] = _full_metadata(db,key)
         reads[key]=table
+    # This selection table describes concrete design setup, independently of
+    # the VS04 spectral reconstruction inventory and its numerical coverage.
+    try:
+        if any(item["table_key"] == DESIGN_COMBOS for item in inventory):
+            design_selection = _read_one(db, DESIGN_COMBOS)
+            design_selection["field_metadata"] = _full_metadata(db, DESIGN_COMBOS)
+        else:
+            design_selection = {"table_key": DESIGN_COMBOS, "status": "NOT_LISTED"}
+    except Exception as exc:
+        design_selection = {"table_key": DESIGN_COMBOS, "status": "CAPTURE_ERROR",
+                            "error": f"{type(exc).__name__}: {exc}"}
+    reads[DESIGN_COMBOS] = design_selection
     after_units = sap.GetPresentUnits()
     restored = _selected_cases(db)
     if restored != original:
@@ -93,7 +106,7 @@ def capture_basis_probe(sap: Any, *, max_tables: int = 24) -> dict:
         "available_table_count":len(inventory), "available_tables":inventory,
         "candidate_table_count":len(relevant),
         "candidate_tables":relevant,
-        "read_table_keys":[x["table_key"] for x in selected],
+        "read_table_keys":[k for k, v in reads.items() if v["status"] != "NOT_LISTED"],
         "not_read_table_keys":[x["table_key"] for x in relevant[max_tables:]],
         "table_reads":reads,
         "schema_roles_approved":False,

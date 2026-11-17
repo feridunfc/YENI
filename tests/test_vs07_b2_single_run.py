@@ -73,11 +73,11 @@ class B2SingleRunTests(unittest.TestCase):
         self.assertEqual(b2["source_payload_sha256"], report["source_snapshot"]["vs05_delta_source"]["payload_sha256"])
         self.assertEqual(report["story_drift"]["execution_status"], "EXECUTED_SOURCE_NUMERICAL")
         html = self.get("/report/print?run_id=" + run_id).decode()
-        self.assertIn("B2 yumuşak kat", html)
+        self.assertIn("B2 soft story", html)
         self.assertIn(b2["result_sha256"], html)
         self.assertIn("THRESHOLD_EXCEEDED", html)
         self.assertIn("Avg Drift", html)
-        self.assertIn("Kat kotu ve ara nokta eşleştirmesi", html)
+        self.assertIn("Story elevations and intermediate point mapping", html)
         self.assertIn("NOT_PROVEN", html)
         self.assertEqual(report["engineering_release"], "NOT_READY")
         self.assertEqual(self.snapshot(), before)
@@ -116,7 +116,7 @@ class B2SingleRunTests(unittest.TestCase):
         self.assertEqual(scenario["expected_story_direction_count"], 6)
         self.assertEqual(scenario["source_numeric_count"], 6)
         html = self.get("/report/print?run_id=" + run_id).decode()
-        for text in ("Fiziksel kat kapsamı", "VERIFIED_EMPTY_PHYSICAL_STORY", "SOURCE_COVERAGE_COMPLETE", "NOT_APPLICABLE"):
+        for text in ("Physical story coverage", "VERIFIED_EMPTY_PHYSICAL_STORY", "SOURCE_COVERAGE_COMPLETE", "NOT_APPLICABLE"):
             self.assertIn(text, html)
         replay = verify(self.root, run_id)
         self.assertEqual(replay["physical_story_count"], 3)

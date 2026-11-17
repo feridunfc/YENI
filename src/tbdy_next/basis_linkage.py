@@ -9,7 +9,9 @@ exact-unit; table names discovered by keywords are NOT themselves authority.
 """
 from __future__ import annotations
 
+from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
+import re
 from typing import Any, Mapping
 
 from .basis_probe import review_basis_probe
@@ -28,6 +30,51 @@ SPECTRUM_FUNCTION = "Functions - Response Spectrum - TSC-2018"
 MODAL_DAMPING = "Load Case Definitions - Damping - Modal"
 SPECTRUM_MODAL_INFO = "Response Spectrum Modal Info"
 COMBO = "Load Combination Definitions"
+
+
+@dataclass(frozen=True)
+class LoadRoleBook:
+    """Configurable load/case role bindings (F11 closure: removes hardcoded kompakt_b names)."""
+
+    mass_source: str = "MsSrc1"
+    modal_case: str = "Modal"
+    x_spectrum_case: str = "RSX"
+    y_spectrum_case: str = "RSY"
+    wall_load_pattern: str = "LC_WDL"
+    allow_nonnumeric_story_names: bool = True
+
+    @classmethod
+    def from_any(cls, value: Mapping[str, Any] | LoadRoleBook | None) -> LoadRoleBook:
+        if isinstance(value, LoadRoleBook):
+            return value
+        if isinstance(value, Mapping):
+            return cls(
+                mass_source=str(value.get("mass_source", "MsSrc1")),
+                modal_case=str(value.get("modal_case", "Modal")),
+                x_spectrum_case=str(value.get("x_spectrum_case", "RSX")),
+                y_spectrum_case=str(value.get("y_spectrum_case", "RSY")),
+                wall_load_pattern=str(value.get("wall_load_pattern", "LC_WDL")),
+                allow_nonnumeric_story_names=bool(value.get("allow_nonnumeric_story_names", True)),
+            )
+        return cls()
+
+
+def _story_floor_rank(label: str) -> tuple[int, int] | None:
+    """Parse common Turkish/English story names for bottom-up ordering."""
+    text = label.strip().casefold()
+    if any(k in text for k in ("bodrum", "basement", "b-")):
+        m = re.search(r"(\d+)", text)
+        n = int(m.group(1)) if m else 1
+        return (-1, -n)
+    if any(k in text for k in ("zemin", "ground", "giriş", "giris")):
+        return (0, 0)
+    if any(k in text for k in ("kat", "story", "floor", "normal", "asma")):
+        m = re.search(r"(\d+)", text)
+        n = int(m.group(1)) if m else 1
+        return (1, n)
+    if any(k in text for k in ("çatı", "cati", "teras", "roof", "penthouse")):
+        return (2, 999)
+    return None
 
 
 def _number(value: Any, *, positive: bool = False) -> Decimal:
@@ -113,7 +160,9 @@ def _out(stage: str, *, facts: dict | None = None, reasons: list[str] | None = N
     }
 
 
-def _mass(probe: Mapping[str, Any]) -> dict:
+def _mass(probe: Mapping[str, Any], roles: LoadRoleBook | None = None) -> dict:
+    roles = roles or LoadRoleBook()
+    target_ms = roles.mass_source
     try:
         by_story, _ = _get(probe, STORY_MASS, ("Story","UX","UY","UZ"),
                             {"UX":"ton","UY":"ton","UZ":"ton"})
@@ -135,11 +184,11 @@ def _mass(probe: Mapping[str, Any]) -> dict:
         if len(all_groups)!=1:
             raise ValueError("MASS_GROUP_ALL_NOT_UNIQUE")
         default=[r for r in sources if r["IsDefault"]=="Yes"]
-        if len(default)!=1 or default[0]["Name"]!="MsSrc1":
+        if len(default)!=1 or default[0]["Name"]!=target_ms:
             raise ValueError("MASS_SOURCE_DEFAULT_MISSING_OR_AMBIGUOUS")
         if default[0]["SourceSelf"]!="Yes" or default[0]["SourceLoads"]!="Yes":
             raise ValueError("MASS_SOURCE_SELF_OR_LOADS_UNAPPROVED")
-        if any(r["Name"]!="MsSrc1" for r in sources):
+        if any(r["Name"]!=target_ms for r in sources):
             raise ValueError("MULTIPLE_SOURCE_ROWS_NOT_RECONCILED")
         if any(r["LoadPattern"] in ("None","") for r in sources):
             raise ValueError("MASS_SOURCE_LOAD_PATTERN_UNBOUND")
@@ -149,7 +198,6 @@ def _mass(probe: Mapping[str, Any]) -> dict:
         joint_keys=[r["PointElm"] for r in joints]
         if any(x in ("","None") for x in joint_keys) or len(joint_keys)!=len(set(joint_keys)):
             raise ValueError("ASSEMBLED_JOINT_IDENTITY_NOT_UNIQUE")
-        totals={}
         story_sums={}
         group_totals={}
         joint_sums={}
@@ -179,7 +227,7 @@ def _mass(probe: Mapping[str, Any]) -> dict:
                      for axis in ("MassX","MassY")}
         diaph_zero=all(x==0 for x in diaph_total.values())
         return _out("SEISMIC_MASS_RECONCILIATION",
-                    facts={"mass_source":"MsSrc1","mass_source_load_multipliers":load_factors,
+                    facts={"mass_source":target_ms,"mass_source_load_multipliers":load_factors,
                            "story_row_count":len(by_story),
                            "joint_row_count":len(joints),
                            "diaphragm_row_count":len(diaph),
@@ -192,7 +240,13 @@ def _mass(probe: Mapping[str, Any]) -> dict:
         return _out("SEISMIC_MASS_RECONCILIATION",reasons=[str(exc)])
 
 
-def _cases(probe: Mapping[str, Any]) -> dict:
+def _cases(probe: Mapping[str, Any], roles: LoadRoleBook | None = None) -> dict:
+    roles = roles or LoadRoleBook()
+    target_ms = roles.mass_source
+    target_modal = roles.modal_case
+    target_rsx = roles.x_spectrum_case
+    target_rsy = roles.y_spectrum_case
+    expected_spectrum_set = {target_rsx, target_rsy}
     try:
         spectrum, meta = _get(probe,SPECTRUM_FUNCTION,
             ("Name","Period","Value","Ss","S1","R","D","I","SDS","SD1","Fs","F1"),
@@ -207,19 +261,19 @@ def _cases(probe: Mapping[str, Any]) -> dict:
                        {"TargetRatio":"%"})
         damping,_ = _get(probe,MODAL_DAMPING,("Name","DampType","ConstDamp"),{})
         by_name={r["Name"]:r for r in cases}
-        if len(cases)!=2 or set(by_name)!={"RSX","RSY"}:
+        if len(cases)!=2 or set(by_name)!=expected_spectrum_set:
             raise ValueError("RSX_RSY_CASE_POPULATION_NOT_UNIQUE")
         ids={r["Name"]:r["Type"] for r in summary}
-        if len(ids)!=len(summary) or ids.get("Modal")!="Modal - Ritz" or any(ids.get(k)!="Response Spectrum" for k in by_name):
+        if len(ids)!=len(summary) or ids.get(target_modal)!="Modal - Ritz" or any(ids.get(k)!="Response Spectrum" for k in by_name):
             raise ValueError("CASE_SUMMARY_IDENTITY_MISMATCH")
-        modal=[r for r in ritz if r["Name"]=="Modal"]
-        if not modal or modal[0]["MassSource"]!="MsSrc1" or modal[0]["LoadType"]!="Accel":
+        modal=[r for r in ritz if r["Name"]==target_modal]
+        if not modal or modal[0]["MassSource"]!=target_ms or modal[0]["LoadType"]!="Accel":
             raise ValueError("MODAL_RITZ_MASS_SOURCE_NOT_QUALIFIED")
         accel={r["LoadName"] for r in modal}
         if not {"Accel UX","Accel UY"}.issubset(accel):
             raise ValueError("MODAL_ACCEL_DIRECTIONS_MISSING")
         damping_names={r["Name"]:r for r in damping}
-        if set(damping_names)!={"RSX","RSY"}:
+        if set(damping_names)!=expected_spectrum_set:
             raise ValueError("MODAL_DAMPING_CASE_BINDINGS_INCOMPLETE")
         fname=cases[0]["Function"]
         if fname in ("","None") or cases[1]["Function"]!=fname:
@@ -240,11 +294,12 @@ def _cases(probe: Mapping[str, Any]) -> dict:
                 _close_display(S1*F1,SD1,first["SD1"])):
             raise ValueError("SDS_SD1_SOURCE_MULTIPLICATION_CONFLICT")
         factors={}
-        for name,expected in (("RSX","U1"),("RSY","U2")):
+        valid_ms_refs = {f"Previous  ({target_ms})", target_ms}
+        for name,expected in ((target_rsx,"U1"),(target_rsy,"U2")):
             r=by_name[name]
-            if (r["LoadName"]!=expected or r["ModalCase"]!="Modal" or
+            if (r["LoadName"]!=expected or r["ModalCase"]!=target_modal or
                     r["CoordSys"]!="Global" or _number(r["Angle"])!=0 or
-                    r["MassSource"]!="Previous  (MsSrc1)" or
+                    r["MassSource"] not in valid_ms_refs or
                     r["ModalCombo"]!="CQC" or r["DirCombo"]!="SRSS" or
                     r["Function"]!=fname):
                 raise ValueError("SPECTRUM_CASE_BINDING_MISMATCH:"+name)
@@ -254,7 +309,7 @@ def _cases(probe: Mapping[str, Any]) -> dict:
             factors[name]={"direction":expected,"scale_m_s2":str(_number(r["TransAccSF"],positive=True)),
                            "eccentricity_ratio":str(_number(r["EccenRatio"]))}
         return _out("RESPONSE_SPECTRUM_CASE_BINDINGS",
-                facts={"function":fname,"modal_case":"Modal","mass_source":"MsSrc1",
+                facts={"function":fname,"modal_case":target_modal,"mass_source":target_ms,
                        "spectrum_point_count":len(rows),
                        "period_range_s":[str(periods[0]),str(periods[-1])],
                        "function_parameters":{"R":str(R),"D":str(D),"I":str(I),
@@ -270,7 +325,9 @@ def _cases(probe: Mapping[str, Any]) -> dict:
         return _out("RESPONSE_SPECTRUM_CASE_BINDINGS",reasons=[str(exc)])
 
 
-def _geometry(probe: Mapping[str, Any]) -> dict:
+def _geometry(probe: Mapping[str, Any], roles: LoadRoleBook | None = None,
+              *, explicit_role_book: bool = False) -> dict:
+    roles = roles or LoadRoleBook()
     try:
         levels,_=_get(probe,STORY,("Tower","Story","Height"),{"Height":"m"})
         base,_=_get(probe,BASE_STORY,("Tower","BSName","BSElev"),{"BSElev":"m"})
@@ -279,25 +336,57 @@ def _geometry(probe: Mapping[str, Any]) -> dict:
         tower=base[0]["Tower"]
         if any(r["Tower"]!=tower for r in levels):
             raise ValueError("MULTI_TOWER_STORIES_REQUIRE_SEPARATE_SCOPE")
+        bottom=_number(base[0]["BSElev"])
         elevations=[]
+        nonnumeric_rows=[]
         for r in levels:
             try:
                 z=Decimal(r["Story"])
+                elevations.append((z,r))
             except InvalidOperation:
-                raise ValueError("STORY_LABEL_NOT_ELEVATION") from None
-            elevations.append((z,r))
-        elevations.sort(key=lambda x:x[0])
-        bottom=_number(base[0]["BSElev"])
-        ascending=[]
-        prev=bottom
-        for z,r in elevations:
-            height=_number(r["Height"],positive=True)
-            if not _close_display(z-prev,height,r["Height"],r["Story"],base[0]["BSElev"]):
-                # Local geometry contradiction cannot be excused by name matching.
-                raise ValueError("STORY_HEIGHT_NOT_MATCHING_ELEVATION")
-            ascending.append({"story":r["Story"],"elevation_m":str(z),
-                              "height_m":str(height)})
-            prev=z
+                nonnumeric_rows.append(r)
+
+        if not nonnumeric_rows:
+            elevations.sort(key=lambda x:x[0])
+            ascending=[]
+            prev=bottom
+            for z,r in elevations:
+                height=_number(r["Height"],positive=True)
+                if not _close_display(z-prev,height,r["Height"],r["Story"],base[0]["BSElev"]):
+                    # Local geometry contradiction cannot be excused by name matching.
+                    raise ValueError("STORY_HEIGHT_NOT_MATCHING_ELEVATION")
+                ascending.append({"story":r["Story"],"elevation_m":str(z),
+                                  "height_m":str(height)})
+                prev=z
+            return _out("PHYSICAL_STORY_GEOMETRY",
+                        facts={"tower":tower,"base_story":base[0]["BSName"],
+                               "base_elevation_m":str(bottom),"levels_bottom_up":ascending,
+                               "story_count":len(levels)})
+
+        # F11: Non-numeric story labels (e.g. "Zemin", "1. Kat", "2. Kat").
+        # Compute cumulative elevations bottom-up from BSElev + Height when
+        # stories have recognized floor names or an explicit LoadRoleBook is supplied.
+        ranks = [_story_floor_rank(r["Story"]) for r in levels]
+        if not (explicit_role_book or (roles.allow_nonnumeric_story_names and all(x is not None for x in ranks))):
+            raise ValueError("STORY_LABEL_NOT_ELEVATION")
+
+        ordered_levels = list(levels)
+        if all(x is not None for x in ranks) and len(ordered_levels) >= 2:
+            # Sort by parsed floor rank (bodrum < zemin < 1. kat < 2. kat < çatı)
+            paired = sorted(zip(ranks, range(len(ordered_levels)), ordered_levels), key=lambda item: (item[0], item[1]))
+            ordered_levels = [item[2] for item in paired]
+
+        ascending = []
+        prev = bottom
+        for r in ordered_levels:
+            height = _number(r["Height"], positive=True)
+            z = prev + height
+            ascending.append({
+                "story": r["Story"],
+                "elevation_m": str(z),
+                "height_m": str(height),
+            })
+            prev = z
         return _out("PHYSICAL_STORY_GEOMETRY",
                     facts={"tower":tower,"base_story":base[0]["BSName"],
                            "base_elevation_m":str(bottom),"levels_bottom_up":ascending,
@@ -320,7 +409,11 @@ def _spectrum_modal(probe: Mapping[str, Any]) -> dict:
                 cautions=["MODAL_AMPLITUDES_NOT_REGULATORY_APPROVAL"])
 
 
-def review_basis_linkage(raw: Mapping[str, Any] | None) -> dict:
+def review_basis_linkage(
+    raw: Mapping[str, Any] | None,
+    *,
+    role_book: Mapping[str, Any] | LoadRoleBook | None = None,
+) -> dict:
     """Never use this report for actual TBDY compliance or total building mt."""
     base={"stage":"VS04_F_SOURCE_BINDINGS",
           "engineering_release":"NOT_READY", "formal_compliance":"NOT_PROVEN",
@@ -341,7 +434,14 @@ def review_basis_linkage(raw: Mapping[str, Any] | None) -> dict:
     if not safety or review.get("status")!="SOURCE_CANDIDATES_OBSERVED_PENDING_REVIEW":
         return {**base,"status":"SOURCE_REJECTED",
                 "reason":"PROBE_READONLY_OR_TABLE_INTEGRITY_INVALID","components":[]}
-    parts=[_mass(source),_cases(source),_geometry(source),_spectrum_modal(source)]
+    explicit_rb = role_book is not None or ("role_book" in source) or ("role_book" in raw)
+    roles = LoadRoleBook.from_any(role_book or source.get("role_book") or raw.get("role_book"))
+    parts=[
+        _mass(source, roles),
+        _cases(source, roles),
+        _geometry(source, roles, explicit_role_book=explicit_rb),
+        _spectrum_modal(source),
+    ]
     observed=sum(x["status"]=="SOURCE_CONTRACT_OBSERVED_UNAPPROVED" for x in parts)
     return {**base,
             "status":"BASIS_SOURCE_PARTIAL_PENDING_ENGINEERING_REVIEW",

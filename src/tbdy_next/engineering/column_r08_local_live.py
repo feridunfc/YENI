@@ -1,0 +1,638 @@
+"""R08-Local live bridge: TS 500 slenderness (7.17-7.18), EI (7.20/7.21), Nk and beta (7.24/7.29).
+
+Deterministic report/pipeline-time projection over the SAME replayed live
+receipts (`geometry_capture`, `column_axial`, `column_pmm`, `r08-second-order`).
+Reuses `live_column.project_column_slenderness_evidence` and `ts500_column`
+with zero formula duplication and writes no new receipt files.
+
+Never guesses support clear length ln, effective length factor k, creep ratio
+Rm, sway class, or Eq. 7.29 resolution: reference scenarios stay NOT_PROVEN.
+"""
+from __future__ import annotations
+
+from collections import defaultdict
+import math
+from typing import Any, Mapping
+
+from ..column_engine.section_capacity import Section, solver
+from ..column_engine.source_bank import native_frame_force_rows
+from ..column_engine.ts500_column import (
+    SWAY_PERMITTED,
+    SWAY_PREVENTED,
+    LocalSectionDims,
+    apply_minimum_eccentricity,
+    effective_stiffness_nmm2,
+    eq729_length_comparison,
+    euler_load_kn,
+    evaluate_slenderness,
+    moment_magnification_factors,
+    rectangle_properties,
+)
+from .column_r10_live import SelectedColumnCage
+from .live_column import project_column_slenderness_evidence
+
+SCHEMA = "tbdy.next.column-r08-local-live.v1"
+
+OPEN_GATES = (
+    "PHYSICAL_SUPPORT_FACES_AND_CLEAR_LENGTH_NOT_PROVEN",
+    "END_RESTRAINTS_K_AND_SWAY_CLASSIFICATION_NOT_APPROVED",
+    "CREEP_RATIO_RM_AND_SECTION_CRACKING_NOT_APPROVED",
+    "ACTUAL_ANALYSIS_ORDER_UNVERIFIED",
+    "EQ729_LENGTH_AMBIGUITY_NOT_RESOLVED",
+)
+_UTILIZATION_STATUSES = frozenset({"WITHIN_SCENARIO_SURFACE", "EXCEEDS_SCENARIO_SURFACE", "AXIAL_ONLY_SCENARIO"})
+_SELECTED_CAGE_UNAVAILABLE = "SAME_RUN_SELECTED_COLUMN_CAGE_UNAVAILABLE"
+
+
+def _reference_ec_mpa(fck_mpa: float) -> float:
+    return 3250.0 * math.sqrt(fck_mpa) + 14000.0
+
+
+def _assessed_utilization(assessment: Mapping[str, Any]) -> float | None:
+    status = assessment.get("status")
+    if status not in _UTILIZATION_STATUSES:
+        return None
+    value = assessment.get("axial_utilization" if status == "AXIAL_ONLY_SCENARIO" else "utilization")
+    if isinstance(value, bool):
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    return number if math.isfinite(number) and number >= 0 else None
+
+
+def global_pdelta_precheck_within_limit(record: Mapping[str, Any] | None) -> bool | None:
+    """Read the canonical story precheck only when its direction coverage is complete."""
+    if not record or record.get("status") != "NUMERIC_PRECHECK_UNAPPROVED":
+        return None
+    expected = record.get("expected_story_direction_count")
+    evaluated = record.get("evaluated_story_direction_count")
+    if type(expected) is not int or type(evaluated) is not int or expected <= 0 or evaluated != expected:
+        return None
+    if record.get("missing_story_direction") != []:
+        return None
+    directions = record.get("direction_results") or {}
+    flags = [(directions.get(axis) or {}).get("within_reference_limit_candidate") for axis in ("X", "Y")]
+    return all(flags) if all(type(flag) is bool for flag in flags) else None
+
+
+def _end_moment_ratio(m_a: float, m_b: float) -> float:
+    """TS 500 §7.6.2 end-moment ratio M1/M2 in [-1, 1] (|M1| <= |M2|; positive = single curvature)."""
+    if abs(m_a) == 0.0 and abs(m_b) == 0.0:
+        return 0.0
+    m1, m2 = (m_a, m_b) if abs(m_a) <= abs(m_b) else (m_b, m_a)
+    if m2 == 0.0:
+        return 0.0
+    return max(-1.0, min(1.0, m1 / m2))
+
+
+def _project_single_r08_local(
+    source: Mapping[str, Any],
+    geometry: Mapping[str, Any] | None,
+    axial: Mapping[str, Any] | None,
+    pmm: Mapping[str, Any],
+    global_pdelta: Mapping[str, Any] | None = None,
+    eng_col_res: Mapping[str, Any] | None = None,
+    eng_col_section: Any = None,
+) -> dict[str, Any]:
+    """Project TS 500 local slenderness, magnification and selected-cage 2nd-order PMM for one column."""
+    evidence = project_column_slenderness_evidence(source, pmm, global_pdelta)
+    uid = pmm.get("member_id")
+    section_ev = pmm.get("section_evidence") or {}
+    t2_mm = section_ev.get("native_t2_mm")
+    t3_mm = section_ev.get("native_t3_mm")
+    fck_mpa = section_ev.get("fck_mpa")
+    es_mpa = section_ev.get("es_mpa")
+    frame_length_m = evidence.get("frame_length_m")
+    stations = [float(s) for s in evidence.get("observed_object_stations_m") or ()]
+    observed_reduced_span_mm = (
+        (max(stations) - min(stations)) * 1000.0
+        if len(stations) >= 2 and max(stations) > min(stations)
+        else None
+    )
+    frame_length_mm = frame_length_m * 1000.0 if frame_length_m is not None else None
+    candidate_span_mm = observed_reduced_span_mm or frame_length_mm
+    span_basis = (
+        "OBSERVED_REDUCED_OUTPUT_SPAN_NOT_PHYSICAL_LN"
+        if observed_reduced_span_mm is not None
+        else "JOINT_TO_JOINT_FRAME_LENGTH_NOT_PHYSICAL_LN"
+        if frame_length_mm is not None
+        else "SPAN_UNAVAILABLE"
+    )
+
+    out: dict[str, Any] = {
+        "schema": SCHEMA,
+        "member_id": uid,
+        "story": pmm.get("story"),
+        "section": pmm.get("section"),
+        "evidence": evidence,
+        "frame_length_mm": frame_length_mm,
+        "observed_reduced_span_mm": observed_reduced_span_mm,
+        "candidate_span_mm": candidate_span_mm,
+        "span_basis": span_basis,
+        "ec_reference_mpa": None,
+        "ec_basis": "NOT_AVAILABLE",
+        "stiffness_and_euler": None,
+        "combination_scenarios": [],
+        "max_reference_beta_sway_prevented": None,
+        "open_gates": list(OPEN_GATES),
+        "status": "OBSERVED_EVIDENCE_ONLY",
+        "formal_compliance": "NOT_PROVEN",
+        "engineering_release": "NOT_READY",
+    }
+    if not candidate_span_mm or not t2_mm or not t3_mm or not fck_mpa:
+        return out
+
+    props = rectangle_properties(t2_mm, t3_mm)
+    ec_mpa = _reference_ec_mpa(float(fck_mpa))
+    out["ec_reference_mpa"] = ec_mpa
+    out["ec_basis"] = "TS500_EQ_3_1_3250_SQRT_FCK_PLUS_14000_REFERENCE"
+
+    is2 = is3 = None
+    feature = source.get("column_axial") or {}
+    if geometry is not None and feature.get("pmm_section_source") and feature.get("design_preferences"):
+        from .column_axial import _columns
+        from .column_pmm_section import build_pmm_section
+
+        member = next((r for r in _columns(geometry) if r["element_id"] == uid), None)
+        axial_member = next((r for r in axial.get("columns", ()) if r["element_id"] == uid), None)
+        if member is not None and axial_member is not None:
+            try:
+                sec, _ = build_pmm_section(
+                    feature["pmm_section_source"], member, axial_member,
+                    feature["design_preferences"], include_layout=True,
+                )
+                is2 = math.fsum(b.area * (b.x3 ** 2) for b in sec.bars)
+                is3 = math.fsum(b.area * (b.x2 ** 2) for b in sec.bars)
+            except (ValueError, KeyError, TypeError, ArithmeticError):
+                pass
+
+    eng_is2 = math.fsum(b.area * (b.x3 ** 2) for b in eng_col_section.bars) if eng_col_section is not None else None
+    eng_is3 = math.fsum(b.area * (b.x2 ** 2) for b in eng_col_section.bars) if eng_col_section is not None else None
+
+    axis_specs = (
+        ("M2", props["i22_mm4"], props["r22_exact_mm"], is2, eng_is2, 2, 3),
+        ("M3", props["i33_mm4"], props["r33_exact_mm"], is3, eng_is3, 3, 2),
+    )
+    stiffness_map: dict[str, dict[str, Any]] = {}
+    for axis_name, ic_mm4, r_mm, is_mm4, eng_is_mm4, _, _ in axis_specs:
+        ei_uncracked_ref = effective_stiffness_nmm2(
+            ec_mpa=ec_mpa, ic_mm4=ic_mm4, creep_ratio=0.0, method="TS500_7_21",
+        )
+        nk_721 = euler_load_kn(effective_ei_nmm2=ei_uncracked_ref, effective_length_lk_mm=candidate_span_mm)
+        ei_720 = (
+            effective_stiffness_nmm2(
+                ec_mpa=ec_mpa, ic_mm4=ic_mm4, creep_ratio=0.0, method="TS500_7_20",
+                es_mpa=float(es_mpa), is_mm4=float(is_mm4),
+            )
+            if es_mpa and is_mm4 is not None
+            else None
+        )
+        nk_720 = (
+            euler_load_kn(effective_ei_nmm2=ei_720, effective_length_lk_mm=candidate_span_mm)
+            if ei_720 is not None
+            else None
+        )
+        eng_ei_720 = (
+            effective_stiffness_nmm2(
+                ec_mpa=ec_mpa, ic_mm4=ic_mm4, creep_ratio=0.0, method="TS500_7_20",
+                es_mpa=float(es_mpa), is_mm4=float(eng_is_mm4),
+            )
+            if es_mpa and eng_is_mm4 is not None
+            else None
+        )
+        eng_nk_720 = (
+            euler_load_kn(effective_ei_nmm2=eng_ei_720, effective_length_lk_mm=candidate_span_mm)
+            if eng_ei_720 is not None
+            else None
+        )
+        stiffness_map[axis_name] = {
+            "ic_mm4": ic_mm4,
+            "is_mm4": is_mm4,
+            "radius_mm": r_mm,
+            "reference_creep_ratio_rm": 0.0,
+            "ei_ts500_7_21_nmm2": ei_uncracked_ref,
+            "nk_ts500_7_21_kn": nk_721,
+            "ei_ts500_7_20_nmm2": ei_720,
+            "nk_ts500_7_20_kn": nk_720,
+            "preferred_nk_kn": nk_720 if nk_720 is not None else nk_721,
+            **({"selected_is_mm4": eng_is_mm4, "selected_ei_ts500_7_20_nmm2": eng_ei_720, "selected_nk_ts500_7_20_kn": eng_nk_720} if eng_nk_720 is not None else {}),
+            "ei_method_basis": "TS500_7_20_WITH_RM_0_REFERENCE" if nk_720 is not None else "TS500_7_21_WITH_RM_0_REFERENCE",
+        }
+    out["stiffness_and_euler"] = stiffness_map
+
+    rows_by_combo: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
+    for row in pmm.get("rows") or ():
+        if row.get("nd_kn") is not None and row.get("object_station_m") is not None:
+            rows_by_combo[row["combination"]].append(row)
+
+    betas: list[float] = []
+    scenarios: list[dict[str, Any]] = []
+    combo_betas_selected: dict[str, dict[str, Any]] = {}
+    for combo_name in sorted(rows_by_combo):
+        combo_rows = sorted(rows_by_combo[combo_name], key=lambda item: float(item["object_station_m"]))
+        if len(combo_rows) < 2 or float(combo_rows[0]["object_station_m"]) == float(combo_rows[-1]["object_station_m"]):
+            continue
+        r_start, r_end = combo_rows[0], combo_rows[-1]
+        nd_max = max(float(r_start["nd_kn"]), float(r_end["nd_kn"]))
+        axes_out: dict[str, Any] = {}
+        combo_sel_axes: dict[str, float | None] = {}
+        for axis_name, _, r_mm, _, _, _, _ in axis_specs:
+            m_key = "m2_knm" if axis_name == "M2" else "m3_knm"
+            m_a = float(r_start[m_key])
+            m_b = float(r_end[m_key])
+            end_ratio = _end_moment_ratio(m_a, m_b)
+            slenderness_no_sway = evaluate_slenderness(
+                free_length_ln_mm=candidate_span_mm, k=1.0, radius_mm=r_mm,
+                sway=SWAY_PREVENTED, signed_end_moment_ratio=end_ratio,
+            )
+            slenderness_sway = evaluate_slenderness(
+                free_length_ln_mm=candidate_span_mm, k=1.0, radius_mm=r_mm,
+                sway=SWAY_PERMITTED,
+            )
+            nk_kn = stiffness_map[axis_name]["preferred_nk_kn"]
+            mag_no_sway = None
+            eq729_ref = None
+            sel_nk = stiffness_map[axis_name].get("selected_nk_ts500_7_20_kn")
+            if nd_max > 0:
+                mag_no_sway = moment_magnification_factors(
+                    nd_kn=nd_max, nk_kn=nk_kn, sway=SWAY_PREVENTED,
+                    signed_end_moment_ratio=end_ratio, horizontal_load_between_ends=False,
+                )
+                if isinstance(mag_no_sway.get("beta"), (int, float)):
+                    betas.append(float(mag_no_sway["beta"]))
+                if sel_nk is not None:
+                    mag_sel = moment_magnification_factors(
+                        nd_kn=nd_max, nk_kn=sel_nk, sway=SWAY_PREVENTED,
+                        signed_end_moment_ratio=end_ratio, horizontal_load_between_ends=False,
+                    )
+                    combo_sel_axes[axis_name] = (
+                        float(mag_sel["beta"])
+                        if isinstance(mag_sel.get("beta"), (int, float))
+                        else None
+                    )
+                eq729_ref = eq729_length_comparison(
+                    free_length_ln_mm=candidate_span_mm, effective_length_lk_mm=candidate_span_mm,
+                    radius_mm=r_mm, nd_kn=nd_max, fck_mpa=float(fck_mpa), area_mm2=props["area_mm2"],
+                )
+            else:
+                combo_sel_axes[axis_name] = 1.0
+            axes_out[axis_name] = {
+                "end_moments_knm": [m_a, m_b],
+                "signed_end_moment_ratio": end_ratio,
+                "slenderness_sway_prevented_k1": slenderness_no_sway,
+                "slenderness_sway_permitted_k1": slenderness_sway,
+                "magnification_sway_prevented_k1": mag_no_sway,
+                "eq729_reference": eq729_ref,
+            }
+        combo_betas_selected[combo_name] = combo_sel_axes
+        scenarios.append({
+            "combination": combo_name,
+            "end_stations_m": [float(r_start["object_station_m"]), float(r_end["object_station_m"])],
+            "governing_nd_kn": nd_max,
+            "axes": axes_out,
+            "formal_compliance": "NOT_PROVEN",
+        })
+
+    out["combination_scenarios"] = scenarios
+    out["max_reference_beta_sway_prevented"] = max(betas) if betas else None
+    if scenarios:
+        out["status"] = "REFERENCE_SLENDERNESS_CALCULATED"
+
+    if eng_col_section is not None and scenarios:
+        dims_local = LocalSectionDims(eng_col_section.t2, eng_col_section.t3)
+        cap_solver = solver(eng_col_section)
+        dir_res = (global_pdelta or {}).get("direction_results") or {}
+        global_beta_vals = []
+        for ax in ("X", "Y"):
+            b_str = (dir_res.get(ax) or {}).get("beta_ii_candidate")
+            if b_str is not None:
+                try:
+                    factor = float(b_str)
+                except (TypeError, ValueError):
+                    continue
+                if math.isfinite(factor) and factor >= 1.0 and not isinstance(b_str, bool):
+                    global_beta_vals.append(factor)
+        global_beta_ii = max(global_beta_vals) if len(global_beta_vals) == 2 else None
+        mag_rows: list[dict[str, Any]] = []
+        blocked_buckling = False
+        max_util = None
+        gov_combo = None
+        exceeds = False
+        expected_stations = pmm.get("expected_station_count")
+        resolved_station_count = 0
+        for row in pmm.get("rows") or ():
+            cname = row.get("combination")
+            if cname not in combo_betas_selected or row.get("nd_kn") is None:
+                continue
+            b_m2 = combo_betas_selected[cname].get("M2")
+            b_m3 = combo_betas_selected[cname].get("M3")
+            if b_m2 is None or b_m3 is None:
+                blocked_buckling = True
+                mag_rows.append({
+                    "combination": cname,
+                    "object_station_m": row.get("object_station_m"),
+                    "status": "SECOND_ORDER_BUCKLING_OR_BLOCKED",
+                    "utilization": None,
+                })
+                continue
+            g_fac = global_beta_ii if (global_beta_ii is not None and global_beta_ii > 1.0) else 1.0
+            m2_mag = float(row["m2_knm"]) * b_m2 * g_fac
+            m3_mag = float(row["m3_knm"]) * b_m3 * g_fac
+            demand = {}
+            try:
+                demand = apply_minimum_eccentricity(
+                    nd_kn=float(row["nd_kn"]), m2_knm=m2_mag, m3_knm=m3_mag, dims=dims_local,
+                )
+                assess = cap_solver.assess(
+                    float(row["nd_kn"]) * 1000.0,
+                    demand["m2_design_knm"] * 1e6,
+                    demand["m3_design_knm"] * 1e6,
+                )
+            except (ValueError, ArithmeticError):
+                assess = {"status": "NUMERIC_UNRESOLVED"}
+            util = _assessed_utilization(assess)
+            if assess.get("status") == "OUTSIDE_SCENARIO_AXIAL_RANGE" or util is not None:
+                resolved_station_count += 1
+            if assess.get("status") == "OUTSIDE_SCENARIO_AXIAL_RANGE" or (util is not None and util > 1.0 + 1e-6):
+                exceeds = True
+            if util is not None and (max_util is None or util >= max_util):
+                max_util = util
+                gov_combo = cname
+            mag_rows.append({
+                "combination": cname,
+                "object_station_m": row.get("object_station_m"),
+                "beta_m2": b_m2,
+                "beta_m3": b_m3,
+                "global_beta_ii_applied": g_fac,
+                "magnified_m2_design_knm": demand.get("m2_design_knm"),
+                "magnified_m3_design_knm": demand.get("m3_design_knm"),
+                "utilization": util,
+                "status": assess["status"],
+            })
+        complete = (type(expected_stations) is int and expected_stations > 0
+                    and resolved_station_count == expected_stations == len(mag_rows))
+        if exceeds:
+            mag_status = "MAGNIFIED_PMM_EXCEEDS_CAPACITY"
+        elif blocked_buckling:
+            mag_status = "SECOND_ORDER_BUCKLING_OR_BLOCKED"
+        elif complete:
+            mag_status = "MAGNIFIED_PMM_WITHIN_CAPACITY_NOT_PROVEN"
+        else:
+            mag_status = "MAGNIFIED_PMM_COVERAGE_OR_NUMERIC_UNRESOLVED"
+        out["magnified_selected_pmm"] = {
+            "status": mag_status,
+            "governing_combination": gov_combo,
+            "max_utilization": max_util if complete or exceeds else None,
+            "global_beta_ii_factor": global_beta_ii,
+            "global_beta_ii_basis": "STORY_PRECHECK_REFERENCE" if global_beta_ii is not None else "UNIT_FACTOR_REFERENCE_ASSUMPTION",
+            "global_pdelta_within_limit": global_pdelta_precheck_within_limit(global_pdelta),
+            "evaluated_row_count": len(mag_rows),
+            "expected_row_count": expected_stations,
+            "resolved_row_count": resolved_station_count,
+            "rows": mag_rows,
+            "formal_compliance": "NOT_PROVEN",
+        }
+        spectral_bound = _evaluate_spectral_bounding_corners(
+            uid=uid,
+            source=source,
+            axial=axial,
+            dims_local=dims_local,
+            cap_solver=cap_solver,
+            stiffness_map=stiffness_map,
+            global_beta_ii=global_beta_ii,
+            use_engineer=True,
+            mesh_blocked_combinations=tuple(combo["name"] for combo in pmm.get("combinations", ())
+                                            if combo.get("status") == "BLOCKED"
+                                            and (combo.get("analysis_element_coverage") or {}).get("reason")
+                                            not in (None, "ANALYSIS_FRAME_ELEMENT_SOURCE_UNAVAILABLE")),
+            cut_blocked_combinations=tuple(combo["name"] for combo in pmm.get("combinations", ())
+                                           if combo.get("reason") == "ETABS_CONFIGURED_CUT_COVERAGE_UNRESOLVED"),
+        )
+        if spectral_bound is not None:
+            out["spectral_envelope_pmm_scenario"] = spectral_bound
+    return out
+
+
+def _evaluate_spectral_bounding_corners(
+    *,
+    uid: str | None,
+    source: Mapping[str, Any],
+    axial: Mapping[str, Any] | None,
+    dims_local: LocalSectionDims,
+    cap_solver: Any,
+    stiffness_map: Mapping[str, Mapping[str, Any]],
+    global_beta_ii: float | None,
+    use_engineer: bool = True,
+    mesh_blocked_combinations: tuple[str, ...] = (),
+    cut_blocked_combinations: tuple[str, ...] = (),
+) -> dict[str, Any] | None:
+    """Sample eight bounding corners with explicit case/cut/step completeness.
+
+    This is a reference box, NOT an approved concurrent spectral demand and NOT
+    a proof that nonlinear magnification preserves convexity between corners.
+    Expected cuts are the source-wide native cut census, not just received
+    spectral cuts. The independent physical cut census remains a release gate.
+    """
+    if not uid or axial is None:
+        return None
+    names = {str(c["name"]) for c in (axial.get("combination_plan") or {}).get("combinations", ())
+             if c.get("force_semantics") == "SCALAR_COMPONENT_ENVELOPE"}
+    if not names:
+        return None
+    errors: list[str] = []
+    errors.extend("SPECTRAL_ANALYSIS_ELEMENT_COVERAGE_UNRESOLVED:" + name
+                  for name in sorted(names.intersection(mesh_blocked_combinations)))
+    errors.extend("SPECTRAL_CONFIGURED_CUT_COVERAGE_UNRESOLVED:" + name
+                  for name in sorted(names.intersection(cut_blocked_combinations)))
+    rowset = ((source.get("column_axial") or {}).get("force_source") or {}).get("rowsets", {}).get(uid)
+    rows = list(native_frame_force_rows(rowset, uid)) if rowset is not None else []
+    # ObjSta AND ElmSta are retained; two cuts at one object coordinate are not merged.
+    def cut(row):
+        return (float(row[1]), str(row[2]), float(row[3]))
+    cuts = {cut(r) for r in rows}
+    grouped: dict[tuple, list] = defaultdict(list)
+    for row in rows:
+        if str(row[4]) in names:
+            grouped[(str(row[4]), *cut(row))].append(row)
+    expected = {(name, *c) for name in names for c in cuts}
+    missing = sorted(expected - grouped.keys())
+    if not cuts:
+        errors.append("NATIVE_CUT_CENSUS_MISSING")
+    if missing:
+        errors.append("SPECTRAL_CASE_CUT_COVERAGE_INCOMPLETE")
+    if names - {key[0] for key in grouped}:
+        errors.append("SPECTRAL_REQUIRED_COMBINATION_MISSING")
+    for key, grp in grouped.items():
+        steps = [str(r[5]).strip().lower() for r in grp]
+        if sorted(steps) != ["max", "min"]:
+            errors.append("SPECTRAL_MIN_MAX_STEP_PAIR_MISSING_OR_AMBIGUOUS:" + str(key))
+        if any(not math.isfinite(float(r[i])) for r in grp for i in (1, 3, 7, 11, 12)):
+            errors.append("SPECTRAL_NONFINITE_SOURCE_VALUE:" + str(key))
+
+    def positive(value):
+        try:
+            return not isinstance(value, bool) and math.isfinite(float(value)) and float(value) > 0
+        except (TypeError, ValueError, OverflowError):
+            return False
+    nk = {}
+    for axis in ("M2", "M3"):
+        stiff = stiffness_map.get(axis) or {}
+        value = stiff.get("selected_nk_ts500_7_20_kn") if use_engineer else (
+            stiff.get("preferred_nk_kn") or stiff.get("nk_ts500_7_21_kn"))
+        if not positive(value):
+            errors.append("SPECTRAL_EULER_LOAD_MISSING_OR_INVALID:" + axis)
+        else:
+            nk[axis] = float(value)
+    if not positive(global_beta_ii) or float(global_beta_ii) < 1.0:
+        errors.append("SPECTRAL_GLOBAL_SECOND_ORDER_FACTOR_UNPROVEN")
+    result = {
+        "schema": "tbdy.next.spectral-bounding-pmm.v2",
+        "basis": "NONCONCURRENT_ENVELOPE_8_CORNER_REFERENCE_NOT_FULL_DOMAIN_PROOF",
+        "status": "SPECTRAL_BOUNDING_INPUT_OR_COVERAGE_BLOCKED",
+        "combinations_expected": sorted(names),
+        "combinations_evaluated": [],
+        "combinations_observed": sorted({key[0] for key in grouped}),
+        "expected_case_cut_count": len(expected),
+        "observed_case_cut_count": len(grouped),
+        "missing_case_cuts": [list(k) for k in missing],
+        "coverage_complete": not errors,
+        "coverage_basis": "SOURCE_WIDE_NATIVE_CUT_CENSUS_NOT_PHYSICAL_CUT_ACCEPTANCE",
+        "evaluated_corner_count": 0,
+        "governing_combination": None,
+        "governing_station_m": None,
+        "max_bounding_utilization": None,
+        "reason_codes": sorted(set(errors)),
+        "formal_compliance": "NOT_PROVEN",
+    }
+    if errors:
+        return result
+    max_util, corner_count = 0.0, 0
+    gov_combo = gov_sta = None
+    numeric_block = False
+    outside = False
+    for (name, sta, _elm, _elmsta), grp in sorted(grouped.items()):
+        nds = [-float(r[7]) for r in grp]
+        m2_abs, m3_abs = (max(abs(float(r[idx])) for r in grp) for idx in (11, 12))
+        for nd in sorted({min(nds), max(nds)}):
+            factors = {axis: (moment_magnification_factors(
+                nd_kn=nd, nk_kn=nk[axis], sway=SWAY_PREVENTED,
+                horizontal_load_between_ends=True).get("beta") if nd > 0 else 1.0)
+                for axis in ("M2", "M3")}
+            if any(not positive(v) for v in factors.values()):
+                numeric_block = True
+                continue
+            for sign2 in (1.0, -1.0):
+                for sign3 in (1.0, -1.0):
+                    demand = apply_minimum_eccentricity(
+                        nd_kn=nd, m2_knm=sign2*m2_abs*factors["M2"]*float(global_beta_ii),
+                        m3_knm=sign3*m3_abs*factors["M3"]*float(global_beta_ii), dims=dims_local)
+                    assessment = cap_solver.assess(nd*1000.0, demand["m2_design_knm"]*1e6,
+                                                   demand["m3_design_knm"]*1e6)
+                    corner_count += 1
+                    if assessment.get("status") == "OUTSIDE_SCENARIO_AXIAL_RANGE":
+                        outside = True
+                        gov_combo, gov_sta = name, sta
+                        continue
+                    util = _assessed_utilization(assessment)
+                    if util is None:
+                        numeric_block = True
+                    elif not outside and util >= max_util:
+                        max_util, gov_combo, gov_sta = util, name, sta
+    result.update(evaluated_corner_count=corner_count,
+                  combinations_evaluated=sorted(names), governing_combination=gov_combo,
+                  governing_station_m=gov_sta,
+                  max_bounding_utilization=max_util if not (numeric_block or outside) else None)
+    if numeric_block:
+        result["status"] = "SPECTRAL_BOUNDING_NUMERIC_UNRESOLVED"
+        result["reason_codes"] = ["SPECTRAL_CORNER_SOLVER_OR_MAGNIFICATION_UNRESOLVED"]
+    elif outside or max_util > 1.0 + 1e-6:
+        result["status"] = "CONSERVATIVE_CORNER_EXCEEDS_1_0_CONCURRENT_VECTOR_REQUIRED"
+        if outside:
+            result["reason_codes"] = ["SPECTRAL_CORNER_OUTSIDE_REFERENCE_AXIAL_RANGE"]
+    else:
+        result["status"] = "BOUNDED_CORNER_ENVELOPE_WITHIN_CAPACITY_NOT_PROVEN"
+    return result
+
+
+def project_column_r08_local_live(
+    source: Mapping[str, Any],
+    geometry: Mapping[str, Any] | None,
+    axial: Mapping[str, Any] | None,
+    pmm: Mapping[str, Any] | None,
+    global_pdelta: Mapping[str, Any] | None = None,
+    *,
+    r10_live: Mapping[str, Any] | None = None,
+    selected_cages: Mapping[str, SelectedColumnCage] | None = None,
+) -> dict[str, Any] | None:
+    """Project R08 reference scenarios using the same candidate section as R10 when supplied."""
+    if pmm is None or axial is None or "column_axial" not in source:
+        return None
+    col_selection_enabled = source.get("column_selection") is not None
+
+    def _reported_selection(uid: str) -> Mapping[str, Any] | None:
+        if not r10_live:
+            return None
+        per_member = r10_live.get("per_member")
+        if per_member is not None:
+            return (per_member.get(uid) or {}).get("engineer_column_selection")
+        if r10_live.get("member_id") == uid:
+            return r10_live.get("engineer_column_selection")
+        return None
+
+    def _eng_section_for(uid: str) -> tuple[Mapping[str, Any] | None, Any]:
+        if not col_selection_enabled:
+            return None, None
+        reported = _reported_selection(uid)
+        if selected_cages is not None:
+            cage = selected_cages.get(uid)
+            if (not isinstance(cage, SelectedColumnCage) or cage.selection.get("member_id") != uid
+                    or not cage.selection.get("selected") or not isinstance(cage.section, Section)
+                    or (r10_live is not None and reported is not cage.selection)):
+                return None, None
+            return cage.selection, cage.section
+
+        # Legacy callers may only have archived JSON; retain their original reference path.
+        from .column_r10_live import _evaluate_engineer_column_selection, member_local_axis_angle_deg
+
+        ang = member_local_axis_angle_deg(source, uid)
+        calc_res, calc_sec = _evaluate_engineer_column_selection(
+            uid=uid, source=source, geometry=geometry, axial=axial, angle_deg=ang,
+        )
+        return reported or calc_res, calc_sec
+
+    def _project_member(member: Mapping[str, Any]) -> dict[str, Any]:
+        uid = member.get("member_id")
+        e_res, e_sec = _eng_section_for(uid) if uid else (None, None)
+        result = _project_single_r08_local(
+            source, geometry, axial, member, global_pdelta,
+            eng_col_res=e_res, eng_col_section=e_sec,
+        )
+        if selected_cages is not None and col_selection_enabled and e_sec is None:
+            result["open_gates"].append(_SELECTED_CAGE_UNAVAILABLE)
+        return result
+
+    if pmm.get("scope") == "ALL_COLUMNS" or pmm.get("member_id") == "ALL":
+        per_member: dict[str, dict[str, Any]] = {}
+        for m_pmm in pmm.get("members") or ():
+            muid = m_pmm.get("member_id")
+            if not muid:
+                continue
+            per_member[muid] = _project_member(m_pmm)
+        open_gates = list(OPEN_GATES)
+        if any(_SELECTED_CAGE_UNAVAILABLE in member["open_gates"] for member in per_member.values()):
+            open_gates.append(_SELECTED_CAGE_UNAVAILABLE)
+        return {
+            "schema": SCHEMA,
+            "scope": "ALL_COLUMNS",
+            "member_id": "ALL",
+            "evaluated_column_count": len(per_member),
+            "per_member": per_member,
+            "open_gates": open_gates,
+            "status": "REFERENCE_SLENDERNESS_CALCULATED" if per_member else "OBSERVED_EVIDENCE_ONLY",
+            "formal_compliance": "NOT_PROVEN",
+            "engineering_release": "NOT_READY",
+        }
+
+    return _project_member(pmm)

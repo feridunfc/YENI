@@ -51,7 +51,7 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
   const filtered=take();assert.match(filtered.url,/member=C2/);
   assert.equal(ids.get('columnForces').children.length,0);
   filtered.done(payload(1));await flush();
-  assert.match(ids.get('columnStatus').textContent,/eşleşmiyor/);
+  assert.match(ids.get('columnStatus').textContent,/mismatch/);
   assert.equal(ids.get('columnExports').children.length,0);
   const failure=await select(2);failure.done({error:'VERIFIED_COLUMN_BANK_NOT_FOUND'},false);await flush();
   assert.match(ids.get('columnStatus').textContent,/VERIFIED_COLUMN_BANK_NOT_FOUND/);
@@ -79,11 +79,11 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
   designRequest.done({...demandPayload(),demand_page:{view:'design',total:1,offset:0,limit:200,rows:[{
     native_design_row:{UniqueName:'C2',Station:'2',PMMRatio:null,PMMCombo:'SUM',VMajCombo:'SUM',VMinCombo:'RS'},
     references:['PMM','MAJOR_SHEAR','MINOR_SHEAR'].map(role=>({role,status:'AMBIGUOUS_DESIGN_STATION'}))}]}});await flush();
-  assert.match(ids.get('columnForces').textContent,/Çift tasarım istasyonu/);
+  assert.match(ids.get('columnForces').textContent,/Duplicate design station/);
   assert.match(ids.get('columnForces').textContent,/—/);
   ids.get('columnView').value='native';ids.get('columnView').trigger('change');await flush();
   const wrong=demandPayload();wrong.demand_chain.source_archive_sha256='OTHER';take().done(wrong);await flush();
-  assert.match(ids.get('columnStatus').textContent,/başka bir kaynağa/);
+  assert.match(ids.get('columnStatus').textContent,/source/);
   assert.equal(ids.get('columnForces').children.length,0);
   const precheckPayload=()=>{
     const p=demandPayload();p.demand_chain.result_sha256='DEMAND2';
@@ -95,9 +95,9 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
   const critical=take();assert.match(critical.url,/view=critical/);assert.match(critical.url,/case=SUM/);
   critical.done({...precheckPayload(),critical_scope:{candidate_count:4,pmm_population_reduced:false},
     demand_page:{view:'critical',total:1,offset:0,limit:200,rows:[{...candidate,criteria:['N_COMPRESSION_MAX','V2_ABS_MAX']}]}});await flush();
-  assert.match(ids.get('columnForces').textContent,/En büyük basınç/);
+  assert.match(ids.get('columnForces').textContent,/Maximum compression/);
   assert.match(ids.get('columnForces').textContent,/4800/);
-  assert.match(ids.get('columnContext').textContent,/tam aday nüfusu saklanır/);
+  assert.match(ids.get('columnContext').textContent,/complete PMM candidate population/);
   ids.get('columnView').value='reinforcement';ids.get('columnView').trigger('change');await flush();
   const bounds=take();assert.doesNotMatch(bounds.url,/case=/);assert.equal(ids.get('columnCase').disabled,true);
   bounds.done({...precheckPayload(),demand_page:{view:'reinforcement',total:1,offset:0,limit:200,rows:[{
@@ -108,7 +108,7 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
   ids.get('columnView').value='critical';ids.get('columnView').trigger('change');await flush();
   assert.equal(ids.get('columnCase').disabled,false);
   const invalid=precheckPayload();invalid.column_prechecks.source_demand_result_sha256='OTHER';take().done(invalid);await flush();
-  assert.match(ids.get('columnStatus').textContent,/kuvvet zinciriyle eşleşmiyor/);
+  assert.match(ids.get('columnStatus').textContent,/does not match the selected force chain/);
   assert.equal(ids.get('columnForces').children.length,0);
   const stabilityPayload=()=>{
     const p=precheckPayload();p.column_prechecks.result_sha256='PRECHECK2';
@@ -124,17 +124,17 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
       r22_exact_mm:230.94010767585,r33_exact_mm:230.94010767585},elastic:{observed_E_MPa:34000},
     lengths:{object_i_j_m:4.5,output_face_span_m:3.8},property_comparison_status:'NUMERICAL_MATCH'}]}});await flush();
   assert.match(ids.get('columnForces').textContent,/34000/);assert.match(ids.get('columnForces').textContent,/3413333/);
-  assert.match(ids.get('columnForces').textContent,/230.940/);assert.match(ids.get('columnUnits').textContent,/etkili rijitlik değildir/);
+  assert.match(ids.get('columnForces').textContent,/230.940/);assert.match(ids.get('columnUnits').textContent,/Effective EI and the TS500 clear and effective lengths require separate evidence/);
   ids.get('columnView').value='eccentricity';ids.get('columnView').trigger('change');await flush();
   const eccentricity=take();assert.match(eccentricity.url,/case=SUM/);assert.equal(ids.get('columnCase').disabled,false);
   eccentricity.done({...stabilityPayload(),demand_page:{view:'eccentricity',total:1,offset:0,limit:200,rows:[{
     ...candidate,axes:[{n_compression_kn:'1000',source_abs_moment_kNcm:'2000',reference_minimum_moment_kNcm:'3900',status:'BELOW_REFERENCE'},
       {n_compression_kn:'1000',source_abs_moment_kNcm:'4000',reference_minimum_moment_kNcm:'3900',status:'AT_OR_ABOVE_REFERENCE'}]}]}});await flush();
-  assert.match(ids.get('columnForces').textContent,/3900/);assert.match(ids.get('columnForces').textContent,/Referans altında/);
-  assert.match(ids.get('columnUnits').textContent,/iç istasyonlara/);
+  assert.match(ids.get('columnForces').textContent,/3900/);assert.match(ids.get('columnForces').textContent,/Below reference/);
+  assert.match(ids.get('columnUnits').textContent,/End-moment applicability/);
   ids.get('columnView').value='stiffness';ids.get('columnView').trigger('change');await flush();
   const wrongStiffness=stabilityPayload();wrongStiffness.column_stability.source_prechecks_result_sha256='OTHER';take().done(wrongStiffness);await flush();
-  assert.match(ids.get('columnStatus').textContent,/Rijitlik hesabı seçili kolon kaynağıyla eşleşmiyor/);
+  assert.match(ids.get('columnStatus').textContent,/Stiffness calculation does not match the selected column source/);
   assert.equal(ids.get('columnForces').children.length,0);
   const cagePayload=()=>{
     const p=stabilityPayload();p.column_stability.result_sha256='STABILITY2';
@@ -148,7 +148,7 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
     member_id:'C2',label:'16Φ24',t2_mm:600,t3_mm:700,as_cm2:72.38229474,rho_percent:1.723388,
     center_offset_mm:64,minimum_clear_spacing_mm:94,geometry_status:'PROPOSED_GEOMETRY_CALCULATED',
     area_ratio_status:'WITHIN_1_TO_4_PERCENT_REFERENCE',bars:[{x2_mm:286,x3_mm:236,diameter_mm:24}]}]}});await flush();
-  assert.match(ids.get('columnForces').textContent,/72.3823/);assert.match(ids.get('columnContext').textContent,/merkez örtüsü 64 mm/);
+  assert.match(ids.get('columnForces').textContent,/72.3823/);assert.match(ids.get('columnContext').textContent,/cover to bar center 64 mm/);
   const drawing=ids.get('columnContext').children.find(c=>c.children.some(s=>s.attributes?.role==='img'));
   assert.ok(drawing);assert.equal(drawing.children[0].children[1].attributes.cy,'-236');
   assert.equal(drawing.children[0].children[0].attributes.width,'700');
@@ -164,10 +164,10 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
   pmmRequest.done({...pmmPayload(),demand_page:{view:'pmm',total:1,offset:0,limit:200,rows:[{
     ...candidate,native_values:{M2:48,M3:-57.2},candidate_label:'16Φ24',utilization:.2,radial_capacity_kNm:373.363,
     status:'WITHIN_SCENARIO_SURFACE',reason:null}]}});await flush();
-  assert.match(ids.get('columnForces').textContent,/Koşullu yüzey içinde/);assert.match(ids.get('columnForces').textContent,/-57.2/);
-  assert.match(ids.get('columnUnits').textContent,/ikinci mertebe uygulanmadı/);
+  assert.match(ids.get('columnForces').textContent,/Within conditional surface/);assert.match(ids.get('columnForces').textContent,/-57.2/);
+  assert.match(ids.get('columnUnits').textContent,/second-order effects/);
   ids.get('columnView').trigger('change');await flush();const badPmm=pmmPayload();badPmm.column_pmm.source_cages_result_sha256='OTHER';
-  take().done(badPmm);await flush();assert.match(ids.get('columnStatus').textContent,/PMM hesabının kaynak bağı/);
+  take().done(badPmm);await flush();assert.match(ids.get('columnStatus').textContent,/PMM calculation source or conditional scope mismatch/);
   assert.equal(ids.get('columnForces').children.length,0);
   const transversePayload=()=>{
     const p=cagePayload();
@@ -186,10 +186,10 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
     direction:{bk_axis:3,bk_mm:708,ash_mm2:565.486677646,maximum_lateral_leg_spacing_mm:186,
       confinement:{high_axial_required_ash_mm2:371.7,low_axial_required_ash_mm2:247.8}}}]}});await flush();
   assert.match(ids.get('columnForces').textContent,/371.7/);assert.match(ids.get('columnForces').textContent,/247.8/);
-  assert.match(ids.get('columnUnits').textContent,/Ack dıştan dışa/);
+  assert.match(ids.get('columnUnits').textContent,/Ack uses outside dimensions/);
   const tieDrawing=ids.get('columnContext').children.find(c=>c.children.some(s=>s.attributes?.role==='img'));
   assert.ok(tieDrawing);assert.equal(tieDrawing.children[0].children[1].attributes.y1,'-168');
-  assert.match(tieDrawing.textContent,/düşey yerleşim doğrulanmadı/);
+  assert.match(tieDrawing.textContent,/vertical detailing require verification/);
   const shearPayload=()=>({...transversePayload(),column_shear:{axis_convention:'CSI_T3_ALONG_LOCAL2_T2_ALONG_LOCAL3',source_run_id:run(2),source_archive_sha256:'SOURCE_2',
     source_demand_result_sha256:'DEMAND2',source_cages_result_sha256:'CAGES2',source_transverse_result_sha256:'TRANSVERSE2',
     design_demand_authority:'DENIED',formal_compliance:'NOT_PROVEN',selected_design:null,ve_status:'NOT_PROVEN',
@@ -201,18 +201,18 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
     calculation:{source_signed_v_kn:-500,branches:{ts500:{vc_kn:100,vw_kn:1000,vr_kn:1100,source_utilization:.454545},
       zero_concrete:{vc_kn:0,vw_kn:1000,vr_kn:1000,source_utilization:.5}}}}]}});await flush();
   assert.match(ids.get('columnForces').textContent,/-500/);assert.match(ids.get('columnForces').textContent,/0.454545/);
-  assert.match(ids.get('columnUnits').textContent,/tasarım Ve doğrulanmadı/);
-  assert.match(ids.get('columnContext').textContent,/48 kıyas/);
+  assert.match(ids.get('columnUnits').textContent,/Design Ve remains unverified/);
+  assert.match(ids.get('columnContext').textContent,/48 comparisons/);
   ids.get('columnView').trigger('change');await flush();const oldShear=take();
   ids.get('columnView').value='native';ids.get('columnView').trigger('change');await flush();
   take().done(transversePayload());await flush();oldShear.done(shearPayload());await flush();
   assert.doesNotMatch(ids.get('columnForces').textContent,/0.454545/);
   ids.get('columnView').value='shear';ids.get('columnView').trigger('change');await flush();
   const unboundShear=shearPayload();unboundShear.column_shear.source_transverse_result_sha256='OTHER';
-  take().done(unboundShear);await flush();assert.match(ids.get('columnStatus').textContent,/Kesme hesabının kaynak bağı/);
+  take().done(unboundShear);await flush();assert.match(ids.get('columnStatus').textContent,/Shear calculation source or conditional scope mismatch/);
   assert.equal(ids.get('columnForces').children.length,0);
   ids.get('columnView').trigger('change');await flush();const promoted=shearPayload();promoted.column_shear.vc_zero_gate.required=true;
-  take().done(promoted);await flush();assert.match(ids.get('columnStatus').textContent,/Kesme hesabının kaynak bağı/);
+  take().done(promoted);await flush();assert.match(ids.get('columnStatus').textContent,/Shear calculation source or conditional scope mismatch/);
   assert.equal(ids.get('columnExports').children.length,0);
   const jointsPayload=()=>{
     const p=transversePayload();p.result_sha256='BANK2';
@@ -234,8 +234,8 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
   const jointsRequest=take();assert.doesNotMatch(jointsRequest.url,/case=/);assert.equal(ids.get('columnCase').disabled,true);
   jointsRequest.done({...jointsPayload(),demand_page:{view:'joints',total:1,offset:0,limit:200,rows:[endRow]}});await flush();
   assert.match(ids.get('columnForces').textContent,/3786.29/);
-  assert.match(ids.get('columnForces').textContent,/Kuşatılmamış · eşmerkez senaryo/);
-  assert.match(ids.get('columnUnits').textContent,/Ve ve SCWB doğrulanmadı/);
+  assert.match(ids.get('columnForces').textContent,/Unconfined · centered scenario/);
+  assert.match(ids.get('columnUnits').textContent,/Ve and SCWB remain open/);
   assert.match(ids.get('columnContext').textContent,/B2/);
   ids.get('columnView').trigger('change');await flush();const oldJoint=take();
   ids.get('columnView').value='joint-ties';ids.get('columnView').trigger('change');await flush();
@@ -247,15 +247,15 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
   assert.match(ids.get('columnForces').textContent,/251.612/);assert.match(ids.get('columnForces').textContent,/V3/);
   oldJoint.done({...jointsPayload(),demand_page:{view:'joints',total:1,offset:0,limit:200,rows:[endRow]}});await flush();
   assert.doesNotMatch(ids.get('columnForces').textContent,/3786.29/);
-  assert.match(ids.get('columnUnits').textContent,/tam donatı ihtiyacı doğrulanmadı/);
+  assert.match(ids.get('columnUnits').textContent,/Full capacity shear reinforcement requires verification/);
   for (const change of [p=>p.column_joints.source_transverse_result_sha256='OTHER',p=>p.column_joints.physical_geometry_proven=true]) {
     ids.get('columnView').trigger('change');await flush();const invalid=jointsPayload();change(invalid);take().done(invalid);await flush();
-    assert.match(ids.get('columnStatus').textContent,/Birleşim hesabının kaynak bağı/);
+    assert.match(ids.get('columnStatus').textContent,/Joint calculation source or conditional scope mismatch/);
     assert.equal(ids.get('columnForces').children.length,0);assert.equal(ids.get('columnExports').children.length,0);
   }
   ids.get('columnView').value='cages';ids.get('columnView').trigger('change');await flush();
   const legacy=cagePayload();delete legacy.column_cages.axis_convention;take().done(legacy);await flush();
-  assert.match(ids.get('columnStatus').textContent,/Kesit eksen sözleşmesi eski veya belirsiz/);
+  assert.match(ids.get('columnStatus').textContent,/Section axis convention needs verification/);
   assert.equal(ids.get('columnExports').children.length,0);
   const kinematicsPayload=()=>{
     const p=jointsPayload();p.column_joints.result_sha256='JOINTS2';
@@ -279,7 +279,7 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
   const ends=take();assert.match(ends.url,/case=SUM/);assert.equal(ids.get('columnCase').disabled,false);
   ends.done({...kinematicsPayload(),demand_page:{view:'end-forces',total:1,offset:0,limit:200,rows:[linkedRow]}});await flush();
   assert.match(ids.get('columnForces').textContent,/-228.8/);assert.match(ids.get('columnForces').textContent,/E2B, 3.3/);
-  assert.match(ids.get('columnUnits').textContent,/P çekme pozitif/);
+  assert.match(ids.get('columnUnits').textContent,/P is positive in tension/);
   ids.get('columnView').trigger('change');await flush();const staleEnds=take();
   ids.get('columnView').value='kinematics';ids.get('columnView').trigger('change');await flush();
   take().done({...kinematicsPayload(),demand_page:{view:'kinematics',total:1,offset:0,limit:200,rows:[linkedRow]}});await flush();
@@ -291,7 +291,7 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
   for (const change of [p=>p.column_kinematics.source_joints_result_sha256='OTHER',p=>p.column_kinematics.actual_second_order_applied=true,
                        p=>p.column_kinematics.beta=1.2,p=>p.column_kinematics.coordinate_contract='POINT_LOCAL']) {
     ids.get('columnView').trigger('change');await flush();const invalid=kinematicsPayload();change(invalid);take().done(invalid);await flush();
-    assert.match(ids.get('columnStatus').textContent,/Kolon uç hareketlerinin kaynak bağı/);
+    assert.match(ids.get('columnStatus').textContent,/Column end kinematics source or analysis scope mismatch/);
     assert.equal(ids.get('columnForces').children.length,0);assert.equal(ids.get('columnExports').children.length,0);
   }
   const sensitivityPayload=()=>{
@@ -315,7 +315,7 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
   const stiffnessScenarios=take();assert.doesNotMatch(stiffnessScenarios.url,/case=/);assert.equal(ids.get('columnCase').disabled,true);
   stiffnessScenarios.done({...sensitivityPayload(),demand_page:{view:'stiffness-scenarios',total:1,offset:0,limit:200,rows:[referenceAxis]}});await flush();
   assert.match(ids.get('columnForces').textContent,/3.8400e\+13/);assert.match(ids.get('columnForces').textContent,/2.64, 4.8, 12/);
-  assert.match(ids.get('columnContext').textContent,/gerçek sünme oranı/);assert.match(ids.get('columnContext').textContent,/54379/);
+  assert.match(ids.get('columnContext').textContent,/creep/);assert.match(ids.get('columnContext').textContent,/54379/);
   ids.get('columnView').trigger('change');await flush();const oldReference=take();
   ids.get('columnView').value='length-sensitivity';ids.get('columnView').trigger('change');await flush();
   const lengths=take();assert.match(lengths.url,/case=SUM/);assert.equal(ids.get('columnCase').disabled,false);
@@ -324,15 +324,15 @@ const select=async n=>{ids.get('columnRun').value=run(n);ids.get('columnRun').tr
     reason:null,scenarios:[{creep_ratio_scenario:0,zero_denominator_length_mm:17074.335419,zero_length_exceeds_100i_reference:true,
       at_reference_lengths:[{lk_over_i_reference:100,effective_length_lk_mm_scenario:12000,nk_kn_scenario:2631,
         source_denominator:.5059,status:'POSITIVE_SOURCE_DENOMINATOR'}]}]}]}});await flush();
-  assert.match(ids.get('columnForces').textContent,/17.0743/);assert.match(ids.get('columnUnits').textContent,/İzin verilen boy/);
-  assert.match(ids.get('columnContext').textContent,/Kayıtlı N değerleri farklı/);assert.match(ids.get('columnContext').textContent,/540/);
+  assert.match(ids.get('columnForces').textContent,/17.0743/);assert.match(ids.get('columnUnits').textContent,/denominator vanishes/);
+  assert.match(ids.get('columnContext').textContent,/Recorded N values differ/);assert.match(ids.get('columnContext').textContent,/540/);
   oldReference.done({...sensitivityPayload(),demand_page:{view:'stiffness-scenarios',total:1,offset:0,limit:200,rows:[referenceAxis]}});await flush();
   assert.doesNotMatch(ids.get('columnForces').textContent,/3.8400e\+13/);
   for (const change of [p=>p.column_sensitivity.source_stability_result_sha256='OTHER',p=>p.column_sensitivity.policy.actual_ei_interval_proven=true,
     p=>p.column_sensitivity.actual_beta=1.2,p=>p.column_sensitivity.actual_effective_length_lk_mm=4000,
     p=>p.column_sensitivity.approximate_method_applicability_proven=true]) {
     ids.get('columnView').trigger('change');await flush();const invalid=sensitivityPayload();change(invalid);take().done(invalid);await flush();
-    assert.match(ids.get('columnStatus').textContent,/Etkin boy duyarlılığının kaynak bağı/);
+    assert.match(ids.get('columnStatus').textContent,/Effective length sensitivity source or scenario mismatch/);
     assert.equal(ids.get('columnForces').children.length,0);assert.equal(ids.get('columnExports').children.length,0);
   }
   console.log('VS11–VS19 column UI identity, filters, native axes, kinematics and stiffness/length parameter scope PASS');

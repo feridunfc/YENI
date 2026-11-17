@@ -17,7 +17,7 @@ import sqlite3
 from ..history import _RUN, _read_receipt
 from ..receipts import ReceiptRun
 from .native_archive import BankError, MAX_ARCHIVE_BYTES, canonical, digest, decode
-from .source_bank import SCHEMA, recover_column_bank
+from .source_bank import SCHEMA, engineering_evidence_gaps, recover_column_bank
 
 APP_ID = 0x59434F4C
 MAX_DATABASE_BYTES = 256 * 1024 * 1024
@@ -197,6 +197,8 @@ def read_column_bank(root, run_id, *, member_id=None, output_case=None, offset=0
         compact["case_coverage"] = [{"name": c["name"], "row_count": c["row_count"]} for c in report["case_coverage"]]
         return compact | projected
     report.update(projected)
+    # The source-bank digest refers to the stored SQLite result. This field is a presentation view.
+    report["engineering_evidence_gaps"] = engineering_evidence_gaps(report)
     if view == "spectral-envelopes":
         return report
     with closing(_readonly(database)) as db:

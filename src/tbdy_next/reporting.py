@@ -1,19 +1,23 @@
-"""Complete VS01/VS02 report exports from existing verified local receipts.
+"""Project finalized pipeline results into JSON and printable reports.
 
-Presentation only: uses *the same* modal and geometry evaluators to recheck the
-archived payload against receipts. No ETABS, no new engineering authority, no
-side effects. Full JSON preserves original source rows for independent audit.
+Older captures retain their original source-replay validation. New reports
+verify their archived source and receipt chain without evaluating checks.
 """
 from __future__ import annotations
 
-from collections import Counter
+from collections import Counter, defaultdict
+from decimal import Decimal
 from hashlib import sha256
 from html import escape
 import json
+import ntpath
 from pathlib import Path
+import re
 from typing import Any, Mapping
 
+from .check_labels import display_check, display_check_group
 from .history import _MAX_SOURCE_BYTES, _RUN, _read_modal_run, _read_receipt
+from .member_groups import geometry_groups, material_member_groups
 from .quick_checks import check_registry, evaluate_geometry_capture
 
 
@@ -26,7 +30,7 @@ def _column_cage_svg(cage, layout=None):
     w,h = cage["t3_mm"],cage["t2_mm"]  # CSI native T3 is along local 2.
     content = ('<figure><svg xmlns="http://www.w3.org/2000/svg" role="img" width="200" height="200" ' +
         f'viewBox="{-w/2-60} {-h/2-60} {w+120} {h+120}" aria-label="' + escape(cage["label"],quote=True) +
-        ' öneri kesiti"><rect ' + f'x="{-w/2}" y="{-h/2}" width="{w}" height="{h}" ' +
+        ' proposed section"><rect ' + f'x="{-w/2}" y="{-h/2}" width="{w}" height="{h}" ' +
         'fill="#edf1f6" stroke="#64748b" stroke-width="3"/>')
     if layout:
         for leg in layout["legs"]:
@@ -36,8 +40,8 @@ def _column_cage_svg(cage, layout=None):
                 ('stroke-dasharray="12 6" ' if leg["kind"]=="CROSSTIE" else '')+'/>')
     for bar in cage["bars"]:
         content += f'<circle cx="{bar["x2_mm"]}" cy="{-bar["x3_mm"]}" r="{bar["diameter_mm"]/2}" fill="#214e78"/>'
-    caption = ' · etriye/çiroz eksen şeması; kanca ve düşey yerleşim doğrulanmadı' if layout else ''
-    return content+'</svg><figcaption>'+escape(cage["label"])+caption+' · yerel 2 sağa, yerel 3 yukarı</figcaption></figure>'
+    caption = ' · Diagram of tie and crosstie centerlines. Hook and vertical layouts await verification.' if layout else ''
+    return content+'</svg><figcaption>'+escape(cage["label"])+caption+' · Local 2 points right and local 3 points up</figcaption></figure>'
 
 
 def build_column_bank_html(report: Mapping[str, Any]) -> str:
@@ -54,211 +58,212 @@ def build_column_bank_html(report: Mapping[str, Any]) -> str:
             "face_span": geom.get("observed_output_face_span_m"), "j_is_joint": geom.get("last_station_is_joint_j"),
             "status": row["force_status"], "reason": row["reason_codes"]})
     replay = report["static_replay"]
-    content = '<h1>Kolon kuvvet bankası ve statik birleşim doğrulaması</h1><p>' + _val(report["run_id"]) + '</p>'
+    content = '<h1>Column force bank and static combination verification</h1><p>' + _val(report["run_id"]) + '</p>'
     content += ('<p><strong>' + _val(report["observed_column_count"]) + '/' + _val(report["selected_column_count"]) +
-        ' seçili kolon · ' + _val(report["force_row_count"]) + ' kuvvet satırı · ' +
-        _val(report["recorded_output_count"]) + ' kayıtlı vaka/birleşim</strong></p>')
-    content += ('<p>Bu arşivin model ve analiz kimliği seçili başka bir YENI kaydına otomatik bağlanmaz. ' +
-        'Native P, V2, V3, T, M2, M3 işaretleri ve analiz elemanı/istasyon/adım kimlikleri korunur. ' +
-        'RS veya zarfın aynı satırındaki bileşenler eşzamanlı tasarım vektörü olarak onaylanmaz. ' +
-        'Mühendislik uygunluğu <strong>NOT_PROVEN / NOT_READY</strong>.</p>')
-    content += '<h2>Kolonlar ve kaynak kesitleri</h2>' + _table((
-        ("member", "Kolon"), ("story", "Kat"), ("section", "Kaynak kesiti"), ("b2", "b2 (cm)"),
-        ("b3", "b3 (cm)"), ("fc", "Fc (MPa)"), ("fy", "Fy (MPa)"), ("rows", "Satır"),
-        ("elements", "Analiz elemanları"), ("length", "I–J boyu (m)"), ("j_offset", "J offset (m)"),
-        ("face_span", "Çıktı yüzleri arası (m)"), ("j_is_joint", "Son çıktı J düğümünde"),
-        ("status", "Kaynak"), ("reason", "Açık neden")), members)
-    content += ('<p>Çıktı yüzleri arası mesafe, TS500 serbest veya etkili boy kabulü değildir. ' +
-        'Model donatı ayarları gerçek ya da seçilmiş tasarım kafesi yerine kullanılmaz.</p>')
-    content += '<h2>Vaka/birleşim kapsamı</h2>' + _table((
-        ("name", "Kaynak adı"), ("kind", "Tür"), ("case_type", "Native vaka türü"), ("operator", "Native işlem"),
-        ("row_count", "Satır"), ("members_with_rows", "Verili kolon"), ("expected_members", "Beklenen"),
-        ("step_types", "Adım türleri"), ("step_numbers", "Adım/mod numarası"), ("missing_members", "Eksikler")), report["case_coverage"])
-    content += ('<h2>Statik Linear Add yeniden hesabı</h2><p>' + _val(replay["matched_rows"]) +
-        ' satır / ' + _val(replay["scalar_comparisons"]) + ' skaler karşılaştırma. En büyük mutlak fark: ' +
-        _val(replay["maximum_absolute_difference"]) + '. Sayısal tolerans: ' +
-        _val(replay["absolute_tolerance_native"]) + ' + ' + _val(replay["relative_tolerance"]) +
-        ' × max(|hesap|, |kaynak|); ilgili native kN veya kN-m biriminde.</p>')
-    content += _table((("combination", "Birleşim"), ("status", "Kaynak aritmetiği"),
-        ("expected_rows", "Beklenen satır"), ("matched_rows", "Eşleşen"), ("mismatched_rows", "Farklı"),
-        ("unresolved_rows", "Çözümlenemeyen"), ("maximum_absolute_difference", "En büyük |Δ|"),
-        ("reason", "Kapsam / neden")), replay["combinations"])
+        ' selected columns · ' + _val(report["force_row_count"]) + ' force rows · ' +
+        _val(report["recorded_output_count"]) + ' recorded cases and combinations</strong></p>')
+    content += ('<p>This archive has its own model and analysis identity. Linking it to a separate YENI run requires verification. ' +
+        'Native P, V2, V3, T, M2 and M3 signs and analysis element, station and step identifiers are preserved. ' +
+        'Components from a response spectrum or envelope row require verification before use as a concurrent design vector. ' +
+        'Engineering compliance is <strong>NOT_PROVEN / NOT_READY</strong>.</p>')
+    content += '<h2>Columns and source sections</h2>' + _table((
+        ("member", "Column"), ("story", "Story"), ("section", "Source section"), ("b2", "b2 (cm)"),
+        ("b3", "b3 (cm)"), ("fc", "Fc (MPa)"), ("fy", "Fy (MPa)"), ("rows", "Row"),
+        ("elements", "Analysis elements"), ("length", "I–J boyu (m)"), ("j_offset", "J offset (m)"),
+        ("face_span", "Output-face spacing (m)"), ("j_is_joint", "Final output at node J"),
+        ("status", "Source"), ("reason", "Open issue")), members)
+    content += ('<p>TS500 clear and effective lengths require separate verification from output-face spacing. ' +
+        'Verification of the actual or selected design cage requires independent evidence beyond the model reinforcement settings.</p>')
+    content += '<h2>Case and combination coverage</h2>' + _table((
+        ("name", "Source name"), ("kind", "Type"), ("case_type", "Native case type"), ("operator", "Native operation"),
+        ("row_count", "Row"), ("members_with_rows", "Columns with data"), ("expected_members", "Expected"),
+        ("step_types", "Step types"), ("step_numbers", "Step or mode number"), ("missing_members", "Eksikler")), report["case_coverage"])
+    content += ('<h2>Static Linear Add recalculation</h2><p>' + _val(replay["matched_rows"]) +
+        ' rows / ' + _val(replay["scalar_comparisons"]) + ' scalar comparisons. Maximum absolute difference ' +
+        _number_html(replay["maximum_absolute_difference"], 6) + '. Numerical tolerance ' +
+        _number_html(replay["absolute_tolerance_native"], 6) + ' + ' +
+        _number_html(replay["relative_tolerance"], 6) +
+        ' × max(|calculated|, |source|) in the corresponding native kN or kN·m unit.</p>')
+    content += _table((("combination", "Combination"), ("status", "Source expression"),
+        ("expected_rows", "Expected rows"), ("matched_rows", "Matched"), ("mismatched_rows", "Different"),
+        ("unresolved_rows", "Unresolved"), ("maximum_absolute_difference", "Maximum |Δ|"),
+        ("reason", "Coverage or issue")), replay["combinations"])
     chain = report.get("demand_chain")
     if chain:
         design = chain["design_summary"]
-        content += ('<h2>CE-02 · Kolon kuvvet zinciri</h2><p>' + _val(chain["combination_count"]) +
-            ' birleşim; ' + _val(chain["static_candidate_count"]) + ' doğrulanmış statik kaynak adayı. ' +
-            'N basınç pozitif = −P; yerel V2/V3 işaretleri korunur; T/M2/M3 × 100 ile kN·cm birimine çevrilir. ' +
-            'Çekme sıfırlanmaz; J ucunda ek işaret dönüşümü yapılmaz. Analiz mertebesi ve tasarım seçimi ' +
-            'NOT_PROVEN; bunlar büyütülmüş tasarım momentleri değildir.</p>')
-        content += _table((("combination", "Birleşim"), ("classification", "Kaynak sınıfı"),
-            ("case_names", "Kaynak vakalar"), ("static_candidate_count", "Statik aday"),
-            ("reason", "Açık neden")), chain["combinations"])
-        content += ('<h3>ETABS kritik birleşim referansları</h3><p>' + _val(design["row_count"]) +
-            ' tasarım özeti satırı; ' + _val(design["reference_count"]) + ' PMM/VMaj/VMin referansı; ' +
-            _val(design["known_combination_references"]) + ' tanımlı birleşim bağı; ' +
-            _val(design["unique_static_links"]) + ' tekil statik kaynak bağı. ' +
-            _val(design["ambiguous_design_station_rows"]) + ' çift istasyon kaydı ve ' +
-            _val(design["references_without_exact_station"]) + ' kesin istasyon eşleşmesi bulunmayan referans ' +
-            'ayrı sayılır; bu iki eksik örtüşebilir.</p>')
-        content += ('<p>Özet istasyonu yuvarlanmaz, yakın kuvvet satırı seçilmez. PMMRatio alanında ' +
-            _val(design["null_pmm_ratio_rows"]) + ' boş hücre var; boş oran sıfır veya PASS sayılmaz. ' +
-            'VMaj/VMin ile V2/V3 eşlemesi onaylanmadı. ETABS tasarım özeti, tam tasarım birleşimi ' +
-            'seçiminin veya bağımsız kapasite doğrulamasının yerine geçmez.</p>')
+        content += ('<h2>CE-02 · Column force trace</h2><p>' + _val(chain["combination_count"]) +
+            ' combinations and ' + _val(chain["static_candidate_count"]) + ' verified static source candidates. ' +
+            'N = −P with compression positive. Local V2 and V3 signs are preserved. T, M2 and M3 are multiplied by 100 to convert to kN·cm. ' +
+            'Tension is retained and the source signs at end J are preserved. The analysis order and design selection are ' +
+            'NOT_PROVEN. The moments shown are the source values before magnification.</p>')
+        content += _table((("combination", "Combination"), ("classification", "Source class"),
+            ("case_names", "Source cases"), ("static_candidate_count", "Static candidate"),
+            ("reason", "Open issue")), chain["combinations"])
+        content += ('<h3>ETABS governing combination references</h3><p>' + _val(design["row_count"]) +
+            ' design summary rows, ' + _val(design["reference_count"]) + ' PMM/VMaj/VMin references, ' +
+            _val(design["known_combination_references"]) + ' links to defined combinations and ' +
+            _val(design["unique_static_links"]) + ' links to unique static sources. ' +
+            _val(design["ambiguous_design_station_rows"]) + ' duplicate station records and ' +
+            _val(design["references_without_exact_station"]) + ' references lacking an exact station match ' +
+            'are counted separately. These groups may overlap.</p>')
+        content += ('<p>Matching uses the exact summary station. The PMMRatio field contains ' +
+            _val(design["null_pmm_ratio_rows"]) + ' blank cells, which are treated as unknown. ' +
+            'The mapping from VMaj/VMin to V2/V3 awaits verification. The ETABS design summary provides references. Full coverage of the selected design combinations ' +
+            'and independent capacity verification require separate evidence.</p>')
         if design.get("reason"):
-            content += '<p>Özet kaynağı: ' + _val(design["reason"]) + '</p>'
-        content += _table((("member_id", "Kolon"), ("static_candidate_count", "Statik aday"),
-            ("design_rows", "Tasarım satırı"), ("unique_static_links", "Tekil statik bağ"),
-            ("pmm_combinations", "PMM referansları"), ("major_shear_combinations", "Büyük yön kesme"),
-            ("minor_shear_combinations", "Küçük yön kesme")), chain["members"])
-        content += ('<p>Tam JSON çıktısında her adayın yedi alanlı native anahtarı, kaynak satırı, ' +
-            'birleşim katsayıları, altı kuvvet bileşeni ve tasarım özeti satır bağlantıları bulunur. ' +
-            'SQLite mevcut ham kuvvet bankasıdır; bu görünüm okuma sırasında türetilir.</p>')
-        content += '<p>Talep görünümü SHA-256: ' + _val(chain["result_sha256"]) + '</p>'
+            content += '<p>Summary source ' + _val(design["reason"]) + '</p>'
+        content += _table((("member_id", "Column"), ("static_candidate_count", "Static candidate"),
+            ("design_rows", "Design row"), ("unique_static_links", "Unique static link"),
+            ("pmm_combinations", "PMM references"), ("major_shear_combinations", "Major-axis shear"),
+            ("minor_shear_combinations", "Minor-axis shear")), chain["members"])
+        content += ('<p>The full JSON export includes each candidate’s seven-field native key, source row, ' +
+            'combination factors, six force components and design summary links. ' +
+            'The view is derived on read from the raw SQLite force bank.</p>')
+        content += '<p>Demand view SHA-256 ' + _val(chain["result_sha256"]) + '</p>'
     prechecks = report.get("column_prechecks")
     if prechecks:
         critical, bounds = prechecks["critical_selection"], prechecks["reinforcement_bounds"]
-        content += ('<h2>VS13 · Kritik statik kayıtlar</h2><p>' + _val(critical["candidate_count"]) +
-            ' statik aday içinden ' + _val(critical["critical_state_count"]) + ' kaynak kaydı kritik ölçütlerle işaretlendi. ' +
-            'Eşit kritikler ve karşıt işaretler korunur. Bu seçim PMM için tam talep nüfusunun yerine geçmez; ' +
-            'ayrı satırların bileşen maksimumları tek vektöre birleştirilmez.</p>')
+        content += ('<h2>VS13 · Governing static records</h2><p>' + _val(critical["candidate_count"]) +
+            ' static candidates yielded ' + _val(critical["critical_state_count"]) + ' source records flagged by the governing criteria. ' +
+            'The selection retains ties and both signs. PMM requires the full demand population. ' +
+            'Each reported vector uses components from a single source row.</p>')
         extrema = [{**m, **{c["criterion"]: c["magnitude"] for c in m["criteria"]}} for m in critical["members"]]
-        content += _table((("member_id", "Kolon"), ("candidate_count", "Statik aday"),
-            ("expected_static_states", "Kaynak kapsamı beklenen"), ("source_subset_coverage", "Altküme kapsamı"),
-            ("N_COMPRESSION_MAX", "Basınç (kN)"), ("N_TENSION_MAX", "Çekme büyüklüğü (kN)"),
+        content += _table((("member_id", "Column"), ("candidate_count", "Static candidate"),
+            ("expected_static_states", "Expected source coverage"), ("source_subset_coverage", "Subset coverage"),
+            ("N_COMPRESSION_MAX", "Compression (kN)"), ("N_TENSION_MAX", "Tension magnitude (kN)"),
             ("M2_ABS_MAX", "|M2| (kN·cm)"), ("M3_ABS_MAX", "|M3| (kN·cm)"),
             ("V2_ABS_MAX", "|V2| (kN)"), ("V3_ABS_MAX", "|V3| (kN)"), ("T_ABS_MAX", "|T| (kN·cm)")), extrema)
-        content += ('<p>Bu tablodaki sütunlar bağımsız ekstrem büyüklüklerdir. Aynı satırdaki sayılar birlikte ' +
-            'etkiyen bir kuvvet vektörü oluşturmaz. Tam vektörler ve ölçüt→state_id bağları JSON çıktısındadır.</p>')
-        content += ('<h2>Boyuna donatı alan sınırları · TBDY 2018 7.3.2.1</h2><p>' +
+        content += ('<p>Each column is an independent extreme. Use the complete vectors and the criterion-to-state_id links ' +
+            'in the JSON export for concurrent force components.</p>')
+        content += ('<h2>Longitudinal reinforcement area limits · TBDY 2018 7.3.2.1</h2><p>' +
             _val(bounds["calculated_member_count"]) + '/' + _val(bounds["selected_member_count"]) +
-            ' kolon için Ac=b2×b3; As,min=0.01Ac; As,max=0.04Ac hesaplandı. ' +
-            'Sınırlar dahildir; bu alan alt hesabı süneklik sınıfını, gerçek donatı kafesini, çap/adet veya ' +
-            'bindirme koşullarını doğrulamaz. Bindirmeli kesit için %6 sınırı genel %4 üst sınırın yerine geçmez.</p>')
-        content += _table((("member_id", "Kolon"), ("story", "Kat"), ("section_name", "Kesit"),
+            ' columns evaluated using Ac=b2×b3, As,min=0.01Ac and As,max=0.04Ac. ' +
+            'Limits are inclusive. Ductility class, actual cage, bar diameter and count, and lap splice conditions require separate verification. ' +
+            'The 6% limit at lap splices applies separately from the general 4% upper limit.</p>')
+        content += _table((("member_id", "Column"), ("story", "Story"), ("section_name", "Section"),
             ("gross_area_cm2", "Ac (cm²)"), ("minimum_as_cm2", "As,min (cm²)"), ("maximum_as_cm2", "As,max (cm²)"),
-            ("provided_as_cm2", "Doğrulanmış mevcut As"), ("status", "Alan hesabı"), ("reason", "Açık neden")), bounds["rows"])
-        content += '<p>Kaynak AsMin sayısal kıyası: ' + _val(bounds["source_comparison_counts"]) + '</p>'
-        content += ('<p>Kaynak AsMin, yerleştirilmiş donatı değildir. Referans altından veya üstünden farklı ' +
-            'bir değer görülmesi tek başına yönetmelik ihlali veya mühendislik kabulü üretmez. ' +
-            'Mevcut statik birleşimlerden normatif G+Q+E maksimum eksenel talebi türetilmedi.</p>')
-        content += '<p>Ön hesap SHA-256: ' + _val(prechecks["result_sha256"]) + '</p>'
+            ("provided_as_cm2", "Verified installed As"), ("status", "Area calculation"), ("reason", "Open issue")), bounds["rows"])
+        content += '<p>Numerical comparison with source AsMin ' + _val(bounds["source_comparison_counts"]) + '</p>'
+        content += ('<p>Source AsMin is a model output. Differences from the reference bounds are numerical comparisons. ' +
+            'Code compliance and engineering acceptance require further evidence. ' +
+            'A governing axial demand for the code combination G+Q+E still requires verification.</p>')
+        content += '<p>Preliminary calculation SHA-256 ' + _val(prechecks["result_sha256"]) + '</p>'
     stability = report.get("column_stability")
     if stability:
-        content += ('<h2>VS14 · Kesit rijitliği ve boylar</h2><p>' + _val(stability["calculated_section_count"]) +
-            ' kolonda ' + _val(stability["distinct_section_count"]) + ' farklı dikdörtgen kesit; ' +
-            _val(stability["native_property_match_count"]) + ' A/I/r kaynak kıyası eşleşti. ' +
-            'E×I gözlenen elastisite modülüyle bulunan brüt rijitliktir; etkili EI veya analiz rijitliği değildir. ' +
-            'r=√(I/A) ile TS500 0,30h yaklaşımı ayrı tutulur.</p>')
+        content += ('<h2>VS14 · Section stiffness and lengths</h2><p>' + _val(stability["calculated_section_count"]) +
+            ' columns with ' + _val(stability["distinct_section_count"]) + ' distinct rectangular sections and ' +
+            _val(stability["native_property_match_count"]) + ' matching A, I and r source comparisons. ' +
+            'E×I is the gross stiffness calculated with the observed modulus of elasticity. Effective and analysis stiffness require separate evidence. ' +
+            'The report evaluates r=√(I/A) and the TS500 0.30h approximation separately.</p>')
         stiffness_rows = []
         for row in stability["sections"]:
             section, elastic = row["section"] or {}, row["elastic"] or {}
             stiffness_rows.append({**row, **section, **elastic, **row["lengths"]})
-        content += _table((("member_id", "Kolon"), ("section_name", "Kesit"), ("i22_mm4", "I22 (mm⁴)"),
+        content += _table((("member_id", "Column"), ("section_name", "Section"), ("i22_mm4", "I22 (mm⁴)"),
             ("i33_mm4", "I33 (mm⁴)"), ("r22_exact_mm", "r22 (mm)"), ("r33_exact_mm", "r33 (mm)"),
-            ("observed_E_MPa", "E (MPa)"), ("object_i_j_m", "I–J (m)"), ("output_face_span_m", "Çıktı aralığı (m)"),
-            ("property_comparison_status", "Kaynak kıyası")), stiffness_rows)
-        content += ('<p>Çıktı aralığı serbest boy değildir. TS500 serbest boyu, k, ötelenebilirlik, sünme, ' +
-            'uç momenti eğrilik işareti ve analiz esası bağlanmadan gerçek kuvvetlere büyütme uygulanmaz. ' +
-            '7.29 metnindeki serbest boy ifadesi ile basılı lk sembolü uyuşmadığından bu karar NOT_PROVEN kalır.</p>')
+            ("observed_E_MPa", "E (MPa)"), ("object_i_j_m", "I–J (m)"), ("output_face_span_m", "Output spacing (m)"),
+            ("property_comparison_status", "Source comparison")), stiffness_rows)
+        content += ('<p>TS500 moment magnification requires verified clear length, k, sidesway classification, creep, ' +
+            'end-moment curvature signs and analysis basis. ' +
+            'The decision is NOT_PROVEN because the clear length in the text of 7.29 conflicts with the printed symbol lk.</p>')
         ecc = stability["eccentricity"]
-        content += ('<h2>Minimum dışmerkezlik referansı · TS500 6.16</h2><p>Native T3 yerel 2, T2 yerel 3 boyutudur. e,min=15+0,03h (mm); M2 için h=T2, ' +
-            'M3 için h=T3. ' + _val(ecc["state_count"]) + ' statik kaynak kaydında ' + _val(ecc["axis_comparison_count"]) +
-            ' eksen kaydı: ' + _val(ecc["status_counts"]) + '. Basınç olmayan satırlar ayrı tutulur. ' +
-            'Bu hüküm tasarım uç momentine yöneliktir; iç istasyon kıyasları normatif ihlal/başarı sayılmaz. ' +
-            'Kaynak vektörleri değiştirilmez; tam satır izleri JSON çıktısındadır.</p>')
-        content += _table((("member_id", "Kolon"), ("candidate_count", "Statik kayıt"),
-            ("m2_counts", "M2 kaynak kıyası"), ("m3_counts", "M3 kaynak kıyası")), ecc["members"])
-        content += '<p>Rijitlik ve dışmerkezlik SHA-256: ' + _val(stability["result_sha256"]) + '</p>'
-        content += '<p>Dayanak: <a href="' + escape(stability["reference_url"], quote=True) + '">TS500/2000 metin kopyası (EMU)</a>.</p>'
+        content += ('<h2>Minimum eccentricity reference · TS500 6.16</h2><p>Native T3 is the local 2 dimension and T2 is the local 3 dimension. e,min=15+0.03h (mm), with h=T2 for M2 and ' +
+            'h=T3 for M3. ' + _val(ecc["state_count"]) + ' static source records with ' + _val(ecc["axis_comparison_count"]) +
+            ' axis records. ' + _val(ecc["status_counts"]) + '. Rows without compression are listed separately. ' +
+            'The rule applies to design end moments. Comparisons at interior stations serve as numerical references. ' +
+            'Source vectors and full row traces are available in the JSON export.</p>')
+        content += _table((("member_id", "Column"), ("candidate_count", "Static record"),
+            ("m2_counts", "M2 source comparison"), ("m3_counts", "M3 source comparison")), ecc["members"])
+        content += '<p>Stiffness and eccentricity SHA-256 ' + _val(stability["result_sha256"]) + '</p>'
+        content += '<p>Dayanak: <a href="' + escape(stability["reference_url"], quote=True) + '">TS500/2000 copy (EMU)</a>.</p>'
     cages = report.get("column_cages")
     if cages:
-        content += ('<h2>VS15 · Öneri donatı yerleşimleri</h2><p>' + _val(cages["bound_member_count"]) +
-            ' kolonda üç öneri: 16Φ24 / 16Φ28 / 16Φ32; önerilen etriye Φ12 (TS500 7.4.1 çap alt sınırı). Bunlar mevcut veya seçilmiş donatı değildir. ' +
-            'CSI örtüsü etriyenin dış yüzünedir; boyuna çubuk merkez mesafesi = model örtüsü + önerilen etriye çapı + φ/2. ' +
-            'Modeldeki çubuk adı bir çap ölçüsü olarak kullanılmaz.</p>')
-        content += _table((("profile_id","Kesit profili"),("label","Öneri"),("as_cm2","As (cm²)"),
-            ("rho_percent","ρ (%)"),("center_offset_mm","Merkez örtüsü (mm)"),
-            ("minimum_clear_spacing_mm","Net aralık (mm)"),("area_ratio_status","Alan kıyası"),
-            ("spacing_status","Aralık kapsamı"),("reason","Açık neden")),cages["candidates"])
+        content += ('<h2>VS15 · Proposed reinforcement layouts</h2><p>' + _val(cages["bound_member_count"]) +
+            ' columns with three proposed layouts each, 16Φ24, 16Φ28 and 16Φ32. The proposed Φ12 tie uses the TS500 7.4.1 minimum diameter. Installed or selected reinforcement requires separate evidence. ' +
+            'CSI cover is measured to the outside face of the tie. Cover to the longitudinal bar center equals model cover plus proposed tie diameter plus φ/2. ' +
+            'Model bar names are identifiers. Bar diameters come from the proposal.</p>')
+        content += _table((("profile_id","Section profile"),("label","Proposal"),("as_cm2","As (cm²)"),
+            ("rho_percent","ρ (%)"),("center_offset_mm","Cover to bar center (mm)"),
+            ("minimum_clear_spacing_mm","Clear spacing (mm)"),("area_ratio_status","Area comparison"),
+            ("spacing_status","Spacing coverage"),("reason","Open issue")),cages["candidates"])
         for cage in cages["candidates"]:
             layout = next((p["layout"] for p in (report.get("column_transverse") or {}).get("proposals",[])
                 if p["candidate_id"]==cage["candidate_id"]),None)
             if cage["geometry_status"] == "PROPOSED_GEOMETRY_CALCULATED": content += _column_cage_svg(cage,layout)
-        content += ('<p>Boyuna yerleşim önerisi; etriye/çiroz detay çizimi değildir. Agrega çapı, sargı, bindirme, ' +
-            'çap tedariki ve proje malzeme katsayılarının kabulü açık kalır. Üç aday tüm donatı seçeneklerini kapsamaz; ' +
-            'otomatik seçim veya optimum tasarım üretilmez.</p>')
-        content += '<p>Donatı önerileri SHA-256: '+_val(cages["result_sha256"])+ '</p>'
+        content += ('<p>The proposals cover longitudinal layouts. Tie and crosstie detailing, aggregate diameter, confinement, splices, ' +
+            'bar availability and project material factor acceptance require verification. ' +
+            'The three layouts are evaluated as candidates for engineering review.</p>')
+        content += '<p>Reinforcement proposals SHA-256 '+_val(cages["result_sha256"])+ '</p>'
     pmm = report.get("column_pmm")
     if pmm:
-        content += ('<h2>Koşullu PMM · Tam statik kaynak nüfusu</h2><p>' + _val(pmm["static_state_count"]) +
-            ' statik durum × 3 öneri = ' + _val(pmm["assessment_count"]) + ' kıyas. Kaynak kuvvetleri değiştirilmez. ' +
-            'N=−P; M2/M3 CSI yerel işaretindedir. γc=1,5 ve γs=1,15 açık hesap senaryosudur; proje kabulü değildir. ' +
-            'Çelik gerinimi çubuk merkezinde, çubuğun betonla çakışması dairesel disk kesişim alanı ve birinci momentleriyle hesaplanır.</p>')
-        content += '<p>Sayısal durumlar: '+_val(pmm["status_counts"])+'. Açık nedenler: '+_val(pmm["reason_counts"])+'.</p>'
+        content += ('<h2>Conditional PMM · Full static source population</h2><p>' + _val(pmm["static_state_count"]) +
+            ' static states × 3 layouts = ' + _val(pmm["assessment_count"]) + ' comparisons using the original source forces. ' +
+            'N=−P. M2 and M3 use the CSI local signs. γc=1.5 and γs=1.15 are calculation scenario inputs pending project acceptance. ' +
+            'Steel strain is evaluated at each bar center. The circular disk intersection area and first moments account for overlap with the concrete.</p>')
+        content += '<p>Numerical states '+_val(pmm["status_counts"])+'. Open issues '+_val(pmm["reason_counts"])+'.</p>'
         summary_rows = []
         for item in pmm["members"]:
             summary_rows.append({**item,"maximum_resolved_utilization":round(item["maximum_resolved_utilization"],6)
                 if item["maximum_resolved_utilization"] is not None else None,
                 "critical_keys":[s["native_key"] for s in item["critical_resolved_states"]]})
-        content += _table((("member_id","Kolon"),("story","Kat"),("candidate_label","Öneri"),("as_cm2","As (cm²)"),
-            ("static_state_count","Statik kayıt"),("maximum_resolved_utilization","En büyük çözülen koşullu oran"),
-            ("critical_keys","Kritik kaynak anahtarı"),("status_counts","Sayısal kapsam"),
-            ("numeric_population_complete","Sayısal nüfus tamam")),summary_rows)
-        content += ('<p>72/144/288 açısal örnekle başlanır; gerekirse 1152’ye kadar sıklaştırılır. Kuvvet artığı ≤1 N; ' +
-            'iki ardışık radyal fark ≤0,001 kN·m + %0,2 bağıl bütçe. Bu gözlenen kararlılıktır; sürekli zarf hatası için ' +
-            'kanıt değildir. Belirsiz çözüm veya sayısal sınır bandı kapasite aşımı/başarısı sayılmaz. Koşullu oran, sabit N’deki moment büyüklüğünün ' +
-            'aynı N ve moment doğrultusunda çözülen gerinim uyumlu kapasiteye oranıdır; ETABS tasarım PMM oranı değildir. ' +
-            'En ince açısal kesişim aralığında N(c,θ)=Nkaynak ve M2·u3−M3·u2=0 birlikte çözülür; ' +
-            'doğrultu artığı ≤1000 N·mm. Ara açılarda yeni eksenel denge çözülür; gerinim düzlemi enterpole edilmez.</p>')
-        content += ('<p>Minimum dışmerkezlik ve ikinci mertebe uygulanmadı. Depremli tam tasarım nüfusu, gerçek donatı, ' +
-            'detay koşulları ve nihai seçim doğrulanmadı: <strong>DENIED / NOT_PROVEN / NOT_READY</strong>. ' +
-            'Tam JSON, her kaynak vektörünü, aday kimliğini, yakınsama geçmişini ve çözülen θ/c/N/M2/M3 noktasını içerir.</p>')
-        content += '<p>Koşullu PMM SHA-256: '+_val(pmm["result_sha256"])+ '</p>'
-        content += '<p>Hesap dayanakları: '+', '.join('<a href="'+escape(url,quote=True)+'">'+escape(name)+'</a>'
+        content += _table((("member_id","Column"),("story","Story"),("candidate_label","Proposal"),("as_cm2","As (cm²)"),
+            ("static_state_count","Static record"),("maximum_resolved_utilization","Maximum resolved conditional ratio"),
+            ("critical_keys","Governing source key"),("status_counts","Numerical coverage"),
+            ("numeric_population_complete","Full numerical population")),summary_rows)
+        content += ('<p>Angular sampling starts at 72, 144 and 288 and can refine to 1152. The force residual is ≤1 N. ' +
+            'The difference between consecutive radial solutions is ≤0.001 kN·m plus a 0.2% relative allowance. These are observed convergence measures. ' +
+            'Unresolved solutions and numerical boundary cases require review. The conditional ratio divides moment demand at fixed N by ' +
+            'the strain-compatible capacity at the same N and moment direction. The ETABS design PMM ratio is a separate quantity. ' +
+            'The solver finds N(c,θ)=Nsource and M2·u3−M3·u2=0 together within the finest angular bracket, ' +
+            'with a direction residual ≤1000 N·mm. Axial equilibrium is solved at each intermediate angle using strain compatibility.</p>')
+        content += ('<p>The calculation uses the source moments before minimum eccentricity or second-order adjustments. ' +
+            'The complete seismic design population, actual reinforcement, detailing and final selection remain <strong>DENIED / NOT_PROVEN / NOT_READY</strong>. ' +
+            'The full JSON includes each source vector, candidate ID, convergence history and resolved θ/c/N/M2/M3 point.</p>')
+        content += '<p>Conditional PMM SHA-256 '+_val(pmm["result_sha256"])+ '</p>'
+        content += '<p>Calculation references '+', '.join('<a href="'+escape(url,quote=True)+'">'+escape(name)+'</a>'
             for name,url in cages["references"].items())+'</p>'
     transverse = report.get("column_transverse")
     if transverse:
-        content += ('<h2>VS16 · Etriye ve çiroz önerileri</h2><p>' + _val(transverse["bound_member_count"]) +
-            ' kolonda enine donatı malzemesi kendi native kaydından bağlandı. Φ12/100 önerisi: bir kapalı dış etriye ve ' +
-            'her yönde üç çiroz; her yönde beş etkin kol varsayımı. Çizgiler eksen izdüşümüdür; kanca, büküm ve düşey ' +
-            'yerleşimin uygulanabilirliği doğrulanmış değildir. Native etriye adları ve kol sayıları tasarım detayı sayılmaz.</p>')
-        content += _table((("profile_id","Kesit profili"),("confinement_material","Enine donatı malzemesi"),
-            ("observed_fywk_mpa","Kaynak fywk (MPa)"),("scenario_fywd_mpa","Senaryo fywd (MPa)"),
-            ("steel_grade_compliance","Çelik sınıfı kabulü")),transverse["profiles"])
+        content += ('<h2>VS16 · Proposed ties and crossties</h2><p>' + _val(transverse["bound_member_count"]) +
+            ' columns with transverse reinforcement material linked to its native record. The Φ12/100 proposal uses one closed perimeter tie and ' +
+            'three crossties per direction, with five assumed effective legs per direction. Lines show projected centerlines. Hooks, bends and vertical placement require verification. ' +
+            'Native tie names and leg counts identify source records.</p>')
+        content += _table((("profile_id","Section profile"),("confinement_material","Transverse reinforcement material"),
+            ("observed_fywk_mpa","Source fywk (MPa)"),("scenario_fywd_mpa","Scenario fywd (MPa)"),
+            ("steel_grade_compliance","Steel grade acceptance")),transverse["profiles"])
         proposal_rows = []
         for p in transverse["proposals"]:
             for name,axis in p["axes"].items():
                 proposal_rows.append({**p,**axis,**axis["confinement"],"core_area_mm2":p["layout"]["core_area_mm2"]})
-        content += _table((("candidate_label","Boyuna öneri"),("shear_axis","Kesme yönü"),("bk_axis","bk ekseni"),
+        content += _table((("candidate_label","Longitudinal proposal"),("shear_axis","Shear direction"),("bk_axis","bk ekseni"),
             ("core_area_mm2","Ack (mm²)"),("bk_mm","bk (mm)"),("asw_mm2","Asw (mm²)"),("ash_mm2","Ash (mm²)"),
-            ("high_axial_required_ash_mm2","Ash yüksek N (mm²)"),("low_axial_required_ash_mm2","Ash düşük N (mm²)"),
-            ("maximum_lateral_leg_spacing_mm","Yatay kol aralığı (mm)"),("confinement_spacing_max_mm","Sarılma s üst sınırı (mm)")),proposal_rows)
-        content += ('<p>Ack dıştan dışa sargı alanı; bk en dış etriye eksenleri arasıdır (TBDY 7.0). Ash, bk’ya dik kol ' +
-            'izdüşümleri; Asw, kesme yönüne paralel kollardır. Bu ortogonal öneride sayısal olarak eşittir; genel olarak ' +
+            ("high_axial_required_ash_mm2","Ash at high N (mm²)"),("low_axial_required_ash_mm2","Ash at low N (mm²)"),
+            ("maximum_lateral_leg_spacing_mm","Horizontal leg spacing (mm)"),("confinement_spacing_max_mm","Maximum confinement spacing s (mm)")),proposal_rows)
+        content += ('<p>Ack is the outside-to-outside confined area, and bk is the distance between the outermost tie centerlines (TBDY 7.0). Ash uses leg projections perpendicular to bk. ' +
+            'Asw uses legs parallel to the shear direction. Their numerical equality here follows from the orthogonal layout. ' +
             'birbirinin yerine konmaz. Denklem 7.1: max[0,30·s·bk·(Ac/Ack−1)·fck/fywk; 0,075·s·bk·fck/fywk]. ' +
-            'Nd≤0,20Acfck dalı bunun 2/3’üdür. Tam depremli eksenel yük nüfusu bağlı olmadığından iki dal da gösterilir; ' +
-            'hiçbiri seçilmez. 50≤s≤min(bmin/3,6φboyuna,150) ve yatay aralık≤25φetriye ayrı referanslardır.</p>')
-        content += ('<p>Sarılma bölgesinin gerçek uzunluğu henüz hesaplanamaz: kiriş yüzleri arası serbest boy ve konsol ' +
-            'durumu doğrulanmadı. Normal kolon referansı max(ln/6,1,5hmax,500), konsol alt ucu 2hmax. Öneri kancalar ' +
-            '135°/135°, iç büküm çapı≥5φ, düz kuyruk≥max(6φ,80); üç boyutlu imalat detayı değildir. Genel uygunluk ' +
-            've nihai donatı seçimi NOT_PROVEN kalır.</p>')
-        content += '<p>Enine donatı önerisi SHA-256: '+_val(transverse["result_sha256"])+ '</p>'
+            'The Nd≤0.20Acfck branch uses two-thirds of the high-load value. Both branches are shown pending verification of the full seismic axial load population. ' +
+            'The separate spacing references are 50≤s≤min(bmin/3,6φlongitudinal,150) and horizontal spacing≤25φtie.</p>')
+        content += ('<p>Actual confinement length requires verified clear length between beam faces and cantilever classification. ' +
+            'The regular-column reference is max(ln/6,1.5hmax,500). The lower end of a cantilever uses 2hmax. Proposed hooks use ' +
+            '135°/135°, inside bend diameter≥5φ and straight tail≥max(6φ,80). Fabrication details, overall compliance ' +
+            'and final reinforcement selection remain NOT_PROVEN.</p>')
+        content += '<p>Transverse reinforcement proposal SHA-256 '+_val(transverse["result_sha256"])+ '</p>'
     shear = report.get("column_shear")
     if shear:
-        content += ('<h2>Koşullu kesme · Tam statik kaynak nüfusu</h2><p>' + _val(shear["static_state_count"]) +
-            ' statik vektör × 3 öneri × 2 yerel yön = ' + _val(shear["assessment_count"]) +
-            ' kıyas. V2: bw=T2, d=T3−boyuna merkez örtüsü; V3: bw=T3, d=T2−boyuna merkez örtüsü. ' +
-            'd karşı dış boyuna katmanın merkezine göre bir referanstır; tasarım kesiti kabulü değildir.</p>')
-        content += ('<p>TS500 8.1 senaryosu: fctk=0,35√fck, fctd=fctk/1,5; Vcr=0,65fctd·bw·d·(1+γ|N|/Ac), ' +
-            'basınçta γ=0,07, çekmede γ=−0,30. Vc=0,8Vcr; Vw=(Asw/s)·fywd·d; Vr=Vc+Vw. Ayrı senaryoda Vc=0. ' +
-            'Negatif çatlama çarpanı sıfıra kırpılıp onaylanmaz; beton katkılı dal belirsiz kalır. Denge Asw/s hesabı ' +
-            'yalnız |V|−Vc farkını karşılar; minimum ve detay koşullarının tamamı değildir.</p>')
-        content += ('<p>Gerçek tasarım Ve=NOT_PROVEN. Statik kaynak V, kapasite kesmesi olarak adlandırılmaz. ' +
-            'TBDY 7.3.7.6 için sarılma konumu, yalnız deprem kesmesinin toplam depremli kesmeye oranı&gt;0,5 ve ' +
-            'Nd≤0,05Acfck koşulları bağlanmadığından Vc=0 dalı zorunlu seçilmez. 0,85Ac√fck ve TS500 8.7 ' +
-            '0,22fcd·bw·d üst sınırları JSON’da ayrı kaynak kıyaslarıdır; TS500 kiriş gövde hükmünün kolona uygulanması ' +
-            'bu pakette onaylanmadı. Burulma etkileşimi ve ikinci mertebe değerlendirilmedi.</p>')
+        content += ('<h2>Conditional shear · Full static source population</h2><p>' + _val(shear["static_state_count"]) +
+            ' static vectors × 3 proposals × 2 local directions = ' + _val(shear["assessment_count"]) +
+            ' comparisons. For V2, bw=T2 and d=T3−cover to longitudinal bar center. For V3, bw=T3 and d=T2−cover to longitudinal bar center. ' +
+            'Reference depth d uses the center of the opposite outer longitudinal layer. Design section acceptance remains open.</p>')
+        content += ('<p>TS500 8.1 scenario with fctk=0.35√fck, fctd=fctk/1.5 and Vcr=0.65fctd·bw·d·(1+γ|N|/Ac), ' +
+            'γ=0.07 in compression and γ=−0.30 in tension. Vc=0.8Vcr, Vw=(Asw/s)·fywd·d and Vr=Vc+Vw. A separate scenario uses Vc=0. ' +
+            'A negative cracking factor leaves the branch with concrete contribution unresolved. The equilibrium Asw/s calculation ' +
+            'covers |V|−Vc. Minimum reinforcement and detailing require separate checks.</p>')
+        content += ('<p>Actual design Ve is NOT_PROVEN. The calculations use the recorded static-source V. ' +
+            'The mandatory Vc=0 branch of TBDY 7.3.7.6 requires verified confinement location, seismic-only shear divided by total seismic-combination shear &gt;0.5 and ' +
+            'Nd≤0.05Acfck. The JSON lists 0.85Ac√fck and the TS500 8.7 limit ' +
+            '0.22fcd·bw·d as separate source comparisons. Applying the TS500 beam web provision to columns requires verification. ' +
+            'Torsion interaction and second-order effects are outside this calculation.</p>')
         summary_rows = []
         for item in shear["members"]:
             ts,zero = item["branches"]["ts500"],item["branches"]["zero_concrete"]
@@ -266,93 +271,93 @@ def build_column_bank_html(report: Mapping[str, Any]) -> str:
                 "zero_ratio":zero["maximum_source_utilization"],
                 "critical_ts500":[r["native_key"] for r in ts["critical_source_states"]],
                 "critical_zero":[r["native_key"] for r in zero["critical_source_states"]]})
-        content += '<p>Sayısal kapsam: '+_val(shear["status_counts"])+'. Açık nedenler: '+_val(shear["reason_counts"])+'.</p>'
-        content += '<details><summary>Kolon, öneri ve yön bazında kaynak kıyasları</summary>'+_table(
-            (("member_id","Kolon"),("story","Kat"),("candidate_label","Boyuna öneri"),("shear_axis","Yön"),
-             ("static_state_count","Statik kayıt"),("ts500_ratio","En büyük |V|/Vr · TS500"),("zero_ratio","En büyük |V|/Vr · Vc=0"),
-             ("critical_ts500","TS500 kritik kaynak"),("critical_zero","Vc=0 kritik kaynak"),("status_counts","Sayısal kapsam")),summary_rows)+'</details>'
-        content += '<p>Kesme hesabı SHA-256: '+_val(shear["result_sha256"])+'. <strong>DENIED / NOT_PROVEN / NOT_READY</strong>.</p>'
-        content += '<p>Hesap dayanakları: '+', '.join('<a href="'+escape(url,quote=True)+'">'+escape(name)+'</a>'
+        content += '<p>Numerical coverage '+_val(shear["status_counts"])+'. Open issues '+_val(shear["reason_counts"])+'.</p>'
+        content += '<details><summary>Source comparisons by column, proposal and direction</summary>'+_table(
+            (("member_id","Column"),("story","Story"),("candidate_label","Longitudinal proposal"),("shear_axis","Direction"),
+             ("static_state_count","Static record"),("ts500_ratio","Maximum |V|/Vr · TS500"),("zero_ratio","Maximum |V|/Vr · Vc=0"),
+             ("critical_ts500","Governing TS500 source"),("critical_zero","Governing Vc=0 source"),("status_counts","Numerical coverage")),summary_rows)+'</details>'
+        content += '<p>Shear calculation SHA-256 '+_val(shear["result_sha256"])+'. <strong>DENIED / NOT_PROVEN / NOT_READY</strong>.</p>'
+        content += '<p>Calculation references '+', '.join('<a href="'+escape(url,quote=True)+'">'+escape(name)+'</a>'
             for name,url in shear["references"].items())+'</p>'
     joints = report.get("column_joints")
     if joints:
         from .column_engine.column_joints import joint_summaries, joint_tie_summaries
-        content += ('<h2>VS17 · Kolon–kiriş birleşim referansları</h2><p>' + _val(joints["joint_node_count"]) +
-            ' native düğüm · ' + _val(joints["column_end_count"]) + ' kolon ucu · ' + _val(joints["geometric_limit_count"]) +
-            ' yön sınırı. Kesitler düğüm merkezinde eşmerkez ve dik kabul edilen ayrı uç senaryolarıdır. ' +
-            'Her satırın geometrisi uç kolonuna; sargı referansı ayrıca belirtilen alt kolona aittir. ' +
-            'Native uç bağlantıları fiziksel birleşim yüzlerini veya eksantrisiteyi kanıtlamaz.</p>')
-        content += ('<p>TBDY 7.5.1: dört tarafta kiriş ve her kiriş eni ≥ ilgili kolon eninin %75’i. ' +
-            'Kuşatılmış/kuşatılmamış senaryoda sınır 1,7/1,0 × bj × h × √fck. Eşmerkez durumda bj, ' +
-            'kolon eni ve en dar kiriş eni+h sınırıyla belirlenir; boyutlar mm, dayanım MPa, sonuç kN. ' +
-            '<strong>Birleşim Ve ve SCWB: NOT_PROVEN</strong>. Kiriş donatısı ve depremle uyumlu kapasite durumları eksiktir.</p>')
-        content += '<p>Kapsam: '+_val(joints["status_counts"])+'. Uç senaryoları: '+_val(joints["enclosure_counts"])+'.</p>'
-        if joints["graph"].get("reason"): content += '<p>Kaynak bağı: '+_val(joints["graph"]["reason"])+'.</p>'
+        content += ('<h2>VS17 · Column–beam joint references</h2><p>' + _val(joints["joint_node_count"]) +
+            ' native joints, ' + _val(joints["column_end_count"]) + ' column ends and ' + _val(joints["geometric_limit_count"]) +
+            ' directional limits. Each end scenario assumes concentric, orthogonal sections at the joint center. ' +
+            'Each row uses geometry from its end column. The stated lower column supplies the confinement reference. ' +
+            'Physical joint faces and eccentricities require evidence beyond the native end connectivity.</p>')
+        content += ('<p>TBDY 7.5.1 requires beams on all four sides and each beam width ≥75% of the corresponding column width. ' +
+            'The confined and unconfined scenarios use 1.7 and 1.0, respectively, multiplied by bj×h×√fck. For a concentric joint, bj is governed by ' +
+            'the column width and the narrowest beam width plus h. Dimensions are in mm, strength in MPa and results in kN. ' +
+            '<strong>Joint Ve and SCWB are NOT_PROVEN</strong> pending beam reinforcement and seismic-compatible capacity states.</p>')
+        content += '<p>Coverage '+_val(joints["status_counts"])+'. End scenarios '+_val(joints["enclosure_counts"])+'.</p>'
+        if joints["graph"].get("reason"): content += '<p>Source link '+_val(joints["graph"]["reason"])+'.</p>'
         ends = joint_summaries(joints) if "rows" in joints else joints.get("end_summaries",[])
-        content += '<details><summary>Kolon uçları, kiriş bağlantıları ve koşullu kesme sınırları</summary>'+_table((
-            ("member_id","Geometri kolonu"),("end","Uç"),("point_id","Düğüm"),("enclosure_scenario","Eşmerkez sınıf"),
-            ("beam_ids","Kirişler"),("limit_V2_kn","V2 sınırı (kN)"),("limit_V3_kn","V3 sınırı (kN)"),
-            ("missing_faces","Kirişsiz yüz"),("narrow_faces","Dar kiriş yüzü"),("status","Kapsam"),("reason","Açık neden")),ends)+'</details>'
-        content += ('<h3>Birleşim sargı referansları · Denk. 7.1 tabanı</h3><p>Alt kolonun iki eksenel yük dalındaki ' +
-            'Ash/s referansları fiziksel doğrultuya eşlenir. TBDY 7.5.2.3 için %40/%60 oranıyla aynı Φ12/100 önerisine ' +
-            'aktarılır; aralık sınırları 150/100 mm, çap alt sınırı 8 mm. Eksik kapasite kesmesi daha fazla donatı ' +
-            'gerektirebilir; bu hesap tam birleşim donatısı ihtiyacı veya gerçek donatı kabulü değildir.</p>')
+        content += '<details><summary>Column ends, beam connections and conditional shear limits</summary>'+_table((
+            ("member_id","Geometry column"),("end","End"),("point_id","Joint"),("enclosure_scenario","Concentric classification"),
+            ("beam_ids","Beams"),("limit_V2_kn","V2 limit (kN)"),("limit_V3_kn","V3 limit (kN)"),
+            ("missing_faces","Face without a beam"),("narrow_faces","Narrow-beam face"),("status","Coverage"),("reason","Open issue")),ends)+'</details>'
+        content += ('<h3>Joint confinement references · Eq. 7.1 basis</h3><p>The two lower-column axial load branches supply ' +
+            'Ash/s references mapped to the physical direction. TBDY 7.5.2.3 applies the 40% and 60% factors to the same Φ12/100 proposal, ' +
+            'using spacing limits of 150 and 100 mm and a minimum diameter of 8 mm. Capacity-based shear may require more reinforcement. ' +
+            'The full joint requirement and actual reinforcement remain open.</p>')
         ties = joint_tie_summaries(joints) if "rows" in joints else joints.get("tie_summaries",[])
-        content += '<details><summary>Alt kolon, yön ve öneri bazında sargı referansları</summary>'+_table((
-            ("member_id","Uç kolonu"),("end","Uç"),("point_id","Düğüm"),("lower_column_id","Alt kolon"),
-            ("axis","Uç yönü"),("lower_axis","Alt kolon yönü"),("candidate_label","Boyuna öneri"),
-            ("required_high_mm2","Ash yüksek N (mm²)"),("required_low_mm2","Ash düşük N (mm²)"),
-            ("proposed_ash_mm2","Öneri Ash (mm²)"),("spacing_mm","Öneri s (mm)"),("tie_reason","Açık neden")),ties)+'</details>'
-        content += '<p>Birleşim türetimi SHA-256: '+_val(joints["result_sha256"])+'. '+', '.join(
+        content += '<details><summary>Confinement references by lower column, direction and proposal</summary>'+_table((
+            ("member_id","End column"),("end","End"),("point_id","Joint"),("lower_column_id","Lower column"),
+            ("axis","End direction"),("lower_axis","Lower column direction"),("candidate_label","Longitudinal proposal"),
+            ("required_high_mm2","Ash at high N (mm²)"),("required_low_mm2","Ash at low N (mm²)"),
+            ("proposed_ash_mm2","Proposed Ash (mm²)"),("spacing_mm","Proposed s (mm)"),("tie_reason","Open issue")),ties)+'</details>'
+        content += '<p>Joint derivation SHA-256 '+_val(joints["result_sha256"])+'. '+', '.join(
             '<a href="'+escape(url,quote=True)+'">'+escape(name)+'</a>' for name,url in joints["references"].items())+'</p>'
     kinematics = report.get("column_kinematics")
     if kinematics:
         from .column_engine.column_kinematics import kinematic_summaries
-        content += ('<h2>VS18 · Kolon uç kuvvetleri ve düğüm hareketleri</h2><p>' +
+        content += ('<h2>VS18 · Column end forces and joint movements</h2><p>' +
             _val(kinematics["linked_member_case_count"])+'/'+_val(kinematics["expected_member_case_count"])+
-            ' kolon–birleşim kaynak bağı. I/J kuvvetleri aynı tek değerli statik birleşime aittir; '+
-            'ara istasyonlar talep zincirinde korunur. Çıktı kesiti ile uç düğümü ayrı konumlardır. '+
-            '<strong>Analiz mertebesi NOT_PROVEN; Cm, β veya büyütülmüş tasarım momenti üretilmedi.</strong></p>')
-        content += ('<p>Global U/R, doğrulanmış I→J yerel eksenlerine dönüştürülür. '+
-            'L düğümler arasındaki boydur; α2=−Δu3/L, α3=Δu2/L. R−α düğümün kolon doğrusuna göre küçük dönmesidir; '+
-            'kesit uç dönmesi, eğrilik veya bağımsız P–δ hesabı değildir. Deplasmanlar yuvarlanmış tablo değerleridir; '+
-            'sıfır hücre gerçek sıfır hareket kanıtı değildir.</p>')
+            ' column–combination source links. I/J forces come from the same single-valued static combination. '+
+            'Intermediate stations remain in the demand trace. Output sections and end joints are reported at their respective locations. '+
+            '<strong>Analysis order is NOT_PROVEN. Cm, β and magnified design moments are pending.</strong></p>')
+        content += ('<p>Global U/R values are converted to verified I→J local axes. '+
+            'L is the joint-to-joint length, with α2=−Δu3/L and α3=Δu2/L. R−α is the small joint rotation relative to the column chord. '+
+            'Section end rotation, curvature and independent P–δ require separate calculations. The source table reports rounded displacements, '+
+            'so a zero cell is limited by source precision.</p>')
         summary = kinematic_summaries(kinematics) if "rows" in kinematics else kinematics.get("summaries", [])
-        content += '<details><summary>Aynı birleşimde kaynak uç kuvvetleri</summary>'+_table((
-            ("member_id","Kolon"),("output_case","Birleşim"),("i_element","I analiz elemanı"),("i_station_m","I istasyon (m)"),
-            ("j_element","J analiz elemanı"),("j_station_m","J istasyon (m)"),("i_P","I P (kN)"),("j_P","J P (kN)"),
+        content += '<details><summary>Source end forces for the same combination</summary>'+_table((
+            ("member_id","Column"),("output_case","Combination"),("i_element","I analysis element"),("i_station_m","I station (m)"),
+            ("j_element","J analysis element"),("j_station_m","J station (m)"),("i_P","I P (kN)"),("j_P","J P (kN)"),
             ("i_M2","I M2 (kN·m)"),("j_M2","J M2 (kN·m)"),("i_M3","I M3 (kN·m)"),("j_M3","J M3 (kN·m)"),
-            ("status","Kaynak bağı"),("force_reason","Açık neden")),summary)+'</details>'
-        content += '<details><summary>Düğüm hareketleri ve kolon doğrusu</summary>'+_table((
-            ("member_id","Kolon"),("output_case","Birleşim"),("point_i","I düğüm"),("point_j","J düğüm"),
-            ("object_i_j_length_m","I–J boyu (m)"),("output_cut_span_m","Çıktı kesitleri arası (m)"),
+            ("status","Source link"),("force_reason","Open issue")),summary)+'</details>'
+        content += '<details><summary>Joint movements and column chord</summary>'+_table((
+            ("member_id","Column"),("output_case","Combination"),("point_i","I joint"),("point_j","J joint"),
+            ("object_i_j_length_m","I–J boyu (m)"),("output_cut_span_m","Output-section spacing (m)"),
             ("delta_local_m","Δu1/2/3 (m)"),("chord_alpha2_rad","α2 (rad)"),("chord_alpha3_rad","α3 (rad)"),
             ("joint_i_relative_r2_rad","I R2−α2"),("joint_i_relative_r3_rad","I R3−α3"),
             ("joint_j_relative_r2_rad","J R2−α2"),("joint_j_relative_r3_rad","J R3−α3"),
-            ("kinematics_reason","Açık neden")),summary)+'</details>'
-        content += '<details><summary>Kaydedilmiş analiz rijitliği esası</summary>'+_table((
-            ("case_name","Vaka"),("stiffness_type","Rijitlik ayarı"),("nonlinear_case_raw","Başlangıç vaka kaydı"),
-            ("status","Kaynak durumu"),("reason","Açık neden")),kinematics["analysis_basis"]["cases"])+(
-            '<p>Lineer statik vaka türü birinci mertebeyi kanıtlamaz. P-Delta kaydı tam ikinci mertebe doğrulaması değildir; '+
-            'Nonlinear Case / None kaydı doğrulanmış bir başlangıç koşulu sayılmaz.</p></details>')
-        content += '<p>Uç türetimi SHA-256: '+_val(kinematics["result_sha256"])+'. '+', '.join(
+            ("kinematics_reason","Open issue")),summary)+'</details>'
+        content += '<details><summary>Recorded analysis stiffness basis</summary>'+_table((
+            ("case_name","Case"),("stiffness_type","Stiffness setting"),("nonlinear_case_raw","Initial case record"),
+            ("status","Source status"),("reason","Open issue")),kinematics["analysis_basis"]["cases"])+(
+            '<p>Analysis order and full second-order behavior require independent verification of the linear static case and P-Delta settings. '+
+            'A Nonlinear Case / None entry leaves the initial condition unverified.</p></details>')
+        content += '<p>End derivation SHA-256 '+_val(kinematics["result_sha256"])+'. '+', '.join(
             '<a href="'+escape(url,quote=True)+'">'+escape(name)+'</a>' for name,url in kinematics["references"].items())+'</p>'
     sensitivity = report.get("column_sensitivity")
     if sensitivity:
         from .column_engine.column_sensitivity import sensitivity_summaries
-        content += ('<h2>VS19 · Etkin boy ve rijitlik duyarlılığı</h2><p>'+
-            _val(sensitivity["static_state_count"])+' statik kaynak kaydı, '+_val(sensitivity["state_axis_count"])+
-            ' eksen kaydı: '+_val(sensitivity["stiffness_scenario_count"])+' EI senaryosu, '+
-            _val(sensitivity["euler_reference_count"])+' Euler referansı, '+_val(sensitivity["zero_length_reference_count"])+
-            ' matematiksel payda-sıfır boyu. Bütün ara istasyonlar ve eşit kritik kaynaklar korunur.</p>')
-        content += ('<p>TS500 7.19/7.21: EI(N·mm²)=0,4EcIc/(1+Rm), Nk(kN)=π²EI/(1000lk(mm)²). Rm=0/0,5/1 açık parametre ailesidir; '+
-            'gerçek sünme oranı veya doğrulanmış EI aralığı değildir. i=0,30h seçilir; √(I/A) ayrı gösterilir. '+
-            '22i ötelenmesi önlenmemiş sınıfın koşullu sınırı, 40i önlenmiş sınıfın yalnız üst sınırı, '+
-            '100i yaklaşık yöntemin narinlik tavanıdır. Bu boylar gerçek lk yerine atanmaz.</p>')
-        content += ('<p>lk,0(mm)=π√[EI/(1,3×1000×Nkaynak(kN))] yalnız Denk.7.24 paydasının sıfır olduğu boydur; '+
-            '<strong>izin verilen boy veya Nk=N Euler boyu değildir.</strong> 100i ötesindeki matematiksel '+
-            'boy, yaklaşık yöntemin kapsamını genişletmez. Pozitif payda mühendislik stabilite kabulü değildir; '+
-            'Cm, β ve tasarım momenti üretilmez.</p>')
+        content += ('<h2>VS19 · Effective length and stiffness sensitivity</h2><p>'+
+            _val(sensitivity["static_state_count"])+' static source records, '+_val(sensitivity["state_axis_count"])+
+            ' axis records. '+_val(sensitivity["stiffness_scenario_count"])+' EI scenarios, '+
+            _val(sensitivity["euler_reference_count"])+' Euler references and '+_val(sensitivity["zero_length_reference_count"])+
+            ' lengths at which the equation denominator is zero. All intermediate stations and ties are retained.</p>')
+        content += ('<p>TS500 7.19/7.21 gives EI(N·mm²)=0.4EcIc/(1+Rm) and Nk(kN)=π²EI/(1000lk(mm)²). Rm=0, 0.5 and 1 are scenario inputs. '+
+            'Actual creep and effective stiffness require verification. The calculation uses i=0.30h and shows √(I/A) separately. '+
+            'The 22i value is conditional for sidesway, 40i is an upper bound for sidesway prevented, '+
+            'and 100i is the slenderness ceiling of the approximate method. Actual lk requires separate evidence.</p>')
+        content += ('<p>lk,0(mm)=π√[EI/(1.3×1000×Nsource(kN))] is the length at which the Eq. 7.24 denominator equals zero. '+
+            '<strong>Allowable effective length and the Euler length for Nk=N are separate quantities.</strong> '+
+            'The approximate method remains limited to 100i. A positive denominator is a numerical result. '+
+            'Engineering stability, Cm, β and design moments remain open.</p>')
         axes = sensitivity.get("axes", [])
         axis_rows, euler_rows = [], []
         for row in axes:
@@ -362,42 +367,43 @@ def build_column_bank_html(report: Mapping[str, Any]) -> str:
                     "nk_22":scenario["length_references"][0]["nk_kn_scenario"],
                     "nk_40":scenario["length_references"][1]["nk_kn_scenario"],
                     "nk_100":scenario["length_references"][2]["nk_kn_scenario"]})
-        content += '<details><summary>Kesit, yarıçap ve açık EI senaryoları</summary>'+_table((
-            ("member_id","Kolon"),("axis","Eksen"),("ec_mpa_observed","Ec (MPa)"),("gross_inertia_mm4","Ic (mm⁴)"),
+        content += '<details><summary>Section, radius and EI scenarios</summary>'+_table((
+            ("member_id","Column"),("axis","Axis"),("ec_mpa_observed","Ec (MPa)"),("gross_inertia_mm4","Ic (mm⁴)"),
             ("radius_reference_mm","i=0,30h (mm)"),("radius_exact_mm","√(I/A) (mm)"),
             ("length_22i_mm","22i (mm)"),("length_40i_mm","40i (mm)"),("length_100i_mm","100i (mm)"),
-            ("ei_family","EI: Rm=0/0,5/1 (N·mm²)"),("status","Kaynak"),("reason","Açık neden")),axis_rows)+'</details>'
-        content += '<details><summary>Referans etkin boylarda Euler yükleri</summary>'+_table((
-            ("member_id","Kolon"),("axis","Eksen"),("rm","Rm senaryosu"),("nk_22","Nk: 22i (kN)"),
+            ("ei_family","EI: Rm=0/0,5/1 (N·mm²)"),("status","Source"),("reason","Open issue")),axis_rows)+'</details>'
+        content += '<details><summary>Euler loads at reference effective lengths</summary>'+_table((
+            ("member_id","Column"),("axis","Axis"),("rm","Rm scenario"),("nk_22","Nk: 22i (kN)"),
             ("nk_40","Nk: 40i (kN)"),("nk_100","Nk: 100i (kN)")),euler_rows)+'</details>'
         summary = sensitivity_summaries(sensitivity) if "rows" in sensitivity else sensitivity.get("summaries", [])
-        content += '<details><summary>Kolon ve eksen bazında en küçük matematiksel payda-sıfır boyları</summary>'+_table((
-            ("member_id","Kolon"),("axis","Eksen"),("recorded_state_count","Statik kayıt"),
-            ("maximum_source_n_kn","En büyük N kaynağı (kN)"),("minimum_zero_lengths_mm","lk,0: Rm 0/0,5/1 (mm)"),
-            ("zero_lengths_exceed_100i","100i ötesinde"),("critical_source_states","Eşit kritik kaynakların tamamı"),
-            ("status_counts","Sayısal kapsam")),summary)+'</details>'
-        content += '<p>Referans paydaların sayısal kapsamı: '+_val(sensitivity["denominator_status_counts"])+'.</p>'
-        content += '<details><summary>Kaydedilmiş eksenel kuvvet değişimi</summary>'+_table((
-            ("member_id","Kolon"),("output_case","Birleşim"),("recorded_static_station_count","İstasyon"),
+        content += '<details><summary>Minimum denominator-zero lengths by column and axis</summary>'+_table((
+            ("member_id","Column"),("axis","Axis"),("recorded_state_count","Static record"),
+            ("maximum_source_n_kn","Maximum source N (kN)"),("minimum_zero_lengths_mm","lk,0: Rm 0/0,5/1 (mm)"),
+            ("zero_lengths_exceed_100i","Beyond 100i"),("critical_source_states","All governing ties"),
+            ("status_counts","Numerical coverage")),summary)+'</details>'
+        content += '<p>Numerical coverage of reference denominators '+_val(sensitivity["denominator_status_counts"])+'.</p>'
+        content += '<details><summary>Recorded axial force variation</summary>'+_table((
+            ("member_id","Column"),("output_case","Combination"),("recorded_static_station_count","Station"),
             ("n_i_kn","I N (kN)"),("n_j_kn","J N (kN)"),("end_n_j_minus_i_kn","NJ−NI (kN)"),
-            ("recorded_range_kn","Tüm kayıtların N aralığı (kN)"),("recorded_values_status","Kaynak gözlemi")),
-            sensitivity.get("axial_profiles", []))+('<p>TS500 7.6.2 için sabit kesit ve eksenel kuvvet, doğrusal elastik '+
-            'analiz ve minimum dışmerkezlik esası ayrıca gerekir. Eşit kayıtlı N değerleri bu koşulları kanıtlamaz.</p></details>')
-        content += ('<p>Duyarlılık türetimi SHA-256: '+_val(sensitivity["result_sha256"])+'. '+', '.join(
+            ("recorded_range_kn","N range across all records (kN)"),("recorded_values_status","Source observation")),
+            sensitivity.get("axial_profiles", []))+('<p>TS500 7.6.2 requires a constant section and axial force, linear elastic analysis and a minimum-eccentricity basis. '+
+            'Equal recorded N values address only one part of that evidence.</p></details>')
+        content += ('<p>Sensitivity derivation SHA-256 '+_val(sensitivity["result_sha256"])+'. '+', '.join(
             '<a href="'+escape(url,quote=True)+'">'+escape(name)+'</a>' for name,url in sensitivity["references"].items())+
             ' · <strong>DENIED / NOT_PROVEN / NOT_READY</strong>.</p>')
     historical = report.get("historical_reconciliation")
     if historical:
-        content += '<h2>Tarihsel D7-B6 toplamları</h2>' + _table((
-            ("story", "Kat"), ("output_case", "Vaka"), ("column_count", "Kolon"),
+        content += '<h2>Historical D7-B6 totals</h2>' + _table((
+            ("story", "Story"), ("output_case", "Case"), ("column_count", "Column"),
             ("native_signed_p_sum_kN", "Native ΣP (kN)"), ("historical_signed_p_kN", "Tarihsel ΣP (kN)"),
-            ("difference_kN", "Fark (kN)"), ("numeric_match", "Sayısal eşleşme")), historical["items"])
-        content += '<p>Bu karşılaştırma aynı fiziksel kesiti, analiz neslini veya kat φ yetkisini kanıtlamaz.</p>'
-    content += '<h2>Sonraki hesapların girdileri</h2>' + _table((
-        ("topic", "İş paketi"), ("available", "Kaynak / kullanılabilir yol"), ("remaining", "Tamamlanacak bağ")), report["engineering_gaps"])
-    content += ('<h2>İzlenebilirlik</h2><p>Kaynak ZIP SHA-256: ' + _val(report["source_archive_sha256"]) +
-        '<br>Veritabanı SHA-256: ' + _val(report.get("database_sha256")) +
-        '<br>Hesap SHA-256: ' + _val(report["result_sha256"]) + '</p>')
+            ("difference_kN", "Fark (kN)"), ("numeric_match", "Numerical match")), historical["items"])
+        content += '<p>The physical cut, analysis generation and story φ authority require separate source verification.</p>'
+    content += '<h2>Inputs for the next calculations</h2>' + _table((
+        ("topic", "Work package"), ("available", "Source or available path"), ("remaining", "Link to verify")),
+        report.get("engineering_evidence_gaps", report["engineering_gaps"]))
+    content += ('<h2>Traceability</h2><p>Source ZIP SHA-256 ' + _val(report["source_archive_sha256"]) +
+        '<br>Database SHA-256 ' + _val(report.get("database_sha256")) +
+        '<br>Calculation SHA-256 ' + _val(report["result_sha256"]) + '</p>')
     if report.get("column_overview"):
         from .column_overview_report import overview_html
         from .column_quality_report import quality_html
@@ -408,8 +414,8 @@ def build_column_bank_html(report: Mapping[str, Any]) -> str:
         scwb = scwb_html(report["column_scwb"]) if report.get("column_scwb") else ""
         beams = beam_html(report["beam_end_references"]) if report.get("beam_end_references") else ""
         scenarios = scenario_html(report['scwb_scenarios']) if report.get('scwb_scenarios') else ''
-        content = overview_html(report["column_overview"]) + scenarios + scwb + beams + quality + '<details class="calculation-details"><summary>Tüm kaynak tabloları, formüller ve ara hesaplar</summary>' + content + '</details>'
-    return ('<!doctype html><html lang="tr"><meta charset="utf-8"><title>YENI · Kolon mühendislik özeti</title>' +
+        content = overview_html(report["column_overview"]) + scenarios + scwb + beams + quality + '<details class="calculation-details"><summary>Source tables, formulas and intermediate calculations</summary>' + content + '</details>'
+    return ('<!doctype html><html lang="en"><meta charset="utf-8"><title>YENI · Column engineering summary</title>' +
         '<style>body{font:14px/1.5 system-ui;margin:32px;color:#243345}h1{font-size:23px}h2{margin-top:30px}' +
         'table{border-collapse:collapse;width:100%;font-size:11px}th,td{border:1px solid #cfd8e3;padding:6px;text-align:left}' +
         'th{background:#eaf0f6}p{overflow-wrap:anywhere}.overview-scroll{overflow-x:auto}.column-overview td{font-variant-numeric:tabular-nums}' +
@@ -553,22 +559,44 @@ def _vs05_summary_row(drift: dict) -> dict:
 
 
 def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
-    """One complete report for an exact existing five-check run.
+    """Load an exact run and render only the recorded results for finalized runs."""
+    from .engineering.pipeline_snapshot import SCHEMA, read_receipts, read_snapshot
 
-    Raises ReportUnavailable on missing/altered source, tampered receipt,
-    conflicting evaluated values or incomplete check inventory.
-    """
     if not isinstance(run_id, str) or _RUN.fullmatch(run_id) is None:
         raise ReportUnavailable("Invalid run ID")
     directory = Path(root) / run_id
+    if directory.is_symlink() or not directory.is_dir():
+        raise ReportUnavailable("Run directory unavailable")
+    modal = _read_receipt(directory, "modal")
+    if modal is None:
+        raise ReportUnavailable("Modal receipt unavailable")
+    try:
+        input_sha = modal["input_sha256"]
+        source = _load_source(directory, input_sha)
+        receipts = read_receipts(directory, input_sha=input_sha)
+        snapshot = read_snapshot(directory, input_sha=input_sha, receipts=receipts)
+        if snapshot is not None and snapshot["schema"] == SCHEMA:
+            stages = snapshot["results"]
+            evidence = stages["report_evidence"]
+            return _assemble_complete_report(run_id, source, receipts, stages, evidence, snapshot)
+        return _build_legacy_report(directory, source, receipts, snapshot)
+    except (OSError, TypeError, ValueError, KeyError) as exc:
+        if isinstance(exc, ReportUnavailable):
+            raise
+        raise ReportUnavailable("Recorded report cannot be verified") from exc
+
+
+def _build_legacy_report(directory: Path, source: dict[str, Any],
+                         receipts: Mapping[str, Mapping[str, Any]],
+                         snapshot: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Keep compatibility with runs predating complete result snapshots."""
     modal = _read_modal_run(directory)
-    quick = _read_receipt(directory, "quick-geometry")
+    quick = receipts.get("quick-geometry")
     if modal is None or quick is None:
         raise ReportUnavailable("Complete modal and geometry receipts required")
     if quick.get("input_sha256") != modal["input_sha256"]:
         raise ReportUnavailable("Modal and geometry sources conflict")
     try:
-        source = _load_source(directory, modal["input_sha256"])
         geometry_source = source.get("geometry_capture")
         geometry = evaluate_geometry_capture(geometry_source)
     except (OSError, UnicodeError, ValueError, TypeError, KeyError) as exc:
@@ -576,31 +604,15 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
     if geometry != quick["payload"]:
         raise ReportUnavailable("Geometry receipt does not match current evaluator")
 
-    definitions = check_registry()
-    mapping = {item["check_id"]: item for item in definitions}
-    geo_checks = geometry.get("checks", [])
-    if not isinstance(geo_checks, list) or len(geo_checks) != 4:
-        raise ReportUnavailable("Incomplete geometry check population")
-    if {check.get("check_id") for check in geo_checks} != {"column_rect_min", "beam_width_min", "beam_depth_min", "beam_depth_width"}:
-        raise ReportUnavailable("Check IDs differ from current registry")
-    # Never promote a numerical subcondition to an overall regulatory PASS.
-    modal_check = {
-        **mapping["modal_mass_95"],
-        **modal["result"],
-        "check_id": "modal_mass_95",
-        "formal_compliance": "NOT_PROVEN",
-    }
-    checks = [modal_check] + geo_checks
     new_checks = None
     if "next_capture" in source:
         from .next_checks import evaluate_next_capture
-        receipt = _read_receipt(directory, "quick-extra")
+        receipt = receipts.get("quick-extra")
         if receipt is None or receipt.get("input_sha256") != modal["input_sha256"]:
             raise ReportUnavailable("Missing VS03 receipt for captured VS03 sources")
         new_checks = evaluate_next_capture(source["next_capture"], geometry_source)
         if new_checks != receipt["payload"]:
             raise ReportUnavailable("VS03 source/receipt mismatch")
-        checks.extend(new_checks["checks"])
     vs04 = None
     vs04_receipt = None
     vs04_numerics = None
@@ -611,13 +623,13 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
     vs04_pipeline_receipt = None
     if "analysis_sources" in source:
         from .analysis_sources import review_analysis_sources
-        vs04_receipt = _read_receipt(directory, "vs04-schema")
+        vs04_receipt = receipts.get("vs04-schema")
         if vs04_receipt is None or vs04_receipt.get("input_sha256") != modal["input_sha256"]:
             raise ReportUnavailable("Missing or invalid VS04 source schema receipt")
         vs04 = review_analysis_sources(source["analysis_sources"])
         if vs04 != vs04_receipt["payload"]:
             raise ReportUnavailable("VS04 source/receipt mismatch")
-        vs04_numeric_receipt = _read_receipt(directory, "vs04-numerics")
+        vs04_numeric_receipt = receipts.get("vs04-numerics")
         expected = source["analysis_sources"].get("numeric_stage_required") is True
         if expected and (vs04_numeric_receipt is None or
                          vs04_numeric_receipt.get("input_sha256") != modal["input_sha256"]):
@@ -629,7 +641,7 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
             vs04_numerics = evaluate_analysis_numerics(source["analysis_sources"])
             if vs04_numerics != vs04_numeric_receipt["payload"]:
                 raise ReportUnavailable("VS04 numerical source/receipt mismatch")
-        vs04_readiness_receipt = _read_receipt(directory, "vs04-readiness")
+        vs04_readiness_receipt = receipts.get("vs04-readiness")
         readiness_required = source["analysis_sources"].get("readiness_stage_required") is True
         if readiness_required and (vs04_readiness_receipt is None or
                                    vs04_readiness_receipt.get("input_sha256") != modal["input_sha256"]):
@@ -641,7 +653,7 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
             vs04_readiness = review_normative_readiness(source["analysis_sources"])
             if vs04_readiness != vs04_readiness_receipt["payload"]:
                 raise ReportUnavailable("VS04-E readiness source/receipt mismatch")
-        vs04_pipeline_receipt = _read_receipt(directory, "vs04-pipeline")
+        vs04_pipeline_receipt = receipts.get("vs04-pipeline")
         pipeline_required = source["analysis_sources"].get("pipeline_stage_required") is True
         if pipeline_required and (vs04_pipeline_receipt is None or
                                   vs04_pipeline_receipt.get("input_sha256") != modal["input_sha256"]):
@@ -659,7 +671,7 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
     # VS05 STORY_DRIFT is a candidate source-numeric check in this SAME
     # immutable run; verify the stage receipt by re-evaluating source.
     story_drift = None
-    story_drift_receipt = _read_receipt(directory, "vs05-story-drift")
+    story_drift_receipt = receipts.get("vs05-story-drift")
     if ("vs05_delta_source" in source or
             "vs05_delta_capture_error" in source):
         if (story_drift_receipt is None or
@@ -677,7 +689,7 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
     # R08 source/check record: immutable one-run seal, exact re-evaluation
     # on every export; no new analysis and no trust in stored numeric payload.
     r08_second_order = None
-    r08_receipt = _read_receipt(directory, "r08-second-order")
+    r08_receipt = receipts.get("r08-second-order")
     if ("r08_second_order_source" in source or
             "r08_second_order_capture_error" in source):
         if (r08_receipt is None or
@@ -692,111 +704,152 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
     elif r08_receipt is not None:
         raise ReportUnavailable("Orphan R08 GLOBAL_SECOND_ORDER receipt")
 
-    # VS06-A is a read-only projection of the already-verified VS05 record.
-    # Never alter the historical receipt payload: exact replay is required.
-    vs06_slot_ledger = None
-    if (story_drift is not None and
-            story_drift.get("execution_status") == "EXECUTED_SOURCE_NUMERICAL"):
-        from .story_slot_ledger import build_story_slot_ledger
-        try:
-            vs06_slot_ledger = build_story_slot_ledger(
-                source["vs05_delta_source"], story_drift)
-        except (ValueError, TypeError, KeyError) as exc:
-            raise ReportUnavailable("VS06 slot ledger cannot be reconciled") from exc
-
-    # VS06-B is another read-only evidence projection. No change to original
-    # VS05 receipt, check inventory, or the existing one-button COM workflow.
-    vs06_physical_source_review = None
-    if vs06_slot_ledger is not None:
-        from .story_physical_source import review_story_physical_source
-        try:
-            vs06_physical_source_review = review_story_physical_source(
-                source["vs05_delta_source"], story_drift, vs06_slot_ledger)
-        except (ValueError, TypeError, KeyError) as exc:
-            raise ReportUnavailable("VS06 physical-source review cannot be reconciled") from exc
-
-    # VS06-C1: compile the existing 94-node candidate graph into the
-    # expected STORY_DIRECTION denominator and blocked normative readiness.
-    # The source-verified VS05 receipt remains immutable.
-    vs06_effective_drift_readiness = None
-    if vs06_physical_source_review is not None:
-        from .compiled_dag import read_candidate_catalog
-        from .effective_drift_readiness import review_effective_drift_readiness
-        try:
-            catalog_path = (Path(__file__).resolve().parents[2] / "config" /
-                            "dag" / "tbdy_r1c_94_candidate.json")
-            catalog = read_candidate_catalog(catalog_path)
-            vs06_effective_drift_readiness = review_effective_drift_readiness(
-                source["vs05_delta_source"], story_drift, vs06_slot_ledger,
-                vs06_physical_source_review, catalog)
-        except (OSError, UnicodeError, ValueError, TypeError, KeyError) as exc:
-            raise ReportUnavailable("VS06-C1 effective drift readiness invalid") from exc
-
-    # VS06-D1: one-click live capture already has the two immutable ETABS
-    # source blobs in the same run. Derive B1 X/Y numeric scenario here while
-    # rechecking both source hashes; old VS05 archived receipts are unchanged.
-    # B1 is optional: missing/unsupported source cannot break VS01-VS06-C2.
-    vs06_b1_result = None
-    vs06_b1_source_status = None
-    from .physical_story_scope import review_physical_story_scope, scope_story_drift
-    physical_scope = (review_physical_story_scope(source.get("vs05_delta_source"))
-                      if "vs05_delta_source" in source else None)
-    if ("vs06_b1_geometry_source" in source or "vs06_wall_load_source" in source
-            or "vs06_b1_geometry_capture_error" in source):
-        if (isinstance(source.get("vs06_b1_geometry_source"), Mapping) and
-                isinstance(source.get("vs06_wall_load_source"), Mapping)):
-            from .b1_source_bridge import B1BridgeError, evaluate_b1_sources
-            try:
-                vs06_b1_result = evaluate_b1_sources(
-                    source["vs06_b1_geometry_source"],
-                    source["vs06_wall_load_source"], physical_scope=physical_scope,
-                    physical_scope_source=source.get("vs05_delta_source"))
-                vs06_b1_source_status = "SOURCE_BOUND_NUMERICAL"
-            except (B1BridgeError, ValueError, TypeError, KeyError) as exc:
-                vs06_b1_source_status = "BLOCKED_SOURCE_BINDING: " + str(exc)
-        else:
-            vs06_b1_source_status = "BLOCKED_REQUIRED_B1_SOURCES_MISSING"
-
-    # VS07 B2 reuses the SAME sealed source; historical receipts and their
-    # evaluators are unchanged. Invalid B2 is local to this optional check.
-    b2 = None
-    if "vs05_delta_source" in source or "vs05_delta_capture_error" in source:
-        from .soft_story_b2 import bind_soft_story_b2
-        b2 = bind_soft_story_b2(
-            source.get("vs05_delta_source"),
-            capture_error=source.get("vs05_delta_capture_error"), physical_scope=physical_scope)
-
-    # Project only AFTER exact legacy receipt/ledger replay. Never overwrite
-    # archived source, receipts, or the historical candidate DAG denominator.
-    declared_story_drift = story_drift
-    if physical_scope is not None and story_drift is not None:
-        story_drift = scope_story_drift(story_drift, source["vs05_delta_source"], physical_scope)
-
-    wall_geometry = None
-    if "vs06_b1_geometry_source" in source or "vs06_b1_geometry_capture_error" in source:
-        from .wall_geometry import bind_wall_geometry
-        wall_geometry = bind_wall_geometry(source, physical_scope=physical_scope)
-
-    from .source_control_bundle import bind_source_controls
-    source_controls = bind_source_controls(source)
-    if not source_controls["checks"]:
-        source_controls = None
-    earthquake_combinations = None
+    from .engineering.analysis_setup import DESIGN_COMBOS, STAGE, bind_analysis_setup, project_analysis_setup_reconciliation
+    analysis_setup = None
+    setup_receipt = receipts.get(STAGE)
     if "vs04_basis_probe" in source:
-        from .earthquake_combinations import bind_earthquake_combinations
-        earthquake_combinations = bind_earthquake_combinations(source)
+        analysis_setup = bind_analysis_setup(source)
+        basis = source["vs04_basis_probe"]
+        table_reads = basis.get("table_reads") if isinstance(basis, Mapping) else None
+        if setup_receipt is None:
+            if isinstance(table_reads, Mapping) and DESIGN_COMBOS in table_reads:
+                raise ReportUnavailable("R03 analysis setup receipt missing")
+        elif (setup_receipt.get("input_sha256") != modal["input_sha256"]
+                or setup_receipt["payload"] != analysis_setup):
+            raise ReportUnavailable("R03 analysis setup source/receipt mismatch")
+    elif setup_receipt is not None:
+        raise ReportUnavailable("Orphan R03 analysis setup receipt")
 
-    frame_rows = ((geometry_source or {}).get("tables", {}).get("FRAME_ASSIGNMENTS", {})
+    from .engineering.column_axial import STAGE as AXIAL_STAGE, evaluate_column_axial
+    axial = None
+    axial_receipt = receipts.get(AXIAL_STAGE)
+    if "column_axial" in source:
+        if axial_receipt is None or axial_receipt["input_sha256"] != modal["input_sha256"]:
+            raise ReportUnavailable("Column axial receipt missing or bound to another capture")
+        try:
+            axial = evaluate_column_axial(source, geometry, new_checks, setup=analysis_setup)
+        except (ValueError, TypeError, KeyError, ArithmeticError) as exc:
+            raise ReportUnavailable("Column axial source cannot be verified") from exc
+        if axial != axial_receipt["payload"]:
+            raise ReportUnavailable("Column axial source/receipt mismatch")
+    elif axial_receipt is not None:
+        raise ReportUnavailable("Orphan column axial receipt")
+
+    pmm = None
+    from .engineering.column_pmm import STAGE as PMM_STAGE, evaluate_column_pmm
+
+    pmm_receipt = receipts.get(PMM_STAGE)
+    member_request = (source.get("column_axial") or {}).get("request") or {}
+    if member_request.get("pmm_member"):
+        if pmm_receipt is None or pmm_receipt["input_sha256"] != modal["input_sha256"]:
+            raise ReportUnavailable("Column PMM receipt missing or bound to another capture")
+        try:
+            pmm = evaluate_column_pmm(source, geometry, axial)
+        except (ValueError, TypeError, KeyError, ArithmeticError) as exc:
+            raise ReportUnavailable("Column PMM source cannot be verified") from exc
+        if pmm != pmm_receipt["payload"]:
+            raise ReportUnavailable("Column PMM source/receipt mismatch")
+    elif pmm_receipt is not None:
+        raise ReportUnavailable("Orphan column PMM receipt")
+
+    stages = {
+        "result": modal["result"], "geometry": geometry, "extra": new_checks, "vs04": vs04,
+        "vs04_numerics": vs04_numerics, "vs04_readiness": vs04_readiness, "vs04_pipeline": vs04_pipeline,
+        "story_drift": story_drift, "r08_second_order": r08_second_order, "analysis_setup": analysis_setup,
+        "column_axial": axial, "column_pmm": pmm,
+    }
+    if snapshot is not None:
+        old_stages = snapshot["results"]
+        for key in ("beam_r10", "r10_live", "column_gates", "analysis_setup_reconciliation",
+                    "r08_local_slenderness", "r14_closure"):
+            stages[key] = old_stages.get(key)
+    else:
+        beam_r10 = r10_live = column_gates = None
+        if axial is not None:
+            from .engineering.beam_r10_live import project_beam_r10_live
+            from .engineering.column_live_gates import project_column_gates
+            from .engineering.column_r10_live import project_column_r10_live
+
+            beam_r10 = project_beam_r10_live(source, geometry, axial, pmm, new_checks)
+            r10_live = project_column_r10_live(source, geometry, axial, pmm, new_checks, beam_live=beam_r10)
+            column_gates = project_column_gates(
+                source, axial, pmm, local_axis_angle_deg=(r10_live or {}).get("local_axis_angle_deg"),
+            )
+        stages.update(beam_r10=beam_r10, r10_live=r10_live, column_gates=column_gates,
+                      analysis_setup_reconciliation=(
+                          project_analysis_setup_reconciliation(analysis_setup, source) if analysis_setup is not None else None
+                      ), r08_local_slenderness=None, r14_closure=None)
+
+    from .engineering.pipeline import derive_report_evidence
+
+    evidence = derive_report_evidence(source, stages)
+    if pmm is not None and snapshot is None:
+        from .engineering.column_r08_local_live import project_column_r08_local_live
+        from .engineering.column_r14_closure import project_column_r14_and_r15_closure
+
+        local = project_column_r08_local_live(
+            source, geometry, axial, pmm, evidence["r08_second_order"], r10_live=stages["r10_live"],
+        )
+        stages["r08_local_slenderness"] = local
+        stages["r14_closure"] = project_column_r14_and_r15_closure(
+            geometry=geometry, axial=axial, pmm=pmm, r08_second_order=evidence["r08_second_order"],
+            r08_local=local, beam_r10=stages["beam_r10"], r10_live=stages["r10_live"],
+            analysis_setup_reconciliation=stages["analysis_setup_reconciliation"],
+        )
+    return _assemble_complete_report(directory.name, source, receipts, stages, evidence, snapshot)
+
+
+def _assemble_complete_report(run_id: str, source: Mapping[str, Any],
+                              receipts: Mapping[str, Mapping[str, Any]], stages: Mapping[str, Any],
+                              evidence: Mapping[str, Any], snapshot: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Format archived evidence and attach provenance. No check evaluation."""
+    from .engineering.pipeline_snapshot import SCHEMA
+
+    modal = receipts.get("modal")
+    quick = receipts.get("quick-geometry")
+    schema = receipts.get("schema")
+    geometry = stages["geometry"]
+    if modal is None or quick is None or schema is None or geometry is None:
+        raise ReportUnavailable("Complete modal and geometry receipts required")
+    source_columns = source.get("geometry_capture")
+    source_mode = schema["payload"]["source_mode"]
+    shown_case = modal["payload"]["case"]
+    full_projection = snapshot is not None and snapshot["schema"] == SCHEMA
+    modal_definition = next(item for item in check_registry() if item["check_id"] == "modal_mass_95")
+    geo_checks = geometry.get("checks", [])
+    required_geometry = {"column_rect_min", "beam_width_min", "beam_depth_min", "beam_depth_width"}
+    if len(geo_checks) != len(required_geometry) or {c["check_id"] for c in geo_checks} != required_geometry:
+        raise ReportUnavailable("Incomplete geometry check population")
+    checks = [{**modal_definition, **stages["result"], "check_id": "modal_mass_95",
+               "formal_compliance": "NOT_PROVEN"}, *geo_checks]
+    new_checks = stages["extra"]
+    if new_checks is not None:
+        checks.extend(new_checks["checks"])
+
+    vs04, vs04_numerics = stages["vs04"], stages["vs04_numerics"]
+    vs04_readiness, vs04_pipeline = stages["vs04_readiness"], stages["vs04_pipeline"]
+    axial = stages["column_axial"]
+    story_drift, r08_second_order = evidence["story_drift"], evidence["r08_second_order"]
+    vs06_b1_result, vs06_b1_source_status = evidence["vs06_b1_result"], evidence["vs06_b1_source_status"]
+    b2, wall_geometry = evidence["soft_story_b2"], evidence["wall_geometry"]
+    source_controls = evidence["source_controls"]
+    earthquake_combinations = evidence["earthquake_combinations"]
+
+    def receipt_hash(stage: str) -> str | None:
+        receipt = receipts.get(stage)
+        return receipt["receipt_sha256"] if receipt is not None else None
+
+    frame_rows = ((source_columns or {}).get("tables", {}).get("FRAME_ASSIGNMENTS", {})
                   .get("rows", []) or [])
     frame_types = dict(sorted(Counter(str(row.get("Type", "UNKNOWN")) for row in frame_rows).items()))
     table_descriptors: dict[str, Any] = {}
-    for role, table in (geometry_source or {}).get("tables", {}).items():
+    for role, table in (source_columns or {}).get("tables", {}).items():
         table_descriptors[role] = {
             "table_key": table.get("table_key"), "record_count": table.get("row_count"),
             "capture_status": table.get("status"), "fields": table.get("fields"),
             "field_metadata": table.get("field_metadata"),
         }
-    metadata = source.get("capture_metadata", {})
+    metadata = source.get("capture_metadata") or {}
     source_table = source.get("table", {})
     counts = {
         "geometry_item_evaluations": sum(int(x.get("expected_count", 0)) for x in geo_checks),
@@ -822,6 +875,14 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
     inventory = _vs05_check_inventory(
         checks, story_drift, vs06_b1_result, vs06_b1_source_status, b2, wall_geometry, source_controls,
         earthquake_combinations)
+    if axial is not None:
+        inventory["entries"].append({
+            "check_id": axial["check_id"], "evaluation": "SELECTED_COMBINATION_NUMERICAL",
+            "status": axial["status"], "expected_count": axial["expected_member_combination_count"],
+            "evaluated_count": axial["evaluated_member_combination_count"],
+            "formal_compliance": axial["formal_compliance"],
+        })
+        inventory["count"] += 1
     if r08_second_order is not None:
         inventory["entries"].append({
             "check_id": "GLOBAL_SECOND_ORDER",
@@ -862,13 +923,21 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
     return {
         "schema": "tbdy.next.complete.engineering.report.v1",
         "run_id": run_id,
+        "design_stage_provenance": {
+            "status": "SEALED_PIPELINE_STAGE_RESULTS" if snapshot is not None else "UNSEALED_LEGACY_RECOMPUTATION",
+            "snapshot_results_sha256": snapshot.get("results_sha256") if snapshot else None,
+            "method": snapshot.get("method") if snapshot else None,
+            "full_report_projection_only": full_projection,
+            **({"remaining_scope": "This archived run predates complete result snapshots."}
+               if not full_projection else {}),
+        },
         "title": (f"TBDY Next Engine — {inventory['count']} bounded checks"
                   + (" + VS04 E–J source evidence" if vs04_pipeline else "")
                   + " (not full TBDY design)"),
-        "model": modal["model_name"],
+        "model": ntpath.basename(str(metadata.get("model_filename", ""))) or None,
         "captured_at_utc": modal["captured_at_utc"],
-        "source_mode": modal["source_mode"],
-        "modal_case": modal["case"],
+        "source_mode": source_mode,
+        "modal_case": shown_case,
         "engineering_release": "NOT_READY",
         "formal_compliance": "NOT_PROVEN",
         "scope": source_scope,
@@ -889,29 +958,15 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         "vs04": vs04,
         "vs04_numerics": vs04_numerics,
         "vs04_readiness": vs04_readiness,
-        "vs04_pipeline": vs04_pipeline,
-        **({"story_drift": story_drift} if story_drift is not None else {}),
-        **({"r08_second_order": r08_second_order}
-           if r08_second_order is not None else {}),
-        **({"physical_story_scope": physical_scope} if physical_scope is not None else {}),
-        **({"declared_story_drift_source_record": declared_story_drift}
-           if story_drift != declared_story_drift else {}),
-        **({"vs06_story_slot_ledger": vs06_slot_ledger}
-           if vs06_slot_ledger is not None else {}),
-        **({"vs06_physical_source_review": vs06_physical_source_review}
-           if vs06_physical_source_review is not None else {}),
-        **({"vs06_effective_drift_readiness": vs06_effective_drift_readiness}
-           if vs06_effective_drift_readiness is not None else {}),
-        **({"vs06_b1_result": vs06_b1_result}
-           if vs06_b1_result is not None else {}),
-        **({"vs06_b1_source_status": vs06_b1_source_status}
-           if vs06_b1_source_status is not None else {}),
-        **({"soft_story_b2": b2} if b2 is not None else {}),
-        **({"wall_geometry": wall_geometry} if wall_geometry is not None else {}),
-        **({"source_controls": source_controls} if source_controls is not None else {}),
-        **({"earthquake_combinations": earthquake_combinations} if earthquake_combinations is not None else {}),
-        "vs03": new_checks,
-        "checks": checks,
+        "vs04_pipeline": display_check_group(vs04_pipeline),
+        **{key: stages[key] for key in (
+            "analysis_setup", "analysis_setup_reconciliation", "column_axial", "column_pmm",
+            "column_gates", "beam_r10", "r10_live", "r08_local_slenderness", "r14_closure",
+        ) if stages[key] is not None},
+        **{key: value for key, value in evidence.items() if value is not None},
+        "vs03": display_check_group(new_checks),
+        "checks": [display_check(check) for check in checks],
+        "material_member_groups": material_member_groups(checks),
         "modal_source_table": {
             "table_key": source_table.get("table_key"), "fields": source_table.get("fields"),
             "row_count": source_table.get("row_count"), "rows": source_table.get("rows"),
@@ -924,7 +979,7 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
             "beam_connectivity_count": geometry.get("beam_connectivity_count"),
             "frame_types": frame_types,
             "tables": table_descriptors,
-            "material_types": (geometry_source or {}).get("material_types"),
+            "material_types": (source_columns or {}).get("material_types"),
         },
         "evaluation_counts": counts,
         "capture_metadata": metadata,
@@ -932,12 +987,18 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
             "input_sha256": modal["input_sha256"],
             "modal_receipt_sha256": modal["receipt_sha256"],
             "geometry_receipt_sha256": quick["receipt_sha256"],
-            "vs04_schema_receipt_sha256": vs04_receipt["receipt_sha256"] if vs04_receipt else None,
-            "vs04_numerics_receipt_sha256": vs04_numeric_receipt["receipt_sha256"] if vs04_numeric_receipt else None,
-            "vs04_readiness_receipt_sha256": vs04_readiness_receipt["receipt_sha256"] if vs04_readiness_receipt else None,
-            "vs04_pipeline_receipt_sha256": vs04_pipeline_receipt["receipt_sha256"] if vs04_pipeline_receipt else None,
-            "story_drift_receipt_sha256": story_drift_receipt["receipt_sha256"] if story_drift_receipt else None,
-            "r08_second_order_receipt_sha256": r08_receipt["receipt_sha256"] if r08_receipt else None,
+            "vs04_schema_receipt_sha256": receipt_hash("vs04-schema"),
+            "vs04_numerics_receipt_sha256": receipt_hash("vs04-numerics"),
+            "vs04_readiness_receipt_sha256": receipt_hash("vs04-readiness"),
+            "vs04_pipeline_receipt_sha256": receipt_hash("vs04-pipeline"),
+            "story_drift_receipt_sha256": receipt_hash("vs05-story-drift"),
+            "r08_second_order_receipt_sha256": receipt_hash("r08-second-order"),
+            **({"analysis_setup_receipt_sha256": receipt_hash("r03-analysis-setup")}
+               if stages["analysis_setup"] is not None else {}),
+            **({"column_axial_receipt_sha256": receipt_hash("column-axial")} if axial is not None else {}),
+            **({"column_pmm_receipt_sha256": receipt_hash("column-pmm")} if stages["column_pmm"] is not None else {}),
+            **({"engine_results_receipt_sha256": receipt_hash("engine-results")}
+               if snapshot is not None else {}),
             "note": "These are local source/receipt fingerprints, not third-party authorization.",
         },
         "source_snapshot": source,  # Full raw 7 tables + exact material facts for independent review.
@@ -958,13 +1019,72 @@ def _val(value: Any) -> str:
     return escape(str(value), quote=True)
 
 
+_DECIMAL_TEXT = re.compile(r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?")
+_DIMENSION_FIELDS = re.compile(r"(?:^|_)(?:knm?|nmm\d*|mpa|mm\d*|cm\d*|m[234]|ton)(?:_|$)", re.I)
+_ETABS_MASS_FIELDS = frozenset(("UX", "UY", "UZ", "RX", "RY", "RZ",
+                                "SumUX", "SumUY", "SumUZ", "SumRX", "SumRY", "SumRZ"))
+_ETABS_OTHER_NUMERIC = frozenset(("Period", "Frequency", "CircFreq", "Eigenvalue",
+                                  "FX", "FY", "FZ", "MX", "MY", "MZ", "Drift", "K_proxy"))
+
+
+def _number_html(value: Any, places: int) -> str:
+    raw = str(value)
+    if type(value) not in (float, int, Decimal, str) or not _DECIMAL_TEXT.fullmatch(raw):
+        return _val(value)
+    number = Decimal(raw)
+    if number.is_zero():
+        shown = "0"
+    elif number.adjusted() > 14 or number.adjusted() < -places:
+        mantissa, power = format(number, ".2E").split("E")
+        shown = f"{mantissa.rstrip('0').rstrip('.')}e{power}"
+    else:
+        shown = format(number, f".{places}f").rstrip("0").rstrip(".")
+    if shown == raw:
+        return _val(value)
+    return f'<span title="{_val(value)}">{escape(shown)}</span>'
+
+
+def _cell_html(key: str, value: Any) -> str:
+    if key == "members_by_story" and isinstance(value, list):
+        return "<br>".join(f"{_val(row['story'])} · {_val(row['member_ids_text'])}" for row in value)
+    if (key.startswith(("theta_", "normalized_", "adjacent_normalized_", "relative_error_"))
+            or key in ("Drift", "drift_raw", "etabs_story_drift_ratio", "average_drift_m",
+                       "adjacent_average_drift_m", "etabs_avg_drift_m_candidate",
+                       "etabs_reconciliation_residual_mm", "maximum_absolute_difference",
+                       "lambda_effective_ratio")):
+        return _number_html(value, 6)
+    if (_DIMENSION_FIELDS.search(key)
+            or key in ("FX", "FY", "FZ", "MX", "MY", "MZ", "K_proxy")):
+        return _number_html(value, 2)
+    if (type(value) in (float, Decimal) or key in _ETABS_MASS_FIELDS
+            or key in _ETABS_OTHER_NUMERIC or key.endswith(("_m", "_s"))
+            or key.startswith(("eta_", "beta_", "candidate_", "coefficient_"))
+            or "ratio" in key
+            or key in ("value", "limit", "factor", "common_factor", "threshold", "b2", "b3",
+                       "fc", "fy", "length", "j_offset", "face_span",
+                       "circular_frequency_rad_sec", "eigenvalue_rad2_sec2",
+                       "expected_circular_frequency_rad_sec", "expected_eigenvalue_rad2_sec2",
+                       "expected_frequency_cyc_sec", "observed_reciprocal_product")):
+        return _number_html(value, 4)
+    return _val(value)
+
+
 def _table(columns: tuple[tuple[str, str], ...], rows: list[Mapping[str, Any]], cls: str = "") -> str:
     header = "".join(f"<th>{escape(title)}</th>" for _, title in columns)
     body = "".join(
-        "<tr>" + "".join(f"<td>{_val(item.get(key))}</td>" for key, _ in columns) + "</tr>"
+        "<tr>" + "".join(f"<td>{_cell_html(key, item.get(key))}</td>" for key, _ in columns) + "</tr>"
         for item in rows
     )
     return f'<table class="{cls}"><thead><tr>{header}</tr></thead><tbody>{body}</tbody></table>'
+
+
+def _with_material_members(items: list[dict], roster: list[dict]) -> list[dict]:
+    by_material = defaultdict(list)
+    for group in roster:
+        if group["material_name"] is not None:
+            by_material[group["material_name"]].append(group)
+    return [{**item, **group} for item in items
+            for group in by_material.get(item.get("material_name"), [{}])]
 
 
 def build_printable_html(report: Mapping[str, Any]) -> str:
@@ -972,10 +1092,10 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
     checks = report["checks"]
     modal, geometry, extras = checks[0], checks[1:5], checks[5:]
     summary_cols = (
-        ("check_id", "Kontrol"), ("status", "Sayısal durum"),
-        ("expected_count", "Eleman-kontrol"), ("evaluated_count", "Hesaplanan"),
-        ("met_count", "Sağlayan"), ("unmet_count", "Sağlamayan"),
-        ("not_applicable_count", "Kapsam dışı"), ("not_proven_count", "Çözümlenemeyen"),
+        ("check_id", "Check"), ("status", "Numerical status"),
+        ("expected_count", "Element-check pairs"), ("evaluated_count", "Calculated"),
+        ("met_count", "Pass"), ("unmet_count", "Fail"),
+        ("not_applicable_count", "Out of scope"), ("not_proven_count", "Unresolved"),
     )
     summary_rows = [
         {"check_id": modal["check_id"], "status": modal["status"],
@@ -992,11 +1112,18 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
         summary_rows.append({
             "check_id": "GLOBAL_SECOND_ORDER",
             "status": r08_summary["status"],
-            "expected_count": r08_summary["expected_story_direction_count"],
+            "expected_count": r08_summary.get("declared_story_direction_count",
+                                              r08_summary["expected_story_direction_count"]),
             "evaluated_count": r08_summary["evaluated_story_direction_count"],
-            "met_count": 0, "unmet_count": 0, "not_applicable_count": 0,
+            "met_count": 0, "unmet_count": 0,
+            "not_applicable_count": r08_summary.get("not_applicable_story_direction_count", 0),
             "not_proven_count": r08_summary["expected_story_direction_count"],
         })
+    b1_summary = next((row for row in report.get("check_inventory", {}).get("entries", [])
+                       if row["check_id"] == "WEAK_STORY_B1"), None)
+    if b1_summary:
+        summary_rows.append(dict(b1_summary, met_count=0, unmet_count=0, not_applicable_count=0,
+                                 not_proven_count=b1_summary.get("expected_count")))
     b2 = report.get("soft_story_b2")
     wall_geometry = report.get("wall_geometry")
     source_controls = report.get("source_controls")
@@ -1019,43 +1146,125 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
             "not_proven_count": b2["expected_count"],
         })
     section_cols = (
-        ("story", "Kat"), ("element_id", "UniqueName"), ("section", "Atanan kesit"),
-        ("material_name", "Malzeme"), ("material_classification", "Malzeme sınıfı"),
+        ("story", "Story"), ("element_id", "ETABS Unique ID"), ("section", "Assigned section"),
+        ("material_name", "Material"), ("material_classification", "Material classification"),
         ("width_mm", "t2 mm"), ("depth_mm", "t3 mm"),
-        ("value", "Kontrol değeri"), ("limit", "Sınır"), ("ratio", "Oran"),
-        ("status", "Durum"), ("reason", "Teşhis"),
+        ("value", "Check value"), ("limit", "Limit"), ("ratio", "Ratio"),
+        ("status", "Status"), ("reason", "Diagnostic"),
     )
+    group_cols = (("member_count", "Members"), ("members_by_story", "ETABS Unique IDs by story")) + section_cols[2:]
     check_sections = []
     for i, check in enumerate(geometry, 1):
         desc = (f"<h2>{i:02d}. {_val(check.get('title'))}</h2>"
                 f"<p><strong>{_val(check.get('code_ref'))}</strong> · "
-                f"Sayısal durum: {_val(check.get('status'))} · "
-                f"Kapsam: {_val(check.get('expected_count'))}, "
-                f"Hesaplanan: {_val(check.get('evaluated_count'))}, "
-                f"Sağlamayan: {_val(check.get('unmet_count'))}, "
-                f"Kapsam dışı: {_val(check.get('not_applicable_count'))}, "
-                f"Çözümlenemeyen: {_val(check.get('not_proven_count'))}</p>")
-        check_sections.append(f'<section class="percheck">{desc}{_table(section_cols, check.get("items", []))}</section>')
-    extra_cols = (("story", "Kat"), ("direction", "Yön"),
-                  ("source_case", "Vaka"), ("material_name", "Malzeme"),
+                f"Numerical status {_val(check.get('status'))} · "
+                f"Coverage {_val(check.get('expected_count'))}, "
+                f"Calculated {_val(check.get('evaluated_count'))}, "
+                f"Fail {_val(check.get('unmet_count'))}, "
+                f"Out of scope {_val(check.get('not_applicable_count'))}, "
+                f"Unresolved {_val(check.get('not_proven_count'))}</p>")
+        items = check.get("items", [])
+        grouped = _table(group_cols, check.get("member_groups") or geometry_groups(items))
+        detail = ('<details><summary>Individual member rows</summary>' + _table(section_cols, items) + '</details>') if items else ''
+        check_sections.append(f'<section class="percheck">{desc}{grouped}{detail}</section>')
+    roster_cols = (("member_count", "Members"), ("member_type", "Member type"),
+                   ("material_classification", "Material classification"), ("members_by_story", "ETABS Unique IDs by story"))
+    material_roster = (report.get("material_member_groups")
+                       if "material_member_groups" in report else material_member_groups(geometry))
+    extra_cols = (("story", "Story"), ("direction", "Direction"),
+                  ("source_case", "Case"), ("material_name", "Material"),
                   ("fck_mpa", "fck MPa"), ("eta_bi", "ηbi"),
-                  ("value", "Değer"), ("limit", "Sınır"),
-                  ("status", "Durum"), ("reason", "Neden"))
+                  ("value", "Value"), ("limit", "Limit"),
+                  ("status", "Status"), ("reason", "Reason"))
     for check in extras:
+        columns = extra_cols
+        items = check.get("items", [])
+        if check.get("check_id") == "concrete_fck_25":
+            columns = extra_cols[3:5] + extra_cols[7:] + roster_cols
+            items = _with_material_members(items, material_roster)
         check_sections.append('<section class="percheck"><h2>' + _val(check.get("title")) +
-                              '</h2><p>Kaynak bazlı alt kontrol; formal compliance NOT_PROVEN</p>' +
-                              _table(extra_cols, check.get("items", [])) + '</section>')
+                              '</h2><p>Source-based check. Formal compliance is NOT_PROVEN.</p>' +
+                              _table(columns, items) + '</section>')
     vs04_sections = []
+    analysis_setup = report.get("analysis_setup")
+    if isinstance(analysis_setup, Mapping):
+        vs04_sections.append(_analysis_setup_html(
+            analysis_setup, (report.get("source_provenance") or {}).get("analysis_setup_receipt_sha256"),
+            reconciliation=report.get("analysis_setup_reconciliation")))
+    if report.get("column_axial") is not None:
+        vs04_sections.append(_column_axial_html(report["column_axial"],
+                                               report["source_provenance"]["column_axial_receipt_sha256"],
+                                               report.get("column_axial_expected_instances")))
+    if report.get("column_pmm") is not None:
+        vs04_sections.append(_column_pmm_html(report["column_pmm"],
+                                             report["source_provenance"]["column_pmm_receipt_sha256"],
+                                             report.get("column_pmm_reinforcement"),
+                                             (report.get("r10_live") or {}).get("engineer_column_selection")))
+    pmm_scope = report.get("column_pmm_expected_instances")
+    if pmm_scope is not None:
+        mesh = pmm_scope.get("analysis_mesh") or {}
+        members = mesh.get("members") or {}
+        configured = pmm_scope.get("configured_output_cuts") or {}
+        mesh_details = (f'<p>Analysis mesh table {_val(mesh["mesh_table_status"])} · '
+                        f'Output station assignments {_val(mesh["station_table_status"])} · '
+                        f'{sum(member["roster_bound"] for member in members.values())} / {len(members)} '
+                        'column element rosters bound.</p>') if mesh else ""
+        scope_rows = []
+        for item in pmm_scope["instances"]:
+            coverage = item.get("analysis_element_coverage") or {}
+            required = item.get("configured_cut_coverage") or {}
+            cut_gap = configured.get(item["element_id"], {}).get("reason")
+            missing_configured = [
+                f'{cut["object_station_m"]:.4f} / {cut["analysis_element_id"]} / {cut["element_station_m"]:.4f} ({status})'
+                for key, status in (("missing_cuts", "missing"), ("ambiguous_cuts", "ambiguous"))
+                for cut in required.get(key, ())
+            ]
+            scope_rows.append({**item,
+                               "expected_elements": ", ".join(coverage.get("expected_analysis_element_ids", ())),
+                               "missing_elements": ", ".join(coverage.get("missing_analysis_element_ids", ())),
+                               "unmapped_elements": ", ".join(coverage.get("unmapped_analysis_element_ids", ())),
+                               "configured_cuts": (f'{required["matched_count"]} / {required["required_count"]}'
+                                                   if required else None),
+                               "missing_configured_cuts": ", ".join(missing_configured) or cut_gap})
+        vs04_sections.append(
+            '<section class="percheck"><h2>PMM source coverage</h2>'
+            f'<p>{_val(pmm_scope["numerically_complete_signed_pair_count"])} / '
+            f'{_val(pmm_scope["expected_member_combination_count"])} expected column–combination pairs '
+            'have complete signed results for their observed stations. Independent analysis cut inventory '
+            + ('verified.' if pmm_scope["independent_cut_census_proven"] else 'not verified.') + '</p>'
+            + mesh_details
+            + _table((("element_id", "ETABS Unique ID"), ("combination", "Combination"),
+                      ("expected_elements", "Expected analysis elements"), ("missing_elements", "Elements without forces"),
+                      ("unmapped_elements", "Unmapped force elements"),
+                      ("minimum_object_station_count", "Configured station minimum"),
+                      ("observed_object_station_count", "Distinct object stations"),
+                      ("configured_cuts", "Matched configured cuts"),
+                      ("missing_configured_cuts", "Cut evidence (object station m / element ID / element station m)"),
+                      ("section_rows_evaluated", "Evaluated cuts"), ("execution_status", "Status"),
+                      ("reason", "Evidence gap")), scope_rows)
+            + '</section>'
+        )
+    if report.get("column_gates") is not None:
+        vs04_sections.append(_column_gates_html(report["column_gates"]))
+    if report.get("beam_r10") is not None:
+        vs04_sections.append(_beam_r10_html(report["beam_r10"]))
+    if report.get("r10_live") is not None:
+        vs04_sections.append(_column_r10_html(report["r10_live"]))
+    if report.get("column_slenderness_evidence") is not None:
+        vs04_sections.append(_column_slenderness_html(report["column_slenderness_evidence"],
+                                                      report.get("r08_local_slenderness")))
+    if report.get("r14_closure") is not None:
+        vs04_sections.append(_column_r14_r15_html(report["r14_closure"]))
     if report.get("vs04"):
         v = report["vs04"]
         source_tables = ((report.get("source_snapshot") or {}).get("analysis_sources") or {}).get("tables") or {}
         overview = [dict(t) for t in (v.get("tables") or [])]
-        vs04_sections.append('<section class="percheck"><h2>VS04 · Analiz kaynak şeması (henüz onaysız)</h2>'
-                            '<p>Kaynak aritmetiği/koşullu hesaplar yönetmelik uygunluğu değildir. Formal uygunluk NOT_PROVEN; '
-                            'analiz nesli ve kombinasyon rolleri onaylanmamıştır.</p>'
-                            + _table((("table_key","ETABS tablosu"),("status","Kaynak durumu"),
-                                      ("row_count","Satır"),("fields","Alanlar"),
-                                      ("schema_sha256","Şema SHA-256"),("reason_codes","Engeller")), overview)
+        vs04_sections.append('<section class="percheck"><h2>VS04 · Unverified analysis source schema</h2>'
+                            '<p>Formal compliance remains NOT_PROVEN pending separate code checks and verification of the analysis generation '
+                            'and combination roles.</p>'
+                            + _table((("table_key","ETABS table"),("status","Source status"),
+                                      ("row_count","Rows"),("fields","Fields"),
+                                      ("schema_sha256","Schema SHA-256"),("reason_codes","Blockers")), overview)
                             + "</section>")
         for record in overview:
             key = record.get("table_key")
@@ -1066,28 +1275,28 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
             rows = raw.get("rows") or []
             if isinstance(fields, list) and isinstance(rows, list) and len(fields) == len(set(fields)):
                 columns = tuple((name,name) for name in fields if isinstance(name,str))
-                vs04_sections.append('<section class="percheck"><h2>VS04 ham ETABS kaynağı · '
+                vs04_sections.append('<section class="percheck"><h2>VS04 raw ETABS source · '
                                     + _val(key) + "</h2>"
                                     + _table(columns, rows, "modal-grid") + "</section>")
     readiness = report.get("vs04_readiness")
     if readiness:
-        cols = (("check_id", "Beklenen normatif hesap"),("code_ref", "TBDY"),
-                ("status", "Kanıt durumu"),("missing_evidence", "Eksik bağımlılıklar"),
-                ("source_only_hints", "Gözlenen ancak yetersiz kaynak"))
-        vs04_sections.append('<section class="percheck"><h2>VS04-E · TBDY normatif kanıt kapıları</h2>'
-                             '<p>Kaynak aritmetiği ile yönetmelik denetimi farklıdır. '
-                             'Buradaki 5 beklenen kontrol henüz çalıştırılmamıştır; '
-                             'bina uygunluğu NOT_PROVEN ve release NOT_READY.</p>'
+        cols = (("check_id", "Required code calculation"),("code_ref", "TBDY"),
+                ("status", "Evidence status"),("missing_evidence", "Missing dependencies"),
+                ("source_only_hints", "Observed partial evidence"))
+        vs04_sections.append('<section class="percheck"><h2>VS04-E · TBDY code evidence gates</h2>'
+                             '<p>This section records source arithmetic. '
+                             'Five code checks are pending. '
+                             'Building compliance is NOT_PROVEN and release is NOT_READY.</p>'
                              + _table(cols, readiness.get("checks", [])) + '</section>')
     numeric = report.get("vs04_numerics")
     if numeric:
-        numeric_cols = (("component", "Kaynak niceliği"), ("status", "Kaynak durumu"),
-                        ("expected_row_count", "Görüntülenen satır"),
-                        ("observed_row_count", "Aritmetik gözlem"),
+        numeric_cols = (("component", "Source quantity"), ("status", "Source status"),
+                        ("expected_row_count", "Displayed rows"),
+                        ("observed_row_count", "Arithmetic observation"),
                         ("reason_codes", "Engeller"))
-        vs04_sections.append('<section class="percheck"><h2>VS04 · Sayısal kaynak tutarlılığı</h2>'
-                             '<p>Yalnız kaynak aritmetiği: normatif kontrol sayısı 0. '
-                             'Drift/ fiziksel anlamı ve analiz nesli henüz onaylanmamıştır.</p>'
+        vs04_sections.append('<section class="percheck"><h2>VS04 · Numerical source consistency</h2>'
+                             '<p>Source arithmetic completed with zero code checks. '
+                             'The physical meaning of the drift results and the analysis generation await verification.</p>'
                              + _table(numeric_cols, numeric.get("results", [])) + '</section>')
         for result in numeric.get("results", []):
             vs04_sections.append('<section class="percheck"><h2>VS04 · '
@@ -1098,86 +1307,86 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
                                      result.get("items") or []) + '</section>')
     pipeline = report.get("vs04_pipeline")
     if pipeline:
-        source_cols = (("check_id", "Kaynak denetimi"), ("title", "Bileşen"),
-                       ("source_status", "İlk kaynak durumu"),
-                       ("status", "Bağlanmış kaynak durumu"),
-                       ("execution_status", "Çalıştırılma"),
-                       ("coverage", "Özgün kapsama / seçilmiş vaka"),
-                       ("reason_codes", "Okuma teşhisi / gerekçe"),
-                       ("missing_evidence", "Normatif eksik kanıt"),
-                       ("formal_compliance", "TBDY uygunluğu"))
-        vs04_sections.append('<section class="percheck"><h2>VS04 E–J · Tek çalışma kaynak zinciri</h2>'
-                             '<p>Bu altı aşama, mevcut sekiz normatif alt kontrolün yerine geçmez. '
-                             'Kütle mutabakatı, spektrum ve taban kesmesi taraması kaynak/koşul '
-                             'düzeyindedir. Tam VtE, βtE ve etkin kat ötelenmesi NOT_PROVEN.</p>'
+        source_cols = (("check_id", "Source check"), ("title", "Component"),
+                       ("source_status", "Initial source status"),
+                       ("status", "Resolved source status"),
+                       ("execution_status", "Execution"),
+                       ("coverage", "Original coverage / selected case"),
+                       ("reason_codes", "Capture status / reason"),
+                       ("missing_evidence", "Missing code evidence"),
+                       ("formal_compliance", "TBDY compliance"))
+        vs04_sections.append('<section class="percheck"><h2>VS04 E–J · Single-run source trace</h2>'
+                             '<p>The eight code checks require their own evidence. '
+                             'Mass reconciliation, spectrum and base shear are source-based or conditional screenings. '
+                             'Full VtE, βtE and effective story drift remain NOT_PROVEN.</p>'
                              + _table(source_cols, pipeline.get("checks", [])) + '</section>')
         diag = pipeline.get("modal_display_selection_reconciliation")
         if diag:
             resolved = (diag.get("status") ==
                         "SOURCE_DISPLAY_SELECTION_DEPENDENCY_RECONCILED")
             diag_summary = (
-                'İlk tablo okuması hatalı kalmıştır; özgün E/F/G sayaçları değişmez. '
-                'RSX/RSY seçimiyle alınan 200 satır H/I kaynak kontrolleriyle '
-                'eşleşmiştir. Yalnız kaynak bağımlılığı açıklanır.'
+                'The initial table read remains recorded as failed. The original E/F/G counts are preserved. '
+                'Reading with RSX/RSY selected returned 200 rows that matched the H/I source checks. '
+                'This confirms the table\'s selection dependency.'
                 if resolved else
-                'İlk okuma ve seçilmiş vaka kaynakları henüz uzlaştırılamadı. '
-                'Eksik kaynak kanıtı açık kalır.'
+                'Reconciliation of the initial read and selected-case sources is pending. '
+                'The missing source evidence remains open.'
             )
             vs04_sections.append(
-                '<section class="percheck"><h2>VS04 E/F/G · Seçim bağımlılığı</h2>'
+                '<section class="percheck"><h2>VS04 E/F/G · Case selection dependency</h2>'
                 '<p>' + _val(diag_summary) +
-                ' TBDY uygunluğu NOT_PROVEN.</p>'
-                + _table((("table_key", "ETABS tablo kimliği"),
-                          ("status", "Kaynak teşhis durumu"),
-                          ("original_read_still_failed", "İlk okuma hâlâ hatalı"),
-                          ("selected_case_row_count", "RSX/RSY satırları"),
-                          ("reason_codes", "Gerekçeler"),
-                          ("analysis_generation_proven", "Analiz nesli kanıtı")),
+                ' TBDY compliance is NOT_PROVEN.</p>'
+                + _table((("table_key", "ETABS table ID"),
+                          ("status", "Source diagnosis"),
+                          ("original_read_still_failed", "Initial read remains failed"),
+                          ("selected_case_row_count", "RSX/RSY rows"),
+                          ("reason_codes", "Reasons"),
+                          ("analysis_generation_proven", "Analysis generation evidence")),
                          [diag]) + '</section>'
             )
         conditional = (pipeline.get("stages") or {}).get("vs04_j") or {}
         if conditional.get("conditional_eq_4_19_minimum_term_kn") is not None:
-            vs04_sections.append('<section class="percheck"><h2>VS04-J · Koşullu taban kesmesi alt terimi</h2>'
-                                 '<p>m, I ve SDS kaynak adaylarına dayalıdır; mühendislik '
-                                 'kabulü veya VtE sonucu değildir.</p>'
-                                 + _table((("source_mass_candidate_ton", "Aday kütle (ton)"),
+            vs04_sections.append('<section class="percheck"><h2>VS04-J · Conditional base shear lower-bound term</h2>'
+                                 '<p>The calculation uses source candidates for m, I and SDS. '
+                                 'Engineering acceptance and the VtE calculation require separate evidence.</p>'
+                                 + _table((("source_mass_candidate_ton", "Candidate mass (t)"),
                                            ("candidate_importance_factor", "Aday I"),
                                            ("candidate_SDS", "Aday SDS"),
                                            ("conditional_eq_4_19_minimum_term_kn",
-                                            "Koşullu alt terim (kN)")),
+                                            "Conditional lower-bound term (kN)")),
                                           [conditional]) + '</section>')
     physical_scope = report.get("physical_story_scope")
     if isinstance(physical_scope, Mapping):
         vs04_sections.append(
-            '<section class="percheck"><h2>Fiziksel kat kapsamı · B1 / B2 / STORY_DRIFT</h2>'
-            '<p>Durum: ' + _val(physical_scope["status"]) +
-            '; fiziksel kat: ' + _val(physical_scope["physical_story_count"]) +
-            ' / tanımlı kat: ' + _val(physical_scope["defined_story_count"]) +
-            '. NOT_APPLICABLE yalnız eksiksiz Frame/Area/Wall/Joint envanteriyle boşluğu '
-            'doğrulanan katlara uygulanır. Bu envanter resmî TBDY kabulü değildir.</p>' +
-            _table((("story", "Kat"), ("applicability", "Kapsam"), ("frames", "Frame"),
-                    ("areas", "Area"), ("walls", "Wall (Area alt kümesi)"), ("joints", "Joint"),
-                    ("reason", "Gerekçe")), physical_scope["stories"]) +
-            '<p>Açık neden: ' + _val(physical_scope["reason_codes"]) +
-            ' · Kapsam SHA: ' + _val(physical_scope["scope_sha256"]) + '</p></section>')
+            '<section class="percheck"><h2>Physical story coverage · B1 / B2 / STORY_DRIFT / R08</h2>'
+            '<p>Status ' + _val(physical_scope["status"]) +
+            ' · Physical stories ' + _val(physical_scope["physical_story_count"]) +
+            ' / Defined stories ' + _val(physical_scope["defined_story_count"]) +
+            '. NOT_APPLICABLE applies only when a complete Frame, Area, Wall and Joint inventory confirms an empty story. '
+            'Formal TBDY acceptance requires separate evidence.</p>' +
+            _table((("story", "Story"), ("applicability", "Coverage"), ("frames", "Frame"),
+                    ("areas", "Area"), ("walls", "Wall (subset of Area)"), ("joints", "Joint"),
+                    ("reason", "Reason")), physical_scope["stories"]) +
+            '<p>Open issue ' + _val(physical_scope["reason_codes"]) +
+            ' · Coverage SHA-256 ' + _val(physical_scope["scope_sha256"]) + '</p></section>')
     drift_check = report.get("story_drift")
     if isinstance(drift_check, Mapping):
-        drift_cols = (("story", "Kat"), ("case", "Analiz vakası"),
-                      ("direction", "Yön"), ("height_m", "h (m)"),
+        drift_cols = (("story", "Story"), ("case", "Analysis case"),
+                      ("direction", "Direction"), ("height_m", "h (m)"),
                       ("etabs_story_drift_ratio", "ETABS Drift"),
-                      ("etabs_derived_delta_mm", "Δ adayı (mm)"),
+                      ("etabs_derived_delta_mm", "Candidate Δ (mm)"),
                       ("etabs_reconciliation_residual_mm", "Fark (mm)"))
         vs04_sections.append(
-            '<section class="percheck"><h2>STORY_DRIFT · Kat ötelemesi kaynak hesabı</h2>'
-            '<p>Durum: ' + _val(drift_check.get("status")) +
-            '; hesaplanan: ' + _val(drift_check.get("evaluated_story_case_direction_count")) +
+            '<section class="percheck"><h2>STORY_DRIFT · Source-based story drift</h2>'
+            '<p>Status ' + _val(drift_check.get("status")) +
+            ' · Calculated ' + _val(drift_check.get("evaluated_story_case_direction_count")) +
             ' / ' + _val(drift_check.get("expected_story_case_direction_count")) +
-            '. Bu sonuçlar ETABS Drift × kat yüksekliğinden üretilmiştir.'
-            ' Eşzamanlı olmayan RSX/RSY düğüm maksimumları çıkarılmamıştır.'
-            ' TBDY uygunluğu NOT_PROVEN.</p>' +
+            '. Results use ETABS Drift × story height. '
+            'Nonconcurrent RSX/RSY joint maxima were kept as individual values.</p>'
+            ' TBDY compliance is NOT_PROVEN.</p>' +
             _table(drift_cols, drift_check.get("items", [])) +
-            '<h3>Eksik kat/vaka/yön sonuçları</h3>' +
-            _table((("story", "Kat"), ("case", "Vaka"), ("direction", "Yön")),
+            '<h3>Missing story, case and direction results</h3>' +
+            _table((("story", "Story"), ("case", "Case"), ("direction", "Direction")),
                    drift_check.get("missing_story_case_direction", [])) +
             '</section>')
     r08_record = report.get("r08_second_order")
@@ -1188,104 +1397,108 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
         ]
         vs04_sections.append(
             '<section class="percheck" data-check-panel="GLOBAL_SECOND_ORDER">'
-            '<h2>R08 · Global ikinci mertebe P–Δ · TBDY 2018 4.9.2</h2>'
-            '<p>Kaynak sayısal durum: ' + _val(r08_record.get("status")) +
-            '. Bu birinci aşama yalnızca ETABS kaynaklarının sayısal gösterge '
-            'adayını hesaplar. Kolon/perde ortalama ötelemesi, deprem kütlesi '
-            'ağırlıkları, spektral büyütme ve analiz nesli kabul edilmemiştir. '
+            '<h2>R08 · Global second-order P–Δ · TBDY 2018 4.9.2</h2>'
+            '<p>Source numerical status ' + _val(r08_record.get("status")) +
+            ' · Story-direction results ' + _val(r08_record.get("evaluated_story_direction_count")) +
+            '/' + _val(r08_record.get("expected_story_direction_count")) +
+            '. Stage one calculates a numerical indicator candidate from ETABS source data. '
+            'Column and wall mean drift, seismic mass weights, '
+            'spectral amplification and analysis generation still require acceptance. '
             '<strong>FORMAL COMPLIANCE: NOT_PROVEN · RELEASE: NOT_READY</strong>.</p>' +
-            _table((("story", "Kat"), ("direction", "Yön"), ("case", "Vaka"),
+            (_table((("story", "Out-of-scope stories"), ("reason", "Reason")),
+                    r08_record["excluded_stories"]) if r08_record.get("excluded_stories") else '') +
+            _table((("story", "Story"), ("direction", "Direction"), ("case", "Case"),
                     ("story_height_m", "h (m)"),
                     ("cumulative_seismic_weight_kn_candidate", "Toplam W (kN)"),
                     ("reduced_story_shear_kn_candidate", "Vi (kN)"),
-                    ("etabs_avg_drift_m_candidate", "Ort. Δ adayı (m)"),
-                    ("theta_ii_candidate", "θII adayı"),
-                    ("source_numeric_status", "Kaynak durumu")),
+                    ("etabs_avg_drift_m_candidate", "Candidate mean Δ (m)"),
+                    ("theta_ii_candidate", "Candidate θII"),
+                    ("source_numeric_status", "Source status")),
                    r08_record.get("results", [])) +
-            '<h3>Yön bazında sayısal adaylar</h3>' +
-            _table((("axis", "Yön"), ("theta_max_candidate", "θmax adayı"),
-                    ("theta_limit_reference", "θ sınır referansı"),
-                    ("beta_ii_candidate", "βII adayı"),
-                    ("applied_to_design_forces", "Tasarım kuvvetlerine uygulandı mı?")),
+            '<h3>Numerical candidates by direction</h3>' +
+            _table((("axis", "Direction"), ("theta_max_candidate", "Candidate θmax"),
+                    ("theta_limit_reference", "θ limit reference"),
+                    ("beta_ii_candidate", "Candidate βII"),
+                    ("applied_to_design_forces", "Applied to design forces")),
                    direction_rows) +
-            '<p>Kaynak engelleri: ' + _val(r08_record.get("reason_codes", [])) +
+            '<p>Source blockers ' + _val(r08_record.get("reason_codes", [])) +
             ' · Kabul eksikleri: ' + _val(r08_record.get("missing_authorities", [])) +
-            ' · Kaynak SHA: ' + _val(r08_record.get("source_sha256")) +
+            ' · Source SHA-256 ' + _val(r08_record.get("source_sha256")) +
             '</p></section>')
     ledger = report.get("vs06_story_slot_ledger")
     if isinstance(ledger, Mapping):
         vs04_sections.append(
-            '<section class="percheck"><h2>VS06-A · STORY_DRIFT kaynak slot muhasebesi</h2>'
-            '<p>Arşiv kaydı: fiziksel boş kat istisnasından önceki tanımlı kat kapsamıdır. '
-            'Güncel uygulanabilir kapsam yukarıdaki STORY_DRIFT sonucundadır.</p>'
-            '<p>Beklenen slot: ' + _val(ledger.get("expected_slot_count")) +
-            '; kaynaktan hesaplanan: ' + _val(ledger.get("source_numeric_count")) +
-            '; kaynağı eksik: ' + _val(ledger.get("source_missing_count")) +
-            '. Tüm satırlar muhasebeleştirilmiştir ancak fiziksel uygulanabilirlik ve '
-            'TBDY uygunluğu NOT_PROVEN. Eksik satırlar sıfır veya kapsam dışı sayılmamıştır.</p>' +
-            _table((("story", "Kat"), ("case", "Vaka"), ("direction", "Yön"),
-                    ("source_status", "Kaynak"), ("source_delta_mm", "Δ adayı (mm)"),
+            '<section class="percheck"><h2>VS06-A · STORY_DRIFT source coverage ledger</h2>'
+            '<p>The archive shows all defined stories before the verified empty-story exclusions. '
+            'The current applicable coverage is in STORY_DRIFT above.</p>'
+            '<p>Expected records: ' + _val(ledger.get("expected_slot_count")) +
+            ' · Calculated from source ' + _val(ledger.get("source_numeric_count")) +
+            ' · Missing source ' + _val(ledger.get("source_missing_count")) +
+            '. The ledger accounts for all rows. Physical applicability and TBDY compliance are NOT_PROVEN. '
+            'Missing rows remain unresolved.</p>' +
+            _table((("story", "Story"), ("case", "Case"), ("direction", "Direction"),
+                    ("source_status", "Source"), ("source_delta_mm", "Candidate Δ (mm)"),
                     ("physical_applicability", "Fiziksel uygulanabilirlik"),
-                    ("normative_status", "TBDY durumu"), ("reason_code", "Açık kanıt")),
+                    ("normative_status", "TBDY durumu"), ("reason_code", "Open evidence")),
                    ledger.get("slots", [])) + '</section>')
 
     physical = report.get("vs06_physical_source_review")
     if isinstance(physical, Mapping):
         vs04_sections.append(
-            '<section class="percheck"><h2>VS06-B · Fiziksel kaynak ve spektral eşzamanlılık kanıtı</h2>'
-            '<p>Arşivdeki kolon ucu kanıt incelemesi; güncel tam nesne envanteri ve '
-            'boş kat istisnaları ayrı fiziksel kat kapsamı tablosundadır.</p>'
-            '<p>Gözlenen kolon bağlantısı: ' + _val(physical.get("endpoint_linked_column_count")) +
+            '<section class="percheck"><h2>VS06-B · Physical source and spectral concurrence evidence</h2>'
+            '<p>The archive reviews evidence at column ends. The physical story coverage table shows the current complete inventory '
+            'and verified empty-story exclusions.</p>'
+            '<p>Observed column connections ' + _val(physical.get("endpoint_linked_column_count")) +
             ' / ' + _val(physical.get("observed_column_count")) +
-            '; bağımsız RSX/RSY nokta maksimumu: ' +
+            ' · Independent RSX/RSY point maxima ' +
             _val(physical.get("response_spectrum_independent_max_rows")) +
-            '; eşzamanlı tasarım deplasman çifti kanıtlanan: ' +
+            ' · Verified concurrent design displacement pairs ' +
             _val(physical.get("signed_concurrent_spectrum_design_pairs_proven")) +
-            '. Kolonların gözlenmesi tam bina sayımı değildir; yokluk kapsam dışılık '
-            'değildir. Fiziksel uygulanabilirlik ve yönetmelik uygunluğu NOT_PROVEN.</p>' +
-            '<h3>Kat bazında gözlenen bağlantılar</h3>' +
-            _table((("story", "Kat"), ("assigned_columns_observed", "Atanan kolon"),
-                    ("endpoint_linked_columns_observed", "Uçları eşlenen"),
-                    ("member_presence_evidence", "Kaynak bulgusu"),
+            '. Observations cover the inspected columns. Whole-building coverage and exclusions require a complete inventory. '
+            'Physical applicability and code compliance remain NOT_PROVEN.</p>' +
+            '<h3>Observed connections by story</h3>' +
+            _table((("story", "Story"), ("assigned_columns_observed", "Assigned columns"),
+                    ("endpoint_linked_columns_observed", "Matched ends"),
+                    ("member_presence_evidence", "Source finding"),
                     ("physical_story_applicability", "Uygulanabilirlik")),
                    physical.get("observed_stories", [])) +
-            '<h3>Kat / spektral vaka / yön kanıt sınırı</h3>' +
-            _table((("story", "Kat"), ("case", "Vaka"), ("direction", "Yön"),
-                    ("source_status", "Ötelenme kaynağı"),
-                    ("member_presence_evidence", "Fiziksel kaynak"),
+            '<h3>Evidence limits by story, spectrum case and direction</h3>' +
+            _table((("story", "Story"), ("case", "Case"), ("direction", "Direction"),
+                    ("source_status", "Displacement source"),
+                    ("member_presence_evidence", "Physical source"),
                     ("physical_applicability", "Uygulanabilirlik"),
-                    ("signed_concurrent_spectrum_delta_available", "Eşzamanlı Δ"),
-                    ("regulatory_status", "Yönetmelik")),
+                    ("signed_concurrent_spectrum_delta_available", "Concurrent Δ"),
+                    ("regulatory_status", "Code")),
                    physical.get("slots", [])) +
-            '<h3>Çözümlenemeyen kolon uç bağlantıları</h3>' +
-            _table((("column", "Kolon"), ("story", "Kat"), ("reason", "Açık kanıt")),
+            '<h3>Unresolved column end connections</h3>' +
+            _table((("column", "Column"), ("story", "Story"), ("reason", "Open evidence")),
                    physical.get("unresolved_columns", [])) + '</section>')
 
     readiness = report.get("vs06_effective_drift_readiness")
     if isinstance(readiness, Mapping):
         vs04_sections.append(
-            '<section class="percheck"><h2>VS06-C1 · TBDY 4.9 etkin göreli kat ötelemesi hesap hazırlığı</h2>'
-            '<p>Arşivdeki tanımlı kat muhasebesi korunmuştur; C2 senaryosu doğrulanmış '
-            'boş kat istisnalarını uygular.</p>'
-            '<p>94 düğümlü mevcut DAG üzerinden beklenen kat/yön kontrolleri: ' +
+            '<section class="percheck"><h2>VS06-C1 · TBDY 4.9 effective interstory drift readiness</h2>'
+            '<p>The archive accounts for all defined stories. The C2 scenario applies verified '
+            'empty-story exclusions.</p>'
+            '<p>Expected story-direction checks in the 94-node dependency graph ' +
             _val(readiness.get("expected_story_direction_instances")) +
-            '; ETABS kaynak-nümerik aday bulunan: ' +
+            ' · ETABS numerical source candidates ' +
             _val(readiness.get("source_numeric_primary_instances")) +
-            '; temel kaynak eksiği: ' +
+            ' · Missing primary sources ' +
             _val(readiness.get("source_missing_primary_instances")) +
             '; aday FCR NOT_PROVEN: ' +
             _val(readiness.get("candidate_fcr_not_proven")) +
-            '. Denk. (4.32)–(4.34) formel hesabı henüz yürütülmedi. '
-            'Kaynak maksimumları eşzamanlı tasarım deplasmanı değildir. '
-            'Boş tanımlı kotlar kanıt olmadan kapsam dışı sayılamaz.</p>' +
+            '. The formal calculation for Eq. (4.32)–(4.34) remains pending. '
+            'Concurrent design displacements and empty-story exclusions require '
+            'separate evidence.</p>' +
             _table((("check_instance_id", "DAG CheckInstance"),
-                    ("case", "ETABS vakası"), ("source_numeric_status", "Kaynak"),
-                    ("etabs_derived_delta_mm_candidate", "Kaynak Δ adayı (mm)"),
-                    ("member_presence_evidence", "Fiziksel kaynak"),
+                    ("case", "ETABS case"), ("source_numeric_status", "Source"),
+                    ("etabs_derived_delta_mm_candidate", "Source candidate Δ (mm)"),
+                    ("member_presence_evidence", "Physical source"),
                     ("physical_applicability", "Uygulanabilirlik"),
-                    ("formula_execution", "Denklem yürütümü"),
+                    ("formula_execution", "Equation execution"),
                     ("regulatory_status", "TBDY durumu"),
-                    ("required_source_evidence", "Eksik normatif kanıt")),
+                    ("required_source_evidence", "Missing code evidence")),
                    readiness.get("check_instances", [])) +
             '</section>')
 
@@ -1294,37 +1507,37 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
         wall = scenario.get("wall_candidate_inventory") or {}
         options = scenario.get("scenario_input") or {}
         vs04_sections.append(
-            '<section class="percheck"><h2>VS06-C2 · TBDY 4.9 etkin göreli öteleme — SAYISAL SENARYO</h2>'
-            '<p>Gevrek dolgu: Denk.(4.34a) / 0.008κ; esnek bağlantı: Denk.(4.34b) / '
-            '0.016κ (deneye dayalı bağlantı kapasitesi ayrıca gereklidir). '
-            'Bu tablo gerçekte gözlenen ETABS Story Drifts × h kaynak adaylarından '
-            'oluşturulmuştur; tam fiziksel eşzamanlı deplasman ve resmî uygunluk '
-            'kanıtı değildir. <strong>FORMAL COMPLIANCE: NOT_PROVEN</strong>.</p>' +
-            _table((("r", "Varsayılan/senaryo R"), ("i", "Senaryo I"),
-                    ("lambda", "Senaryo λ"), ("material", "Sistem"),
-                    ("wall_type", "Dolgu bağlantısı"), ("coverage_pct", "Dolgu oranı %"),
-                    ("wall_height_m", "Varsayılan duvar h (m)"),
-                    ("opening_pct", "Açıklık %"), ("wall_mode", "Duvar kaynak modu"),
-                    ("wall_load_pattern", "ETABS duvar yük deseni")),
+            '<section class="percheck"><h2>VS06-C2 · TBDY 4.9 effective interstory drift · Numerical scenario</h2>'
+            '<p>Brittle infill uses Eq. (4.34a) and 0.008κ. Flexible connections use Eq. (4.34b) and '
+            '0.016κ, subject to separate test evidence of connection capacity. '
+            'The table uses the observed ETABS Story Drifts × h values. '
+            'Physical displacement concurrence and formal compliance require separate evidence. '
+            '<strong>FORMAL COMPLIANCE: NOT_PROVEN</strong>.</p>' +
+            _table((("r", "Default / scenario R"), ("i", "Scenario I"),
+                    ("lambda", "Scenario λ"), ("material", "System"),
+                    ("wall_type", "Infill connection"), ("coverage_pct", "Infill share (%)"),
+                    ("wall_height_m", "Assumed wall h (m)"),
+                    ("opening_pct", "Openings (%)"), ("wall_mode", "Wall source mode"),
+                    ("wall_load_pattern", "ETABS wall load pattern")),
                    [options]) +
-            '<p>Yük deseni ' + _val(wall.get("load_pattern")) + ' gözlemi: ' + _val(wall.get("source_status")) +
-            ' · Aday kiriş: ' + _val(wall.get("candidate_beam_count")) +
+            '<p>Load pattern ' + _val(wall.get("load_pattern")) + ' observation ' + _val(wall.get("source_status")) +
+            ' · Candidate beams ' + _val(wall.get("candidate_beam_count")) +
             ' · Aday toplam uzunluk (m): ' + _val(wall.get("candidate_total_length_m")) +
-            ' · Varsayımsal net dolgu yüzey alanı (m²): ' +
+            ' · Assumed net infill face area (m²) ' +
             _val(wall.get("assumed_net_face_area_m2")) +
-            '. Yük ataması fiziksel dolgu varlığının veya B1 etkin kesme alanının '
-            'kanıtı değildir.</p>' +
-            _table((("story", "Kat"), ("case", "Vaka"), ("direction", "Yön"),
-                    ("source_delta_mm", "Kaynak Δ adayı (mm)"),
-                    ("effective_delta_mm", "Etkin Δ senaryo (mm)"),
+            '. Physical infill presence and B1 effective shear area require '
+            'additional evidence beyond the load assignment.</p>' +
+            _table((("story", "Story"), ("case", "Case"), ("direction", "Direction"),
+                    ("source_delta_mm", "Source candidate Δ (mm)"),
+                    ("effective_delta_mm", "Scenario effective Δ (mm)"),
                     ("lambda_effective_ratio", "λ δ / h"),
-                    ("limit", "Sınır"), ("utilization_ratio", "Kullanım oranı"),
-                    ("conditional_numeric_condition", "Koşullu sayılsal sonuç"),
-                    ("formal_compliance", "Resmî uygunluk")),
+                    ("limit", "Limit"), ("utilization_ratio", "Utilization ratio"),
+                    ("conditional_numeric_condition", "Conditional numerical result"),
+                    ("formal_compliance", "Formal compliance")),
                    scenario.get("rows", [])) +
-            '<p>Senaryo SHA-256: ' + _val(scenario.get("scenario_sha256")) +
-            ' · Kaynak SHA-256: ' + _val(scenario.get("input_sha256")) +
-            '. Esnek bağlantı seçimi için deneye dayalı kapasite belgesi: ' +
+            '<p>Scenario SHA-256: ' + _val(scenario.get("scenario_sha256")) +
+            ' · Source SHA-256 ' + _val(scenario.get("input_sha256")) +
+            '. Test-based capacity evidence for flexible connections ' +
             _val(scenario.get("flexible_branch_capacity_accepted")) +
             '.</p></section>')
 
@@ -1341,77 +1554,77 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
                     "Ak_m2": item.get("infill_Ak_assumed_m2"),
                     "K_proxy": item.get("infill_shear_stiffness_proxy_kN_m")})
         vs04_sections.append(
-            '<section class="percheck"><h2>VS06-D1 · B1 Zayıf Kat — sayısal kaynak senaryosu</h2>'
-            '<p>TBDY 2018 Tablo 3.6, 3.6.2.3. Ae = Aw+Ag+0,15Ak. '
-            'Kolon/perde gerçek kaynak geometrisidir; tuğla 9/19 cm ve '
-            'kapı/pencere azaltması varsayımdır. Formel uygunluk NOT_PROVEN.</p>'
-            '<p>ηci,min: ' + _val(b1_numeric.get("eta_ci_min")) +
-            ' · Sayısal karar: ' + _val(b1_numeric.get("numeric_condition")) +
-            ' · Fiziksel kat kapsamı: ' + _val(b1.get("physical_source_coverage", "UNKNOWN")) +
-            ' · Gevrek dolgu varsayılanı: ' +
+            '<section class="percheck"><h2>VS06-D1 · B1 weak story · Numerical source scenario</h2>'
+            '<p>TBDY 2018 Table 3.6 and 3.6.2.3 give Ae = Aw+Ag+0.15Ak. '
+            'Column and wall geometry comes from the source. Brick thicknesses of 9 and 19 cm and '
+            'door and window deductions are assumptions. Formal compliance is NOT_PROVEN.</p>'
+            '<p>ηci,min: ' + _number_html(b1_numeric.get("eta_ci_min"), 4) +
+            ' · Numerical decision ' + _val(b1_numeric.get("numeric_condition")) +
+            ' · Physical story coverage ' + _val(b1.get("physical_source_coverage", "UNKNOWN")) +
+            ' · Default brittle infill ' +
             _val((b1.get("parameters") or {}).get("wall_type")) + '</p>' +
-            _table((("story", "Kat"), ("direction", "Yön"),
+            _table((("story", "Story"), ("direction", "Direction"),
                     ("Aw_m2", "Aw (m²)"), ("Ag_m2", "Ag (m²)"),
-                    ("Ak_m2", "Ak varsayım (m²)"),
+                    ("Ak_m2", "Assumed Ak (m²)"),
                     ("K_proxy", "K_proxy (kN/m)")), area_rows) +
-            _table((("lower_story", "Alt kat"), ("upper_story", "Üst kat"),
-                    ("direction", "Yön"), ("eta_ci", "ηci"),
-                    ("numeric_condition", "Sayısal durum")),
+            _table((("lower_story", "Lower story"), ("upper_story", "Upper story"),
+                    ("direction", "Direction"), ("eta_ci", "ηci"),
+                    ("numeric_condition", "Numerical status")),
                    b1_numeric.get("paired_results", [])) +
-            '<h3>Hesap varsayımları</h3><ol>' +
+            '<h3>Calculation assumptions</h3><ol>' +
             ''.join('<li>' + escape(str(item)) + '</li>'
                     for item in b1.get("assumptions_notes", [])) +
-            '</ol><p>Kaynak SHA: ' +
+            '</ol><p>Source SHA-256 ' +
             _val((b1.get("provenance") or {}).get("geometry_capture_sha256")) +
             ' / ' +
             _val((b1.get("provenance") or {}).get("wall_load_capture_sha256")) +
-            '. Mühendislik release NOT_READY.</p></section>')
+            '. Engineering release is NOT_READY.</p></section>')
     elif report.get("vs06_b1_source_status"):
         vs04_sections.append(
-            '<section class="percheck"><h2>VS06-D1 · B1 veri eşleştirmesi</h2>'
+            '<section class="percheck"><h2>VS06-D1 · B1 source mapping</h2>'
             '<p>' + _val(report.get("vs06_b1_source_status")) +
-            '. Önceki kabul edilmiş alt kontroller korunmuştur.</p></section>')
+            '.</p></section>')
 
     if isinstance(b2, Mapping):
         coverage = b2["comparison_coverage"]
         vs04_sections.append(
             '<section class="percheck" data-check-panel="SOFT_STORY_B2">'
-            '<h2>B2 yumuşak kat — koşullu kaynak hesabı</h2>'
-            '<p>TBDY 2018 Tablo 3.6 / §3.6.2.1 · ηki = '
-            '(Avg Driftᵢ / hᵢ) / (Avg Driftⱼ / hⱼ). Üst ve alt komşu ayrı ayrı '
-            'karşılaştırılır; eşik ηki &gt; 2,0. Resmî B2 sınıflandırması: '
+            '<h2>B2 soft story · Conditional source calculation</h2>'
+            '<p>TBDY 2018 Table 3.6 / §3.6.2.1 gives ηki = '
+            '(Avg Driftᵢ / hᵢ) / (Avg Driftⱼ / hⱼ). The story above and the story below are checked separately. '
+            'The threshold is ηki &gt; 2.0. Formal B2 classification '
             '<strong>NOT_PROVEN</strong>.</p>'
-            '<p>Kaynak durumu: ' + _val(b2["status"]) + '; hesap: ' +
-            _val(b2["numeric_condition"]) + '. Çözülen komşuluk: ' +
+            '<p>Source status ' + _val(b2["status"]) + ' · Calculation ' +
+            _val(b2["numeric_condition"]) + '. Resolved neighbor pairs ' +
             _val(coverage["resolved"]) + '/' + _val(coverage["expected"]) +
-            '; çözülemeyen: ' + _val(coverage["unresolved"]) +
-            '; kapsam: ' + _val(b2.get("source_coverage_status", "UNKNOWN")) + '.</p>' +
-            _table((("story", "Kapsam dışı kat"), ("applicability", "Durum"),
-                    ("reason", "Gerekçe")), b2.get("excluded_stories", [])) +
-            '<details><summary>Kat kotu ve ara nokta eşleştirmesi</summary>' +
-            '<p>Yalnız üst düzlem noktaları kat kotunu destekler. Ara ve alt sınır '
-            'noktaları kat yüksekliğini değiştirmez. Tam nesne sayımı ayrı fiziksel kat '
-            'kapsamı tablosunda gösterilir.</p>' +
-            _table((("story", "Kat"), ("lower_elevation_m", "Alt kot (m)"),
-                    ("upper_elevation_m", "Üst kot (m)"), ("at_level_points", "Üst düzlem noktası"),
-                    ("intermediate_points", "Ara kotlu nokta"),
-                    ("lower_boundary_points", "Alt sınır noktası")),
+            ' · Unresolved ' + _val(coverage["unresolved"]) +
+            ' · Coverage ' + _val(b2.get("source_coverage_status", "UNKNOWN")) + '.</p>' +
+            _table((("story", "Out-of-scope stories"), ("applicability", "Status"),
+                    ("reason", "Reason")), b2.get("excluded_stories", [])) +
+            '<details><summary>Story elevations and intermediate point mapping</summary>' +
+            '<p>Only top-plane points support the story elevation. Intermediate and lower-boundary points preserve the story height. '
+            'The physical story coverage table contains the complete object inventory '
+            'by story.</p>' +
+            _table((("story", "Story"), ("lower_elevation_m", "Lower elevation (m)"),
+                    ("upper_elevation_m", "Upper elevation (m)"), ("at_level_points", "Top-plane point"),
+                    ("intermediate_points", "Intermediate elevation points"),
+                    ("lower_boundary_points", "Lower-boundary point")),
                    (b2.get("story_order") or {}).get("point_story_span_counts", [])) + '</details>' +
-            _table((("story", "Kat"), ("direction", "Yön"), ("case", "Vaka"),
+            _table((("story", "Story"), ("direction", "Direction"), ("case", "Case"),
                     ("height_m", "h (m)"), ("average_drift_m", "Avg Drift (m)"),
-                    ("status", "Kaynak"), ("reason", "Eksik / hata")),
+                    ("status", "Source"), ("reason", "Missing or failed")),
                    b2["source_rows"]) +
-            _table((("story", "İncelenen kat"), ("adjacent_story", "Komşu kat"),
-                    ("neighbour_role", "Komşuluk"), ("direction", "Yön"), ("case", "Vaka"),
+            _table((("story", "Story checked"), ("adjacent_story", "Adjacent story"),
+                    ("neighbour_role", "Neighbor relation"), ("direction", "Direction"), ("case", "Case"),
                     ("normalized_mean", "Avg Driftᵢ / hᵢ"),
                     ("adjacent_normalized_mean", "Avg Driftⱼ / hⱼ"),
-                    ("eta_ki_candidate", "ηki adayı"), ("status", "Sayısal durum"),
-                    ("reason_codes", "Açık neden")),
+                    ("eta_ki_candidate", "Candidate ηki"), ("status", "Numerical status"),
+                    ("reason_codes", "Open issue")),
                    b2["items"]) +
-            '<h3>Hesap kapsamı ve varsayımları</h3><ul>' +
+            '<h3>Calculation scope and assumptions</h3><ul>' +
             ''.join('<li>' + _val(s) + '</li>' for s in b2["assumptions_notes"]) +
-            '</ul><p>Kaynak / hesap: ' + _val(b2["source_payload_sha256"]) +
-            ' / ' + _val(b2["result_sha256"]) + '</p><p>Açık kaynak: ' +
+            '</ul><p>Source / calculation ' + _val(b2["source_payload_sha256"]) +
+            ' / ' + _val(b2["result_sha256"]) + '</p><p>Open source evidence ' +
             _val(b2["reason_codes"]) + '. ENGINEERING_RELEASE=NOT_READY.</p></section>')
 
     if isinstance(wall_geometry, Mapping):
@@ -1420,99 +1633,102 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
             panel_rows.append({**row, **{s["rule"]: s["status"] for s in row["subconditions"]}})
         vs04_sections.append(
             '<section class="percheck" data-check-panel="WALL_GEOMETRY_CHECK">'
-            '<h2>Perde kesit geometrisi — koşullu kaynak alt kontrolleri</h2>'
-            '<p>TBDY 2018 7.6.1.2 / 7.6.1.2(a). Hesaplanan panel: ' +
+            '<h2>Shear wall section geometry · Conditional source checks</h2>'
+            '<p>TBDY 2018 7.6.1.2 / 7.6.1.2(a). Panels calculated ' +
             _val(wall_geometry["evaluated_count"]) + '/' + _val(wall_geometry["expected_count"]) +
-            '; sayısal alt koşul: ' + _val(wall_geometry["subconditions_evaluated"]) +
-            '; karşılanmayan alt koşul: ' + _val(wall_geometry["subconditions_unmet"]) +
-            '. Resmî uygunluk NOT_PROVEN.</p>' +
-            _table((("story", "Kat"), ("element_id", "ETABS alan ID"), ("section", "Kesit"),
-                    ("story_height_m", "h kat (m)"), ("panel_height_m", "h panel (m)"),
+            ' · Numerical criteria ' + _val(wall_geometry["subconditions_evaluated"]) +
+            ' · Failed criteria ' + _val(wall_geometry["subconditions_unmet"]) +
+            '. Formal compliance NOT_PROVEN.</p>' +
+            _table((("story", "Story"), ("element_id", "ETABS Unique ID"), ("section", "Section"),
+                    ("story_height_m", "Story h (m)"), ("panel_height_m", "h panel (m)"),
                     ("panel_length_m", "l panel (m)"), ("thickness_mm", "bw (mm)"),
                     ("panel_length_thickness_ratio", "l panel / bw"),
                     ("ordinary_branch_minimum_mm", "Standart dal bw,min (mm)"),
-                    ("panel_ratio", "Oran ≥ 6"), ("thickness_250", "bw ≥ 250 mm"),
-                    ("thickness_h16", "bw ≥ h/16"), ("reason", "Açık neden")), panel_rows) +
-            '<h3>Uygulanabilirlik ve hesap sınırı</h3><ul>' +
+                    ("panel_ratio", "Ratio ≥ 6"), ("thickness_250", "bw ≥ 250 mm"),
+                    ("thickness_h16", "bw ≥ h/16"), ("reason", "Open issue")), panel_rows) +
+            '<h3>Applicability and calculation limits</h3><ul>' +
             ''.join('<li>' + _val(s) + '</li>' for s in wall_geometry["assumptions_notes"]) + '</ul>' +
-            _table((("code_ref", "Madde"), ("status", "Durum"), ("reason", "Eksik kanıt")),
+            _table((("code_ref", "Clause"), ("status", "Status"), ("reason", "Missing evidence")),
                    wall_geometry["unevaluated_requirements"]) +
-            '<p>Kaynak: ' + _val(wall_geometry["source_payload_sha256"]) +
-            ' · Sonuç: ' + _val(wall_geometry["result_sha256"]) +
-            ' · Kaynak teşhisi: ' + _val(wall_geometry["reason_codes"]) + '</p></section>')
+            '<p>Source ' + _val(wall_geometry["source_payload_sha256"]) +
+            ' · Result ' + _val(wall_geometry["result_sha256"]) +
+            ' · Source diagnostic ' + _val(wall_geometry["reason_codes"]) + '</p></section>')
 
     for bundle in (source_controls, earthquake_combinations):
         if not isinstance(bundle, Mapping):
             continue
         for check in bundle["checks"]:
             if check["check_id"] == "concrete_fck_80":
-                columns = (("material_name", "Malzeme"), ("fck_mpa", "Fc kaynak (MPa)"),
-                    ("limit", "Üst sınır (MPa)"), ("strength_scope_observation", "Sayısal kapsam"),
-                    ("status", "Alt koşul"), ("reason", "Açık neden"))
+                columns = (("material_name", "Material"), ("fck_mpa", "Source Fc (MPa)"),
+                    ("limit", "Upper limit (MPa)"), ("strength_scope_observation", "Numerical coverage"),
+                    ("status", "Criterion"), ("reason", "Open issue"))
+                columns += roster_cols
             elif check["check_id"] == "modal_combination_spacing":
-                columns = (("direction", "Yön"), ("source_case", "Vaka"), ("modal_case", "Modal vaka"),
-                    ("modal_combination", "Mod birleştirme"), ("directional_combination", "Yön birleştirme"),
-                    ("mode_count", "Mod sayısı"), ("maximum_period_ratio", "En büyük kısa/uzun oranı"),
-                    ("spacing_status", "SRSS ayrıklık koşulu"), ("method_condition", "Seçilen yöntem koşulu"),
-                    ("reason", "Açık neden"))
+                columns = (("direction", "Direction"), ("source_case", "Case"), ("modal_case", "Modal case"),
+                    ("modal_combination", "Modal combination"), ("directional_combination", "Directional combination"),
+                    ("mode_count", "Mode count"), ("maximum_period_ratio", "Maximum short-to-long period ratio"),
+                    ("spacing_status", "SRSS separation criterion"), ("method_condition", "Selected method criterion"),
+                    ("reason", "Open issue"))
             elif check["check_id"] == "earthquake_100_30":
-                columns = (("combination", "Birleşim"), ("operator", "İşlem"),
-                    ("coefficient_x", "X katsayısı"), ("coefficient_y", "Y katsayısı"),
-                    ("common_factor", "Ortak büyüklük"), ("minor_major_ratio", "Küçük / büyük"),
-                    ("dominant_direction", "Baskın yön"), ("status", "Alt koşul"), ("reason", "Kapsam / teşhis"))
+                columns = (("combination", "Combination"), ("operator", "Operation"),
+                    ("coefficient_x", "X factor"), ("coefficient_y", "Y factor"),
+                    ("common_factor", "Common magnitude"), ("minor_major_ratio", "Smaller / larger"),
+                    ("dominant_direction", "Dominant direction"), ("status", "Criterion"), ("reason", "Coverage / diagnostic"))
             else:
-                columns = (("common_factor", "Ortak büyüklük"), ("other_case_coefficients", "Diğer vaka katsayıları"),
-                    ("x_combinations", "X baskın birleşimler"), ("y_combinations", "Y baskın birleşimler"),
-                    ("missing_directions", "Gözlenmeyen yön"), ("observed_sign_patterns", "Gözlenen işaretler"),
-                    ("unresolved_combination", "Çözümlenemeyen birleşim"), ("status", "Kaynak kapsamı"),
-                    ("reason", "Açık neden"))
+                columns = (("common_factor", "Common magnitude"), ("other_case_coefficients", "Other case factors"),
+                    ("x_combinations", "X-dominant combinations"), ("y_combinations", "Y-dominant combinations"),
+                    ("missing_directions", "Unobserved direction"), ("observed_sign_patterns", "Observed signs"),
+                    ("unresolved_combination", "Unresolved combinations"), ("status", "Source coverage"),
+                    ("reason", "Open issue"))
             pair_tables = []
             alternatives = [{"envelope": item["combination"], **term}
                 for item in check["items"] for term in item.get("envelope_alternatives", [])]
             if alternatives:
-                pair_tables.append('<details><summary>Zarf seçenekleri · toplama yapılmaz</summary>' +
-                    _table((("envelope", "Zarf"), ("ref", "Seçenek"), ("factor", "Çarpan"),
-                            ("ref_type", "Kaynak türü")), alternatives) + '</details>')
+                pair_tables.append('<details><summary>Envelope alternatives are evaluated individually</summary>' +
+                    _table((("envelope", "Envelope"), ("ref", "Alternative"), ("factor", "Factor"),
+                            ("ref_type", "Source type")), alternatives) + '</details>')
             for item in check["items"]:
                 if item.get("pairs"):
                     pair_tables.append('<details><summary>' + _val(item["source_case"]) +
-                        ' · ' + _val(item["tested_adjacent_pair_count"]) + ' komşu çift / ' +
-                        _val(item["all_distinct_pair_count"]) + ' farklı çift</summary>' +
-                        _table((("short_mode", "Kısa T modu"), ("long_mode", "Uzun T modu"),
-                            ("short_period_s", "Kısa T (s)"), ("long_period_s", "Uzun T (s)"),
-                            ("period_ratio", "Oran"), ("limit", "Kesin üst sınır (<)"),
-                            ("status", "SRSS ayrıklık koşulu")), item["pairs"]) + '</details>')
+                        ' · ' + _val(item["tested_adjacent_pair_count"]) + ' adjacent pairs / ' +
+                        _val(item["all_distinct_pair_count"]) + ' distinct pairs</summary>' +
+                        _table((("short_mode", "Shorter-period mode"), ("long_mode", "Longer-period mode"),
+                            ("short_period_s", "Shorter period (s)"), ("long_period_s", "Longer period (s)"),
+                            ("period_ratio", "Ratio"), ("limit", "Exclusive upper bound (<)"),
+                            ("status", "SRSS separation criterion")), item["pairs"]) + '</details>')
             vs04_sections.append('<section class="percheck" data-check-panel="' +
                 escape(check["check_id"], quote=True) + '"><h2>' + _val(check["title"]) + '</h2><p>' +
-                _val(check["code_ref"]) + ' · Hesaplanan ' + _val(check["evaluated_count"]) + '/' +
-                _val(check["expected_count"]) + ' · Kapsam dışı: ' + _val(check["not_applicable_count"]) +
+                _val(check["code_ref"]) + ' · Calculated ' + _val(check["evaluated_count"]) + '/' +
+                _val(check["expected_count"]) + ' · Out of scope ' + _val(check["not_applicable_count"]) +
                 ' · ' + _val(check["status"]) +
-                '. Resmî uygunluk NOT_PROVEN.</p>' + _table(columns, check["items"]) +
-                ''.join(pair_tables) + '<h3>Kapsam ve açık koşullar</h3><ul>' +
+                '. Formal compliance NOT_PROVEN.</p>' + _table(columns,
+                    _with_material_members(check["items"], material_roster)
+                    if check["check_id"] == "concrete_fck_80" else check["items"]) +
+                ''.join(pair_tables) + '<h3>Coverage and open conditions</h3><ul>' +
                 ''.join('<li>' + _val(n) + '</li>' for n in check["assumptions_notes"]) + '</ul><p>' +
-                _val(check["unevaluated_requirements"]) + '</p><p>Kaynak: ' +
-                _val(check["source_provenance"]) + ' · Hesap: ' + _val(check["result_sha256"]) +
-                ' · Teşhis: ' + _val(check["reason_codes"]) + '</p></section>')
+                _val(check["unevaluated_requirements"]) + '</p><p>Source ' +
+                _val(check["source_provenance"]) + ' · Calculation ' + _val(check["result_sha256"]) +
+                ' · Diagnostic ' + _val(check["reason_codes"]) + '</p></section>')
 
     a1_warnings = [
         c for c in extras if c.get("check_id") in ("a1_torsion_x", "a1_torsion_y")
         and any(item.get("status") == "A1_OBSERVED" for item in c.get("items", []))
     ]
     if a1_warnings:
-        vs04_sections.append('<section class="percheck"><h2>A1 burulma düzensizliği — KAYNAK UYARISI</h2>'
-                             '<p>En az bir kat/yönde ηbi &gt; 1,2 gözlendi. Dışmerkezlik '
-                             'uygulaması ve tüm TBDY kapsamı doğrulanmadan nihai '
-                             'uygunluk kararı verilemez.</p>'
-                             + _table((("check_id", "Yön"), ("status", "Kaynak sınıflaması")),
+        vs04_sections.append('<section class="percheck"><h2>A1 torsional irregularity · Source warning</h2>'
+                             '<p>At least one story and direction has ηbi &gt; 1.2. '
+                             'A final compliance decision requires verification of the eccentricity application '
+                             'and the complete TBDY scope.</p>'
+                             + _table((("check_id", "Direction"), ("status", "Source classification")),
                                       a1_warnings) + '</section>')
     modal_table = report["modal_source_table"]
     fields = modal_table.get("fields") or []
     modal_cols = tuple((field, field) for field in fields)
     modal_section = (
-        f'<section class="percheck"><h2>Modal kaynak tablosu — {_val(modal_table.get("row_count"))} satır</h2>'
-        f'<p>İlk hesap: X={_val(modal.get("sum_ux"))}, Y={_val(modal.get("sum_uy"))}, '
-        f'Eşik={_val(modal.get("required_ratio"))}, yönetici mod={_val(modal.get("governing_mode_count"))}; '
-        f'önemli modlar X={_val(modal.get("significant_modes_x"))}, '
+        f'<section class="percheck"><h2>Modal source table · {_val(modal_table.get("row_count"))} rows</h2>'
+        f'<p>Initial calculation X={_number_html(modal.get("sum_ux"), 4)}, Y={_number_html(modal.get("sum_uy"), 4)}, '
+        f'Threshold={_number_html(modal.get("required_ratio"), 4)}, governing mode={_val(modal.get("governing_mode_count"))}; '
+        f'significant modes X={_val(modal.get("significant_modes_x"))}, '
         f'Y={_val(modal.get("significant_modes_y"))}.</p>'
         + _table(modal_cols, modal_table.get("rows") or [], "modal-grid") + "</section>"
     )
@@ -1525,7 +1741,7 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
     tables = [{"role": role, "key": tab.get("table_key"), "count": tab.get("record_count"),
                "status": tab.get("capture_status"), "fields": ", ".join(tab.get("fields") or [])}
               for role, tab in census["tables"].items()]
-    html = f'''<!doctype html><html lang="tr"><head><meta charset="utf-8">
+    html = f'''<!doctype html><html lang="en"><head><meta charset="utf-8">
 <title>TBDY Next Engine — {_val(report['run_id'])}</title>
 <style>
 @page {{size: A4 landscape; margin: 10mm}}
@@ -1541,35 +1757,657 @@ th {{background:#e8eff7;font-weight:650}} tr:nth-child(even) td {{background:#f7
 .toolstrip {{margin-bottom:24px}} .toolstrip button {{background:#245d89;color:white;padding:9px 15px;border:0;border-radius:5px;cursor:pointer}}
 @media print {{body {{margin:0;max-width:unset;padding:0;font:10px/1.3 Arial,sans-serif}} .toolstrip {{display:none}} h1 {{font-size:20px}} h2 {{font-size:14px}} table {{font-size:8px}} .modal-grid {{font-size:7px}}}}
 </style></head><body>
-<div class="toolstrip">Tarayıcıdan <strong>Ctrl+P</strong> → PDF olarak kaydet / yazdır.</div>
-<h1>TBDY Next Engine — Mühendislik Kontrol Raporu</h1>
-<p class="muted">{_val((report.get('check_inventory') or {}).get('count', len(checks)))} kapsamı sınırlı kontrol · STORY_DRIFT kaynak numeriği dahilse TBDY uygunluğu yine NOT_PROVEN · ETABS kaynak verisi</p>
+<div class="toolstrip">Press <strong>Ctrl+P</strong> to print or save as PDF.</div>
+<h1>TBDY Next Engine — Engineering Check Report</h1>
+<p class="muted">{_val((report.get('check_inventory') or {}).get('count', len(checks)))} limited-scope checks from ETABS source data. The STORY_DRIFT numerical result leaves TBDY compliance NOT_PROVEN.</p>
+<p class="muted">Hover over a rounded value to see the original. The JSON export also includes full precision.</p>
 <div class="warning"><strong>FORMAL COMPLIANCE = NOT_PROVEN · ENGINEERING RELEASE = NOT_READY.</strong>
-Bu rapor tam TBDY/TS500 uygunluk kararı değildir. Yalnız raporda tanımlanan sayısal alt kontroller çalıştırılmıştır.</div>
+The report covers the numerical checks documented below. Full TBDY and TS500 compliance requires further evidence.</div>
 <div class="grid">
 <div><strong>Model</strong><p>{_val(report.get('model'))}</p></div>
-<div><strong>Çalışma / tarih</strong><p>{_val(report['run_id'])}<br>{_val(report['captured_at_utc'])}</p></div>
-<div><strong>Kaynak / modal vaka</strong><p>{_val(report['source_mode'])}<br>{_val(report['modal_case'])}</p></div>
+<div><strong>Run / date</strong><p>{_val(report['run_id'])}<br>{_val(report['captured_at_utc'])}</p></div>
+<div><strong>Source / modal case</strong><p>{_val(report['source_mode'])}<br>{_val(report['modal_case'])}</p></div>
 </div>
-<h2>Kontrol özeti</h2>
+<h2>Check summary</h2>
 {_table(summary_cols, summary_rows)}
-<p class="muted">Geometri satırları aynı elemanın farklı kontrollere girdiği eleman-kontrol değerlendirmeleridir; benzersiz eleman sayısı değildir.</p>
-<h2>ETABS model envanteri ve malzemeler</h2>
-{_table((("type","Eleman türü"),("count","Adet")), census_rows)}
-{_table((("name","Malzeme"),("code","ETABS kodu"),("status","Kaynak durumu"),("concrete","Beton")), materials)}
-<h2>Kaynak tablo başlıkları ve kayıt sayıları</h2>
-{_table((("role","Rol"),("key","Gerçek tablo adı"),("count","Satır"),("status","Durum"),("fields","Gözlenen alanlar")), tables)}
-<h2>İzlenebilirlik</h2>
-<p><strong>Input SHA-256:</strong> {_val(report['source_provenance']['input_sha256'])}<br>
+<p class="muted">Geometry totals count element-check pairs. Each element may appear in several checks.</p>
+<h2>ETABS model inventory and materials</h2>
+{_table((("type","Element type"),("count","Count")), census_rows)}
+{_table((("name","Material"),("code","ETABS code"),("status","Source status"),("concrete","Concrete")), materials)}
+<h3>Members by material</h3>
+{_table((("material_name", "Material"),) + roster_cols, material_roster)}
+<h2>Source table headers and row counts</h2>
+{_table((("role","Role"),("key","Native table name"),("count","Row"),("status","Status"),("fields","Observed fields")), tables)}
+<h2>Traceability</h2>
+<p><strong>Input SHA-256</strong> {_val(report['source_provenance']['input_sha256'])}<br>
 <strong>Modal receipt SHA-256:</strong> {_val(report['source_provenance']['modal_receipt_sha256'])}<br>
-<strong>Geometri receipt SHA-256:</strong> {_val(report['source_provenance']['geometry_receipt_sha256'])}</p>
+<strong>Geometry receipt SHA-256:</strong> {_val(report['source_provenance']['geometry_receipt_sha256'])}<br>
+<strong>Pipeline results SHA-256:</strong> {_val((report.get('design_stage_provenance') or {}).get('snapshot_results_sha256'))}</p>
 {modal_section}
 {''.join(vs04_sections)}
 {''.join(check_sections)}
-<p class="muted">Tüm ham kaynak tabloları, bütün eleman satırları ve malzeme tür kanıtları JSON dışa aktarımında bulunur.
-Bu rapor, arşivlenen kayıtları aynı algoritmalarla tekrar doğrulayarak üretilmiştir.</p>
+<p class="muted">The JSON export contains the raw source tables, all element rows and material type evidence.
+This report replays the archived source with the original evaluators and verifies the stored results.</p>
 </body></html>'''
     return html
 
 
 __all__ = ["ReportUnavailable", "build_complete_report", "build_printable_html"]
+
+
+
+def _column_axial_html(result: Mapping[str, Any], receipt_sha: str,
+                       ledger: Mapping[str, Any] | None = None) -> str:
+    plan = result["combination_plan"]
+    columns = [{**item, **(item.get("governing") or {}), "column_status": item["status"]}
+               for item in result["columns"]]
+    combinations = []
+    for item in result["columns"]:
+        for check in item.get("combination_checks", []):
+            combinations.append({"story": item["story"], "element_id": item["element_id"], **check})
+    basis = {"ETABS_STRENGTH": "ETABS Strength selections", "ASSIGNED_DESIGN": "Assigned design combinations",
+             "SAVED_DEFAULTS": "Recorded custom combination list"}.get(plan["source"], "Combination source unavailable")
+    assignment = plan.get("design_assignment")
+    coverage = ""
+    if ledger is not None:
+        coverage = (f'<p>Expected column–combination coverage: {_val(ledger["evaluated_count"])} / '
+                    f'{_val(ledger["expected_count"])} · {_val(ledger["not_proven_count"])} unresolved'
+                    + (' · Scope evidence incomplete' if not ledger["scope_complete"] else '')
+                    + '</p>')
+        if ledger["dependency_blockers"]:
+            coverage += '<p>Source issues: ' + _val(', '.join(ledger["dependency_blockers"])) + '</p>'
+    return (
+        '<section class="percheck"><h2>Column axial compression · TS 500 Eq. (7.7)</h2>'
+        + coverage
+        + f'<p><strong>{_val(result["status"])}</strong> · {_val(basis)} · '
+        f'{_val(result["completed_column_count"])}/{_val(result["expected_column_count"])} columns · '
+        f'{_val(result["evaluated_member_combination_count"])}/{_val(result["expected_member_combination_count"])} '
+        f'column–combination pairs · {_val(result["native_force_row_count"])} native rows.</p>'
+        f'<p>ETABS concrete factor γc {_val(result["gamma_c"])}. The selected combinations and native output '
+        'stations define this numerical comparison. TBDY seismic combination applicability '
+        'and structural design approval remain open. Full native force arrays are in the JSON export.</p>'
+        + (_table((("group", "Design group"), ("names", "Assigned ETABS combinations")),
+                  [{"group": group, "names": ", ".join(names)} for group, names in assignment["groups"].items()])
+           if assignment else '')
+        + ('<ul>' + ''.join('<li>' + _val(code) + '</li>' for code in plan["blockers"]) + '</ul>'
+           if plan["blockers"] else '')
+        + _table((("name", "Combination"), ("operator", "Operator"), ("force_semantics", "Native force type")),
+                 plan["combinations"])
+        + _table((("story", "Story"), ("element_id", "ETABS Unique ID"), ("section", "Section"),
+                  ("material_name", "Material"), ("combination", "Governing observed combination"),
+                  ("object_station_m", "Object station (m)"), ("analysis_element", "Analysis element ID"),
+                  ("element_station_m", "Element station (m)"), ("step_type", "Step"),
+                  ("nd_kn", "Nd (kN)"), ("ts500_limit_kn", "TS 500 limit (kN)"),
+                  ("ratio", "Nd / limit"), ("column_status", "Status"), ("reason", "Evidence gap")), columns)
+        + ('<details><summary>Check results by combination</summary>'
+           + _table((("element_id", "ETABS Unique ID"), ("combination", "Combination"), ("force_row_count", "Rows"),
+                     ("object_station_m", "Object station (m)"), ("step_type", "Step"),
+                     ("nd_kn", "Nd (kN)"), ("ratio", "Nd / limit"), ("status", "Status"),
+                     ("reason", "Evidence gap")), combinations) + '</details>' if combinations else '')
+        + f'<p>Calculation receipt SHA-256 {_val(receipt_sha)}</p></section>'
+    )
+
+
+def _column_pmm_html(result: Mapping[str, Any], receipt_sha: str, reinforcement: dict | None = None,
+                     selection: Mapping[str, Any] | None = None) -> str:
+    if result.get("scope") == "ALL_COLUMNS" or result.get("member_id") == "ALL":
+        member_rows = [
+            {
+                "member_id": m.get("member_id"),
+                "story": m.get("story"),
+                "section": m.get("section"),
+                "status": m.get("status"),
+                "stations": f"{m.get('evaluated_station_count', 0)}/{m.get('expected_station_count', 0)}",
+                "exceed": m.get("observed_exceedance_count", 0),
+                "reason": m.get("reason"),
+            }
+            for m in result.get("members") or ()
+        ]
+        return (
+            '<section class="percheck"><h2>4.4 · Column PMM (all columns population)</h2>'
+            f'<p>{_val(result.get("evaluated_column_count"))}/{_val(result.get("expected_column_count"))} columns · '
+            f'{_val(result["status"])} · {_val(result["evaluated_station_count"])}/{_val(result["expected_station_count"])} stations.</p>'
+            + _table(
+                (("member_id", "Member ID"), ("story", "Story"), ("section", "Section"),
+                 ("status", "Status"), ("stations", "Stations"), ("exceed", "Exceedances"), ("reason", "Note")),
+                member_rows,
+            )
+            + f'<p>Calculation receipt SHA-256 {_val(receipt_sha)}</p></section>'
+        )
+    section = reinforcement or result["section_evidence"]
+    minimum = (section or {}).get("tbdy_longitudinal_minimum")
+    minimum_summary = ''
+    if isinstance(minimum, Mapping):
+        minimum_label = {
+            "BELOW_MINIMUM": "Does not satisfy As ≥ 0.01 Ac",
+            "MEETS_MINIMUM": "Satisfies As ≥ 0.01 Ac",
+        }.get(minimum.get("status"), "Minimum reinforcement evidence unavailable")
+        minimum_summary = (
+            '<p>TBDY 2018 §7.3.2.1 requires As ≥ 0.01 Ac for column longitudinal reinforcement.</p>'
+            + _table((("as_mm2", "Recorded As (mm²)"), ("ac_mm2", "Gross Ac (mm²)"),
+                      ("rho_percent", "Recorded As / Ac (%)"), ("minimum_percent", "TBDY minimum (%)"),
+                      ("minimum_area_mm2", "Required As (mm²)"), ("minimum_check", "TBDY requirement")), [{
+                "as_mm2": section.get("longitudinal_steel_area_mm2"),
+                "ac_mm2": section.get("gross_section_area_mm2"),
+                "rho_percent": section.get("longitudinal_reinforcement_percent"),
+                "minimum_percent": minimum.get("minimum_percent"),
+                "minimum_area_mm2": minimum.get("minimum_area_mm2"),
+                "minimum_check": minimum_label,
+            }])
+        )
+    candidate_summary = ''
+    if selection and selection.get("member_id") == result["member_id"] and selection.get("selected"):
+        candidate = selection["selected"]
+        required = selection.get("tbdy_minimum_longitudinal_area_mm2")
+        if required is None and isinstance(minimum, Mapping):
+            required = minimum.get("minimum_area_mm2")
+        policy_floor = selection.get("minimum_longitudinal_area_mm2")
+        candidate_summary = (
+            '<h3>Engine-selected column reinforcement candidate</h3>'
+            '<p>Approval pending. The PMM station results above use the recorded ETABS reinforcement basis.</p>'
+            + _table((("label", "Proposed cage"), ("area_mm2", "Candidate As (mm²)"),
+                      ("rho_percent", "Candidate As / Ac (%)"), ("required_as_mm2", "TBDY required As (mm²)")), [{
+                **candidate, "required_as_mm2": required,
+            }])
+            + (f'<p>Selection policy floor As {_val(policy_floor)} mm².</p>'
+               if policy_floor is not None and policy_floor != required else '')
+        )
+    return (
+        '<section class="percheck"><h2>4.4 · Column PMM and minimum eccentricity</h2>'
+        f'<p>ETABS Unique ID {_val(result["member_id"])} · {_val(result["story"])} · {_val(result["section"])} · '
+        f'{_val(result["status"])} · {_val(result["evaluated_station_count"])}/{_val(result["expected_station_count"])} '
+        'static combination stations.</p>'
+        '<p>Signed ETABS station forces and the TS 500 minimum eccentricity floor define this section comparison. '
+        'Analysis order, verification of selected reinforcement and engineering approval remain open.</p>'
+        + (f'<p>{_val(result["reason"])}</p>' if result["reason"] else '')
+        + _table((("name", "Combination"), ("expected_station_count", "Expected stations"),
+                  ("evaluated_station_count", "Evaluated stations"), ("status", "Status"), ("reason", "Evidence gap")),
+                 result["combinations"])
+        + (_table((("combination", "Combination"), ("analysis_element_id", "Analysis element ID"),
+                   ("object_station_m", "Object station (m)"), ("element_station_m", "Element station (m)"),
+                   ("nd_kn", "Nd (kN)"), ("m2_knm", "M2 (kN·m)"), ("m3_knm", "M3 (kN·m)"),
+                   ("m2_design_knm", "M2 with e_min (kN·m)"), ("m3_design_knm", "M3 with e_min (kN·m)"),
+                   ("utilization", "Section utilization"), ("status", "Status"), ("reason", "Evidence gap")),
+                  result["rows"]) if result["rows"] else '')
+        + ('<h3>Column section and reinforcement</h3>'
+           + _table((("reinforcement_role", "ETABS reinforcement basis"), ("t2_mm", "Local 2 extent (mm)"),
+                     ("t3_mm", "Local 3 extent (mm)"), ("bar_count", "Longitudinal bars"),
+                     ("longitudinal_bar_diameter_mm", "Bar diameter (mm)"),
+                     ("cover_to_tie_mm", "Cover to tie (mm)"), ("tie_diameter_mm", "Tie diameter (mm)"),
+                     ("tie_spacing_mm", "Tie spacing (mm)"), ("tie_bars_parallel_2", "Tie bars parallel to local 2"),
+                     ("tie_bars_parallel_3", "Tie bars parallel to local 3")), [section])
+           + minimum_summary
+           + '<p>Crosstie placement, anchorage and maximum unsupported leg spacing require verified detailing.</p>'
+           if section else '')
+        + candidate_summary
+        + f'<p>Calculation receipt SHA-256 {_val(receipt_sha)}</p></section>'
+    )
+
+
+def _column_gates_html(gates: Mapping[str, Any]) -> str:
+    axial, reinforcement = gates["axial_gates"], gates.get("reinforcement_gate")
+    summary = [{
+        "chk005": axial["chk005_exceedance_count"], "chk004": axial["chk004_proven_exceedance_count"],
+        "unassigned": axial["chk004_exceeds_reference_but_role_unassigned_count"],
+        "basis": axial["seismic_applicability_basis"], "pairs": axial["evaluated_pair_count"],
+        "status": gates["status"], "formal": gates["formal_compliance"]}]
+    return (
+        '<section class="percheck"><h2>Column P0 gates · CHK-004 / CHK-005 / CHK-117</h2>'
+        '<p>Same axial and PMM results as above, evaluated against TS 500 Eq. (7.7), TBDY 7.3.1.2 and TBDY 7.3.2.1. '
+        'A locally proven FAIL is never folded into NOT_PROVEN; no PASS or READY is issued.</p>'
+        + _table((("pairs", "Evaluated pairs"), ("chk005", "CHK-005 exceedances"),
+                  ("chk004", "CHK-004 proven exceedances"), ("unassigned", "CHK-004 reference exceedances, role unassigned"),
+                  ("basis", "Seismic role basis"), ("status", "Gate status"), ("formal", "Formal compliance")), summary)
+        + (_table((("role", "Reinforcement role"), ("rho", "ρ = Ast/Ac"), ("rho_min", "ρ min"),
+                   ("would_fail_if_selected", "Would fail if selected"), ("status", "Gate status")), [reinforcement])
+           if reinforcement else '')
+        + _table((("code", "Open gate"), ("status", "Status")), gates["open_gates"])
+        + _table((("code", "Local finding"), ("status", "Status"), ("count", "Count")), gates["local_findings"])
+        + '</section>')
+
+
+def _column_r10_html(r10: Mapping[str, Any]) -> str:
+    enclosure = ", ".join(f"{k}:{v}" for k, v in (r10.get("enclosure_counts") or {}).items()) or None
+    summary = [{
+        "member_id": r10.get("member_id"),
+        "angle": r10.get("local_axis_angle_deg"),
+        "joint_ends": r10.get("joint_end_count"),
+        "enclosure": enclosure,
+        "narrow": r10.get("narrow_beam_joint_count"),
+        "scwb_joints": len(r10.get("scwb_joints") or ()),
+        "formal": r10.get("formal_compliance"),
+    }]
+    end_rows = []
+    for end in r10.get("member_joint_ends") or ():
+        v_lims = ", ".join(
+            f"{a['axis']}:{a['calculation']['geometric_limit_kn']:.2f} kN"
+            for a in end.get("axes") or ()
+            if isinstance(a.get("calculation"), Mapping) and a["calculation"].get("geometric_limit_kn") is not None
+        ) or None
+        end_rows.append({
+            "end": end.get("end"), "point_id": end.get("point_id"),
+            "enclosure_scenario": end.get("enclosure_scenario"),
+            "missing_faces": ", ".join(end.get("missing_faces") or ()) or None,
+            "narrow_faces": ", ".join(end.get("narrow_faces") or ()) or None,
+            "limits": v_lims, "status": end.get("status"),
+        })
+    has_eng_scwb = any(isinstance(j.get("engineer_selected_scwb"), Mapping) for j in r10.get("scwb_joints") or ())
+    scwb_rows = []
+    for j in r10.get("scwb_joints") or ():
+        eng_s = j.get("engineer_selected_scwb") if isinstance(j.get("engineer_selected_scwb"), Mapping) else {}
+        scwb_rows.append({
+            "joint_id": j.get("joint_id"), "target_end": j.get("target_end"), "direction": j.get("direction"),
+            "column_ids": ", ".join(j.get("column_ids") or ()),
+            "beam_ids": ", ".join(j.get("beam_ids") or ()) or None,
+            "sampled_min_mrc": j.get("sampled_minimum_column_sum_knm"),
+            "sampled_min_mrb": j.get("sampled_minimum_beam_sum_knm"),
+            "min_scwb_ratio": j.get("sampled_minimum_normalized_ratio"),
+            "eng_min_mrb": eng_s.get("sampled_minimum_beam_sum_knm"),
+            "eng_scwb_ratio": eng_s.get("sampled_minimum_normalized_ratio"),
+            "status": j.get("status"),
+        })
+    eng_col = r10.get("engineer_column_selection")
+    eng_col_rows = []
+    if isinstance(eng_col, Mapping):
+        sel = eng_col.get("selected") or {}
+        cands = eng_col.get("candidates_by_diameter") or {}
+        for d_key, cand in cands.items():
+            if not isinstance(cand, Mapping):
+                continue
+            tr = cand.get("selected_transverse") or {}
+            eng_col_rows.append({
+                "role": "SELECTED" if sel.get("diameter_mm") == cand.get("diameter_mm") and cand.get("eligible") else "CANDIDATE",
+                "diam": f"Φ{d_key}",
+                "cage": cand.get("label") or cand.get("pmm_error"),
+                "rho": round(cand["rho_percent"], 2) if cand.get("rho_percent") is not None else None,
+                "pmm": f"OK ({cand['pmm_max_utilization']:.3f})" if cand.get("pmm_satisfied") and cand.get("pmm_max_utilization") is not None else (
+                    f"FAIL ({cand['pmm_max_utilization']:.3f})" if cand.get("pmm_max_utilization") is not None else cand.get("pmm_error")
+                ),
+                "stirrups": (f"{tr.get('confinement_label')} / {tr.get('midspan_label')}" if tr else None),
+                "legs": (f"{tr.get('legs_v2')}/{tr.get('legs_v3')}" if tr else None),
+                "alerts": ", ".join(tr.get("alerts") or ()) or ("OK" if cand.get("eligible") else "BLOCKED"),
+            })
+    trans = r10.get("column_transverse_and_shear")
+    trans_rows = []
+    if isinstance(trans, Mapping):
+        conf = trans.get("confinement") or {}
+        for axis in ("V2", "V3"):
+            item = conf.get(axis)
+            if isinstance(item, Mapping):
+                trans_rows.append({
+                    "axis": axis, "asw_mm2": item.get("asw_mm2"),
+                    "provided_ash_mm2": item.get("ash_mm2"),
+                    "req_ratio": item.get("eq71_a_mm2"),
+                    "req_floor": item.get("eq71_b_mm2"),
+                    "s_bound": item.get("high_axial_spacing_bound_mm"),
+                    "max_util": trans.get("max_v2_ts500_utilization") if axis == "V2" else trans.get("max_v3_ts500_utilization"),
+                    "status": trans.get("status"),
+                })
+    scwb_cols: tuple[tuple[str, str], ...] = (
+        ("joint_id", "Joint"), ("target_end", "End"), ("direction", "Dir"),
+        ("column_ids", "Columns"), ("beam_ids", "Beams"),
+        ("sampled_min_mrc", "Min sum Mrc (kN·m)"), ("sampled_min_mrb", "Min sum Mrb (kN·m)"),
+        ("min_scwb_ratio", "Min SCWB ratio"),
+    )
+    if has_eng_scwb:
+        scwb_cols = scwb_cols + (
+            ("eng_min_mrb", "Eng. min sum Mrb (kN·m)"),
+            ("eng_scwb_ratio", "Eng. SCWB ratio"),
+        )
+    scwb_cols = scwb_cols + (("status", "SCWB status"),)
+    return (
+        '<section class="percheck"><h2>Column R10 · Joints, SCWB and shear/confinement</h2>'
+        '<p>Same locked live ETABS run projected through joint, SCWB and transverse kernels. '
+        'Beam actual reinforcement and capacity-design Ve remain unbound; formal compliance stays NOT_PROVEN.</p>'
+        + _table((("member_id", "Target column"), ("angle", "AxisAngle (deg)"), ("joint_ends", "Column ends checked"),
+                  ("enclosure", "Enclosure counts"), ("narrow", "Narrow-beam ends"),
+                  ("scwb_joints", "SCWB joint checks"), ("formal", "Formal compliance")), summary)
+        + (_table((("end", "End"), ("point_id", "Point"), ("enclosure_scenario", "Enclosure"),
+                   ("missing_faces", "Missing faces"), ("narrow_faces", "Narrow faces"),
+                   ("limits", "Centered 7.5 limits"), ("status", "Status")), end_rows) if end_rows else '')
+        + (_table(scwb_cols, scwb_rows) if scwb_rows else '')
+        + (_table((("role", "Choice"), ("diam", "Φ (mm)"), ("cage", "Bar grid"), ("rho", "Rho (%)"),
+                   ("pmm", "PMM (max util)"), ("stirrups", "Stirrups (conf/span)"),
+                   ("legs", "Legs V2/V3"), ("alerts", "TBDY/TS500 checks")), eng_col_rows)
+           if eng_col_rows else '')
+        + (_table((("axis", "Axis"), ("asw_mm2", "Asw (mm²)"), ("provided_ash_mm2", "Provided Ash (mm²)"),
+                   ("req_ratio", "7.3.4.1(a) Ash (mm²)"), ("req_floor", "7.3.4.1(b) Ash (mm²)"),
+                   ("s_bound", "Max s bound (mm)"), ("max_util", "Max TS500 Vd/Vr"), ("status", "Status")), trans_rows) if trans_rows else '')
+        + '<ul>' + ''.join(f'<li>{_val(item)}</li>' for item in r10.get("open_basis") or ()) + '</ul>'
+        + '</section>'
+    )
+
+
+def _beam_r10_html(beam_r10: Mapping[str, Any]) -> str:
+    rows = []
+    eng_rows = []
+    for beam in beam_r10.get("beams") or ():
+        st = beam.get("engineer_stirrups") or {}
+        st_conf = (st.get("confinement") or {}).get("label")
+        st_span = (st.get("span") or {}).get("label")
+        st_label = f"{st_conf} / {st_span}" if st_conf and st_span else None
+        st_alerts = ", ".join(st.get("alerts") or ()) or None
+        eng_ve_eq = (beam.get("engineer_shear_ve") or {}).get("earthquake_capacity_shear_term_kn")
+        for end_key in ("I", "J"):
+            end = (beam.get("ends") or {}).get(end_key)
+            if not isinstance(end, Mapping):
+                continue
+            cand = (end.get("candidates") or {}).get(str(end.get("default_diameter_mm", 20))) or {}
+            cap = cand.get("capacity") or {}
+            rows.append({
+                "beam_id": beam.get("member_id"),
+                "label": beam.get("label"),
+                "section": beam.get("section_name"),
+                "end": end_key,
+                "top_label": cand.get("top_label"),
+                "bottom_label": cand.get("bottom_label"),
+                "layout": cand.get("layout_mode"),
+                "pos_m3": cap.get("positive_m3_knm"),
+                "neg_m3": cap.get("negative_m3_knm"),
+                "ve_eq_kn": (beam.get("shear_ve") or {}).get("earthquake_capacity_shear_term_kn"),
+                "status": end.get("status"),
+            })
+            eng = end.get("engineer_selection")
+            if isinstance(eng, Mapping):
+                e_cap = eng.get("capacity") or {}
+                t_req = eng.get("effective_target_top_mm2")
+                b_req = eng.get("effective_target_bottom_mm2")
+                eng_rows.append({
+                    "beam_id": beam.get("member_id"),
+                    "label": beam.get("label"),
+                    "station": end_key,
+                    "top": eng.get("top_label"),
+                    "top_area": (f"{eng['area_top_mm2']:.0f} / {t_req:.0f}" if eng.get("area_top_mm2") is not None and t_req is not None else None),
+                    "bottom": eng.get("bottom_label"),
+                    "bot_area": (f"{eng['area_bottom_mm2']:.0f} / {b_req:.0f}" if eng.get("area_bottom_mm2") is not None and b_req is not None else None),
+                    "stirrups": st_label,
+                    "mr": (f"{e_cap['positive_m3_knm']:.1f} / {e_cap['negative_m3_knm']:.1f}" if e_cap.get("positive_m3_knm") is not None and e_cap.get("negative_m3_knm") is not None else None),
+                    "ve_eq_kn": eng_ve_eq,
+                    "alerts": st_alerts or eng.get("selection_status"),
+                })
+        eng_mid = beam.get("engineer_midspan")
+        if isinstance(eng_mid, Mapping):
+            m_cap = eng_mid.get("capacity") or {}
+            t_req = eng_mid.get("effective_target_top_mm2")
+            b_req = eng_mid.get("effective_target_bottom_mm2")
+            eng_rows.append({
+                "beam_id": beam.get("member_id"),
+                "label": beam.get("label"),
+                "station": "MID",
+                "top": eng_mid.get("top_label"),
+                "top_area": (f"{eng_mid['area_top_mm2']:.0f} / {t_req:.0f}" if eng_mid.get("area_top_mm2") is not None and t_req is not None else None),
+                "bottom": eng_mid.get("bottom_label"),
+                "bot_area": (f"{eng_mid['area_bottom_mm2']:.0f} / {b_req:.0f}" if eng_mid.get("area_bottom_mm2") is not None and b_req is not None else None),
+                "stirrups": st_label,
+                "mr": (f"{m_cap['positive_m3_knm']:.1f} / {m_cap['negative_m3_knm']:.1f}" if m_cap.get("positive_m3_knm") is not None and m_cap.get("negative_m3_knm") is not None else None),
+                "ve_eq_kn": eng_ve_eq,
+                "alerts": st_alerts or eng_mid.get("selection_status"),
+            })
+    return (
+        '<section class="percheck"><h2>Beam R10 · Required areas, CHK-132 cages and N=0 signed M3</h2>'
+        f'<p>Status: {_val(beam_r10.get("status"))} · Beams evaluated: {_val(beam_r10.get("calculated_beam_count"))}/{_val(beam_r10.get("beam_count"))} '
+        '· Candidate scenarios only; formal compliance remains NOT_PROVEN.</p>'
+        + (_table((("beam_id", "Beam"), ("label", "Label"), ("station", "Zone"),
+                   ("top", "Top (cont + ilave)"), ("top_area", "Top As prov/req (mm²)"),
+                   ("bottom", "Bottom (cont + ilave)"), ("bot_area", "Bot As prov/req (mm²)"),
+                   ("stirrups", "Stirrups (conf/span)"), ("mr", "+Mr / -Mr (kN·m)"),
+                   ("ve_eq_kn", "Eng Eq Ve (kN)"), ("alerts", "Alerts / Status")), eng_rows)
+           if eng_rows else '')
+        + (_table((("beam_id", "Beam"), ("label", "Label"), ("section", "Section"), ("end", "End"),
+                   ("top_label", "Top Φ20"), ("bottom_label", "Bottom Φ20"), ("layout", "CHK-132 layout"),
+                   ("pos_m3", "+Mr (kN·m)"), ("neg_m3", "-Mr (kN·m)"), ("ve_eq_kn", "Eq Ve term (kN)"),
+                   ("status", "Status")), rows) if rows else '<p>No bound beam design ends in capture.</p>')
+        + '</section>'
+    )
+
+
+def _column_slenderness_html(evidence: Mapping[str, Any], local: Mapping[str, Any] | None = None) -> str:
+    scenario_rows = []
+    if isinstance(local, Mapping):
+        stiff = local.get("stiffness_and_euler") or {}
+        for row in local.get("combination_scenarios") or ():
+            for axis in ("M2", "M3"):
+                ax = (row.get("axes") or {}).get(axis) or {}
+                slen_ns = ax.get("slenderness_sway_prevented_k1") or {}
+                mag_ns = ax.get("magnification_sway_prevented_k1") or {}
+                scenario_rows.append({
+                    "combination": row.get("combination"),
+                    "axis": axis,
+                    "nd_kn": row.get("governing_nd_kn"),
+                    "nk_kn": (stiff.get(axis) or {}).get("preferred_nk_kn"),
+                    "end_ratio": ax.get("signed_end_moment_ratio"),
+                    "lk_over_i": slen_ns.get("lk_over_i"),
+                    "limit": slen_ns.get("neglect_limit"),
+                    "beta_ref": mag_ns.get("beta"),
+                    "status": slen_ns.get("status"),
+                })
+    stations = ", ".join(str(station) for station in evidence["observed_object_stations_m"]) or None
+    inputs = "".join(f"<li>{_val(item)}</li>" for item in evidence["unverified_inputs"])
+    return (
+        '<section class="percheck"><h2>4.5 · Slenderness and moment magnification</h2>'
+        f'<p>ETABS Unique ID {_val(evidence["member_id"])} · {_val(evidence["story"])} · '
+        f'{_val(evidence["section"])} · {_val(evidence["status"])}</p>'
+        '<p>Verify the clear length from physical support faces. Frame length and object stations are ETABS observations.</p>'
+        + _table((("frame_length_m", "Frame length I–J (m)"), ("i_joint_id", "Joint I"),
+                  ("j_joint_id", "Joint J"), ("stations", "Observed object stations (m)"),
+                  ("analysis_order", "Analysis order"), ("global_pdelta_status", "R08 story precheck")),
+                 [{**evidence, "stations": stations}])
+        + (_table((("combination", "Static combination"), ("axis", "Axis"), ("nd_kn", "Nd (kN)"),
+                   ("nk_kn", "Nk ref k=1 (kN)"), ("end_ratio", "M1/M2"),
+                   ("lk_over_i", "lk/i"), ("limit", "TS500 limit"),
+                   ("beta_ref", "Beta ref (no-sway)"), ("status", "Reference status")),
+                  scenario_rows) if scenario_rows else '')
+        + '<h3>Inputs requiring verification</h3><ul>' + inputs + '</ul></section>'
+    )
+
+
+def _column_r14_r15_html(r14: Mapping[str, Any]) -> str:
+    if r14.get("scope") == "ALL_COLUMNS":
+        summary = [{
+            "expected": r14.get("expected_column_count"),
+            "evaluated": r14.get("evaluated_column_count"),
+            "closed": r14.get("numerically_closed_count"),
+            "failed": r14.get("normative_fail_count"),
+            "partial": r14.get("partial_or_unbound_count"),
+            "status": r14.get("status"),
+            "formal": r14.get("formal_compliance"),
+        }]
+        cols_tbl = [
+            {
+                "member_id": c.get("member_id"),
+                "story": c.get("story"),
+                "section": c.get("section"),
+                "status": c.get("status"),
+                "pmm_util": (c.get("pillars") or {}).get("second_order_selected_pmm", {}).get("max_magnified_utilization"),
+                "ve_util": (c.get("pillars") or {}).get("column_shear_ve", {}).get("max_ve_ts500_utilization"),
+                "scwb_ratio": (c.get("pillars") or {}).get("scwb_and_story_alpha", {}).get("min_scwb_ratio"),
+                "vj_util": (c.get("pillars") or {}).get("joint_shear_and_transverse", {}).get("max_vj_utilization"),
+                "failures": ", ".join(c.get("normative_failures") or ()) or None,
+            }
+            for c in r14.get("columns") or ()
+        ]
+        sa = r14.get("story_alpha") or {}
+        sa_rows = [
+            {
+                "story": s.get("story"),
+                "direction": s.get("direction"),
+                "denom": f"{s.get('evaluated_column_count')}/{s.get('story_column_count')} ({s.get('denominator_status')})",
+                "combo": s.get("governing_combination"),
+                "alpha_i": s.get("governing_alpha_i"),
+                "action": s.get("demand_feedback_action"),
+            }
+            for s in sa.get("stories") or ()
+        ]
+        return (
+            '<section class="percheck"><h2>R14 / R15 · Building-wide column closure &amp; story αi</h2>'
+            '<p>Full population closure ledger across all columns (R15). Formal compliance remains NOT_PROVEN pending source approvals.</p>'
+            + _table((("expected", "Expected"), ("evaluated", "Evaluated"), ("closed", "Numerically closed"),
+                      ("failed", "Normative fails"), ("partial", "Partial/unbound"),
+                      ("status", "Building status"), ("formal", "Compliance")), summary)
+            + (_table((("story", "Story"), ("direction", "Dir"), ("denom", "Column denominator"),
+                       ("combo", "Governing combo"), ("alpha_i", "αi (Eq. 7.4)"), ("action", "Demand feedback")), sa_rows)
+               if sa_rows else '')
+            + _table((("member_id", "Column"), ("story", "Story"), ("section", "Section"),
+                      ("status", "R14 Status"), ("pmm_util", "2nd-Order PMM"),
+                      ("ve_util", "Ve/Vr"), ("scwb_ratio", "SCWB"), ("vj_util", "Vj util"),
+                      ("failures", "Normative failures")), cols_tbl)
+            + '</section>'
+        )
+    p = r14.get("pillars") or {}
+    row = [{
+        "member_id": r14.get("member_id"),
+        "story": r14.get("story"),
+        "status": r14.get("status"),
+        "pmm_util": (p.get("second_order_selected_pmm") or {}).get("max_magnified_utilization"),
+        "ve_util": (p.get("column_shear_ve") or {}).get("max_ve_ts500_utilization"),
+        "scwb_ratio": (p.get("scwb_and_story_alpha") or {}).get("min_scwb_ratio"),
+        "vj_util": (p.get("joint_shear_and_transverse") or {}).get("max_vj_utilization"),
+        "failures": ", ".join(r14.get("normative_failures") or ()) or None,
+    }]
+    return (
+        '<section class="percheck"><h2>R14 · Single-column end-to-end closure</h2>'
+        + _table((("member_id", "Column"), ("story", "Story"), ("status", "R14 Status"),
+                  ("pmm_util", "2nd-Order PMM"), ("ve_util", "Ve/Vr"), ("scwb_ratio", "SCWB"),
+                  ("vj_util", "Vj util"), ("failures", "Normative failures")), row)
+        + '</section>'
+    )
+
+
+def _analysis_setup_html(setup: Mapping[str, Any], receipt_sha: str | None = None,
+                         *, reconciliation: Mapping[str, Any] | None = None) -> str:
+    selected = setup["design_selection_count"]
+    summary = (
+        f'Case definitions {_val(setup["case_definition_count"])} · '
+        f'Combination definitions {_val(len(setup["defined_combination_names"]) if setup["typed_graph_source_sha256"] else None)} · '
+        f'Design selection {_val(selected if selected is not None else "Source unavailable")}'
+    )
+    diagnostics = setup["diagnostics"]
+    capture_scope = ("The archived combination selection and static case settings come from separate captures."
+                     if setup["source_capture_scope"] == "SEPARATE_CAPTURES" else "")
+    reconciled_html = ""
+    if isinstance(reconciliation, Mapping):
+        assigned = reconciliation.get("assigned_design_families") or {}
+        stiff = reconciliation.get("cracked_section_stiffness_audit") or {}
+        blockers = reconciliation.get("reconciled_blocker_codes") or setup["blocker_codes"]
+        reconciled_html = (
+            f'<p><strong>Reconciled design families</strong> '
+            f'{_val(assigned.get("bound_families") or "None bound")} · '
+            f'Remaining {_val(assigned.get("remaining_unassigned_families") or [])}</p>'
+            f'<p><strong>TBDY Table 4.2 section modifiers</strong> '
+            f'{_val(stiff.get("status"))} (columns 0.70: {_val(stiff.get("all_columns_match_0_70"))}, '
+            f'beams 0.35: {_val(stiff.get("all_beams_match_0_35"))})</p>'
+        )
+    else:
+        blockers = setup["blocker_codes"]
+    return (
+        '<section class="percheck" data-check-panel="ANALYSIS_BASIS_GATE">'
+        '<h2>R03 · ETABS analysis and concrete design setup</h2>'
+        f'<p><strong>{_val(setup["status"])}</strong> · {summary}</p>'
+        '<p>Strength selection comes from the ETABS design list. Project load roles and analysis generation require separate verification.</p>'
+        + (f'<p>{capture_scope}</p>' if capture_scope else '')
+        + reconciled_html
+        + _table((("design_type", "ETABS design list"), ("combination", "Combination")),
+                 setup["design_selection"] or [])
+        + _table((("combination", "Defined combination"), ("operator", "ETABS operation"),
+                  ("spectral_case_references", "Spectrum case references"),
+                  ("observed_design_types", "Design lists captured"),
+                  ("nonconcurrent_source_reasons", "Vector restriction")),
+                 setup["combination_audit"])
+        + _table((("case", "Linear static case"), ("stiffness_setting", "StiffType"),
+                  ("nonlinear_case", "NonlinCase")), setup["linear_static_settings"])
+        + '<p>Open evidence</p><ul>' + ''.join('<li>' + _val(s) + '</li>' for s in blockers)
+        + '</ul>'
+        + ('<details><summary>Source diagnostic</summary><pre>' + _val(diagnostics) + '</pre></details>' if diagnostics else '')
+        + '<p>Source table SHA-256 ' + _val(setup["source_tables_sha256"])
+        + (' · R03 receipt SHA-256 ' + _val(receipt_sha) if receipt_sha else '')
+        + '</p></section>'
+    )
+
+
+def build_column_127_gate_html(bundle: Mapping[str, Any]) -> str:
+    """Render sealed P0 gate report for column 127/C88 without performing calculations."""
+    p0 = bundle["p0_gate_report"]
+    verdict = p0["verdict_summary"]
+    reinf = p0["p0b_gates"]["f03_reinforcement_states"]
+    trans = p0["p0b_gates"]["f07_transverse_topology"]
+    setup = p0["p0c_model_analysis_setup_audit"]
+    station_rows = [
+        {
+            "station_m": s["object_station_m"],
+            "nd_kn": round(s["nd_compression_kn"], 4),
+            "m2_raw": round(s["e_min_gate"]["m2_raw_knm"], 4),
+            "m3_raw": round(s["e_min_gate"]["m3_raw_knm"], 4),
+            "m2_design": round(s["e_min_gate"]["m2_design_knm"], 4),
+            "m3_design": round(s["e_min_gate"]["m3_design_knm"], 4),
+            "raw_pmm": round(s["raw_pmm_utilization"], 6),
+            "emin_pmm": round(s["pmm_with_e_min_utilization"], 6),
+            "axial_status": s["axial_cap_gate"]["status"],
+        }
+        for s in p0["p0b_gates"]["f02_grav_ult_stations"]
+    ]
+    reinf_rows = [
+        reinf["etabs_template_12phi20"],
+        reinf["proposed_scenario_16phi24"],
+        reinf["selected_if_template_12phi20_used"],
+    ]
+    trans_rows = [
+        {"case": "Proposed reinforcement", **trans["proposed_16phi24"]},
+        {"case": "ETABS template (conditional)", **trans["etabs_template_12phi20_phi10_s150"]},
+    ]
+    return (
+        "<!doctype html><html lang='en'><head><meta charset='utf-8'>"
+        "<title>Column 127 / C88 — P0 engineering gates</title>"
+        "<style>body{font:13px/1.5 system-ui,sans-serif;max-width:1280px;margin:28px auto;padding:0 20px;color:#1c3045}"
+        "table{border-collapse:collapse;width:100%;margin:10px 0 20px;font-size:12px}"
+        "th,td{border:1px solid #d4deea;padding:6px 8px;text-align:left}"
+        "th{background:#e8eff7}.warn{padding:10px 14px;border-left:4px solid #986a16;background:#fbf4e9;margin:14px 0}</style>"
+        "</head><body>"
+        f"<h1>Column {_val(p0['member'])} ({_val(p0['label'])}) · Story {_val(p0['story'])} · Section {_val(p0['section_name'])}</h1>"
+        "<div class='warn'><strong>FORMAL COMPLIANCE = NOT_PROVEN · ENGINEERING RELEASE = NOT_READY · PRODUCTION_READY = NO</strong></div>"
+        "<h2>P0-B · Grav_Ult stations (F01 axial limit, F02 e_min and PMM)</h2>"
+        + _table(
+            (
+                ("station_m", "Station (m)"),
+                ("nd_kn", "Nd (kN)"),
+                ("m2_raw", "Raw M2 (kN·m)"),
+                ("m3_raw", "Raw M3 (kN·m)"),
+                ("m2_design", "Design M2 (kN·m)"),
+                ("m3_design", "Design M3 (kN·m)"),
+                ("raw_pmm", "Raw PMM ratio"),
+                ("emin_pmm", "PMM ratio with e_min"),
+                ("axial_status", "CHK-005 / CHK-004"),
+            ),
+            station_rows,
+        )
+        + "<h2>P0-B · F03 longitudinal reinforcement</h2>"
+        + _table(
+            (
+                ("role", "Role"),
+                ("bar_count", "Count"),
+                ("bar_diameter_mm", "Diameter (mm)"),
+                ("rho", "ρ"),
+                ("status", "Status"),
+                ("diameter_basis", "Diameter source"),
+                ("formal_compliance", "Compliance"),
+                ("reason_codes", "Reason"),
+            ),
+            reinf_rows,
+        )
+        + "<h2>P0-B · F07 transverse reinforcement leg topology (CHK-123)</h2>"
+        + _table(
+            (
+                ("case", "Cage"),
+                ("max_ai_mm", "Maximum ai (mm)"),
+                ("ai_limit_25_phi_e_mm", "25φe limit (mm)"),
+                ("vertical_spacing_s_mm", "s (mm)"),
+                ("s_max_limit_mm", "Maximum s (mm)"),
+                ("status", "Status"),
+                ("reason_codes", "Reason"),
+            ),
+            trans_rows,
+        )
+        + _analysis_setup_html(setup)
+        + f"<p><strong>Sealed report SHA-256</strong> {_val(p0['result_sha256'])}</p>"
+        + f"<p><strong>Summary decision</strong> {_val(verdict)}</p>"
+        + "</body></html>"
+    )

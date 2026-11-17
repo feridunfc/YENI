@@ -20,9 +20,9 @@ from .vs05_d4_source_authority import COMBOS, SUMMARY, SPECTRUM, _case_source, _
 
 
 CHECKS = (
-    CheckDefinition("earthquake_100_30", "Deprem birleşimleri · %100 / %30", 5,
+    CheckDefinition("earthquake_100_30", "Seismic combinations · 100% / 30%", 5,
                     "TBDY 2018 4.4.2.1 / Denk.(4.9)", "CONDITIONAL_SOURCE_NUMERICAL"),
-    CheckDefinition("earthquake_direction_pairs", "Birleşimlerde X / Y yön kapsamı", 5,
+    CheckDefinition("earthquake_direction_pairs", "X / Y directional combination coverage", 5,
                     "TBDY 2018 4.4.2.1 / Denk.(4.9)", "CONDITIONAL_SOURCE_NUMERICAL"),
 )
 PANELS = {"earthquake_100_30": "earthquakeRatioPanel",
@@ -223,11 +223,11 @@ def bind_earthquake_combinations(snapshot: Mapping[str, Any]) -> dict:
     provenance = {"basis_probe_sha256": _digest(basis), "selected_rs_cases": {"X": x_case, "Y": y_case},
                   "typed_graph_source_hash": source_graph["typed_graph_source_hash"] if source_graph else None}
     notes = [
-        "Denk.(4.9) için seçili gerçek X/Y spektrum vakalarının katsayı mutlak değerleri karşılaştırılır. Ortak çarpan 1 veya 2,5 olabilir; anlamı otomatik D kabul edilmez.",
-        "Yalnız Linear Add zinciri cebirsel katsayılara açılır. Zarf alternatifleri toplanmaz; iç içe zarf veya desteklenmeyen işlem görünür NOT_PROVEN kalır.",
-        "Aynı diğer vaka katsayıları ve aynı pozitif ortak çarpanda iki baskın yön aranır. Birleşim adları sınıflandırma veya eşleştirme için kullanılmaz.",
-        "Oran ve iki yönün kaynakta gözlenmesi; ± işaret zarfını, tasarımda seçilmeyi, 4.10 iç kuvvet kurallarını veya aynı anda oluşan kuvvet vektörünü kanıtlamaz.",
-        "Seçili RS çiftini içermeyen birleşimler yalnız bu çiftin kapsamı dışındadır; deprem dışı oldukları sonucuna varılmaz.",
+        "The absolute factors of the selected X and Y spectrum cases are compared for Eq. (4.9). A common factor can be 1 or 2.5. Its physical role requires separate evidence.",
+        "Only the Linear Add chain expands into algebraic factors. Envelope alternatives are evaluated individually. Nested envelopes and unsupported operations remain NOT_PROVEN.",
+        "The check looks for both dominant directions at identical factors for other cases and the same positive common factor. Classification and matching use the source factors and case identities.",
+        "The source ratio and directions provide screening evidence. The ± sign envelope, design selection, internal forces under 4.10 and concurrent vectors require separate verification.",
+        "Combinations without the selected RS pair are out of scope for this pair. Their seismic role requires separate classification.",
     ]
     gaps = ["FULL_PLUS_MINUS_SIGN_ENVELOPE_NOT_PROVEN", "DESIGN_COMBINATION_SELECTION_NOT_PROVEN",
             "COMMON_FACTOR_MEANING_AND_EQ_4_10_EFFECTS_NOT_PROVEN",

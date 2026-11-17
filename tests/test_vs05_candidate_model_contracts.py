@@ -6,12 +6,11 @@ enforcement authorities are DENIED pending real model census and approval.
 from __future__ import annotations
 
 from copy import deepcopy
-from pathlib import Path
 import json
 import unittest
 
 from tbdy_next.compiled_dag import (
-    CompilationRejected, RegulatoryCompiler, assess_candidate_plan,
+    CANDIDATE_CATALOG_PATH, CompilationRejected, RegulatoryCompiler, assess_candidate_plan,
     read_candidate_catalog,
 )
 from tbdy_next.candidate_model_contracts import (
@@ -19,9 +18,6 @@ from tbdy_next.candidate_model_contracts import (
     review_combo_book_candidate,
     compile_limited_source_candidates,
 )
-
-CATALOG=Path(__file__).resolve().parents[1]/"config"/"dag"/"tbdy_r1c_94_candidate.json"
-
 
 def profile():
     return {
@@ -103,7 +99,7 @@ class Vs05TypedCandidateContracts(unittest.TestCase):
         self.assertFalse(x["combo_roles_approved"])
 
     def test_candidate_compiles_six_instances_and_reconciles_all(self):
-        compiler=RegulatoryCompiler(read_candidate_catalog(CATALOG))
+        compiler=RegulatoryCompiler(read_candidate_catalog(CANDIDATE_CATALOG_PATH))
         out=compile_limited_source_candidates(compiler,profile(),book())
         self.assertEqual(out["expected_instance_count"],6)
         self.assertFalse(out["whole_building_expected_check_census_proven"])
@@ -150,7 +146,7 @@ class Vs05TypedCandidateContracts(unittest.TestCase):
     def test_mismatched_source_snapshot_blocks_compiler(self):
         x=book()
         x["source_snapshot_sha256"]="b"*64
-        compiler=RegulatoryCompiler(read_candidate_catalog(CATALOG))
+        compiler=RegulatoryCompiler(read_candidate_catalog(CANDIDATE_CATALOG_PATH))
         with self.assertRaisesRegex(CompilationRejected,"DIFFERENT_SOURCE"):
             compile_limited_source_candidates(compiler,profile(),x)
 
@@ -181,7 +177,7 @@ class Vs05TypedCandidateContracts(unittest.TestCase):
         x["physical_elements"]=[x["physical_elements"][0]]
         result=review_model_profile_candidate(x)
         self.assertEqual(result["upper_story_without_captured_vertical_members"],["+4.50"])
-        compiler=RegulatoryCompiler(read_candidate_catalog(CATALOG))
+        compiler=RegulatoryCompiler(read_candidate_catalog(CANDIDATE_CATALOG_PATH))
         out=compile_limited_source_candidates(compiler,x,book())
         self.assertEqual(out["expected_instance_count"],6)
 
@@ -210,7 +206,7 @@ class Vs05TypedCandidateContracts(unittest.TestCase):
         y=book()
         x["approval_reference"]="I_APPROVE"
         y["approved"]=True
-        compiler=RegulatoryCompiler(read_candidate_catalog(CATALOG))
+        compiler=RegulatoryCompiler(read_candidate_catalog(CANDIDATE_CATALOG_PATH))
         result=compile_limited_source_candidates(compiler,x,y)
         self.assertEqual(result["status"],"UNAPPROVED_CANDIDATE_PHYSICAL_SCOPE")
         self.assertEqual(result["formal_compliance"],"NOT_PROVEN")

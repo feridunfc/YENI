@@ -65,7 +65,7 @@ class B1SingleRunReportTests(unittest.TestCase):
         with urlopen(self.base+"/report/print?run_id="+run_id) as response:
             html=response.read().decode("utf-8")
         self.assertIn("VS06-D1",html)
-        self.assertIn("Hesap varsayımları",html)
+        self.assertIn("Calculation assumptions",html)
         self.assertIn("NOT_PROVEN",html)
         self.assertEqual(self.live_calls,["Modal"],
                          "Read-only report must not make second ETABS capture")

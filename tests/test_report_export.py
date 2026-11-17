@@ -12,7 +12,7 @@ import json
 import unittest
 
 from tbdy_next.web import make_handler
-from tbdy_next.reporting import build_complete_report, build_printable_html, ReportUnavailable
+from tbdy_next.reporting import _table, build_complete_report, build_printable_html, ReportUnavailable
 from test_quick_suite import fake_live_suite
 
 
@@ -83,9 +83,9 @@ class ReportExportTests(unittest.TestCase):
         self.assertIn('text/html', headers['Content-Type'])
         self.assertIn('FORMAL COMPLIANCE = NOT_PROVEN', content)
         self.assertIn('ENGINEERING RELEASE = NOT_READY', content)
-        self.assertIn('Modal kaynak tablosu', content)
-        self.assertIn('Kiriş gövde genişliği', content)
-        self.assertIn('Kolon kısa kenar', content)
+        self.assertIn('Modal source table', content)
+        self.assertIn('Beam web width', content)
+        self.assertIn('Short column side', content)
         self.assertIn('C35/45', content)
         # Independent verification: each of the 4 geometry check sections
         # contains every member row, and the 3 original modal rows are kept.
@@ -138,11 +138,24 @@ class ReportExportTests(unittest.TestCase):
         self.assertIn('&lt;script&gt;', text)
         self.assertNotIn('<script>alert(1)</script>', text)
 
+    def test_precision_changes_visible_values_and_preserves_raw_numbers_and_ids(self):
+        rows = [{
+            'story': '+4.50', 'element_id': '001.2345678901',
+            'theta_ii_candidate': '0.005694324373341134',
+            'etabs_reconciliation_residual_mm': '-0.000000000000000001',
+        }]
+        html = _table(tuple((key, key) for key in rows[0]), rows)
+        self.assertIn('<td>+4.50</td>', html)
+        self.assertIn('<td>001.2345678901</td>', html)
+        self.assertIn('title="0.005694324373341134">0.005694</span>', html)
+        self.assertIn('title="-0.000000000000000001">-1e-18</span>', html)
+        self.assertEqual(rows[0]['theta_ii_candidate'], '0.005694324373341134')
+
     def test_ui_includes_report_actions_and_run_selector(self):
         src, _ = self._get('/quick.js')
         js = src.decode('utf-8')
-        self.assertIn('Tam JSON dışa aktar', js)
-        self.assertIn('Mühendislik raporu / PDF', js)
+        self.assertIn('Export full JSON', js)
+        self.assertIn('Engineering report / PDF', js)
         self.assertIn('/api/export-checks?run_id=', js)
         self.assertIn('/report/print?run_id=', js)
         self.assertIn('chooseRun.addEventListener', js)

@@ -56,12 +56,12 @@ class StabilityWebTests(unittest.TestCase):
 
     def test_report_and_ui_expose_source_scope_and_keep_control_count(self):
         with self.get('/report/column-bank?'+self.query) as response: html=response.read().decode()
-        for value in ('VS14','Kesit rijitliği','34000','Minimum dışmerkezlik','6.16','7.29',
-                      'Çıktı aralığı serbest boy değildir','iç istasyon kıyasları','NOT_PROVEN'):
+        for value in ('VS14','Section stiffness','34000','Minimum eccentricity','6.16','7.29',
+                      'TS500 moment magnification requires verified clear length','Comparisons at interior stations','NOT_PROVEN'):
             self.assertIn(value,html)
         self.assertNotIn('<script',html)
-        with self.get('/') as response: ui=response.read().decode()
-        for value in ('value="stiffness"','value="eccentricity"','Kesit ve ön hesaplar'):
+        with self.get('/source') as response: ui=response.read().decode()
+        for value in ('value="stiffness"','value="eccentricity"','Sections and preliminary calculations'):
             self.assertIn(value,ui)
         with self.get('/api/check-registry') as response: registry=json.load(response)
         self.assertEqual(registry['implemented_check_count'],16)

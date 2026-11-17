@@ -22,6 +22,9 @@ from pathlib import Path
 from typing import Any, Mapping
 
 CATALOG_SCHEMA = "tbdy.next.vs05.candidate-engineering-dag.v1"
+CANDIDATE_CATALOG_PATH = (
+    Path(__file__).resolve().parent / "config" / "dag" / "tbdy_r1c_94_candidate.json"
+)
 PLAN_SCHEMA = "tbdy.next.vs05.candidate-execution-plan.v1"
 FCR_SCHEMA = "tbdy.next.vs05.candidate-fcr.v1"
 CHECK_TYPES = frozenset(("REGULATORY_CHECK", "DESIGN_CHECK"))

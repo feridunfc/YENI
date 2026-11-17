@@ -1,6 +1,7 @@
 """Reuse report banks and Column B7 separately; no new report goldens invented."""
 from contextlib import redirect_stdout
 from copy import deepcopy
+from decimal import Decimal
 from hashlib import sha256
 import importlib.util
 import io
@@ -17,6 +18,8 @@ from zipfile import ZipFile
 
 from tbdy_next.cli import main
 from tbdy_next.column_engine import section_capacity as capacity
+from tbdy_next.column_engine.native_archive import BankError
+from tbdy_next.column_engine.story_alpha import evaluate_story_alpha_reference
 from tbdy_next.column_engine.section_reference import ReferenceSection, _axial_root
 from tbdy_next.verification import golden_gate as gate
 from tbdy_next.verification import report_oracles
@@ -49,7 +52,7 @@ class GoldenReportGateTests(unittest.TestCase):
     def test_three_classifications_and_missing_coverage_stay_visible(self):
         r=gate.build_golden_gate()
         self.assertEqual(r['record_count'],44)
-        self.assertEqual(r['classification_counts'],{'NUMERICAL_MATCH':13,'ENGINEERING_INTERPRETATION_DIFFERENCE':4,'INSUFFICIENT_SOURCE':27})
+        self.assertEqual(r['classification_counts'],{'NUMERICAL_MATCH':15,'ENGINEERING_INTERPRETATION_DIFFERENCE':4,'INSUFFICIENT_SOURCE':25})
         self.assertEqual(len(r['legacy_reference_bank']['golden02_replayed_test_groups']),7)
         self.assertFalse(r['acceptance_eligible']);self.assertEqual(r['engineering_release'],'NOT_READY')
         self.assertEqual({d['domain'] for d in r['required_domains']},set(gate.REQUIRED_DOMAINS))
@@ -90,8 +93,21 @@ class GoldenReportGateTests(unittest.TestCase):
         self.assertTrue(row['below_070_reference'])
         self.assertFalse(row['one_column_repair_proven'])
         self.assertFalse(row['automatic_inverse_alpha_magnification_authorized'])
-        self.assertIsNone(row['yeni']);self.assertEqual(row['classification'],'INSUFFICIENT_SOURCE')
+        self.assertAlmostEqual(row['yeni'],34.8720/55.6859)
+        self.assertEqual(row['yeni_status'],'BELOW_0P70')
+        self.assertEqual(row['classification'],'NUMERICAL_MATCH')
         self.assertEqual(r['negative_system_reference']['golden01'],'BLOCKED_A15_SYSTEM_MISMATCH')
+
+    def test_story_alpha_threshold_uses_unrounded_ratio(self):
+        accepted = evaluate_story_alpha_reference(vis_kn='70', vik_kn='100')
+        self.assertEqual(accepted['alpha'], Decimal('0.7'))
+        self.assertEqual(accepted['numeric_status'], 'AT_OR_ABOVE_0P70')
+        just_below = evaluate_story_alpha_reference(vis_kn='69.9999999999999999999999999999999999', vik_kn='100')
+        self.assertEqual(just_below['numeric_status'], 'BELOW_0P70')
+        with self.assertRaisesRegex(BankError, 'STORY_ALPHA_ZERO_VIK'):
+            evaluate_story_alpha_reference(vis_kn=0, vik_kn=0)
+        with self.assertRaisesRegex(BankError, 'STORY_ALPHA_VIS_EXCEEDS_VIK'):
+            evaluate_story_alpha_reference(vis_kn=11, vik_kn=10)
 
     def test_unexplained_discrepancy_is_a_hard_regression_failure(self):
         for args in ((2,1,1,.01),(1,1,2,.01),(True,1,1,0),(None,math.nan,0,0),(None,1,1,-1)):

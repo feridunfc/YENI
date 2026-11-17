@@ -2,11 +2,9 @@
 from __future__ import annotations
 
 from copy import deepcopy
-import json
-from pathlib import Path
 import unittest
 
-from tbdy_next.compiled_dag import CompilationRejected
+from tbdy_next.compiled_dag import CANDIDATE_CATALOG_PATH, CompilationRejected, read_candidate_catalog
 from tbdy_next.effective_drift_readiness import (
     EffectiveDriftReadinessError, review_effective_drift_readiness,
 )
@@ -15,14 +13,11 @@ from tbdy_next.story_slot_ledger import build_story_slot_ledger
 from test_vs06_story_slot_ledger import source_record, synthetic_12_of_16
 
 
-CATALOG = Path(__file__).resolve().parents[1] / "config" / "dag" / "tbdy_r1c_94_candidate.json"
-
-
 def inputs(source_record_pair=None):
     source, record = source_record_pair or source_record()
     ledger = build_story_slot_ledger(source, record)
     physical = review_story_physical_source(source, record, ledger)
-    catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
+    catalog = read_candidate_catalog(CANDIDATE_CATALOG_PATH)
     return source, record, ledger, physical, catalog
 
 

@@ -46,8 +46,8 @@ class B1SourceUploadWebTests(unittest.TestCase):
         self.assertEqual(r["b1_numerical"]["expected_story_direction_pairs"],2)
         self.assertEqual(r["formal_compliance"],"NOT_PROVEN")
         self.assertEqual(r["model"],a["model"])
-        self.assertIn("b1 zayıf kat",obj["html"].lower())
-        self.assertIn("0,15",obj["html"])
+        self.assertIn("b1 weak story",obj["html"].lower())
+        self.assertIn("0.15",obj["html"])
         self.assertEqual(list(self.root.iterdir()),[],
                          "B1 preview must not write a new receipt or ETABS file")
 
@@ -99,7 +99,7 @@ class B1SourceUploadWebTests(unittest.TestCase):
         self.assertEqual(result["formal_compliance"],"NOT_PROVEN")
 
     def test_UI_has_dedicated_B1_panel_and_same_route(self):
-        with urlopen(self.host+"/") as response:
+        with urlopen(self.host+"/source") as response:
             html=response.read().decode("utf-8")
         with urlopen(self.host+"/quick.js") as response:
             js=response.read().decode("utf-8")

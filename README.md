@@ -16,8 +16,13 @@ Small, project-owned Turkish structural-engineering application. The older `TBDY
 
 ```bash
 python -m pip install -e .
-python -m unittest discover -s tests -v
+python tools/test_offline.py
 ```
+
+The pipeline uses the editable package from the current checkout, runs the
+Python and Node.js suites, and checks the bundled golden report fixtures.
+Use Node.js 22 to match CI or pass an executable with `--node`.
+Review `acceptance_eligible` alongside `OFFLINE_SOFTWARE_REGRESSIONS`.
 
 ## Windows / PyCharm — direct ETABS web connection
 
@@ -28,16 +33,42 @@ root with the project interpreter:
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -e .
 .\.venv\Scripts\python.exe -m pip install comtypes
-.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+.\.venv\Scripts\python.exe tools/test_offline.py
 .\.venv\Scripts\python.exe -m tbdy_next.cli serve --host 127.0.0.1 --port 8765 --out .receipts
 ```
 
-Open `http://127.0.0.1:8765`, choose **Modal analiz**, then press **ETABS'a
-bağlan ve hesapla**. No JSON file selection is required. The local server
-reads only `Modal Participating Mass Ratios` from the active ETABS instance,
-restores any temporary output-case selection, validates the rows, performs the
-same VS01 numerical check as the CLI, and saves the input + stage receipts
-under `.receipts/RUN-*`. Existing CLI results appear in the UI automatically.
+For an exact instance, add `--etabs-pid` with the running ETABS process ID.
+`Get-Process ETABS | Select-Object Id, MainWindowTitle` lists local instances.
+**Connect to ETABS** and live capture both set and verify kN·m·°C (API code 6)
+on the locked ETABS model. The workspace shows the connected model and API units.
+ETABS keeps these units after the scan.
+In **Settings → Combination assignments**, the engine resolves project groups
+from `design_combination_groups.json` against the verified ETABS catalog. The
+workspace shows the resulting assignments by scope and check. Envelopes are
+listed with the model definitions. In 4.3, **Assigned design combinations** uses
+the gravity and ductile seismic assignments. The user can also select a custom
+set or the model's **ETABS Strength selections**. Overrides are saved for the
+model in the browser. In **Column design → 4.3**, **Read forces and check** verifies the
+set against the open model, captures native frame forces, restores the ETABS
+output selection, and records the TS 500 comparison under a new RunID. The
+result includes an internal-force viewer and the full source JSON. Spectrum and
+envelope rows support scalar axial comparisons. In **Column design → 4.4**,
+select one column by its ETABS Unique ID. The same capture records the native
+signed stations, ETABS reinforcement basis and the owner PMM calculation with
+TS 500 minimum eccentricity. Design templates appear as scenarios. Spectrum
+component envelopes are listed outside the signed PMM scope. Analysis order
+and engineering approval remain open.
+Use `python -m tbdy_next.cli etabs-units --etabs-pid <PID> --use-kn-m-c` to set
+and verify the API's present units on the targeted locked model. This command
+does not save the model, unlock it or start analysis.
+
+Open `http://127.0.0.1:8765` for the English engineering workspace. Select a
+verified saved run or press **Read ETABS and calculate** to capture the open
+model. The **Source & analysis views** link opens the existing detail screens
+at `/source`. The combined capture records modal mass ratios, geometry, analysis
+setup and the other available source evidence from the same ETABS session. It
+stores the input and calculation receipts under `.receipts/RUN-*`. Existing CLI
+results appear in the UI automatically.
 
 The web server only listens on localhost; actual COM access is lazy and occurs
 only after clicking the live button. Windows COM live acceptance is separate
@@ -156,7 +187,7 @@ against the private RAW JSON. It does not connect to ETABS, touch the
 analytical model or claim normatively approved drift/base-shear calculations.
 
 ```powershell
-cd C:\Users\efeya\PycharmProjects\YENI_VS04
+# Run from the repository root.
 $raw = (Get-ChildItem ".receipts\VS04\VS04_RAW_*.json" | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName
 if (-not $raw) { throw "VS04_RAW is missing" }
 .\.venv\Scripts\python.exe tools\replay_vs04_raw.py --input "$raw" --out ".receipts\VS04\VS04_REPLAY_LATEST.json"

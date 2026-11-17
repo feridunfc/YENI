@@ -59,11 +59,11 @@ class PrecheckWebTests(unittest.TestCase):
 
     def test_report_and_ui_present_area_scope_and_source_extrema_without_pmm_promotion(self):
         with self.get('/report/column-bank?'+self.query) as response: html=response.read().decode()
-        for label in ('VS13','Kritik statik','7.3.2.1','6400','256','PMM için tam talep',
-                      'bir kuvvet vektörü oluşturmaz','gerçek donatı kafesini','NOT_PROVEN','NUMERICAL_MATCH'):
+        for label in ('VS13','Governing static','7.3.2.1','6400','256','PMM requires the full demand population',
+                      'Each reported vector uses components from a single source row','actual cage','NOT_PROVEN','NUMERICAL_MATCH'):
             self.assertIn(label,html)
         self.assertNotIn('<script',html)
-        with self.get('/') as response: page=response.read().decode()
+        with self.get('/source') as response: page=response.read().decode()
         self.assertIn('value="critical"',page)
         self.assertIn('value="reinforcement"',page)
         with self.get('/api/check-registry') as response: registry=json.load(response)

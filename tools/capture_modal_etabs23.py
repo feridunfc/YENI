@@ -12,7 +12,7 @@ from tbdy_next.etabs_modal import ModalCaptureError, capture_modal
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="TBDY Next VS01 — hedefli canlı modal aktarım")
+    parser = argparse.ArgumentParser(description="TBDY Next VS01 — capture a selected live modal case")
     parser.add_argument("--case", default="Modal")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()

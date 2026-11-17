@@ -13,6 +13,7 @@ from urllib.parse import urlencode
 import json
 import unittest
 
+from tbdy_next.compiled_dag import CANDIDATE_CATALOG_PATH, read_candidate_catalog
 from tbdy_next.story_physical_source import review_story_physical_source
 from tbdy_next.story_slot_ledger import build_story_slot_ledger
 from tbdy_next.effective_drift_readiness import review_effective_drift_readiness
@@ -23,9 +24,7 @@ from test_vs05_story_drift_binding import seal
 from test_quick_suite import fake_live_suite
 
 
-CATALOG = json.loads(
-    (Path(__file__).resolve().parents[1] / "config/dag/tbdy_r1c_94_candidate.json")
-    .read_text(encoding="utf-8"))
+CATALOG = read_candidate_catalog(CANDIDATE_CATALOG_PATH)
 
 
 def scenario_report(pair=None):
@@ -246,7 +245,7 @@ class Vs06C2HttpIntegration(unittest.TestCase):
         self.assertEqual(self.calls, ["Modal"])
 
     def test_ui_brittle_default_and_one_primary_live_button(self):
-        with urlopen(self.base + "/") as response:
+        with urlopen(self.base + "/source") as response:
             html = response.read().decode("utf-8")
         with urlopen(self.base + "/quick.js") as response:
             js = response.read().decode("utf-8")

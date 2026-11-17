@@ -14,7 +14,7 @@ from pathlib import Path
 from zipfile import ZipFile
 
 from ..column_engine.native_archive import digest
-from ..column_engine import ts500_column, section_capacity, scwb_kernel, joint_kernel
+from ..column_engine import ts500_column, section_capacity, scwb_kernel, joint_kernel, story_alpha
 from . import report_oracles
 
 SCHEMA = "tbdy.next.golden-regression-gate.v1"
@@ -178,7 +178,7 @@ def _second_comparisons(second, manifest):
         rows.append({"id": "G02_BETA_"+case["id"], "domain": "SECOND_ORDER", "legacy_group": "test_beta_member_ts500_denominator",
             **_source(manifest,"GOLDEN-02",[186]), "inputs": case, "yeni_kernel": "ts500_column.moment_magnification_factors",
             **compare_values(result["beta"],independent,case["beta"],.0052),
-            "explanation": "Bireysel β karşılaştırması; lk/EI hesabı ve nihai büyütülmüş moment doğrulaması değildir."})
+            "explanation": "Individual β comparison. Verification of lk/EI and final magnified moments remains open."})
         if result["final_factor"] is not None or result["status"] != "EQ729_DECISION_NOT_PROVEN":
             raise GoldenRegressionError("GOLDEN_UNAPPROVED_EQ729_FACTOR_APPLIED")
         product = independent*report_oracles.member_beta(story["Nd"],story["Nk"])
@@ -187,35 +187,39 @@ def _second_comparisons(second, manifest):
             **_source(manifest,"GOLDEN-02",[186]), "inputs": {"member":case,"story":story},
             "classification": "ENGINEERING_INTERPRETATION_DIFFERENCE", "yeni": None,
             "yeni_status": result["status"], "yeni_beta": result["beta"], "yeni_beta_story": result["beta_story"],
-            "independent": product, "report": case["reported_used"], "report_quantity": "Alındı Eleman β",
+            "independent": product, "report": case["reported_used"], "report_quantity": "Adopted member β",
             "oracle_report_difference": abs(product-case["reported_used"]), "report_rounding_tolerance": .012,
             "printed_symbol_probe": report_oracles.printed_eq729(case["lk"],case["Nd"]),
-            "explanation": "Raporun Alındı değeri β×βs aritmetiğine uyuyor. YENI nihai çarpanı onaylamıyor; serbest boy, 7.29 politikası ve PMM aktarımı kanıtlı değil. Bireysel β ile Alındı β aynı büyüklük sayılmadı.",
+            "explanation": "The reported adopted value matches β×βs. The final multiplier requires verified clear length, Eq. 7.29 policy and transfer to PMM. Individual and adopted β are distinct quantities.",
             "normative_disagreement_resolved": False, "engineering_acceptance": False})
         probe = report_oracles.printed_eq729(case["lk"],case["Nd"])
         rows.append({"id":"G02_EQ729_"+case["id"],"domain":"SECOND_ORDER", "legacy_group":"test_ts500_729_requires_separate_branch_proof",
             **_source(manifest,"GOLDEN-02",[186]),"inputs":case,
             **compare_values(None,probe["product_branch_from_printed_symbol"],False,0),
-            "independent_details":probe,"explanation":"Eski auditin lk/i duyarlılığı korunur. Kat yüksekliği fiziksel serbest boy olarak atanmaz; tam YENI 7.29 çağrısı için ln/k/mesnet ve politika kaynağı eksik."})
+            "independent_details":probe,"explanation":"The historical audit preserves the lk/i sensitivity. Applying YENI Eq. 7.29 requires physical clear length, support and k evidence, and an approved policy."})
     for name, story in data["sum_N"].items():
         case = next(c for c in data["member_cases"] if c["story"] == name)
         result = _beta(case,story)
         rows.append({"id":"G02_STORY_BETA_"+name,"domain":"SECOND_ORDER", "legacy_group":"test_beta_story",
             **_source(manifest,"GOLDEN-02",[186]),"inputs":story,"yeni_kernel":"ts500_column.moment_magnification_factors",
             **compare_values(result["beta_story"],report_oracles.member_beta(story["Nd"],story["Nk"]),story["beta_s"],.005),
-            "explanation":"Basılı kat toplamlarıyla βs aritmetiği; nüfusun tekil ve eksiksiz olduğu ayrıca doğrulanmalıdır."})
+            "explanation":"βs arithmetic uses printed story totals. The uniqueness and completeness of that population require separate verification."})
     for name, alpha in data["alpha"].items():
         independent = report_oracles.story_alpha(alpha["Vis"],alpha["Vik"])
+        result = story_alpha.evaluate_story_alpha_reference(vis_kn=alpha["Vis"], vik_kn=alpha["Vik"])
         rows.append({"id":"G02_ALPHA_"+name,"domain":"STORY_ALPHA", "legacy_group":"test_alpha_ground_fails" if name=="ground" else "test_alpha_top",
             **_source(manifest,"GOLDEN-02",[189]),"inputs":alpha,
-            **compare_values(None,independent,alpha["reported"],.00005),
-            "below_070_reference":independent<.7,"one_column_repair_proven":False,
+            "yeni_kernel":"story_alpha.evaluate_story_alpha_reference",
+            **compare_values(float(result["alpha"]),independent,alpha["reported"],.00005),
+            "yeni_status":result["numeric_status"],
+            "below_070_reference":result["classification_review_required"],"one_column_repair_proven":False,
             "automatic_inverse_alpha_magnification_authorized":False,
-            "explanation":"Bağımsız Vis/Vik hesabı raporla uyumlu. YENI kat α motoru ve eksiksiz tekil kat nüfusu bu sprintte bağlanmadı; tek kolonda donatı artırma veya 1/α ile kabul üretilmez."})
+            "explanation":"YENI verified story α against the printed Vis and Vik totals. "
+                          "The real story column population and SCWB evidence at both ends require separate source links."})
     changed = second["reference"]["ground_phi"] < .05 < data["phi"]["ground"]
     rows.append({"id":"G02_SWAY_BRANCH_CHANGED","domain":"SECOND_ORDER", "legacy_group":"test_sway_branch_changed",
         **_source(manifest,"GOLDEN-02",[185]),"inputs":{"old_phi":second["reference"]["ground_phi"],"new_phi":data["phi"]["ground"]},
-        **compare_values(None,changed,True,0),"explanation":"Eski auditin değişen φ dalı doğrulanır; rapor φ değerlerini YENI'nin tam fiziksel kat hesabı üretmiş sayılmaz."})
+        **compare_values(None,changed,True,0),"explanation":"The historical audit verifies the changing φ branch. Reproducing the reported φ values from the full physical story remains open."})
     return rows
 
 
@@ -229,21 +233,21 @@ def build_golden_gate(*, source_dir=None):
         pages = [183,196] if key=="PROVIDED_AS" else [case["source_pdf_page"]]
         explanation = case["comment"]
         if key not in adapters:
-            explanation += " Eski bağımsız rapor hesabı korunmuştur; ilgili YENI üretim hesabı bu kayda bağlanmadı."
+            explanation += " The historical independent report calculation is preserved. A link to the production YENI calculation remains pending."
         elif key=="PROVIDED_AS":
-            explanation += " Yalnız 12 çubuğun alanı sınandı; koordinatlar iki açık test yerleşimidir, rapora bağlı PMM geometrisi değildir."
+            explanation += " The check covers the area of 12 bars. Coordinates represent two test layouts. Report-linked PMM geometry requires independent evidence."
         elif domain=="SCWB":
-            explanation += " Basılı uç kapasitelerinin toplamı sınandı; I/J test rolüdür, native uç veya kapasite hesabı kanıtı değildir."
+            explanation += " The check sums the printed end capacities. I/J denote test roles. Native end identity and capacity calculation require independent evidence."
         rows.append({"id":"G01_"+key,"domain":domain,"legacy_case_id":key, **_source(manifest,"GOLDEN-01",pages),
             "inputs":case["inputs"],"formula":case["formula"],
             **compare_values(adapters.get(key),report_oracles.calculate(case),case["expected"],case["absolute_tolerance"]),
             "explanation":explanation.strip()})
     rows.extend(_second_comparisons(second,manifest))
     for name, report, domain, pages, reason in (
-        ("PMM_REPORT_GATE","GOLDEN-01","PMM",[183,196,197],"Tam çubuk koordinatları, malzeme/eksen politikası, eşzamanlı talep ve bağımsız sabit-N/sabit-yön PMM referansı eksik; iki ayrı eksen kapasitesi 3B PMM golden sayılmaz."),
-        ("CAPACITY_SHEAR_REPORT_GATE","GOLDEN-01","CAPACITY_SHEAR",[188,189],"Ma/Mu yetkisi, fiziksel ln, D dalı ve Vd alt sınırıyla çalışan YENI Ve yolu henüz rapora bağlanmadı; kaynak V veya birleşim Ve hesabı kolon kapasite kesmesi değildir."),
-        ("GOLDEN03_REPORT_GATE","GOLDEN-03","SECOND_ORDER",[],"PDF hash'i doğrulandı; tamamlanmış rapor aritmetiği paketi ve YENI karşılaştırması bulunmadı."),
-        ("GOLDEN04_REPORT_GATE","GOLDEN-04","SECOND_ORDER",[],"PDF hash'i doğrulandı; tamamlanmış rapor aritmetiği paketi ve YENI karşılaştırması bulunmadı.")):
+        ("PMM_REPORT_GATE","GOLDEN-01","PMM",[183,196,197],"The 3D PMM reference requires full bar coordinates, material and axis policies, concurrent demand and independent fixed-N, fixed-direction results. The two axis references cover uniaxial capacity."),
+        ("CAPACITY_SHEAR_REPORT_GATE","GOLDEN-01","CAPACITY_SHEAR",[188,189],"Linking YENI column capacity shear Ve to the report requires verified Ma/Mu, physical ln, the D branch and the Vd lower bound. The source V and joint Ve checks cover separate quantities."),
+        ("GOLDEN03_REPORT_GATE","GOLDEN-03","SECOND_ORDER",[],"The PDF hash was verified. A completed report arithmetic package and YENI comparison are still pending."),
+        ("GOLDEN04_REPORT_GATE","GOLDEN-04","SECOND_ORDER",[],"The PDF hash was verified. A completed report arithmetic package and YENI comparison are still pending.")):
         rows.append({"id":name,"domain":domain, **_source(manifest,report,pages),"classification":"INSUFFICIENT_SOURCE",
             "yeni":None,"independent":None,"report":None,"explanation":reason})
     classes = dict(Counter(r["classification"] for r in rows))
@@ -252,9 +256,9 @@ def build_golden_gate(*, source_dir=None):
         related = [r for r in rows if r["domain"]==name]
         domains.append({"domain":name,"classification_counts":dict(Counter(r["classification"] for r in related)),
             "report_golden_complete":False,"acceptance_eligible":False,
-            "reason":"Seçili aritmetik karşılaştırmalar tam algoritma/kapsam kabulü sağlamaz."})
+            "reason":"The arithmetic checks cover the listed comparisons. Overall algorithm and scope acceptance require further evidence."})
     modules = {"ts500_column":ts500_column,"section_capacity":section_capacity,"scwb_kernel":scwb_kernel,
-        "joint_kernel":joint_kernel,"report_oracles":report_oracles}
+        "joint_kernel":joint_kernel,"story_alpha":story_alpha,"report_oracles":report_oracles}
     code_hashes = {name:sha256(Path(module.__file__).read_bytes()).hexdigest() for name,module in modules.items()}
     code_hashes["golden_gate"] = sha256(Path(__file__).read_bytes()).hexdigest()
     result = {"schema":SCHEMA,"source_manifest_sha256":MANIFEST_SHA256,"source_repositories":manifest["source_repositories"],
@@ -299,10 +303,10 @@ def build_golden_html(result):
         values = (r["id"], ", ".join(map(str,r["pdf_pages_1_based"])), r.get("yeni"), r.get("independent"),
             r.get("report"), r["classification"], r["explanation"])
         rows.append("<tr>"+"".join("<td>"+escape(cell(v))+"</td>" for v in values)+"</tr>")
-    return ("<!doctype html><html lang='tr'><meta charset='utf-8'><title>YENI · Golden regresyon kapısı</title>"
+    return ("<!doctype html><html lang='en'><meta charset='utf-8'><title>YENI · Golden regression gate</title>"
         "<style>body{font:15px system-ui;margin:2rem;color:#183047}table{border-collapse:collapse;width:100%;font-size:12px}td,th{padding:8px;border-bottom:1px solid #ccd4dd;text-align:left}th{background:#edf2f7}pre{white-space:pre-wrap;overflow-wrap:anywhere}</style>"
-        "<h1>Golden regresyon kapısı</h1><p><strong>Kabul kapsamı eksik · NOT_READY.</strong> YENI hesabı → bağımsız aritmetik → rapor → farkın açıklaması. Sayısal uyum, raporun veya modelin yönetmelik onayı değildir.</p>"
-        "<p>GOLDEN-01'in 23 karşılaştırması ve GOLDEN-02'nin 7 eski test grubu korunur. Üretime bağlanmayan yollar INSUFFICIENT_SOURCE kalır. 87 kolonlu ETABS bankası ayrı kaynak entegrasyonu denetimidir.</p>"
-        "<table><tr><th>Kontrol</th><th>PDF sayfası</th><th>YENI</th><th>Bağımsız</th><th>Rapor</th><th>Sınıf</th><th>Açıklama</th></tr>"
-        +"".join(rows)+"</table><details><summary>Kaynak ve kabul kimliği</summary><pre>"
+        "<h1>Golden regression gate</h1><p><strong>Acceptance incomplete · NOT_READY.</strong> This report compares YENI and independent arithmetic against published values and explains differences. Code approval of the reports and models requires separate evidence.</p>"
+        "<p>The gate preserves 23 GOLDEN-01 comparisons and seven historical GOLDEN-02 test groups. Paths awaiting production linkage are INSUFFICIENT_SOURCE. The 87-column ETABS bank verifies source integration separately.</p>"
+        "<table><tr><th>Check</th><th>PDF page</th><th>YENI</th><th>Independent</th><th>Reported</th><th>Class</th><th>Explanation</th></tr>"
+        +"".join(rows)+"</table><details><summary>Source and acceptance identity</summary><pre>"
         +escape(json.dumps(summary,ensure_ascii=False,indent=2))+"</pre></details></html>")

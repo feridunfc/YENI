@@ -95,7 +95,7 @@ class SpectralDesignWebTests(unittest.TestCase):
         with self.get('/report/column-bank?'+query) as response:
             html=response.read().decode();self.assertIn("default-src 'none'",response.headers['Content-Security-Policy'])
         self.assertEqual(html,build_spectral_design_html(shown))
-        self.assertIn('Seçili sayfa: 31–32 / 32',html)
+        self.assertIn('Current page 31–32 / 32',html)
         self.assertIn('NOT_PROVEN / NOT_READY',html)
         self.assertNotIn('<script',html);self.assertNotIn('<details open',html)
         table=html[html.index('<table>'):html.index('</table>')]

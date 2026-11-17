@@ -29,7 +29,8 @@ class ReceiptRun:
             stream.write(payload)
         return target
 
-    def record(self, stage: str, payload: Mapping[str, Any], *, input_sha256: str) -> Path:
+    def record(self, stage: str, payload: Mapping[str, Any], *, input_sha256: str,
+               receipt_schema: str | None = None) -> Path:
         self._counter += 1
         record = {
             "run_id": self.run_id,
@@ -38,6 +39,8 @@ class ReceiptRun:
             "input_sha256": input_sha256,
             "payload": dict(payload),
         }
+        if receipt_schema is not None:
+            record["receipt_schema"] = receipt_schema
         record["receipt_sha256"] = sha256(canonical_bytes(record)).hexdigest()
         target = self.root / f"{self._counter:02d}-{stage.lower()}.json"
         with target.open("x", encoding="utf-8") as stream:

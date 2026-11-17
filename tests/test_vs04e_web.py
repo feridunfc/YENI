@@ -64,7 +64,7 @@ class Vs04ENormativeReadinessWeb(unittest.TestCase):
         self.assertIsNotNone(report["source_provenance"]["vs04_readiness_receipt_sha256"])
         with urlopen(self.url+"/report/print?run_id="+rid,timeout=7) as r:
             html=r.read().decode("utf-8")
-        self.assertIn("VS04-E · TBDY normatif kanıt kapıları",html)
+        self.assertIn("VS04-E · TBDY code evidence gates",html)
         self.assertIn("effective_drift_Y",html)
         self.assertEqual(self.calls,1)
 

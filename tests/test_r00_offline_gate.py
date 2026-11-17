@@ -153,7 +153,7 @@ class OfflineGateTests(unittest.TestCase):
 
     def test_sqlite_read_only_sha(self):
         db = Path(self.temp.name) / "cache.sqlite"
-        with sqlite3.connect(db) as c:
+        with contextlib.closing(sqlite3.connect(db)) as c, c:
             c.execute("CREATE TABLE t (v INT)")
             c.execute("INSERT INTO t VALUES (42)")
         before = sha256(db.read_bytes()).hexdigest()

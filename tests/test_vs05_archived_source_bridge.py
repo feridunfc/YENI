@@ -16,12 +16,9 @@ from tbdy_next.archived_source_bridge import (
     compile_archived_source_candidate, RESULT_SCHEMA,
 )
 from tbdy_next.compiled_dag import (
-    CompilationRejected, RegulatoryCompiler, read_candidate_catalog,
+    CANDIDATE_CATALOG_PATH, CompilationRejected, RegulatoryCompiler, read_candidate_catalog,
 )
 from tools.audit_vs05_archived_run import audit_archived_run
-
-CATALOG=Path(__file__).resolve().parents[1]/"config"/"dag"/"tbdy_r1c_94_candidate.json"
-
 
 def t(key,rows,units=None):
     fields=list(rows[0])
@@ -96,7 +93,7 @@ def source_report():
 
 class Vs05RealSourceCandidateD3(unittest.TestCase):
     def setUp(self):
-        self.compiler=RegulatoryCompiler(read_candidate_catalog(CATALOG))
+        self.compiler=RegulatoryCompiler(read_candidate_catalog(CANDIDATE_CATALOG_PATH))
         self.data=source_report()
 
     def test_source_to_typed_facts_to_frozen_plan_to_fcr(self):
@@ -191,7 +188,7 @@ class Vs05RealSourceCandidateD3(unittest.TestCase):
                 first=audit_archived_run(
                     receipts_root=Path(root),
                     run_id=self.data["run_id"],
-                    catalog_file=CATALOG,output_file=target)
+                    catalog_file=CANDIDATE_CATALOG_PATH,output_file=target)
                 self.assertEqual(verified.call_count,1)
                 self.assertEqual(first["run_id"],self.data["run_id"])
                 self.assertEqual(first["candidate_source_result"]["fcr"]["expected_count"],6)
@@ -200,14 +197,14 @@ class Vs05RealSourceCandidateD3(unittest.TestCase):
                 with self.assertRaises(CompilationRejected):
                     audit_archived_run(
                         receipts_root=Path(root),run_id=self.data["run_id"],
-                        catalog_file=CATALOG,output_file=target)
+                        catalog_file=CANDIDATE_CATALOG_PATH,output_file=target)
 
     def test_direct_unverified_file_is_never_accepted_by_cli(self):
         with TemporaryDirectory() as root:
             with self.assertRaises(Exception):
                 audit_archived_run(
                     receipts_root=Path(root),run_id=self.data["run_id"],
-                    catalog_file=CATALOG,
+                    catalog_file=CANDIDATE_CATALOG_PATH,
                     output_file=Path(root)/"NEW.json")
 
 

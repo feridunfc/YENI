@@ -83,9 +83,9 @@ class ColumnScwbWebTests(unittest.TestCase):
 
     def test_report_shows_column_reference_and_beam_gap_with_closed_details(self):
         with self.get('/report/column-bank?'+self.query) as response:html=response.read().decode()
-        self.assertLess(html.index('Kolon mühendislik özeti · VS20'),html.index('Güçlü kolon–zayıf kiriş · VS22'))
-        for phrase in ('Kiriş uç donatısı bekleniyor','En küçük ΣMrc kaynak (kN·m)','deprem yönüyle uyumlu Nd minimumu değildir',
-                       'Sıfır override sıfır donatı sayılmaz','Çatı veya düşük eksenel kuvvet istisnası uygulanmadı'):
+        self.assertLess(html.index('Column engineering summary · VS20'),html.index('Strong column–weak beam · VS22'))
+        for phrase in ('Beam end reinforcement pending','Minimum source ΣMrc (kN·m)','Minimum Nd consistent with the seismic direction requires separate evidence',
+                       'A zero override has unknown installed reinforcement','Roof and low axial force exceptions remain pending'):
             self.assertIn(phrase,html)
         section=html[html.index('<section class="column-scwb">'):]
         first=section[section.index('<table>'):section.index('</table>')]
@@ -97,11 +97,11 @@ class ColumnScwbWebTests(unittest.TestCase):
         s=read_column_bank(self.receipts,self.run_id,view='scwb',member_id='C_SYNTHETIC_1')['column_scwb']
         s['summaries'][0].update(joint_id='<script>alert(1)</script>',status='TOPOLOGY_UNRESOLVED',sampled_minimum_column_sum_knm=None)
         html=scwb_html(s);self.assertIn('&lt;script&gt;',html);self.assertNotIn('<script>',html)
-        self.assertIn('Bağlantı geometrisi belirsiz',html)
+        self.assertIn('Connection geometry unresolved',html)
 
     def test_ui_location_and_cli_are_offline_and_conditional(self):
-        with self.get('/') as response:html=response.read().decode()
-        start=html.index('<optgroup label="Kolon–kiriş birleşimleri">');end=html.index('</optgroup>',start)
+        with self.get('/source') as response:html=response.read().decode()
+        start=html.index('<optgroup label="Beam-column joints">');end=html.index('</optgroup>',start)
         self.assertIn('value="scwb"',html[start:end])
         before=sorted(p.name for p in self.receipts.iterdir());out=io.StringIO()
         with redirect_stdout(out):code=main(['inspect-column-demands','--out',str(self.receipts),'--run-id',self.run_id,'--scwb'])
@@ -116,6 +116,6 @@ class ColumnScwbWebTests(unittest.TestCase):
         with self.get('/api/column-bank?view=scwb&run_id='+run_id) as response:r=json.load(response)
         s=r['column_scwb'];self.assertEqual((s['selected_column_count'],s['expected_column_end_count']),(2,4))
         self.assertIsNone(s['filtered_joint_node_count']);self.assertIsNone(s['expected_joint_case_count'])
-        html=scwb_html(s);self.assertIn('Birleşim sayısı bilinmiyor',html)
-        self.assertIn('2 bilinen kolon / 4 beklenen uç / 24 beklenen kapasite kaydı',html)
+        html=scwb_html(s);self.assertIn('Joint count and full coverage remain unresolved',html)
+        self.assertIn('2 known columns / 4 expected ends / 24 expected capacity records',html)
         self.assertIn('C_SYNTHETIC_1',html);self.assertIn('C_SYNTHETIC_2',html)

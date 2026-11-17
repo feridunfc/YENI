@@ -12,6 +12,7 @@ import json
 import math
 from typing import Any, Mapping
 
+from .physical_story_scope import verified_excluded_stories
 from .story_delta import dec, tbl, DeltaSourceError
 from .story_geometry import read_story_levels
 from .story_drift_binding import _verify_generic_capture
@@ -322,3 +323,66 @@ def bind_story_second_order(capture: Mapping | None, *,
             ValueError, TypeError, ArithmeticError) as exc:
         out.update(status="BLOCKED_SOURCE_INVALID", reason_codes=[str(exc)])
     return out
+
+
+def scope_story_second_order(record: Mapping, capture: Mapping | None,
+                             inventory: Mapping | None, scope: Mapping | None) -> Mapping:
+    """Project proven empty top levels only after replaying the declared receipt."""
+    if (not scope or not scope.get("source_inventory_complete") or not scope.get("excluded_stories")
+            or record.get("execution_status") != "SOURCE_NUMERICAL_ONLY"
+            or not isinstance(capture, Mapping) or not isinstance(inventory, Mapping)):
+        return record
+    try:
+        excluded = verified_excluded_stories(scope, inventory)
+        spectrum, weight = capture["spectrum_source"], capture["weight_source"]
+        if (capture.get("same_sapmodel_session") is not True
+                or record["model"] != inventory["model"]
+                or record["model"] != spectrum["model"]
+                or record["model"] != weight["model"]
+                or record["case_source_sha256"] != spectrum["payload_sha256"]
+                or record["weight_source_sha256"] != weight["payload_sha256"]
+                or read_story_levels(inventory)[0] != read_story_levels(spectrum)[0]):
+            return record
+        keys = {"Story", "OutputCase", "CaseType", "Direction", "Avg Drift"}
+        captures = [tbl(s, "Story Max Over Avg Drifts", keys, {"Avg Drift": "m"})
+                    for s in (inventory, spectrum)]
+        rows = [
+            {axis: _index_drift(source, "RS" + axis, axis) for axis in ("X", "Y")}
+            for source in captures
+        ]
+        if rows[0] != rows[1] or any(excluded.intersection(x) for x in rows[1].values()):
+            return record
+        forces = [
+            tbl(source, "Story Forces", {"Story", "OutputCase", "Location"})
+            for source in (spectrum, weight)
+        ]
+        if any(row["Story"] in excluded
+               and row["OutputCase"] in ("RSX", "RSY", "WGHT") for readings in forces for row in readings):
+            return record
+        missing = record["missing_story_direction"]
+        removed = [row for row in missing if row["story"] in excluded]
+        if (len(removed) != 2 * len(excluded)
+                or {(row["story"], row["direction"]) for row in removed}
+                != {(story, axis) for story in excluded for axis in ("X", "Y")}
+                or any(row["reason"] != "STORY_WEIGHT_ROW_MISSING" for row in removed)):
+            return record
+    except (ValueError, KeyError, TypeError, ArithmeticError):
+        return record
+
+    remaining = [row for row in missing if row["story"] not in excluded]
+    declared = record["expected_story_direction_count"]
+    applicable = declared - len(removed)
+    if not 0 < applicable or record["evaluated_story_direction_count"] + len(remaining) != applicable:
+        return record
+    return dict(record,
+        expected_story_direction_count=applicable,
+        declared_story_direction_count=declared,
+        not_applicable_story_direction_count=len(removed),
+        excluded_stories=[row for row in scope["stories"] if row["story"] in excluded],
+        physical_scope_sha256=scope["scope_sha256"],
+        missing_story_direction=remaining,
+        reason_codes=[reason for reason in record["reason_codes"]
+                      if remaining or reason != "R08_DECLARED_STORY_COVERAGE_INCOMPLETE"],
+        missing_authorities=[gate for gate in record["missing_authorities"]
+                             if remaining or gate != "FULL_PHYSICAL_STORY_SCOPE"],
+    )
