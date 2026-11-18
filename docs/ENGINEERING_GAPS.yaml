@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-17T19:03:15.137496+00:00",
+  "updated_at_utc": "2026-11-18T15:53:30.313126+00:00",
   "repository": "feridunfc/YENI",
   "baseline_implementation_commit": "60938da94b770631c6a5c34a545c8863162ac8a4",
   "local_reconciled": true,
-  "scope_note": "18 stable GAP IDs. Existing selected-case modal parameter binding is verified; no full normative GAP is newly closed.",
+  "scope_note": "18 stable GAP IDs. Native modal numeric and eccentricity getter contracts are implemented and verified offline; the new live capture remains pending. No normative GAP is newly closed.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -89,7 +89,7 @@
       "title": "Native schema, units and selection transactions",
       "status": "PARTIAL",
       "priority": "P1",
-      "achieved_scope": "Native field aliases, all-mode capture and output/pattern/mode restoration have source and failure-path evidence. The user authorized setting API units to code 6 on connect.",
+      "achieved_scope": "Native field aliases, all-mode capture and output/pattern/mode restoration have source and failure-path evidence. The user authorized setting API units to code 6 on connect. Native numeric/eccentricity getters reuse the existing selections and restoration path; installed ETABS 23 signatures and offline failure contracts are verified. Live getter ABI/output acceptance remains pending.",
       "blocker": "Complete supported-version/schema matrix acceptance remains open.",
       "closure_criteria": "Verify supported native schemas and unit conversions. Restore temporary output/pattern/mode selections and fail on restoration errors. Do not restore the old tonf units contrary to the explicit kN/m/C user instruction.",
       "owner_paths": [
@@ -100,7 +100,9 @@
       ],
       "evidence_refs": [
         "EV-PMM6",
-        "EV-LOCAL-NATIVE"
+        "EV-LOCAL-NATIVE",
+        "EV-LOCAL-MODAL-NUMERIC-ADAPTER",
+        "EV-LOCAL-MODAL-NUMERIC-TESTS"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false
@@ -372,8 +374,8 @@
       "title": "Spectral design demands and simultaneity",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Existing 100-mode supporting force coverage and same-source scalar replay remain verified. Existing selected-case amplitudes/active damping are now bound: 2 cases x 100 modes; 1600 exact native numeric fields and 200 independent period matches.",
-      "blocker": "Native displayed modal precision is not qualified for force reconstruction. Applied accidental-torsion contributions, modal/directional aggregation, governing Nd and story-shear allocation still lack common acceptance.",
+      "achieved_scope": "Existing 100-mode supporting force coverage and same-source scalar replay remain verified. Existing selected-case amplitudes/active damping are now bound: 2 cases x 100 modes; 1600 exact native numeric fields and 200 independent period matches. Native double modal inputs and eccentricity definitions now have offline capture/binding contracts in the same adapter and stage v5; old-source replay retains the existing evidence and explicitly reports new getters absent.",
+      "blocker": "New native getters require same-session live validation. Spectrum amplitude/active-damping precision, applied accidental-torsion contributions, modal/directional aggregation, governing Nd and story-shear allocation remain unqualified. Installed API signatures and synthetic contracts do not close this gate.",
       "closure_criteria": "Preserve the existing bound modal sources; qualify precision and accidental-torsion contributions through existing owners, then independently verify aggregation before SCWB/alpha consumption and a complete example. Never call scalar intervals simultaneous vectors.",
       "owner_paths": [
         "src/tbdy_next/engineering/demand_sources.py",
@@ -381,7 +383,8 @@
         "src/tbdy_next/column_engine/spectral_envelope.py",
         "src/tbdy_next/engineering/alpha_iteration.py",
         "src/tbdy_next/basis_probe.py",
-        "src/tbdy_next/etabs_source_gateway_windows.py"
+        "src/tbdy_next/etabs_source_gateway_windows.py",
+        "src/tbdy_next/frame_force_capture.py"
       ],
       "evidence_refs": [
         "EV-D3B",
@@ -393,7 +396,10 @@
         "EV-LOCAL-MODAL-PARAMETERS",
         "EV-LOCAL-MODAL-BINDING-AUDIT",
         "EV-LOCAL-MODAL-REPORT",
-        "EV-LOCAL-MODAL-TESTS"
+        "EV-LOCAL-MODAL-TESTS",
+        "EV-LOCAL-MODAL-NUMERIC-ADAPTER",
+        "EV-LOCAL-MODAL-NUMERIC-TESTS",
+        "EV-LOCAL-MODAL-NUMERIC-REPLAY"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false

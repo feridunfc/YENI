@@ -1,7 +1,7 @@
 {
   "schema": "yeni.project-memory.verification-ledger.v2",
   "repository": "feridunfc/YENI",
-  "updated_on": "2026-11-17",
+  "updated_on": "2026-11-18",
   "purpose": "Durable evidence index. It is not a source receipt or formal engineering acceptance.",
   "workflow": {
     "primary_workspace": "LOCAL_CODEX",
@@ -17,47 +17,43 @@
     "publication_policy": "LOCAL_ONLY_UNTIL_EXPLICIT_GITHUB_CHECKPOINT_REQUEST"
   },
   "local_checkpoint": {
-    "status": "LOCAL_MODAL_SOURCE_BINDING_VERIFIED",
+    "status": "LOCAL_MODAL_NUMERIC_ADAPTER_SOFTWARE_VERIFIED_LIVE_PENDING",
     "branch": "work/spectral-modal-source",
     "integration_base_branch": "baseline/local_import",
     "integration_base_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
-    "tested_base_commit": "0f9437f9f3624c76690f559ecbf74a1f2343fcd3",
+    "tested_base_commit": "a2e26b664d9b2b217e828de2c1df0c3df26068b1",
     "tests_ran_on_dirty_worktree": true,
-    "head_resolution": "git rev-parse HEAD; local checkpoint commit includes this record after verification",
-    "tested_manifest_path": "docs/context/TESTED_FILES_MODAL_PARAMETERS_20261117.json",
-    "tested_manifest_sha256": "c1383dba3909dad76a2ef4d868ce27866db56d9a65c1df442942335117250369",
-    "tested_manifest_entries": 409,
-    "same_raw_bytes_before_documentation_update": 409,
+    "head_resolution": "git rev-parse HEAD; this context is committed after verification",
+    "tested_manifest_path": "docs/context/TESTED_FILES_MODAL_NUMERIC_20261118.json",
+    "tested_manifest_sha256": "16e69bfae0fc5e1e7fb877cc71b3c710ab1a789f86ae52c19b2ec2504e85c422",
+    "tested_manifest_entries": 410,
+    "same_raw_bytes_before_documentation_update": 410,
     "document_only_post_test_changes": [
       "docs/CURRENT_STATE.md",
       "docs/ENGINEERING_GAPS.yaml",
       "docs/VERIFICATION_LEDGER.json",
       "docs/engineering/PIPELINE_UNIFICATION_20261115.md",
-      "docs/context/TESTED_FILES_MODAL_PARAMETERS_20261117.json"
+      "docs/context/TESTED_FILES_MODAL_NUMERIC_20261118.json"
     ],
     "method": {
       "python_implementation": "CPython",
       "python_version": "3.12.10",
-      "package_sha256": "07cb453700ee00d5b8914290dcd53bd02031ed78de8b7e0e301967cf2fdcf8c0",
+      "package_sha256": "fd204205682c2d88c404ca4a7420631fc56638ec6fff2e36ce6f29c2f5e1f5e4",
       "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
       "file_count": 126,
       "configuration_file_count": 9
     },
-    "pipeline_method": "same-source-spectral-components.v4",
-    "latest_local_evidence_ids": [
-      "EV-LOCAL-MODAL-PARAMETERS",
-      "EV-LOCAL-MODAL-BINDING-AUDIT",
-      "EV-LOCAL-MODAL-REPORT",
-      "EV-LOCAL-MODAL-TESTS"
+    "registered_method": "same-source-spectral-components.v5",
+    "evidence_refs": [
+      "EV-LOCAL-MODAL-NUMERIC-ADAPTER",
+      "EV-LOCAL-MODAL-NUMERIC-TESTS",
+      "EV-LOCAL-MODAL-NUMERIC-REPLAY"
     ],
-    "private_proof_directory": ".receipts/verification/modal-parameters-final-20261117T185349Z",
-    "published": false,
-    "historical_context_bundle": "The exported ZIP and CONTEXT_VALIDATION_20261117.json still describe the published b255c303 baseline; neither was rewritten.",
-    "unrelated_files_left_untracked": [
-      ".idea/",
-      "build.zip",
-      "YENI_MASTER_HANDOFF_ENGINEERING_RECIPE_2026-11-14.md"
-    ]
+    "source_sha256": "8b4851511cdcae04734866924bbacb079f9e7903a01d6c7a9b2bd8ebcd32a311",
+    "run_id": "RUN-567d448b129c4adebbeb983f433d4577",
+    "results_sha256": "c172474dc5e3cdab8357a865d38e8ea03c1fd88ebdcfd471b21e06836cffa9f5",
+    "engineering_release": "NOT_READY",
+    "live_validation": "NOT_RUN"
   },
   "last_observed_remote_implementation": {
     "branch": "audit/pipeline-pmm-v6-20261117",
@@ -1400,6 +1396,489 @@
         "One OS symlink skip. Focused/wheel/new tests are subsets, not extra engineering CHECKs.",
         "No GitHub CI executed or claimed. Existing R14/R15 0 closed / 87 partial and NOT_READY remain."
       ]
+    },
+    {
+      "observed_at": "2026-11-18T15:53:30.313126+00:00",
+      "tested_base_commit": "a2e26b664d9b2b217e828de2c1df0c3df26068b1",
+      "work_branch": "work/spectral-modal-source",
+      "dirty_worktree_at_execution": true,
+      "tested_method": {
+        "python_implementation": "CPython",
+        "python_version": "3.12.10",
+        "package_sha256": "fd204205682c2d88c404ca4a7420631fc56638ec6fff2e36ce6f29c2f5e1f5e4",
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 126,
+        "configuration_file_count": 9
+      },
+      "environment": {
+        "os": "Windows-11-10.0.26200-SP0",
+        "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+        "node": "v24.22.1"
+      },
+      "tested_file_manifest": "docs/context/TESTED_FILES_MODAL_NUMERIC_20261118.json",
+      "tested_file_manifest_sha256": "16e69bfae0fc5e1e7fb877cc71b3c710ab1a789f86ae52c19b2ec2504e85c422",
+      "engineering_release_granted": false,
+      "new_live_etabs_capture": false,
+      "etabs_model_or_analysis_mutation": false,
+      "git_push": false,
+      "public_reference_paths": [
+        "docs/engineering/PIPELINE_UNIFICATION_20261115.md",
+        "docs/CURRENT_STATE.md"
+      ],
+      "id": "EV-LOCAL-MODAL-NUMERIC-ADAPTER",
+      "status": "OFFLINE_CONTRACTS_VERIFIED_LIVE_PENDING",
+      "scope": "Extend the existing frame-force adapter and mixed-demand-components owner with native modal numeric getters and eccentricity definitions. No second connection, stage or solver.",
+      "pipeline_method": "same-source-spectral-components.v5",
+      "installed_api": {
+        "scope": "Installed DLL signature versus reader fields; no live COM execution",
+        "dll_sha256": "e031587eed3956cde4377d3940a1eeeab4101c7c92b498e2538915b620fb78aa",
+        "reader_sha256": "c4a386b5e26dc859d275edf719fb1fa859f9c5441e71790648ed1856f64da79b",
+        "comparisons": [
+          {
+            "method": "ModalPeriod",
+            "parameter_order_matches": true,
+            "native_numeric_parameters_are_double_arrays": true
+          },
+          {
+            "method": "ModalParticipationFactors",
+            "parameter_order_matches": true,
+            "native_numeric_parameters_are_double_arrays": true
+          }
+        ],
+        "live_acceptance": false
+      },
+      "result": {
+        "new_software_contract_tests": 25,
+        "native_readers": [
+          "Results.ModalPeriod",
+          "Results.ModalParticipationFactors",
+          "LoadCases.ResponseSpectrum.GetEccentricity",
+          "LoadCases.ResponseSpectrum.GetDiaphragmEccentricityOverride"
+        ],
+        "binary_consistency_budget": "32 * max(ulp(observed), ulp(expected))",
+        "live_getter_validation": "NOT_RUN",
+        "applied_torsion_force_evidence": false
+      },
+      "private_artifacts": [
+        {
+          "private_path": ".receipts/verification/modal-numeric-final-20261118T153106Z/source-and-api-audit.json",
+          "sha256": "be1d1a98ab4bfa89b11da604874d3c71a5d38120df06d9d6dd5e62a175829241"
+        },
+        {
+          "private_path": ".receipts/verification/modal-numeric-final-20261118T153106Z/native-api-signatures.json",
+          "sha256": "c302d042dbdb633d28c061319726ec40f69cb6d443f95bc2f818d321efb676ad"
+        },
+        {
+          "private_path": ".receipts/verification/modal-numeric-final-20261118T153106Z/abi-contract-verification.json",
+          "sha256": "aa777ecd0d585212fbac7a2d458b0e55480fb2f43cba83bdb0ccf0b39d6bea44"
+        },
+        {
+          "private_path": ".receipts/verification/modal-numeric-final-20261118T153106Z/final-summary.json",
+          "sha256": "1b28a876f658719a3b58650e7b0c5296fc60c07182e1b0abd46c1ae004c00dc3"
+        }
+      ],
+      "limits": [
+        "Public API documentation describes ETABS 2016 signatures; installed ETABS 23 DLL signatures were separately inspected. Neither proves a live Python COM response.",
+        "Numerical input consistency is tested at 32 ULP. This is an implementation consistency budget, not an ETABS solution accuracy guarantee.",
+        "Printed-digit compatibility is not a bound on true source precision because native table strings may omit trailing zeros.",
+        "Amplitude and active damping precision remain unqualified. No applied accidental-torsion output, story allocation, SCWB policy or alpha authorization is gained."
+      ]
+    },
+    {
+      "observed_at": "2026-11-18T15:53:30.313126+00:00",
+      "tested_base_commit": "a2e26b664d9b2b217e828de2c1df0c3df26068b1",
+      "work_branch": "work/spectral-modal-source",
+      "dirty_worktree_at_execution": true,
+      "tested_method": {
+        "python_implementation": "CPython",
+        "python_version": "3.12.10",
+        "package_sha256": "fd204205682c2d88c404ca4a7420631fc56638ec6fff2e36ce6f29c2f5e1f5e4",
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 126,
+        "configuration_file_count": 9
+      },
+      "environment": {
+        "os": "Windows-11-10.0.26200-SP0",
+        "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+        "node": "v24.22.1"
+      },
+      "tested_file_manifest": "docs/context/TESTED_FILES_MODAL_NUMERIC_20261118.json",
+      "tested_file_manifest_sha256": "16e69bfae0fc5e1e7fb877cc71b3c710ab1a789f86ae52c19b2ec2504e85c422",
+      "engineering_release_granted": false,
+      "new_live_etabs_capture": false,
+      "etabs_model_or_analysis_mutation": false,
+      "git_push": false,
+      "public_reference_paths": [
+        "docs/engineering/PIPELINE_UNIFICATION_20261115.md",
+        "docs/CURRENT_STATE.md"
+      ],
+      "id": "EV-LOCAL-MODAL-NUMERIC-TESTS",
+      "status": "SOFTWARE_REGRESSIONS_PASS",
+      "scope": "Full Windows offline suite and an isolated installed wheel from the same tracked-file manifest; 25 new tests are included in totals.",
+      "result": {
+        "python": 1393,
+        "python_skipped": 1,
+        "skip_reason": "OS disallows creating symlinks",
+        "javascript_files": 10,
+        "installed_wheel": 227,
+        "new_native_numeric_tests": 25,
+        "result": "PASS"
+      },
+      "wheel": {
+        "filename": "tbdy_next_engine-0.1.0-py3-none-any.whl",
+        "sha256": "82e66835c89c0f6dae51f3aa0379c4dd3001f758f8d24fcce83d94d29b88a68b",
+        "source": "Clean tracked-file copy matching the tested manifest"
+      },
+      "commands": {
+        "offline": [
+          [
+            "<repo>\\.venv\\Scripts\\python.exe",
+            "-B",
+            "tools/test_offline.py"
+          ]
+        ],
+        "offline-sequential": [
+          [
+            "<repo>\\.venv\\Scripts\\python.exe",
+            "-B",
+            "tools/test_offline.py"
+          ]
+        ],
+        "wheel": [
+          [
+            "<repo>\\.venv\\Scripts\\python.exe",
+            "-m",
+            "pip",
+            "wheel",
+            "--no-build-isolation",
+            "--disable-pip-version-check",
+            "--no-deps",
+            "--wheel-dir",
+            "<repo>\\.receipts\\verification\\modal-numeric-final-20261118T153106Z\\wheel",
+            "<repo>\\.receipts\\verification\\modal-numeric-final-20261118T153106Z\\wheel-source"
+          ],
+          [
+            "<repo>\\.venv\\Scripts\\python.exe",
+            "-B",
+            "tools/test_installed_wheel.py",
+            "<repo>\\.receipts\\verification\\modal-numeric-final-20261118T153106Z\\wheel"
+          ]
+        ]
+      },
+      "initial_attempts": {
+        "initial_focused": {
+          "command": [
+            "<repo>/.venv/Scripts/python.exe",
+            "-B",
+            "-m",
+            "unittest",
+            "test_native_demand_sources",
+            "test_same_source_spectral_replay",
+            "-q"
+          ],
+          "environment": {
+            "PYTHONPATH": "tests",
+            "PYTHONIOENCODING": "utf-8"
+          },
+          "logs": [
+            ".receipts/verification/modal-numeric-20261118/focused-initial.log",
+            ".receipts/verification/modal-numeric-20261118/focused-revised.log"
+          ],
+          "initial_result": "84 tests; four test-expectation errors at enclosing source validation",
+          "corrected_result": "86 tests OK; two additional boundary/source rejection tests",
+          "scope": "Before the final registry description update; superseded for release evidence by full and wheel runs on the final manifest",
+          "guards_relaxed": false
+        },
+        "first_full_attempt": {
+          "command_record": "offline-commands.json",
+          "log": "offline.log",
+          "exit": 1,
+          "tests": 1393,
+          "errors": 3,
+          "skipped": 1,
+          "details": [
+            "Two HTTP POST timeouts at the existing 8 second test deadline",
+            "One consequent temporary-directory cleanup failure while a timed-out handler still held a file"
+          ],
+          "concurrent_other_jobs": [
+            "wheel build/install/tests",
+            "real source replay/repeat",
+            "HTTP projection"
+          ],
+          "cause": "Concurrency may have contributed; isolated rerun pending. No production source changes or deadline relaxations made.",
+          "resolution": "Sequential full run on unchanged production/test bytes passed at the original deadlines; initial failed log retained. Load contention is consistent with this observation, not independently proven as the only cause."
+        },
+        "first_http_projection": {
+          "command": [
+            "<repo>/.venv/Scripts/python.exe",
+            "-B",
+            "<proof>/verify_report_projection.py"
+          ],
+          "exit": 1,
+          "failure": "GET /api/export-checks exceeded the existing 30 second deadline",
+          "local_projection_assertions_completed": true,
+          "http_projection_proven": false,
+          "note": "Initial stderr was returned by the terminal tool; redirected stdout log was empty. Do not claim an archived traceback.",
+          "resolution": "The unchanged report verification script passed after the other verification jobs had completed, at its original 30 second HTTP deadline."
+        }
+      },
+      "private_artifacts": [
+        {
+          "private_path": ".receipts/verification/modal-numeric-final-20261118T153106Z/environment.json",
+          "sha256": "50f335cbb9932cc577ee3b4a0f80180fa0d2677bd0046cd44dd32033d993c90b"
+        },
+        {
+          "private_path": ".receipts/verification/modal-numeric-final-20261118T153106Z/tested-files.json",
+          "sha256": "16e69bfae0fc5e1e7fb877cc71b3c710ab1a789f86ae52c19b2ec2504e85c422"
+        },
+        {
+          "private_path": ".receipts/verification/modal-numeric-final-20261118T153106Z/working-tree.patch",
+          "sha256": "615da625811cb980d65353f3a0b320d06751285bd40634887c060303c3e53c4b"
+        },
+        {
+          "private_path": ".receipts/verification/modal-numeric-final-20261118T153106Z/offline.log",
+          "sha256": "554b8d40032b196ae0eaaf4108ad0db2c71ddbaa15f96e3f024189185595a124"
+        },
+        {
+          "private_path": ".receipts/verification/modal-numeric-final-20261118T153106Z/offline-sequential.log",
+          "sha256": "e65be880b026243ddd5fc4e161bf92ddf37085a42bc554c4eac4953db44633ca"
+        },
+        {
+          "private_path": ".receipts/verification/modal-numeric-final-20261118T153106Z/wheel.log",
+          "sha256": "256121f907bedbcbe7ff3a18ee3553d4fcc9f263038f8b42303bdae5c0096e77"
+        },
+        {
+          "private_path": ".receipts/verification/modal-numeric-final-20261118T153106Z/initial-attempts.json",
+          "sha256": "f28cccc1f263f34a57ac63f485fc839db26ab204e9d903133ba7b80fbf07c725"
+        },
+        {
+          "private_path": ".receipts/verification/modal-numeric-final-20261118T153106Z/final-summary.json",
+          "sha256": "1b28a876f658719a3b58650e7b0c5296fc60c07182e1b0abd46c1ae004c00dc3"
+        }
+      ],
+      "limits": [
+        "One OS symlink skip. No new GitHub CI or live ETABS test.",
+        "A first concurrent run had two HTTP timeouts and one cleanup error; the unchanged full suite passed sequentially at its original deadlines."
+      ]
+    },
+    {
+      "observed_at": "2026-11-18T15:53:30.313126+00:00",
+      "tested_base_commit": "a2e26b664d9b2b217e828de2c1df0c3df26068b1",
+      "work_branch": "work/spectral-modal-source",
+      "dirty_worktree_at_execution": true,
+      "tested_method": {
+        "python_implementation": "CPython",
+        "python_version": "3.12.10",
+        "package_sha256": "fd204205682c2d88c404ca4a7420631fc56638ec6fff2e36ce6f29c2f5e1f5e4",
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 126,
+        "configuration_file_count": 9
+      },
+      "environment": {
+        "os": "Windows-11-10.0.26200-SP0",
+        "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+        "node": "v24.22.1"
+      },
+      "tested_file_manifest": "docs/context/TESTED_FILES_MODAL_NUMERIC_20261118.json",
+      "tested_file_manifest_sha256": "16e69bfae0fc5e1e7fb877cc71b3c710ab1a789f86ae52c19b2ec2504e85c422",
+      "engineering_release_granted": false,
+      "new_live_etabs_capture": false,
+      "etabs_model_or_analysis_mutation": false,
+      "git_push": false,
+      "public_reference_paths": [
+        "docs/engineering/PIPELINE_UNIFICATION_20261115.md",
+        "docs/CURRENT_STATE.md"
+      ],
+      "id": "EV-LOCAL-MODAL-NUMERIC-REPLAY",
+      "status": "SEALED_ABSENCE_REPORT_AND_REPEAT_VERIFIED",
+      "scope": "The unchanged real source retains prior modal binding and design artifacts. Newly supported getters are explicitly absent in this old acquisition; this replay cannot prove a successful live numeric capture.",
+      "source_id": "SRC-LIVE-NATIVE-ALL-MODES",
+      "source_sha256": "8b4851511cdcae04734866924bbacb079f9e7903a01d6c7a9b2bd8ebcd32a311",
+      "run_id": "RUN-567d448b129c4adebbeb983f433d4577",
+      "results_sha256": "c172474dc5e3cdab8357a865d38e8ea03c1fd88ebdcfd471b21e06836cffa9f5",
+      "result": {
+        "scope": "Same-source replay and repeat; old source has no new native numeric getter payload",
+        "run_id": "RUN-567d448b129c4adebbeb983f433d4577",
+        "source_sha256": "8b4851511cdcae04734866924bbacb079f9e7903a01d6c7a9b2bd8ebcd32a311",
+        "results_sha256": "c172474dc5e3cdab8357a865d38e8ea03c1fd88ebdcfd471b21e06836cffa9f5",
+        "repeat_run_id": "RUN-746b866854eb482ab63664c5ee05849c",
+        "repeat": {
+          "reference_stages": 16,
+          "current_stages": 16,
+          "mismatched_stages": [],
+          "missing_stages": [],
+          "extra_stages": [],
+          "source_identical": true,
+          "sealed_stage_coverage": true,
+          "comparison_scope": "PIPELINE_RESULTS_REPORT_EVIDENCE_AND_ALL_RECORDED_RECEIPTS",
+          "status": "IDENTICAL"
+        },
+        "unchanged_previous_design_artifacts": {
+          "column_axial": true,
+          "column_pmm": true,
+          "column_gates": true,
+          "r14_closure": true,
+          "r08_local_slenderness": true,
+          "mixed_demand_components": true
+        },
+        "previous_modal_binding_fields_unchanged": true,
+        "modal_bound_rows": 200,
+        "native_numeric_precision": {
+          "status": "NOT_CAPTURED",
+          "expected_mode_count": 100,
+          "bound_mode_count": 0
+        },
+        "native_torsion_definitions": {
+          "status": "NOT_CAPTURED",
+          "expected_case_count": 2,
+          "bound_case_count": 0
+        },
+        "pmm": {
+          "expected_column_count": 87,
+          "complete_column_count": 87,
+          "expected_station_count": 1206,
+          "evaluated_station_count": 1206,
+          "observed_exceedance_count": 0
+        },
+        "r14_r15": {
+          "status": "R15_ALL_COLUMNS_EVALUATED_PARTIAL_GATES",
+          "expected_column_count": 87,
+          "numerically_closed_count": 0,
+          "partial_or_unbound_count": 87
+        },
+        "alpha_iteration_executed": false,
+        "engineering_release": "NOT_READY",
+        "new_live_etabs_capture": false,
+        "new_independent_force_arithmetic": false
+      },
+      "report": {
+        "command": [
+          "<repo>\\.venv\\Scripts\\python.exe",
+          "-B",
+          "<repo>\\.receipts\\verification\\modal-numeric-final-20261118T153106Z\\verify_report_projection.py"
+        ],
+        "cwd": "<repo>",
+        "run_id": "RUN-567d448b129c4adebbeb983f433d4577",
+        "results_sha256": "c172474dc5e3cdab8357a865d38e8ea03c1fd88ebdcfd471b21e06836cffa9f5",
+        "method": "same-source-spectral-components.v5",
+        "disabled_calculators": {
+          "tbdy_next.engineering.pipeline.run_source_pipeline": 0,
+          "tbdy_next.engineering.pipeline.derive_report_evidence": 0,
+          "tbdy_next.engineering.column_pmm.evaluate_column_pmm": 0,
+          "tbdy_next.engineering.column_axial.evaluate_column_axial": 0,
+          "tbdy_next.engineering.column_r10_live.project_column_r10_live": 0,
+          "tbdy_next.engineering.column_r08_local_live.project_column_r08_local_live": 0,
+          "tbdy_next.engineering.beam_r10_live.project_beam_r10_live": 0,
+          "tbdy_next.engineering.mixed_demands.spectral_component_evidence": 0,
+          "tbdy_next.engineering.mixed_demands.earthquake_partition": 0,
+          "tbdy_next.engineering.alpha_iteration.run_alpha_design_iteration": 0,
+          "tbdy_next.engineering.alpha_iteration.qualify_story_alpha": 0,
+          "tbdy_next.engineering.alpha_iteration.build_demand_revision": 0,
+          "tbdy_next.b1_source_bridge.evaluate_b1_sources": 0,
+          "tbdy_next.soft_story_b2.bind_soft_story_b2": 0,
+          "tbdy_next.column_engine.section_capacity.solver": 0,
+          "tbdy_next.reporting._build_legacy_report": 0,
+          "tbdy_next.quick_checks.evaluate_geometry_capture": 0,
+          "tbdy_next.engineering.demand_sources.native_demand_source_evidence": 0,
+          "tbdy_next.reporting.evaluate_geometry_capture": 0,
+          "tbdy_next.engineering.pipeline.EnginePipelineRunner.run": 0,
+          "tbdy_next.column_engine.spectral_envelope.replay_component_envelope": 0,
+          "tbdy_next.engineering.demand_sources.spectral_modal_parameters": 0,
+          "tbdy_next.engineering.demand_sources.native_modal_precision": 0,
+          "tbdy_next.engineering.demand_sources.native_torsion_definitions": 0
+        },
+        "calculator_call_count": 0,
+        "live_capture_calls": 0,
+        "native_modal_projection_equal": true,
+        "mixed_projection_equal": true,
+        "http_json_equal": true,
+        "http_html_equal": true,
+        "http_scope": "Temporary localhost server using the existing web.make_handler; closed after verification",
+        "user_server_8876": "NOT_CHECKED_THIS_TEST",
+        "html_bytes": 1477352,
+        "html_sha256": "612d0f127c25452929e50483fd1b30995786a946bd8d70013e6d4a46cc9a5f12",
+        "engineering_release": "NOT_READY"
+      },
+      "commands": {
+        "replay": [
+          [
+            "<repo>\\.venv\\Scripts\\python.exe",
+            "-B",
+            "-m",
+            "tbdy_next.cli",
+            "run-pipeline",
+            "--source",
+            ".receipts/RUN-14ac327ed55f46f6b45a74c29030a07f/input.source",
+            "--case",
+            "Modal",
+            "--out",
+            ".receipts"
+          ]
+        ],
+        "repeat": [
+          [
+            "<repo>\\.venv\\Scripts\\python.exe",
+            "-B",
+            "-m",
+            "tbdy_next.cli",
+            "run-pipeline",
+            "--source",
+            ".receipts\\RUN-567d448b129c4adebbeb983f433d4577\\input.source",
+            "--case",
+            "Modal",
+            "--out",
+            "<repo>\\.receipts\\verification\\modal-numeric-final-20261118T153106Z\\repeat",
+            "--compare-run",
+            ".receipts\\RUN-567d448b129c4adebbeb983f433d4577"
+          ]
+        ],
+        "report": [
+          [
+            "<repo>\\.venv\\Scripts\\python.exe",
+            "-B",
+            "<repo>\\.receipts\\verification\\modal-numeric-final-20261118T153106Z\\verify_report_projection.py"
+          ]
+        ]
+      },
+      "private_artifacts": [
+        {
+          "private_path": ".receipts/verification/modal-numeric-final-20261118T153106Z/replay.log",
+          "sha256": "3f9b2929dc7bd1aef6dff274500a8c0846aa693d69e593455457ecbb3c7ecb7e"
+        },
+        {
+          "private_path": ".receipts/verification/modal-numeric-final-20261118T153106Z/repeat.log",
+          "sha256": "ecdfcf2a700a956d7d683cbb7da0838b3a37cb4aa58b493fa6bd74579aca04b6"
+        },
+        {
+          "private_path": ".receipts/verification/modal-numeric-final-20261118T153106Z/replay-verification.json",
+          "sha256": "51b726c9e6f34d9ce2ee2e109fd0bef32324b3070c0570f57194607393977814"
+        },
+        {
+          "private_path": ".receipts/verification/modal-numeric-final-20261118T153106Z/verify_report_projection.py",
+          "sha256": "dbb34f37b926092866dee1c4345663ba0ee5d0da56d6350aae2dacf48457f506"
+        },
+        {
+          "private_path": ".receipts/verification/modal-numeric-final-20261118T153106Z/report-projection.json",
+          "sha256": "b1caf18ad1284f4bb5bdfe9372dc60ac0411c2edb2f270da42df139416e48d44"
+        },
+        {
+          "private_path": ".receipts/verification/modal-numeric-final-20261118T153106Z/report-projection-sequential.log",
+          "sha256": "6f2106a8c05a4540974caf5df7e785cca74e0e5ab0b1c38bd8c9235f1060923e"
+        },
+        {
+          "private_path": ".receipts/verification/modal-numeric-final-20261118T153106Z/engineering-report.html",
+          "sha256": "612d0f127c25452929e50483fd1b30995786a946bd8d70013e6d4a46cc9a5f12"
+        },
+        {
+          "private_path": ".receipts/verification/modal-numeric-final-20261118T153106Z/final-summary.json",
+          "sha256": "1b28a876f658719a3b58650e7b0c5296fc60c07182e1b0abd46c1ae004c00dc3"
+        }
+      ],
+      "limits": [
+        "Native periods: NOT_CAPTURED, 0/100; eccentricity getters: NOT_CAPTURED, 0/2. Existing displayed modal rows remain 200/200.",
+        "24 calculation entry points and live capture disabled during report verification; the temporary HTTP server is closed.",
+        "No new independent force arithmetic; no alpha execution; R14/R15 remain 0 closed / 87 partial; NOT_READY."
+      ]
     }
   ],
   "new_record_template": {
@@ -1424,7 +1903,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-17T19:03:15.137496+00:00",
+  "updated_at_utc": "2026-11-18T15:53:30.313126+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -1506,5 +1985,50 @@
     "integration_base_branch": "baseline/local_import",
     "branch_start_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
     "runtime_changes_during_branch_setup": false
-  }
+  },
+  "checkpoint_history": [
+    {
+      "status": "LOCAL_MODAL_SOURCE_BINDING_VERIFIED",
+      "branch": "work/spectral-modal-source",
+      "integration_base_branch": "baseline/local_import",
+      "integration_base_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "tested_base_commit": "0f9437f9f3624c76690f559ecbf74a1f2343fcd3",
+      "tests_ran_on_dirty_worktree": true,
+      "head_resolution": "git rev-parse HEAD; local checkpoint commit includes this record after verification",
+      "tested_manifest_path": "docs/context/TESTED_FILES_MODAL_PARAMETERS_20261117.json",
+      "tested_manifest_sha256": "c1383dba3909dad76a2ef4d868ce27866db56d9a65c1df442942335117250369",
+      "tested_manifest_entries": 409,
+      "same_raw_bytes_before_documentation_update": 409,
+      "document_only_post_test_changes": [
+        "docs/CURRENT_STATE.md",
+        "docs/ENGINEERING_GAPS.yaml",
+        "docs/VERIFICATION_LEDGER.json",
+        "docs/engineering/PIPELINE_UNIFICATION_20261115.md",
+        "docs/context/TESTED_FILES_MODAL_PARAMETERS_20261117.json"
+      ],
+      "method": {
+        "python_implementation": "CPython",
+        "python_version": "3.12.10",
+        "package_sha256": "07cb453700ee00d5b8914290dcd53bd02031ed78de8b7e0e301967cf2fdcf8c0",
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 126,
+        "configuration_file_count": 9
+      },
+      "pipeline_method": "same-source-spectral-components.v4",
+      "latest_local_evidence_ids": [
+        "EV-LOCAL-MODAL-PARAMETERS",
+        "EV-LOCAL-MODAL-BINDING-AUDIT",
+        "EV-LOCAL-MODAL-REPORT",
+        "EV-LOCAL-MODAL-TESTS"
+      ],
+      "private_proof_directory": ".receipts/verification/modal-parameters-final-20261117T185349Z",
+      "published": false,
+      "historical_context_bundle": "The exported ZIP and CONTEXT_VALIDATION_20261117.json still describe the published b255c303 baseline; neither was rewritten.",
+      "unrelated_files_left_untracked": [
+        ".idea/",
+        "build.zip",
+        "YENI_MASTER_HANDOFF_ENGINEERING_RECIPE_2026-11-14.md"
+      ]
+    }
+  ]
 }

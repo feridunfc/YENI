@@ -4,17 +4,175 @@ No COM attachment, force synthesis, modal combination or engineering approval.
 The native period table supplies the mode denominator; force rows cannot supply it.
 """
 from collections import Counter, defaultdict
-from decimal import Decimal
+from decimal import Decimal, localcontext
+import math
 
 from ..analysis_sources import _digest
 from ..column_engine.source_bank import native_frame_force_rows
 from ..diaphragm_linkage import MODAL_FIELDS, MODAL_UNITS, _decimal, _read_table
 from ..diaphragm_probe import SCHEMA as MODAL_PROBE_SCHEMA, SPECTRUM_MODAL_TABLE
+from ..frame_force_capture import (
+    MODAL_RESULTS_SCHEMA, ECCENTRICITY_SCHEMA, MODAL_RESULT_FIELDS,
+    native_modal_rows, native_eccentricity,
+)
 from ..vs05_d4_source_authority import _case_summary, _source_table
 
 SUPPORT_SCHEMA = "tbdy.next.native-demand-support.v1"
 EVIDENCE_SCHEMA = "tbdy.next.native-demand-source-evidence.v1"
 MODAL_PARAMETER_SCHEMA = "tbdy.next.spectral-modal-parameters.v1"
+
+
+def _printed_compatible(value, native):
+    """Compare at printed digits only; stripped trailing zeros are not precision proof."""
+    displayed = _decimal(value)
+    with localcontext() as ctx:
+        ctx.prec = 60
+        difference = abs(Decimal(str(native)) - displayed)
+        half_last_printed_digit = Decimal(1).scaleb(displayed.as_tuple().exponent) / 2
+        return difference <= half_last_printed_digit, str(difference)
+
+
+def _double_consistent(observed, expected):
+    # A declared binary arithmetic check, independent of display rounding.
+    return math.isfinite(expected) and abs(observed - expected) <= 32 * max(math.ulp(observed), math.ulp(expected))
+
+
+def native_modal_precision(source, plan, period_rows):
+    """Qualify native modal numeric inputs, not rounded amplitudes or modal forces."""
+    modes = plan["modal_modes"]
+    result = {"schema": "tbdy.next.native-modal-precision-evidence.v1", "status": "NOT_CAPTURED",
+        "expected_mode_count": sum(map(len, modes.values())), "bound_mode_count": 0,
+        "cases": [{"modal_case": name, "modal_case_guid": plan["case_definitions"][name]["guid"],
+                   "expected_modes": list(values), "expected_mode_count": len(values), "bound_mode_count": 0}
+                  for name, values in sorted(modes.items())], "rows": [], "reason_codes": [],
+        "native_periods_qualified": False, "amplitudes_full_precision_proven": False,
+        "active_damping_full_precision_proven": False, "modal_force_reconstruction_qualified": False,
+        "numeric_consistency_tolerance": "32 * max(ulp(observed), ulp(expected))",
+        "display_comparison_scope": "Half of last printed digit; trimmed zeros prevent a true precision bound",
+        "engineering_release": "NOT_READY"}
+    capture = (((source.get("column_axial") or {}).get("demand_support") or {}).get("force_source") or {}).get("native_modal_results")
+    if capture is None:
+        result["reason_codes"] = ["NATIVE_MODAL_DOUBLE_RESULTS_NOT_CAPTURED"]
+        return {**result, "sha256": _digest(result)}
+    try:
+        if (not isinstance(capture, dict) or capture.get("schema") != MODAL_RESULTS_SCHEMA
+                or type(capture.get("units_code")) is not int or capture["units_code"] != 6
+                or not isinstance(capture.get("methods"), dict) or set(capture["methods"]) != set(MODAL_RESULT_FIELDS)):
+            raise ValueError("NATIVE_MODAL_NUMERIC_CAPTURE_CONTRACT_INVALID")
+        indexed = {}
+        for method in MODAL_RESULT_FIELDS:
+            rec = capture["methods"][method]
+            if not isinstance(rec, dict) or rec.get("api") != "Results." + method or rec.get("status") != "CAPTURED":
+                raise ValueError("NATIVE_MODAL_NUMERIC_METHOD_UNAVAILABLE:" + method)
+            indexed[method] = {(r["LoadCase"], int(r["StepNum"])): r
+                               for r in native_modal_rows(rec.get("data"), method, modes)}
+        period_table = source["analysis_sources"]["tables"]["Modal Periods And Frequencies"]
+        checked_periods = _read_table(period_table, "Modal Periods And Frequencies",
+            {"Case", "Mode", "Period", "Frequency", "CircFreq", "Eigenvalue"},
+            {"Period": "sec", "Frequency": "cyc/sec", "CircFreq": "rad/sec", "Eigenvalue": "rad2/sec2"})
+        if checked_periods != period_rows:
+            raise ValueError("NATIVE_MODAL_PERIOD_TABLE_IDENTITY_CONFLICT")
+        display = {}
+        for row in checked_periods:
+            if row["Case"] not in modes:
+                continue
+            mode = _decimal(row["Mode"], positive=True)
+            identity = row["Case"], int(mode)
+            if (mode != mode.to_integral_value() or identity in display
+                    or int(mode) not in modes[row["Case"]]):
+                raise ValueError("NATIVE_MODAL_DISPLAY_MODE_IDENTITY_INVALID")
+            display[identity] = row
+        result["source_sha256"] = _digest(capture)
+        result["period_table_sha256"] = _digest(period_table)
+        for case in result["cases"]:
+            for mode in case["expected_modes"]:
+                identity = case["modal_case"], mode
+                row = {"modal_case": identity[0], "mode": mode, "status": "BLOCKED_SOURCE", "reason_codes": []}
+                result["rows"].append(row)
+                try:
+                    p = indexed["ModalPeriod"].get(identity)
+                    f = indexed["ModalParticipationFactors"].get(identity)
+                    if p is None or f is None:
+                        raise ValueError("NATIVE_MODAL_NUMERIC_MODE_MISSING")
+                    row.update(period_api_values=p, participation_api_values=f)
+                    pairs = ((p["Period"], f["Period"]), (p["Frequency"], 1 / p["Period"]),
+                             (p["CircFreq"], 2 * math.pi * p["Frequency"]),
+                             (p["EigenValue"], p["CircFreq"] ** 2),
+                             (p["EigenValue"], f["ModalStiff"] / f["ModalMass"]))
+                    if not all(_double_consistent(a, b) for a, b in pairs):
+                        raise ValueError("NATIVE_MODAL_NUMERIC_IDENTITIES_CONFLICT")
+                    printed = display[identity]
+                    row["display_absolute_differences"] = {}
+                    for field, key in (("Period", "Period"), ("Frequency", "Frequency"),
+                                       ("CircFreq", "CircFreq"), ("Eigenvalue", "EigenValue")):
+                        compatible, difference = _printed_compatible(printed[field], p[key])
+                        row["display_absolute_differences"][field] = difference
+                        if not compatible:
+                            raise ValueError("NATIVE_MODAL_DISPLAY_CONFLICT:" + field)
+                    row["status"] = "NATIVE_DOUBLE_MODAL_INPUTS_BOUND"
+                    case["bound_mode_count"] += 1
+                except (ValueError, KeyError, TypeError, ArithmeticError) as exc:
+                    row["reason_codes"].append(str(exc))
+        result["bound_mode_count"] = sum(c["bound_mode_count"] for c in result["cases"])
+        result["native_periods_qualified"] = (result["expected_mode_count"] > 0
+            and result["bound_mode_count"] == result["expected_mode_count"])
+        result["status"] = "NATIVE_DOUBLE_MODAL_INPUTS_BOUND" if result["native_periods_qualified"] else "SOURCE_PARTIAL"
+    except (ValueError, KeyError, TypeError, ArithmeticError, AttributeError) as exc:
+        result.update(status="BLOCKED_SOURCE", reason_codes=[str(exc)])
+    return {**result, "sha256": _digest(result)}
+
+
+def native_torsion_definitions(source, plan, definitions):
+    """Bind coefficients/overrides without treating them as torsional responses."""
+    cases = sorted(plan["spectrum_modal_bindings"])
+    result = {"schema": "tbdy.next.native-torsion-definition-evidence.v1", "status": "NOT_CAPTURED",
+        "expected_case_count": len(cases), "bound_case_count": 0, "cases": [], "reason_codes": [],
+        "applied_contributions_bound": False, "force_decomposition_qualified": False,
+        "contribution_status": "ACCIDENTAL_TORSION_FORCE_COMPONENTS_UNAVAILABLE",
+        "engineering_release": "NOT_READY"}
+    capture = (((source.get("column_axial") or {}).get("demand_support") or {}).get("force_source") or {}).get("native_spectrum_eccentricity")
+    records = {}
+    if capture is not None:
+        if (not isinstance(capture, dict) or capture.get("schema") != ECCENTRICITY_SCHEMA
+                or type(capture.get("units_code")) is not int or capture["units_code"] != 6
+                or not isinstance(capture.get("cases"), dict) or set(capture["cases"]) != set(cases)):
+            result.update(status="BLOCKED_SOURCE", reason_codes=["NATIVE_TORSION_CAPTURE_CONTRACT_INVALID"])
+        else:
+            records = capture["cases"]
+            result["source_sha256"] = _digest(capture)
+    for case in cases:
+        row = {"case": case, "case_guid": plan["case_definitions"][case]["guid"],
+               "status": "NOT_CAPTURED", "reason_codes": []}
+        result["cases"].append(row)
+        try:
+            record = records.get(case)
+            if (not isinstance(record, dict) or record.get("status") != "CAPTURED"
+                    or record.get("api") != ["LoadCases.ResponseSpectrum.GetEccentricity",
+                                             "LoadCases.ResponseSpectrum.GetDiaphragmEccentricityOverride"]):
+                raise ValueError("NATIVE_TORSION_DEFINITION_NOT_CAPTURED")
+            data = native_eccentricity(record.get("data"))
+            matching = [r for r in definitions if r["Name"] == case]
+            if len(matching) != 1 or matching[0]["GUID"] != row["case_guid"]:
+                raise ValueError("NATIVE_TORSION_CASE_IDENTITY_CONFLICT")
+            if (not _printed_compatible(matching[0]["EccenRatio"], data["default_ratio"])[0]
+                    or (_decimal(matching[0]["EccenRatio"]) == 0) != (data["default_ratio"] == 0)):
+                raise ValueError("NATIVE_TORSION_DEFAULT_RATIO_CONFLICT")
+            row.update(status="NATIVE_DEFINITION_BOUND_CONTRIBUTIONS_UNAVAILABLE", **data,
+                       override_count=len(data["override_lengths_m"]), override_unit="m",
+                       override_story_identity_bound=not data["override_lengths_m"], source_sha256=_digest(record))
+            if data["override_lengths_m"]:
+                row.update(status="NATIVE_OVERRIDES_RECORDED_STORY_IDENTITY_UNBOUND",
+                           reason_codes=["NATIVE_OVERRIDE_IDENTIFIERS_REQUIRE_STORY_BINDING"])
+            else:
+                result["bound_case_count"] += 1
+        except (ValueError, KeyError, TypeError, ArithmeticError) as exc:
+            row["reason_codes"].append(str(exc))
+    if result["bound_case_count"]:
+        result["status"] = ("NATIVE_DEFINITIONS_BOUND_CONTRIBUTIONS_UNAVAILABLE"
+                            if result["bound_case_count"] == len(cases) else "SOURCE_PARTIAL")
+    elif capture is not None and result["status"] != "BLOCKED_SOURCE":
+        result["status"] = "SOURCE_PARTIAL"
+    return {**result, "sha256": _digest(result)}
 
 
 def demand_capture_plan(source, combination_plan):
@@ -188,6 +346,8 @@ def spectral_modal_parameters(source, plan):
         result["case_definition_table_sha256"] = _digest(definitions_table)
         result["initial_unselected_read_status"] = (probe.get("spectrum_modal_original_selection") or {}).get("status")
         result["selection_restored"] = True
+        result["native_numeric_precision"] = native_modal_precision(source, plan, periods)
+        result["native_torsion_definitions"] = native_torsion_definitions(source, plan, definitions)
     except (ValueError, KeyError, TypeError, ArithmeticError, AttributeError) as exc:
         result["reason_codes"] = [str(exc)]
         for case in result["cases"]:

@@ -1,5 +1,6 @@
 """Primitive/modal capture, same-cut coverage and sealed report contracts."""
 from copy import deepcopy
+import math
 import unittest
 from unittest.mock import patch, Mock
 
@@ -10,6 +11,7 @@ from test_vs04e_basis import ProbeSap
 from tbdy_next.basis_probe import capture_basis_probe
 from tbdy_next.column_engine.source_bank import native_frame_force_rows
 from tbdy_next.frame_force_capture import capture_frame_forces, ForceSelectionRestoreError
+from tbdy_next.frame_force_capture import MODAL_RESULT_FIELDS, MODAL_RESULTS_SCHEMA, ECCENTRICITY_SCHEMA
 from tbdy_next.etabs_source_gateway_windows import DisplaySelectionRestoreError
 from tbdy_next.engineering.demand_sources import (
     SUPPORT_SCHEMA, demand_capture_plan, component_force_rows, native_demand_source_evidence,
@@ -122,6 +124,7 @@ class NativeCaptureContracts(unittest.TestCase):
         self.assertNotIn('cases', capture.call_args_list[0].kwargs)
         self.assertNotIn('combinations', capture.call_args_list[1].kwargs)
         self.assertEqual(capture.call_args_list[1].kwargs['modal_modes'], {'M': [1, 2, 3]})
+        self.assertEqual(capture.call_args_list[1].kwargs['spectrum_cases'], ('RS',))
         self.assertEqual(result['force_source'], {'base': True})
         self.assertEqual(result['demand_support']['force_source'], {'support': True})
 
@@ -551,6 +554,330 @@ class SpectralModalParameterTests(unittest.TestCase):
         calc.assert_not_called()
         self.assertIn('Native response-spectrum modal parameters',html)
         self.assertIn('&lt;script&gt;',html);self.assertNotIn('<script>',html)
+
+
+def numeric_modal_records():
+    """Synthetic native ABI values; not evidence from a live ETABS model."""
+    periods = (0.470003213456789, 0.31337123456789, 0.202020202020202)
+    period_rows, factor_rows = [], []
+    for mode, period in enumerate(periods, 1):
+        frequency = 1. / period
+        omega = 2. * math.pi * frequency
+        eigenvalue = omega * omega
+        period_rows.append(('M', 'Mode', float(mode), period, frequency, omega, eigenvalue))
+        factor_rows.append(('M', 'Mode', float(mode), period,
+            -0.123456789012345 * mode, 0., 0.2, 0., -0.3, 0.4, 2., 2. * eigenvalue))
+    return {method: {'NumberResults': len(rows), **dict(zip(MODAL_RESULT_FIELDS[method], map(list, zip(*rows)))), 'ret': 0}
+            for method, rows in (('ModalPeriod', period_rows), ('ModalParticipationFactors', factor_rows))}
+
+
+def numeric_parameter_fixture():
+    args = modal_parameter_fixture(); source = args[0]
+    records = numeric_modal_records()
+    force = source['column_axial']['demand_support']['force_source']
+    force['native_modal_results'] = {'schema': MODAL_RESULTS_SCHEMA, 'units_code': 6, 'methods': {
+        name: {'api': 'Results.' + name, 'status': 'CAPTURED', 'data': data} for name, data in records.items()}}
+    force['native_spectrum_eccentricity'] = {'schema': ECCENTRICITY_SCHEMA, 'units_code': 6, 'cases': {
+        'RS': {'api': ['LoadCases.ResponseSpectrum.GetEccentricity',
+                       'LoadCases.ResponseSpectrum.GetDiaphragmEccentricityOverride'],
+               'status': 'CAPTURED', 'data': {'default_ratio': 0.05, 'override_lengths_m': {}}}}}
+    key = 'Modal Periods And Frequencies'
+    rows = [{'Case': 'M', 'Mode': str(i+1), **{
+        display: format(records['ModalPeriod'][native][i], '.6g')
+        for display, native in (('Period','Period'), ('Frequency','Frequency'),
+                                ('CircFreq','CircFreq'), ('Eigenvalue','EigenValue'))}}
+        for i in range(3)]
+    period_table = table(key, rows)
+    period_table['field_metadata'].update(field_count=len(period_table['fields']))
+    period_table['field_metadata']['units_by_field'].update(
+        Period='sec', Frequency='cyc/sec', CircFreq='rad/sec', Eigenvalue='rad2/sec2')
+    source['analysis_sources']['tables'][key] = period_table
+    for i, row in enumerate(source['vs04_diaphragm_probe']['spectrum_modal_selected_cases']['rows']):
+        row['Period'] = rows[i]['Period']
+    return args
+
+
+def native_numeric_capture_fixture():
+    fixture = modal_fixture()
+    fixture.cases['RS'] = False
+    fixture.sap.LoadCases.GetNameList.return_value = (len(fixture.cases), list(fixture.cases), 0)
+    records = numeric_modal_records()
+    for method, data in records.items():
+        getattr(fixture.sap.Results, method).return_value = (
+            data['NumberResults'], *(data[key] for key in MODAL_RESULT_FIELDS[method]), data['ret'])
+    api = fixture.sap.LoadCases.ResponseSpectrum
+    api.GetEccentricity.return_value = (0.05, 0)
+    api.GetDiaphragmEccentricityOverride.return_value = (0, [], [], 0)
+    return fixture
+
+
+class NativeNumericCaptureTests(unittest.TestCase):
+    def capture(self, fixture):
+        return capture_frame_forces(fixture.sap, members=('C1',), cases=('M', 'RS'),
+                                    modal_modes={'M': [1, 2, 3]}, spectrum_cases=('RS',))
+
+    def test_native_methods_share_selected_session_and_preserve_double_values(self):
+        fixture = native_numeric_capture_fixture(); before = deepcopy(fixture.cases)
+        raw = fixture.sap.Results.ModalPeriod.return_value
+        def read(*args):
+            self.assertTrue(fixture.cases['M'] and fixture.cases['RS'])
+            self.assertTrue(fixture.mode_option[2])
+            return raw
+        fixture.sap.Results.ModalPeriod.side_effect = read
+        result = self.capture(fixture)
+        methods = result['native_modal_results']['methods']
+        self.assertEqual(methods['ModalPeriod']['data'], numeric_modal_records()['ModalPeriod'])
+        self.assertEqual(methods['ModalParticipationFactors']['data'], numeric_modal_records()['ModalParticipationFactors'])
+        self.assertEqual(result['native_spectrum_eccentricity']['cases']['RS']['data']['default_ratio'], 0.05)
+        self.assertEqual(fixture.cases, before); self.assertEqual(fixture.mode_option, (1, 1, False))
+        fixture.sap.LoadCases.ResponseSpectrum.GetEccentricity.assert_called_once_with('RS', 0.)
+        fixture.sap.LoadCases.ResponseSpectrum.GetDiaphragmEccentricityOverride.assert_called_once_with('RS', 0, [], [])
+
+    def test_optional_getter_error_retains_forces_and_other_method_and_restores(self):
+        for method in MODAL_RESULT_FIELDS:
+            fixture = native_numeric_capture_fixture()
+            getattr(fixture.sap.Results, method).side_effect = RuntimeError('native getter unavailable')
+            result = self.capture(fixture)
+            with self.subTest(method=method):
+                self.assertEqual(result['native_modal_results']['methods'][method]['status'], 'CAPTURE_ERROR')
+                self.assertEqual(len(result['rowsets']), 1)
+                self.assertEqual(result['output_selection_before'], result['output_selection_after'])
+                self.assertEqual(fixture.mode_option, (1, 1, False))
+
+    def test_native_return_abi_and_codes_are_verified(self):
+        for raw in ((0,), (3, *([[]]*7), 1), (True, *([[]]*7), 0), (0, *([[]]*7), False)):
+            fixture = native_numeric_capture_fixture(); fixture.sap.Results.ModalPeriod.return_value = raw
+            with self.subTest(raw=raw):
+                self.assertEqual(self.capture(fixture)['native_modal_results']['methods']['ModalPeriod']['status'], 'CAPTURE_ERROR')
+                self.assertEqual(fixture.mode_option, (1, 1, False))
+
+    def test_eccentricity_error_is_not_rewritten_as_zero_overrides(self):
+        for method in ('GetEccentricity', 'GetDiaphragmEccentricityOverride'):
+            fixture = native_numeric_capture_fixture()
+            getattr(fixture.sap.LoadCases.ResponseSpectrum, method).side_effect = RuntimeError('unavailable')
+            record = self.capture(fixture)['native_spectrum_eccentricity']['cases']['RS']
+            with self.subTest(method=method):
+                self.assertEqual(record['status'], 'CAPTURE_ERROR'); self.assertNotIn('data', record)
+                self.assertEqual(fixture.mode_option, (1, 1, False))
+
+    def test_zero_override_null_arrays_are_explicit_native_empty_result(self):
+        fixture = native_numeric_capture_fixture()
+        fixture.sap.LoadCases.ResponseSpectrum.GetDiaphragmEccentricityOverride.return_value = (0, None, None, 0)
+        record = self.capture(fixture)['native_spectrum_eccentricity']['cases']['RS']
+        self.assertEqual(record['status'], 'CAPTURED'); self.assertEqual(record['data']['override_lengths_m'], {})
+
+    def test_override_lengths_and_native_identifiers_are_not_converted_to_ratios(self):
+        fixture = native_numeric_capture_fixture()
+        fixture.sap.LoadCases.ResponseSpectrum.GetDiaphragmEccentricityOverride.return_value = (1, ['D1@Story-A'], [1.23456789012345], 0)
+        record = self.capture(fixture)['native_spectrum_eccentricity']['cases']['RS']
+        self.assertEqual(record['data']['override_lengths_m'], {'D1@Story-A': 1.23456789012345})
+
+    def test_invalid_override_count_duplicate_or_return_is_rejected(self):
+        for raw in ((2, ['D1'], [1.], 0), (2, ['D1', 'D1'], [1., 2.], 0),
+                    (1, ['D1'], [-1.], 0), (1, ['D1'], [float('inf')], 0),
+                    (0, [], [], 1), (False, [], [], 0)):
+            fixture = native_numeric_capture_fixture()
+            fixture.sap.LoadCases.ResponseSpectrum.GetDiaphragmEccentricityOverride.return_value = raw
+            with self.subTest(raw=raw):
+                self.assertEqual(self.capture(fixture)['native_spectrum_eccentricity']['cases']['RS']['status'], 'CAPTURE_ERROR')
+
+    def test_spectrum_case_outside_requested_inventory_is_rejected_before_mutation(self):
+        fixture = native_numeric_capture_fixture()
+        with self.assertRaisesRegex(ValueError, 'SPECTRUM_CASE_INVENTORY_INVALID'):
+            capture_frame_forces(fixture.sap, members=('C1',), cases=('M',), spectrum_cases=('RS',))
+        fixture.setup.DeselectAllCasesAndCombosForOutput.assert_not_called()
+
+    def test_new_getters_cannot_hide_failed_selection_restoration(self):
+        fixture = native_numeric_capture_fixture()
+        original = fixture.setup.SetOptionModeShape.side_effect
+        fixture.setup.SetOptionModeShape.side_effect = lambda a,b,c: original(a,b,c) if c else 1
+        with self.assertRaises(ForceSelectionRestoreError): self.capture(fixture)
+        self.assertTrue(fixture.cases['gravity'])
+
+
+class NativeNumericEvidenceTests(unittest.TestCase):
+    def bind(self, args):
+        return native_demand_source_evidence(*args, input_sha='synthetic-source')['spectral_modal_parameters']
+
+    def test_unrounded_native_numbers_bind_without_changing_source_or_granting_force_authority(self):
+        args = numeric_parameter_fixture(); before = deepcopy(args[0]); modal = self.bind(args)
+        result = modal['native_numeric_precision']
+        self.assertEqual((result['expected_mode_count'], result['bound_mode_count']), (3, 3))
+        self.assertTrue(result['native_periods_qualified'])
+        self.assertEqual(result['rows'][0]['period_api_values']['Period'], 0.470003213456789)
+        self.assertEqual(result['rows'][0]['participation_api_values']['UX'], -0.123456789012345)
+        self.assertEqual(args[0], before)
+        self.assertTrue(all(result[key] is False for key in ('amplitudes_full_precision_proven',
+            'active_damping_full_precision_proven', 'modal_force_reconstruction_qualified')))
+        self.assertFalse(modal['spectral_alpha_authorized']); self.assertFalse(modal['native_full_precision_proven'])
+
+    def test_old_capture_keeps_expected_counts_and_missing_evidence(self):
+        modal = self.bind(modal_parameter_fixture()); result = modal['native_numeric_precision']
+        self.assertEqual((result['expected_mode_count'], result['bound_mode_count']), (3, 0))
+        self.assertEqual(result['status'], 'NOT_CAPTURED')
+        self.assertFalse(result['native_periods_qualified'])
+        self.assertEqual(modal['native_torsion_definitions']['status'], 'NOT_CAPTURED')
+
+    def test_missing_mode_in_either_api_stays_in_denominator(self):
+        for method in MODAL_RESULT_FIELDS:
+            args = numeric_parameter_fixture()
+            data = args[0]['column_axial']['demand_support']['force_source']['native_modal_results']['methods'][method]['data']
+            for field in MODAL_RESULT_FIELDS[method]: data[field].pop(1)
+            data['NumberResults'] -= 1
+            result = self.bind(args)['native_numeric_precision']
+            with self.subTest(method=method):
+                self.assertEqual((result['expected_mode_count'], result['bound_mode_count']), (3, 2))
+                self.assertIn('NATIVE_MODAL_NUMERIC_MODE_MISSING', result['rows'][1]['reason_codes'])
+                self.assertEqual(result['status'], 'SOURCE_PARTIAL')
+
+    def test_duplicate_unexpected_wrong_case_and_nonnumeric_api_values_are_rejected(self):
+        for field, value in (('StepNum', 2.), ('StepNum', 4.), ('LoadCase', 'OTHER'), ('StepType', 'Step'),
+                             ('Period', '0.470003'),
+                             ('Period', 0.), ('Period', True), ('StepNum', 1.5)):
+            args = numeric_parameter_fixture()
+            data = args[0]['column_axial']['demand_support']['force_source']['native_modal_results']['methods']['ModalPeriod']['data']
+            data[field][0] = value
+            with self.subTest(field=field, value=value):
+                result = self.bind(args)['native_numeric_precision']
+                self.assertEqual(result['status'], 'BLOCKED_SOURCE'); self.assertEqual(result['expected_mode_count'], 3)
+
+    def test_nonfinite_source_is_rejected_before_hashing_any_evidence(self):
+        for value in (float('nan'), float('inf'), -float('inf')):
+            args = numeric_parameter_fixture()
+            data = args[0]['column_axial']['demand_support']['force_source']['native_modal_results']['methods']['ModalPeriod']['data']
+            data['Period'][0] = value
+            with self.subTest(value=value):
+                result = native_demand_source_evidence(*args, input_sha='s')
+                self.assertEqual(result['status'], 'BLOCKED_SOURCE')
+                self.assertNotIn('spectral_modal_parameters', result)
+
+    def test_native_method_error_schema_or_units_blocks_only_precision_evidence(self):
+        for defect in ('method', 'units', 'schema', 'fields', 'array', 'api', 'empty'):
+            args = numeric_parameter_fixture()
+            capture = args[0]['column_axial']['demand_support']['force_source']['native_modal_results']
+            rec = capture['methods']['ModalPeriod']
+            if defect == 'method': capture['methods'].pop('ModalParticipationFactors')
+            elif defect == 'units': capture['units_code'] = 12
+            elif defect == 'schema': capture['schema'] = 'unknown'
+            elif defect == 'fields': rec['data']['extra'] = []
+            elif defect == 'array': rec['data']['Period'].pop()
+            elif defect == 'api': rec['api'] = 'otherAPI'
+            else: rec['status'] = 'CAPTURE_ERROR'
+            modal = self.bind(args)
+            with self.subTest(defect=defect):
+                self.assertEqual(modal['native_numeric_precision']['status'], 'BLOCKED_SOURCE')
+                self.assertEqual(modal['bound_mode_rows'], 3)
+                self.assertFalse(modal['native_full_precision_proven'])
+
+    def test_cross_api_period_frequency_eigenvalue_and_mass_stiffness_conflicts_are_localized(self):
+        for method, field in (('ModalPeriod','Frequency'), ('ModalPeriod','CircFreq'),
+                              ('ModalPeriod','EigenValue'), ('ModalParticipationFactors','Period'),
+                              ('ModalParticipationFactors','ModalStiff')):
+            args = numeric_parameter_fixture()
+            data = args[0]['column_axial']['demand_support']['force_source']['native_modal_results']['methods'][method]['data']
+            data[field][1] *= 1.000001
+            result = self.bind(args)['native_numeric_precision']
+            with self.subTest(method=method, field=field):
+                self.assertEqual(result['bound_mode_count'], 2)
+                self.assertIn('NATIVE_MODAL_NUMERIC_IDENTITIES_CONFLICT', result['rows'][1]['reason_codes'])
+
+    def test_display_conflict_and_frequency_units_are_not_ignored(self):
+        for defect in ('value', 'unit', 'field'):
+            args = numeric_parameter_fixture()
+            table = args[0]['analysis_sources']['tables']['Modal Periods And Frequencies']
+            if defect == 'value': table['rows'][1]['Frequency'] = '999'
+            elif defect == 'unit': table['field_metadata']['units_by_field']['Frequency'] = 'rpm'
+            else:
+                for row in table['rows']: row.pop('Eigenvalue')
+            with self.subTest(defect=defect):
+                if defect == 'field':
+                    # The enclosing source-table contract rejects a malformed row first.
+                    self.assertEqual(native_demand_source_evidence(*args, input_sha='s')['status'], 'BLOCKED_SOURCE')
+                    continue
+                result = self.bind(args)['native_numeric_precision']
+                self.assertFalse(result['native_periods_qualified'])
+                self.assertEqual(result['bound_mode_count'], 2 if defect == 'value' else 0)
+
+    def test_declared_binary_consistency_budget_has_an_explicit_boundary(self):
+        for ulps, bound in ((32, 3), (33, 2)):
+            args = numeric_parameter_fixture()
+            data = args[0]['column_axial']['demand_support']['force_source']['native_modal_results']['methods']['ModalParticipationFactors']['data']
+            for _ in range(ulps): data['Period'][0] = math.nextafter(data['Period'][0], math.inf)
+            with self.subTest(ulps=ulps):
+                self.assertEqual(self.bind(args)['native_numeric_precision']['bound_mode_count'], bound)
+
+    def test_empty_native_arrays_are_missing_modes_not_complete(self):
+        args = numeric_parameter_fixture()
+        methods = args[0]['column_axial']['demand_support']['force_source']['native_modal_results']['methods']
+        for method, rec in methods.items():
+            rec['data'] = {'NumberResults': 0, 'ret': 0, **dict.fromkeys(MODAL_RESULT_FIELDS[method], [])}
+        result = self.bind(args)['native_numeric_precision']
+        self.assertEqual((result['expected_mode_count'], result['bound_mode_count']), (3, 0))
+        self.assertEqual(result['status'], 'SOURCE_PARTIAL')
+
+    def test_restoration_or_same_session_failure_prevents_new_evidence_binding(self):
+        for defect in ('restore', 'session', 'mode'):
+            args = numeric_parameter_fixture()
+            force = args[0]['column_axial']['demand_support']['force_source']
+            if defect == 'restore': force['output_selection_after']['cases']['M'] = True
+            elif defect == 'mode': force['mode_shape_option']['after'] = [1, 3, True]
+            else: args[0]['capture_metadata']['vs04_same_session_capture'] = False
+            result = native_demand_source_evidence(*args, input_sha='s')
+            with self.subTest(defect=defect):
+                self.assertNotIn('native_numeric_precision', result.get('spectral_modal_parameters', {}))
+
+    def test_torsion_definition_never_proves_applied_force_or_decomposition(self):
+        result = self.bind(numeric_parameter_fixture())['native_torsion_definitions']
+        self.assertEqual(result['bound_case_count'], 1)
+        self.assertEqual(result['status'], 'NATIVE_DEFINITIONS_BOUND_CONTRIBUTIONS_UNAVAILABLE')
+        self.assertFalse(result['applied_contributions_bound']); self.assertFalse(result['force_decomposition_qualified'])
+
+    def test_nonzero_overrides_preserve_lengths_but_block_story_identity(self):
+        args = numeric_parameter_fixture()
+        capture = args[0]['column_axial']['demand_support']['force_source']['native_spectrum_eccentricity']
+        capture['cases']['RS']['data']['override_lengths_m'] = {'D1@Story-A': 1.25}
+        result = self.bind(args)['native_torsion_definitions']; row = result['cases'][0]
+        self.assertEqual(row['override_lengths_m'], {'D1@Story-A': 1.25}); self.assertEqual(row['override_unit'], 'm')
+        self.assertFalse(row['override_story_identity_bound']); self.assertEqual(result['bound_case_count'], 0)
+        self.assertEqual(result['status'], 'SOURCE_PARTIAL')
+
+    def test_torsion_case_units_and_definition_conflicts_keep_expected_case(self):
+        for defect in ('units', 'case', 'guid', 'ratio', 'ratio_zero', 'capture_error', 'invalid_length'):
+            args = numeric_parameter_fixture()
+            capture = args[0]['column_axial']['demand_support']['force_source']['native_spectrum_eccentricity']
+            rec = capture['cases']['RS']
+            definition = args[0]['vs04_basis_probe']['table_reads']['Load Case Definitions - Response Spectrum']['rows'][0]
+            if defect == 'units': capture['units_code'] = 12
+            elif defect == 'case': capture['cases']['OTHER'] = capture['cases'].pop('RS')
+            elif defect == 'guid': definition['GUID'] = 'other'
+            elif defect == 'ratio': rec['data']['default_ratio'] = 0.15
+            elif defect == 'ratio_zero': definition['EccenRatio'] = '0'
+            elif defect == 'capture_error': rec['status'] = 'CAPTURE_ERROR'
+            else: rec['data']['override_lengths_m'] = {'D1': -1.}
+            result = self.bind(args)['native_torsion_definitions']
+            with self.subTest(defect=defect):
+                self.assertEqual((result['expected_case_count'], result['bound_case_count']), (1, 0))
+                self.assertFalse(result['applied_contributions_bound'])
+
+    def test_zero_default_is_not_evidence_of_absent_applied_torsion(self):
+        args = numeric_parameter_fixture()
+        args[0]['column_axial']['demand_support']['force_source']['native_spectrum_eccentricity']['cases']['RS']['data']['default_ratio'] = 0.
+        args[0]['vs04_basis_probe']['table_reads']['Load Case Definitions - Response Spectrum']['rows'][0]['EccenRatio'] = '0'
+        result = self.bind(args)['native_torsion_definitions']
+        self.assertEqual(result['bound_case_count'], 1); self.assertFalse(result['applied_contributions_bound'])
+
+    def test_native_evidence_repeat_hash_and_report_are_sealed_projection(self):
+        from tbdy_next.reporting import _native_demand_sources_html
+        args = numeric_parameter_fixture()
+        first = native_demand_source_evidence(*args, input_sha='synthetic')
+        self.assertEqual(first, native_demand_source_evidence(*args, input_sha='synthetic'))
+        first['spectral_modal_parameters']['native_torsion_definitions']['cases'][0]['case'] = '<script>bad</script>'
+        with patch('tbdy_next.engineering.demand_sources.native_modal_precision', side_effect=AssertionError('recalculation')) as numeric, \
+             patch('tbdy_next.engineering.demand_sources.native_torsion_definitions', side_effect=AssertionError('recalculation')) as torsion:
+            html = _native_demand_sources_html(first)
+        numeric.assert_not_called(); torsion.assert_not_called()
+        self.assertIn('Native modal numeric precision', html); self.assertIn('Accidental-torsion source limits', html)
+        self.assertIn('&lt;script&gt;', html); self.assertNotIn('<script>', html)
 
 
 if __name__ == '__main__':

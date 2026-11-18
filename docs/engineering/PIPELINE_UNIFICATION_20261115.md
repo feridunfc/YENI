@@ -4,6 +4,90 @@ Historical baseline: 2026-11-15. The original working-tree-only status below was
 
 D3B continuation: [mixed demands, spectral interval evidence and remaining acceptance limits](OFFLINE_D3B_MIXED_DEMANDS_20261117.md). Coverage counts in the historical sections are not engineering completion percentages.
 
+## Native modal numeric adapters — 2026-11-18 local work branch
+
+`same-source-spectral-components.v5` extends the same stage and owners with numeric
+modal inputs and eccentricity definitions. `frame_force_capture.py` reads
+`Results.ModalPeriod` and `Results.ModalParticipationFactors` within the existing
+selected all-mode output transaction. The same `SapModel` also supplies the requested
+spectrum cases' default eccentricity and overrides. `column_axial.py` supplies the
+existing source plan; `engineering/demand_sources.py` qualifies the recorded inputs.
+No second connection, solver, pipeline stage or model/analysis operation is added.
+
+The native result contracts validate field order, counts, native return codes,
+finite numeric values, mode/case identity, duplicates and nonpositive modal properties.
+Missing modes remain in the independently derived denominator. Cross-API period,
+frequency, angular-frequency, eigenvalue and modal stiffness/mass relationships use
+a declared **32-ULP numerical consistency budget**. This budget does not establish
+solver accuracy. Display-table comparisons validate field units and printed digits;
+trimmed trailing zeros prevent treating this as a true source-precision bound.
+Native numbers are retained rather than reconstructed from rounded strings.
+
+CSI documents the double-array signatures for
+[ModalPeriod](https://docs.csiamerica.com/help-files/etabs-api-2016/html/07dd92be-7f20-d55e-676a-22af467bfa9c.htm)
+and [ModalParticipationFactors](https://docs.csiamerica.com/help-files/etabs-api-2016/html/eeed62fb-02ee-ccc7-294e-801669425bf0.htm).
+Those public pages describe ETABS 2016. This increment separately inspected the
+installed ETABS 23 DLL and verified matching field order/types; it did not execute
+those methods against live ETABS. DLL SHA:
+`e031587eed3956cde4377d3940a1eeeab4101c7c92b498e2538915b620fb78aa`.
+
+Default eccentricity is a ratio; overwrites are absolute lengths in metres at API
+units 6, consistent with CSI's
+[overwrite definition](https://docs.csiamerica.com/help-files/etabs/Menus/Define/Load_Patterns/Overwrite_Eccentricities_Form.htm).
+The [override getter](https://docs.csiamerica.com/help-files/etabs-api-2016/html/8179bd55-b99e-df62-2723-e94b77a676c5.htm)
+does not return a separate story field. Its identifiers and lengths are retained;
+nonempty overrides stay partial until story identity is independently bound.
+An API error is not an empty override list. Neither zero nor nonzero definitions
+qualify applied torsional forces or their decomposition.
+
+The report projects these nested sealed artifacts and their counts/reasons.
+Amplitude and active-damping precision, modal force reconstruction, applied torsion,
+modal/directional aggregation, SCWB governing N and alpha authority remain unqualified.
+Temporary selection/mode restoration failures still invalidate capture.
+
+### Executed evidence and limits
+
+Dirty-tree base: `a2e26b664d9b2b217e828de2c1df0c3df26068b1`, branch
+`work/spectral-modal-source`. Package SHA:
+`fd204205682c2d88c404ca4a7420631fc56638ec6fff2e36ce6f29c2f5e1f5e4`.
+The 410-entry Windows raw-byte manifest is
+`docs/context/TESTED_FILES_MODAL_NUMERIC_20261118.json`; all tracked hashes matched
+before the documentation update. Configuration SHA remains `244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1`.
+
+| Verification | Actual result |
+| --- | --- |
+| Synthetic native getter/binding contracts | 25 new tests, included in totals; positive, missing, duplicate, wrong unit/identity, return/restore failures, 32/33-ULP boundary and authority guards |
+| `python -B tools/test_offline.py` | 1,393 Python tests OK; one OS symlink skip; 10/10 JavaScript files pass |
+| Clean tracked-file wheel / `python -B tools/test_installed_wheel.py <wheel-directory>` | 227 tests OK |
+| Existing CLI replay / repeat | 16/16 IDENTICAL receipts |
+| Existing report/HTTP owners | 24 calculation entry points disabled; zero calculation/live calls; sealed JSON/HTML projections equal |
+| New getters on live ETABS | NOT_RUN |
+
+Windows 11 / CPython 3.12.10 / Node 24.22.1. A first concurrent run had two HTTP
+timeouts and a consequent temporary-file cleanup error; the initial HTTP projection
+also timed out. The unchanged full suite and report script passed sequentially at
+the original deadlines. Both attempts are retained; no production guard or test
+deadline was relaxed. No new GitHub CI or push is claimed.
+
+Same accepted source SHA: `8b4851511cdcae04734866924bbacb079f9e7903a01d6c7a9b2bd8ebcd32a311`.
+Replay: `RUN-567d448b129c4adebbeb983f433d4577`; result SHA:
+`c172474dc5e3cdab8357a865d38e8ea03c1fd88ebdcfd471b21e06836cffa9f5`.
+Repeat: `RUN-746b866854eb482ab63664c5ee05849c`.
+
+This old acquisition lacks the new getter fields: numeric inputs are NOT_CAPTURED
+at **0/100 unique modal modes**, eccentricity getters at **0/2 cases**. Prior displayed
+parameters remain **200/200 case-mode rows**. Existing axial, PMM, column-gate, R14/R15,
+local slenderness and mixed-component artifacts equal the prior sealed run. No new
+independent force arithmetic was performed. R14/R15 remain 0 closed / 87 partial,
+no alpha iteration ran, and release stays `NOT_READY`.
+
+See EV-LOCAL-MODAL-NUMERIC-ADAPTER, EV-LOCAL-MODAL-NUMERIC-TESTS and
+EV-LOCAL-MODAL-NUMERIC-REPLAY. Private evidence lives under
+`.receipts/verification/modal-numeric-final-20261118T153106Z/`. The next acceptance is
+a fresh same-session native getter capture with independent population, restored
+selection, correct units/identity, repeat and sealed report proof. Source capture
+acceptance will not by itself approve spectral force reconstruction or design.
+
 ## Native modal parameter binding — 2026-11-17 local work branch
 
 The existing `engineering/demand_sources.py` owner now binds selected-case modal

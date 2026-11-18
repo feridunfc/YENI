@@ -2448,6 +2448,31 @@ def build_column_127_gate_html(bundle: Mapping[str, Any]) -> str:
 
 def _native_demand_sources_html(record):
     modal = record.get("spectral_modal_parameters") or {}
+    precision = modal.get("native_numeric_precision") or {}
+    torsion = modal.get("native_torsion_definitions") or {}
+    numeric_html = ('<h4>Native modal numeric precision</h4>'
+        f'<p>{_val(precision.get("status"))} · {_val(precision.get("bound_mode_count"))} / '
+        f'{_val(precision.get("expected_mode_count"))} modal modes. '
+        'Available native period, frequency, eigenvalue and participation results retain API numeric values. '
+        'Spectrum amplitudes and active damping still retain display precision; force reconstruction remains unqualified.</p>'
+        + _table((("modal_case", "Modal case"), ("bound_mode_count", "Bound native modes"),
+                  ("expected_mode_count", "Expected modes")), precision.get("cases", []))
+        + f'<p>Source gaps: {_val(precision.get("reason_codes"))}</p>'
+        + '<details><summary>Native modal precision evidence</summary>'
+        + _table((("modal_case", "Modal case"), ("mode", "Mode"), ("status", "Status"),
+                  ("period_api_values", "Native period / frequency / eigenvalue"),
+                  ("participation_api_values", "Native participation / mass / stiffness"),
+                  ("display_absolute_differences", "Differences from displayed source"),
+                  ("reason_codes", "Source gaps")), precision.get("rows", [])) + '</details>') if precision else ''
+    torsion_html = ('<h4>Accidental-torsion source limits</h4>'
+        f'<p>{_val(torsion.get("status"))} · {_val(torsion.get("bound_case_count"))} / '
+        f'{_val(torsion.get("expected_case_count"))} case definitions. '
+        'Default eccentricity is a ratio; diaphragm overrides are absolute lengths in metres. '
+        'An override requires story identity. These settings do not isolate applied torsion forces.</p>'
+        + _table((("case", "Spectrum case"), ("default_ratio", "Native default ratio"),
+                  ("override_count", "Length overrides"), ("override_lengths_m", "Native overwrite lengths (m)"),
+                  ("status", "Definition status"), ("reason_codes", "Source gaps")), torsion.get("cases", []))
+        + f'<p>{_val(torsion.get("contribution_status"))}</p>') if torsion else ''
     modal_html = ('<h3>Native response-spectrum modal parameters</h3>'
         f'<p>{_val(modal.get("status"))} · {_val(modal.get("bound_mode_rows"))} / '
         f'{_val(modal.get("expected_mode_rows"))} case–mode rows. '
@@ -2461,6 +2486,7 @@ def _native_demand_sources_html(record):
                   ("modal_combination", "Modal combination"), ("directional_combination", "Directional combination"),
                   ("eccentricity_ratio", "Defined eccentricity ratio"), ("accidental_torsion_status", "Torsion evidence"),
                   ("status", "Parameter status"), ("reason_codes", "Source gaps")), modal.get("cases", []))
+        + numeric_html + torsion_html
         + f'<p>Remaining requirements: {_val(modal.get("remaining_requirements"))}</p>') if modal else ''
     return ('<section class="percheck"><h2>Native load-case and modal force coverage</h2>'
             f'<p>{_val(record["status"])} · {_val(record.get("completed_member_case_count"))} / '

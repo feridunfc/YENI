@@ -164,6 +164,7 @@ def capture_column_axial(sap, snapshot: dict, request: dict) -> dict:
             support["force_source"] = capture_frame_forces(
                 sap, members=targets, cases=tuple(support["plan"]["cases"]),
                 modal_modes=support["plan"]["modal_modes"] or None,
+                spectrum_cases=tuple(sorted(support["plan"]["spectrum_modal_bindings"])),
             )
         except ForceSelectionRestoreError:
             raise
