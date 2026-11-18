@@ -10,7 +10,7 @@ from test_r10_live import _rowset
 from test_vs04e_basis import ProbeSap
 from tbdy_next.basis_probe import capture_basis_probe
 from tbdy_next.column_engine.source_bank import native_frame_force_rows
-from tbdy_next.frame_force_capture import capture_frame_forces, ForceSelectionRestoreError
+from tbdy_next.frame_force_capture import capture_frame_forces, ForceSelectionRestoreError, native_modal_rows
 from tbdy_next.frame_force_capture import MODAL_RESULT_FIELDS, MODAL_RESULTS_SCHEMA, ECCENTRICITY_SCHEMA
 from tbdy_next.etabs_source_gateway_windows import DisplaySelectionRestoreError
 from tbdy_next.engineering.demand_sources import (
@@ -611,6 +611,13 @@ def native_numeric_capture_fixture():
     return fixture
 
 
+def omit_participation_identity(data):
+    """Observed null/zero ABI shape; the numbers remain synthetic test values."""
+    data['StepType'] = [None] * data['NumberResults']
+    data['StepNum'] = [0.] * data['NumberResults']
+    return data
+
+
 class NativeNumericCaptureTests(unittest.TestCase):
     def capture(self, fixture):
         return capture_frame_forces(fixture.sap, members=('C1',), cases=('M', 'RS'),
@@ -643,6 +650,66 @@ class NativeNumericCaptureTests(unittest.TestCase):
                 self.assertEqual(len(result['rowsets']), 1)
                 self.assertEqual(result['output_selection_before'], result['output_selection_after'])
                 self.assertEqual(fixture.mode_option, (1, 1, False))
+
+    def test_null_zero_participation_identity_uses_companion_without_rewriting_raw_values(self):
+        fixture = native_numeric_capture_fixture()
+        method = 'ModalParticipationFactors'
+        data = omit_participation_identity(numeric_modal_records()[method])
+        for field in MODAL_RESULT_FIELDS[method]: data[field].reverse()
+        getattr(fixture.sap.Results, method).return_value = (
+            data['NumberResults'], *(data[key] for key in MODAL_RESULT_FIELDS[method]), data['ret'])
+        result = self.capture(fixture)
+        record = result['native_modal_results']['methods'][method]
+        self.assertEqual(record['status'], 'CAPTURED')
+        self.assertEqual(record['data'], data)
+        self.assertEqual(record['data']['StepType'], [None] * 3)
+        self.assertEqual(record['data']['StepNum'], [0.] * 3)
+        self.assertEqual(result['output_selection_before'], result['output_selection_after'])
+        self.assertEqual(fixture.mode_option, (1, 1, False))
+
+    def test_failed_period_getter_cannot_supply_null_zero_identity(self):
+        fixture = native_numeric_capture_fixture()
+        method = 'ModalParticipationFactors'
+        data = omit_participation_identity(numeric_modal_records()[method])
+        getattr(fixture.sap.Results, method).return_value = (
+            data['NumberResults'], *(data[key] for key in MODAL_RESULT_FIELDS[method]), data['ret'])
+        fixture.sap.Results.ModalPeriod.side_effect = RuntimeError('unavailable')
+        result = self.capture(fixture)
+        self.assertEqual(result['native_modal_results']['methods'][method]['status'], 'CAPTURE_ERROR')
+        self.assertEqual(result['native_modal_results']['methods'][method]['data'], data)
+        self.assertEqual(result['output_selection_before'], result['output_selection_after'])
+
+    def test_rejected_native_identity_retains_exact_data_without_qualifying_it(self):
+        fixture = native_numeric_capture_fixture()
+        method = 'ModalParticipationFactors'
+        data = numeric_modal_records()[method]
+        data['StepType'][1] = 'unexpected native step'
+        getattr(fixture.sap.Results, method).return_value = (
+            data['NumberResults'], *(data[key] for key in MODAL_RESULT_FIELDS[method]), data['ret'])
+        result = self.capture(fixture)
+        record = result['native_modal_results']['methods'][method]
+        self.assertEqual(record['status'], 'CAPTURE_ERROR')
+        self.assertEqual(record['data'], data)
+        self.assertIn('IDENTITY_OR_NUMBER_INVALID', record['error'])
+        self.assertEqual(result['output_selection_before'], result['output_selection_after'])
+        self.assertEqual(fixture.mode_option, (1, 1, False))
+
+    def test_nonfinite_native_diagnostic_does_not_poison_other_source_json(self):
+        import json
+        fixture = native_numeric_capture_fixture()
+        method = 'ModalParticipationFactors'
+        data = numeric_modal_records()[method]
+        data['UX'][1] = float('nan')
+        getattr(fixture.sap.Results, method).return_value = (
+            data['NumberResults'], *(data[key] for key in MODAL_RESULT_FIELDS[method]), data['ret'])
+        result = self.capture(fixture)
+        record = result['native_modal_results']['methods'][method]
+        self.assertEqual(record['status'], 'CAPTURE_ERROR')
+        self.assertNotIn('data', record)
+        self.assertEqual(record['unserializable_native_values'], [
+            {'field': 'UX', 'index': 1, 'type': 'float', 'representation': 'nan'}])
+        json.dumps(result, allow_nan=False)
+        self.assertEqual(result['output_selection_before'], result['output_selection_after'])
 
     def test_native_return_abi_and_codes_are_verified(self):
         for raw in ((0,), (3, *([[]]*7), 1), (True, *([[]]*7), 0), (0, *([[]]*7), False)):
@@ -711,12 +778,115 @@ class NativeNumericEvidenceTests(unittest.TestCase):
             'active_damping_full_precision_proven', 'modal_force_reconstruction_qualified')))
         self.assertFalse(modal['spectral_alpha_authorized']); self.assertFalse(modal['native_full_precision_proven'])
 
+    def omitted_fixture(self):
+        args = numeric_parameter_fixture()
+        methods = args[0]['column_axial']['demand_support']['force_source']['native_modal_results']['methods']
+        omit_participation_identity(methods['ModalParticipationFactors']['data'])
+        return args, methods
+
+    def test_null_zero_identity_is_bound_by_exact_case_period_independent_of_row_order(self):
+        args, methods = self.omitted_fixture()
+        for field in MODAL_RESULT_FIELDS['ModalParticipationFactors']:
+            methods['ModalParticipationFactors']['data'][field].reverse()
+        before = deepcopy(args)
+        modal = self.bind(args); result = modal['native_numeric_precision']
+        self.assertEqual((result['expected_mode_count'], result['bound_mode_count']), (3, 3))
+        for row in result['rows']:
+            self.assertEqual(row['participation_identity_basis'], 'UNIQUE_EXACT_SAME_CASE_PERIOD')
+            self.assertIsNone(row['participation_api_values']['StepType'])
+            self.assertEqual(row['participation_api_values']['StepNum'], 0.)
+            self.assertEqual(row['participation_api_values']['mode_identity']['mode'], row['mode'])
+            self.assertEqual(row['participation_api_values']['UX'], -0.123456789012345 * row['mode'])
+        self.assertEqual(args, before)
+        self.assertFalse(modal['spectral_alpha_authorized'])
+        self.assertFalse(result['modal_force_reconstruction_qualified'])
+
+    def test_null_zero_identity_rejects_degenerate_same_case_periods(self):
+        args, methods = self.omitted_fixture()
+        periods = methods['ModalPeriod']['data']
+        periods['Period'][1] = periods['Period'][0]
+        result = self.bind(args)['native_numeric_precision']
+        self.assertEqual((result['expected_mode_count'], result['bound_mode_count']), (3, 0))
+        self.assertIn('NATIVE_MODAL_IDENTITY_PERIOD_MATCH_NOT_UNIQUE', result['reason_codes'])
+
+    def test_null_zero_identity_does_not_use_nearest_period_or_row_position(self):
+        args, methods = self.omitted_fixture()
+        factors = methods['ModalParticipationFactors']['data']
+        factors['Period'][0] = math.nextafter(factors['Period'][0], math.inf)
+        result = self.bind(args)['native_numeric_precision']
+        self.assertEqual(result['status'], 'BLOCKED_SOURCE')
+        self.assertIn('NATIVE_MODAL_IDENTITY_PERIOD_MATCH_NOT_UNIQUE', result['reason_codes'])
+
+    def test_null_zero_identity_requires_complete_independent_period_inventory(self):
+        args, methods = self.omitted_fixture()
+        periods = methods['ModalPeriod']['data']
+        for field in MODAL_RESULT_FIELDS['ModalPeriod']: periods[field].pop()
+        periods['NumberResults'] -= 1
+        result = self.bind(args)['native_numeric_precision']
+        self.assertEqual(result['expected_mode_count'], 3)
+        self.assertIn('NATIVE_MODAL_IDENTITY_PERIOD_INVENTORY_INCOMPLETE', result['reason_codes'])
+
+    def test_null_zero_participation_missing_mode_remains_in_denominator(self):
+        args, methods = self.omitted_fixture()
+        factors = methods['ModalParticipationFactors']['data']
+        for field in MODAL_RESULT_FIELDS['ModalParticipationFactors']: factors[field].pop(1)
+        factors['NumberResults'] -= 1
+        result = self.bind(args)['native_numeric_precision']
+        self.assertEqual((result['expected_mode_count'], result['bound_mode_count']), (3, 2))
+        self.assertEqual(result['status'], 'SOURCE_PARTIAL')
+        self.assertIn('NATIVE_MODAL_NUMERIC_MODE_MISSING', result['rows'][1]['reason_codes'])
+
+    def test_only_observed_null_zero_shape_may_use_period_identity(self):
+        for step_type, step_num in ((None, 1.), ('', 0.), ('Mode', 0.), ('Step', 0.), (None, False)):
+            args, methods = self.omitted_fixture()
+            factors = methods['ModalParticipationFactors']['data']
+            factors['StepType'][0], factors['StepNum'][0] = step_type, step_num
+            with self.subTest(step_type=step_type, step_num=step_num):
+                result = self.bind(args)['native_numeric_precision']
+                self.assertEqual(result['status'], 'BLOCKED_SOURCE')
+                self.assertIn('NATIVE_MODAL_RESULT_IDENTITY_OR_NUMBER_INVALID', result['reason_codes'])
+
+    def test_duplicate_period_bound_participation_cannot_claim_another_mode(self):
+        args, methods = self.omitted_fixture()
+        factors = methods['ModalParticipationFactors']['data']
+        for field in MODAL_RESULT_FIELDS['ModalParticipationFactors']: factors[field][1] = factors[field][0]
+        result = self.bind(args)['native_numeric_precision']
+        self.assertIn('NATIVE_MODAL_RESULT_DUPLICATE_MODE', result['reason_codes'])
+
+    def test_equal_periods_in_different_cases_are_bound_with_case_identity(self):
+        records = numeric_modal_records()
+        for method, data in records.items():
+            for field in MODAL_RESULT_FIELDS[method]:
+                data[field] += ['OTHER'] * 3 if field == 'LoadCase' else data[field][:]
+            data['NumberResults'] = 6
+        factors = omit_participation_identity(records['ModalParticipationFactors'])
+        rows = native_modal_rows(factors, 'ModalParticipationFactors', {'M': [1, 2, 3], 'OTHER': [1, 2, 3]},
+                                 period_record=records['ModalPeriod'])
+        self.assertEqual([(r['LoadCase'], r['mode_identity']['mode']) for r in rows],
+                         [(case, mode) for case in ('M', 'OTHER') for mode in (1, 2, 3)])
+
+    def test_modal_period_getter_cannot_omit_its_own_mode_identity(self):
+        args, methods = self.omitted_fixture()
+        omit_participation_identity(methods['ModalPeriod']['data'])
+        result = self.bind(args)['native_numeric_precision']
+        self.assertEqual(result['status'], 'BLOCKED_SOURCE')
+
     def test_old_capture_keeps_expected_counts_and_missing_evidence(self):
         modal = self.bind(modal_parameter_fixture()); result = modal['native_numeric_precision']
         self.assertEqual((result['expected_mode_count'], result['bound_mode_count']), (3, 0))
         self.assertEqual(result['status'], 'NOT_CAPTURED')
         self.assertFalse(result['native_periods_qualified'])
         self.assertEqual(modal['native_torsion_definitions']['status'], 'NOT_CAPTURED')
+
+    def test_error_record_with_retained_data_cannot_qualify_numeric_inputs(self):
+        args = numeric_parameter_fixture()
+        methods = args[0]['column_axial']['demand_support']['force_source']['native_modal_results']['methods']
+        methods['ModalParticipationFactors']['status'] = 'CAPTURE_ERROR'
+        methods['ModalParticipationFactors']['error'] = 'Native result identity rejected'
+        result = self.bind(args)['native_numeric_precision']
+        self.assertEqual(result['status'], 'BLOCKED_SOURCE')
+        self.assertEqual((result['expected_mode_count'], result['bound_mode_count']), (3, 0))
+        self.assertFalse(result['native_periods_qualified'])
 
     def test_missing_mode_in_either_api_stays_in_denominator(self):
         for method in MODAL_RESULT_FIELDS:

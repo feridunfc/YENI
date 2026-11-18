@@ -2460,6 +2460,7 @@ def _native_demand_sources_html(record):
         + f'<p>Source gaps: {_val(precision.get("reason_codes"))}</p>'
         + '<details><summary>Native modal precision evidence</summary>'
         + _table((("modal_case", "Modal case"), ("mode", "Mode"), ("status", "Status"),
+                  ("participation_identity_basis", "Participation mode identity basis"),
                   ("period_api_values", "Native period / frequency / eigenvalue"),
                   ("participation_api_values", "Native participation / mass / stiffness"),
                   ("display_absolute_differences", "Differences from displayed source"),

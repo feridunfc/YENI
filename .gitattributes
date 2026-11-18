@@ -5,3 +5,5 @@ src/tbdy_next/verification/references/*.py text eol=lf
 src/tbdy_next/verification/*.py text eol=lf
 # Imported recipe evidence is byte-pinned and is not a runtime dependency.
 docs/engineering/reference/recipe_20261118/** text eol=lf
+# This tested-file manifest is referenced by its exact SHA in the evidence ledger.
+docs/context/TESTED_FILES_MODAL_LIVE_20261118.json text eol=lf

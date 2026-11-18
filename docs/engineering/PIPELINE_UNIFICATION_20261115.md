@@ -1,8 +1,32 @@
 # Single pipeline owner — 2026-11-15
 
-Historical baseline: 2026-11-15. The original working-tree-only status below was superseded by the published D1–D3 audit-branch commits. On 2026-11-17 the local implementation and durable context were preserved on `baseline/local_import`, now the logical integration base. Older verification sections retain their own base commits and file/method hashes. The newest local increment is identified separately below; no GitHub push or old `main` merge was performed.
+Historical baseline: 2026-11-15. The original working-tree-only status below was superseded by the published D1–D3 audit-branch commits. On 2026-11-17 the local implementation and durable context were preserved on `baseline/local_import`, now the logical integration base. Older verification sections retain their own base commits and file/method hashes. The recipe/v5 checkpoint was subsequently published at `a9d053f3422d981e3c576fe5e4c0d4b72549d150`. The newest v6 live increment below is local; no old `main` merge was performed.
 
 D3B continuation: [mixed demands, spectral interval evidence and remaining acceptance limits](OFFLINE_D3B_MIXED_DEMANDS_20261117.md). Coverage counts in the historical sections are not engineering completion percentages.
+
+## Native modal identity — live acceptance, 2026-11-18
+
+[The v6 acceptance record](LIVE_MODAL_IDENTITY_ACCEPTANCE_20261118.md) verifies
+100/100 native numeric modes and 2/2 eccentricity definitions in one new locked-model
+acquisition. `same-source-spectral-components.v6` remains the same registered stage.
+The existing adapter handles the observed null/zero participation step identity
+only through a complete native ModalPeriod inventory and a unique exact same-case
+period. Original API fields and separately derived identity are both retained.
+Ambiguous/repeated periods, absent companions and nearest/positional guesses cannot
+qualify input. The previous numeric tolerance is unchanged.
+
+Fresh evidence: 1,407 Python tests OK (one OS skip), 10/10 JavaScript files, 241
+installed-wheel tests, an independent 500-relationship Decimal audit with no
+out-of-tolerance result, 16/16 identical repeat receipts, and sealed report projection
+with 25 calculation entry points disabled and zero calculation/live calls. Both JSON
+and HTML on the existing user server match the sealed result. All temporary output
+and mode selections were restored. The source/method/test hashes and exact commands
+are recorded separately from the historical tests below.
+
+No second connection, solver or pipeline was added. Native input acceptance closes
+no structural CHECK: R14/R15 remain 0 closed / 87 partial, release `NOT_READY`.
+Spectrum amplitude/damping precision, applied torsion, modal/directional aggregation,
+SCWB axial demand, story allocation and alpha iteration remain open (GAP-018/013/016).
 
 ## English recipe and local baseline integration — 2026-11-18
 
@@ -30,9 +54,9 @@ amplification remains an unresolved method distinction. R14/R15 remain 0 closed 
 87 partial, release `NOT_READY`. The full software/replay results below remain
 historical evidence for unchanged runtime bytes, not fresh tests of this import.
 
-This reviewed software/documentation milestone is integrated locally into
-`baseline/local_import`, without a GitHub push. Live numeric/torsion getter
-acceptance is the next bounded task, following the user's explicit ordering.
+This reviewed software/documentation milestone was integrated locally into
+`baseline/local_import` and subsequently published at `a9d053f…`. The following
+live numeric/torsion getter acceptance is recorded in the v6 section above.
 See `EV-RECIPE18-INTAKE`, `EV-RECIPE18-ARITHMETIC`, `EV-RECIPE18-LOCAL-OWNERS`.
 
 ## Native modal numeric adapters — 2026-11-18 local work branch

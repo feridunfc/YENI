@@ -17,44 +17,46 @@
     "publication_policy": "LOCAL_ONLY_UNTIL_EXPLICIT_GITHUB_CHECKPOINT_REQUEST"
   },
   "local_checkpoint": {
-    "status": "LOCAL_BASELINE_RECIPE_INTEGRATED_LIVE_ACCEPTANCE_PENDING",
-    "branch": "baseline/local_import",
+    "status": "LIVE_NATIVE_MODAL_INPUT_ACCEPTANCE_VERIFIED",
     "integration_base_branch": "baseline/local_import",
-    "previous_integration_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
-    "runtime_source_commit": "250ff1974316070393f3fff9847d941a80dcd47e",
-    "head_resolution": "git rev-parse baseline/local_import; this context is committed before the validated fast-forward integration",
-    "preserved_work_branch": "work/spectral-modal-source",
-    "runtime_changes_during_recipe_intake": false,
-    "tests_or_config_changes_during_recipe_intake": false,
-    "method": {
-      "python_implementation": "CPython",
-      "python_version": "3.12.10",
-      "package_sha256": "fd204205682c2d88c404ca4a7420631fc56638ec6fff2e36ce6f29c2f5e1f5e4",
-      "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
-      "file_count": 126,
-      "configuration_file_count": 9
+    "verified_work_branch": "work/spectral-live-acceptance",
+    "published_baseline_commit": "a9d053f3422d981e3c576fe5e4c0d4b72549d150",
+    "new_increment_published": false,
+    "implementation_base_commit": "a9d053f3422d981e3c576fe5e4c0d4b72549d150",
+    "implementation_identity": "Resolve final local HEAD; raw tested-file manifest identifies tested dirty-tree runtime over this base.",
+    "method_version": "same-source-spectral-components.v6",
+    "runtime_package_sha256": "92f34f2baf472c4e30cfbeee8721a7225416ed7cbf4bdf37326cf50fd47599bc",
+    "source_sha256": "9e5535ad2fe5749aa897a16023a3f7288062388df65f23013d243bbdb77bf640",
+    "results_sha256": "c88b0245b764cef48534c966c4fb5d680d4b2cac20f4d14ea975193e5dafaac8",
+    "live_run_id": "RUN-77039b97519e45029e209f0031d72d36",
+    "repeat_run_id": "RUN-01b2d1ec09bc405d9f73b5aba3341a6a",
+    "tests": {
+      "focused": 87,
+      "python": 1407,
+      "skipped": 1,
+      "javascript_files": 10,
+      "installed_wheel": 241,
+      "github_ci": "NOT_RUN",
+      "manifest_path": "docs/context/TESTED_FILES_MODAL_LIVE_20261118.json",
+      "manifest_sha256": "4dc69b85204ae68e076c4005b625c1cc4a9fffc3909a3bb6b2eb7314d6cfb196",
+      "manifest_file_count": 445,
+      "runtime_test_tool_config_files_rechecked": 316,
+      "wheel_sha256": "6f0f35cb3434a122857dadda8f245d8fc073db9d89fe2e427a51ec3423ed630c",
+      "original_private_manifest_sha256": "1d9f8e714d2538f8d9e8928cd68c4f3b3c526b3f4f9fad0865db213eee7f46a9"
     },
-    "registered_method": "same-source-spectral-components.v5",
-    "prior_test_manifest_path": "docs/context/TESTED_FILES_MODAL_NUMERIC_20261118.json",
-    "prior_test_manifest_sha256": "16e69bfae0fc5e1e7fb877cc71b3c710ab1a789f86ae52c19b2ec2504e85c422",
-    "prior_tests_rerun_for_this_reference_intake": false,
     "evidence_refs": [
-      "EV-RECIPE18-INTAKE",
-      "EV-RECIPE18-ARITHMETIC",
-      "EV-RECIPE18-LOCAL-OWNERS"
+      "EV-LIVE-MODAL-IDENTITY",
+      "EV-LIVE-MODAL-NUMERIC-ORACLE",
+      "EV-LIVE-MODAL-ACCEPTANCE-TESTS",
+      "EV-LIVE-MODAL-REPLAY-REPORT"
     ],
-    "prior_runtime_evidence_refs": [
-      "EV-LOCAL-MODAL-NUMERIC-ADAPTER",
-      "EV-LOCAL-MODAL-NUMERIC-TESTS",
-      "EV-LOCAL-MODAL-NUMERIC-REPLAY"
-    ],
-    "source_sha256": "8b4851511cdcae04734866924bbacb079f9e7903a01d6c7a9b2bd8ebcd32a311",
-    "run_id": "RUN-567d448b129c4adebbeb983f433d4577",
-    "results_sha256": "c172474dc5e3cdab8357a865d38e8ea03c1fd88ebdcfd471b21e06836cffa9f5",
+    "server_restart_pending": false,
+    "observed_server_method": "same-source-spectral-components.v6",
+    "next_action": "Qualify amplitude/damping precision and applied torsion through existing owners, then independently verify modal/directional aggregation before SCWB/alpha consumption.",
+    "engineering_checks_closed": 0,
     "engineering_release": "NOT_READY",
-    "live_validation": "NOT_RUN_USER_ORDERED_AFTER_INTEGRATION",
-    "github_push": false,
-    "reference_entry_point": "docs/engineering/reference/recipe_20261118/README.md"
+    "formal_compliance": "NOT_PROVEN",
+    "local_integration": "Verified milestone fast-forward integrated; work/spectral-live-acceptance retained."
   },
   "last_observed_remote_implementation": {
     "branch": "audit/pipeline-pmm-v6-20261117",
@@ -2229,6 +2231,351 @@
         "Printed Vis/Vik agreement does not prove physical story/SCWB scope or alpha authority.",
         "Full regression, pipeline replay and live ETABS were not rerun for this reference-only import."
       ]
+    },
+    {
+      "id": "EV-PUBLISH-RECIPE18",
+      "observed_at": "2026-11-18T18:58:13.004704+00:00",
+      "scope": "Published code and recipe checkpoint; remote SHA independently verified.",
+      "implementation_commit": "a9d053f3422d981e3c576fe5e4c0d4b72549d150",
+      "record": {
+        "observed_at_utc": "2026-11-18T18:51:04.058048+00:00",
+        "repository": "feridunfc/YENI",
+        "branch": "baseline/local_import",
+        "remote_commit": "a9d053f3422d981e3c576fe5e4c0d4b72549d150",
+        "local_commit": "a9d053f3422d981e3c576fe5e4c0d4b72549d150",
+        "remote_matches_local": true,
+        "verification_command": "git ls-remote --heads origin refs/heads/baseline/local_import",
+        "push_executed_by": "USER_NORMAL_POWERSHELL_AFTER_SANDBOX_CREDENTIAL_MANAGER_FAILURE",
+        "original_sandbox_failure": "Git Credential Manager MSYS NtCreateDirectoryObject 0xC0000022; no commit was uploaded by the failed attempt.",
+        "main_merge": false,
+        "force_push": false,
+        "recipe_entrypoint": "docs/engineering/reference/recipe_20261118/README.md",
+        "private_source_bytes_in_publication": false
+      },
+      "private_artifact": ".receipts/verification/live-modal-numeric-20261118T184903Z/publication.json",
+      "private_artifact_sha256": "f03b11008ef99ed14b20e63e9e1f83526630587d5262a38f9cadf2de096c80e0",
+      "engineering_release_granted": false
+    },
+    {
+      "id": "EV-LIVE-MODAL-NUMERIC-INITIAL",
+      "observed_at": "2026-11-18T18:58:13.004704+00:00",
+      "scope": "Initial live source contract: torsion definitions bound, modal numeric getter blocked.",
+      "implementation_commit": "a9d053f3422d981e3c576fe5e4c0d4b72549d150",
+      "record": {
+        "schema": "yeni.live-modal-numeric-initial.v1",
+        "run_id": "RUN-9fb3c8b641b44f76827f43c4d886f859",
+        "source_sha256": "a8bda1f9bd69d1fc41ecb8e3648a15f1cd3b55108661baf74ebcd8d0f1c6488c",
+        "results_sha256": "f9f407f1b8d512aa6c102025df87dab88ac853719f4223579cdc0cddade55e9d",
+        "method": {
+          "configuration_file_count": 9,
+          "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+          "file_count": 126,
+          "package_sha256": "fd204205682c2d88c404ca4a7420631fc56638ec6fff2e36ce6f29c2f5e1f5e4",
+          "python_implementation": "CPython",
+          "python_version": "3.12.10"
+        },
+        "receipt_count": 16,
+        "period_getter_rows": 100,
+        "participation_getter_status": "CAPTURE_ERROR",
+        "participation_error": "SourceError: NATIVE_MODAL_RESULT_IDENTITY_OR_NUMBER_INVALID",
+        "qualified_numeric_modes": 0,
+        "expected_numeric_modes": 100,
+        "torsion_cases_bound": 2,
+        "torsion_default_ratio_by_case": {
+          "RSX": 0.05,
+          "RSY": 0.05
+        },
+        "torsion_overrides": 0,
+        "output_selection_restored": true,
+        "mode_option_restored": true,
+        "column_count": 87,
+        "design_pairs": 957,
+        "signed_pmm_rows": 1206,
+        "new_full_engineering_checks_closed": 0,
+        "engineering_release": "NOT_READY",
+        "next_action": "Read the native rejected return through the same capture adapter after the user restarts the server. Validation remains strict."
+      },
+      "private_artifact": ".receipts/verification/live-modal-numeric-20261118T184903Z/initial-live-source-evidence.json",
+      "private_artifact_sha256": "8f1bcd3a30e133dc21de5e0cf1aa3f95b1f1bfd30b4e26690d0a30d70be431fe",
+      "engineering_release_granted": false
+    },
+    {
+      "id": "EV-LIVE-MODAL-DIAGNOSTIC-TESTS",
+      "observed_at": "2026-11-18T18:58:13.004704+00:00",
+      "scope": "Error-data preservation tests only; current live numeric acceptance pending.",
+      "implementation_commit": "a9d053f3422d981e3c576fe5e4c0d4b72549d150",
+      "record": {
+        "completed_at_utc": "2026-11-18T18:56:02.795485+00:00",
+        "source_commit": "a9d053f3422d981e3c576fe5e4c0d4b72549d150",
+        "work_branch": "work/spectral-live-acceptance",
+        "dirty_paths": [
+          "src/tbdy_next/frame_force_capture.py",
+          "tests/test_native_demand_sources.py"
+        ],
+        "manifest_sha256": "43949c79fb80ecf8731e3a1b4593e00a7388cc992b60e89ded8b040fe25357d5",
+        "command": ".\\.venv\\Scripts\\python.exe -X utf8 -B -m unittest discover -s tests -p test_native_demand_sources.py -v",
+        "result": "76 tests OK",
+        "new_tests_included": 3,
+        "environment": {
+          "python": "3.12.10",
+          "platform": "Windows-11-10.0.26200-SP0"
+        },
+        "log_path": ".receipts/verification/live-modal-numeric-20261118T184903Z/native-capture-focused.log",
+        "log_sha256": "a3076703780102cf650d2f9f12ec75c63468b579f3d83755b98a38cdabad8834",
+        "validation_rules_relaxed": false,
+        "live_data_contract_accepted": false
+      },
+      "private_artifact": ".receipts/verification/live-modal-numeric-20261118T184903Z/native-diagnostic-tests.json",
+      "private_artifact_sha256": "2b55bc2592d87c5571c77693c0908d11ce557b34f0408893f53303c656345d2a",
+      "engineering_release_granted": false
+    },
+    {
+      "observed_at": "2026-11-18T19:21:27.180303+00:00",
+      "implementation_commit": "a9d053f3422d981e3c576fe5e4c0d4b72549d150",
+      "implementation_commit_role": "BASE_OF_TESTED_DIRTY_WORKTREE",
+      "dirty_worktree": true,
+      "tested_file_manifest_sha256": "4dc69b85204ae68e076c4005b625c1cc4a9fffc3909a3bb6b2eb7314d6cfb196",
+      "tested_file_manifest_path": "docs/context/TESTED_FILES_MODAL_LIVE_20261118.json",
+      "diff_sha256": "76af62c687f546820ceac7c61a8ea059257f446a368f72901fcf4e742fc26d34",
+      "diff_scope": [
+        "src/tbdy_next/frame_force_capture.py",
+        "src/tbdy_next/engineering/demand_sources.py",
+        "src/tbdy_next/engineering/pipeline.py",
+        "src/tbdy_next/reporting.py",
+        "tests/test_native_demand_sources.py"
+      ],
+      "untracked_code_included": false,
+      "environment": {
+        "platform": "Windows 11 build 26200",
+        "python": "CPython 3.12.10",
+        "node": "24.22.1"
+      },
+      "status": "PASS",
+      "engineering_release_granted": false,
+      "public_reference_paths": [
+        "docs/engineering/LIVE_MODAL_IDENTITY_ACCEPTANCE_20261118.md",
+        "docs/engineering/PIPELINE_UNIFICATION_20261115.md"
+      ],
+      "id": "EV-LIVE-MODAL-IDENTITY",
+      "scope": "Same-session native numeric/modal identity and eccentricity definition acceptance; no applied-torsion or structural closure.",
+      "private_artifact": ".receipts/verification/live-modal-numeric-20261118T184903Z/live-v6-inspection.json",
+      "private_artifact_sha256": "ed72354342836aa5accbc34535dd918ace8e111639e511595eb417c8a9331e8d",
+      "source_ids": [
+        "RUN-77039b97519e45029e209f0031d72d36"
+      ],
+      "source_sha256": "9e5535ad2fe5749aa897a16023a3f7288062388df65f23013d243bbdb77bf640",
+      "results_sha256": "c88b0245b764cef48534c966c4fb5d680d4b2cac20f4d14ea975193e5dafaac8",
+      "method": {
+        "configuration_file_count": 9,
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 126,
+        "package_sha256": "92f34f2baf472c4e30cfbeee8721a7225416ed7cbf4bdf37326cf50fd47599bc",
+        "python_implementation": "CPython",
+        "python_version": "3.12.10"
+      },
+      "method_version": "same-source-spectral-components.v6",
+      "counts": {
+        "modal_period_rows": 100,
+        "modal_participation_rows": 100,
+        "expected_modes": 100,
+        "bound_modes": 100,
+        "eccentricity_cases_bound": 2,
+        "new_engineering_checks_closed": 0
+      },
+      "criteria": {
+        "raw_null_zero_retained": true,
+        "complete_period_inventory_required": true,
+        "binding": "UNIQUE_EXACT_SAME_CASE_PERIOD",
+        "row_order_or_nearest_period_allowed": false,
+        "output_selection_restored": true,
+        "mode_option_restored": true,
+        "model_locked_before_and_after": true,
+        "api_units_before_and_after": 6
+      },
+      "commands": [
+        "POST /api/live-vs04?case=Modal&check=column-pmm&member=ALL with the existing 11 assigned design combinations; exact query retained privately"
+      ],
+      "diagnostic_predecessor_run": "RUN-30baeb3bb37840a7b12160d35f4f59fd",
+      "archived_error_receipts_reclassified": false,
+      "original_private_manifest_sha256": "1d9f8e714d2538f8d9e8928cd68c4f3b3c526b3f4f9fad0865db213eee7f46a9",
+      "manifest_publication_note": "Public JSON is LF-normalized; all 445 recorded path/hash pairs are identical to the preserved pre-test private CRLF manifest."
+    },
+    {
+      "observed_at": "2026-11-18T19:21:27.180303+00:00",
+      "implementation_commit": "a9d053f3422d981e3c576fe5e4c0d4b72549d150",
+      "implementation_commit_role": "BASE_OF_TESTED_DIRTY_WORKTREE",
+      "dirty_worktree": true,
+      "tested_file_manifest_sha256": "4dc69b85204ae68e076c4005b625c1cc4a9fffc3909a3bb6b2eb7314d6cfb196",
+      "tested_file_manifest_path": "docs/context/TESTED_FILES_MODAL_LIVE_20261118.json",
+      "diff_sha256": "76af62c687f546820ceac7c61a8ea059257f446a368f72901fcf4e742fc26d34",
+      "diff_scope": [
+        "src/tbdy_next/frame_force_capture.py",
+        "src/tbdy_next/engineering/demand_sources.py",
+        "src/tbdy_next/engineering/pipeline.py",
+        "src/tbdy_next/reporting.py",
+        "tests/test_native_demand_sources.py"
+      ],
+      "untracked_code_included": false,
+      "environment": {
+        "platform": "Windows 11 build 26200",
+        "python": "CPython 3.12.10",
+        "node": "24.22.1"
+      },
+      "status": "PASS",
+      "engineering_release_granted": false,
+      "public_reference_paths": [
+        "docs/engineering/LIVE_MODAL_IDENTITY_ACCEPTANCE_20261118.md",
+        "docs/engineering/PIPELINE_UNIFICATION_20261115.md"
+      ],
+      "id": "EV-LIVE-MODAL-NUMERIC-ORACLE",
+      "scope": "Independent Decimal(80) numeric relationships and same-case identity audit; no solver accuracy or physical design acceptance.",
+      "private_artifact": ".receipts/verification/live-modal-numeric-20261118T184903Z/native-modal-independent-audit.json",
+      "private_artifact_sha256": "17dab8eb72f095abfc5160efa8d33c11137969471103969341a6fd92c00ea9e3",
+      "source_ids": [
+        "RUN-77039b97519e45029e209f0031d72d36"
+      ],
+      "counts": {
+        "independent_expected_modes": 100,
+        "unique_identity_matches": 100,
+        "numeric_relationship_comparisons": 500,
+        "outside_tolerance": 0
+      },
+      "tolerances": {
+        "budget": "32 * max(ulp(observed), ulp(expected))",
+        "maximum_observed_ulp_difference": "4"
+      },
+      "commands": [
+        ".\\.venv\\Scripts\\python.exe -X utf8 -B .receipts/verification/live-modal-numeric-20261118T184903Z/audit_native_numbers.py"
+      ],
+      "production_calculation_imports": 0,
+      "verification_script_sha256": "703004fbc50dc452f4eab2acca68c6e7d8d460c0010f02b3effbd0ee75ffc4b1",
+      "original_private_manifest_sha256": "1d9f8e714d2538f8d9e8928cd68c4f3b3c526b3f4f9fad0865db213eee7f46a9",
+      "manifest_publication_note": "Public JSON is LF-normalized; all 445 recorded path/hash pairs are identical to the preserved pre-test private CRLF manifest."
+    },
+    {
+      "observed_at": "2026-11-18T19:21:27.180303+00:00",
+      "implementation_commit": "a9d053f3422d981e3c576fe5e4c0d4b72549d150",
+      "implementation_commit_role": "BASE_OF_TESTED_DIRTY_WORKTREE",
+      "dirty_worktree": true,
+      "tested_file_manifest_sha256": "4dc69b85204ae68e076c4005b625c1cc4a9fffc3909a3bb6b2eb7314d6cfb196",
+      "tested_file_manifest_path": "docs/context/TESTED_FILES_MODAL_LIVE_20261118.json",
+      "diff_sha256": "76af62c687f546820ceac7c61a8ea059257f446a368f72901fcf4e742fc26d34",
+      "diff_scope": [
+        "src/tbdy_next/frame_force_capture.py",
+        "src/tbdy_next/engineering/demand_sources.py",
+        "src/tbdy_next/engineering/pipeline.py",
+        "src/tbdy_next/reporting.py",
+        "tests/test_native_demand_sources.py"
+      ],
+      "untracked_code_included": false,
+      "environment": {
+        "platform": "Windows 11 build 26200",
+        "python": "CPython 3.12.10",
+        "node": "24.22.1"
+      },
+      "status": "PASS",
+      "engineering_release_granted": false,
+      "public_reference_paths": [
+        "docs/engineering/LIVE_MODAL_IDENTITY_ACCEPTANCE_20261118.md",
+        "docs/engineering/PIPELINE_UNIFICATION_20261115.md"
+      ],
+      "id": "EV-LIVE-MODAL-ACCEPTANCE-TESTS",
+      "scope": "Fresh local software tests for v6 identity binding and retained diagnostics; counts are tests, not engineering CHECKs.",
+      "private_artifact": ".receipts/verification/live-modal-numeric-20261118T184903Z/offline-test-evidence.json",
+      "private_artifact_sha256": "703778a89651afb3e87513241e683a3e9fab56d370a05a2fb995ff27791b0da9",
+      "counts": {
+        "focused": 87,
+        "new_tests_over_published_base": 14,
+        "python_full": 1407,
+        "python_skipped": 1,
+        "javascript_files_passed": 10,
+        "installed_wheel": 241
+      },
+      "commands": [
+        ".\\.venv\\Scripts\\python.exe -X utf8 -B -m unittest discover -s tests -p test_native_demand_sources.py -v",
+        ".\\.venv\\Scripts\\python.exe -X utf8 -B tools/test_offline.py",
+        ".\\.venv\\Scripts\\python.exe -X utf8 -B -m pip wheel --no-build-isolation --no-index --disable-pip-version-check --no-deps --wheel-dir <private-wheel-directory> <private-clean-tracked-source>",
+        ".\\.venv\\Scripts\\python.exe -X utf8 -B tools/test_installed_wheel.py <private-wheel-directory>"
+      ],
+      "exit_code": 0,
+      "log_hashes": {
+        "offline-full.log": "dd5c310e32f78a642ea2ae913ef3f8da27ff38b012953c202771339fd573819a",
+        "native-identity-focused.log": "43e2fe98fcf0d3b47b8ba422a31f8094809f15c38f5e68602f29e1f74b31a5da",
+        "wheel-build.log": "9100818a7d0d80c3728371e4494b8b17331bdb80c360b1e6364ee17c98698f29",
+        "wheel-tests.log": "e125f1e5266a4edb45b3abb8a767039e95c1092096f14b682d3395188f1a82cf",
+        "repeat.log": "b6e4b76d42dfd86fa1507e0f6ba48bc81f5f76ebb46a315060f77a6623523edc",
+        "report-projection.log": "abb78cfd4b6910c8b7200823c7ad127aac5aabb911b64954352f0ca64bc2bc72"
+      },
+      "wheel_sha256": "6f0f35cb3434a122857dadda8f245d8fc073db9d89fe2e427a51ec3423ed630c",
+      "wheel_source_files": 317,
+      "github_ci": "NOT_RUN",
+      "runtime_test_tool_configuration_files_rechecked": 316,
+      "original_private_manifest_sha256": "1d9f8e714d2538f8d9e8928cd68c4f3b3c526b3f4f9fad0865db213eee7f46a9",
+      "manifest_publication_note": "Public JSON is LF-normalized; all 445 recorded path/hash pairs are identical to the preserved pre-test private CRLF manifest."
+    },
+    {
+      "observed_at": "2026-11-18T19:21:27.180303+00:00",
+      "implementation_commit": "a9d053f3422d981e3c576fe5e4c0d4b72549d150",
+      "implementation_commit_role": "BASE_OF_TESTED_DIRTY_WORKTREE",
+      "dirty_worktree": true,
+      "tested_file_manifest_sha256": "4dc69b85204ae68e076c4005b625c1cc4a9fffc3909a3bb6b2eb7314d6cfb196",
+      "tested_file_manifest_path": "docs/context/TESTED_FILES_MODAL_LIVE_20261118.json",
+      "diff_sha256": "76af62c687f546820ceac7c61a8ea059257f446a368f72901fcf4e742fc26d34",
+      "diff_scope": [
+        "src/tbdy_next/frame_force_capture.py",
+        "src/tbdy_next/engineering/demand_sources.py",
+        "src/tbdy_next/engineering/pipeline.py",
+        "src/tbdy_next/reporting.py",
+        "tests/test_native_demand_sources.py"
+      ],
+      "untracked_code_included": false,
+      "environment": {
+        "platform": "Windows 11 build 26200",
+        "python": "CPython 3.12.10",
+        "node": "24.22.1"
+      },
+      "status": "PASS",
+      "engineering_release_granted": false,
+      "public_reference_paths": [
+        "docs/engineering/LIVE_MODAL_IDENTITY_ACCEPTANCE_20261118.md",
+        "docs/engineering/PIPELINE_UNIFICATION_20261115.md"
+      ],
+      "id": "EV-LIVE-MODAL-REPLAY-REPORT",
+      "scope": "Same-source repeat and sealed JSON/HTML report projection through existing owners and user server.",
+      "private_artifact": ".receipts/verification/live-modal-numeric-20261118T184903Z/report-projection.json",
+      "private_artifact_sha256": "24f8db7c4113df1367f8f3f8e494fd3e2747bcbe9d18f03fa8bebddecc5c0189",
+      "source_ids": [
+        "RUN-77039b97519e45029e209f0031d72d36",
+        "RUN-01b2d1ec09bc405d9f73b5aba3341a6a"
+      ],
+      "counts": {
+        "identical_receipts": 16,
+        "reference_receipts": 16,
+        "disabled_calculators": 25,
+        "calculator_calls": 0,
+        "live_calls_during_projection": 0
+      },
+      "comparison": {
+        "reference_stages": 16,
+        "current_stages": 16,
+        "mismatched_stages": [],
+        "missing_stages": [],
+        "extra_stages": [],
+        "source_identical": true,
+        "sealed_stage_coverage": true,
+        "comparison_scope": "PIPELINE_RESULTS_REPORT_EVIDENCE_AND_ALL_RECORDED_RECEIPTS",
+        "status": "IDENTICAL"
+      },
+      "commands": [
+        ".\\.venv\\Scripts\\python.exe -X utf8 -B -m tbdy_next.cli run-pipeline --source .receipts/RUN-77039b97519e45029e209f0031d72d36/input.source --case Modal --out <private-repeat-directory> --compare-run .receipts/RUN-77039b97519e45029e209f0031d72d36",
+        ".\\.venv\\Scripts\\python.exe -X utf8 -B .receipts/verification/live-modal-numeric-20261118T184903Z/verify_report_projection.py"
+      ],
+      "user_server_json_and_html_equal": true,
+      "report_html_sha256": "2ddb98c5fef42ef7f22fab89f8b2023dcb8d6ce16b8debef88bc0086cbaf67a9",
+      "verification_script_sha256": "5552a19a1e979894d2d60a41e6b953ac349f5f319fda010373679dfbce6e0994",
+      "alpha_iteration_executed": false,
+      "original_private_manifest_sha256": "1d9f8e714d2538f8d9e8928cd68c4f3b3c526b3f4f9fad0865db213eee7f46a9",
+      "manifest_publication_note": "Public JSON is LF-normalized; all 445 recorded path/hash pairs are identical to the preserved pre-test private CRLF manifest."
     }
   ],
   "new_record_template": {
@@ -2253,7 +2600,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-18T18:38:32.698750+00:00",
+  "updated_at_utc": "2026-11-18T19:21:27.180303+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -2418,6 +2765,129 @@
       "results_sha256": "c172474dc5e3cdab8357a865d38e8ea03c1fd88ebdcfd471b21e06836cffa9f5",
       "engineering_release": "NOT_READY",
       "live_validation": "NOT_RUN"
+    },
+    {
+      "status": "LOCAL_BASELINE_RECIPE_INTEGRATED_LIVE_ACCEPTANCE_PENDING",
+      "branch": "baseline/local_import",
+      "integration_base_branch": "baseline/local_import",
+      "previous_integration_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "runtime_source_commit": "250ff1974316070393f3fff9847d941a80dcd47e",
+      "head_resolution": "git rev-parse baseline/local_import; this context is committed before the validated fast-forward integration",
+      "preserved_work_branch": "work/spectral-modal-source",
+      "runtime_changes_during_recipe_intake": false,
+      "tests_or_config_changes_during_recipe_intake": false,
+      "method": {
+        "python_implementation": "CPython",
+        "python_version": "3.12.10",
+        "package_sha256": "fd204205682c2d88c404ca4a7420631fc56638ec6fff2e36ce6f29c2f5e1f5e4",
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 126,
+        "configuration_file_count": 9
+      },
+      "registered_method": "same-source-spectral-components.v5",
+      "prior_test_manifest_path": "docs/context/TESTED_FILES_MODAL_NUMERIC_20261118.json",
+      "prior_test_manifest_sha256": "16e69bfae0fc5e1e7fb877cc71b3c710ab1a789f86ae52c19b2ec2504e85c422",
+      "prior_tests_rerun_for_this_reference_intake": false,
+      "evidence_refs": [
+        "EV-RECIPE18-INTAKE",
+        "EV-RECIPE18-ARITHMETIC",
+        "EV-RECIPE18-LOCAL-OWNERS"
+      ],
+      "prior_runtime_evidence_refs": [
+        "EV-LOCAL-MODAL-NUMERIC-ADAPTER",
+        "EV-LOCAL-MODAL-NUMERIC-TESTS",
+        "EV-LOCAL-MODAL-NUMERIC-REPLAY"
+      ],
+      "source_sha256": "8b4851511cdcae04734866924bbacb079f9e7903a01d6c7a9b2bd8ebcd32a311",
+      "run_id": "RUN-567d448b129c4adebbeb983f433d4577",
+      "results_sha256": "c172474dc5e3cdab8357a865d38e8ea03c1fd88ebdcfd471b21e06836cffa9f5",
+      "engineering_release": "NOT_READY",
+      "live_validation": "NOT_RUN_USER_ORDERED_AFTER_INTEGRATION",
+      "github_push": false,
+      "reference_entry_point": "docs/engineering/reference/recipe_20261118/README.md"
+    },
+    {
+      "status": "NATIVE_NULL_ZERO_IDENTITY_BOUND_OFFLINE_LIVE_ACCEPTANCE_PENDING",
+      "branch": "work/spectral-live-acceptance",
+      "integration_base_branch": "baseline/local_import",
+      "integration_base_commit": "a9d053f3422d981e3c576fe5e4c0d4b72549d150",
+      "published_baseline_commit": "a9d053f3422d981e3c576fe5e4c0d4b72549d150",
+      "dirty_runtime_and_test_paths": [
+        "src/tbdy_next/frame_force_capture.py",
+        "src/tbdy_next/engineering/demand_sources.py",
+        "src/tbdy_next/engineering/pipeline.py",
+        "src/tbdy_next/reporting.py",
+        "tests/test_native_demand_sources.py"
+      ],
+      "initial_live_run": {
+        "schema": "yeni.live-modal-numeric-initial.v1",
+        "run_id": "RUN-9fb3c8b641b44f76827f43c4d886f859",
+        "source_sha256": "a8bda1f9bd69d1fc41ecb8e3648a15f1cd3b55108661baf74ebcd8d0f1c6488c",
+        "results_sha256": "f9f407f1b8d512aa6c102025df87dab88ac853719f4223579cdc0cddade55e9d",
+        "method": {
+          "configuration_file_count": 9,
+          "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+          "file_count": 126,
+          "package_sha256": "fd204205682c2d88c404ca4a7420631fc56638ec6fff2e36ce6f29c2f5e1f5e4",
+          "python_implementation": "CPython",
+          "python_version": "3.12.10"
+        },
+        "receipt_count": 16,
+        "period_getter_rows": 100,
+        "participation_getter_status": "CAPTURE_ERROR",
+        "participation_error": "SourceError: NATIVE_MODAL_RESULT_IDENTITY_OR_NUMBER_INVALID",
+        "qualified_numeric_modes": 0,
+        "expected_numeric_modes": 100,
+        "torsion_cases_bound": 2,
+        "torsion_default_ratio_by_case": {
+          "RSX": 0.05,
+          "RSY": 0.05
+        },
+        "torsion_overrides": 0,
+        "output_selection_restored": true,
+        "mode_option_restored": true,
+        "column_count": 87,
+        "design_pairs": 957,
+        "signed_pmm_rows": 1206,
+        "new_full_engineering_checks_closed": 0,
+        "engineering_release": "NOT_READY",
+        "next_action": "Read the native rejected return through the same capture adapter after the user restarts the server. Validation remains strict."
+      },
+      "focused_diagnostic_tests": {
+        "completed_at_utc": "2026-11-18T18:56:02.795485+00:00",
+        "source_commit": "a9d053f3422d981e3c576fe5e4c0d4b72549d150",
+        "work_branch": "work/spectral-live-acceptance",
+        "dirty_paths": [
+          "src/tbdy_next/frame_force_capture.py",
+          "tests/test_native_demand_sources.py"
+        ],
+        "manifest_sha256": "43949c79fb80ecf8731e3a1b4593e00a7388cc992b60e89ded8b040fe25357d5",
+        "command": ".\\.venv\\Scripts\\python.exe -X utf8 -B -m unittest discover -s tests -p test_native_demand_sources.py -v",
+        "result": "76 tests OK",
+        "new_tests_included": 3,
+        "environment": {
+          "python": "3.12.10",
+          "platform": "Windows-11-10.0.26200-SP0"
+        },
+        "log_path": ".receipts/verification/live-modal-numeric-20261118T184903Z/native-capture-focused.log",
+        "log_sha256": "a3076703780102cf650d2f9f12ec75c63468b579f3d83755b98a38cdabad8834",
+        "validation_rules_relaxed": false,
+        "live_data_contract_accepted": false
+      },
+      "next_action": "Finish sequential full regression, acquire through the already restarted existing server, then verify same-source repeat and sealed report. No pending user input.",
+      "engineering_release": "NOT_READY",
+      "evidence_refs": [
+        "EV-PUBLISH-RECIPE18",
+        "EV-LIVE-MODAL-NUMERIC-INITIAL",
+        "EV-LIVE-MODAL-DIAGNOSTIC-TESTS"
+      ],
+      "method_version": "same-source-spectral-components.v6",
+      "diagnostic_run_id": "RUN-30baeb3bb37840a7b12160d35f4f59fd",
+      "diagnosis": "100 null StepType / zero StepNum participation rows; 100 unique exact same-case period matches. Raw archived CAPTURE_ERROR stays rejected.",
+      "current_focused_test_count": 87,
+      "current_full_regression": "RUNNING",
+      "server_restart_confirmed": true,
+      "server_registry_method": "same-source-spectral-components.v6"
     }
   ]
 }

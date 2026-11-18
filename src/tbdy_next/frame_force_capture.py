@@ -1,6 +1,7 @@
 """Read selected native frame forces on an already attached ETABS model."""
 from __future__ import annotations
 
+import json
 import math
 
 from .column_engine.source_bank import FIELDS, FORCE_SIGNATURE, native_frame_force_rows
@@ -20,8 +21,13 @@ MODAL_RESULTS_SCHEMA = "tbdy.next.native-modal-results.v1"
 ECCENTRICITY_SCHEMA = "tbdy.next.native-spectrum-eccentricity.v1"
 
 
-def native_modal_rows(record, method, modes):
-    """Shared native-double contract for capture and replay; never round values."""
+def native_modal_rows(record, method, modes, *, period_record=None):
+    """Validate native values and bind identities without changing raw API fields.
+
+    The observed ETABS 23 participation return omits step identity (null/zero).
+    Only a unique exact period in the same case and complete companion getter
+    can resolve it. Repeated periods, nearest matches and row order are unsafe.
+    """
     fields = MODAL_RESULT_FIELDS[method]
     if not isinstance(record, dict) or set(record) != {"NumberResults", "ret", *fields}:
         raise SourceError("NATIVE_MODAL_RESULT_FIELDS_INVALID")
@@ -30,20 +36,39 @@ def native_modal_rows(record, method, modes):
             or type(record["ret"]) is not int or record["ret"] != 0
             or any(not isinstance(record[k], (list, tuple)) or len(record[k]) != count for k in fields)):
         raise SourceError("NATIVE_MODAL_RESULT_ARRAYS_INVALID")
-    rows, seen = [], set()
+    rows, seen, period_index = [], set(), None
     for values in zip(*(record[k] for k in fields)):
         row = dict(zip(fields, values))
-        if (not isinstance(row["LoadCase"], str) or row["LoadCase"] not in modes or row["StepType"] != "Mode"
+        if (not isinstance(row["LoadCase"], str) or row["LoadCase"] not in modes
                 or any(type(row[k]) not in (int, float) or not math.isfinite(row[k]) for k in fields[2:])
-                or row["StepNum"] != int(row["StepNum"]) or row["StepNum"] not in modes[row["LoadCase"]]):
+                or row["StepNum"] != int(row["StepNum"])):
             raise SourceError("NATIVE_MODAL_RESULT_IDENTITY_OR_NUMBER_INVALID")
-        identity = row["LoadCase"], int(row["StepNum"])
+        if row["StepType"] == "Mode" and row["StepNum"] in modes[row["LoadCase"]]:
+            mode, basis = int(row["StepNum"]), "NATIVE_CASE_STEP"
+        elif method == "ModalParticipationFactors" and row["StepType"] is None and row["StepNum"] == 0:
+            if period_index is None:
+                companions = native_modal_rows(period_record, "ModalPeriod", modes)
+                expected = {(case, mode) for case, values in modes.items() for mode in values}
+                if {(r["LoadCase"], r["mode_identity"]["mode"]) for r in companions} != expected:
+                    raise SourceError("NATIVE_MODAL_IDENTITY_PERIOD_INVENTORY_INCOMPLETE")
+                period_index = {}
+                for companion in companions:
+                    key = companion["LoadCase"], companion["Period"]
+                    period_index.setdefault(key, []).append(companion["mode_identity"]["mode"])
+            candidates = period_index.get((row["LoadCase"], row["Period"]), [])
+            if len(candidates) != 1:
+                raise SourceError("NATIVE_MODAL_IDENTITY_PERIOD_MATCH_NOT_UNIQUE")
+            mode, basis = candidates[0], "UNIQUE_EXACT_SAME_CASE_PERIOD"
+        else:
+            raise SourceError("NATIVE_MODAL_RESULT_IDENTITY_OR_NUMBER_INVALID")
+        identity = row["LoadCase"], mode
         if identity in seen:
             raise SourceError("NATIVE_MODAL_RESULT_DUPLICATE_MODE")
         if any(row[k] <= 0 for k in (("Period", "Frequency", "CircFreq", "EigenValue")
                 if method == "ModalPeriod" else ("Period", "ModalMass", "ModalStiff"))):
             raise SourceError("NATIVE_MODAL_RESULT_NONPOSITIVE_PROPERTY")
         seen.add(identity)
+        row["mode_identity"] = {"mode": mode, "basis": basis}
         rows.append(row)
     return rows
 
@@ -70,7 +95,28 @@ def _capture_modal_numbers(results, modes):
             if not isinstance(raw, (list, tuple)) or len(raw) != len(fields) + 2:
                 raise SourceError("NATIVE_MODAL_RESULT_ABI_UNKNOWN")
             data = dict(zip(("NumberResults", *fields, "ret"), raw))
-            native_modal_rows(data, method, modes)
+            # Keep the native return as source evidence even when validation fails.
+            # CAPTURE_ERROR is never eligible for the numeric evidence owner.
+            # Non-JSON values must not poison the otherwise valid source capture.
+            if any(isinstance(value, (list, tuple)) and len(value) > MAX_FORCE_ROWS
+                   for value in data.values()):
+                raise SourceError("NATIVE_MODAL_RESULT_ARRAYS_INVALID")
+            try:
+                json.dumps(data, allow_nan=False)
+            except (TypeError, ValueError):
+                record["unserializable_native_values"] = [
+                    {"field": field, "index": index, "type": type(value).__name__,
+                     "representation": repr(value)[:160]}
+                    for field, values in data.items()
+                    for index, value in enumerate(values if isinstance(values, (tuple, list)) else [values])
+                    if (type(value) not in (str, int, float, bool, type(None))
+                        or type(value) is float and not math.isfinite(value))
+                ][:32]
+            else:
+                record["data"] = data
+            period = methods.get("ModalPeriod", {})
+            native_modal_rows(data, method, modes,
+                              period_record=period.get("data") if period.get("status") == "CAPTURED" else None)
             record.update(status="CAPTURED", data=data)
         except Exception as exc:
             record.update(status="CAPTURE_ERROR", error=f"{type(exc).__name__}: {exc}"[:400])

@@ -64,8 +64,10 @@ def native_modal_precision(source, plan, period_rows):
             rec = capture["methods"][method]
             if not isinstance(rec, dict) or rec.get("api") != "Results." + method or rec.get("status") != "CAPTURED":
                 raise ValueError("NATIVE_MODAL_NUMERIC_METHOD_UNAVAILABLE:" + method)
-            indexed[method] = {(r["LoadCase"], int(r["StepNum"])): r
-                               for r in native_modal_rows(rec.get("data"), method, modes)}
+            period = capture["methods"]["ModalPeriod"]
+            indexed[method] = {(r["LoadCase"], r["mode_identity"]["mode"]): r
+                               for r in native_modal_rows(rec.get("data"), method, modes,
+                                   period_record=period.get("data") if period.get("status") == "CAPTURED" else None)}
         period_table = source["analysis_sources"]["tables"]["Modal Periods And Frequencies"]
         checked_periods = _read_table(period_table, "Modal Periods And Frequencies",
             {"Case", "Mode", "Period", "Frequency", "CircFreq", "Eigenvalue"},
@@ -94,7 +96,8 @@ def native_modal_precision(source, plan, period_rows):
                     f = indexed["ModalParticipationFactors"].get(identity)
                     if p is None or f is None:
                         raise ValueError("NATIVE_MODAL_NUMERIC_MODE_MISSING")
-                    row.update(period_api_values=p, participation_api_values=f)
+                    row.update(period_api_values=p, participation_api_values=f,
+                               participation_identity_basis=f["mode_identity"]["basis"])
                     pairs = ((p["Period"], f["Period"]), (p["Frequency"], 1 / p["Period"]),
                              (p["CircFreq"], 2 * math.pi * p["Frequency"]),
                              (p["EigenValue"], p["CircFreq"] ** 2),
