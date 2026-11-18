@@ -1,0 +1,509 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:yeni:integration:source-manifest:v1",
+  "title": "SOURCE_MANIFEST v1 schema",
+  "type": "object",
+  "properties": {
+    "atlas": {
+      "type": "object",
+      "properties": {
+        "index_pages": {
+          "type": "integer"
+        },
+        "page_mappings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "atlas_page": {
+                "type": "integer"
+              },
+              "example_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "filename": {
+                "type": "string"
+              },
+              "pdf_page": {
+                "type": "integer"
+              },
+              "source_id": {
+                "type": "string"
+              },
+              "source_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "required": [
+              "atlas_page",
+              "example_ids",
+              "filename",
+              "pdf_page",
+              "source_id",
+              "source_sha256"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "source_id": {
+          "type": "string"
+        },
+        "source_pages": {
+          "type": "integer"
+        },
+        "total_pages": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "index_pages",
+        "page_mappings",
+        "sha256",
+        "source_id",
+        "source_pages",
+        "total_pages"
+      ],
+      "additionalProperties": false
+    },
+    "date": {
+      "type": "string"
+    },
+    "golden_sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "access_class": {
+            "type": "string"
+          },
+          "example_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "original_filename": {
+            "type": "string"
+          },
+          "original_pdf_pages": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "private_access_record": {
+            "type": "string"
+          },
+          "public_access_link": {
+            "type": "null"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "size_bytes": {
+            "type": "integer"
+          },
+          "source_id": {
+            "type": "string"
+          },
+          "use": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_class",
+          "example_ids",
+          "original_filename",
+          "original_pdf_pages",
+          "private_access_record",
+          "public_access_link",
+          "sha256",
+          "size_bytes",
+          "source_id",
+          "use"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "language": {
+      "const": "en"
+    },
+    "preservation_index": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "destination": {
+            "type": "string"
+          },
+          "original_source_id": {
+            "type": "string"
+          },
+          "preservation": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "destination",
+          "original_source_id",
+          "preservation"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "preserved_artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "access_class": {
+            "type": "string"
+          },
+          "evidence_status": {
+            "type": "string"
+          },
+          "original_filename": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "size_bytes": {
+            "type": "integer"
+          },
+          "source_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_class",
+          "evidence_status",
+          "original_filename",
+          "role",
+          "sha256",
+          "size_bytes",
+          "source_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "privacy_contract": {
+      "type": "object",
+      "properties": {
+        "no_publication_action_performed": {
+          "type": "boolean"
+        },
+        "private": {
+          "type": "string"
+        },
+        "public": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "no_publication_action_performed",
+        "private",
+        "public"
+      ],
+      "additionalProperties": false
+    },
+    "public_references": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "documented_version": {
+            "type": "string"
+          },
+          "local_source_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "retrieval_date": {
+            "type": "string"
+          },
+          "review_status": {
+            "type": "string"
+          },
+          "scope_limit": {
+            "type": "string"
+          },
+          "source_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "documented_version",
+          "local_source_id",
+          "retrieval_date",
+          "review_status",
+          "scope_limit",
+          "source_id",
+          "title",
+          "url"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "reference_repository_sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "access_class": {
+            "type": "string"
+          },
+          "commit": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "git_blob_sha": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "path": {
+            "type": "string"
+          },
+          "repository_label": {
+            "type": "string"
+          },
+          "review_status": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "source_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_class",
+          "commit",
+          "git_blob_sha",
+          "path",
+          "repository_label",
+          "review_status",
+          "sha256",
+          "source_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "repository_files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "git_blob_sha": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "git_blob_verified": {
+            "type": "boolean"
+          },
+          "path": {
+            "type": "string"
+          },
+          "raw_bytes_distribution": {
+            "type": "string"
+          },
+          "review_role": {
+            "type": "string"
+          },
+          "scope_limit": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "size_bytes": {
+            "type": "integer"
+          },
+          "source_commit": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "source_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "git_blob_sha",
+          "git_blob_verified",
+          "path",
+          "raw_bytes_distribution",
+          "review_role",
+          "scope_limit",
+          "sha256",
+          "size_bytes",
+          "source_commit",
+          "source_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "review_boundary": {
+      "type": "object",
+      "properties": {
+        "date": {
+          "type": "string"
+        },
+        "integration_branch": {
+          "type": "string"
+        },
+        "local_commit_lookup": {
+          "type": "object",
+          "properties": {
+            "claim": {
+              "type": "string"
+            },
+            "http_status": {
+              "type": "integer"
+            },
+            "status": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "claim",
+            "http_status",
+            "status"
+          ],
+          "additionalProperties": false
+        },
+        "local_worktree": {
+          "type": "string"
+        },
+        "repository": {
+          "type": "string"
+        },
+        "review_boundary": {
+          "type": "string"
+        },
+        "reviewed_remote_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "reviewed_remote_tree": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "user_reported_local_changes": {
+          "type": "string"
+        },
+        "user_reported_local_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      },
+      "required": [
+        "date",
+        "integration_branch",
+        "local_commit_lookup",
+        "local_worktree",
+        "repository",
+        "review_boundary",
+        "reviewed_remote_commit",
+        "reviewed_remote_tree",
+        "user_reported_local_changes",
+        "user_reported_local_commit"
+      ],
+      "additionalProperties": false
+    },
+    "review_limits": {
+      "type": "object",
+      "properties": {
+        "all_retrieved_file_bytes_verified": {
+          "type": "boolean"
+        },
+        "all_source_functions_semantically_audited": {
+          "type": "boolean"
+        },
+        "engineering_acceptance": {
+          "type": "string"
+        },
+        "private_sources_in_public_package": {
+          "type": "boolean"
+        },
+        "user_local_commit_and_dirty_tree": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "all_retrieved_file_bytes_verified",
+        "all_source_functions_semantically_audited",
+        "engineering_acceptance",
+        "private_sources_in_public_package",
+        "user_local_commit_and_dirty_tree"
+      ],
+      "additionalProperties": false
+    },
+    "schema_version": {
+      "const": "yeni.integration.source-manifest.v1"
+    },
+    "source_id_aliases": {
+      "type": "object",
+      "properties": {
+        "CSI-ETABS-RESPONSE-SPECTRUM-HELP": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "CSI-ETABS-RESPONSE-SPECTRUM-HELP"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "atlas",
+    "date",
+    "golden_sources",
+    "language",
+    "preservation_index",
+    "preserved_artifacts",
+    "privacy_contract",
+    "public_references",
+    "reference_repository_sources",
+    "repository_files",
+    "review_boundary",
+    "review_limits",
+    "schema_version",
+    "source_id_aliases"
+  ],
+  "additionalProperties": false
+}

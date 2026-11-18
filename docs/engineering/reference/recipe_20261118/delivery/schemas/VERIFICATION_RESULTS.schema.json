@@ -1,0 +1,795 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:yeni:integration:verification-results:v1",
+  "title": "VERIFICATION_RESULTS v1 schema",
+  "type": "object",
+  "properties": {
+    "current_execution_records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "render": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "structural_record": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "visual": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "render",
+                  "structural_record",
+                  "visual"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "environment": {
+            "type": "object",
+            "properties": {
+              "LibreOffice": {
+                "type": "string"
+              },
+              "PyMuPDF": {
+                "type": "string"
+              },
+              "decimal_precision": {
+                "type": "integer"
+              },
+              "dependencies": {
+                "type": "string"
+              },
+              "implementation": {
+                "type": "string"
+              },
+              "jsonschema": {
+                "type": "string"
+              },
+              "platform": {
+                "type": "string"
+              },
+              "python": {
+                "type": "string"
+              },
+              "python_docx": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "platform",
+              "python"
+            ],
+            "additionalProperties": false
+          },
+          "path": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "scope": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "command",
+          "environment",
+          "path",
+          "role",
+          "scope",
+          "sha256",
+          "status"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "date": {
+      "type": "string"
+    },
+    "engineering_claims": {
+      "type": "object",
+      "properties": {
+        "complete_checks_closed_by_document_delivery": {
+          "type": "integer"
+        },
+        "engineering_acceptance": {
+          "type": "string"
+        },
+        "local_source_status": {
+          "type": "string"
+        },
+        "new_ETABS_connection_created": {
+          "type": "boolean"
+        },
+        "new_pipeline_created": {
+          "type": "boolean"
+        },
+        "new_solver_created": {
+          "type": "boolean"
+        },
+        "production_code_changed": {
+          "type": "boolean"
+        },
+        "release_status": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "complete_checks_closed_by_document_delivery",
+        "engineering_acceptance",
+        "local_source_status",
+        "new_ETABS_connection_created",
+        "new_pipeline_created",
+        "new_solver_created",
+        "production_code_changed",
+        "release_status"
+      ],
+      "additionalProperties": false
+    },
+    "historical_evidence": {
+      "type": "object",
+      "properties": {
+        "pdf_v2_333": {
+          "type": "object",
+          "properties": {
+            "current_execution_status": {
+              "type": "string"
+            },
+            "historical_compared_subset": {
+              "type": "integer"
+            },
+            "historical_matched": {
+              "type": "integer"
+            },
+            "reference_case_population": {
+              "type": "integer"
+            },
+            "scope": {
+              "type": "string"
+            },
+            "source_id": {
+              "type": "string"
+            },
+            "source_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "status": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "current_execution_status",
+            "historical_compared_subset",
+            "historical_matched",
+            "reference_case_population",
+            "scope",
+            "source_id",
+            "source_sha256",
+            "status"
+          ],
+          "additionalProperties": false
+        },
+        "protected_44": {
+          "type": "object",
+          "properties": {
+            "current_execution_status": {
+              "type": "string"
+            },
+            "discrepancy": {
+              "type": "string"
+            },
+            "file_observed_counts": {
+              "type": "object",
+              "properties": {
+                "classification_counts": {
+                  "type": "object",
+                  "properties": {
+                    "ENGINEERING_INTERPRETATION_DIFFERENCE": {
+                      "type": "integer"
+                    },
+                    "INSUFFICIENT_SOURCE": {
+                      "type": "integer"
+                    },
+                    "NUMERICAL_MATCH": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "ENGINEERING_INTERPRETATION_DIFFERENCE",
+                    "INSUFFICIENT_SOURCE",
+                    "NUMERICAL_MATCH"
+                  ],
+                  "additionalProperties": false
+                },
+                "evidence_status": {
+                  "type": "string"
+                },
+                "record_count": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "classification_counts",
+                "evidence_status",
+                "record_count"
+              ],
+              "additionalProperties": false
+            },
+            "historical_command": {
+              "type": "string"
+            },
+            "later_ledger_reported_counts": {
+              "type": "object",
+              "properties": {
+                "event_implementation_commit": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{40}$"
+                },
+                "evidence_status": {
+                  "type": "string"
+                },
+                "insufficient": {
+                  "type": "integer"
+                },
+                "interpretation_difference": {
+                  "type": "integer"
+                },
+                "ledger_event_id": {
+                  "type": "string"
+                },
+                "matched": {
+                  "type": "integer"
+                },
+                "records": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "event_implementation_commit",
+                "evidence_status",
+                "insufficient",
+                "interpretation_difference",
+                "ledger_event_id",
+                "matched",
+                "records"
+              ],
+              "additionalProperties": false
+            },
+            "later_record_by_record_report": {
+              "type": "string"
+            },
+            "ledger_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "ledger_source_id": {
+              "type": "string"
+            },
+            "record_set_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "record_set_source_id": {
+              "type": "string"
+            },
+            "scope_limit": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "current_execution_status",
+            "discrepancy",
+            "file_observed_counts",
+            "historical_command",
+            "later_ledger_reported_counts",
+            "later_record_by_record_report",
+            "ledger_sha256",
+            "ledger_source_id",
+            "record_set_sha256",
+            "record_set_source_id",
+            "scope_limit",
+            "status"
+          ],
+          "additionalProperties": false
+        },
+        "recipe_333": {
+          "type": "object",
+          "properties": {
+            "assertion_count": {
+              "type": "integer"
+            },
+            "current_static_oracle_replay": {
+              "type": "string"
+            },
+            "matched": {
+              "type": "integer"
+            },
+            "original_result_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "original_result_source_id": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "assertion_count",
+            "current_static_oracle_replay",
+            "matched",
+            "original_result_sha256",
+            "original_result_source_id",
+            "status"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "pdf_v2_333",
+        "protected_44",
+        "recipe_333"
+      ],
+      "additionalProperties": false
+    },
+    "language": {
+      "const": "en"
+    },
+    "levels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "current_scope": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "adapter_examples": {
+                    "type": "integer"
+                  },
+                  "additional_chain_fixture": {
+                    "type": "object",
+                    "properties": {
+                      "counting_unit": {
+                        "type": "string"
+                      },
+                      "example_id": {
+                        "type": "string"
+                      },
+                      "matched": {
+                        "type": "integer"
+                      },
+                      "total": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "counting_unit",
+                      "example_id",
+                      "matched",
+                      "total"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "distinct_source_symbols_ast_verified": {
+                    "type": "integer"
+                  },
+                  "existing_44_records_replaced": {
+                    "type": "integer"
+                  },
+                  "full_engineering_checks_closed": {
+                    "type": "integer"
+                  },
+                  "functions_called": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "local_a2e_plus_dirty_comparison": {
+                    "type": "string"
+                  },
+                  "matched": {
+                    "type": "integer"
+                  },
+                  "negative_contract_probes_detected": {
+                    "type": "integer"
+                  },
+                  "original_check_ids": {
+                    "type": "integer"
+                  },
+                  "original_source_hashes_checked": {
+                    "type": "integer"
+                  },
+                  "primary_examples": {
+                    "type": "integer"
+                  },
+                  "primitive_values_compared": {
+                    "type": "integer"
+                  },
+                  "published_commit": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{40}$"
+                  },
+                  "recipe_assertions": {
+                    "type": "object",
+                    "properties": {
+                      "cases": {
+                        "type": "integer"
+                      },
+                      "matched": {
+                        "type": "integer"
+                      },
+                      "total": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "cases",
+                      "matched",
+                      "total"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "rendered_pages_visually_verified": {
+                    "type": "integer"
+                  },
+                  "source_files_hash_verified": {
+                    "type": "integer"
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "level_id": {
+            "type": "string"
+          },
+          "limits": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "record_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "current_scope",
+          "level_id",
+          "limits",
+          "name",
+          "record_refs",
+          "status"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "review_boundary": {
+      "type": "object",
+      "properties": {
+        "date": {
+          "type": "string"
+        },
+        "integration_branch": {
+          "type": "string"
+        },
+        "local_commit_lookup": {
+          "type": "object",
+          "properties": {
+            "claim": {
+              "type": "string"
+            },
+            "http_status": {
+              "type": "integer"
+            },
+            "status": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "claim",
+            "http_status",
+            "status"
+          ],
+          "additionalProperties": false
+        },
+        "local_worktree": {
+          "type": "string"
+        },
+        "repository": {
+          "type": "string"
+        },
+        "review_boundary": {
+          "type": "string"
+        },
+        "reviewed_remote_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "reviewed_remote_tree": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "user_reported_local_changes": {
+          "type": "string"
+        },
+        "user_reported_local_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      },
+      "required": [
+        "date",
+        "integration_branch",
+        "local_commit_lookup",
+        "local_worktree",
+        "repository",
+        "review_boundary",
+        "reviewed_remote_commit",
+        "reviewed_remote_tree",
+        "user_reported_local_changes",
+        "user_reported_local_commit"
+      ],
+      "additionalProperties": false
+    },
+    "runtime_environment": {
+      "type": "object",
+      "properties": {
+        "implementation": {
+          "type": "string"
+        },
+        "interpreter": {
+          "type": "string"
+        },
+        "platform": {
+          "type": "string"
+        },
+        "python": {
+          "type": "string"
+        },
+        "source_handling": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "implementation",
+        "interpreter",
+        "platform",
+        "python",
+        "source_handling"
+      ],
+      "additionalProperties": false
+    },
+    "scenario_coverage_for_85_cases": {
+      "type": "object",
+      "properties": {
+        "boundary": {
+          "type": "object",
+          "properties": {
+            "SPECIFIED_EXECUTABLE": {
+              "type": "integer"
+            },
+            "SPECIFIED_NOT_EXECUTED": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "SPECIFIED_EXECUTABLE",
+            "SPECIFIED_NOT_EXECUTED"
+          ],
+          "additionalProperties": false
+        },
+        "missing_source": {
+          "type": "object",
+          "properties": {
+            "OPEN": {
+              "type": "integer"
+            },
+            "SPECIFIED_EXECUTABLE": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "OPEN",
+            "SPECIFIED_EXECUTABLE"
+          ],
+          "additionalProperties": false
+        },
+        "negative": {
+          "type": "object",
+          "properties": {
+            "OPEN": {
+              "type": "integer"
+            },
+            "SPECIFIED_EXECUTABLE": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "OPEN",
+            "SPECIFIED_EXECUTABLE"
+          ],
+          "additionalProperties": false
+        },
+        "positive": {
+          "type": "object",
+          "properties": {
+            "OPEN": {
+              "type": "integer"
+            },
+            "SPECIFIED_EXECUTABLE": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "OPEN",
+            "SPECIFIED_EXECUTABLE"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "boundary",
+        "missing_source",
+        "negative",
+        "positive"
+      ],
+      "additionalProperties": false
+    },
+    "schema_version": {
+      "const": "yeni.integration.verification-results.v1"
+    },
+    "separate_populations": {
+      "type": "object",
+      "properties": {
+        "accepted_engineering_checks": {
+          "type": "integer"
+        },
+        "additional_adapter_fixtures": {
+          "type": "integer"
+        },
+        "additional_priority_chain_assertions": {
+          "type": "integer"
+        },
+        "additional_priority_chain_fixtures": {
+          "type": "integer"
+        },
+        "current_owner_primitive_comparisons": {
+          "type": "integer"
+        },
+        "dag_nodes": {
+          "type": "integer"
+        },
+        "dag_nodes_bound_by_registry": {
+          "type": "integer"
+        },
+        "partial_mapped_recipe_labels": {
+          "type": "integer"
+        },
+        "pdf_v2_historical_compared_subset": {
+          "type": "integer"
+        },
+        "pdf_v2_reference_cases": {
+          "type": "integer"
+        },
+        "primary_examples": {
+          "type": "integer"
+        },
+        "protected_historical_production_comparison_records": {
+          "type": "integer"
+        },
+        "recipe_arithmetic_assertions": {
+          "type": "integer"
+        },
+        "recipe_controls": {
+          "type": "integer"
+        },
+        "registered_stages": {
+          "type": "integer"
+        },
+        "unmapped_recipe_labels": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "accepted_engineering_checks",
+        "additional_adapter_fixtures",
+        "additional_priority_chain_assertions",
+        "additional_priority_chain_fixtures",
+        "current_owner_primitive_comparisons",
+        "dag_nodes",
+        "dag_nodes_bound_by_registry",
+        "partial_mapped_recipe_labels",
+        "pdf_v2_historical_compared_subset",
+        "pdf_v2_reference_cases",
+        "primary_examples",
+        "protected_historical_production_comparison_records",
+        "recipe_arithmetic_assertions",
+        "recipe_controls",
+        "registered_stages",
+        "unmapped_recipe_labels"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "current_execution_records",
+    "date",
+    "engineering_claims",
+    "historical_evidence",
+    "language",
+    "levels",
+    "review_boundary",
+    "runtime_environment",
+    "scenario_coverage_for_85_cases",
+    "schema_version",
+    "separate_populations"
+  ],
+  "additionalProperties": false
+}

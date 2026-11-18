@@ -1,0 +1,1810 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:yeni:integration:golden-cases:v1",
+  "title": "GOLDEN_CASES v1 schema",
+  "type": "object",
+  "properties": {
+    "adapter_check_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "case_kinds": {
+      "type": "object",
+      "properties": {
+        "CONTRACT_FIXTURE": {
+          "type": "string"
+        },
+        "DERIVED_BENCHMARK": {
+          "type": "string"
+        },
+        "SOURCE_RECALC": {
+          "type": "string"
+        },
+        "SOURCE_REPORTED": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "CONTRACT_FIXTURE",
+        "DERIVED_BENCHMARK",
+        "SOURCE_RECALC",
+        "SOURCE_REPORTED"
+      ],
+      "additionalProperties": false
+    },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "assertions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "assertion_id": {
+                  "type": "string"
+                },
+                "expected": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "formula_display": {
+                  "type": "string"
+                },
+                "formula_is_executable": {
+                  "const": false
+                },
+                "name": {
+                  "type": "string"
+                },
+                "oracle_function": {
+                  "type": "string"
+                },
+                "tolerance": {
+                  "type": "object",
+                  "properties": {
+                    "absolute": {
+                      "type": "number"
+                    },
+                    "category": {
+                      "type": "string"
+                    },
+                    "legacy_absolute": {
+                      "type": "number"
+                    },
+                    "legacy_relative": {
+                      "type": "integer"
+                    },
+                    "rationale": {
+                      "type": "string"
+                    },
+                    "relative": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "absolute",
+                    "category",
+                    "legacy_absolute",
+                    "legacy_relative",
+                    "rationale",
+                    "relative"
+                  ],
+                  "additionalProperties": false
+                },
+                "unit": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "assertion_id",
+                "expected",
+                "formula_display",
+                "formula_is_executable",
+                "name",
+                "oracle_function",
+                "tolerance",
+                "unit"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "boundary_variant": {
+            "type": "string"
+          },
+          "case_id": {
+            "type": "string"
+          },
+          "case_kind": {
+            "enum": [
+              "SOURCE_RECALC",
+              "SOURCE_REPORTED",
+              "DERIVED_BENCHMARK",
+              "CONTRACT_FIXTURE"
+            ]
+          },
+          "case_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "check_id": {
+            "type": "string"
+          },
+          "expected_results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "basis": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "unit": {
+                  "type": "string"
+                },
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "selected_cases": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "selected_combinations": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "units": {
+                          "type": "object",
+                          "properties": {
+                            "force": {
+                              "type": "string"
+                            },
+                            "length": {
+                              "type": "string"
+                            },
+                            "temperature": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "force",
+                            "length",
+                            "temperature"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "selected_cases",
+                        "selected_combinations",
+                        "units"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "basis",
+                "name",
+                "unit",
+                "value"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "fixture": {
+            "type": "object",
+            "properties": {
+              "after_cancel": {
+                "type": "object",
+                "properties": {
+                  "selected_cases": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "selected_combinations": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "units": {
+                    "type": "object",
+                    "properties": {
+                      "force": {
+                        "type": "string"
+                      },
+                      "length": {
+                        "type": "string"
+                      },
+                      "temperature": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "force",
+                      "length",
+                      "temperature"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "selected_cases",
+                  "selected_combinations",
+                  "units"
+                ],
+                "additionalProperties": false
+              },
+              "after_error": {
+                "type": "object",
+                "properties": {
+                  "selected_cases": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "selected_combinations": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "units": {
+                    "type": "object",
+                    "properties": {
+                      "force": {
+                        "type": "string"
+                      },
+                      "length": {
+                        "type": "string"
+                      },
+                      "temperature": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "force",
+                      "length",
+                      "temperature"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "selected_cases",
+                  "selected_combinations",
+                  "units"
+                ],
+                "additionalProperties": false
+              },
+              "after_success": {
+                "type": "object",
+                "properties": {
+                  "selected_cases": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "selected_combinations": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "units": {
+                    "type": "object",
+                    "properties": {
+                      "force": {
+                        "type": "string"
+                      },
+                      "length": {
+                        "type": "string"
+                      },
+                      "temperature": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "force",
+                      "length",
+                      "temperature"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "selected_cases",
+                  "selected_combinations",
+                  "units"
+                ],
+                "additionalProperties": false
+              },
+              "bad_after_error": {
+                "type": "object",
+                "properties": {
+                  "selected_cases": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "selected_combinations": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "units": {
+                    "type": "object",
+                    "properties": {
+                      "force": {
+                        "type": "string"
+                      },
+                      "length": {
+                        "type": "string"
+                      },
+                      "temperature": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "force",
+                      "length",
+                      "temperature"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "selected_cases",
+                  "selected_combinations",
+                  "units"
+                ],
+                "additionalProperties": false
+              },
+              "before": {
+                "type": "object",
+                "properties": {
+                  "selected_cases": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "selected_combinations": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "units": {
+                    "type": "object",
+                    "properties": {
+                      "force": {
+                        "type": "string"
+                      },
+                      "length": {
+                        "type": "string"
+                      },
+                      "temperature": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "force",
+                      "length",
+                      "temperature"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "selected_cases",
+                  "selected_combinations",
+                  "units"
+                ],
+                "additionalProperties": false
+              },
+              "before_catalog": {
+                "type": "object",
+                "properties": {
+                  "DX": {
+                    "type": "object",
+                    "properties": {
+                      "case_terms": {
+                        "type": "object",
+                        "properties": {
+                          "EX": {
+                            "type": "number"
+                          },
+                          "EY": {
+                            "type": "number"
+                          },
+                          "G": {
+                            "type": "number"
+                          },
+                          "Q": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "EX",
+                          "EY",
+                          "G",
+                          "Q"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "operator": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "case_terms",
+                      "operator"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              },
+              "desired_catalog": {
+                "type": "object",
+                "properties": {
+                  "DX": {
+                    "type": "object",
+                    "properties": {
+                      "case_terms": {
+                        "type": "object",
+                        "properties": {
+                          "EX": {
+                            "type": "number"
+                          },
+                          "EY": {
+                            "type": "number"
+                          },
+                          "G": {
+                            "type": "number"
+                          },
+                          "Q": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "EX",
+                          "EY",
+                          "G",
+                          "Q"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "operator": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "case_terms",
+                      "operator"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "DY": {
+                    "type": "object",
+                    "properties": {
+                      "case_terms": {
+                        "type": "object",
+                        "properties": {
+                          "EX": {
+                            "type": "number"
+                          },
+                          "EY": {
+                            "type": "number"
+                          },
+                          "G": {
+                            "type": "number"
+                          },
+                          "Q": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "EX",
+                          "EY",
+                          "G",
+                          "Q"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "operator": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "case_terms",
+                      "operator"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "DX",
+                  "DY"
+                ],
+                "additionalProperties": false
+              },
+              "desired_children": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "expected_created": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "expected_keys": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  }
+                }
+              },
+              "expected_mutations": {
+                "type": "array",
+                "items": {}
+              },
+              "native_return_code": {
+                "type": "integer"
+              },
+              "new_force": {
+                "type": "object",
+                "properties": {
+                  "generation": {
+                    "type": "integer"
+                  },
+                  "model_id": {
+                    "type": "string"
+                  },
+                  "pdelta_revision": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "generation",
+                  "model_id",
+                  "pdelta_revision"
+                ],
+                "additionalProperties": false
+              },
+              "observed_duplicate": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  }
+                }
+              },
+              "observed_missing": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  }
+                }
+              },
+              "old_force": {
+                "type": "object",
+                "properties": {
+                  "generation": {
+                    "type": "integer"
+                  },
+                  "model_id": {
+                    "type": "string"
+                  },
+                  "pdelta_revision": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "generation",
+                  "model_id",
+                  "pdelta_revision"
+                ],
+                "additionalProperties": false
+              },
+              "old_force_generation": {
+                "type": "integer"
+              },
+              "readback_catalog": {
+                "type": "object",
+                "properties": {
+                  "DX": {
+                    "type": "object",
+                    "properties": {
+                      "case_terms": {
+                        "type": "object",
+                        "properties": {
+                          "EX": {
+                            "type": "number"
+                          },
+                          "EY": {
+                            "type": "number"
+                          },
+                          "G": {
+                            "type": "number"
+                          },
+                          "Q": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "EX",
+                          "EY",
+                          "G",
+                          "Q"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "operator": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "case_terms",
+                      "operator"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "DY": {
+                    "type": "object",
+                    "properties": {
+                      "case_terms": {
+                        "type": "object",
+                        "properties": {
+                          "EX": {
+                            "type": "number"
+                          },
+                          "EY": {
+                            "type": "number"
+                          },
+                          "G": {
+                            "type": "number"
+                          },
+                          "Q": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "EX",
+                          "EY",
+                          "G",
+                          "Q"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "operator": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "case_terms",
+                      "operator"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "DX",
+                  "DY"
+                ],
+                "additionalProperties": false
+              },
+              "readback_children": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "saved_catalog": {
+                "type": "object",
+                "properties": {
+                  "DX": {
+                    "type": "object",
+                    "properties": {
+                      "case_terms": {
+                        "type": "object",
+                        "properties": {
+                          "EX": {
+                            "type": "number"
+                          },
+                          "EY": {
+                            "type": "number"
+                          },
+                          "G": {
+                            "type": "number"
+                          },
+                          "Q": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "EX",
+                          "EY",
+                          "G",
+                          "Q"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "operator": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "case_terms",
+                      "operator"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "DY": {
+                    "type": "object",
+                    "properties": {
+                      "case_terms": {
+                        "type": "object",
+                        "properties": {
+                          "EX": {
+                            "type": "number"
+                          },
+                          "EY": {
+                            "type": "number"
+                          },
+                          "G": {
+                            "type": "number"
+                          },
+                          "Q": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "EX",
+                          "EY",
+                          "G",
+                          "Q"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "operator": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "case_terms",
+                      "operator"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "DX",
+                  "DY"
+                ],
+                "additionalProperties": false
+              },
+              "target": {
+                "type": "object",
+                "properties": {
+                  "generation": {
+                    "type": "integer"
+                  },
+                  "model_id": {
+                    "type": "string"
+                  },
+                  "pdelta_revision": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "generation",
+                  "model_id",
+                  "pdelta_revision"
+                ],
+                "additionalProperties": false
+              },
+              "target_generation": {
+                "type": "integer"
+              },
+              "wrong_readback": {
+                "type": "object",
+                "properties": {
+                  "DX": {
+                    "type": "object",
+                    "properties": {
+                      "case_terms": {
+                        "type": "object",
+                        "properties": {
+                          "EX": {
+                            "type": "number"
+                          },
+                          "EY": {
+                            "type": "number"
+                          },
+                          "G": {
+                            "type": "number"
+                          },
+                          "Q": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "EX",
+                          "EY",
+                          "G",
+                          "Q"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "operator": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "case_terms",
+                      "operator"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "DY": {
+                    "type": "object",
+                    "properties": {
+                      "case_terms": {
+                        "type": "object",
+                        "properties": {
+                          "EX": {
+                            "type": "number"
+                          },
+                          "EY": {
+                            "type": "number"
+                          },
+                          "G": {
+                            "type": "number"
+                          },
+                          "Q": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "EX",
+                          "EY",
+                          "G",
+                          "Q"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "operator": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "case_terms",
+                      "operator"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "DX",
+                  "DY"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          },
+          "frozen_input_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "inputs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "origin": {
+                  "type": "string"
+                },
+                "unit": {
+                  "type": "string"
+                },
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "integer"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "selected_cases": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "selected_combinations": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "units": {
+                          "type": "object",
+                          "properties": {
+                            "force": {
+                              "type": "string"
+                            },
+                            "length": {
+                              "type": "string"
+                            },
+                            "temperature": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "force",
+                            "length",
+                            "temperature"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "selected_cases",
+                        "selected_combinations",
+                        "units"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "name",
+                "origin",
+                "unit",
+                "value"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "intermediate_steps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "executable": {
+                  "type": "boolean"
+                },
+                "formula_display": {
+                  "type": "string"
+                },
+                "result_display": {
+                  "type": "string"
+                },
+                "result_unit": {
+                  "type": "string"
+                },
+                "result_value_encoding": {
+                  "type": "string"
+                },
+                "step_id": {
+                  "type": "string"
+                },
+                "substitution_display": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "description",
+                "executable",
+                "formula_display",
+                "result_display",
+                "result_unit",
+                "result_value_encoding",
+                "step_id",
+                "substitution_display"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "normative_basis_display": {
+            "type": "string"
+          },
+          "population": {
+            "type": "string"
+          },
+          "production_binding": {
+            "type": "object",
+            "properties": {
+              "reason": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "reason",
+              "status"
+            ],
+            "additionalProperties": false
+          },
+          "provenance": {
+            "type": "object",
+            "properties": {
+              "legacy_arithmetic_assertion_count": {
+                "type": "integer"
+              },
+              "legacy_arithmetic_matched_count": {
+                "type": "integer"
+              },
+              "legacy_bank_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "legacy_case_id": {
+                "type": "string"
+              },
+              "legacy_result_scope": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "legacy_arithmetic_assertion_count",
+              "legacy_arithmetic_matched_count",
+              "legacy_bank_sha256",
+              "legacy_case_id",
+              "legacy_result_scope"
+            ],
+            "additionalProperties": false
+          },
+          "qualification": {
+            "type": "string"
+          },
+          "report_mapping": {
+            "type": "string"
+          },
+          "scenario_coverage": {
+            "type": "object",
+            "properties": {
+              "boundary": {
+                "type": "object",
+                "properties": {
+                  "assertion_refs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "execution_level": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "assertion_refs",
+                  "description",
+                  "execution_level",
+                  "status"
+                ],
+                "additionalProperties": false
+              },
+              "missing_source": {
+                "type": "object",
+                "properties": {
+                  "assertion_refs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "execution_level": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "assertion_refs",
+                  "description",
+                  "execution_level",
+                  "status"
+                ],
+                "additionalProperties": false
+              },
+              "negative": {
+                "type": "object",
+                "properties": {
+                  "assertion_refs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "execution_level": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "assertion_refs",
+                  "description",
+                  "execution_level",
+                  "status"
+                ],
+                "additionalProperties": false
+              },
+              "positive": {
+                "type": "object",
+                "properties": {
+                  "assertion_refs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "execution_level": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "assertion_refs",
+                  "description",
+                  "execution_level",
+                  "status"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "boundary",
+              "missing_source",
+              "negative",
+              "positive"
+            ],
+            "additionalProperties": false
+          },
+          "scope": {
+            "type": "string"
+          },
+          "source_absence_reason": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "source_references": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "atlas_pages": {
+                  "anyOf": [
+                    {
+                      "type": "null"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "integer"
+                      }
+                    }
+                  ]
+                },
+                "locator": {
+                  "type": "string"
+                },
+                "namespace": {
+                  "type": "string"
+                },
+                "original_filename": {
+                  "type": "string"
+                },
+                "original_pdf_pages": {
+                  "anyOf": [
+                    {
+                      "type": "null"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "integer"
+                      }
+                    }
+                  ]
+                },
+                "page_absence_reason": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "page_links": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "atlas_page": {
+                        "anyOf": [
+                          {
+                            "type": "integer"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "original_pdf_page": {
+                        "type": "integer"
+                      },
+                      "reason": {
+                        "anyOf": [
+                          {
+                            "type": "null"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "atlas_page",
+                      "original_pdf_page",
+                      "reason"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "source_id": {
+                  "type": "string"
+                },
+                "use": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "atlas_pages",
+                "locator",
+                "namespace",
+                "original_filename",
+                "original_pdf_pages",
+                "page_absence_reason",
+                "page_links",
+                "sha256",
+                "source_id",
+                "use"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "title": {
+            "type": "string"
+          },
+          "verification_levels": {
+            "type": "object",
+            "properties": {
+              "document_schema_consistency": {
+                "type": "string"
+              },
+              "engineering_acceptance": {
+                "type": "string"
+              },
+              "independent_example_arithmetic": {
+                "type": "string"
+              },
+              "live_etabs_source_validation": {
+                "type": "string"
+              },
+              "recorded_source_pipeline_replay": {
+                "type": "string"
+              },
+              "yeni_owner_comparison": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "document_schema_consistency",
+              "engineering_acceptance",
+              "independent_example_arithmetic",
+              "live_etabs_source_validation",
+              "recorded_source_pipeline_replay",
+              "yeni_owner_comparison"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "assertions",
+          "boundary_variant",
+          "case_id",
+          "case_kind",
+          "case_sha256",
+          "check_id",
+          "expected_results",
+          "fixture",
+          "frozen_input_sha256",
+          "inputs",
+          "intermediate_steps",
+          "normative_basis_display",
+          "population",
+          "production_binding",
+          "provenance",
+          "qualification",
+          "report_mapping",
+          "scenario_coverage",
+          "scope",
+          "source_absence_reason",
+          "source_references",
+          "title",
+          "verification_levels"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 85,
+      "maxItems": 85
+    },
+    "counts": {
+      "type": "object",
+      "properties": {
+        "adapter_contract_examples": {
+          "type": "integer"
+        },
+        "primary_check_examples": {
+          "type": "integer"
+        },
+        "production_comparison_records_replaced": {
+          "type": "integer"
+        },
+        "retained_arithmetic_assertions": {
+          "type": "integer"
+        },
+        "total_cases": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "adapter_contract_examples",
+        "primary_check_examples",
+        "production_comparison_records_replaced",
+        "retained_arithmetic_assertions",
+        "total_cases"
+      ],
+      "additionalProperties": false
+    },
+    "execution_contract": {
+      "type": "object",
+      "properties": {
+        "engineering_acceptance": {
+          "type": "string"
+        },
+        "formula_fields": {
+          "type": "string"
+        },
+        "independent_oracle": {
+          "type": "string"
+        },
+        "production_comparison": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "engineering_acceptance",
+        "formula_fields",
+        "independent_oracle",
+        "production_comparison"
+      ],
+      "additionalProperties": false
+    },
+    "language": {
+      "const": "en"
+    },
+    "primary_check_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "retained_evidence_scopes": {
+      "type": "object",
+      "properties": {
+        "existing_44_production_comparisons": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "record_count": {
+              "type": "integer"
+            },
+            "status": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "description",
+            "record_count",
+            "status"
+          ],
+          "additionalProperties": false
+        },
+        "legacy_recipe_arithmetic": {
+          "type": "object",
+          "properties": {
+            "original_filename": {
+              "type": "string"
+            },
+            "record_count": {
+              "type": "integer"
+            },
+            "scope": {
+              "type": "string"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "source_id": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "original_filename",
+            "record_count",
+            "scope",
+            "sha256",
+            "source_id",
+            "status"
+          ],
+          "additionalProperties": false
+        },
+        "other_333_record_population": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "description",
+            "status"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "existing_44_production_comparisons",
+        "legacy_recipe_arithmetic",
+        "other_333_record_population"
+      ],
+      "additionalProperties": false
+    },
+    "review_boundary": {
+      "type": "object",
+      "properties": {
+        "integration_branch": {
+          "type": "string"
+        },
+        "local_inspection_status": {
+          "type": "string"
+        },
+        "production_code_changes": {
+          "type": "boolean"
+        },
+        "published_context_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "user_reported_local_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "user_reported_uncommitted_changes": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "integration_branch",
+        "local_inspection_status",
+        "production_code_changes",
+        "published_context_commit",
+        "user_reported_local_commit",
+        "user_reported_uncommitted_changes"
+      ],
+      "additionalProperties": false
+    },
+    "schema_version": {
+      "const": "yeni.integration.golden-cases.v1"
+    },
+    "source_artifacts": {
+      "type": "object",
+      "properties": {
+        "atlas": {
+          "type": "object",
+          "properties": {
+            "index_pages": {
+              "type": "integer"
+            },
+            "original_filename": {
+              "type": "string"
+            },
+            "page_count": {
+              "type": "integer"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "source_id": {
+              "type": "string"
+            },
+            "source_pages": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "index_pages",
+            "original_filename",
+            "page_count",
+            "sha256",
+            "source_id",
+            "source_pages"
+          ],
+          "additionalProperties": false
+        },
+        "atlas_manifest": {
+          "type": "object",
+          "properties": {
+            "original_filename": {
+              "type": "string"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "source_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "original_filename",
+            "sha256",
+            "source_id"
+          ],
+          "additionalProperties": false
+        },
+        "legacy_bank": {
+          "type": "object",
+          "properties": {
+            "original_filename": {
+              "type": "string"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "source_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "original_filename",
+            "sha256",
+            "source_id"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "atlas",
+        "atlas_manifest",
+        "legacy_bank"
+      ],
+      "additionalProperties": false
+    },
+    "source_registry": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "bytes": {
+            "type": "integer"
+          },
+          "original_filename": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "source_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "bytes",
+          "original_filename",
+          "sha256",
+          "source_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "title": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "adapter_check_ids",
+    "case_kinds",
+    "cases",
+    "counts",
+    "execution_contract",
+    "language",
+    "primary_check_ids",
+    "retained_evidence_scopes",
+    "review_boundary",
+    "schema_version",
+    "source_artifacts",
+    "source_registry",
+    "title"
+  ],
+  "additionalProperties": false
+}

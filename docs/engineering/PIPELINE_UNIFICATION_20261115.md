@@ -4,6 +4,37 @@ Historical baseline: 2026-11-15. The original working-tree-only status below was
 
 D3B continuation: [mixed demands, spectral interval evidence and remaining acceptance limits](OFFLINE_D3B_MIXED_DEMANDS_20261117.md). Coverage counts in the historical sections are not engineering completion percentages.
 
+## English recipe and local baseline integration — 2026-11-18
+
+The [new reference package](reference/recipe_20261118/README.md) was reconciled with
+local runtime commit `250ff1974316070393f3fff9847d941a80dcd47e`, preserving the
+later modal numeric adapters below. It imports 30 hash-pinned text assets under
+`docs/engineering/reference/recipe_20261118/delivery/`; no production owner,
+pipeline stage, source connection or runtime dependency is added. Reference
+scripts remain documentation assets and are not imported by production.
+
+Fresh intake evidence: 250 payload hashes match; five schemas are valid; all
+142 published source files match local Git objects; all 88 mapped source-symbol
+ASTs are unchanged. The 73-control map retains 44 partial bindings and 29 unmapped
+controls. Frozen arithmetic matches 333/333 example assertions and 1,294/1,294
+separate synthetic-chain assertions. Three explicitly mapped primitive values
+match the actual local owners. The existing 44 production comparisons remain
+15 match / 25 insufficient / four interpretation differences. These populations
+are separate and close no engineering control.
+
+The source/cut contracts, combination-role separation, cage revision dependencies,
+counterexamples and verification levels are adopted as reference requirements for
+GAP-004/005/013/014/015/016/017/018. The proportional-modal example and declared
+capacity curves do not establish a real building iteration. E-only versus total-M/V
+amplification remains an unresolved method distinction. R14/R15 remain 0 closed /
+87 partial, release `NOT_READY`. The full software/replay results below remain
+historical evidence for unchanged runtime bytes, not fresh tests of this import.
+
+This reviewed software/documentation milestone is integrated locally into
+`baseline/local_import`, without a GitHub push. Live numeric/torsion getter
+acceptance is the next bounded task, following the user's explicit ordering.
+See `EV-RECIPE18-INTAKE`, `EV-RECIPE18-ARITHMETIC`, `EV-RECIPE18-LOCAL-OWNERS`.
+
 ## Native modal numeric adapters — 2026-11-18 local work branch
 
 `same-source-spectral-components.v5` extends the same stage and owners with numeric

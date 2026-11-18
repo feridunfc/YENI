@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-18T15:53:30.313126+00:00",
+  "updated_at_utc": "2026-11-18T18:38:32.698750+00:00",
   "repository": "feridunfc/YENI",
   "baseline_implementation_commit": "60938da94b770631c6a5c34a545c8863162ac8a4",
   "local_reconciled": true,
-  "scope_note": "18 stable GAP IDs. Native modal numeric and eccentricity getter contracts are implemented and verified offline; the new live capture remains pending. No normative GAP is newly closed.",
+  "scope_note": "18 stable GAP IDs. Recipe/examples are reference requirements; no normative GAP is newly closed. Numeric/torsion adapters retain offline verification and pending live acceptance.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -102,10 +102,18 @@
         "EV-PMM6",
         "EV-LOCAL-NATIVE",
         "EV-LOCAL-MODAL-NUMERIC-ADAPTER",
-        "EV-LOCAL-MODAL-NUMERIC-TESTS"
+        "EV-LOCAL-MODAL-NUMERIC-TESTS",
+        "EV-RECIPE18-INTAKE"
       ],
       "closure_evidence_refs": [],
-      "local_update_needed": false
+      "local_update_needed": false,
+      "reference_requirements": [
+        {
+          "path": "docs/engineering/reference/recipe_20261118/README.md",
+          "source_sha256": "6f46177e64a5d0ee8e9b6fc7d7b5ba74e252e2cb547fb3655ad97d6aaf490b1f",
+          "acceptance": "REFERENCE_ONLY_NO_ENGINEERING_CLOSURE"
+        }
+      ]
     },
     {
       "id": "GAP-005",
@@ -122,10 +130,18 @@
       "evidence_refs": [
         "EV-PMM6",
         "EV-D2",
-        "EV-LOCAL-NATIVE"
+        "EV-LOCAL-NATIVE",
+        "EV-RECIPE18-INTAKE"
       ],
       "closure_evidence_refs": [],
-      "local_update_needed": false
+      "local_update_needed": false,
+      "reference_requirements": [
+        {
+          "path": "docs/engineering/reference/recipe_20261118/README.md",
+          "source_sha256": "6f46177e64a5d0ee8e9b6fc7d7b5ba74e252e2cb547fb3655ad97d6aaf490b1f",
+          "acceptance": "REFERENCE_ONLY_NO_ENGINEERING_CLOSURE"
+        }
+      ]
     },
     {
       "id": "GAP-006",
@@ -284,10 +300,19 @@
         "EV-D3",
         "EV-D3B-REPLAY",
         "EV-LOCAL-SPECTRAL",
-        "EV-LOCAL-MODAL-PARAMETERS"
+        "EV-LOCAL-MODAL-PARAMETERS",
+        "EV-RECIPE18-INTAKE",
+        "EV-RECIPE18-ARITHMETIC"
       ],
       "closure_evidence_refs": [],
-      "local_update_needed": false
+      "local_update_needed": false,
+      "reference_requirements": [
+        {
+          "path": "docs/engineering/reference/recipe_20261118/README.md",
+          "source_sha256": "6f46177e64a5d0ee8e9b6fc7d7b5ba74e252e2cb547fb3655ad97d6aaf490b1f",
+          "acceptance": "REFERENCE_ONLY_NO_ENGINEERING_CLOSURE"
+        }
+      ]
     },
     {
       "id": "GAP-014",
@@ -303,10 +328,18 @@
         "src/tbdy_next/column_engine/transverse_kernel.py"
       ],
       "evidence_refs": [
-        "EV-D3"
+        "EV-D3",
+        "EV-RECIPE18-INTAKE"
       ],
       "closure_evidence_refs": [],
-      "local_update_needed": false
+      "local_update_needed": false,
+      "reference_requirements": [
+        {
+          "path": "docs/engineering/reference/recipe_20261118/README.md",
+          "source_sha256": "6f46177e64a5d0ee8e9b6fc7d7b5ba74e252e2cb547fb3655ad97d6aaf490b1f",
+          "acceptance": "REFERENCE_ONLY_NO_ENGINEERING_CLOSURE"
+        }
+      ]
     },
     {
       "id": "GAP-015",
@@ -319,16 +352,25 @@
       "owner_paths": [
         "src/tbdy_next/wall_geometry.py"
       ],
-      "evidence_refs": [],
+      "evidence_refs": [
+        "EV-RECIPE18-INTAKE"
+      ],
       "closure_evidence_refs": [],
-      "local_update_needed": false
+      "local_update_needed": false,
+      "reference_requirements": [
+        {
+          "path": "docs/engineering/reference/recipe_20261118/README.md",
+          "source_sha256": "6f46177e64a5d0ee8e9b6fc7d7b5ba74e252e2cb547fb3655ad97d6aaf490b1f",
+          "acceptance": "REFERENCE_ONLY_NO_ENGINEERING_CLOSURE"
+        }
+      ]
     },
     {
       "id": "GAP-016",
       "title": "Golden coverage and complete independent example",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Historical 467-fixture bank, 10 alpha targets and 115776 separate-bank scalar comparisons are retained; new same-source oracle matches 38592 native comparisons and 45024 derived values. A separate source-binding audit matches 1600 native modal fields and 200 periods; this is not a new building arithmetic oracle.",
+      "achieved_scope": "Historical 467-fixture bank, 10 alpha targets and 115776 separate-bank scalar comparisons are retained; new same-source oracle matches 38592 native comparisons and 45024 derived values. A separate source-binding audit matches 1600 native modal fields and 200 periods; this is not a new building arithmetic oracle. Separate recipe intake reproduced 333 frozen assertions, 1294 assertions in one proportional-modal synthetic chain, and three current-owner primitive values. Existing 44 production records remain 15/25/4. The complete building oracle remains open.",
       "blocker": "44 production golden records are not a complete mapping of 467. Positive iteration fixtures and scalar arithmetic are not a complete independent building oracle.",
       "closure_criteria": "Run the production owner on a complete independent example with inputs, intermediate values, tolerances, identities and a sealed result chain.",
       "owner_paths": [
@@ -342,10 +384,20 @@
         "EV-LOCAL-ORACLE",
         "EV-LOCAL-TESTS",
         "EV-LOCAL-MODAL-BINDING-AUDIT",
-        "EV-LOCAL-MODAL-TESTS"
+        "EV-LOCAL-MODAL-TESTS",
+        "EV-RECIPE18-INTAKE",
+        "EV-RECIPE18-ARITHMETIC",
+        "EV-RECIPE18-LOCAL-OWNERS"
       ],
       "closure_evidence_refs": [],
-      "local_update_needed": false
+      "local_update_needed": false,
+      "reference_requirements": [
+        {
+          "path": "docs/engineering/reference/recipe_20261118/README.md",
+          "source_sha256": "6f46177e64a5d0ee8e9b6fc7d7b5ba74e252e2cb547fb3655ad97d6aaf490b1f",
+          "acceptance": "REFERENCE_ONLY_NO_ENGINEERING_CLOSURE"
+        }
+      ]
     },
     {
       "id": "GAP-017",
@@ -364,10 +416,18 @@
         "EV-D1",
         "EV-D2",
         "EV-D3B-REPLAY",
-        "EV-LOCAL-REPORT"
+        "EV-LOCAL-REPORT",
+        "EV-RECIPE18-INTAKE"
       ],
       "closure_evidence_refs": [],
-      "local_update_needed": false
+      "local_update_needed": false,
+      "reference_requirements": [
+        {
+          "path": "docs/engineering/reference/recipe_20261118/README.md",
+          "source_sha256": "6f46177e64a5d0ee8e9b6fc7d7b5ba74e252e2cb547fb3655ad97d6aaf490b1f",
+          "acceptance": "REFERENCE_ONLY_NO_ENGINEERING_CLOSURE"
+        }
+      ]
     },
     {
       "id": "GAP-018",
@@ -399,10 +459,19 @@
         "EV-LOCAL-MODAL-TESTS",
         "EV-LOCAL-MODAL-NUMERIC-ADAPTER",
         "EV-LOCAL-MODAL-NUMERIC-TESTS",
-        "EV-LOCAL-MODAL-NUMERIC-REPLAY"
+        "EV-LOCAL-MODAL-NUMERIC-REPLAY",
+        "EV-RECIPE18-INTAKE",
+        "EV-RECIPE18-ARITHMETIC"
       ],
       "closure_evidence_refs": [],
-      "local_update_needed": false
+      "local_update_needed": false,
+      "reference_requirements": [
+        {
+          "path": "docs/engineering/reference/recipe_20261118/README.md",
+          "source_sha256": "6f46177e64a5d0ee8e9b6fc7d7b5ba74e252e2cb547fb3655ad97d6aaf490b1f",
+          "acceptance": "REFERENCE_ONLY_NO_ENGINEERING_CLOSURE"
+        }
+      ]
     }
   ]
 }

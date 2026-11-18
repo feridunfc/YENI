@@ -1,0 +1,3091 @@
+{
+  "schema_version": "yeni.integration.source-manifest.v1",
+  "language": "en",
+  "date": "2026-11-18",
+  "review_boundary": {
+    "repository": "feridunfc/YENI",
+    "integration_branch": "baseline/local_import",
+    "user_reported_local_commit": "a2e26b664d9b2b217e828de2c1df0c3df26068b1",
+    "local_worktree": "NOT_INSPECTED",
+    "user_reported_local_changes": "INCOMPLETE_UNCOMMITTED_CHANGES_NOT_INSPECTED",
+    "reviewed_remote_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+    "reviewed_remote_tree": "9cf5b99059cd107a1e447c398fd1e93b7292b31b",
+    "local_commit_lookup": {
+      "status": "NOT_FOUND_VIA_CONNECTED_GITHUB",
+      "http_status": 422,
+      "claim": "Does not prove local commit is absent; local files remain unreviewed."
+    },
+    "review_boundary": "Pinned published source files only. No equivalence or ancestor relationship to the local commit is asserted. No downgrade, reset, checkout, merge or replacement of local work is authorized by this package.",
+    "date": "2026-11-18"
+  },
+  "review_limits": {
+    "all_retrieved_file_bytes_verified": true,
+    "all_source_functions_semantically_audited": false,
+    "user_local_commit_and_dirty_tree": "NOT_INSPECTED",
+    "private_sources_in_public_package": false,
+    "engineering_acceptance": "NOT_RUN"
+  },
+  "repository_files": [
+    {
+      "source_id": "CODE:AGENTS.md",
+      "path": "AGENTS.md",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "ceb7a5dbd2bcca99946b19dd4bb9af395ed58f30",
+      "sha256": "5fe6a213e4e5ff916e5753629dc725cc515eadfae01e8510e99146846f9e1c18",
+      "size_bytes": 7161,
+      "git_blob_verified": true,
+      "review_role": "INTEGRATION_CONTRACT_OR_EVIDENCE_INDEX_REVIEWED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:docs/CURRENT_STATE.md",
+      "path": "docs/CURRENT_STATE.md",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "e627f330bf436eb8f8dca88251f58e515771fdec",
+      "sha256": "6cc0fe6978283bed521e0b060961df0b9acdddc2cc6883b1fd9638e32dcf327b",
+      "size_bytes": 9671,
+      "git_blob_verified": true,
+      "review_role": "INTEGRATION_CONTRACT_OR_EVIDENCE_INDEX_REVIEWED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:docs/ENGINEERING_GAPS.yaml",
+      "path": "docs/ENGINEERING_GAPS.yaml",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "8d72e38ec34fe1cef90beabf2b8fa0ad72c565dc",
+      "sha256": "ef9fabdbc5adaac86e0380b70bc40cca2bcc7999b6ced0f3e2109f8940f02481",
+      "size_bytes": 17361,
+      "git_blob_verified": true,
+      "review_role": "INTEGRATION_CONTRACT_OR_EVIDENCE_INDEX_REVIEWED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:docs/VERIFICATION_LEDGER.json",
+      "path": "docs/VERIFICATION_LEDGER.json",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "786fcc7bbfbfbbdb5734e3f01b5cf503a82c498e",
+      "sha256": "12cdb0ec12d572f6fad663e71b94c816b4b63c04cc06137472db0827665b08ca",
+      "size_bytes": 38272,
+      "git_blob_verified": true,
+      "review_role": "INTEGRATION_CONTRACT_OR_EVIDENCE_INDEX_REVIEWED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:docs/engineering/OFFLINE_D3B_MIXED_DEMANDS_20261117.md",
+      "path": "docs/engineering/OFFLINE_D3B_MIXED_DEMANDS_20261117.md",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "93a761086cb72fefd0206d40a3161e5eaa363fd7",
+      "sha256": "8313353120c84b326ad66e275819a3cba83af4daecb3b400ec2a3d2fc37c3530",
+      "size_bytes": 7358,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:docs/engineering/OFFLINE_D3_ALPHA_ITERATION_20261117.md",
+      "path": "docs/engineering/OFFLINE_D3_ALPHA_ITERATION_20261117.md",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "8b7ecc1e45997af09b5886e204c1c8add74c98cb",
+      "sha256": "0c614341a0a5d16c7ee69e0e0a0be57a5259228be60a08f8e27029bf3f4fd09a",
+      "size_bytes": 8549,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:docs/engineering/PIPELINE_UNIFICATION_20261115.md",
+      "path": "docs/engineering/PIPELINE_UNIFICATION_20261115.md",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "43576b997c61c9f4609ec5146a9775b2c9c91ab6",
+      "sha256": "816d6719076b1e1c36371085726d3264bcfbdac40611ac59e217fe2a2028bc41",
+      "size_bytes": 27159,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:docs/engineering/RECIPE73_YENI_INTEGRATION_20261113.md",
+      "path": "docs/engineering/RECIPE73_YENI_INTEGRATION_20261113.md",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "d9069c2de8b02afdeca30852250d9dd65713cc2e",
+      "sha256": "f116a81603795a6697b458c400366c69ae0a53fd409364bbe319b8c3299845dc",
+      "size_bytes": 24195,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:docs/engineering/reference/RECIPE_73_CANDIDATE_20261113.md",
+      "path": "docs/engineering/reference/RECIPE_73_CANDIDATE_20261113.md",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "e05b06c84dc4bf37b31e40381fc12e3d04e81f3f",
+      "sha256": "c33f53ecd1fd89517b51fc859764618452eeb4fe87102423816550ad35653b46",
+      "size_bytes": 97354,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:pyproject.toml",
+      "path": "pyproject.toml",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "1b89a16a652a49e3f2fe935b232ba92c8795219d",
+      "sha256": "e53c946f6db661e8de0d61be3de36406f56b86537a14a70c65296326517a4e37",
+      "size_bytes": 819,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/__init__.py",
+      "path": "src/tbdy_next/__init__.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "dde9213a1315a7306ff50af9b825e8864225f48d",
+      "sha256": "14d85518cd6df9aa033853fb7bae5e70da6c95e216fa6031f4ac8e00d94d1951",
+      "size_bytes": 93,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/analysis_numerics.py",
+      "path": "src/tbdy_next/analysis_numerics.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "f2ea49b05eeb4e5896cde5452b730bc4bfee4914",
+      "sha256": "adb0e873a6af793db9c489a7919516b9be787f0081812a2bd7f37e101d7b3c31",
+      "size_bytes": 16138,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/analysis_sources.py",
+      "path": "src/tbdy_next/analysis_sources.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "f6884ff1506ac832c1badab436ee5b44e0e8be91",
+      "sha256": "334910788fac70086ce9e4c18cdb7bb41f114b5e9abd6fcd0b8c7d369ed57158",
+      "size_bytes": 9729,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/archived_source_bridge.py",
+      "path": "src/tbdy_next/archived_source_bridge.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "6f800a8c0fc44009af882b7f8ad550825af771ef",
+      "sha256": "95ba4e0968c0093df75541c6ef20386afd8c9b724407245f4c0d30fa81db6e62",
+      "size_bytes": 15341,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/b1_source_bridge.py",
+      "path": "src/tbdy_next/b1_source_bridge.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "eca1521f2298401a50b0b97a822e988edfc26fc0",
+      "sha256": "a24da76ad5395be3631c501b5ffc5afcda5fa875a1c3c62ff59acf1a4c49d430",
+      "size_bytes": 27184,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/base_shear_screening.py",
+      "path": "src/tbdy_next/base_shear_screening.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "d82ff2d07dd199bb3289ceac153fdb4cf247ac63",
+      "sha256": "c56e93d5fb215a4149c4e42670843626570c1bfc86687677fe345e1a1be303ca",
+      "size_bytes": 8831,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/basis_linkage.py",
+      "path": "src/tbdy_next/basis_linkage.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "c679affffd23a7d42d54e1712cd59fb3a443d4f5",
+      "sha256": "118ed9a7a2777560747050d6478f463772548817da2ef8ae9d35e642f9b21a47",
+      "size_bytes": 24054,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/basis_probe.py",
+      "path": "src/tbdy_next/basis_probe.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "a72541288a172500d6b8b1636c58a1f77a58bcd7",
+      "sha256": "189fc0234e7e8dc1d541511b8bc917037d90d1b287e7e6e4d87c24adc6fbbfa6",
+      "size_bytes": 8962,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/beam_report.py",
+      "path": "src/tbdy_next/beam_report.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "704980aec0a23c11975fe422f7e23bb60c039897",
+      "sha256": "336d8f3558e2c31e5de799e0aa1fa5ef189bf84b3c99b985dc6825a0cb4813b0",
+      "size_bytes": 4861,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/candidate_model_contracts.py",
+      "path": "src/tbdy_next/candidate_model_contracts.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "aacfefd68b76843187d42f225e9d1e20c018244a",
+      "sha256": "452fd47f20e7a0d0dac3cad7c4313317bced5413bf9c432e080a02e138230249",
+      "size_bytes": 13442,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/check_labels.py",
+      "path": "src/tbdy_next/check_labels.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "acc93c1aa9fdc3322bdaace65593eb2752ec2eab",
+      "sha256": "548483bf38505dcf265a8673073247eee69c5d7a4a3ef91b8ee59a0839d70f3e",
+      "size_bytes": 1853,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/cli.py",
+      "path": "src/tbdy_next/cli.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "934786e53a52238c26a844308b41e87503db57f2",
+      "sha256": "f2b787b53289bfa36f2e08abd426f6d3faddb9eca1fad53c30f0677cf260d49b",
+      "size_bytes": 21332,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/__init__.py",
+      "path": "src/tbdy_next/column_engine/__init__.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "dca44b0a17e5efac64194b251645de89e978d01c",
+      "sha256": "d092219f153b83146e1757c96639ed591c56f513cbc2af12cf12a803571ae185",
+      "size_bytes": 85,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/beam_capacity.py",
+      "path": "src/tbdy_next/column_engine/beam_capacity.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "cfffdf11c3043d8cdae95c9ef8a3411fc523587c",
+      "sha256": "e7a1ae7fbcb1e84b162939f81f16e15dc2b94ca114b34497827a3b35f5aa5a22",
+      "size_bytes": 24334,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/beam_references.py",
+      "path": "src/tbdy_next/column_engine/beam_references.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "e872754a9fd0922974c53145883ef058b28d13e3",
+      "sha256": "b1f738583292cd0a229d8dc8c1df08829e39026481ff55acd4b51535124caade",
+      "size_bytes": 17837,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/column_joints.py",
+      "path": "src/tbdy_next/column_engine/column_joints.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "13c2210d8cae8de4df9ecf695d2d1cf44efc9e95",
+      "sha256": "545773b2c13dc21d42053a8080156d86cf39df216f1150542f7de9b8cf34ff2e",
+      "size_bytes": 21900,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/column_kinematics.py",
+      "path": "src/tbdy_next/column_engine/column_kinematics.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "e250836bcd1c987b02ce514fd3efc5406655aeb2",
+      "sha256": "1524b8ea2703347f2dd2554e47a72a44856bf4f08c95ed2e3c1a3fb72c9fa3f4",
+      "size_bytes": 15633,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/column_overview.py",
+      "path": "src/tbdy_next/column_engine/column_overview.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "160283de894eaeb40057b6edc915c81427567448",
+      "sha256": "05b3ba8736d88a691e97c92e1f3552d148754f3992652a11b006b1de88387848",
+      "size_bytes": 18084,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/column_pmm.py",
+      "path": "src/tbdy_next/column_engine/column_pmm.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "c3b2496205d6b37fdde5db3eb445a8c2a9555d07",
+      "sha256": "fcf469e6275531c1a32254816c28531193245ffe3de955364f64177618b2fa57",
+      "size_bytes": 16262,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/column_pmm_quality.py",
+      "path": "src/tbdy_next/column_engine/column_pmm_quality.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "fd91db0b7ae0b8227d6f0fdefd71af3ff2c984be",
+      "sha256": "d8af967c1a366cdc5429a814e9b99f910d5c294dc66fccdfe09b280d1578e361",
+      "size_bytes": 20337,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/column_prechecks.py",
+      "path": "src/tbdy_next/column_engine/column_prechecks.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "1e8e3ca1aa90da99c990af7ce0506e33575eaa6a",
+      "sha256": "c4bffd9ba26f824d9d719d808b7539dfbb466862122c599cc4836042d4a58ce4",
+      "size_bytes": 11450,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/column_scwb.py",
+      "path": "src/tbdy_next/column_engine/column_scwb.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "2be69099dfffe541e254d55c15afbd533249c94e",
+      "sha256": "26fc8542c80a6405ea81677314a3395faa5830ce1b70d5bf083fd869dc71e1ae",
+      "size_bytes": 23884,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/column_sensitivity.py",
+      "path": "src/tbdy_next/column_engine/column_sensitivity.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "78ee6d84e14c62b4f03240572e0cf529114e7064",
+      "sha256": "37506e1c9197915fef56a671c4b399d98519c61299077dafd1cc1b6e03b4a89c",
+      "size_bytes": 12625,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/column_stability.py",
+      "path": "src/tbdy_next/column_engine/column_stability.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "c89ef4424604ede78795c900f5af0dec7e5f951a",
+      "sha256": "fe47e67058ff06d13980393bd9372630557ac083c788b2a5f1590a6667eae429",
+      "size_bytes": 11217,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/column_transverse.py",
+      "path": "src/tbdy_next/column_engine/column_transverse.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "94a0aa26c8b61561406ece059d7a04883ea7aed4",
+      "sha256": "b7eb5011036d37a67ecdfccae3e2987ed6a09edd7ec982e3c0412b305e44b941",
+      "size_bytes": 18171,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/csi_geometry.py",
+      "path": "src/tbdy_next/column_engine/csi_geometry.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "c8534338a88f0ac216192fbe36f49127ad55b515",
+      "sha256": "1a7b0860dde89b9301c4818d6f42c725795decfe7a131ef97dea0b8cdd0158d6",
+      "size_bytes": 3048,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/demand_chain.py",
+      "path": "src/tbdy_next/column_engine/demand_chain.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "a6ed18bc79dfe28959d917dc44a5ff1836403965",
+      "sha256": "9135fa1f5e1874d3e49fde1fac9c9d5320f169315cbd15533b367ad3d9ee6977",
+      "size_bytes": 15540,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/demand_types.py",
+      "path": "src/tbdy_next/column_engine/demand_types.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "39ff1e3c34b79e61eebd4760e98da09e6526328f",
+      "sha256": "a811a3fa3a6123f72f4d008c74e03f4bd6f4266d9e8a151943b53cf6cf684809",
+      "size_bytes": 13446,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/demand_view.py",
+      "path": "src/tbdy_next/column_engine/demand_view.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "708843211d12ef7d257adee44c079f5262816f45",
+      "sha256": "e4a646910257fa27ea82c4f038fe947429e69b8eed006491d88f55a4958891fe",
+      "size_bytes": 18924,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/joint_kernel.py",
+      "path": "src/tbdy_next/column_engine/joint_kernel.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "9788e77e928d5ebe77f367018614046112de77aa",
+      "sha256": "1921ce396b4fdce224ef459bdfcfa1a6d211283169e9889bb1553465fe808642",
+      "size_bytes": 3555,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/joint_moment_signs.py",
+      "path": "src/tbdy_next/column_engine/joint_moment_signs.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "6d912a10b73a1f1b13706fbaef99af5d99b09e29",
+      "sha256": "4cdeff2828195c12bd8d9bfe786df51e16d36165b0fa843d6135d11f206795c6",
+      "size_bytes": 2914,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/kinematics_kernel.py",
+      "path": "src/tbdy_next/column_engine/kinematics_kernel.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "7285db4fb8b98a13d31958ed9dc75a0f1170e1b8",
+      "sha256": "78c0e5878e31103cb5feed90a6a5902437ee94f0591cf8672eabfbb128765fec",
+      "size_bytes": 2316,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/native_archive.py",
+      "path": "src/tbdy_next/column_engine/native_archive.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "97ebbc3dc01021958d368a444ef1cc007a9afe3f",
+      "sha256": "231ccb8ebfa4030f0f310bb967930b73ed1b7e51d6871090231d723457d14c14",
+      "size_bytes": 12390,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/observed_context.py",
+      "path": "src/tbdy_next/column_engine/observed_context.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "72a174adc009bf787b8a2620e30c9fc7d21ebff0",
+      "sha256": "e4b7df54e885980ee7d9887e562ccc42201a84d3b1a1c68e228235af763f8c11",
+      "size_bytes": 9146,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/scwb_kernel.py",
+      "path": "src/tbdy_next/column_engine/scwb_kernel.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "313573c1272c511775619bc8b3301ff5568e2468",
+      "sha256": "7a6edc27670b009749c190b3fd7c96c80c81260a1003f9168bec54058a793416",
+      "size_bytes": 7428,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/scwb_scenarios.py",
+      "path": "src/tbdy_next/column_engine/scwb_scenarios.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "261b02e11840639eb4c4506f4884d6e2b30be5c2",
+      "sha256": "272d9f88522e34902a2a8267d1327b1197a8bee6ce0325cbddcc07d98e12ee2e",
+      "size_bytes": 29114,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/section_capacity.py",
+      "path": "src/tbdy_next/column_engine/section_capacity.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "6f2ef17d220ab46040f2fca976a3baa4ee2c8738",
+      "sha256": "e0974a869c85330c4bf782d9a7d8c32e1f4adc71f4553256cb3d440f34389435",
+      "size_bytes": 21392,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/section_reference.py",
+      "path": "src/tbdy_next/column_engine/section_reference.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "9c19950437deba3d2546fe93c10f08c5d79607db",
+      "sha256": "4aa699dae8b365e73d3a85cdb878eca8b1a4706b32f024489b5caf8f2edfa938",
+      "size_bytes": 11831,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/sensitivity_kernel.py",
+      "path": "src/tbdy_next/column_engine/sensitivity_kernel.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "472fb53c0e690e60efe3db03d71ee18783990e39",
+      "sha256": "805bc2e9f23c76ae4f575b942bc1e461d78ccc2fd7b716eabd06a02e91fb38ed",
+      "size_bytes": 3284,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/source_bank.py",
+      "path": "src/tbdy_next/column_engine/source_bank.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "966ccec8552d967673b522dcb224e2dcc8ff9f04",
+      "sha256": "f4bf81ce75df40e53953086d2d5a53a7b2a063cacf0cac29b98d63844de5ba81",
+      "size_bytes": 26354,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/spectral_design.py",
+      "path": "src/tbdy_next/column_engine/spectral_design.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "17e3a9b6f8d67a76645c874a4086160dbcb104bd",
+      "sha256": "aff832eceef729c8f9f17622929a69cd61333ac8cdb4c3ebbd4073195ae88bbc",
+      "size_bytes": 10683,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/spectral_envelope.py",
+      "path": "src/tbdy_next/column_engine/spectral_envelope.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "71333729736dd5d306bbbfae85646c16042a446f",
+      "sha256": "9768ef96dc415317d8cb9356f1860a4db3c73b91b1389aa16b2deae8f34c1f86",
+      "size_bytes": 22009,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/spectral_pmm.py",
+      "path": "src/tbdy_next/column_engine/spectral_pmm.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "98fa0f98740920ca3981d556fd5bc9bf77a0617d",
+      "sha256": "6c302487373258bd71c0ff2663f86dd4d58b0fc74ad92febcdf25066b9735b5a",
+      "size_bytes": 12853,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/spectral_projection.py",
+      "path": "src/tbdy_next/column_engine/spectral_projection.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "120b480505fe80b213aaedda583ac11694a5816c",
+      "sha256": "0e91d30304d357d7b7617c39e4a5832d6b026b1d4172b04a1e5c5c31918e067d",
+      "size_bytes": 7439,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/store.py",
+      "path": "src/tbdy_next/column_engine/store.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "4ba1f01fe724bff90220310a0d3c08376966ecdb",
+      "sha256": "e863f7cac44d7af8e61439575373aac9bde450b8174846a9756ce3c161a91035",
+      "size_bytes": 13647,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/story_alpha.py",
+      "path": "src/tbdy_next/column_engine/story_alpha.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "754dd10c10bada1ce12919f54e5199970da45b59",
+      "sha256": "5c51b4a664aa3a5560b3c13d581ee3ddf96a6514ad1db37b17ad702b54121834",
+      "size_bytes": 2003,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/transverse_kernel.py",
+      "path": "src/tbdy_next/column_engine/transverse_kernel.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "f153b7c51d2c340169596a93cb6a022d408bc448",
+      "sha256": "1cc55d844039d833d95490d58b9b91374ddb7533e12b77357a5959451259bc35",
+      "size_bytes": 6345,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_engine/ts500_column.py",
+      "path": "src/tbdy_next/column_engine/ts500_column.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "234df4d425924c29db1103e703aecf88104aedc7",
+      "sha256": "8411247559fc7605385a69f120b49299415138d20044381e28bb9f648f10e735",
+      "size_bytes": 11499,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_overview_report.py",
+      "path": "src/tbdy_next/column_overview_report.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "844def98de6b679252947d9da1c1edae48766c96",
+      "sha256": "6530dee6ef70b3fb9b694ff7003a564d267885b1d9a0d7a6e5311614013d5043",
+      "size_bytes": 8242,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/column_quality_report.py",
+      "path": "src/tbdy_next/column_quality_report.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "7afa268fe6380eb5ffd257fdcd40107fbb2dccbe",
+      "sha256": "73ac6863c30297a5b4ba5603347297e2924cb128547bb5ad79be3dd837225c51",
+      "size_bytes": 5233,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/compiled_dag.py",
+      "path": "src/tbdy_next/compiled_dag.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "69828e1af53ea974467d03e7e5bdeffcba2769c2",
+      "sha256": "af6d40194aec3317edf369642b8f37b493229dac226ed25bb4d6ea4b35d0ce9f",
+      "size_bytes": 14682,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/config/dag/tbdy_r1c_94_candidate.json",
+      "path": "src/tbdy_next/config/dag/tbdy_r1c_94_candidate.json",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "8c69ba15adab78317e763f5c57cd56f78e81f16f",
+      "sha256": "a6b4006579cf738e35de57a496cdc0c9507108b6b7fd0d4da4d082d896e8a6e3",
+      "size_bytes": 22950,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/diaphragm_linkage.py",
+      "path": "src/tbdy_next/diaphragm_linkage.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "11b010ae8b356804b359bef2c4d80081fd285c40",
+      "sha256": "f1aeb67f1f5ae85d606de61873e968cc473da3ebddd3edc58f5f010840c089d1",
+      "size_bytes": 13722,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/diaphragm_probe.py",
+      "path": "src/tbdy_next/diaphragm_probe.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "e77c852a018773f9d8be5d90d0c588ff9a8bd3bd",
+      "sha256": "cab0b3418ecd9ddae6d97e4d2f0cd269ff8707db03220c6a3f0ae33d41cca15b",
+      "size_bytes": 8968,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/earthquake_combinations.py",
+      "path": "src/tbdy_next/earthquake_combinations.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "5b97a13db045f75ff346bc10f05ae3dbd6e2b380",
+      "sha256": "30f1c80b5d0e479dc05a4ab8ce0d9f5bd6032a6311dd96195cb38807602daf89",
+      "size_bytes": 14808,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/effective_drift_readiness.py",
+      "path": "src/tbdy_next/effective_drift_readiness.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "5cfdd20cf8f78285279b02a418f6b0f7090bff12",
+      "sha256": "ce240044d8b5cc93b9958244167a73bba8d5f927141a45627f322a106f5a228e",
+      "size_bytes": 8665,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/engineering/__init__.py",
+      "path": "src/tbdy_next/engineering/__init__.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "44d18a4adf20c847bb8154d9a7b9c3c096a7ebd4",
+      "sha256": "8c2885197323f7408de3468932bcb2dd57eb1b5a3ce794571353fd7e4fdc7226",
+      "size_bytes": 302,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/engineering/alpha_iteration.py",
+      "path": "src/tbdy_next/engineering/alpha_iteration.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "1bb5ea9b255bf5a52250eb89617fa918ecada150",
+      "sha256": "188469e2a25f082ed8f5f0269999afb49ed6d33a60ad8b394f789c5a2062c5ac",
+      "size_bytes": 28959,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/engineering/analysis_setup.py",
+      "path": "src/tbdy_next/engineering/analysis_setup.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "f391b7c3806c3898c8a450e445ecd49ab275ddde",
+      "sha256": "10d5adc701bcb3b60d5b55841fecfbf035deaa1f363a7826b2db7ff47773ed5f",
+      "size_bytes": 16533,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/engineering/beam_r10_live.py",
+      "path": "src/tbdy_next/engineering/beam_r10_live.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "a6065fe352601c2b7d043e3803586760ed966ff7",
+      "sha256": "4538f89356ef43d43593bb04c806081d216320f8b42abfd78f1c4bb345221af8",
+      "size_bytes": 33093,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/engineering/cli_adapter.py",
+      "path": "src/tbdy_next/engineering/cli_adapter.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "83fb9e53b4cc1ab99cc82a6b8ddc444f0021d2c2",
+      "sha256": "1c1bbafb4cf52c32b6f69f92d09a951633f43996e6cfdeb1ea06d808616f601b",
+      "size_bytes": 7766,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/engineering/column_axial.py",
+      "path": "src/tbdy_next/engineering/column_axial.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "59fa87ce2d98165d99556e9d66d0e4f66d00fd54",
+      "sha256": "72bbfbfc6514f09917e521b40652d0e7331fc3e90596851ef6b3ef5634ff3568",
+      "size_bytes": 16600,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/engineering/column_gates.py",
+      "path": "src/tbdy_next/engineering/column_gates.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "e8dbaaa72939f8f9e917ddf8f2280dab50911e61",
+      "sha256": "850007cf4f9c765d6c698d99120b383fd85b6dbd8daac47330b7af0c817fa485",
+      "size_bytes": 33043,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/engineering/column_live_gates.py",
+      "path": "src/tbdy_next/engineering/column_live_gates.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "3104fdf927cacc390b2b04a72d3623b672a1fbf5",
+      "sha256": "c24bc140c985f864d02812399d8969516c40167bcf485cde8727f9b630d590a2",
+      "size_bytes": 11422,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/engineering/column_pmm.py",
+      "path": "src/tbdy_next/engineering/column_pmm.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "9e4376edaadafaf59a26893bc7cf15b329041a49",
+      "sha256": "9283fe62daf088c2075719fe46a991fd6eb62d7c1d73784cf8ed87d0bfc3af99",
+      "size_bytes": 29396,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/engineering/column_pmm_section.py",
+      "path": "src/tbdy_next/engineering/column_pmm_section.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "709475dac26b49614015e2aaddc6e91e260e6fde",
+      "sha256": "cd9f1937dd827a06f19077dbb8762e30327ad9d34d16a2767cda65437007c979",
+      "size_bytes": 9557,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/engineering/column_r08_local_live.py",
+      "path": "src/tbdy_next/engineering/column_r08_local_live.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "ef6546cb1db3e36505678450668c18821b356d18",
+      "sha256": "255a53aa6c880a5066633d8bea83528c7e81d5d0c8325fd8a4e9a644aa924a18",
+      "size_bytes": 33505,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/engineering/column_r10_live.py",
+      "path": "src/tbdy_next/engineering/column_r10_live.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "c22b6930074ba31932bdae8f1faa80347a187494",
+      "sha256": "f08dd2e65e0dcca605848faea3b3a9eb09350e032d060181bd2952b72ebaec8c",
+      "size_bytes": 108292,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/engineering/column_r14_closure.py",
+      "path": "src/tbdy_next/engineering/column_r14_closure.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "b9d2a8456f35020b8f24bcefc11ce7b4f8c46e2b",
+      "sha256": "b9fd0a88775eb28d3ff7ab1257f1801d311b85983501ca89cd6a4dab81bf37ba",
+      "size_bytes": 28545,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/engineering/demand_sources.py",
+      "path": "src/tbdy_next/engineering/demand_sources.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "812dcca5f2398856c464b96894b2806811d71191",
+      "sha256": "987a56e63edaecd0fd813fecc0eb17f6cbbea330ff23c9af2c130e33989fedd8",
+      "size_bytes": 12519,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/engineering/design_assignments.py",
+      "path": "src/tbdy_next/engineering/design_assignments.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "6b81223caea19a64702c1d6225d79ab2287e7ca3",
+      "sha256": "0ac9f13be835d130aea2d37c0e6e142296ed01229c9b84a96bf53a7428f943f0",
+      "size_bytes": 2570,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/engineering/design_dependencies.py",
+      "path": "src/tbdy_next/engineering/design_dependencies.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "b4c9125ab2c9f87be149028d3bb8cdf40cb25211",
+      "sha256": "bda18b9086419db60424c5620ac46dfee66ea5c1ed0fd723575b5c7f45aaaeac",
+      "size_bytes": 22809,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/engineering/design_scenario.py",
+      "path": "src/tbdy_next/engineering/design_scenario.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "4e1dc40f58db141a21f25627160c20a7300f1ada",
+      "sha256": "0587d8db8c9c9ddbed8b98c4f36fcd969dec6dde5c0f88a506ceb61491ba5f4f",
+      "size_bytes": 12972,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/engineering/live_column.py",
+      "path": "src/tbdy_next/engineering/live_column.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "04ed04df6b571d001a5c203ca5c956ccefb2bb4e",
+      "sha256": "d45ce5f9626bfa51bcec5d25200dd8917e760cc40e689f3bfd69fe327c2e6ec1",
+      "size_bytes": 23267,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/engineering/mixed_demands.py",
+      "path": "src/tbdy_next/engineering/mixed_demands.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "fe878c63537bbd4b7f97dbc16d2a9c659fb3903d",
+      "sha256": "948837122d1cdf9bbe0f0b89ff48a20dbcfdcbe81edbc50f785f5d55c3d57191",
+      "size_bytes": 26913,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/engineering/pipeline.py",
+      "path": "src/tbdy_next/engineering/pipeline.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "2148398d87bf234a2fd06998e5465bd6161a2017",
+      "sha256": "90305209f1060d592ab660433752573fd8db29eaccc92c56cc2b239576533e77",
+      "size_bytes": 48610,
+      "git_blob_verified": true,
+      "review_role": "INTEGRATION_CONTRACT_OR_EVIDENCE_INDEX_REVIEWED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/engineering/pipeline_snapshot.py",
+      "path": "src/tbdy_next/engineering/pipeline_snapshot.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "c199a253e5331f942ec614c79bc41082e6c41dea",
+      "sha256": "12ed0f6b4ac939430f703c4942a5a95ba0de8e5684a86b51b0ff75562b819f21",
+      "size_bytes": 8688,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/engineering/rebar_selection.py",
+      "path": "src/tbdy_next/engineering/rebar_selection.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "e382a4ae5bc6d6c3c5266f4eb850e4816b8ae12e",
+      "sha256": "a9236f638ab920bbf9def78b1cc980b781d1b7a548b8ada13e48501d9ba61e71",
+      "size_bytes": 35143,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/engineering/story_pdelta.py",
+      "path": "src/tbdy_next/engineering/story_pdelta.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "adfca88a1441b168f52b830577e6bfcc3e356f4d",
+      "sha256": "c68ed717f32b8b531e523cbd3c27487eb603b500f34e8b565ae0466581848255",
+      "size_bytes": 6289,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/etabs_geometry.py",
+      "path": "src/tbdy_next/etabs_geometry.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "d7dbcd71db3535c3aec429ca47e808da440ea030",
+      "sha256": "419cbaf3377bcd77d474cc28b2fd8af1382a85245f801ddac68783b5caa2fbee",
+      "size_bytes": 6907,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/etabs_modal.py",
+      "path": "src/tbdy_next/etabs_modal.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "08ad093adeba38677eaf5766fff6ac2223333373",
+      "sha256": "7442738a006123a504f97942a80170968640ea8584cf44d9da43b6b5edb5b8b7",
+      "size_bytes": 8105,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/etabs_source_gateway_windows.py",
+      "path": "src/tbdy_next/etabs_source_gateway_windows.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "4d83f60239dbea01f617e51d4afaceb08215d33e",
+      "sha256": "1e3d1b4b69b00599cb494aaa42f41acab0961559fba71e4e37346a9750c15573",
+      "size_bytes": 42735,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/frame_force_capture.py",
+      "path": "src/tbdy_next/frame_force_capture.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "5ab549309a0e2d321a6dbfde6b3cfb2aff63292f",
+      "sha256": "f4ebd88b7497982b198d45bf144cb3b60ab47bb838bdd6c707c7c7924f630154",
+      "size_bytes": 7933,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/history.py",
+      "path": "src/tbdy_next/history.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "22ddd54a7a853eeec18eb4d987d0b5a8b8e95234",
+      "sha256": "b88e933ec29044ea4f6d9cd7012b22d25305fdeb2f53796043859180355f028b",
+      "size_bytes": 16056,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/live_etabs.py",
+      "path": "src/tbdy_next/live_etabs.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "00012068164394569ff4e2fa7549e6a3e083d0ce",
+      "sha256": "72566beb872cfcefcb466c9ff9aa185a99abb6ea9b102cb1bba6ed10373a4262",
+      "size_bytes": 14321,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/live_source_pipeline.py",
+      "path": "src/tbdy_next/live_source_pipeline.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "616681097f289bca03b9f807e510e0a07fd94431",
+      "sha256": "21178f4b22c4ba9ba17f8e4987c1cd84f3041a487f6459af703ac90d6a733111",
+      "size_bytes": 17506,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/member_groups.py",
+      "path": "src/tbdy_next/member_groups.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "612210410e84ee11881ee81ab69f9f0354d075fc",
+      "sha256": "3dc05f5bf06666778202631abb8a7d57a02b6d517b38f53552d18bf7bc8a43b2",
+      "size_bytes": 3300,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/modal.py",
+      "path": "src/tbdy_next/modal.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "889ca1d22336ed844e17d69474d30f06a13e7264",
+      "sha256": "9550034c6123c3cac946d7ba1b51bea7f2e59e6892dded32e0c262790ec6ecd0",
+      "size_bytes": 2422,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/next_capture.py",
+      "path": "src/tbdy_next/next_capture.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "5743e4e56f68f8d171017711e1a77d15dd4b533f",
+      "sha256": "69a64b01bb198b92810a4cc1a00f469b8e7a47986ab45046fe59aebb4b15ecb9",
+      "size_bytes": 2959,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/next_checks.py",
+      "path": "src/tbdy_next/next_checks.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "a4cd29df12d944e3088dee853de717c1035a2a4a",
+      "sha256": "d0328894046a9e4d1c3b8f6f5c8580535384135d8f621992f0eb10d8073c9bf2",
+      "size_bytes": 11848,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/normative_basis.py",
+      "path": "src/tbdy_next/normative_basis.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "3858dc434daa0603dfdfc993e5a13f306fffb342",
+      "sha256": "f1beb403e6008eb2ba56de3e32999ca2a415f8701d7f0e82dca2817ce5032955",
+      "size_bytes": 9494,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/normative_checks.py",
+      "path": "src/tbdy_next/normative_checks.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "ed9587a060d0536d3b499ba9ccdb58095f5215d5",
+      "sha256": "759d11b72524985e611af374e5eb86522da387914f6e8af5280cfdb8ff0dc5fe",
+      "size_bytes": 14671,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/physical_story_scope.py",
+      "path": "src/tbdy_next/physical_story_scope.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "2c47eb7b3ff815a8a11bbdba56e3917ee01e3c1f",
+      "sha256": "db635834fc42cf0dee6c44c650bd5650eca36d9a1f6d0a00d6463d8ea375c194",
+      "size_bytes": 14987,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/quick_checks.py",
+      "path": "src/tbdy_next/quick_checks.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "812594eec6c4fce872fd609364ddf8f40dfead95",
+      "sha256": "c5be795838a56641f14b3f4d664a31dce10445e7568cd32d934be9c9adf771ff",
+      "size_bytes": 17617,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/r04_offline_evidence.py",
+      "path": "src/tbdy_next/r04_offline_evidence.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "a4219a08ce324b6405f886557d4b48b58dc52d04",
+      "sha256": "1698ba9122d500377909336c2a077a2bbbd48ad6fc32556a048dea9b2adf2ac8",
+      "size_bytes": 13312,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/r05_story_irregularity.py",
+      "path": "src/tbdy_next/r05_story_irregularity.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "64432c4d76c1ad39c7c129a6c1972239d6388613",
+      "sha256": "fbde698ffaa251d2047d9dcc706e4db9ff322435a112d0a453a66552d10e9a58",
+      "size_bytes": 19695,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/r06_demand_semantics.py",
+      "path": "src/tbdy_next/r06_demand_semantics.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "f1f97a850234ac40a2e93b82a85c8513afdf19a2",
+      "sha256": "7873508334ba44a613027c434ee3249a16a92d3a804f53b11b0bc52c402ce702",
+      "size_bytes": 15286,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/receipts.py",
+      "path": "src/tbdy_next/receipts.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "bfbfb211793540ae5a44e1ff152557e369bf299b",
+      "sha256": "b413cb3ebb3d70e48fb7c7731c942777e90a3b877445b410d3d845723f52b653",
+      "size_bytes": 1933,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/reporting.py",
+      "path": "src/tbdy_next/reporting.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "a3e2dfe45aa9d61654c81d231a877f616ef1f8ca",
+      "sha256": "8fa564be191507966b675701a86e62df0b1e64cd0bce0d4615e7b0cf0053e115",
+      "size_bytes": 171929,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/scenario_report.py",
+      "path": "src/tbdy_next/scenario_report.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "456ef57875a41c981fcf47aac62952c18799ce9b",
+      "sha256": "8d3914e2810d512d541d6fda2c61f60d2e5d4e7aa36111cfe794a8099fa670cf",
+      "size_bytes": 5076,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/schema.py",
+      "path": "src/tbdy_next/schema.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "9200dbcc1ad796d982fc72976525f5f0404fd671",
+      "sha256": "d4bdc8a5fa553db7030dc9d9eba06778571fb022aae7bca7119c395ab511f03a",
+      "size_bytes": 2146,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/scwb_report.py",
+      "path": "src/tbdy_next/scwb_report.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "1bc1ebc30fb9b153ae9219701876a6b7a574f748",
+      "sha256": "6dc6f5710329d6057040e30aaf8622ed77109bd9d74428aa54e2271405573946",
+      "size_bytes": 5236,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/soft_story_b2.py",
+      "path": "src/tbdy_next/soft_story_b2.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "77f84ca512e3fce1a09cb7a85dfddf3dffe4bbe8",
+      "sha256": "1bda74f4d1df3d6dbd6bb557e3c6db94889ba9ac64884ffcbe458ca7213a7401",
+      "size_bytes": 20038,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/source.py",
+      "path": "src/tbdy_next/source.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "1ea0ccdd4ac8517ff8ecec65d878681cce2c2378",
+      "sha256": "b554ee25e641e102d352c0a0aa5fccc4121f6a87e0eecf12f90000f4a76c2364",
+      "size_bytes": 7102,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/source_control_bundle.py",
+      "path": "src/tbdy_next/source_control_bundle.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "28511bdf4e19a8419d45f5295b43731b9659a3c6",
+      "sha256": "1ebf1f0ff881c5fe428a16b4a957213293007dee95ece548152aaec34b156cf9",
+      "size_bytes": 17472,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/spectral_design_report.py",
+      "path": "src/tbdy_next/spectral_design_report.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "71721f9d9bad7f5e861a10dffe90df16dacfd412",
+      "sha256": "9d85b5ee48d62987f5a6883f90c4b81740fbd148a4fb6dced1efb50cd390b0c4",
+      "size_bytes": 9927,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/spectral_report.py",
+      "path": "src/tbdy_next/spectral_report.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "243acf45662787d9ef4c361d1b1c42aed6492730",
+      "sha256": "8724a1581ea870c7dad53f1d211d4d7f6da16f71d53750385da9230aa0629cfe",
+      "size_bytes": 5420,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/spectrum_reconstruction.py",
+      "path": "src/tbdy_next/spectrum_reconstruction.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "fa63972e07290f2aadfcad245b341b72ca907ed6",
+      "sha256": "80b3bda8071900e3e6f1dd885e18ce15c9f15d750afd71362813b7e0535187f5",
+      "size_bytes": 15283,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/story_delta.py",
+      "path": "src/tbdy_next/story_delta.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "c8af3caf217c1b96e04e85721fcc38744dbbebdc",
+      "sha256": "d37c013b2bc03c43568648b155a8c21c329ca4ae46014377562bfa9286a70143",
+      "size_bytes": 13850,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/story_drift_binding.py",
+      "path": "src/tbdy_next/story_drift_binding.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "0b7e5e459ead71cdc8713158e0b28fd3151b348f",
+      "sha256": "6a62e66af42107c8f688e8b34cb8ae70273f207798fc2877392f644246b9f93c",
+      "size_bytes": 5009,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/story_geometry.py",
+      "path": "src/tbdy_next/story_geometry.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "2395a324e7d499ec82beede582dc69e31c8ff1e6",
+      "sha256": "df81c2985bb71338b28532b1fb6983b7b9407ab4f56bde3db09d9e990d531b47",
+      "size_bytes": 4645,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/story_physical_source.py",
+      "path": "src/tbdy_next/story_physical_source.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "30312aaa645205ba31f496f79e1a92258fa41b85",
+      "sha256": "5d9fead74a421c6561f739f0801b55e349c8e843a4bcbe059c9e627469b19d9e",
+      "size_bytes": 9058,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/story_second_order.py",
+      "path": "src/tbdy_next/story_second_order.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "fd5d9112eed0dc5603312fb4ba8cbe02c518b8cf",
+      "sha256": "ffd2e33e239cc53df24d3743b62c22906669de84a4ed4153c0b5a9fc4e1fdb59",
+      "size_bytes": 19839,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/story_second_order_capture.py",
+      "path": "src/tbdy_next/story_second_order_capture.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "81263aa5f30c310a2076e7d10443102f5b00a9c7",
+      "sha256": "753e6da1fb3ff172ef06836c390f0092b753e18a34ddd12ab1b8d73a95823b41",
+      "size_bytes": 5364,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/story_slot_ledger.py",
+      "path": "src/tbdy_next/story_slot_ledger.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "0f13512145c467799667bcbe2f98bc98937fca87",
+      "sha256": "bf46ff73b86879ffcab11de89feda524f7b243942b566aa7ede685459ef9a7d8",
+      "size_bytes": 5992,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/verification/__init__.py",
+      "path": "src/tbdy_next/verification/__init__.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "a4894bf765d1426f19ea0df7ec4bbccdb372a4ee",
+      "sha256": "491bdb2f0f937ad6129610a00ae95e6147124bc6289a8972c4cb5ae4d20ab99e",
+      "size_bytes": 75,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/verification/golden_gate.py",
+      "path": "src/tbdy_next/verification/golden_gate.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "037f8420152b18da17fb3172c617690ffa6c91dc",
+      "sha256": "9699fb38f1dceeac813713e35652162a64e12875ea14a51b5f92258265f9f05a",
+      "size_bytes": 21541,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/verification/references/column_oracle.py",
+      "path": "src/tbdy_next/verification/references/column_oracle.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "4b78e7bd83e1ed31d3ac006122e5e499499c7e9b",
+      "sha256": "1b81cb6b8469eff9fe5bbcc946a1b0bd3474644ffeabb5ee58ac1661134eca50",
+      "size_bytes": 16352,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/verification/references/column_section_pilot.py",
+      "path": "src/tbdy_next/verification/references/column_section_pilot.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "c4fb505a8f8cc5bc9b28ceb2c84b8c6109822b9a",
+      "sha256": "7e803b366fac39c24d9d95446b62e5f45bb1673fa9fad2538b3bf85d9b091915",
+      "size_bytes": 4700,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/verification/references/test_b7_oracle_matrix.py",
+      "path": "src/tbdy_next/verification/references/test_b7_oracle_matrix.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "97dde22555db9b35bd7ca9db3c3a9d8ec53c5679",
+      "sha256": "eb81ed41aef3a0b32cbda772e7d1ecbd040941fbaf753ce9ec4fec933ccc169a",
+      "size_bytes": 6393,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/verification/references/test_v11_reference_regression.py",
+      "path": "src/tbdy_next/verification/references/test_v11_reference_regression.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "82e22acf72df1fe610e6933a437e3c3529da3829",
+      "sha256": "3613c3bccc167aa0da3febca21aaddbea49915ba83d4c165cd7b9fcf7d8a317c",
+      "size_bytes": 14158,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/verification/report_oracles.py",
+      "path": "src/tbdy_next/verification/report_oracles.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "8bb4e004002dadbe40d71616e31e64bcd4c538f5",
+      "sha256": "fc028b844c8c90ea40fdcd6c3b347e508d9f8bc6ca1bd1eae0a109a48085c73d",
+      "size_bytes": 2512,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/vs05_d4_source_authority.py",
+      "path": "src/tbdy_next/vs05_d4_source_authority.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "bc7ffd32c742bf604a0e210cfdb26d2a51784a25",
+      "sha256": "be1074e9d5dd488c0d832829cae63afbe6be64b88d3589108da319f57011b781",
+      "size_bytes": 21354,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/vs06_drift_scenario.py",
+      "path": "src/tbdy_next/vs06_drift_scenario.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "764c31e4864b27914773d0f40935d94f2421754d",
+      "sha256": "bacac538919d627a78491beb5852ff3e996a06016b6a0cc06ed66e4748953392",
+      "size_bytes": 18278,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/wall_geometry.py",
+      "path": "src/tbdy_next/wall_geometry.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "b4ee1174d81439dbbca5a1e49c67ab7d7dbea218",
+      "sha256": "95711012a17120e2eb922e25f10895b0394a679504cdcd16a87e1c5a4fd55dd2",
+      "size_bytes": 16733,
+      "git_blob_verified": true,
+      "review_role": "RELATED_SYMBOLS_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/weak_story_b1.py",
+      "path": "src/tbdy_next/weak_story_b1.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "72105f1ed5a72068e263af08170a66f6e1bf3ca8",
+      "sha256": "afe0df4a8e556979011f7c59a4e6de4b579438c3196c2ccf7aa0f349d0e6fb45",
+      "size_bytes": 8216,
+      "git_blob_verified": true,
+      "review_role": "IDENTIFIED_OWNER_SUBSCOPES_INSPECTED_AND_AST_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:src/tbdy_next/web.py",
+      "path": "src/tbdy_next/web.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "17fba0a1447041f61d2ac65e869f97a91a7c7a10",
+      "sha256": "c5df971f8849cf4000192b5537ed3792f803c2e67da5e5ed66af1342563ad11b",
+      "size_bytes": 50656,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:tests/test_native_demand_sources.py",
+      "path": "tests/test_native_demand_sources.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "8c8cdfab56ec6ca6f802ce2a18a2001fc8e0ceec",
+      "sha256": "c9fda71a7bcce332938fa119dd7139f16f853adfd0134f2e63590147c20b7934",
+      "size_bytes": 22064,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:tests/test_pipeline_unification.py",
+      "path": "tests/test_pipeline_unification.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "0eb3b0b1cee2ee0d23c11848ae35c9e890b75cc9",
+      "sha256": "bc57e341fc9b9ec1ca362ad8ab6d319a5ffbecb235cef3cc9b69dc2a150d671a",
+      "size_bytes": 10369,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:tests/test_same_source_spectral_replay.py",
+      "path": "tests/test_same_source_spectral_replay.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "a8c1702a1e9db1284fd6259a81fce4f89ac013bd",
+      "sha256": "446c2b7c27ff478a3468d46d4d1cfaafa07b7b74619793069a633a27a7cd0199",
+      "size_bytes": 9296,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:tests/test_vs26_golden_gate.py",
+      "path": "tests/test_vs26_golden_gate.py",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "2acbe9d151679a9f938398cba3e3c08f433d566e",
+      "sha256": "d21c14b54753ba5b8277cd8b9a176144da9167c4320fbcbd475fa77769c16da3",
+      "size_bytes": 12844,
+      "git_blob_verified": true,
+      "review_role": "FETCHED_AND_HASH_VERIFIED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    },
+    {
+      "source_id": "CODE:docs/VS26_GOLDEN_REGRESSION.json",
+      "path": "docs/VS26_GOLDEN_REGRESSION.json",
+      "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "git_blob_sha": "3c33a3b3502f7d537eba413eed171543afc33b97",
+      "sha256": "c30c08b6a270b52867c7d1dd5e27e087b2db40f55122f7269e39d184ee9dccf1",
+      "size_bytes": 50893,
+      "git_blob_verified": true,
+      "review_role": "INTEGRATION_CONTRACT_OR_EVIDENCE_INDEX_REVIEWED",
+      "scope_limit": "No blanket claim that every function or branch in this file was semantically audited.",
+      "raw_bytes_distribution": "PRIVATE_EVIDENCE_PACKAGE_ONLY"
+    }
+  ],
+  "golden_sources": [
+    {
+      "source_id": "GE-S01",
+      "original_filename": "TBDY_PDF_Golden_V2_Manifest.json",
+      "sha256": "1de835eae29246546cb6ece6255663757c9c00ab82358bcd8fe4f0d4bb2c8914",
+      "size_bytes": 1542,
+      "original_pdf_pages": [],
+      "example_ids": [
+        "GE-SRC-001"
+      ],
+      "access_class": "PRIVATE_SOURCE",
+      "public_access_link": null,
+      "private_access_record": "SOURCE_ACCESS.json#GE-S01",
+      "use": "Traceable source inputs or reported quantities; not production execution evidence."
+    },
+    {
+      "source_id": "GE-S02",
+      "original_filename": "2.pdf",
+      "sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+      "size_bytes": 21828842,
+      "original_pdf_pages": [
+        6,
+        7,
+        19,
+        20,
+        21,
+        22,
+        35,
+        186,
+        191
+      ],
+      "example_ids": [
+        "GE-SRC-002",
+        "GE-CHK-001",
+        "GE-CHK-002",
+        "GE-CHK-004",
+        "GE-CHK-005",
+        "GE-CHK-006",
+        "GE-CHK-011",
+        "GE-CHK-101",
+        "GE-CHK-102",
+        "GE-CHK-103",
+        "GE-CHK-104",
+        "GE-CHK-119",
+        "GE-CHK-149"
+      ],
+      "access_class": "PRIVATE_SOURCE",
+      "public_access_link": null,
+      "private_access_record": "SOURCE_ACCESS.json#GE-S02",
+      "use": "Traceable source inputs or reported quantities; not production execution evidence."
+    },
+    {
+      "source_id": "GE-S03",
+      "original_filename": "PIPELINE_UNIFICATION_20261115.md",
+      "sha256": "177ce572ab06d9705569e744dcd9e40684bf35d88a568e1d6b9e8f7c76a6a36d",
+      "size_bytes": 13557,
+      "original_pdf_pages": [],
+      "example_ids": [
+        "GE-SRC-003",
+        "GE-SRC-004"
+      ],
+      "access_class": "PRIVATE_SOURCE",
+      "public_access_link": null,
+      "private_access_record": "SOURCE_ACCESS.json#GE-S03",
+      "use": "Traceable source inputs or reported quantities; not production execution evidence."
+    },
+    {
+      "source_id": "GE-S04",
+      "original_filename": "ex_Hesap_Raporu6.pdf",
+      "sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+      "size_bytes": 2172467,
+      "original_pdf_pages": [
+        1,
+        2,
+        12,
+        13,
+        14,
+        16,
+        17,
+        18,
+        19,
+        27,
+        32,
+        41,
+        51,
+        56,
+        59,
+        62,
+        63,
+        72,
+        84,
+        85,
+        86,
+        92,
+        106
+      ],
+      "example_ids": [
+        "GE-SRC-005",
+        "GE-CHK-105",
+        "GE-CHK-108",
+        "GE-CHK-111",
+        "GE-CHK-113",
+        "GE-CHK-114",
+        "GE-CHK-122",
+        "GE-CHK-126",
+        "GE-CHK-127",
+        "GE-CHK-128",
+        "GE-CHK-130",
+        "GE-CHK-131",
+        "GE-CHK-132",
+        "GE-CHK-133",
+        "GE-CHK-134",
+        "GE-CHK-135",
+        "GE-CHK-136",
+        "GE-CHK-137",
+        "GE-CHK-138",
+        "GE-CHK-139",
+        "GE-CHK-140",
+        "GE-CHK-141",
+        "GE-CHK-142",
+        "GE-CHK-143",
+        "GE-CHK-144",
+        "GE-CHK-146",
+        "GE-CHK-147",
+        "GE-CHK-148",
+        "GE-CHK-150",
+        "GE-CHK-151",
+        "GE-CHK-152",
+        "GE-CHK-153",
+        "GE-CHK-158"
+      ],
+      "access_class": "PRIVATE_SOURCE",
+      "public_access_link": null,
+      "private_access_record": "SOURCE_ACCESS.json#GE-S04",
+      "use": "Traceable source inputs or reported quantities; not production execution evidence."
+    },
+    {
+      "source_id": "GE-S05",
+      "original_filename": "col1.docx",
+      "sha256": "75e14b85d28958e13b59e77cf12242ef6bf2546492754cd33ac9b900e45fc0de",
+      "size_bytes": 196711,
+      "original_pdf_pages": [],
+      "example_ids": [
+        "GE-CHK-003",
+        "GE-CHK-007",
+        "GE-CHK-009",
+        "GE-CHK-115",
+        "GE-CHK-121"
+      ],
+      "access_class": "PRIVATE_SOURCE",
+      "public_access_link": null,
+      "private_access_record": "SOURCE_ACCESS.json#GE-S05",
+      "use": "Traceable source inputs or reported quantities; not production execution evidence."
+    },
+    {
+      "source_id": "GE-S06",
+      "original_filename": "07_GORELI_KAT_OTELEME_KONTROLU.xlsx",
+      "sha256": "0ec41c2ac49dda5c1ce818f1a282f3212283c0d7e3bf24689925b21b9b5381e4",
+      "size_bytes": 74368,
+      "original_pdf_pages": [],
+      "example_ids": [
+        "GE-CHK-010"
+      ],
+      "access_class": "PRIVATE_SOURCE",
+      "public_access_link": null,
+      "private_access_record": "SOURCE_ACCESS.json#GE-S06",
+      "use": "Traceable source inputs or reported quantities; not production execution evidence."
+    },
+    {
+      "source_id": "GE-S07",
+      "original_filename": "4_sikistirilmis_10MB_alti(1).pdf",
+      "sha256": "0c6955496aaaa92e2b508ca4eb040927ac8eab2bef92a857f2ff602b8a78fba2",
+      "size_bytes": 3215921,
+      "original_pdf_pages": [
+        28,
+        30
+      ],
+      "example_ids": [
+        "GE-CHK-106",
+        "GE-CHK-110"
+      ],
+      "access_class": "PRIVATE_SOURCE",
+      "public_access_link": null,
+      "private_access_record": "SOURCE_ACCESS.json#GE-S07",
+      "use": "Traceable source inputs or reported quantities; not production execution evidence."
+    },
+    {
+      "source_id": "GE-S08",
+      "original_filename": "17_DUZENSIZLIKLER.xlsx",
+      "sha256": "3fde2d386c5afb02c30ee895146926f677385bd6f5a726dd1fd5de67a4d0ffad",
+      "size_bytes": 34024,
+      "original_pdf_pages": [],
+      "example_ids": [
+        "GE-CHK-107",
+        "GE-CHK-109"
+      ],
+      "access_class": "PRIVATE_SOURCE",
+      "public_access_link": null,
+      "private_access_record": "SOURCE_ACCESS.json#GE-S08",
+      "use": "Traceable source inputs or reported quantities; not production execution evidence."
+    },
+    {
+      "source_id": "GE-S09",
+      "original_filename": "20180318M1-2-1.pdf",
+      "sha256": "8d3a9a463d4a534ec2c6834c557b5f706e2ad976c2d6837f6c9b6242e38a6bb2",
+      "size_bytes": 7367331,
+      "original_pdf_pages": [
+        41,
+        43,
+        44,
+        146,
+        147,
+        148,
+        149,
+        152,
+        153,
+        154,
+        158,
+        159,
+        160
+      ],
+      "example_ids": [
+        "GE-CHK-108",
+        "GE-CHK-111",
+        "GE-CHK-142",
+        "GE-CHK-143",
+        "GE-CHK-144",
+        "GE-CHK-145",
+        "GE-CHK-148",
+        "GE-CHK-151",
+        "GE-CHK-153"
+      ],
+      "access_class": "PRIVATE_SOURCE",
+      "public_access_link": null,
+      "private_access_record": "SOURCE_ACCESS.json#GE-S09",
+      "use": "Traceable source inputs or reported quantities; not production execution evidence."
+    },
+    {
+      "source_id": "GE-S10",
+      "original_filename": "14_PERDE_DEVRILME_MOMENT_KONTROLU.xlsx",
+      "sha256": "aeecc15fa9c22694db31b35f61ac28fac60aa1cccaf17fc77aec6b04342354dd",
+      "size_bytes": 163796,
+      "original_pdf_pages": [],
+      "example_ids": [
+        "GE-CHK-112"
+      ],
+      "access_class": "PRIVATE_SOURCE",
+      "public_access_link": null,
+      "private_access_record": "SOURCE_ACCESS.json#GE-S10",
+      "use": "Traceable source inputs or reported quantities; not production execution evidence."
+    },
+    {
+      "source_id": "GE-S11",
+      "original_filename": "sway1.docx",
+      "sha256": "6e8863ae52834af5febbdd30db0648de186a713f7da991e05db660bb2425b0d7",
+      "size_bytes": 66279,
+      "original_pdf_pages": [],
+      "example_ids": [
+        "GE-CHK-116",
+        "GE-CHK-117",
+        "GE-CHK-118"
+      ],
+      "access_class": "PRIVATE_SOURCE",
+      "public_access_link": null,
+      "private_access_record": "SOURCE_ACCESS.json#GE-S11",
+      "use": "Traceable source inputs or reported quantities; not production execution evidence."
+    },
+    {
+      "source_id": "GE-S12",
+      "original_filename": "exact_bar_hole_hand_resultants.json",
+      "sha256": "464b3ace47b4f9b532ae0782f1f86ab51a05919df7b400510b6b0f3df93a4707",
+      "size_bytes": 9047,
+      "original_pdf_pages": [],
+      "example_ids": [
+        "GE-CHK-120"
+      ],
+      "access_class": "PRIVATE_SOURCE",
+      "public_access_link": null,
+      "private_access_record": "SOURCE_ACCESS.json#GE-S12",
+      "use": "Traceable source inputs or reported quantities; not production execution evidence."
+    },
+    {
+      "source_id": "GE-S13",
+      "original_filename": "09_KOLON_KESME_KONTROLLERI.xlsx",
+      "sha256": "a5e2066de1b944c8fc5b686a8ae40e02b23bbed45f46b2f7adbab564b565f811",
+      "size_bytes": 1977038,
+      "original_pdf_pages": [],
+      "example_ids": [
+        "GE-CHK-123",
+        "GE-CHK-124"
+      ],
+      "access_class": "PRIVATE_SOURCE",
+      "public_access_link": null,
+      "private_access_record": "SOURCE_ACCESS.json#GE-S13",
+      "use": "Traceable source inputs or reported quantities; not production execution evidence."
+    },
+    {
+      "source_id": "GE-S14",
+      "original_filename": "strongcol1.docx",
+      "sha256": "66d596e98139b227b7ac6f8ce7b992ecf52d9110793b9da2624e5968d4be8f4d",
+      "size_bytes": 25222,
+      "original_pdf_pages": [],
+      "example_ids": [
+        "GE-CHK-125",
+        "GE-CHK-129"
+      ],
+      "access_class": "PRIVATE_SOURCE",
+      "public_access_link": null,
+      "private_access_record": "SOURCE_ACCESS.json#GE-S14",
+      "use": "Traceable source inputs or reported quantities; not production execution evidence."
+    },
+    {
+      "source_id": "GE-S15",
+      "original_filename": "08_KIRIS_KESME_KONTROLLERI.xlsx",
+      "sha256": "d061457ac341385a026b830464dc506f006f6a0ca71c92c8cc8feade344f7008",
+      "size_bytes": 1188374,
+      "original_pdf_pages": [],
+      "example_ids": [
+        "GE-CHK-136"
+      ],
+      "access_class": "PRIVATE_SOURCE",
+      "public_access_link": null,
+      "private_access_record": "SOURCE_ACCESS.json#GE-S15",
+      "use": "Traceable source inputs or reported quantities; not production execution evidence."
+    },
+    {
+      "source_id": "GE-S16",
+      "original_filename": "TS500.pdf",
+      "sha256": "d925114d01a1de2baee63738bc0da0112b547b58526c3394843c36ee66722d44",
+      "size_bytes": 898520,
+      "original_pdf_pages": [
+        28,
+        29,
+        40,
+        41,
+        42,
+        46,
+        54,
+        58,
+        59,
+        67,
+        70,
+        71
+      ],
+      "example_ids": [
+        "GE-CHK-141",
+        "GE-CHK-149",
+        "GE-CHK-150",
+        "GE-CHK-152",
+        "GE-CHK-156",
+        "GE-CHK-157"
+      ],
+      "access_class": "PRIVATE_SOURCE",
+      "public_access_link": null,
+      "private_access_record": "SOURCE_ACCESS.json#GE-S16",
+      "use": "Traceable source inputs or reported quantities; not production execution evidence."
+    },
+    {
+      "source_id": "GE-S17",
+      "original_filename": "ETEX_ORNEK_RAPOR.pdf",
+      "sha256": "4650693c95cb69860368efa5d9041a3da61b1d2aa6c5f7d26c6cb55631247f4b",
+      "size_bytes": 44166369,
+      "original_pdf_pages": [
+        328
+      ],
+      "example_ids": [
+        "GE-CHK-145"
+      ],
+      "access_class": "PRIVATE_SOURCE",
+      "public_access_link": null,
+      "private_access_record": "SOURCE_ACCESS.json#GE-S17",
+      "use": "Traceable source inputs or reported quantities; not production execution evidence."
+    },
+    {
+      "source_id": "GE-S18",
+      "original_filename": "Hesap_rapor.pdf",
+      "sha256": "0687b4798a6c10b0a876bfc77f8789eab0a7b356fe4afae4f29ec3de10aed812",
+      "size_bytes": 14725872,
+      "original_pdf_pages": [
+        115,
+        116,
+        124,
+        125
+      ],
+      "example_ids": [
+        "GE-CHK-154",
+        "GE-CHK-155",
+        "GE-CHK-156",
+        "GE-CHK-157"
+      ],
+      "access_class": "PRIVATE_SOURCE",
+      "public_access_link": null,
+      "private_access_record": "SOURCE_ACCESS.json#GE-S18",
+      "use": "Traceable source inputs or reported quantities; not production execution evidence."
+    }
+  ],
+  "preserved_artifacts": [
+    {
+      "source_id": "RECIPE73-ORIGINAL",
+      "original_filename": "TBDY_RECIPE_73_KART_20261118.json",
+      "sha256": "9bc5829b4e65f72c6127ab434c9ceb9b681f4236066f794b30b108b6011f819b",
+      "size_bytes": 93738,
+      "role": "Existing73 identities and three steps per card",
+      "evidence_status": "PRESERVED_HISTORICAL_SOURCE_NOT_CURRENT_EXECUTION",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "LEGACY-GOLDEN-BANK",
+      "original_filename": "TBDY_GOLDEN_73_ORNEK_20261118.json",
+      "sha256": "36466704bc2e6435ef6542d102aa1b9c81ece4658b26efc7dc65113ebfe10c56",
+      "size_bytes": 428051,
+      "role": "Existing73 examples plus12 adapter fixtures",
+      "evidence_status": "PRESERVED_HISTORICAL_SOURCE_NOT_CURRENT_EXECUTION",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "LEGACY-RECIPE-ARITHMETIC",
+      "original_filename": "TBDY_GOLDEN_DOGRULAMA_20261118.json",
+      "sha256": "1a08f2f3c9a6420489bfb507939d1607a6c48667d4aef7cae73810247b43a73e",
+      "size_bytes": 116542,
+      "role": "Historical333 assertions; not a new execution",
+      "evidence_status": "PRESERVED_HISTORICAL_SOURCE_NOT_CURRENT_EXECUTION",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "ORIGINAL-RECIPE-MARKDOWN",
+      "original_filename": "TBDY_FULL_ENGINE_TAM_TARIF_20261118.md",
+      "sha256": "fcef46ab71027ef0aeb25441fda2da9bc166325ae0d3b3a50031a635a8c5a000",
+      "size_bytes": 448245,
+      "role": "Previous full Turkish recipe and appendices",
+      "evidence_status": "PRESERVED_HISTORICAL_SOURCE_NOT_CURRENT_EXECUTION",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "ORIGINAL-FORMULA-APPENDIX",
+      "original_filename": "formula_reference.md",
+      "sha256": "31bd638aef98d094e64ea568719bba96f48ee11008fd5d969149658300d2682b",
+      "size_bytes": 44060,
+      "role": "Previous formula reference with edition and page locators",
+      "evidence_status": "PRESERVED_HISTORICAL_SOURCE_NOT_CURRENT_EXECUTION",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "MASTER-HANDOFF",
+      "original_filename": "YENI_MASTER_HANDOFF_ENGINEERING_RECIPE_2026-11-14(1).md",
+      "sha256": "71aebf28114f34709f70e2ddbd02b78159ab55deed950e7c6264a4706d12960f",
+      "size_bytes": 78796,
+      "role": "Earlier master engineering recipe",
+      "evidence_status": "PRESERVED_HISTORICAL_SOURCE_NOT_CURRENT_EXECUTION",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "GOLDEN-SOURCE-ATLAS",
+      "original_filename": "TBDY_GOLDEN_KAYNAK_SAYFALARI_20261118.pdf",
+      "sha256": "f20e872cf1ecad30d7f9a604e9963487856025d49627500349097dafe1decd8d",
+      "size_bytes": 5109440,
+      "role": "Unchanged42-page source atlas",
+      "evidence_status": "PRESERVED_HISTORICAL_SOURCE_NOT_CURRENT_EXECUTION",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "GOLDEN-ATLAS-MANIFEST",
+      "original_filename": "atlas_manifest.json",
+      "sha256": "dffa58b30813885409f946d11763b1140ef445c21018e340b1d1e0962ce266ce",
+      "size_bytes": 13740,
+      "role": "39source-page references plus3index pages",
+      "evidence_status": "PRESERVED_HISTORICAL_SOURCE_NOT_CURRENT_EXECUTION",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "PDF-V2-MANIFEST",
+      "original_filename": "TBDY_PDF_Golden_V2_Manifest.json",
+      "sha256": "1de835eae29246546cb6ece6255663757c9c00ab82358bcd8fe4f0d4bb2c8914",
+      "size_bytes": 1542,
+      "role": "Separate467-reference-case bank with historical333subset",
+      "evidence_status": "PRESERVED_HISTORICAL_SOURCE_NOT_CURRENT_EXECUTION",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "HISTORICAL-RECIPE333-REPLAY",
+      "original_filename": "package_primary_replay.json",
+      "sha256": "81488790e3d5493bf310f0043bcad00f1e78a53a4501e1b12988a4fae8af09b1",
+      "size_bytes": 427,
+      "role": "Historical recipe 333 arithmetic record",
+      "evidence_status": "PRESERVED_HISTORICAL_SOURCE_NOT_CURRENT_EXECUTION",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "HISTORICAL-PDFV2-333-REPLAY",
+      "original_filename": "package_v2_replay.json",
+      "sha256": "cff76be5353674a9b80fe83819dd9f0c3e46a04f840ceb2b6d8b743bdafaa6aa",
+      "size_bytes": 625,
+      "role": "Historical distinct PDF V2 333 replay record",
+      "evidence_status": "PRESERVED_HISTORICAL_SOURCE_NOT_CURRENT_EXECUTION",
+      "access_class": "PRIVATE_SOURCE"
+    }
+  ],
+  "reference_repository_sources": [
+    {
+      "source_id": "REFERENCE:TBDY:README.md",
+      "repository_label": "TBDY",
+      "commit": "1440df1b9300f75b1e604204438f5cada9ebd247",
+      "path": "README.md",
+      "git_blob_sha": "1f2b3e1cef0284c707501dadb21431e1d41a8804",
+      "sha256": "292bad01ac9e040d4d8df07f8a753d5788bbc5a48d1c5b71719b007b95344cfd",
+      "review_status": "PRESERVED_PRIOR_REFERENCE_REVIEW_NOT_RERUN",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "REFERENCE:TBDY:docs/WORKSPACE_CONSTITUTION_v1.md",
+      "repository_label": "TBDY",
+      "commit": "1440df1b9300f75b1e604204438f5cada9ebd247",
+      "path": "docs/WORKSPACE_CONSTITUTION_v1.md",
+      "git_blob_sha": "a7dbc8eb90007f4cf131521d75e2bdb6bf1e38df",
+      "sha256": "2964076e4da59de3092447e21d81abedb746bdf1bee8a8d40e0e03714c17815e",
+      "review_status": "PRESERVED_PRIOR_REFERENCE_REVIEW_NOT_RERUN",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "REFERENCE:TBDY:docs/COLUMN_PRODUCT_QUALIFIED_HANDOFF_2026-10-13.md",
+      "repository_label": "TBDY",
+      "commit": "1440df1b9300f75b1e604204438f5cada9ebd247",
+      "path": "docs/COLUMN_PRODUCT_QUALIFIED_HANDOFF_2026-10-13.md",
+      "git_blob_sha": "e53cf0bdadad0e2cd187e12004c70717c8d72d90",
+      "sha256": "5e04b4148686e7bbf35eec338eb8d54f04b1586a844d3193f09b9f32735c80df",
+      "review_status": "PRESERVED_PRIOR_REFERENCE_REVIEW_NOT_RERUN",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "REFERENCE:Column:COLUMN_CONSTITUTION.md",
+      "repository_label": "Column",
+      "commit": "9269a00f5f5471ab68413c039912cafb2cf4db39",
+      "path": "COLUMN_CONSTITUTION.md",
+      "git_blob_sha": "fc3a8066c6d4235774e070e942569bac85a1498c",
+      "sha256": "5374c3e214b200e1a8ab939f1a2c358c1d8b6d2c869e91a93a74fc79d39f2e13",
+      "review_status": "PRESERVED_PRIOR_REFERENCE_REVIEW_NOT_RERUN",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "REFERENCE:Column:SPRINT_B7_INDEPENDENT_ORACLE_EVIDENCE.md",
+      "repository_label": "Column",
+      "commit": "9269a00f5f5471ab68413c039912cafb2cf4db39",
+      "path": "SPRINT_B7_INDEPENDENT_ORACLE_EVIDENCE.md",
+      "git_blob_sha": "2757baa70723c985b83234843481456072c8dde8",
+      "sha256": "63554367c78422c6c149114c660cb51bd220aaa7a489962f12ee8387034ca194",
+      "review_status": "PRESERVED_PRIOR_REFERENCE_REVIEW_NOT_RERUN",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "REFERENCE:Column:STEP_A_CONTRACT_SCOPE.md",
+      "repository_label": "Column",
+      "commit": "9269a00f5f5471ab68413c039912cafb2cf4db39",
+      "path": "STEP_A_CONTRACT_SCOPE.md",
+      "git_blob_sha": "491e0c52f21b9652e2b99c16fb4970e3c8401d2a",
+      "sha256": "657ae4741fe1e0b72f1a6800a15b49979b003a3a6db0fd08b70c695ff5eb3f63",
+      "review_status": "PRESERVED_PRIOR_REFERENCE_REVIEW_NOT_RERUN",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "REFERENCE:Column-Engine:README.md",
+      "repository_label": "Column-Engine",
+      "commit": "df754b202415a58508f60b27d96f731a7b840041",
+      "path": "README.md",
+      "git_blob_sha": "f68a74e84dff693bd53f5e1b6cb9a72884f076b6",
+      "sha256": "d4d36e30b401147267cd4b8ee51487aa4a279f8b63b8d68cc8d20e9f9a3a9cbe",
+      "review_status": "PRESERVED_PRIOR_REFERENCE_REVIEW_NOT_RERUN",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "REFERENCE:Column-Engine:COLUMN_RECIPE_V11_OFFLINE_IMPLEMENTATION_TR.md",
+      "repository_label": "Column-Engine",
+      "commit": "df754b202415a58508f60b27d96f731a7b840041",
+      "path": "COLUMN_RECIPE_V11_OFFLINE_IMPLEMENTATION_TR.md",
+      "git_blob_sha": "d9b6bbf0939c213fe4209a4ae57762153cd57c03",
+      "sha256": "766f3e63854272a8e8164ed7b6add25e172cdb460f9a5b75ba767da69098e281",
+      "review_status": "PRESERVED_PRIOR_REFERENCE_REVIEW_NOT_RERUN",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "REFERENCE:TBDY:tbdy_engine/coverage/project_reconciliation.py",
+      "repository_label": "TBDY",
+      "commit": "1440df1b9300f75b1e604204438f5cada9ebd247",
+      "path": "tbdy_engine/coverage/project_reconciliation.py",
+      "git_blob_sha": "6a07f1521d7d76d966c43998dc6265c840921952",
+      "sha256": "0d31019317284240729c1ae101a295c1573a5242ba8de421da69ed222a7cb9d1",
+      "review_status": "PRESERVED_PRIOR_REFERENCE_REVIEW_NOT_RERUN",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "REFERENCE:TBDY:tests/coverage/test_column_r1_a39_fcr_reconciliation.py",
+      "repository_label": "TBDY",
+      "commit": "1440df1b9300f75b1e604204438f5cada9ebd247",
+      "path": "tests/coverage/test_column_r1_a39_fcr_reconciliation.py",
+      "git_blob_sha": "72323920543287e7951829b5248c873a6750cc65",
+      "sha256": "633d40f27100da9c557b9052de356fb5002b7fe1eac5b30432d8b3c718c3ef62",
+      "review_status": "PRESERVED_PRIOR_REFERENCE_REVIEW_NOT_RERUN",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "REFERENCE:TBDY:tests/product_reports/test_column_qualified_workspace.py",
+      "repository_label": "TBDY",
+      "commit": "1440df1b9300f75b1e604204438f5cada9ebd247",
+      "path": "tests/product_reports/test_column_qualified_workspace.py",
+      "git_blob_sha": "d506f4020ba7eb522d1ecff4b1e2b26ab367f3f5",
+      "sha256": "74422f934d8f5838997a822de750c5835ca459ebd88c10e7692073377ff702e0",
+      "review_status": "PRESERVED_PRIOR_REFERENCE_REVIEW_NOT_RERUN",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "REFERENCE:Column:tests/independent/oracle.py",
+      "repository_label": "Column",
+      "commit": "9269a00f5f5471ab68413c039912cafb2cf4db39",
+      "path": "tests/independent/oracle.py",
+      "git_blob_sha": "4b78e7bd83e1ed31d3ac006122e5e499499c7e9b",
+      "sha256": "3c601e7cf392e2632786fdd235491d65afce486ec970665fe30613f3978b848b",
+      "review_status": "PRESERVED_PRIOR_REFERENCE_REVIEW_NOT_RERUN",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "REFERENCE:Column:tests/test_b7_oracle_matrix.py",
+      "repository_label": "Column",
+      "commit": "9269a00f5f5471ab68413c039912cafb2cf4db39",
+      "path": "tests/test_b7_oracle_matrix.py",
+      "git_blob_sha": "97dde22555db9b35bd7ca9db3c3a9d8ec53c5679",
+      "sha256": "0313c23c00a20492e063617102a983338030d6b50631a093f3f39fbee5ace711",
+      "review_status": "PRESERVED_PRIOR_REFERENCE_REVIEW_NOT_RERUN",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "REFERENCE:Column:B9_SUPERVISOR_HANDOFF_AND_FINDINGS.md",
+      "repository_label": "Column",
+      "commit": "9269a00f5f5471ab68413c039912cafb2cf4db39",
+      "path": "B9_SUPERVISOR_HANDOFF_AND_FINDINGS.md",
+      "git_blob_sha": "91255ad5d00f6b155d4daee4c5df7aa782bf5274",
+      "sha256": "6e1a1b0ac1cc3ee74996df221829a5cd06ab79a61c40d9b0b3097c0c232aace7",
+      "review_status": "PRESERVED_PRIOR_REFERENCE_REVIEW_NOT_RERUN",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "REFERENCE:Column-Engine:tbdy_column_workflow/recipe_v11/RULE_CARDS.json",
+      "repository_label": "Column-Engine",
+      "commit": "df754b202415a58508f60b27d96f731a7b840041",
+      "path": "tbdy_column_workflow/recipe_v11/RULE_CARDS.json",
+      "git_blob_sha": "6a95d58a112715bf1345bd83e80208bde6ccad8b",
+      "sha256": "8e5c68680c5ced524e13a018a9d041b0036d4c0a95650a0fe88dbd5e6a61e1b1",
+      "review_status": "PRESERVED_PRIOR_REFERENCE_REVIEW_NOT_RERUN",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "REFERENCE:Column-Engine:tbdy_column_workflow/recipe_v11/GOLDEN_EVIDENCE.json",
+      "repository_label": "Column-Engine",
+      "commit": "df754b202415a58508f60b27d96f731a7b840041",
+      "path": "tbdy_column_workflow/recipe_v11/GOLDEN_EVIDENCE.json",
+      "git_blob_sha": "33e99234274efce2578fadca458f8048b42c5f3b",
+      "sha256": "31b14219b05409770c8ec8bdc821ed35bd495d690bf7aacb3807c08c537eaed3",
+      "review_status": "PRESERVED_PRIOR_REFERENCE_REVIEW_NOT_RERUN",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "REFERENCE:Column-Engine:tbdy_column_workflow/recipe_v11/bank.py",
+      "repository_label": "Column-Engine",
+      "commit": "df754b202415a58508f60b27d96f731a7b840041",
+      "path": "tbdy_column_workflow/recipe_v11/bank.py",
+      "git_blob_sha": "a1fc313d257abe11eb89abb4625438317bee70ba",
+      "sha256": "66f0b064a23f2d41be6918c22129e1eb74014b966819ffa3caf2182cc5fe26c4",
+      "review_status": "PRESERVED_PRIOR_REFERENCE_REVIEW_NOT_RERUN",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "REFERENCE:Column-Engine:tbdy_column_workflow/recipe_v11/provenance.py",
+      "repository_label": "Column-Engine",
+      "commit": "df754b202415a58508f60b27d96f731a7b840041",
+      "path": "tbdy_column_workflow/recipe_v11/provenance.py",
+      "git_blob_sha": "14c4598a0bbc5ffbbf60a556f494d9c2e0fe9a62",
+      "sha256": "0f440e342e5e96c6343378a87b48176265ba32c0d3005d717fb60e6d0cb54743",
+      "review_status": "PRESERVED_PRIOR_REFERENCE_REVIEW_NOT_RERUN",
+      "access_class": "PRIVATE_SOURCE"
+    },
+    {
+      "source_id": "REFERENCE:Column-Engine:tests_workflow/fixtures/oracle/exact_bar_hole_hand_resultants.json",
+      "repository_label": "Column-Engine",
+      "commit": "df754b202415a58508f60b27d96f731a7b840041",
+      "path": "tests_workflow/fixtures/oracle/exact_bar_hole_hand_resultants.json",
+      "git_blob_sha": "f04b26ae63ac84674515dd0bd0206ddd26b0cfc6",
+      "sha256": "464b3ace47b4f9b532ae0782f1f86ab51a05919df7b400510b6b0f3df93a4707",
+      "review_status": "PRESERVED_PRIOR_REFERENCE_REVIEW_NOT_RERUN",
+      "access_class": "PRIVATE_SOURCE"
+    }
+  ],
+  "public_references": [
+    {
+      "source_id": "N1",
+      "title": "TBDY2018 official publication",
+      "url": "https://www.resmigazete.gov.tr/eskiler/2018/03/20180318M1-2.htm",
+      "documented_version": "TBDY2018",
+      "local_source_id": "GE-S09",
+      "review_status": "RETRIEVED_IN_CURRENT_REVIEW",
+      "retrieval_date": "2026-11-18",
+      "scope_limit": "Edition and source applicability remain explicit."
+    },
+    {
+      "source_id": "N1-AFAD",
+      "title": "AFAD official TBDY publication index",
+      "url": "https://afad.gov.tr/turkiye-bina-deprem-yonetmeligi",
+      "documented_version": "TBDY2018",
+      "local_source_id": "GE-S09",
+      "review_status": "RETRIEVED_IN_CURRENT_REVIEW",
+      "retrieval_date": "2026-11-18",
+      "scope_limit": "Edition and source applicability remain explicit."
+    },
+    {
+      "source_id": "N2",
+      "title": "TS500 supplied edition",
+      "url": null,
+      "documented_version": "February2000; T1/2001 and T2/2002 as present in the supplied copy",
+      "local_source_id": "GE-S16",
+      "review_status": "PRESERVED_FROM_PRIOR_RECIPE_REVIEW",
+      "retrieval_date": "2026-11-18",
+      "scope_limit": "Edition and source applicability remain explicit."
+    },
+    {
+      "source_id": "N3",
+      "title": "CSI Load Combination Data Form",
+      "url": "https://docs.csiamerica.com/help-files/etabs/Menus/Define/Load_Combinations/Load_Combination_Data_Form.htm",
+      "documented_version": "Online help",
+      "local_source_id": null,
+      "review_status": "PRESERVED_FROM_PRIOR_RECIPE_REVIEW",
+      "retrieval_date": "2026-11-18",
+      "scope_limit": "Manufacturer documentation informs interface semantics; installed ETABS build, live return schema and method applicability still require their own evidence."
+    },
+    {
+      "source_id": "N4",
+      "title": "CSI FrameForce API",
+      "url": "https://docs.csiamerica.com/help-files/etabs-api-2016/html/87689f3e-4175-1627-618b-c4ebae5e89b5.htm",
+      "documented_version": "ETABS2016 API documentation",
+      "local_source_id": null,
+      "review_status": "PRESERVED_FROM_PRIOR_RECIPE_REVIEW",
+      "retrieval_date": "2026-11-18",
+      "scope_limit": "Manufacturer documentation informs interface semantics; installed ETABS build, live return schema and method applicability still require their own evidence."
+    },
+    {
+      "source_id": "N5",
+      "title": "CSI Frame Output Stations",
+      "url": "https://docs.csiamerica.com/help-files/etabs/Menus/Assign/Frame/Frame_Output_Stations.htm",
+      "documented_version": "Online help",
+      "local_source_id": null,
+      "review_status": "PRESERVED_FROM_PRIOR_RECIPE_REVIEW",
+      "retrieval_date": "2026-11-18",
+      "scope_limit": "Manufacturer documentation informs interface semantics; installed ETABS build, live return schema and method applicability still require their own evidence."
+    },
+    {
+      "source_id": "N6",
+      "title": "CSI Response Spectrum",
+      "url": "https://docs.csiamerica.com/help-files/etabs/Menus/Define/Load_Cases/Response_Spectrum.htm",
+      "documented_version": "Online help",
+      "local_source_id": null,
+      "review_status": "RETRIEVED_IN_CURRENT_REVIEW",
+      "retrieval_date": "2026-11-18",
+      "scope_limit": "Manufacturer documentation informs interface semantics; installed ETABS build, live return schema and method applicability still require their own evidence."
+    },
+    {
+      "source_id": "N6-SUM",
+      "title": "CSI Base reactions for response-spectrum analysis",
+      "url": "https://web.wiki.csiamerica.com/wiki/spaces/kb/pages/2003704/Base%2Breactions%2Bfor%2Bresponse-spectrum%2Banalysis",
+      "documented_version": "Online knowledge base",
+      "local_source_id": null,
+      "review_status": "RETRIEVED_IN_CURRENT_REVIEW",
+      "retrieval_date": "2026-11-18",
+      "scope_limit": "Manufacturer documentation informs interface semantics; installed ETABS build, live return schema and method applicability still require their own evidence."
+    },
+    {
+      "source_id": "N7",
+      "title": "CSI Initial P-Delta Analysis",
+      "url": "https://docs.csiamerica.com/help-files/etabs/Menus/Analyze/Set_Analysis_Options/Initial_P-Delta_Analysis.htm",
+      "documented_version": "Online help",
+      "local_source_id": null,
+      "review_status": "RETRIEVED_IN_CURRENT_REVIEW",
+      "retrieval_date": "2026-11-18",
+      "scope_limit": "Manufacturer documentation informs interface semantics; installed ETABS build, live return schema and method applicability still require their own evidence."
+    },
+    {
+      "source_id": "N8",
+      "title": "CSI Select Design Combinations",
+      "url": "https://docs.csiamerica.com/help-files/etabs/Menus/Design/Select_Design_Combinations.htm",
+      "documented_version": "Online help",
+      "local_source_id": null,
+      "review_status": "PRESERVED_FROM_PRIOR_RECIPE_REVIEW",
+      "retrieval_date": "2026-11-18",
+      "scope_limit": "Manufacturer documentation informs interface semantics; installed ETABS build, live return schema and method applicability still require their own evidence."
+    },
+    {
+      "source_id": "N9",
+      "title": "CSI Results",
+      "url": "https://docs.csiamerica.com/help-files/etabs-api-2016/html/02e37e34-9c7a-0acc-abaf-39d6c6d96c49.htm",
+      "documented_version": "ETABS2016 API documentation",
+      "local_source_id": null,
+      "review_status": "PRESERVED_FROM_PRIOR_RECIPE_REVIEW",
+      "retrieval_date": "2026-11-18",
+      "scope_limit": "Manufacturer documentation informs interface semantics; installed ETABS build, live return schema and method applicability still require their own evidence."
+    },
+    {
+      "source_id": "N9-SELECT",
+      "title": "CSI SetComboSelectedForOutput",
+      "url": "https://docs.csiamerica.com/help-files/etabs-api-2016/html/ae0b8d88-44e1-a9ce-ff8b-91bce01f6b0f.htm",
+      "documented_version": "ETABS2016 API documentation",
+      "local_source_id": null,
+      "review_status": "PRESERVED_FROM_PRIOR_RECIPE_REVIEW",
+      "retrieval_date": "2026-11-18",
+      "scope_limit": "Manufacturer documentation informs interface semantics; installed ETABS build, live return schema and method applicability still require their own evidence."
+    },
+    {
+      "source_id": "N10",
+      "title": "CSI Load Combinations",
+      "url": "https://docs.csiamerica.com/help-files/etabs/Menus/Define/Load_Combinations/Load_Combinations.htm",
+      "documented_version": "Online help",
+      "local_source_id": null,
+      "review_status": "PRESERVED_FROM_PRIOR_RECIPE_REVIEW",
+      "retrieval_date": "2026-11-18",
+      "scope_limit": "Manufacturer documentation informs interface semantics; installed ETABS build, live return schema and method applicability still require their own evidence."
+    },
+    {
+      "source_id": "N11",
+      "title": "CSI Combo Interface",
+      "url": "https://docs.csiamerica.com/help-files/etabs-api-2016/html/0017cc53-cbcd-b3ca-297d-3c092580b6e0.htm",
+      "documented_version": "ETABS2016 API documentation",
+      "local_source_id": null,
+      "review_status": "PRESERVED_FROM_PRIOR_RECIPE_REVIEW",
+      "retrieval_date": "2026-11-18",
+      "scope_limit": "Manufacturer documentation informs interface semantics; installed ETABS build, live return schema and method applicability still require their own evidence."
+    },
+    {
+      "source_id": "N11-GET",
+      "title": "CSI GetCaseList",
+      "url": "https://docs.csiamerica.com/help-files/etabs-api-2016/html/c46d4ff6-a816-f7ea-4b74-3eed6bf68e15.htm",
+      "documented_version": "ETABS2016 API documentation",
+      "local_source_id": null,
+      "review_status": "PRESERVED_FROM_PRIOR_RECIPE_REVIEW",
+      "retrieval_date": "2026-11-18",
+      "scope_limit": "Manufacturer documentation informs interface semantics; installed ETABS build, live return schema and method applicability still require their own evidence."
+    },
+    {
+      "source_id": "N12",
+      "title": "CSI SetCaseList",
+      "url": "https://docs.csiamerica.com/help-files/etabs-api-2016/html/f6569f31-e57a-a342-2adb-4df42f865e76.htm",
+      "documented_version": "ETABS2016 API documentation",
+      "local_source_id": null,
+      "review_status": "RETRIEVED_IN_CURRENT_REVIEW",
+      "retrieval_date": "2026-11-18",
+      "scope_limit": "Manufacturer documentation informs interface semantics; installed ETABS build, live return schema and method applicability still require their own evidence."
+    },
+    {
+      "source_id": "N12-DELETE",
+      "title": "CSI DeleteCase",
+      "url": "https://docs.csiamerica.com/help-files/etabs-api-2016/html/8f36acb6-5cb2-904b-7159-a4ecb4fab4b4.htm",
+      "documented_version": "ETABS2016 API documentation",
+      "local_source_id": null,
+      "review_status": "RETRIEVED_IN_CURRENT_REVIEW",
+      "retrieval_date": "2026-11-18",
+      "scope_limit": "Manufacturer documentation informs interface semantics; installed ETABS build, live return schema and method applicability still require their own evidence."
+    },
+    {
+      "source_id": "N13",
+      "title": "CSI SetModelIsLocked",
+      "url": "https://docs.csiamerica.com/help-files/etabs-api-2016/html/74ad467d-fcd7-26a6-1a67-ad5a59c570c9.htm",
+      "documented_version": "ETABS2016 API documentation",
+      "local_source_id": null,
+      "review_status": "PRESERVED_FROM_PRIOR_RECIPE_REVIEW",
+      "retrieval_date": "2026-11-18",
+      "scope_limit": "Manufacturer documentation informs interface semantics; installed ETABS build, live return schema and method applicability still require their own evidence."
+    },
+    {
+      "source_id": "N14",
+      "title": "CSI Linear Static",
+      "url": "https://docs.csiamerica.com/help-files/etabs/Menus/Define/Load_Cases/Linear_Static.htm",
+      "documented_version": "Online help",
+      "local_source_id": null,
+      "review_status": "PRESERVED_FROM_PRIOR_RECIPE_REVIEW",
+      "retrieval_date": "2026-11-18",
+      "scope_limit": "Manufacturer documentation informs interface semantics; installed ETABS build, live return schema and method applicability still require their own evidence."
+    }
+  ],
+  "source_id_aliases": {
+    "CSI-ETABS-RESPONSE-SPECTRUM-HELP": "N6"
+  },
+  "atlas": {
+    "source_id": "GOLDEN-SOURCE-ATLAS",
+    "sha256": "f20e872cf1ecad30d7f9a604e9963487856025d49627500349097dafe1decd8d",
+    "index_pages": 3,
+    "source_pages": 39,
+    "total_pages": 42,
+    "page_mappings": [
+      {
+        "source_id": "GE-S02",
+        "filename": "2.pdf",
+        "pdf_page": 6,
+        "example_ids": [
+          "GE-CHK-011",
+          "GE-CHK-103"
+        ],
+        "source_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "atlas_page": 4
+      },
+      {
+        "source_id": "GE-S02",
+        "filename": "2.pdf",
+        "pdf_page": 7,
+        "example_ids": [
+          "GE-CHK-001",
+          "GE-CHK-002",
+          "GE-CHK-004",
+          "GE-CHK-005"
+        ],
+        "source_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "atlas_page": 5
+      },
+      {
+        "source_id": "GE-S02",
+        "filename": "2.pdf",
+        "pdf_page": 19,
+        "example_ids": [
+          "GE-CHK-101",
+          "GE-CHK-103"
+        ],
+        "source_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "atlas_page": 6
+      },
+      {
+        "source_id": "GE-S02",
+        "filename": "2.pdf",
+        "pdf_page": 20,
+        "example_ids": [
+          "GE-CHK-011",
+          "GE-CHK-101",
+          "GE-CHK-102",
+          "GE-CHK-103",
+          "GE-CHK-104"
+        ],
+        "source_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "atlas_page": 7
+      },
+      {
+        "source_id": "GE-S02",
+        "filename": "2.pdf",
+        "pdf_page": 21,
+        "example_ids": [
+          "GE-CHK-006",
+          "GE-CHK-102"
+        ],
+        "source_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "atlas_page": 8
+      },
+      {
+        "source_id": "GE-S02",
+        "filename": "2.pdf",
+        "pdf_page": 22,
+        "example_ids": [
+          "GE-CHK-006",
+          "GE-CHK-102"
+        ],
+        "source_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "atlas_page": 9
+      },
+      {
+        "source_id": "GE-S02",
+        "filename": "2.pdf",
+        "pdf_page": 35,
+        "example_ids": [
+          "GE-CHK-149"
+        ],
+        "source_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "atlas_page": 10
+      },
+      {
+        "source_id": "GE-S02",
+        "filename": "2.pdf",
+        "pdf_page": 186,
+        "example_ids": [
+          "GE-CHK-119",
+          "GE-SRC-002"
+        ],
+        "source_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "atlas_page": 11
+      },
+      {
+        "source_id": "GE-S02",
+        "filename": "2.pdf",
+        "pdf_page": 191,
+        "example_ids": [
+          "GE-CHK-004",
+          "GE-CHK-005"
+        ],
+        "source_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "atlas_page": 12
+      },
+      {
+        "source_id": "GE-S04",
+        "filename": "ex_Hesap_Raporu6.pdf",
+        "pdf_page": 1,
+        "example_ids": [
+          "GE-CHK-113",
+          "GE-CHK-128",
+          "GE-CHK-131",
+          "GE-CHK-133",
+          "GE-CHK-139",
+          "GE-CHK-141",
+          "GE-CHK-142",
+          "GE-SRC-005"
+        ],
+        "source_sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+        "atlas_page": 13
+      },
+      {
+        "source_id": "GE-S04",
+        "filename": "ex_Hesap_Raporu6.pdf",
+        "pdf_page": 2,
+        "example_ids": [
+          "GE-CHK-141",
+          "GE-CHK-153"
+        ],
+        "source_sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+        "atlas_page": 14
+      },
+      {
+        "source_id": "GE-S04",
+        "filename": "ex_Hesap_Raporu6.pdf",
+        "pdf_page": 12,
+        "example_ids": [
+          "GE-CHK-114"
+        ],
+        "source_sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+        "atlas_page": 15
+      },
+      {
+        "source_id": "GE-S04",
+        "filename": "ex_Hesap_Raporu6.pdf",
+        "pdf_page": 13,
+        "example_ids": [
+          "GE-CHK-114"
+        ],
+        "source_sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+        "atlas_page": 16
+      },
+      {
+        "source_id": "GE-S04",
+        "filename": "ex_Hesap_Raporu6.pdf",
+        "pdf_page": 14,
+        "example_ids": [
+          "GE-CHK-114"
+        ],
+        "source_sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+        "atlas_page": 17
+      },
+      {
+        "source_id": "GE-S04",
+        "filename": "ex_Hesap_Raporu6.pdf",
+        "pdf_page": 16,
+        "example_ids": [
+          "GE-CHK-108",
+          "GE-CHK-111"
+        ],
+        "source_sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+        "atlas_page": 18
+      },
+      {
+        "source_id": "GE-S04",
+        "filename": "ex_Hesap_Raporu6.pdf",
+        "pdf_page": 17,
+        "example_ids": [
+          "GE-CHK-146"
+        ],
+        "source_sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+        "atlas_page": 19
+      },
+      {
+        "source_id": "GE-S04",
+        "filename": "ex_Hesap_Raporu6.pdf",
+        "pdf_page": 18,
+        "example_ids": [
+          "GE-CHK-105"
+        ],
+        "source_sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+        "atlas_page": 20
+      },
+      {
+        "source_id": "GE-S04",
+        "filename": "ex_Hesap_Raporu6.pdf",
+        "pdf_page": 19,
+        "example_ids": [
+          "GE-CHK-113"
+        ],
+        "source_sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+        "atlas_page": 21
+      },
+      {
+        "source_id": "GE-S04",
+        "filename": "ex_Hesap_Raporu6.pdf",
+        "pdf_page": 27,
+        "example_ids": [
+          "GE-CHK-150"
+        ],
+        "source_sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+        "atlas_page": 22
+      },
+      {
+        "source_id": "GE-S04",
+        "filename": "ex_Hesap_Raporu6.pdf",
+        "pdf_page": 32,
+        "example_ids": [
+          "GE-CHK-152"
+        ],
+        "source_sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+        "atlas_page": 23
+      },
+      {
+        "source_id": "GE-S04",
+        "filename": "ex_Hesap_Raporu6.pdf",
+        "pdf_page": 41,
+        "example_ids": [
+          "GE-CHK-130",
+          "GE-CHK-131",
+          "GE-CHK-132",
+          "GE-CHK-133",
+          "GE-CHK-134",
+          "GE-CHK-139"
+        ],
+        "source_sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+        "atlas_page": 24
+      },
+      {
+        "source_id": "GE-S04",
+        "filename": "ex_Hesap_Raporu6.pdf",
+        "pdf_page": 51,
+        "example_ids": [
+          "GE-CHK-135"
+        ],
+        "source_sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+        "atlas_page": 25
+      },
+      {
+        "source_id": "GE-S04",
+        "filename": "ex_Hesap_Raporu6.pdf",
+        "pdf_page": 56,
+        "example_ids": [
+          "GE-CHK-136"
+        ],
+        "source_sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+        "atlas_page": 26
+      },
+      {
+        "source_id": "GE-S04",
+        "filename": "ex_Hesap_Raporu6.pdf",
+        "pdf_page": 59,
+        "example_ids": [
+          "GE-CHK-137"
+        ],
+        "source_sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+        "atlas_page": 27
+      },
+      {
+        "source_id": "GE-S04",
+        "filename": "ex_Hesap_Raporu6.pdf",
+        "pdf_page": 62,
+        "example_ids": [
+          "GE-CHK-138"
+        ],
+        "source_sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+        "atlas_page": 28
+      },
+      {
+        "source_id": "GE-S04",
+        "filename": "ex_Hesap_Raporu6.pdf",
+        "pdf_page": 63,
+        "example_ids": [
+          "GE-CHK-130"
+        ],
+        "source_sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+        "atlas_page": 29
+      },
+      {
+        "source_id": "GE-S04",
+        "filename": "ex_Hesap_Raporu6.pdf",
+        "pdf_page": 72,
+        "example_ids": [
+          "GE-CHK-122",
+          "GE-CHK-126",
+          "GE-CHK-127"
+        ],
+        "source_sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+        "atlas_page": 30
+      },
+      {
+        "source_id": "GE-S04",
+        "filename": "ex_Hesap_Raporu6.pdf",
+        "pdf_page": 84,
+        "example_ids": [
+          "GE-CHK-140",
+          "GE-CHK-141",
+          "GE-CHK-142",
+          "GE-CHK-143"
+        ],
+        "source_sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+        "atlas_page": 31
+      },
+      {
+        "source_id": "GE-S04",
+        "filename": "ex_Hesap_Raporu6.pdf",
+        "pdf_page": 85,
+        "example_ids": [
+          "GE-CHK-140",
+          "GE-CHK-142",
+          "GE-CHK-144",
+          "GE-CHK-146"
+        ],
+        "source_sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+        "atlas_page": 32
+      },
+      {
+        "source_id": "GE-S04",
+        "filename": "ex_Hesap_Raporu6.pdf",
+        "pdf_page": 86,
+        "example_ids": [
+          "GE-CHK-128",
+          "GE-CHK-147",
+          "GE-CHK-148"
+        ],
+        "source_sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+        "atlas_page": 33
+      },
+      {
+        "source_id": "GE-S04",
+        "filename": "ex_Hesap_Raporu6.pdf",
+        "pdf_page": 92,
+        "example_ids": [
+          "GE-CHK-153",
+          "GE-CHK-158"
+        ],
+        "source_sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+        "atlas_page": 34
+      },
+      {
+        "source_id": "GE-S04",
+        "filename": "ex_Hesap_Raporu6.pdf",
+        "pdf_page": 106,
+        "example_ids": [
+          "GE-CHK-151"
+        ],
+        "source_sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+        "atlas_page": 35
+      },
+      {
+        "source_id": "GE-S07",
+        "filename": "4_sikistirilmis_10MB_alti(1).pdf",
+        "pdf_page": 28,
+        "example_ids": [
+          "GE-CHK-106"
+        ],
+        "source_sha256": "0c6955496aaaa92e2b508ca4eb040927ac8eab2bef92a857f2ff602b8a78fba2",
+        "atlas_page": 36
+      },
+      {
+        "source_id": "GE-S07",
+        "filename": "4_sikistirilmis_10MB_alti(1).pdf",
+        "pdf_page": 30,
+        "example_ids": [
+          "GE-CHK-110"
+        ],
+        "source_sha256": "0c6955496aaaa92e2b508ca4eb040927ac8eab2bef92a857f2ff602b8a78fba2",
+        "atlas_page": 37
+      },
+      {
+        "source_id": "GE-S17",
+        "filename": "ETEX_ORNEK_RAPOR.pdf",
+        "pdf_page": 328,
+        "example_ids": [
+          "GE-CHK-145"
+        ],
+        "source_sha256": "4650693c95cb69860368efa5d9041a3da61b1d2aa6c5f7d26c6cb55631247f4b",
+        "atlas_page": 38
+      },
+      {
+        "source_id": "GE-S18",
+        "filename": "Hesap_rapor.pdf",
+        "pdf_page": 115,
+        "example_ids": [
+          "GE-CHK-154",
+          "GE-CHK-155",
+          "GE-CHK-157"
+        ],
+        "source_sha256": "0687b4798a6c10b0a876bfc77f8789eab0a7b356fe4afae4f29ec3de10aed812",
+        "atlas_page": 39
+      },
+      {
+        "source_id": "GE-S18",
+        "filename": "Hesap_rapor.pdf",
+        "pdf_page": 116,
+        "example_ids": [
+          "GE-CHK-154",
+          "GE-CHK-155",
+          "GE-CHK-156"
+        ],
+        "source_sha256": "0687b4798a6c10b0a876bfc77f8789eab0a7b356fe4afae4f29ec3de10aed812",
+        "atlas_page": 40
+      },
+      {
+        "source_id": "GE-S18",
+        "filename": "Hesap_rapor.pdf",
+        "pdf_page": 124,
+        "example_ids": [
+          "GE-CHK-155"
+        ],
+        "source_sha256": "0687b4798a6c10b0a876bfc77f8789eab0a7b356fe4afae4f29ec3de10aed812",
+        "atlas_page": 41
+      },
+      {
+        "source_id": "GE-S18",
+        "filename": "Hesap_rapor.pdf",
+        "pdf_page": 125,
+        "example_ids": [
+          "GE-CHK-155"
+        ],
+        "source_sha256": "0687b4798a6c10b0a876bfc77f8789eab0a7b356fe4afae4f29ec3de10aed812",
+        "atlas_page": 42
+      }
+    ]
+  },
+  "preservation_index": [
+    {
+      "original_source_id": "ORIGINAL-RECIPE-MARKDOWN",
+      "destination": "RECIPE.md Sections1–24",
+      "preservation": "All24chapter subjects, combination/getter/setter/rebar policies and original numerical illustrations retained in English."
+    },
+    {
+      "original_source_id": "RECIPE73-ORIGINAL",
+      "destination": "CHECK_MAPPING.json and RECIPE.md AppendixA",
+      "preservation": "Exact73IDs and219method steps retained; typed contracts and inspected partial owners added."
+    },
+    {
+      "original_source_id": "ORIGINAL-FORMULA-APPENDIX",
+      "destination": "RECIPE.md AppendixB",
+      "preservation": "All11sections, numerical coefficients, branch conditions and edition/page locators retained. Alpha interpretation difference is explicit."
+    },
+    {
+      "original_source_id": "LEGACY-GOLDEN-BANK",
+      "destination": "GOLDEN_CASES.json and RECIPE.md Appendix C",
+      "preservation": "Exact 85 case IDs, original numeric input values, intermediate values, expected results and 333 assertion targets retained; English explanations and explicit scenario coverage added."
+    },
+    {
+      "original_source_id": "GOLDEN-SOURCE-ATLAS",
+      "destination": "Private evidence package",
+      "preservation": "Unchanged raw PDF and39page mappings, with42total pages."
+    }
+  ],
+  "privacy_contract": {
+    "public": "English recipe, typed mappings, original-source hashes and page locators, aggregate evidence and narrow verification tools.",
+    "private": "Raw reports/models/databases, source atlas, access links, original source files and pinned source evidence.",
+    "no_publication_action_performed": true
+  }
+}

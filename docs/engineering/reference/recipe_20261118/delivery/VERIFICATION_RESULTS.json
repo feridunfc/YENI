@@ -1,0 +1,389 @@
+{
+  "schema_version": "yeni.integration.verification-results.v1",
+  "language": "en",
+  "date": "2026-11-18",
+  "review_boundary": {
+    "repository": "feridunfc/YENI",
+    "integration_branch": "baseline/local_import",
+    "user_reported_local_commit": "a2e26b664d9b2b217e828de2c1df0c3df26068b1",
+    "local_worktree": "NOT_INSPECTED",
+    "user_reported_local_changes": "INCOMPLETE_UNCOMMITTED_CHANGES_NOT_INSPECTED",
+    "reviewed_remote_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+    "reviewed_remote_tree": "9cf5b99059cd107a1e447c398fd1e93b7292b31b",
+    "local_commit_lookup": {
+      "status": "NOT_FOUND_VIA_CONNECTED_GITHUB",
+      "http_status": 422,
+      "claim": "Does not prove local commit is absent; local files remain unreviewed."
+    },
+    "review_boundary": "Pinned published source files only. No equivalence or ancestor relationship to the local commit is asserted. No downgrade, reset, checkout, merge or replacement of local work is authorized by this package.",
+    "date": "2026-11-18"
+  },
+  "runtime_environment": {
+    "python": "3.12.14",
+    "implementation": "CPython",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "interpreter": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "source_handling": "Hash-verified fetched files; not a complete git checkout of the unavailable local worktree."
+  },
+  "levels": [
+    {
+      "level_id": "L1",
+      "name": "DOCUMENT_SCHEMA_CONSISTENCY",
+      "status": "VALID",
+      "current_scope": {
+        "original_check_ids": 73,
+        "primary_examples": 73,
+        "adapter_examples": 12,
+        "source_files_hash_verified": 142,
+        "distinct_source_symbols_ast_verified": 88,
+        "original_source_hashes_checked": 18,
+        "negative_contract_probes_detected": 6,
+        "rendered_pages_visually_verified": 296
+      },
+      "record_refs": [
+        "evidence/DOCUMENT_VALIDATION.json",
+        "evidence/GOLDEN_PRESERVATION.json",
+        "evidence/MAPPING_AUTHORING_VALIDATION.json",
+        "evidence/DOCUMENT_RENDER_QA.json"
+      ],
+      "limits": "Structural calculations, full semantic code audit, complete runtime coverage and normative acceptance are not established by these validations."
+    },
+    {
+      "level_id": "L2",
+      "name": "INDEPENDENT_EXAMPLE_ARITHMETIC",
+      "status": "MATCH",
+      "current_scope": {
+        "recipe_assertions": {
+          "matched": 333,
+          "total": 333,
+          "cases": 85
+        },
+        "additional_chain_fixture": {
+          "example_id": "GE-CHAIN-MODAL-ALPHA-001",
+          "matched": 1294,
+          "total": 1294,
+          "counting_unit": "fixed fixture assertions, not CHECKs or building instances"
+        }
+      },
+      "record_refs": [
+        "evidence/GOLDEN_ARITHMETIC.json",
+        "evidence/PRIORITY_CHAIN_ARITHMETIC.json"
+      ],
+      "limits": "Static independent arithmetic only; source-reported quantities and absent engineering scenarios are not upgraded by arithmetic agreement."
+    },
+    {
+      "level_id": "L3",
+      "name": "EXISTING_YENI_OWNER_COMPARISON",
+      "status": "MATCH_LIMITED_SCOPE",
+      "current_scope": {
+        "published_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+        "primitive_values_compared": 3,
+        "matched": 3,
+        "functions_called": [
+          "section_axial_limits_kn",
+          "minimum_eccentricity_mm"
+        ],
+        "full_engineering_checks_closed": 0,
+        "existing_44_records_replaced": 0,
+        "local_a2e_plus_dirty_comparison": "NOT_RUN"
+      },
+      "record_refs": [
+        "evidence/OWNER_COMPARISONS.json"
+      ],
+      "limits": "Three values from two existing functions at the inspected published snapshot. Complete applicability, physical scope, axis handling and full control behavior were not compared."
+    },
+    {
+      "level_id": "L4",
+      "name": "RECORDED_SOURCE_PIPELINE_REPLAY",
+      "status": "NOT_RUN",
+      "current_scope": null,
+      "record_refs": [],
+      "limits": "The existing EnginePipelineRunner was not executed against a frozen project source in this delivery. Historical replay records are not current executions."
+    },
+    {
+      "level_id": "L5",
+      "name": "LIVE_ETABS_SOURCE_VALIDATION",
+      "status": "NOT_RUN",
+      "current_scope": null,
+      "record_refs": [],
+      "limits": "No live ETABS connection, getter/setter round trip, analysis or model mutation was performed."
+    },
+    {
+      "level_id": "L6",
+      "name": "ENGINEERING_ACCEPTANCE",
+      "status": "NOT_RUN",
+      "current_scope": null,
+      "record_refs": [],
+      "limits": "Document delivery, source-symbol mapping and numerical agreement close no engineering control or release decision."
+    }
+  ],
+  "current_execution_records": [
+    {
+      "path": "evidence/DOCUMENT_VALIDATION.json",
+      "sha256": "f18415a7278b3f108ff4842183fee92a0612924482131391e820306c1b65e877",
+      "role": "Current schema, identity, source-symbol and negative contract validation",
+      "command": [
+        "python3",
+        "tools/validate_delivery.py",
+        "--root",
+        ".",
+        "--repo",
+        "../sources/repo",
+        "--self-test",
+        "--output",
+        "evidence/DOCUMENT_VALIDATION.json"
+      ],
+      "environment": {
+        "python": "3.12.14",
+        "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+        "jsonschema": "4.26.0"
+      },
+      "status": "VALID",
+      "scope": [
+        "Documentation, schema, identity and optional source-symbol validation only.",
+        "No structural result or normative applicability is accepted.",
+        "No production pipeline or ETABS session is executed.",
+        "Unavailable local commit and unfinished changes remain NOT_INSPECTED."
+      ]
+    },
+    {
+      "path": "evidence/GOLDEN_PRESERVATION.json",
+      "sha256": "d65b977a48e206519cd7b368bf352c57e002ec3eb0440d79c9237cc7e2639e90",
+      "role": "Current numeric preservation and oracle-contract validation",
+      "command": [
+        "python",
+        "integration/work/verify_golden_preservation.py"
+      ],
+      "environment": {
+        "python": "3.12.14",
+        "platform": "Linux-6.18.57-x86_64-with-glibc2.41"
+      },
+      "status": "MATCH",
+      "scope": "Editorial/data preservation and static independent oracle behavior only"
+    },
+    {
+      "path": "evidence/GOLDEN_ARITHMETIC.json",
+      "sha256": "9ef3cae3eef9724bc3f7ff79427399359a65cd11659136976874be4835b5c2d7",
+      "role": "Current replay of the preserved recipe 333 assertion population",
+      "command": [
+        "python3",
+        "tools/verify_golden_arithmetic.py",
+        "--bank",
+        "GOLDEN_CASES.json",
+        "--output",
+        "evidence/GOLDEN_ARITHMETIC.json"
+      ],
+      "environment": {
+        "python": "3.12.14",
+        "implementation": "CPython",
+        "platform": "Linux-6.18.57-x86_64-with-glibc2.41"
+      },
+      "status": "MATCH",
+      "scope": "Fixed independent worked-example arithmetic and deterministic data contracts only"
+    },
+    {
+      "path": "evidence/PRIORITY_CHAIN_ARITHMETIC.json",
+      "sha256": "ee6616387a5df5e0b8b642afd73eb4a3dd4807dc84a5b75ed7f7260bee2a8b14",
+      "role": "Current replay of the additional synthetic priority chain",
+      "command": [
+        "python3",
+        "tools/verify_priority_chain.py",
+        "--fixture",
+        "PRIORITY_CHAIN.json",
+        "--output",
+        "evidence/PRIORITY_CHAIN_ARITHMETIC.json"
+      ],
+      "environment": {
+        "python": "3.12.14",
+        "implementation": "CPython",
+        "platform": "Linux",
+        "decimal_precision": 80,
+        "dependencies": "Python standard library"
+      },
+      "status": "MATCH",
+      "scope": "One synthetic arithmetic-chain fixture. No production imports, FE eigenproblem, RC capacity solve, real bar-cage selection or actual-model engineering acceptance."
+    },
+    {
+      "path": "evidence/OWNER_COMPARISONS.json",
+      "sha256": "673002307536c30789ae77874d927cb9959e0d69f8bb5b15ceac0424fff95929",
+      "role": "Current three-value comparison with inspected existing owners",
+      "command": [
+        "python3",
+        "tools/compare_existing_owners.py",
+        "--repo",
+        "../sources/repo",
+        "--bank",
+        "GOLDEN_CASES.json",
+        "--manifest",
+        "../sources/FETCH_MANIFEST.json",
+        "--output",
+        "evidence/OWNER_COMPARISONS.json"
+      ],
+      "environment": {
+        "python": "3.12.14",
+        "platform": "Linux-6.18.57-x86_64-with-glibc2.41"
+      },
+      "status": "MATCH",
+      "scope": [
+        "Only three numeric outputs from two existing owner functions are compared.",
+        "This does not validate complete CHK-004, CHK-005 or CHK-115 applicability and scope.",
+        "The inspected published snapshot is not the inaccessible local integration checkout.",
+        "No independent oracle arithmetic is used as the production implementation.",
+        "The existing 44 production comparisons retain their separate evidence scope."
+      ]
+    },
+    {
+      "path": "evidence/DOCUMENT_RENDER_QA.json",
+      "sha256": "3604ba16e9868783231b95794b9b368f13318ed126f7db36265a10a68bf12e0b",
+      "role": "Current full-page visual and document content verification",
+      "command": {
+        "render": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+          "/opt/codex/skills/builtins/documents/render_docx.py",
+          "integration/public/RECIPE.docx",
+          "--output_dir",
+          "integration/work/final_render_corrected",
+          "--emit_pdf",
+          "--width",
+          "1200",
+          "--height",
+          "1553"
+        ],
+        "structural_record": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+          "integration/work/write_document_qa.py"
+        ],
+        "visual": "Every page image individually opened and viewed at native resolution; two changed pages re-viewed after typography correction."
+      },
+      "environment": {
+        "python": "3.12.14",
+        "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+        "python_docx": "1.2.0",
+        "PyMuPDF": "1.26.6",
+        "LibreOffice": "VERSION_NOT_READ"
+      },
+      "status": "LAYOUT_VERIFIED",
+      "scope": "Readable rendering, identity and heading presence, page bounds and full-page visual layout only. No numerical, production, pipeline, live-source or engineering acceptance claim is made."
+    },
+    {
+      "path": "evidence/LOCAL_BINDING_TOOL_VERIFICATION.json",
+      "sha256": "7723799dd139c2479dd03a0e092abc405211867ce79df59ff5b83ef11aa4fe46",
+      "role": "Read-only local evidence tool help and syntax validation; target local execution NOT_RUN",
+      "command": [
+        [
+          "python",
+          "-B",
+          "integration/public/tools/inspect_local_binding.py",
+          "--help"
+        ],
+        [
+          "python",
+          "-c",
+          "import ast; from pathlib import Path; ast.parse(Path(\"integration/public/tools/inspect_local_binding.py\").read_bytes()); print(\"SYNTAX_OK\")"
+        ]
+      ],
+      "environment": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.57-x86_64-with-glibc2.41"
+      },
+      "status": "HELP_AND_SYNTAX_VALIDATED",
+      "scope": "Only --help and source AST parse were executed. No local target, fixture repository, structural calculation or Git metadata inspection was executed."
+    }
+  ],
+  "separate_populations": {
+    "recipe_controls": 73,
+    "primary_examples": 73,
+    "additional_adapter_fixtures": 12,
+    "recipe_arithmetic_assertions": 333,
+    "pdf_v2_reference_cases": 467,
+    "pdf_v2_historical_compared_subset": 333,
+    "protected_historical_production_comparison_records": 44,
+    "current_owner_primitive_comparisons": 3,
+    "additional_priority_chain_fixtures": 1,
+    "additional_priority_chain_assertions": 1294,
+    "registered_stages": 22,
+    "dag_nodes": 94,
+    "dag_nodes_bound_by_registry": 30,
+    "partial_mapped_recipe_labels": 44,
+    "unmapped_recipe_labels": 29,
+    "accepted_engineering_checks": 0
+  },
+  "scenario_coverage_for_85_cases": {
+    "positive": {
+      "SPECIFIED_EXECUTABLE": 25,
+      "OPEN": 60
+    },
+    "negative": {
+      "SPECIFIED_EXECUTABLE": 31,
+      "OPEN": 54
+    },
+    "boundary": {
+      "SPECIFIED_NOT_EXECUTED": 79,
+      "SPECIFIED_EXECUTABLE": 6
+    },
+    "missing_source": {
+      "OPEN": 75,
+      "SPECIFIED_EXECUTABLE": 10
+    }
+  },
+  "historical_evidence": {
+    "protected_44": {
+      "status": "HISTORICAL_RECORD_PRESERVED_NOT_RERUN",
+      "record_set_sha256": "c30c08b6a270b52867c7d1dd5e27e087b2db40f55122f7269e39d184ee9dccf1",
+      "ledger_sha256": "12cdb0ec12d572f6fad663e71b94c816b4b63c04cc06137472db0827665b08ca",
+      "file_observed_counts": {
+        "record_count": 44,
+        "classification_counts": {
+          "INSUFFICIENT_SOURCE": 27,
+          "NUMERICAL_MATCH": 13,
+          "ENGINEERING_INTERPRETATION_DIFFERENCE": 4
+        },
+        "evidence_status": "FILE_OBSERVED_NOT_RERUN"
+      },
+      "later_ledger_reported_counts": {
+        "records": 44,
+        "matched": 15,
+        "insufficient": 25,
+        "interpretation_difference": 4,
+        "evidence_status": "HISTORICAL_LEDGER_REPORTED_NOT_RERUN",
+        "ledger_event_id": "EV-GOLDEN",
+        "event_implementation_commit": "85e720d18683a71737c1919d32e393c9d903737b"
+      },
+      "discrepancy": "The preserved static regression JSON reports 13 match / 27 insufficient / 4 interpretation difference. The later checkpoint/ledger reports 15 / 25 / 4. These observations remain separate; staging does not reconcile them by changing either original file.",
+      "scope_limit": "These original published evidence bytes are retained. No claim is made that the local a2e26b6 tree or its uncommitted work was executed or inspected.",
+      "record_set_source_id": "CODE:docs/VS26_GOLDEN_REGRESSION.json",
+      "ledger_source_id": "CODE:docs/VERIFICATION_LEDGER.json",
+      "current_execution_status": "NOT_RUN",
+      "historical_command": "python -m tbdy_next.cli inspect-golden-regression --require-complete --json <report.json>",
+      "later_record_by_record_report": "NOT_AVAILABLE_IN_INSPECTED_SOURCE_SET"
+    },
+    "recipe_333": {
+      "status": "HISTORICAL_NOT_RERUN_AS_OLD_SCRIPT",
+      "original_result_source_id": "LEGACY-RECIPE-ARITHMETIC",
+      "original_result_sha256": "1a08f2f3c9a6420489bfb507939d1607a6c48667d4aef7cae73810247b43a73e",
+      "assertion_count": 333,
+      "matched": 333,
+      "current_static_oracle_replay": "A separate current execution of the preserved population is recorded under L2; the old execution is not relabelled."
+    },
+    "pdf_v2_333": {
+      "status": "HISTORICAL_NOT_RERUN",
+      "source_id": "HISTORICAL-PDFV2-333-REPLAY",
+      "source_sha256": "cff76be5353674a9b80fe83819dd9f0c3e46a04f840ceb2b6d8b743bdafaa6aa",
+      "reference_case_population": 467,
+      "historical_compared_subset": 333,
+      "historical_matched": 333,
+      "current_execution_status": "NOT_RUN",
+      "scope": "Independent PDF reference arithmetic; not YENI runtime or live ETABS."
+    }
+  },
+  "engineering_claims": {
+    "release_status": "NOT_READY",
+    "engineering_acceptance": "NOT_RUN",
+    "complete_checks_closed_by_document_delivery": 0,
+    "production_code_changed": false,
+    "new_solver_created": false,
+    "new_pipeline_created": false,
+    "new_ETABS_connection_created": false,
+    "local_source_status": "NOT_INSPECTED"
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "schema_version": "yeni.integration.golden-preservation-check.v1",
+  "scope": "Editorial/data preservation and static independent oracle behavior only",
+  "command": [
+    "python",
+    "integration/work/verify_golden_preservation.py"
+  ],
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41"
+  },
+  "legacy_bank_sha256": "36466704bc2e6435ef6542d102aa1b9c81ece4658b26efc7dc65113ebfe10c56",
+  "new_bank_sha256": "159ba2b33d78fa1e7a76127546d4e676b3d4ad7acfc51448593aa69005d1ca3a",
+  "case_count": 85,
+  "assertion_count": 333,
+  "checks": {
+    "stable_case_id_order": "MATCH",
+    "all_numeric_inputs": "MATCH",
+    "all_expected_results": "MATCH",
+    "all_assertion_expected_values": "MATCH",
+    "all_fixture_numeric_values": "MATCH",
+    "inherited_tolerances": "MATCH",
+    "unique_assertion_ids": "MATCH",
+    "source_file_hashes": "MATCH",
+    "no_dynamic_expression_execution_calls": "MATCH",
+    "display_formula_change_does_not_execute": "MATCH",
+    "changed_expected_value_is_detected": "MATCH",
+    "changed_frozen_input_is_rejected": "MATCH"
+  },
+  "source_checks": [
+    {
+      "source_id": "GE-S01",
+      "sha256": "1de835eae29246546cb6ece6255663757c9c00ab82358bcd8fe4f0d4bb2c8914",
+      "status": "MATCH"
+    },
+    {
+      "source_id": "GE-S02",
+      "sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+      "status": "MATCH"
+    },
+    {
+      "source_id": "GE-S03",
+      "sha256": "177ce572ab06d9705569e744dcd9e40684bf35d88a568e1d6b9e8f7c76a6a36d",
+      "status": "MATCH"
+    },
+    {
+      "source_id": "GE-S04",
+      "sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+      "status": "MATCH"
+    },
+    {
+      "source_id": "GE-S05",
+      "sha256": "75e14b85d28958e13b59e77cf12242ef6bf2546492754cd33ac9b900e45fc0de",
+      "status": "MATCH"
+    },
+    {
+      "source_id": "GE-S06",
+      "sha256": "0ec41c2ac49dda5c1ce818f1a282f3212283c0d7e3bf24689925b21b9b5381e4",
+      "status": "MATCH"
+    },
+    {
+      "source_id": "GE-S07",
+      "sha256": "0c6955496aaaa92e2b508ca4eb040927ac8eab2bef92a857f2ff602b8a78fba2",
+      "status": "MATCH"
+    },
+    {
+      "source_id": "GE-S08",
+      "sha256": "3fde2d386c5afb02c30ee895146926f677385bd6f5a726dd1fd5de67a4d0ffad",
+      "status": "MATCH"
+    },
+    {
+      "source_id": "GE-S09",
+      "sha256": "8d3a9a463d4a534ec2c6834c557b5f706e2ad976c2d6837f6c9b6242e38a6bb2",
+      "status": "MATCH"
+    },
+    {
+      "source_id": "GE-S10",
+      "sha256": "aeecc15fa9c22694db31b35f61ac28fac60aa1cccaf17fc77aec6b04342354dd",
+      "status": "MATCH"
+    },
+    {
+      "source_id": "GE-S11",
+      "sha256": "6e8863ae52834af5febbdd30db0648de186a713f7da991e05db660bb2425b0d7",
+      "status": "MATCH"
+    },
+    {
+      "source_id": "GE-S12",
+      "sha256": "464b3ace47b4f9b532ae0782f1f86ab51a05919df7b400510b6b0f3df93a4707",
+      "status": "MATCH"
+    },
+    {
+      "source_id": "GE-S13",
+      "sha256": "a5e2066de1b944c8fc5b686a8ae40e02b23bbed45f46b2f7adbab564b565f811",
+      "status": "MATCH"
+    },
+    {
+      "source_id": "GE-S14",
+      "sha256": "66d596e98139b227b7ac6f8ce7b992ecf52d9110793b9da2624e5968d4be8f4d",
+      "status": "MATCH"
+    },
+    {
+      "source_id": "GE-S15",
+      "sha256": "d061457ac341385a026b830464dc506f006f6a0ca71c92c8cc8feade344f7008",
+      "status": "MATCH"
+    },
+    {
+      "source_id": "GE-S16",
+      "sha256": "d925114d01a1de2baee63738bc0da0112b547b58526c3394843c36ee66722d44",
+      "status": "MATCH"
+    },
+    {
+      "source_id": "GE-S17",
+      "sha256": "4650693c95cb69860368efa5d9041a3da61b1d2aa6c5f7d26c6cb55631247f4b",
+      "status": "MATCH"
+    },
+    {
+      "source_id": "GE-S18",
+      "sha256": "0687b4798a6c10b0a876bfc77f8789eab0a7b356fe4afae4f29ec3de10aed812",
+      "status": "MATCH"
+    }
+  ],
+  "status": "MATCH",
+  "yeni_runtime_executed": false,
+  "live_etabs_executed": false
+}

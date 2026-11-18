@@ -1,0 +1,28 @@
+{
+  "tool_path": "tools/inspect_local_binding.py",
+  "verification_level": "DOCUMENT_SCHEMA_TOOL_SYNTAX_ONLY",
+  "environment": {
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41"
+  },
+  "tool_sha256": "d9f40e3eca74bf1e1ce6ebc693bd0313ce8fcf4c1ee5973527943a0915097608",
+  "help": "PASS",
+  "syntax": "PASS",
+  "local_repository_execution": "NOT_RUN",
+  "production_import": "NONE",
+  "scope": "Only --help and source AST parse were executed. No local target, fixture repository, structural calculation or Git metadata inspection was executed.",
+  "command": [
+    [
+      "python",
+      "-B",
+      "integration/public/tools/inspect_local_binding.py",
+      "--help"
+    ],
+    [
+      "python",
+      "-c",
+      "import ast; from pathlib import Path; ast.parse(Path(\"integration/public/tools/inspect_local_binding.py\").read_bytes()); print(\"SYNTAX_OK\")"
+    ]
+  ],
+  "status": "HELP_AND_SYNTAX_VALIDATED"
+}

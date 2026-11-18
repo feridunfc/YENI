@@ -1,0 +1,155 @@
+{
+  "schema_version": "yeni.integration.existing-owner-comparison.v1",
+  "verification_level": "EXISTING_YENI_OWNER_PRIMITIVE_COMPARISON",
+  "status": "MATCH",
+  "executed_at_utc": "2026-11-18T15:29:15.895937+00:00",
+  "command": [
+    "python3",
+    "tools/compare_existing_owners.py",
+    "--repo",
+    "../sources/repo",
+    "--bank",
+    "GOLDEN_CASES.json",
+    "--manifest",
+    "../sources/FETCH_MANIFEST.json",
+    "--output",
+    "evidence/OWNER_COMPARISONS.json"
+  ],
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41"
+  },
+  "source_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+  "owner_dependencies": [
+    {
+      "path": "src/tbdy_next/__init__.py",
+      "sha256": "14d85518cd6df9aa033853fb7bae5e70da6c95e216fa6031f4ac8e00d94d1951",
+      "commit": "b255c3030c09c88a17bbec766fc2bb22682ad027"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/__init__.py",
+      "sha256": "d092219f153b83146e1757c96639ed591c56f513cbc2af12cf12a803571ae185",
+      "commit": "b255c3030c09c88a17bbec766fc2bb22682ad027"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/ts500_column.py",
+      "sha256": "8411247559fc7605385a69f120b49299415138d20044381e28bb9f648f10e735",
+      "commit": "b255c3030c09c88a17bbec766fc2bb22682ad027"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/native_archive.py",
+      "sha256": "231ccb8ebfa4030f0f310bb967930b73ed1b7e51d6871090231d723457d14c14",
+      "commit": "b255c3030c09c88a17bbec766fc2bb22682ad027"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/csi_geometry.py",
+      "sha256": "1a7b0860dde89b9301c4818d6f42c725795decfe7a131ef97dea0b8cdd0158d6",
+      "commit": "b255c3030c09c88a17bbec766fc2bb22682ad027"
+    }
+  ],
+  "fetch_manifest_sha256": "0c8b2da0e9aee1dfc5f1a30ca8821723a33136b7d96c25ac0e755f64e63e8b83",
+  "bank_sha256": "159ba2b33d78fa1e7a76127546d4e676b3d4ad7acfc51448593aa69005d1ca3a",
+  "comparison_tool_sha256": "37d4a45815bae4b8ba576f68b187def704aceb5c3edd03141bc354c351389103",
+  "comparison_count": 3,
+  "matched": 3,
+  "mismatched": 0,
+  "unmapped": 0,
+  "full_engineering_checks_closed": 0,
+  "existing_44_comparison_records_replaced": 0,
+  "local_a2e_plus_dirty_status": "NOT_INSPECTED",
+  "local_integration_owner_comparison": "NOT_RUN",
+  "recorded_source_pipeline_replay": "NOT_RUN",
+  "live_etabs_source_validation": "NOT_RUN",
+  "engineering_acceptance": "NOT_RUN",
+  "limitations": [
+    "Only three numeric outputs from two existing owner functions are compared.",
+    "This does not validate complete CHK-004, CHK-005 or CHK-115 applicability and scope.",
+    "The inspected published snapshot is not the inaccessible local integration checkout.",
+    "No independent oracle arithmetic is used as the production implementation.",
+    "The existing 44 production comparisons retain their separate evidence scope."
+  ],
+  "results": [
+    {
+      "case_id": "GE-CHK-004",
+      "assertion_id": "GE-CHK-004-A01",
+      "owner_file": "src/tbdy_next/column_engine/ts500_column.py",
+      "owner_function": "section_axial_limits_kn",
+      "output_key": "tbdy_7_3_1_2_max_ndm_kn",
+      "unit": "kN",
+      "status": "MATCH",
+      "engineering_control_closed": false,
+      "inputs": {
+        "fck_mpa": 30,
+        "fcd_mpa": 20.0,
+        "ac_mm2": 90000
+      },
+      "input_preparation": {
+        "input_case_ids": [
+          "GE-CHK-004",
+          "GE-CHK-005"
+        ],
+        "input_preparation": "fcd is prepared as the declared fck/gamma_c input; no claim is made to test a separate material owner.",
+        "scope": "Concrete-section axial limit only; role applicability, demand coverage and full control acceptance are not tested."
+      },
+      "observed": 1080.0,
+      "expected": 1080,
+      "absolute_difference": 0.0,
+      "absolute_tolerance": 1e-09,
+      "relative_tolerance": 0,
+      "comparison_scope": "ONE_EXISTING_OWNER_PRIMITIVE_VALUE"
+    },
+    {
+      "case_id": "GE-CHK-005",
+      "assertion_id": "GE-CHK-005-A02",
+      "owner_file": "src/tbdy_next/column_engine/ts500_column.py",
+      "owner_function": "section_axial_limits_kn",
+      "output_key": "ts500_eq_7_7_max_nd_kn",
+      "unit": "kN",
+      "status": "MATCH",
+      "engineering_control_closed": false,
+      "inputs": {
+        "fck_mpa": 30,
+        "fcd_mpa": 20.0,
+        "ac_mm2": 90000
+      },
+      "input_preparation": {
+        "input_case_ids": [
+          "GE-CHK-005"
+        ],
+        "input_preparation": "fcd is prepared as the declared fck/gamma_c input; no claim is made to test a separate material owner.",
+        "scope": "Concrete-section axial limit only; role applicability, demand coverage and full control acceptance are not tested."
+      },
+      "observed": 1620.0,
+      "expected": 1620,
+      "absolute_difference": 0.0,
+      "absolute_tolerance": 1e-09,
+      "relative_tolerance": 0,
+      "comparison_scope": "ONE_EXISTING_OWNER_PRIMITIVE_VALUE"
+    },
+    {
+      "case_id": "GE-CHK-115",
+      "assertion_id": "GE-CHK-115-A01",
+      "owner_file": "src/tbdy_next/column_engine/ts500_column.py",
+      "owner_function": "minimum_eccentricity_mm",
+      "output_key": null,
+      "unit": "mm",
+      "status": "MATCH",
+      "engineering_control_closed": false,
+      "inputs": {
+        "bending_dimension_mm": 300
+      },
+      "input_preparation": {
+        "input_case_ids": [
+          "GE-CHK-115"
+        ],
+        "scope": "Scalar 300 mm bending-depth primitive only; no moment, sign or rotated-axis claim."
+      },
+      "observed": 24.0,
+      "expected": 24,
+      "absolute_difference": 0.0,
+      "absolute_tolerance": 1e-09,
+      "relative_tolerance": 0,
+      "comparison_scope": "ONE_EXISTING_OWNER_PRIMITIVE_VALUE"
+    }
+  ]
+}

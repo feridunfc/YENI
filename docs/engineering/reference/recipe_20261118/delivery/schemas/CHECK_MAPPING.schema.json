@@ -1,0 +1,901 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:yeni:integration:check-mapping:v1",
+  "title": "CHECK_MAPPING v1 schema",
+  "type": "object",
+  "properties": {
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "acceptance_criteria": {
+            "type": "object",
+            "properties": {
+              "engineering_acceptance_status": {
+                "type": "string"
+              },
+              "evidence_requirement": {
+                "type": "string"
+              },
+              "scope_requirement": {
+                "type": "string"
+              },
+              "technical_requirement": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "engineering_acceptance_status",
+              "evidence_requirement",
+              "scope_requirement",
+              "technical_requirement"
+            ],
+            "additionalProperties": false
+          },
+          "check_id": {
+            "enum": [
+              "SRC-001",
+              "SRC-002",
+              "SRC-003",
+              "SRC-004",
+              "SRC-005",
+              "CHK-001",
+              "CHK-002",
+              "CHK-003",
+              "CHK-004",
+              "CHK-005",
+              "CHK-006",
+              "CHK-007",
+              "CHK-009",
+              "CHK-010",
+              "CHK-011",
+              "CHK-101",
+              "CHK-102",
+              "CHK-103",
+              "CHK-104",
+              "CHK-105",
+              "CHK-106",
+              "CHK-107",
+              "CHK-108",
+              "CHK-109",
+              "CHK-110",
+              "CHK-111",
+              "CHK-112",
+              "CHK-113",
+              "CHK-114",
+              "CHK-115",
+              "CHK-116",
+              "CHK-117",
+              "CHK-118",
+              "CHK-119",
+              "CHK-120",
+              "CHK-121",
+              "CHK-122",
+              "CHK-123",
+              "CHK-124",
+              "CHK-125",
+              "CHK-126",
+              "CHK-127",
+              "CHK-128",
+              "CHK-129",
+              "CHK-130",
+              "CHK-131",
+              "CHK-132",
+              "CHK-133",
+              "CHK-134",
+              "CHK-135",
+              "CHK-136",
+              "CHK-137",
+              "CHK-138",
+              "CHK-139",
+              "CHK-140",
+              "CHK-141",
+              "CHK-142",
+              "CHK-143",
+              "CHK-144",
+              "CHK-145",
+              "CHK-146",
+              "CHK-147",
+              "CHK-148",
+              "CHK-149",
+              "CHK-150",
+              "CHK-151",
+              "CHK-152",
+              "CHK-153",
+              "CHK-154",
+              "CHK-155",
+              "CHK-156",
+              "CHK-157",
+              "CHK-158"
+            ]
+          },
+          "current_local_binding": {
+            "type": "object",
+            "properties": {
+              "branch": {
+                "type": "string"
+              },
+              "inspection_status": {
+                "const": "NOT_INSPECTED"
+              },
+              "owner_mapping_status": {
+                "const": "UNMAPPED"
+              },
+              "owners": {
+                "type": "array",
+                "items": {}
+              },
+              "pipeline_stages": {
+                "type": "array",
+                "items": {}
+              },
+              "reason": {
+                "type": "string"
+              },
+              "user_reported_commit": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{40}$"
+              },
+              "worktree_status": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "branch",
+              "inspection_status",
+              "owner_mapping_status",
+              "owners",
+              "pipeline_stages",
+              "reason",
+              "user_reported_commit",
+              "worktree_status"
+            ],
+            "additionalProperties": false
+          },
+          "dependencies": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "note": {
+                "type": "string"
+              },
+              "recipe_check_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "kind",
+              "note",
+              "recipe_check_ids"
+            ],
+            "additionalProperties": false
+          },
+          "evidence_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "expected_physical_scope": {
+            "type": "object",
+            "properties": {
+              "denominator_policy": {
+                "type": "string"
+              },
+              "expected_inventory": {
+                "type": "string"
+              },
+              "grain": {
+                "type": "string"
+              },
+              "instance_key_fields": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "inventory_implementation_status": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "denominator_policy",
+              "expected_inventory",
+              "grain",
+              "instance_key_fields",
+              "inventory_implementation_status"
+            ],
+            "additionalProperties": false
+          },
+          "golden_example_id": {
+            "type": "string"
+          },
+          "golden_example_type": {
+            "type": "string"
+          },
+          "identifier_namespace": {
+            "type": "string"
+          },
+          "implementation_status": {
+            "type": "object",
+            "properties": {
+              "complete_check_accepted": {
+                "type": "boolean"
+              },
+              "current_local": {
+                "type": "string"
+              },
+              "reviewed_snapshot": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "complete_check_accepted",
+              "current_local",
+              "reviewed_snapshot"
+            ],
+            "additionalProperties": false
+          },
+          "input_contract_kind": {
+            "type": "string"
+          },
+          "input_description": {
+            "type": "string"
+          },
+          "inputs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "data_type": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "quantity": {
+                  "type": "string"
+                },
+                "sign_axis_rule": {
+                  "type": "string"
+                },
+                "source_dependency": {
+                  "type": "string"
+                },
+                "unit": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "data_type",
+                "name",
+                "quantity",
+                "sign_axis_rule",
+                "source_dependency",
+                "unit"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "integration_notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "method_steps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "negative_test_recipe": {
+            "type": "string"
+          },
+          "original_card_locator": {
+            "type": "object",
+            "properties": {
+              "check_id": {
+                "type": "string"
+              },
+              "original_cards_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "source_id": {
+                "type": "string"
+              },
+              "source_recipe_line": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "check_id",
+              "original_cards_sha256",
+              "source_id",
+              "source_recipe_line"
+            ],
+            "additionalProperties": false
+          },
+          "output_contract": {
+            "type": "object",
+            "properties": {
+              "contract_status": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "required_lineage": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "contract_status",
+              "description",
+              "required_lineage"
+            ],
+            "additionalProperties": false
+          },
+          "preserved_normative_reference": {
+            "type": "string"
+          },
+          "remaining_work": {
+            "type": "string"
+          },
+          "reviewed_snapshot_binding": {
+            "type": "object",
+            "properties": {
+              "branch_label": {
+                "type": "string"
+              },
+              "gap_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "gap_mapping_status": {
+                "type": "string"
+              },
+              "gap_source": {
+                "type": "object",
+                "properties": {
+                  "file_sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "path": {
+                    "type": "string"
+                  },
+                  "source_commit": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{40}$"
+                  }
+                },
+                "required": [
+                  "file_sha256",
+                  "path",
+                  "source_commit"
+                ],
+                "additionalProperties": false
+              },
+              "implemented_scope": {
+                "type": "string"
+              },
+              "mapping_status": {
+                "enum": [
+                  "MAPPED_PARTIAL",
+                  "UNMAPPED"
+                ]
+              },
+              "owners": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "binding_scope": {
+                      "type": "string"
+                    },
+                    "evidence_ref": {
+                      "type": "string"
+                    },
+                    "file_sha256": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "git_blob_sha": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{40}$"
+                    },
+                    "integration_argument_map": {
+                      "type": "string"
+                    },
+                    "line_end": {
+                      "type": "integer"
+                    },
+                    "line_start": {
+                      "type": "integer"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "returns": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "type": "string"
+                    },
+                    "runtime_execution_status": {
+                      "type": "string"
+                    },
+                    "signature": {
+                      "type": "string"
+                    },
+                    "source_commit": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{40}$"
+                    },
+                    "symbol": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "binding_scope",
+                    "evidence_ref",
+                    "file_sha256",
+                    "git_blob_sha",
+                    "integration_argument_map",
+                    "line_end",
+                    "line_start",
+                    "path",
+                    "returns",
+                    "role",
+                    "runtime_execution_status",
+                    "signature",
+                    "source_commit",
+                    "symbol"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "pipeline_mapping_status": {
+                "type": "string"
+              },
+              "pipeline_stages": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "file_sha256": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "registry_line": {
+                      "type": "integer"
+                    },
+                    "registry_path": {
+                      "type": "string"
+                    },
+                    "registry_symbol": {
+                      "type": "string"
+                    },
+                    "source_commit": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{40}$"
+                    },
+                    "stage_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "file_sha256",
+                    "registry_line",
+                    "registry_path",
+                    "registry_symbol",
+                    "source_commit",
+                    "stage_id"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "related_source_functions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "binding_scope": {
+                      "type": "string"
+                    },
+                    "evidence_ref": {
+                      "type": "string"
+                    },
+                    "file_sha256": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "git_blob_sha": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{40}$"
+                    },
+                    "integration_argument_map": {
+                      "type": "string"
+                    },
+                    "line_end": {
+                      "type": "integer"
+                    },
+                    "line_start": {
+                      "type": "integer"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "returns": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "type": "string"
+                    },
+                    "runtime_execution_status": {
+                      "type": "string"
+                    },
+                    "signature": {
+                      "type": "string"
+                    },
+                    "source_commit": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{40}$"
+                    },
+                    "symbol": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "binding_scope",
+                    "evidence_ref",
+                    "file_sha256",
+                    "git_blob_sha",
+                    "integration_argument_map",
+                    "line_end",
+                    "line_start",
+                    "path",
+                    "returns",
+                    "role",
+                    "runtime_execution_status",
+                    "signature",
+                    "source_commit",
+                    "symbol"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "repository": {
+                "type": "string"
+              },
+              "runtime_execution_status": {
+                "type": "string"
+              },
+              "source_commit": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{40}$"
+              },
+              "source_tree": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{40}$"
+              }
+            },
+            "required": [
+              "branch_label",
+              "gap_ids",
+              "gap_mapping_status",
+              "gap_source",
+              "implemented_scope",
+              "mapping_status",
+              "owners",
+              "pipeline_mapping_status",
+              "pipeline_stages",
+              "related_source_functions",
+              "repository",
+              "runtime_execution_status",
+              "source_commit",
+              "source_tree"
+            ],
+            "additionalProperties": false
+          },
+          "specification": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "applicability": {
+                  "type": "string"
+                },
+                "clauses": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "edition": {
+                  "type": "string"
+                },
+                "equations": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "evidence_refs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "name": {
+                  "type": "string"
+                },
+                "reference_status": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "applicability",
+                "clauses",
+                "edition",
+                "equations",
+                "evidence_refs",
+                "name",
+                "reference_status"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "acceptance_criteria",
+          "check_id",
+          "current_local_binding",
+          "dependencies",
+          "evidence_refs",
+          "expected_physical_scope",
+          "golden_example_id",
+          "golden_example_type",
+          "identifier_namespace",
+          "implementation_status",
+          "input_contract_kind",
+          "input_description",
+          "inputs",
+          "integration_notes",
+          "method_steps",
+          "negative_test_recipe",
+          "original_card_locator",
+          "output_contract",
+          "preserved_normative_reference",
+          "remaining_work",
+          "reviewed_snapshot_binding",
+          "specification",
+          "title"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 73,
+      "maxItems": 73
+    },
+    "common_contract": {
+      "type": "object",
+      "properties": {
+        "demand_semantics": {
+          "type": "string"
+        },
+        "execution": {
+          "type": "string"
+        },
+        "reinforcement": {
+          "type": "string"
+        },
+        "signs_axes": {
+          "type": "string"
+        },
+        "source_identity": {
+          "type": "string"
+        },
+        "units": {
+          "type": "string"
+        },
+        "verification": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "demand_semantics",
+        "execution",
+        "reinforcement",
+        "signs_axes",
+        "source_identity",
+        "units",
+        "verification"
+      ],
+      "additionalProperties": false
+    },
+    "counts": {
+      "type": "object",
+      "properties": {
+        "catalog_nodes": {
+          "type": "integer"
+        },
+        "distinct_catalog_nodes_bound_by_registry": {
+          "type": "integer"
+        },
+        "engineering_check_labels": {
+          "type": "integer"
+        },
+        "golden_examples_referenced": {
+          "type": "integer"
+        },
+        "historical_production_comparison_records": {
+          "type": "object",
+          "properties": {
+            "count": {
+              "type": "integer"
+            },
+            "note": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "count",
+            "note",
+            "status"
+          ],
+          "additionalProperties": false
+        },
+        "labels_inspected_in_current_local_tree": {
+          "type": "integer"
+        },
+        "labels_with_partial_inspected_owner_binding": {
+          "type": "integer"
+        },
+        "labels_without_inspected_calculation_owner": {
+          "type": "integer"
+        },
+        "physical_instances_accepted": {
+          "type": "integer"
+        },
+        "recipe_labels": {
+          "type": "integer"
+        },
+        "registered_stages_in_inspected_snapshot": {
+          "type": "integer"
+        },
+        "source_recipe_labels": {
+          "type": "integer"
+        },
+        "test_cases_run_by_this_mapping_builder": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "catalog_nodes",
+        "distinct_catalog_nodes_bound_by_registry",
+        "engineering_check_labels",
+        "golden_examples_referenced",
+        "historical_production_comparison_records",
+        "labels_inspected_in_current_local_tree",
+        "labels_with_partial_inspected_owner_binding",
+        "labels_without_inspected_calculation_owner",
+        "physical_instances_accepted",
+        "recipe_labels",
+        "registered_stages_in_inspected_snapshot",
+        "source_recipe_labels",
+        "test_cases_run_by_this_mapping_builder"
+      ],
+      "additionalProperties": false
+    },
+    "generated_date": {
+      "type": "string"
+    },
+    "language": {
+      "const": "en"
+    },
+    "review_boundary": {
+      "type": "object",
+      "properties": {
+        "date": {
+          "type": "string"
+        },
+        "integration_branch": {
+          "type": "string"
+        },
+        "local_commit_lookup": {
+          "type": "object",
+          "properties": {
+            "claim": {
+              "type": "string"
+            },
+            "http_status": {
+              "type": "integer"
+            },
+            "status": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "claim",
+            "http_status",
+            "status"
+          ],
+          "additionalProperties": false
+        },
+        "local_worktree": {
+          "type": "string"
+        },
+        "repository": {
+          "type": "string"
+        },
+        "review_boundary": {
+          "type": "string"
+        },
+        "reviewed_remote_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "reviewed_remote_tree": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "user_reported_local_changes": {
+          "type": "string"
+        },
+        "user_reported_local_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      },
+      "required": [
+        "date",
+        "integration_branch",
+        "local_commit_lookup",
+        "local_worktree",
+        "repository",
+        "review_boundary",
+        "reviewed_remote_commit",
+        "reviewed_remote_tree",
+        "user_reported_local_changes",
+        "user_reported_local_commit"
+      ],
+      "additionalProperties": false
+    },
+    "schema_version": {
+      "const": "yeni.recipe.check-mapping.integration.v1"
+    },
+    "verification_boundary": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "checks",
+    "common_contract",
+    "counts",
+    "generated_date",
+    "language",
+    "review_boundary",
+    "schema_version",
+    "verification_boundary"
+  ],
+  "additionalProperties": false
+}

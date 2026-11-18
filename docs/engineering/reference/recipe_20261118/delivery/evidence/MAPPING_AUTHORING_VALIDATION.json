@@ -1,0 +1,14 @@
+{
+  "command": "python integration/work/build_check_mapping.py",
+  "status": "PASS",
+  "scope": "Documentation mapping, exact identifiers, AST symbol existence and source hashes only",
+  "recipe_labels": 73,
+  "original_ids_preserved": true,
+  "partial_mapping_count": 44,
+  "unmapped_count": 29,
+  "current_local_inspection_status": "NOT_INSPECTED",
+  "structural_calculations_executed": 0,
+  "distinct_source_symbols": 88,
+  "mapping_sha256": "da278870060cc6e35d3df4127bae7095d0686b6d63cb7c262c1c723e759d464c",
+  "cards_sha256": "9096a444c92a02ea6da569202d87eff926978bc81fce72761dd50cad748c2daf"
+}

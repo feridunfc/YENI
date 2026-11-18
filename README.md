@@ -1,5 +1,7 @@
 # TBDY Next Engine
 
+[Current checkpoint](docs/CURRENT_STATE.md) · [English recipe and local integration evidence](docs/engineering/reference/recipe_20261118/README.md). The recipe is a reference contract; implemented scope and engineering acceptance remain separately recorded.
+
 [VS11 / CE-01: offline column force bank, static replay and UI](docs/VS11_CE01_COLUMN_SOURCE_BANK_TR.md)
 
 Small, project-owned Turkish structural-engineering application. The older `TBDY`, `Column-Engine`, and R1-C codebases are **references only**; none are runtime dependencies. Each iteration implements **one bounded vertical slice** and records which stage was actually verified.

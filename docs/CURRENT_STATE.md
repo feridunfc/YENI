@@ -1,17 +1,20 @@
 # Current local checkpoint — 2026-11-18
 
-**Native numeric source adapters are implemented and verified offline. Their live
-ETABS acceptance is pending. Engineering release remains `NOT_READY`; formal
-compliance remains `NOT_PROVEN`.** Existing source binding and scalar spectral
-arithmetic retain their prior evidence. No new engineering CHECK is closed.
+**The English recipe package has been reconciled with the newer local code and
+integrated as a reference asset. The verified software/documentation milestone
+is on the local `baseline/local_import`; GitHub is unchanged.** Native numeric
+adapters are implemented and verified offline, with live ETABS acceptance pending.
+Engineering release remains `NOT_READY`; formal compliance remains `NOT_PROVEN`.
+No new engineering CHECK is closed. Live work follows this intake, as the user ordered.
 
 ## Identity and preservation
 
 | Item | Checkpoint |
 | --- | --- |
-| Repository / active work branch | `feridunfc/YENI` / `work/spectral-modal-source` |
+| Repository / active integration branch | `feridunfc/YENI` / `baseline/local_import` |
 | Integration base (logical main) | `baseline/local_import` |
 | Published integration checkpoint | `b255c3030c09c88a17bbec766fc2bb22682ad027` |
+| Preserved runtime / local recipe-review base | `250ff1974316070393f3fff9847d941a80dcd47e` |
 | Tested dirty-tree base / prior verified modal binding | `a2e26b664d9b2b217e828de2c1df0c3df26068b1` |
 | Runtime package SHA at the tested Windows tree | `fd204205682c2d88c404ca4a7420631fc56638ec6fff2e36ce6f29c2f5e1f5e4` |
 | Configuration SHA | `244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1` |
@@ -26,8 +29,10 @@ Resolve the completed local commit with `git rev-parse HEAD`, and context histor
 with `git log -1 --format=%H -- docs/CURRENT_STATE.md`. A commit does not embed its
 own final SHA. Older manifests, private logs and source receipts remain unchanged.
 
-This milestone remains on the local work branch. No GitHub push, baseline advance,
-old-main merge, reset or clean was performed. Keep `.idea/`, `build.zip` and the
+The reviewed software and recipe milestone is fast-forward integrated locally
+from `work/spectral-modal-source`; that branch remains as a preserved checkpoint.
+Live acceptance stays open and is not implied by a software integration. No GitHub
+push, old-main merge, reset or clean was performed. Keep `.idea/`, `build.zip` and the
 untracked root handoff-recipe copy out of commits. They are pre-existing user work.
 Private `.receipts`, raw captures, EDB, SQLite and source PDFs are not published.
 The exported context ZIP and its earlier validation still describe the published
@@ -135,23 +140,53 @@ General topological scheduling and complete CheckInstance accounting remain
 GAP-005 / GAP-017. Golden production coverage remains 44 records: 15 match,
 25 insufficient, four interpretation differences; acceptance is ineligible.
 
-## Parallel reference-package work
+## Completed recipe intake — 2026-11-18
 
-The user-owned worker is preparing the English recipe/check mapping/golden package
-from the five 2026-11-18 attachments. These documents are reference material, not
-runtime instructions. Review/extraction is private under
-`.receipts/verification/recipe-import-20261118/`; no attachment has been imported
-into runtime or baseline. The 73 examples, 44 production comparisons and the two
-separate 333-comparison scopes must stay distinct. The worker cannot infer the
-local dirty tree from an older GitHub branch. On delivery, verify the exact inspected
-SHA, source hashes, owner mapping and evidence levels against this local work before
-adoption. Preserve useful material without rolling back newer local work.
+Entry point: [English recipe and local acceptance](engineering/reference/recipe_20261118/README.md).
+`YENI_RECIPE_FULL_20261118.zip` SHA:
+`6f46177e64a5d0ee8e9b6fc7d7b5ba74e252e2cb547fb3655ad97d6aaf490b1f`.
+All 250 payload hashes match. Thirty public text assets are retained unchanged
+under `docs/engineering/reference/recipe_20261118/delivery/`; binary renditions,
+private PDFs/SQLite and archived code remain private. There is no new production
+solver, pipeline stage, runtime import, test modification or dependency.
+
+The worker's `b255c303…` snapshot matched 142 actual Git objects. All 88 referenced
+symbol ASTs/signatures are unchanged locally. This is mechanical compatibility,
+not a full semantic audit: 44 recipe labels remain partially mapped and 29 unmapped.
+That mapping count is separate from the existing 44 production comparisons.
+
+| Fresh intake evidence | Result |
+| --- | --- |
+| JSON structure/source binding | Five schemas VALID; six negative probes detected |
+| Preserved example arithmetic | 333/333 assertions, 73 primary + 12 adapter fixtures |
+| Separate synthetic modal-to-alpha chain | 1,294/1,294 assertions |
+| Actual local primitive owners | 3/3 values match: 1080 kN, 1620 kN, 24 mm |
+| Existing production comparison owner | 44 records remain 15 match / 25 insufficient / four interpretation differences |
+
+The older 13/27/4 stored result differs only in `G02_ALPHA_ground` and
+`G02_ALPHA_top`, whose printed Vis/Vik arithmetic is now supplied by the existing
+owner. Complete story scope and two-end SCWB binding remain open. Historical
+files are not rewritten. The full software tests and pipeline replay above were
+not rerun for this reference-only intake. No new live ETABS operation occurred.
+
+Evidence IDs: `EV-RECIPE18-INTAKE`, `EV-RECIPE18-ARITHMETIC`,
+`EV-RECIPE18-LOCAL-OWNERS`. Private proof:
+`.receipts/verification/recipe-intake-20261118/`; complete extraction:
+`.receipts/recipe18/`. The initial long-path extraction was incomplete and retained;
+the complete shorter path is the authoritative local extraction.
+
+Adopt the source/cut/combination contracts, shared cage revisions, independent
+verification levels and counterexamples as roadmap requirements. The proportional
+modal example uses declared capacities; it is not a physical cage or production
+building iteration. E-only versus total-M/V alpha amplification remains an
+unresolved interpretation. No normative or engineering gate is promoted.
 
 ## Operation and handoff
 
-At this observation no ETABS process was visible from the tool session, and port
-8876 refused the connection. The verified HTTP server was temporary and is closed.
-Do not infer a future PID or live connection from this checkpoint.
+At the earlier runtime-verification observation no ETABS process was visible and
+port 8876 refused the connection. Its temporary HTTP test server was closed.
+This intake did not recheck or attach to ETABS. Rediscover the PID and server;
+do not infer a current live connection from a historical checkpoint.
 
 ```powershell
 .\.venv\Scripts\python.exe -c "import sys,tbdy_next; print(sys.executable); print(tbdy_next.__file__)"

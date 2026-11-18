@@ -1,0 +1,1149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:yeni:integration:priority-chain:v1",
+  "title": "PRIORITY_CHAIN v1 schema",
+  "type": "object",
+  "properties": {
+    "calculation_sequence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "identity_ref": {
+            "type": "string"
+          },
+          "inputs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "outputs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sequence": {
+            "type": "integer"
+          },
+          "stage": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "identity_ref",
+          "inputs",
+          "outputs",
+          "sequence",
+          "stage"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "combination_catalog": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "G_coefficient": {
+            "type": "string"
+          },
+          "Q_coefficient": {
+            "type": "string"
+          },
+          "X_case_id": {
+            "type": "string"
+          },
+          "X_coefficient": {
+            "type": "string"
+          },
+          "Y_case_id": {
+            "type": "string"
+          },
+          "Y_coefficient": {
+            "type": "string"
+          },
+          "analysis_generation_id": {
+            "type": "string"
+          },
+          "combination_id": {
+            "type": "string"
+          },
+          "gravity_family": {
+            "type": "string"
+          },
+          "selected_design_group": {
+            "type": "string"
+          },
+          "semantic_role": {
+            "type": "string"
+          },
+          "source_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "G_coefficient",
+          "Q_coefficient",
+          "X_case_id",
+          "X_coefficient",
+          "Y_case_id",
+          "Y_coefficient",
+          "analysis_generation_id",
+          "combination_id",
+          "gravity_family",
+          "selected_design_group",
+          "semantic_role",
+          "source_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "counting_scope": {
+      "type": "string"
+    },
+    "design_combo_groups": {
+      "type": "object",
+      "properties": {
+        "ductile": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "ductile"
+      ],
+      "additionalProperties": false
+    },
+    "eight_corner_acceptance": {
+      "type": "object",
+      "properties": {
+        "counterexample": {
+          "type": "object",
+          "properties": {
+            "M2_interval": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            },
+            "M3_interval": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            },
+            "N_interval": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              }
+            },
+            "corner_utilization": {
+              "type": "string"
+            },
+            "display_formula": {
+              "type": "string"
+            },
+            "interior_N_face_M2_utilization": {
+              "type": "string"
+            },
+            "meaning": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "M2_interval",
+            "M3_interval",
+            "N_interval",
+            "corner_utilization",
+            "display_formula",
+            "interior_N_face_M2_utilization",
+            "meaning"
+          ],
+          "additionalProperties": false
+        },
+        "necessary_conditions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "nonlinear_evidence_required": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "counterexample",
+        "necessary_conditions",
+        "nonlinear_evidence_required",
+        "status"
+      ],
+      "additionalProperties": false
+    },
+    "example_id": {
+      "type": "string"
+    },
+    "example_kind": {
+      "type": "string"
+    },
+    "identity": {
+      "type": "object",
+      "properties": {
+        "analysis_generation_id": {
+          "type": "string"
+        },
+        "beam_cage_revision": {
+          "type": "string"
+        },
+        "initial_column_cage_revision": {
+          "type": "string"
+        },
+        "method_revision": {
+          "type": "string"
+        },
+        "modal_source_id": {
+          "type": "string"
+        },
+        "model_id": {
+          "type": "string"
+        },
+        "revised_column_cage_revision": {
+          "type": "string"
+        },
+        "source_id": {
+          "type": "string"
+        },
+        "source_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "storey_id": {
+          "type": "string"
+        },
+        "story_cut_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "analysis_generation_id",
+        "beam_cage_revision",
+        "initial_column_cage_revision",
+        "method_revision",
+        "modal_source_id",
+        "model_id",
+        "revised_column_cage_revision",
+        "source_id",
+        "source_sha256",
+        "storey_id",
+        "story_cut_id"
+      ],
+      "additionalProperties": false
+    },
+    "inputs": {
+      "type": "object",
+      "properties": {
+        "SDS": {
+          "type": "string"
+        },
+        "accidental_eccentricity_ratio": {
+          "type": "string"
+        },
+        "active_modal_damping_ratio": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "applied_torsion_axial_increment_kn": {
+          "type": "string"
+        },
+        "base_shear_scale": {
+          "type": "string"
+        },
+        "beam_face_capacity_each_knm": {
+          "type": "string"
+        },
+        "capacity_curve_quadratic_coefficient_knm_per_kn2": {
+          "type": "string"
+        },
+        "capacity_curve_reference_N_kn": {
+          "type": "string"
+        },
+        "centred_modal_compression_kn": {
+          "type": "object",
+          "properties": {
+            "X": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "Y": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false
+        },
+        "centred_shear_fractions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "column_fck_mpa": {
+          "type": "string"
+        },
+        "column_gross_area_mm2": {
+          "type": "string"
+        },
+        "column_line_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "declared_column_shear_capacity_kn": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "diaphragm_width_m": {
+          "type": "object",
+          "properties": {
+            "X": {
+              "type": "string"
+            },
+            "Y": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false
+        },
+        "directional_combination_primary": {
+          "type": "string"
+        },
+        "directional_combination_secondary": {
+          "type": "string"
+        },
+        "end_offsets_m": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "factored_gravity_moment_bound_knm": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "frame_end_releases": {
+          "type": "string"
+        },
+        "global_second_order_scale": {
+          "type": "string"
+        },
+        "gravity_G_compression_kn": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "gravity_Q_compression_kn": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "initial_column_pair_C0_knm": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "joint_end_ids_by_line": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "local_second_order_scale": {
+          "type": "string"
+        },
+        "modal_storey_shear_kn": {
+          "type": "object",
+          "properties": {
+            "X": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "Y": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false
+        },
+        "modal_term_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "periods_s": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "physical_storey_height_m": {
+          "type": "string"
+        },
+        "plan_coordinates_m": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "revised_column_pair_C0_knm": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "scaling_scope": {
+          "type": "string"
+        },
+        "source_spectrum_scale": {
+          "type": "string"
+        },
+        "vertical_earthquake_branch": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "SDS",
+        "accidental_eccentricity_ratio",
+        "active_modal_damping_ratio",
+        "applied_torsion_axial_increment_kn",
+        "base_shear_scale",
+        "beam_face_capacity_each_knm",
+        "capacity_curve_quadratic_coefficient_knm_per_kn2",
+        "capacity_curve_reference_N_kn",
+        "centred_modal_compression_kn",
+        "centred_shear_fractions",
+        "column_fck_mpa",
+        "column_gross_area_mm2",
+        "column_line_ids",
+        "declared_column_shear_capacity_kn",
+        "diaphragm_width_m",
+        "directional_combination_primary",
+        "directional_combination_secondary",
+        "end_offsets_m",
+        "factored_gravity_moment_bound_knm",
+        "frame_end_releases",
+        "global_second_order_scale",
+        "gravity_G_compression_kn",
+        "gravity_Q_compression_kn",
+        "initial_column_pair_C0_knm",
+        "joint_end_ids_by_line",
+        "local_second_order_scale",
+        "modal_storey_shear_kn",
+        "modal_term_ids",
+        "periods_s",
+        "physical_storey_height_m",
+        "plan_coordinates_m",
+        "revised_column_pair_C0_knm",
+        "scaling_scope",
+        "source_spectrum_scale",
+        "vertical_earthquake_branch"
+      ],
+      "additionalProperties": false
+    },
+    "local_code_review_status": {
+      "type": "string"
+    },
+    "missing_actual_model_evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "item": {
+            "type": "string"
+          },
+          "required": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "item",
+          "required",
+          "status"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "modal_source_rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "Fx_kn": {
+            "type": "string"
+          },
+          "Fy_kn": {
+            "type": "string"
+          },
+          "analysis_element_id": {
+            "type": "string"
+          },
+          "analysis_generation_id": {
+            "type": "string"
+          },
+          "applied_torsion_Fx_kn": {
+            "type": "string"
+          },
+          "applied_torsion_Fy_kn": {
+            "type": "string"
+          },
+          "case_id": {
+            "type": "string"
+          },
+          "centred_Fx_kn": {
+            "type": "string"
+          },
+          "centred_Fy_kn": {
+            "type": "string"
+          },
+          "compression_N_kn": {
+            "type": "string"
+          },
+          "eccentricity_branch": {
+            "type": "integer"
+          },
+          "element_side": {
+            "type": "string"
+          },
+          "element_station_m": {
+            "type": "string"
+          },
+          "excitation_direction": {
+            "type": "string"
+          },
+          "member_id": {
+            "type": "string"
+          },
+          "mode_id": {
+            "type": "string"
+          },
+          "model_id": {
+            "type": "string"
+          },
+          "moment_about_global_X_knm": {
+            "type": "string"
+          },
+          "moment_about_global_Y_knm": {
+            "type": "string"
+          },
+          "object_station_m": {
+            "type": "string"
+          },
+          "physical_cut_id": {
+            "type": "string"
+          },
+          "source_id": {
+            "type": "string"
+          },
+          "source_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "required": [
+          "Fx_kn",
+          "Fy_kn",
+          "analysis_element_id",
+          "analysis_generation_id",
+          "applied_torsion_Fx_kn",
+          "applied_torsion_Fy_kn",
+          "case_id",
+          "centred_Fx_kn",
+          "centred_Fy_kn",
+          "compression_N_kn",
+          "eccentricity_branch",
+          "element_side",
+          "element_station_m",
+          "excitation_direction",
+          "member_id",
+          "mode_id",
+          "model_id",
+          "moment_about_global_X_knm",
+          "moment_about_global_Y_knm",
+          "object_station_m",
+          "physical_cut_id",
+          "source_id",
+          "source_sha256"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "precision_fixture": {
+      "type": "object",
+      "properties": {
+        "damping_ratio": {
+          "type": "string"
+        },
+        "expected_float64_correlation_resolution_failure": {
+          "type": "boolean"
+        },
+        "meaning": {
+          "type": "string"
+        },
+        "periods_s": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "reference_response": {
+          "type": "string"
+        },
+        "reference_rho": {
+          "type": "string"
+        },
+        "signed_amplitudes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "unit": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "damping_ratio",
+        "expected_float64_correlation_resolution_failure",
+        "meaning",
+        "periods_s",
+        "reference_response",
+        "reference_rho",
+        "signed_amplitudes",
+        "unit"
+      ],
+      "additionalProperties": false
+    },
+    "reference_values": {
+      "type": "object",
+      "properties": {
+        "SCWB_column_pair_threshold_knm": {
+          "type": "string"
+        },
+        "X_storey_CQC_shear_kn": {
+          "type": "string"
+        },
+        "Y_storey_CQC_shear_kn": {
+          "type": "string"
+        },
+        "alpha_factor": {
+          "type": "string"
+        },
+        "alpha_factor_exact": {
+          "type": "object",
+          "properties": {
+            "denominator": {
+              "type": "integer"
+            },
+            "numerator": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "denominator",
+            "numerator"
+          ],
+          "additionalProperties": false
+        },
+        "axial_and_capacity_results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "X_CQC_axial_kn": {
+                "type": "string"
+              },
+              "X_primary_axial_bound_kn": {
+                "type": "string"
+              },
+              "Y_CQC_axial_kn": {
+                "type": "string"
+              },
+              "Y_primary_axial_bound_kn": {
+                "type": "string"
+              },
+              "column_line_id": {
+                "type": "string"
+              },
+              "compression_lower_kn": {
+                "type": "string"
+              },
+              "compression_upper_kn": {
+                "type": "string"
+              },
+              "governing_argument_is_maximum_compression": {
+                "type": "boolean"
+              },
+              "governing_curve_argument_kn": {
+                "type": "string"
+              },
+              "initial_single_column_Mr_lower_bound_knm": {
+                "type": "string"
+              },
+              "revised_single_column_Mr_lower_bound_knm": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "X_CQC_axial_kn",
+              "X_primary_axial_bound_kn",
+              "Y_CQC_axial_kn",
+              "Y_primary_axial_bound_kn",
+              "column_line_id",
+              "compression_lower_kn",
+              "compression_upper_kn",
+              "governing_argument_is_maximum_compression",
+              "governing_curve_argument_kn",
+              "initial_single_column_Mr_lower_bound_knm",
+              "revised_single_column_Mr_lower_bound_knm"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "base_moment_bounds_knm": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "base_shear_bounds_kn": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "correlation_rho_12": {
+          "type": "string"
+        },
+        "eligible_column_line_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "expected_SCWB_joint_direction_sign_rows": {
+          "type": "integer"
+        },
+        "expected_directional_families": {
+          "type": "integer"
+        },
+        "expected_gravity_formula_branches": {
+          "type": "integer"
+        },
+        "expected_modal_rows": {
+          "type": "integer"
+        },
+        "expected_modal_terms_per_case_cut": {
+          "type": "integer"
+        },
+        "expected_physical_cuts": {
+          "type": "integer"
+        },
+        "expected_scalar_combo_definitions": {
+          "type": "integer"
+        },
+        "expected_signed_horizontal_formula_branches": {
+          "type": "integer"
+        },
+        "expected_spectrum_cases": {
+          "type": "integer"
+        },
+        "governing_alpha": {
+          "type": "string"
+        },
+        "governing_alpha_exact": {
+          "type": "object",
+          "properties": {
+            "denominator": {
+              "type": "integer"
+            },
+            "numerator": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "denominator",
+            "numerator"
+          ],
+          "additionalProperties": false
+        },
+        "ineligible_column_line_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "initial_moment_checks_with_alpha": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          }
+        },
+        "initial_moment_checks_without_alpha": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          }
+        },
+        "low_axial_exemption_threshold_kn": {
+          "type": "string"
+        },
+        "revised_moment_bounds_knm": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "revised_moment_checks_with_alpha": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          }
+        },
+        "revised_shear_bounds_kn": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "revised_shear_checks": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          }
+        }
+      },
+      "required": [
+        "SCWB_column_pair_threshold_knm",
+        "X_storey_CQC_shear_kn",
+        "Y_storey_CQC_shear_kn",
+        "alpha_factor",
+        "alpha_factor_exact",
+        "axial_and_capacity_results",
+        "base_moment_bounds_knm",
+        "base_shear_bounds_kn",
+        "correlation_rho_12",
+        "eligible_column_line_ids",
+        "expected_SCWB_joint_direction_sign_rows",
+        "expected_directional_families",
+        "expected_gravity_formula_branches",
+        "expected_modal_rows",
+        "expected_modal_terms_per_case_cut",
+        "expected_physical_cuts",
+        "expected_scalar_combo_definitions",
+        "expected_signed_horizontal_formula_branches",
+        "expected_spectrum_cases",
+        "governing_alpha",
+        "governing_alpha_exact",
+        "ineligible_column_line_ids",
+        "initial_moment_checks_with_alpha",
+        "initial_moment_checks_without_alpha",
+        "low_axial_exemption_threshold_kn",
+        "revised_moment_bounds_knm",
+        "revised_moment_checks_with_alpha",
+        "revised_shear_bounds_kn",
+        "revised_shear_checks"
+      ],
+      "additionalProperties": false
+    },
+    "related_check_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "related_gap_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "reviewed_published_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "scope": {
+      "type": "object",
+      "properties": {
+        "capacity_scope": {
+          "type": "string"
+        },
+        "force_scope": {
+          "type": "string"
+        },
+        "geometry": {
+          "type": "string"
+        },
+        "live_ETABS_source_validation": {
+          "type": "string"
+        },
+        "normative_acceptance": {
+          "type": "string"
+        },
+        "other_governing_checks": {
+          "type": "string"
+        },
+        "production_owner_comparison": {
+          "type": "string"
+        },
+        "recorded_pipeline_replay": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "capacity_scope",
+        "force_scope",
+        "geometry",
+        "live_ETABS_source_validation",
+        "normative_acceptance",
+        "other_governing_checks",
+        "production_owner_comparison",
+        "recorded_pipeline_replay"
+      ],
+      "additionalProperties": false
+    },
+    "selected_combination_groups": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_identity_canonicalization": {
+      "type": "string"
+    },
+    "source_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "atlas_pages": {
+            "type": "array",
+            "items": {}
+          },
+          "atlas_reason": {
+            "type": "string"
+          },
+          "clauses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "edition": {
+            "type": "string"
+          },
+          "physical_pdf_pages": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "public_url": {
+            "type": "string"
+          },
+          "retrieved_date": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "source_id": {
+            "type": "string"
+          },
+          "specification": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "atlas_pages",
+          "physical_pdf_pages",
+          "source_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "target_local_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "title": {
+      "type": "string"
+    },
+    "tolerances": {
+      "type": "object",
+      "properties": {
+        "force_or_moment_absolute": {
+          "type": "string"
+        },
+        "precision_stress_absolute": {
+          "type": "string"
+        },
+        "ratio_absolute": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "source_row_decimal_rounding_absolute": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "force_or_moment_absolute",
+        "precision_stress_absolute",
+        "ratio_absolute",
+        "reason",
+        "source_row_decimal_rounding_absolute"
+      ],
+      "additionalProperties": false
+    },
+    "units_and_signs": {
+      "type": "object",
+      "properties": {
+        "axial": {
+          "type": "string"
+        },
+        "cut_sign": {
+          "type": "string"
+        },
+        "damping": {
+          "type": "string"
+        },
+        "force": {
+          "type": "string"
+        },
+        "global_axes": {
+          "type": "string"
+        },
+        "length": {
+          "type": "string"
+        },
+        "moment": {
+          "type": "string"
+        },
+        "moment_mapping": {
+          "type": "string"
+        },
+        "period": {
+          "type": "string"
+        },
+        "spectral_semantics": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "axial",
+        "cut_sign",
+        "damping",
+        "force",
+        "global_axes",
+        "length",
+        "moment",
+        "moment_mapping",
+        "period",
+        "spectral_semantics"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "calculation_sequence",
+    "combination_catalog",
+    "counting_scope",
+    "design_combo_groups",
+    "eight_corner_acceptance",
+    "example_id",
+    "example_kind",
+    "identity",
+    "inputs",
+    "local_code_review_status",
+    "missing_actual_model_evidence",
+    "modal_source_rows",
+    "precision_fixture",
+    "reference_values",
+    "related_check_ids",
+    "related_gap_ids",
+    "reviewed_published_commit",
+    "schema_version",
+    "scope",
+    "selected_combination_groups",
+    "source_identity_canonicalization",
+    "source_refs",
+    "target_local_commit",
+    "title",
+    "tolerances",
+    "units_and_signs"
+  ],
+  "additionalProperties": false
+}

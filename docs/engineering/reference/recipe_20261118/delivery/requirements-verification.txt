@@ -1,0 +1,2 @@
+# Only the document/schema validator needs this dependency.
+jsonschema==4.26.0

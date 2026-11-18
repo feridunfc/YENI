@@ -1,0 +1,129 @@
+{
+  "schema_version": "yeni.integration.delivery-validation.v1",
+  "verification_level": "DOCUMENT_SCHEMA_CONSISTENCY",
+  "status": "VALID",
+  "executed_at_utc": "2026-11-18T15:46:10.319276+00:00",
+  "command": [
+    "python3",
+    "tools/validate_delivery.py",
+    "--root",
+    ".",
+    "--repo",
+    "../sources/repo",
+    "--self-test",
+    "--output",
+    "evidence/DOCUMENT_VALIDATION.json"
+  ],
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "jsonschema": "4.26.0"
+  },
+  "validator_sha256": "09c716019edc829aa662c6d0db1b47ce0fcfaa33d29f6b488fd15f44a7b99657",
+  "schemas": [
+    {
+      "file": "CHECK_MAPPING.json",
+      "file_sha256": "da278870060cc6e35d3df4127bae7095d0686b6d63cb7c262c1c723e759d464c",
+      "digest_note": "Exact validated bytes.",
+      "schema": "CHECK_MAPPING.schema.json",
+      "schema_sha256": "669549278d151ccd5405231756d27fd6b33f90f60e7b56f317d3af952e8dbefd",
+      "status": "VALID"
+    },
+    {
+      "file": "GOLDEN_CASES.json",
+      "file_sha256": "159ba2b33d78fa1e7a76127546d4e676b3d4ad7acfc51448593aa69005d1ca3a",
+      "digest_note": "Exact validated bytes.",
+      "schema": "GOLDEN_CASES.schema.json",
+      "schema_sha256": "7b5130299bbefac469892c409ce490af404e27d8cfbc26c6ae85e3299612c51c",
+      "status": "VALID"
+    },
+    {
+      "file": "PRIORITY_CHAIN.json",
+      "file_sha256": "f7a125e8ab8c18d7a132519d19a9981aeb9cc6c07c098e96187b522841f1710a",
+      "digest_note": "Exact validated bytes.",
+      "schema": "PRIORITY_CHAIN.schema.json",
+      "schema_sha256": "d956c51a53a93c14907ee635c0c1490c4e3b73a462a18f4fbdd3f6148e7f84b4",
+      "status": "VALID"
+    },
+    {
+      "file": "SOURCE_MANIFEST.json",
+      "file_sha256": "d3098a5619ba7bdf5ae38bb361b4945b8089204356d496bf29ef9b1d21f28919",
+      "digest_note": "Exact validated bytes.",
+      "schema": "SOURCE_MANIFEST.schema.json",
+      "schema_sha256": "05b622d3e841560fd58ea22c7c9adeb33c6630ce30fd11a6297645d0a303fa76",
+      "status": "VALID"
+    },
+    {
+      "file": "VERIFICATION_RESULTS.json",
+      "file_sha256": null,
+      "digest_note": "The verification ledger references this validation record; its final digest is bound by DELIVERY_INDEX.json to avoid a self-referential hash cycle.",
+      "schema": "VERIFICATION_RESULTS.schema.json",
+      "schema_sha256": "fee573d6ed2d6f7b88783e0f93ccaba568313b3492fe1dff4b5d368a20ee3ce7",
+      "status": "VALID"
+    }
+  ],
+  "reviewed_source_files": 142,
+  "distinct_source_symbols_verified": 88,
+  "source_symbol_check_status": "VERIFIED",
+  "negative_contract_probes": [
+    {
+      "scenario": "changed_source_hash",
+      "detected": true
+    },
+    {
+      "scenario": "missing_original_id",
+      "detected": true
+    },
+    {
+      "scenario": "duplicate_case_id",
+      "detected": true
+    },
+    {
+      "scenario": "executable_formula_flag",
+      "detected": true
+    },
+    {
+      "scenario": "unsupported_local_inspection",
+      "detected": true
+    },
+    {
+      "scenario": "omitted_scenario_category",
+      "detected": true
+    }
+  ],
+  "static_tool_checks": [
+    {
+      "file": "tools/compare_existing_owners.py",
+      "sha256": "37d4a45815bae4b8ba576f68b187def704aceb5c3edd03141bc354c351389103",
+      "dynamic_formula_execution_calls": []
+    },
+    {
+      "file": "tools/inspect_local_binding.py",
+      "sha256": "d9f40e3eca74bf1e1ce6ebc693bd0313ce8fcf4c1ee5973527943a0915097608",
+      "dynamic_formula_execution_calls": []
+    },
+    {
+      "file": "tools/validate_delivery.py",
+      "sha256": "09c716019edc829aa662c6d0db1b47ce0fcfaa33d29f6b488fd15f44a7b99657",
+      "dynamic_formula_execution_calls": []
+    },
+    {
+      "file": "tools/verify_golden_arithmetic.py",
+      "sha256": "8cc6d123dc53dd1f280ccfe561eff8feca81015ff835ff64043f6ba12489cef7",
+      "dynamic_formula_execution_calls": []
+    },
+    {
+      "file": "tools/verify_priority_chain.py",
+      "sha256": "e66103262f3f2876bd5b8a561a385817c2f0b3a6300347a028a8b00cdf36402e",
+      "dynamic_formula_execution_calls": []
+    }
+  ],
+  "private_access_leaks": [],
+  "errors": [],
+  "limits": [
+    "Documentation, schema, identity and optional source-symbol validation only.",
+    "No structural result or normative applicability is accepted.",
+    "No production pipeline or ETABS session is executed.",
+    "Unavailable local commit and unfinished changes remain NOT_INSPECTED."
+  ]
+}

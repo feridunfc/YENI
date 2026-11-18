@@ -1,0 +1,1977 @@
+{
+  "schema": "yeni.recipe.local-intake.v1",
+  "recorded_at_utc": "2026-11-18T18:32:30.991254+00:00",
+  "source_commit": "250ff1974316070393f3fff9847d941a80dcd47e",
+  "source_tree": "be2d9852d4d7a831347dd774964fc33c2e37be51",
+  "command": ".\\.venv\\Scripts\\python.exe -X utf8 -B .receipts/verification/recipe-intake-20261118/reconcile_local.py",
+  "audit_script_sha256": "84a5e8bddbc505612335389c0a1fed471a31562c5d159a8f98204cae63539f5f",
+  "environment": {
+    "python": "3.12.10",
+    "implementation": "CPython",
+    "platform": "Windows-11-10.0.26200-SP0"
+  },
+  "reviewed_published_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+  "published_files_verified_against_git_objects": 142,
+  "file_comparison_counts": {
+    "CONTENT_CHANGED": 11,
+    "LINE_ENDINGS_ONLY": 101,
+    "EXACT_BYTES": 30
+  },
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "published_sha256": "5fe6a213e4e5ff916e5753629dc725cc515eadfae01e8510e99146846f9e1c18",
+      "local_raw_sha256": "774c5047b9b15719236f18aa7a532ae6f5a5b50aa8cf4ada17844294ed586996",
+      "local_lf_sha256": "774c5047b9b15719236f18aa7a532ae6f5a5b50aa8cf4ada17844294ed586996",
+      "comparison": "CONTENT_CHANGED"
+    },
+    {
+      "path": "docs/CURRENT_STATE.md",
+      "published_sha256": "6cc0fe6978283bed521e0b060961df0b9acdddc2cc6883b1fd9638e32dcf327b",
+      "local_raw_sha256": "345a7bace8f90ae6d1608fcd185d7915ad2200716d1a7cf08dfb9967618ef901",
+      "local_lf_sha256": "4a38734dc87586c016b9cf15015a7857d5cb30c8decf65d03d8adc2baf66ab9f",
+      "comparison": "CONTENT_CHANGED"
+    },
+    {
+      "path": "docs/ENGINEERING_GAPS.yaml",
+      "published_sha256": "ef9fabdbc5adaac86e0380b70bc40cca2bcc7999b6ced0f3e2109f8940f02481",
+      "local_raw_sha256": "5851ce4afa40988d7779b49e3cceab7dd466e871bdd4d43f4196192c7c8bce18",
+      "local_lf_sha256": "326f420af94d1b36609b475906efbe9cc16fb90ba18b3d03727c9104ad16da80",
+      "comparison": "CONTENT_CHANGED"
+    },
+    {
+      "path": "docs/VERIFICATION_LEDGER.json",
+      "published_sha256": "12cdb0ec12d572f6fad663e71b94c816b4b63c04cc06137472db0827665b08ca",
+      "local_raw_sha256": "578acd3298aa21cb9c0cc64daec87064c2acd76987daff480b92f195f4f62d88",
+      "local_lf_sha256": "726b8df6601011fce02950de4bbeeb72f40960ca279bee24343fb06f683303f9",
+      "comparison": "CONTENT_CHANGED"
+    },
+    {
+      "path": "docs/engineering/OFFLINE_D3B_MIXED_DEMANDS_20261117.md",
+      "published_sha256": "8313353120c84b326ad66e275819a3cba83af4daecb3b400ec2a3d2fc37c3530",
+      "local_raw_sha256": "5637fa7be7784b1c3c396ea342f3e7692b2097ad17b07ddd1c582fc2d861e7e3",
+      "local_lf_sha256": "8313353120c84b326ad66e275819a3cba83af4daecb3b400ec2a3d2fc37c3530",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "docs/engineering/OFFLINE_D3_ALPHA_ITERATION_20261117.md",
+      "published_sha256": "0c614341a0a5d16c7ee69e0e0a0be57a5259228be60a08f8e27029bf3f4fd09a",
+      "local_raw_sha256": "969f76abbb7ef81f586dbf6f4846c9500b188cff51b31616c5e8d4f78c14e62c",
+      "local_lf_sha256": "0c614341a0a5d16c7ee69e0e0a0be57a5259228be60a08f8e27029bf3f4fd09a",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "docs/engineering/PIPELINE_UNIFICATION_20261115.md",
+      "published_sha256": "816d6719076b1e1c36371085726d3264bcfbdac40611ac59e217fe2a2028bc41",
+      "local_raw_sha256": "a7b3399e900791670b7e6c220421afd77c4fc4e34e88347ebba34364cd1520de",
+      "local_lf_sha256": "7d50d37dc837498b98427042a2774e05fd2c64533754a39c983bb1bb9360af9b",
+      "comparison": "CONTENT_CHANGED"
+    },
+    {
+      "path": "docs/engineering/RECIPE73_YENI_INTEGRATION_20261113.md",
+      "published_sha256": "f116a81603795a6697b458c400366c69ae0a53fd409364bbe319b8c3299845dc",
+      "local_raw_sha256": "40f937d31601f91ca47adc77ad6888e6429ee2d252c1824b436a2e4d3e7dda13",
+      "local_lf_sha256": "f116a81603795a6697b458c400366c69ae0a53fd409364bbe319b8c3299845dc",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "docs/engineering/reference/RECIPE_73_CANDIDATE_20261113.md",
+      "published_sha256": "c33f53ecd1fd89517b51fc859764618452eeb4fe87102423816550ad35653b46",
+      "local_raw_sha256": "c460b11b3c3225f0ea702aa7789b794e7d8002fc3d6c870b5bee8b974d957da3",
+      "local_lf_sha256": "c33f53ecd1fd89517b51fc859764618452eeb4fe87102423816550ad35653b46",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "pyproject.toml",
+      "published_sha256": "e53c946f6db661e8de0d61be3de36406f56b86537a14a70c65296326517a4e37",
+      "local_raw_sha256": "e53c946f6db661e8de0d61be3de36406f56b86537a14a70c65296326517a4e37",
+      "local_lf_sha256": "e53c946f6db661e8de0d61be3de36406f56b86537a14a70c65296326517a4e37",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/__init__.py",
+      "published_sha256": "14d85518cd6df9aa033853fb7bae5e70da6c95e216fa6031f4ac8e00d94d1951",
+      "local_raw_sha256": "ae57124a94a2b3f86715032535a2af3fab6828c67e1c76bb340b9645734b001e",
+      "local_lf_sha256": "14d85518cd6df9aa033853fb7bae5e70da6c95e216fa6031f4ac8e00d94d1951",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/analysis_numerics.py",
+      "published_sha256": "adb0e873a6af793db9c489a7919516b9be787f0081812a2bd7f37e101d7b3c31",
+      "local_raw_sha256": "83ad2225466d2126dcc79362276a8d24de8ba473362f994ecbfbca283c03e37f",
+      "local_lf_sha256": "adb0e873a6af793db9c489a7919516b9be787f0081812a2bd7f37e101d7b3c31",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/analysis_sources.py",
+      "published_sha256": "334910788fac70086ce9e4c18cdb7bb41f114b5e9abd6fcd0b8c7d369ed57158",
+      "local_raw_sha256": "69d397a7661c6c5d8da4e4a11da71ae55fa5a43cc2465700e4eb7fa5eb5f2b54",
+      "local_lf_sha256": "334910788fac70086ce9e4c18cdb7bb41f114b5e9abd6fcd0b8c7d369ed57158",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/archived_source_bridge.py",
+      "published_sha256": "95ba4e0968c0093df75541c6ef20386afd8c9b724407245f4c0d30fa81db6e62",
+      "local_raw_sha256": "85559ce1d761a949b3b038272d8b5df1658c0d644c91c6cc2159035c3a66f39f",
+      "local_lf_sha256": "95ba4e0968c0093df75541c6ef20386afd8c9b724407245f4c0d30fa81db6e62",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/b1_source_bridge.py",
+      "published_sha256": "a24da76ad5395be3631c501b5ffc5afcda5fa875a1c3c62ff59acf1a4c49d430",
+      "local_raw_sha256": "a24da76ad5395be3631c501b5ffc5afcda5fa875a1c3c62ff59acf1a4c49d430",
+      "local_lf_sha256": "a24da76ad5395be3631c501b5ffc5afcda5fa875a1c3c62ff59acf1a4c49d430",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/base_shear_screening.py",
+      "published_sha256": "c56e93d5fb215a4149c4e42670843626570c1bfc86687677fe345e1a1be303ca",
+      "local_raw_sha256": "dbcd6d0b2ff1c710f344b312becbabb02bb7db330eb0a5b80b865ae76cf978f2",
+      "local_lf_sha256": "c56e93d5fb215a4149c4e42670843626570c1bfc86687677fe345e1a1be303ca",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/basis_linkage.py",
+      "published_sha256": "118ed9a7a2777560747050d6478f463772548817da2ef8ae9d35e642f9b21a47",
+      "local_raw_sha256": "118ed9a7a2777560747050d6478f463772548817da2ef8ae9d35e642f9b21a47",
+      "local_lf_sha256": "118ed9a7a2777560747050d6478f463772548817da2ef8ae9d35e642f9b21a47",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/basis_probe.py",
+      "published_sha256": "189fc0234e7e8dc1d541511b8bc917037d90d1b287e7e6e4d87c24adc6fbbfa6",
+      "local_raw_sha256": "55906fe83eacd5f5970157df2a7398d0a3c5ba6f5bd00702094f0a85650144f5",
+      "local_lf_sha256": "189fc0234e7e8dc1d541511b8bc917037d90d1b287e7e6e4d87c24adc6fbbfa6",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/beam_report.py",
+      "published_sha256": "336d8f3558e2c31e5de799e0aa1fa5ef189bf84b3c99b985dc6825a0cb4813b0",
+      "local_raw_sha256": "eea0bdf3307a70996764f993fdb129e17b4c4a4f37630d22655aefd4841fb4cf",
+      "local_lf_sha256": "336d8f3558e2c31e5de799e0aa1fa5ef189bf84b3c99b985dc6825a0cb4813b0",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/candidate_model_contracts.py",
+      "published_sha256": "452fd47f20e7a0d0dac3cad7c4313317bced5413bf9c432e080a02e138230249",
+      "local_raw_sha256": "06b7795f988420a84174cc462d5f50eccafc146d2b7b783e7bbcfec1f9a0f5c0",
+      "local_lf_sha256": "452fd47f20e7a0d0dac3cad7c4313317bced5413bf9c432e080a02e138230249",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/check_labels.py",
+      "published_sha256": "548483bf38505dcf265a8673073247eee69c5d7a4a3ef91b8ee59a0839d70f3e",
+      "local_raw_sha256": "548483bf38505dcf265a8673073247eee69c5d7a4a3ef91b8ee59a0839d70f3e",
+      "local_lf_sha256": "548483bf38505dcf265a8673073247eee69c5d7a4a3ef91b8ee59a0839d70f3e",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/cli.py",
+      "published_sha256": "f2b787b53289bfa36f2e08abd426f6d3faddb9eca1fad53c30f0677cf260d49b",
+      "local_raw_sha256": "46bf75785d633b7270035cae373a4a55524933f1c060baa22247032815e9e18a",
+      "local_lf_sha256": "f2b787b53289bfa36f2e08abd426f6d3faddb9eca1fad53c30f0677cf260d49b",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/__init__.py",
+      "published_sha256": "d092219f153b83146e1757c96639ed591c56f513cbc2af12cf12a803571ae185",
+      "local_raw_sha256": "bdd08094e26059bacdcd10b47a438e525911288daff5decf4795d51ab407cd46",
+      "local_lf_sha256": "d092219f153b83146e1757c96639ed591c56f513cbc2af12cf12a803571ae185",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/beam_capacity.py",
+      "published_sha256": "e7a1ae7fbcb1e84b162939f81f16e15dc2b94ca114b34497827a3b35f5aa5a22",
+      "local_raw_sha256": "e7a1ae7fbcb1e84b162939f81f16e15dc2b94ca114b34497827a3b35f5aa5a22",
+      "local_lf_sha256": "e7a1ae7fbcb1e84b162939f81f16e15dc2b94ca114b34497827a3b35f5aa5a22",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/beam_references.py",
+      "published_sha256": "b1f738583292cd0a229d8dc8c1df08829e39026481ff55acd4b51535124caade",
+      "local_raw_sha256": "e127db0b230f96c7c83615dff2b34b8b31ddb6bdc77b61400d8cae2404fd9dce",
+      "local_lf_sha256": "b1f738583292cd0a229d8dc8c1df08829e39026481ff55acd4b51535124caade",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/column_joints.py",
+      "published_sha256": "545773b2c13dc21d42053a8080156d86cf39df216f1150542f7de9b8cf34ff2e",
+      "local_raw_sha256": "ca4bade49edd734fdfee0a3c963ac45dce1da8cdf3fccc06c69454ce19848ff9",
+      "local_lf_sha256": "545773b2c13dc21d42053a8080156d86cf39df216f1150542f7de9b8cf34ff2e",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/column_kinematics.py",
+      "published_sha256": "1524b8ea2703347f2dd2554e47a72a44856bf4f08c95ed2e3c1a3fb72c9fa3f4",
+      "local_raw_sha256": "c53467e6129e2aac9fd3f02d01820fff05aed9ba63431be53d1dfa287c441e25",
+      "local_lf_sha256": "1524b8ea2703347f2dd2554e47a72a44856bf4f08c95ed2e3c1a3fb72c9fa3f4",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/column_overview.py",
+      "published_sha256": "05b3ba8736d88a691e97c92e1f3552d148754f3992652a11b006b1de88387848",
+      "local_raw_sha256": "dd1e312cf0e561427844b8fd01d389ad995928f0477adafc0b61fdd6ee80d453",
+      "local_lf_sha256": "05b3ba8736d88a691e97c92e1f3552d148754f3992652a11b006b1de88387848",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/column_pmm.py",
+      "published_sha256": "fcf469e6275531c1a32254816c28531193245ffe3de955364f64177618b2fa57",
+      "local_raw_sha256": "ad7b750195cb4d59633d7c2853488fb2ae77a05dd24659b3748efab684748da0",
+      "local_lf_sha256": "fcf469e6275531c1a32254816c28531193245ffe3de955364f64177618b2fa57",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/column_pmm_quality.py",
+      "published_sha256": "d8af967c1a366cdc5429a814e9b99f910d5c294dc66fccdfe09b280d1578e361",
+      "local_raw_sha256": "56ac29e2c5b6194ac4eb08e578f7da4df79a4141160e269b60e25bdb3dbd8007",
+      "local_lf_sha256": "d8af967c1a366cdc5429a814e9b99f910d5c294dc66fccdfe09b280d1578e361",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/column_prechecks.py",
+      "published_sha256": "c4bffd9ba26f824d9d719d808b7539dfbb466862122c599cc4836042d4a58ce4",
+      "local_raw_sha256": "505ed8955b618f156ef5318d0c513e3b136be6621f762774f64a6fb4a365bb78",
+      "local_lf_sha256": "c4bffd9ba26f824d9d719d808b7539dfbb466862122c599cc4836042d4a58ce4",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/column_scwb.py",
+      "published_sha256": "26fc8542c80a6405ea81677314a3395faa5830ce1b70d5bf083fd869dc71e1ae",
+      "local_raw_sha256": "2243e0d6ee3254bc6aed52dbe351b4a0643a4cdecbdb6f8a24dfc240226a2256",
+      "local_lf_sha256": "26fc8542c80a6405ea81677314a3395faa5830ce1b70d5bf083fd869dc71e1ae",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/column_sensitivity.py",
+      "published_sha256": "37506e1c9197915fef56a671c4b399d98519c61299077dafd1cc1b6e03b4a89c",
+      "local_raw_sha256": "604fac29c703ad03d12ba49ab66468f8c8d933e1425dad863048a0e8a7b74d5c",
+      "local_lf_sha256": "37506e1c9197915fef56a671c4b399d98519c61299077dafd1cc1b6e03b4a89c",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/column_stability.py",
+      "published_sha256": "fe47e67058ff06d13980393bd9372630557ac083c788b2a5f1590a6667eae429",
+      "local_raw_sha256": "8e17c21f3757cb3a2723fea430011e488aac098047530edb5d5dff2966dbf7bb",
+      "local_lf_sha256": "fe47e67058ff06d13980393bd9372630557ac083c788b2a5f1590a6667eae429",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/column_transverse.py",
+      "published_sha256": "b7eb5011036d37a67ecdfccae3e2987ed6a09edd7ec982e3c0412b305e44b941",
+      "local_raw_sha256": "1b8baa1d3b6a001873c1252ccf21f19eca2f863c451b94c9d2595db6f307171d",
+      "local_lf_sha256": "b7eb5011036d37a67ecdfccae3e2987ed6a09edd7ec982e3c0412b305e44b941",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/csi_geometry.py",
+      "published_sha256": "1a7b0860dde89b9301c4818d6f42c725795decfe7a131ef97dea0b8cdd0158d6",
+      "local_raw_sha256": "1a7b0860dde89b9301c4818d6f42c725795decfe7a131ef97dea0b8cdd0158d6",
+      "local_lf_sha256": "1a7b0860dde89b9301c4818d6f42c725795decfe7a131ef97dea0b8cdd0158d6",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/demand_chain.py",
+      "published_sha256": "9135fa1f5e1874d3e49fde1fac9c9d5320f169315cbd15533b367ad3d9ee6977",
+      "local_raw_sha256": "875cc009c4b0a169ca001334001400fe4651454ac733e4a97cc3462a078295fd",
+      "local_lf_sha256": "9135fa1f5e1874d3e49fde1fac9c9d5320f169315cbd15533b367ad3d9ee6977",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/demand_types.py",
+      "published_sha256": "a811a3fa3a6123f72f4d008c74e03f4bd6f4266d9e8a151943b53cf6cf684809",
+      "local_raw_sha256": "80736f5d0c04355723707c4a938e49b9d414f2a5bed7bf1e8f367a39295f051a",
+      "local_lf_sha256": "a811a3fa3a6123f72f4d008c74e03f4bd6f4266d9e8a151943b53cf6cf684809",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/demand_view.py",
+      "published_sha256": "e4a646910257fa27ea82c4f038fe947429e69b8eed006491d88f55a4958891fe",
+      "local_raw_sha256": "5a43cc87ba73d94bf37b7a59d633a669e307f92c4f2f826c0b46e78a50351e46",
+      "local_lf_sha256": "e4a646910257fa27ea82c4f038fe947429e69b8eed006491d88f55a4958891fe",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/joint_kernel.py",
+      "published_sha256": "1921ce396b4fdce224ef459bdfcfa1a6d211283169e9889bb1553465fe808642",
+      "local_raw_sha256": "3f7edc47e2c79e093088968f9e1fd0694098a754a0ed35869daaa1f40c35ec63",
+      "local_lf_sha256": "1921ce396b4fdce224ef459bdfcfa1a6d211283169e9889bb1553465fe808642",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/joint_moment_signs.py",
+      "published_sha256": "4cdeff2828195c12bd8d9bfe786df51e16d36165b0fa843d6135d11f206795c6",
+      "local_raw_sha256": "bdf7123bf0c5b89a22d96b2d6e66c737dfbe0aeb72eae569b233eba507ab4c33",
+      "local_lf_sha256": "4cdeff2828195c12bd8d9bfe786df51e16d36165b0fa843d6135d11f206795c6",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/kinematics_kernel.py",
+      "published_sha256": "78c0e5878e31103cb5feed90a6a5902437ee94f0591cf8672eabfbb128765fec",
+      "local_raw_sha256": "4fd19b78e9c745f616fbb1e64983a20ede979fc2308101d8e08b34c38f561bba",
+      "local_lf_sha256": "78c0e5878e31103cb5feed90a6a5902437ee94f0591cf8672eabfbb128765fec",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/native_archive.py",
+      "published_sha256": "231ccb8ebfa4030f0f310bb967930b73ed1b7e51d6871090231d723457d14c14",
+      "local_raw_sha256": "967ee844dc4bbe8f1fa27fe1d12f36624fa6e98d064742949f08f1b93d0acadb",
+      "local_lf_sha256": "231ccb8ebfa4030f0f310bb967930b73ed1b7e51d6871090231d723457d14c14",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/observed_context.py",
+      "published_sha256": "e4b7df54e885980ee7d9887e562ccc42201a84d3b1a1c68e228235af763f8c11",
+      "local_raw_sha256": "00739cea86747313a5df1d8e6851f0a2970bd304048320ea4f69753b4485f55b",
+      "local_lf_sha256": "e4b7df54e885980ee7d9887e562ccc42201a84d3b1a1c68e228235af763f8c11",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/scwb_kernel.py",
+      "published_sha256": "7a6edc27670b009749c190b3fd7c96c80c81260a1003f9168bec54058a793416",
+      "local_raw_sha256": "5c595d45a3c43d4a0df4c1fd847c2898d176e509e5390d532cde382a3a51ff9b",
+      "local_lf_sha256": "7a6edc27670b009749c190b3fd7c96c80c81260a1003f9168bec54058a793416",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/scwb_scenarios.py",
+      "published_sha256": "272d9f88522e34902a2a8267d1327b1197a8bee6ce0325cbddcc07d98e12ee2e",
+      "local_raw_sha256": "dda93d9c24d3b340c1e90f37acfc2152cf29a2251aca0b2f9c4478f6b3697e71",
+      "local_lf_sha256": "272d9f88522e34902a2a8267d1327b1197a8bee6ce0325cbddcc07d98e12ee2e",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/section_capacity.py",
+      "published_sha256": "e0974a869c85330c4bf782d9a7d8c32e1f4adc71f4553256cb3d440f34389435",
+      "local_raw_sha256": "e0974a869c85330c4bf782d9a7d8c32e1f4adc71f4553256cb3d440f34389435",
+      "local_lf_sha256": "e0974a869c85330c4bf782d9a7d8c32e1f4adc71f4553256cb3d440f34389435",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/section_reference.py",
+      "published_sha256": "4aa699dae8b365e73d3a85cdb878eca8b1a4706b32f024489b5caf8f2edfa938",
+      "local_raw_sha256": "8b9029daf9c814f4d6c2e16dd9b47950e2a5ef8b65c7dd08c74a6d5ec6a92800",
+      "local_lf_sha256": "4aa699dae8b365e73d3a85cdb878eca8b1a4706b32f024489b5caf8f2edfa938",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/sensitivity_kernel.py",
+      "published_sha256": "805bc2e9f23c76ae4f575b942bc1e461d78ccc2fd7b716eabd06a02e91fb38ed",
+      "local_raw_sha256": "531872de9b1c14f68d343159a1e3179b70c4aea04d6842aec4c995356e167844",
+      "local_lf_sha256": "805bc2e9f23c76ae4f575b942bc1e461d78ccc2fd7b716eabd06a02e91fb38ed",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/source_bank.py",
+      "published_sha256": "f4bf81ce75df40e53953086d2d5a53a7b2a063cacf0cac29b98d63844de5ba81",
+      "local_raw_sha256": "73883c3f53478e4c64d0fa0653f75e07b052cf9fd764985fd9a14dfa06710185",
+      "local_lf_sha256": "f4bf81ce75df40e53953086d2d5a53a7b2a063cacf0cac29b98d63844de5ba81",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/spectral_design.py",
+      "published_sha256": "aff832eceef729c8f9f17622929a69cd61333ac8cdb4c3ebbd4073195ae88bbc",
+      "local_raw_sha256": "6be94350a280cd87a9360cf3cc08298d25478a07620654499bbf44457a3d2bc0",
+      "local_lf_sha256": "aff832eceef729c8f9f17622929a69cd61333ac8cdb4c3ebbd4073195ae88bbc",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/spectral_envelope.py",
+      "published_sha256": "9768ef96dc415317d8cb9356f1860a4db3c73b91b1389aa16b2deae8f34c1f86",
+      "local_raw_sha256": "a5491cb61ba91af365c8134f46672ba3fe26572a3f8d34af074e0844d07df642",
+      "local_lf_sha256": "9768ef96dc415317d8cb9356f1860a4db3c73b91b1389aa16b2deae8f34c1f86",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/spectral_pmm.py",
+      "published_sha256": "6c302487373258bd71c0ff2663f86dd4d58b0fc74ad92febcdf25066b9735b5a",
+      "local_raw_sha256": "6a7c1d6dbc30945d4ac3c054be0b5aa079eafbe95e870529dd9aecbc13680083",
+      "local_lf_sha256": "6c302487373258bd71c0ff2663f86dd4d58b0fc74ad92febcdf25066b9735b5a",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/spectral_projection.py",
+      "published_sha256": "0e91d30304d357d7b7617c39e4a5832d6b026b1d4172b04a1e5c5c31918e067d",
+      "local_raw_sha256": "95e683a608025e6f93f6bdcc5a654f3abe5ec4fb6d0f497824143798c117ccf2",
+      "local_lf_sha256": "0e91d30304d357d7b7617c39e4a5832d6b026b1d4172b04a1e5c5c31918e067d",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/store.py",
+      "published_sha256": "e863f7cac44d7af8e61439575373aac9bde450b8174846a9756ce3c161a91035",
+      "local_raw_sha256": "073776a3e13e48d4e65a8fb41f00893facf5f8e2fddd8f4f1c37fea90b3362ea",
+      "local_lf_sha256": "e863f7cac44d7af8e61439575373aac9bde450b8174846a9756ce3c161a91035",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/story_alpha.py",
+      "published_sha256": "5c51b4a664aa3a5560b3c13d581ee3ddf96a6514ad1db37b17ad702b54121834",
+      "local_raw_sha256": "fbaa43bf3c433240ca0570f5efb114b13ba8bbb359c7e5f632492361a3293e16",
+      "local_lf_sha256": "5c51b4a664aa3a5560b3c13d581ee3ddf96a6514ad1db37b17ad702b54121834",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/transverse_kernel.py",
+      "published_sha256": "1cc55d844039d833d95490d58b9b91374ddb7533e12b77357a5959451259bc35",
+      "local_raw_sha256": "62ddf78198b45f81ae08bcab2107e48eee23990d6fe3003add6fb4c2237236f6",
+      "local_lf_sha256": "1cc55d844039d833d95490d58b9b91374ddb7533e12b77357a5959451259bc35",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/ts500_column.py",
+      "published_sha256": "8411247559fc7605385a69f120b49299415138d20044381e28bb9f648f10e735",
+      "local_raw_sha256": "8411247559fc7605385a69f120b49299415138d20044381e28bb9f648f10e735",
+      "local_lf_sha256": "8411247559fc7605385a69f120b49299415138d20044381e28bb9f648f10e735",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/column_overview_report.py",
+      "published_sha256": "6530dee6ef70b3fb9b694ff7003a564d267885b1d9a0d7a6e5311614013d5043",
+      "local_raw_sha256": "66f28f1ba22025964dc8a35439795769e67670abc575bb5c9509b300d587a46e",
+      "local_lf_sha256": "6530dee6ef70b3fb9b694ff7003a564d267885b1d9a0d7a6e5311614013d5043",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/column_quality_report.py",
+      "published_sha256": "73ac6863c30297a5b4ba5603347297e2924cb128547bb5ad79be3dd837225c51",
+      "local_raw_sha256": "9c922cd985f8b9178be134b267d54e349e3a1fc841db0ef3eefdabc6e1ebd7fd",
+      "local_lf_sha256": "73ac6863c30297a5b4ba5603347297e2924cb128547bb5ad79be3dd837225c51",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/compiled_dag.py",
+      "published_sha256": "af6d40194aec3317edf369642b8f37b493229dac226ed25bb4d6ea4b35d0ce9f",
+      "local_raw_sha256": "c0d4d0292fdd36b20f1ba7c8236fd391764907675f554c4fa16e0fe79a02c4c6",
+      "local_lf_sha256": "af6d40194aec3317edf369642b8f37b493229dac226ed25bb4d6ea4b35d0ce9f",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/config/dag/tbdy_r1c_94_candidate.json",
+      "published_sha256": "a6b4006579cf738e35de57a496cdc0c9507108b6b7fd0d4da4d082d896e8a6e3",
+      "local_raw_sha256": "6bee168d9466915cf4a0e2b8365e6c8536c0f6981fb9f5029c1fdbae7cb65da7",
+      "local_lf_sha256": "a6b4006579cf738e35de57a496cdc0c9507108b6b7fd0d4da4d082d896e8a6e3",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/diaphragm_linkage.py",
+      "published_sha256": "f1aeb67f1f5ae85d606de61873e968cc473da3ebddd3edc58f5f010840c089d1",
+      "local_raw_sha256": "87fc9187383755d703b97f8d5a53750a36cdc4a38912b4f6d1932ec7cb7b3525",
+      "local_lf_sha256": "f1aeb67f1f5ae85d606de61873e968cc473da3ebddd3edc58f5f010840c089d1",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/diaphragm_probe.py",
+      "published_sha256": "cab0b3418ecd9ddae6d97e4d2f0cd269ff8707db03220c6a3f0ae33d41cca15b",
+      "local_raw_sha256": "47a891a1877f533491f8f12ebcf49058be83c7bd460cf61a4de07d7af949cce5",
+      "local_lf_sha256": "cab0b3418ecd9ddae6d97e4d2f0cd269ff8707db03220c6a3f0ae33d41cca15b",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/earthquake_combinations.py",
+      "published_sha256": "30f1c80b5d0e479dc05a4ab8ce0d9f5bd6032a6311dd96195cb38807602daf89",
+      "local_raw_sha256": "b22343245754fb2584a00d525bd79ba3004b4e105b92106769c366ce5442177d",
+      "local_lf_sha256": "30f1c80b5d0e479dc05a4ab8ce0d9f5bd6032a6311dd96195cb38807602daf89",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/effective_drift_readiness.py",
+      "published_sha256": "ce240044d8b5cc93b9958244167a73bba8d5f927141a45627f322a106f5a228e",
+      "local_raw_sha256": "7d994908123e5d18dfa99325863c53086ec4d788b12ecc0796d2ca3e052a1f04",
+      "local_lf_sha256": "ce240044d8b5cc93b9958244167a73bba8d5f927141a45627f322a106f5a228e",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/engineering/__init__.py",
+      "published_sha256": "8c2885197323f7408de3468932bcb2dd57eb1b5a3ce794571353fd7e4fdc7226",
+      "local_raw_sha256": "d50a54c2d0925f60539d18550472b36bb80d6dedfb3e8065ce39a7d45eefbbfe",
+      "local_lf_sha256": "8c2885197323f7408de3468932bcb2dd57eb1b5a3ce794571353fd7e4fdc7226",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/engineering/alpha_iteration.py",
+      "published_sha256": "188469e2a25f082ed8f5f0269999afb49ed6d33a60ad8b394f789c5a2062c5ac",
+      "local_raw_sha256": "d34b1dab818b1a39e52d9f5f11d92012afae1c025990807e965c61271dfe38d8",
+      "local_lf_sha256": "188469e2a25f082ed8f5f0269999afb49ed6d33a60ad8b394f789c5a2062c5ac",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/engineering/analysis_setup.py",
+      "published_sha256": "10d5adc701bcb3b60d5b55841fecfbf035deaa1f363a7826b2db7ff47773ed5f",
+      "local_raw_sha256": "10d5adc701bcb3b60d5b55841fecfbf035deaa1f363a7826b2db7ff47773ed5f",
+      "local_lf_sha256": "10d5adc701bcb3b60d5b55841fecfbf035deaa1f363a7826b2db7ff47773ed5f",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/engineering/beam_r10_live.py",
+      "published_sha256": "4538f89356ef43d43593bb04c806081d216320f8b42abfd78f1c4bb345221af8",
+      "local_raw_sha256": "4538f89356ef43d43593bb04c806081d216320f8b42abfd78f1c4bb345221af8",
+      "local_lf_sha256": "4538f89356ef43d43593bb04c806081d216320f8b42abfd78f1c4bb345221af8",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/engineering/cli_adapter.py",
+      "published_sha256": "1c1bbafb4cf52c32b6f69f92d09a951633f43996e6cfdeb1ea06d808616f601b",
+      "local_raw_sha256": "33fcc8bc5c541d29db1edd6e141be190ce7a1830f69f2752b7d292c2e51551ac",
+      "local_lf_sha256": "1c1bbafb4cf52c32b6f69f92d09a951633f43996e6cfdeb1ea06d808616f601b",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_axial.py",
+      "published_sha256": "72bbfbfc6514f09917e521b40652d0e7331fc3e90596851ef6b3ef5634ff3568",
+      "local_raw_sha256": "12280636f2e5899385549da339c95011eb41664a448cdc0cf2bc17788823c9eb",
+      "local_lf_sha256": "12280636f2e5899385549da339c95011eb41664a448cdc0cf2bc17788823c9eb",
+      "comparison": "CONTENT_CHANGED"
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_gates.py",
+      "published_sha256": "850007cf4f9c765d6c698d99120b383fd85b6dbd8daac47330b7af0c817fa485",
+      "local_raw_sha256": "850007cf4f9c765d6c698d99120b383fd85b6dbd8daac47330b7af0c817fa485",
+      "local_lf_sha256": "850007cf4f9c765d6c698d99120b383fd85b6dbd8daac47330b7af0c817fa485",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_live_gates.py",
+      "published_sha256": "c24bc140c985f864d02812399d8969516c40167bcf485cde8727f9b630d590a2",
+      "local_raw_sha256": "c24bc140c985f864d02812399d8969516c40167bcf485cde8727f9b630d590a2",
+      "local_lf_sha256": "c24bc140c985f864d02812399d8969516c40167bcf485cde8727f9b630d590a2",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_pmm.py",
+      "published_sha256": "9283fe62daf088c2075719fe46a991fd6eb62d7c1d73784cf8ed87d0bfc3af99",
+      "local_raw_sha256": "9283fe62daf088c2075719fe46a991fd6eb62d7c1d73784cf8ed87d0bfc3af99",
+      "local_lf_sha256": "9283fe62daf088c2075719fe46a991fd6eb62d7c1d73784cf8ed87d0bfc3af99",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_pmm_section.py",
+      "published_sha256": "cd9f1937dd827a06f19077dbb8762e30327ad9d34d16a2767cda65437007c979",
+      "local_raw_sha256": "cd9f1937dd827a06f19077dbb8762e30327ad9d34d16a2767cda65437007c979",
+      "local_lf_sha256": "cd9f1937dd827a06f19077dbb8762e30327ad9d34d16a2767cda65437007c979",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_r08_local_live.py",
+      "published_sha256": "255a53aa6c880a5066633d8bea83528c7e81d5d0c8325fd8a4e9a644aa924a18",
+      "local_raw_sha256": "115438b2c7c91bd121579cc6e97c63a68fdfa9844e9ef2e0ee26f83de3453004",
+      "local_lf_sha256": "255a53aa6c880a5066633d8bea83528c7e81d5d0c8325fd8a4e9a644aa924a18",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_r10_live.py",
+      "published_sha256": "f08dd2e65e0dcca605848faea3b3a9eb09350e032d060181bd2952b72ebaec8c",
+      "local_raw_sha256": "7b158479c025515bafd45773842e1ce260668d6fca703a3e0c5e8f3139cf08b3",
+      "local_lf_sha256": "f08dd2e65e0dcca605848faea3b3a9eb09350e032d060181bd2952b72ebaec8c",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_r14_closure.py",
+      "published_sha256": "b9fd0a88775eb28d3ff7ab1257f1801d311b85983501ca89cd6a4dab81bf37ba",
+      "local_raw_sha256": "f56a4ad91b20d493b360e0009fd825ffb401a9a983851973aec95b1de82ec03f",
+      "local_lf_sha256": "b9fd0a88775eb28d3ff7ab1257f1801d311b85983501ca89cd6a4dab81bf37ba",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/engineering/demand_sources.py",
+      "published_sha256": "987a56e63edaecd0fd813fecc0eb17f6cbbea330ff23c9af2c130e33989fedd8",
+      "local_raw_sha256": "1b616aff7330faee00584bc20d43cc1e99289961295d81c294190da9eb9c3643",
+      "local_lf_sha256": "1b616aff7330faee00584bc20d43cc1e99289961295d81c294190da9eb9c3643",
+      "comparison": "CONTENT_CHANGED"
+    },
+    {
+      "path": "src/tbdy_next/engineering/design_assignments.py",
+      "published_sha256": "0ac9f13be835d130aea2d37c0e6e142296ed01229c9b84a96bf53a7428f943f0",
+      "local_raw_sha256": "0ac9f13be835d130aea2d37c0e6e142296ed01229c9b84a96bf53a7428f943f0",
+      "local_lf_sha256": "0ac9f13be835d130aea2d37c0e6e142296ed01229c9b84a96bf53a7428f943f0",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/engineering/design_dependencies.py",
+      "published_sha256": "bda18b9086419db60424c5620ac46dfee66ea5c1ed0fd723575b5c7f45aaaeac",
+      "local_raw_sha256": "32b148f6d8fb796f8c5bd8a9801022cb665a6e6a617cc54abae9f6e64dd306dd",
+      "local_lf_sha256": "bda18b9086419db60424c5620ac46dfee66ea5c1ed0fd723575b5c7f45aaaeac",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/engineering/design_scenario.py",
+      "published_sha256": "0587d8db8c9c9ddbed8b98c4f36fcd969dec6dde5c0f88a506ceb61491ba5f4f",
+      "local_raw_sha256": "c87211c842673ae3cdc7e8c3e9f253b21fe2fa8987f28bc183da3680d48f6a58",
+      "local_lf_sha256": "0587d8db8c9c9ddbed8b98c4f36fcd969dec6dde5c0f88a506ceb61491ba5f4f",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/engineering/live_column.py",
+      "published_sha256": "d45ce5f9626bfa51bcec5d25200dd8917e760cc40e689f3bfd69fe327c2e6ec1",
+      "local_raw_sha256": "d45ce5f9626bfa51bcec5d25200dd8917e760cc40e689f3bfd69fe327c2e6ec1",
+      "local_lf_sha256": "d45ce5f9626bfa51bcec5d25200dd8917e760cc40e689f3bfd69fe327c2e6ec1",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/engineering/mixed_demands.py",
+      "published_sha256": "948837122d1cdf9bbe0f0b89ff48a20dbcfdcbe81edbc50f785f5d55c3d57191",
+      "local_raw_sha256": "6da23803fa3c2e3f881b59447bad415d97105dfb0d78061ac1aea2def8bf9672",
+      "local_lf_sha256": "948837122d1cdf9bbe0f0b89ff48a20dbcfdcbe81edbc50f785f5d55c3d57191",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/engineering/pipeline.py",
+      "published_sha256": "90305209f1060d592ab660433752573fd8db29eaccc92c56cc2b239576533e77",
+      "local_raw_sha256": "e54d11305d8ce5843013fef7526703d6f8ad0425f0e09f31e1d6b8c505e4d320",
+      "local_lf_sha256": "b348cc4c4e2cd6b881922da7e0044866b45c1e4fd57090c9a51defe0f16cc5e4",
+      "comparison": "CONTENT_CHANGED"
+    },
+    {
+      "path": "src/tbdy_next/engineering/pipeline_snapshot.py",
+      "published_sha256": "12ed0f6b4ac939430f703c4942a5a95ba0de8e5684a86b51b0ff75562b819f21",
+      "local_raw_sha256": "001f719214e80e7ef0e73b5b816234ff4dc4ecc62c336b735c336f0b03981596",
+      "local_lf_sha256": "12ed0f6b4ac939430f703c4942a5a95ba0de8e5684a86b51b0ff75562b819f21",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/engineering/rebar_selection.py",
+      "published_sha256": "a9236f638ab920bbf9def78b1cc980b781d1b7a548b8ada13e48501d9ba61e71",
+      "local_raw_sha256": "a9236f638ab920bbf9def78b1cc980b781d1b7a548b8ada13e48501d9ba61e71",
+      "local_lf_sha256": "a9236f638ab920bbf9def78b1cc980b781d1b7a548b8ada13e48501d9ba61e71",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/engineering/story_pdelta.py",
+      "published_sha256": "c68ed717f32b8b531e523cbd3c27487eb603b500f34e8b565ae0466581848255",
+      "local_raw_sha256": "83281817d4c7af5b0d218e718724eaa63b87ee015b57db38e21950729315ea08",
+      "local_lf_sha256": "c68ed717f32b8b531e523cbd3c27487eb603b500f34e8b565ae0466581848255",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/etabs_geometry.py",
+      "published_sha256": "419cbaf3377bcd77d474cc28b2fd8af1382a85245f801ddac68783b5caa2fbee",
+      "local_raw_sha256": "d68ff9f50cbaa68cd4c5f275fcb2f5a166c5445d623d7a075c88bbec5711db45",
+      "local_lf_sha256": "419cbaf3377bcd77d474cc28b2fd8af1382a85245f801ddac68783b5caa2fbee",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/etabs_modal.py",
+      "published_sha256": "7442738a006123a504f97942a80170968640ea8584cf44d9da43b6b5edb5b8b7",
+      "local_raw_sha256": "9b661696f49ba7f1359e323949b2cdbeb98e6b01526c07cdb5ad7151185781c0",
+      "local_lf_sha256": "7442738a006123a504f97942a80170968640ea8584cf44d9da43b6b5edb5b8b7",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/etabs_source_gateway_windows.py",
+      "published_sha256": "1e3d1b4b69b00599cb494aaa42f41acab0961559fba71e4e37346a9750c15573",
+      "local_raw_sha256": "1e3d1b4b69b00599cb494aaa42f41acab0961559fba71e4e37346a9750c15573",
+      "local_lf_sha256": "1e3d1b4b69b00599cb494aaa42f41acab0961559fba71e4e37346a9750c15573",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/frame_force_capture.py",
+      "published_sha256": "f4ebd88b7497982b198d45bf144cb3b60ab47bb838bdd6c707c7c7924f630154",
+      "local_raw_sha256": "c4a386b5e26dc859d275edf719fb1fa859f9c5441e71790648ed1856f64da79b",
+      "local_lf_sha256": "c4a386b5e26dc859d275edf719fb1fa859f9c5441e71790648ed1856f64da79b",
+      "comparison": "CONTENT_CHANGED"
+    },
+    {
+      "path": "src/tbdy_next/history.py",
+      "published_sha256": "b88e933ec29044ea4f6d9cd7012b22d25305fdeb2f53796043859180355f028b",
+      "local_raw_sha256": "a16801f665ec0c086bd27c2b877d23f06e4c75bbe81e0be71dd29ee0af4f1466",
+      "local_lf_sha256": "b88e933ec29044ea4f6d9cd7012b22d25305fdeb2f53796043859180355f028b",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/live_etabs.py",
+      "published_sha256": "72566beb872cfcefcb466c9ff9aa185a99abb6ea9b102cb1bba6ed10373a4262",
+      "local_raw_sha256": "72566beb872cfcefcb466c9ff9aa185a99abb6ea9b102cb1bba6ed10373a4262",
+      "local_lf_sha256": "72566beb872cfcefcb466c9ff9aa185a99abb6ea9b102cb1bba6ed10373a4262",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/live_source_pipeline.py",
+      "published_sha256": "21178f4b22c4ba9ba17f8e4987c1cd84f3041a487f6459af703ac90d6a733111",
+      "local_raw_sha256": "0f650dac58db6a87f5471d0ea56324de594fe6875cfa052c667f11705ac039a2",
+      "local_lf_sha256": "21178f4b22c4ba9ba17f8e4987c1cd84f3041a487f6459af703ac90d6a733111",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/member_groups.py",
+      "published_sha256": "3dc05f5bf06666778202631abb8a7d57a02b6d517b38f53552d18bf7bc8a43b2",
+      "local_raw_sha256": "3dc05f5bf06666778202631abb8a7d57a02b6d517b38f53552d18bf7bc8a43b2",
+      "local_lf_sha256": "3dc05f5bf06666778202631abb8a7d57a02b6d517b38f53552d18bf7bc8a43b2",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/modal.py",
+      "published_sha256": "9550034c6123c3cac946d7ba1b51bea7f2e59e6892dded32e0c262790ec6ecd0",
+      "local_raw_sha256": "9c4702161c206884d30cf2c759d8f54444e5f555dc8234921045cc0037ac0b4c",
+      "local_lf_sha256": "9550034c6123c3cac946d7ba1b51bea7f2e59e6892dded32e0c262790ec6ecd0",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/next_capture.py",
+      "published_sha256": "69a64b01bb198b92810a4cc1a00f469b8e7a47986ab45046fe59aebb4b15ecb9",
+      "local_raw_sha256": "db9f3939ac1066002253b90b9438f477b6a1b6d3b4c38f84e1c60daca8c19ed2",
+      "local_lf_sha256": "69a64b01bb198b92810a4cc1a00f469b8e7a47986ab45046fe59aebb4b15ecb9",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/next_checks.py",
+      "published_sha256": "d0328894046a9e4d1c3b8f6f5c8580535384135d8f621992f0eb10d8073c9bf2",
+      "local_raw_sha256": "7574b1eb79862ff420b46577102b07b58c429f7525234434b06561428da780c9",
+      "local_lf_sha256": "d0328894046a9e4d1c3b8f6f5c8580535384135d8f621992f0eb10d8073c9bf2",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/normative_basis.py",
+      "published_sha256": "f1beb403e6008eb2ba56de3e32999ca2a415f8701d7f0e82dca2817ce5032955",
+      "local_raw_sha256": "ceeed28f9bec5d99daacd37ec2e6200ec8df95f2bbce0af9169b178a6b8a34aa",
+      "local_lf_sha256": "f1beb403e6008eb2ba56de3e32999ca2a415f8701d7f0e82dca2817ce5032955",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/normative_checks.py",
+      "published_sha256": "759d11b72524985e611af374e5eb86522da387914f6e8af5280cfdb8ff0dc5fe",
+      "local_raw_sha256": "3826d9107f5d1b0e78a1fc496dc90c54277ce0748655ed39ee0acf084a9cc908",
+      "local_lf_sha256": "759d11b72524985e611af374e5eb86522da387914f6e8af5280cfdb8ff0dc5fe",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/physical_story_scope.py",
+      "published_sha256": "db635834fc42cf0dee6c44c650bd5650eca36d9a1f6d0a00d6463d8ea375c194",
+      "local_raw_sha256": "36fe13a92949088bf8d47bc53974a407aacf9fc67916c790d195459a7c3505aa",
+      "local_lf_sha256": "db635834fc42cf0dee6c44c650bd5650eca36d9a1f6d0a00d6463d8ea375c194",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/quick_checks.py",
+      "published_sha256": "c5be795838a56641f14b3f4d664a31dce10445e7568cd32d934be9c9adf771ff",
+      "local_raw_sha256": "c94ebf18655d972217662069f1f2ddf391856004b22f5cc72d17c30f0fd3e4c9",
+      "local_lf_sha256": "c5be795838a56641f14b3f4d664a31dce10445e7568cd32d934be9c9adf771ff",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/r04_offline_evidence.py",
+      "published_sha256": "1698ba9122d500377909336c2a077a2bbbd48ad6fc32556a048dea9b2adf2ac8",
+      "local_raw_sha256": "ced51758015e1c705c7493ad75853b599f714d00c7d12ab3d740d9863610a3c0",
+      "local_lf_sha256": "1698ba9122d500377909336c2a077a2bbbd48ad6fc32556a048dea9b2adf2ac8",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/r05_story_irregularity.py",
+      "published_sha256": "fbde698ffaa251d2047d9dcc706e4db9ff322435a112d0a453a66552d10e9a58",
+      "local_raw_sha256": "4586438e2d7828f5463a33cfef6a30509d237d2386cbe73369a1345690377297",
+      "local_lf_sha256": "fbde698ffaa251d2047d9dcc706e4db9ff322435a112d0a453a66552d10e9a58",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/r06_demand_semantics.py",
+      "published_sha256": "7873508334ba44a613027c434ee3249a16a92d3a804f53b11b0bc52c402ce702",
+      "local_raw_sha256": "a8740a6de15c0604effa473b995bc3c09236e92e630c20128823bb2acba0c276",
+      "local_lf_sha256": "7873508334ba44a613027c434ee3249a16a92d3a804f53b11b0bc52c402ce702",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/receipts.py",
+      "published_sha256": "b413cb3ebb3d70e48fb7c7731c942777e90a3b877445b410d3d845723f52b653",
+      "local_raw_sha256": "2f3e612153eddfc3e1f1567dbef60ff41aa93313fee3351d4e47725952b63034",
+      "local_lf_sha256": "b413cb3ebb3d70e48fb7c7731c942777e90a3b877445b410d3d845723f52b653",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/reporting.py",
+      "published_sha256": "8fa564be191507966b675701a86e62df0b1e64cd0bce0d4615e7b0cf0053e115",
+      "local_raw_sha256": "f455753e8b0c66c94442337a2e2b872cc38c7dcbe61d0c60cd3070e25ff12d0f",
+      "local_lf_sha256": "2ee02c63d9fcebd008250e62ee5e2a630d1c0ad37168a4e14c9d4e70450f7da5",
+      "comparison": "CONTENT_CHANGED"
+    },
+    {
+      "path": "src/tbdy_next/scenario_report.py",
+      "published_sha256": "8d3914e2810d512d541d6fda2c61f60d2e5d4e7aa36111cfe794a8099fa670cf",
+      "local_raw_sha256": "0393915cec6094468442376ef2c57104d09a45bb70ded26639c39acebd329ff3",
+      "local_lf_sha256": "8d3914e2810d512d541d6fda2c61f60d2e5d4e7aa36111cfe794a8099fa670cf",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/schema.py",
+      "published_sha256": "d4bdc8a5fa553db7030dc9d9eba06778571fb022aae7bca7119c395ab511f03a",
+      "local_raw_sha256": "d48cbe286e4aa915a84599a86333b0964b456bfc1388353f1e988851ed94f9cf",
+      "local_lf_sha256": "d4bdc8a5fa553db7030dc9d9eba06778571fb022aae7bca7119c395ab511f03a",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/scwb_report.py",
+      "published_sha256": "6dc6f5710329d6057040e30aaf8622ed77109bd9d74428aa54e2271405573946",
+      "local_raw_sha256": "dc408b914c16db22d7a3e8466754cd2febf6e7cb4d54c7171d1d7ed70c7d107a",
+      "local_lf_sha256": "6dc6f5710329d6057040e30aaf8622ed77109bd9d74428aa54e2271405573946",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/soft_story_b2.py",
+      "published_sha256": "1bda74f4d1df3d6dbd6bb557e3c6db94889ba9ac64884ffcbe458ca7213a7401",
+      "local_raw_sha256": "98cdb6c352be0341c34b04387df41dba3d0753d1a04e54dbcf6411b8522f24ec",
+      "local_lf_sha256": "1bda74f4d1df3d6dbd6bb557e3c6db94889ba9ac64884ffcbe458ca7213a7401",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/source.py",
+      "published_sha256": "b554ee25e641e102d352c0a0aa5fccc4121f6a87e0eecf12f90000f4a76c2364",
+      "local_raw_sha256": "325d0578f7e47175f98853203e44577e96e2274fa683b4d4ad3f5c00e15eb317",
+      "local_lf_sha256": "b554ee25e641e102d352c0a0aa5fccc4121f6a87e0eecf12f90000f4a76c2364",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/source_control_bundle.py",
+      "published_sha256": "1ebf1f0ff881c5fe428a16b4a957213293007dee95ece548152aaec34b156cf9",
+      "local_raw_sha256": "8357b66ec298f3d597f00a54e5cc508230a5d69ba1ec354d2269fdf66106bd0a",
+      "local_lf_sha256": "1ebf1f0ff881c5fe428a16b4a957213293007dee95ece548152aaec34b156cf9",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/spectral_design_report.py",
+      "published_sha256": "9d85b5ee48d62987f5a6883f90c4b81740fbd148a4fb6dced1efb50cd390b0c4",
+      "local_raw_sha256": "96d734f4327f82752674154d18e3451b1e2af451c60fab907aaaef0298d0d989",
+      "local_lf_sha256": "9d85b5ee48d62987f5a6883f90c4b81740fbd148a4fb6dced1efb50cd390b0c4",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/spectral_report.py",
+      "published_sha256": "8724a1581ea870c7dad53f1d211d4d7f6da16f71d53750385da9230aa0629cfe",
+      "local_raw_sha256": "86bf11579263b6de830f3f9e9835028aeec6f52e42b55a730a6df28f3fda243f",
+      "local_lf_sha256": "8724a1581ea870c7dad53f1d211d4d7f6da16f71d53750385da9230aa0629cfe",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/spectrum_reconstruction.py",
+      "published_sha256": "80b3bda8071900e3e6f1dd885e18ce15c9f15d750afd71362813b7e0535187f5",
+      "local_raw_sha256": "03271200d5de8b968e66c714a63b0f72419142d23ae4f52282d2a0eda6aeca85",
+      "local_lf_sha256": "80b3bda8071900e3e6f1dd885e18ce15c9f15d750afd71362813b7e0535187f5",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/story_delta.py",
+      "published_sha256": "d37c013b2bc03c43568648b155a8c21c329ca4ae46014377562bfa9286a70143",
+      "local_raw_sha256": "bd0ed542a693315a0d47b13e5ac1a38675895afb76bec3aa9ac4a3a6aa1306e6",
+      "local_lf_sha256": "d37c013b2bc03c43568648b155a8c21c329ca4ae46014377562bfa9286a70143",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/story_drift_binding.py",
+      "published_sha256": "6a62e66af42107c8f688e8b34cb8ae70273f207798fc2877392f644246b9f93c",
+      "local_raw_sha256": "136792944d965c202796e24c79ca8797a81c58800813e364086f575f73733517",
+      "local_lf_sha256": "6a62e66af42107c8f688e8b34cb8ae70273f207798fc2877392f644246b9f93c",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/story_geometry.py",
+      "published_sha256": "df81c2985bb71338b28532b1fb6983b7b9407ab4f56bde3db09d9e990d531b47",
+      "local_raw_sha256": "25669f7072b04a030cfee58176a2e2a466aeef035cc44410eff5743b259009b3",
+      "local_lf_sha256": "df81c2985bb71338b28532b1fb6983b7b9407ab4f56bde3db09d9e990d531b47",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/story_physical_source.py",
+      "published_sha256": "5d9fead74a421c6561f739f0801b55e349c8e843a4bcbe059c9e627469b19d9e",
+      "local_raw_sha256": "81b8beee21cbbffc79fc7c0acf6bb14fe5e1f80be89bb8eb23f444259afc913d",
+      "local_lf_sha256": "5d9fead74a421c6561f739f0801b55e349c8e843a4bcbe059c9e627469b19d9e",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/story_second_order.py",
+      "published_sha256": "ffd2e33e239cc53df24d3743b62c22906669de84a4ed4153c0b5a9fc4e1fdb59",
+      "local_raw_sha256": "7af9a69c4fe969a817363c715eb2d4144a7fca2516ce0c4dc547667e11874107",
+      "local_lf_sha256": "ffd2e33e239cc53df24d3743b62c22906669de84a4ed4153c0b5a9fc4e1fdb59",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/story_second_order_capture.py",
+      "published_sha256": "753e6da1fb3ff172ef06836c390f0092b753e18a34ddd12ab1b8d73a95823b41",
+      "local_raw_sha256": "753e6da1fb3ff172ef06836c390f0092b753e18a34ddd12ab1b8d73a95823b41",
+      "local_lf_sha256": "753e6da1fb3ff172ef06836c390f0092b753e18a34ddd12ab1b8d73a95823b41",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/story_slot_ledger.py",
+      "published_sha256": "bf46ff73b86879ffcab11de89feda524f7b243942b566aa7ede685459ef9a7d8",
+      "local_raw_sha256": "73fa3e70313afa7683253ef0e6443f66627df2f388cbff309573736978ca82cd",
+      "local_lf_sha256": "bf46ff73b86879ffcab11de89feda524f7b243942b566aa7ede685459ef9a7d8",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/verification/__init__.py",
+      "published_sha256": "491bdb2f0f937ad6129610a00ae95e6147124bc6289a8972c4cb5ae4d20ab99e",
+      "local_raw_sha256": "491bdb2f0f937ad6129610a00ae95e6147124bc6289a8972c4cb5ae4d20ab99e",
+      "local_lf_sha256": "491bdb2f0f937ad6129610a00ae95e6147124bc6289a8972c4cb5ae4d20ab99e",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/verification/golden_gate.py",
+      "published_sha256": "9699fb38f1dceeac813713e35652162a64e12875ea14a51b5f92258265f9f05a",
+      "local_raw_sha256": "9699fb38f1dceeac813713e35652162a64e12875ea14a51b5f92258265f9f05a",
+      "local_lf_sha256": "9699fb38f1dceeac813713e35652162a64e12875ea14a51b5f92258265f9f05a",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/verification/references/column_oracle.py",
+      "published_sha256": "1b81cb6b8469eff9fe5bbcc946a1b0bd3474644ffeabb5ee58ac1661134eca50",
+      "local_raw_sha256": "1b81cb6b8469eff9fe5bbcc946a1b0bd3474644ffeabb5ee58ac1661134eca50",
+      "local_lf_sha256": "1b81cb6b8469eff9fe5bbcc946a1b0bd3474644ffeabb5ee58ac1661134eca50",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/verification/references/column_section_pilot.py",
+      "published_sha256": "7e803b366fac39c24d9d95446b62e5f45bb1673fa9fad2538b3bf85d9b091915",
+      "local_raw_sha256": "7e803b366fac39c24d9d95446b62e5f45bb1673fa9fad2538b3bf85d9b091915",
+      "local_lf_sha256": "7e803b366fac39c24d9d95446b62e5f45bb1673fa9fad2538b3bf85d9b091915",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/verification/references/test_b7_oracle_matrix.py",
+      "published_sha256": "eb81ed41aef3a0b32cbda772e7d1ecbd040941fbaf753ce9ec4fec933ccc169a",
+      "local_raw_sha256": "eb81ed41aef3a0b32cbda772e7d1ecbd040941fbaf753ce9ec4fec933ccc169a",
+      "local_lf_sha256": "eb81ed41aef3a0b32cbda772e7d1ecbd040941fbaf753ce9ec4fec933ccc169a",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/verification/references/test_v11_reference_regression.py",
+      "published_sha256": "3613c3bccc167aa0da3febca21aaddbea49915ba83d4c165cd7b9fcf7d8a317c",
+      "local_raw_sha256": "3613c3bccc167aa0da3febca21aaddbea49915ba83d4c165cd7b9fcf7d8a317c",
+      "local_lf_sha256": "3613c3bccc167aa0da3febca21aaddbea49915ba83d4c165cd7b9fcf7d8a317c",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/verification/report_oracles.py",
+      "published_sha256": "fc028b844c8c90ea40fdcd6c3b347e508d9f8bc6ca1bd1eae0a109a48085c73d",
+      "local_raw_sha256": "fc028b844c8c90ea40fdcd6c3b347e508d9f8bc6ca1bd1eae0a109a48085c73d",
+      "local_lf_sha256": "fc028b844c8c90ea40fdcd6c3b347e508d9f8bc6ca1bd1eae0a109a48085c73d",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "src/tbdy_next/vs05_d4_source_authority.py",
+      "published_sha256": "be1074e9d5dd488c0d832829cae63afbe6be64b88d3589108da319f57011b781",
+      "local_raw_sha256": "ffbe013c90dd449fae7b96f372b24ec997beedea733e67af515c22a236b953ef",
+      "local_lf_sha256": "be1074e9d5dd488c0d832829cae63afbe6be64b88d3589108da319f57011b781",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/vs06_drift_scenario.py",
+      "published_sha256": "bacac538919d627a78491beb5852ff3e996a06016b6a0cc06ed66e4748953392",
+      "local_raw_sha256": "75304b6605bc5557115585d2d22e2d7c1ffc1e53d1d1d11c70bde5f5fa3b7346",
+      "local_lf_sha256": "bacac538919d627a78491beb5852ff3e996a06016b6a0cc06ed66e4748953392",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/wall_geometry.py",
+      "published_sha256": "95711012a17120e2eb922e25f10895b0394a679504cdcd16a87e1c5a4fd55dd2",
+      "local_raw_sha256": "a532e995bfda4a8d7fc40caa35895ccca127e3c705be04f1e9e925ddfc9491a9",
+      "local_lf_sha256": "95711012a17120e2eb922e25f10895b0394a679504cdcd16a87e1c5a4fd55dd2",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/weak_story_b1.py",
+      "published_sha256": "afe0df4a8e556979011f7c59a4e6de4b579438c3196c2ccf7aa0f349d0e6fb45",
+      "local_raw_sha256": "2635995f4b1e1fbcf875d8f99dc0fe06f634c6a1da828f8e613207e90b62a8cd",
+      "local_lf_sha256": "afe0df4a8e556979011f7c59a4e6de4b579438c3196c2ccf7aa0f349d0e6fb45",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "src/tbdy_next/web.py",
+      "published_sha256": "c5df971f8849cf4000192b5537ed3792f803c2e67da5e5ed66af1342563ad11b",
+      "local_raw_sha256": "0b4ffd00a22a8fbee5acbc64d9354a9c8efd1bb2dd0370c5c37e2040459b0741",
+      "local_lf_sha256": "c5df971f8849cf4000192b5537ed3792f803c2e67da5e5ed66af1342563ad11b",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "tests/test_native_demand_sources.py",
+      "published_sha256": "c9fda71a7bcce332938fa119dd7139f16f853adfd0134f2e63590147c20b7934",
+      "local_raw_sha256": "33216843a64d4d40406a4edb2f5b740d91333eb9d4f2d7caff6e38848acd1bf9",
+      "local_lf_sha256": "33216843a64d4d40406a4edb2f5b740d91333eb9d4f2d7caff6e38848acd1bf9",
+      "comparison": "CONTENT_CHANGED"
+    },
+    {
+      "path": "tests/test_pipeline_unification.py",
+      "published_sha256": "bc57e341fc9b9ec1ca362ad8ab6d319a5ffbecb235cef3cc9b69dc2a150d671a",
+      "local_raw_sha256": "bc57e341fc9b9ec1ca362ad8ab6d319a5ffbecb235cef3cc9b69dc2a150d671a",
+      "local_lf_sha256": "bc57e341fc9b9ec1ca362ad8ab6d319a5ffbecb235cef3cc9b69dc2a150d671a",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "tests/test_same_source_spectral_replay.py",
+      "published_sha256": "446c2b7c27ff478a3468d46d4d1cfaafa07b7b74619793069a633a27a7cd0199",
+      "local_raw_sha256": "446c2b7c27ff478a3468d46d4d1cfaafa07b7b74619793069a633a27a7cd0199",
+      "local_lf_sha256": "446c2b7c27ff478a3468d46d4d1cfaafa07b7b74619793069a633a27a7cd0199",
+      "comparison": "EXACT_BYTES"
+    },
+    {
+      "path": "tests/test_vs26_golden_gate.py",
+      "published_sha256": "d21c14b54753ba5b8277cd8b9a176144da9167c4320fbcbd475fa77769c16da3",
+      "local_raw_sha256": "626de6d6c395edc2e6c7a12fbcbba3a8d7941c71823617bdc6381b1c4139fc29",
+      "local_lf_sha256": "d21c14b54753ba5b8277cd8b9a176144da9167c4320fbcbd475fa77769c16da3",
+      "comparison": "LINE_ENDINGS_ONLY"
+    },
+    {
+      "path": "docs/VS26_GOLDEN_REGRESSION.json",
+      "published_sha256": "c30c08b6a270b52867c7d1dd5e27e087b2db40f55122f7269e39d184ee9dccf1",
+      "local_raw_sha256": "9c20dde6af108f5f4a491ea36cb46bf36afdf7aa37e5d1c89bf0948ed7397e19",
+      "local_lf_sha256": "c30c08b6a270b52867c7d1dd5e27e087b2db40f55122f7269e39d184ee9dccf1",
+      "comparison": "LINE_ENDINGS_ONLY"
+    }
+  ],
+  "distinct_symbols": 88,
+  "unchanged_symbol_asts": 88,
+  "symbols": [
+    {
+      "path": "src/tbdy_next/column_engine/native_archive.py",
+      "symbol": "NativeArchive._verify",
+      "local_line_start": 117,
+      "local_line_end": 177,
+      "same_ast": true,
+      "ast_sha256": "1e69e6c5c2650e8a95922610b18ff2a0504a3d5ee85ecf57811175a3ceda6ef8",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/live_etabs.py",
+      "symbol": "_with_etabs",
+      "local_line_start": 110,
+      "local_line_end": 129,
+      "same_ast": true,
+      "ast_sha256": "4546da9038fd4e84db955e79291c78dbe6cb5cb1a2576a6f8964288df4705832",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/etabs_source_gateway_windows.py",
+      "symbol": "get_results_setup_state",
+      "local_line_start": 456,
+      "local_line_end": 470,
+      "same_ast": true,
+      "ast_sha256": "0aeb27db155d11025ef96b65fa9fc4dac31a797238fa06bb0231441605d5b92e",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/etabs_source_gateway_windows.py",
+      "symbol": "restore_results_setup_state",
+      "local_line_start": 473,
+      "local_line_end": 487,
+      "same_ast": true,
+      "ast_sha256": "038c278c4cc774a61690e48ef78d93eabc29847f1802825bb3296728c2806393",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_pmm.py",
+      "symbol": "bind_pmm_mesh_source",
+      "local_line_start": 65,
+      "local_line_end": 118,
+      "same_ast": true,
+      "ast_sha256": "8a626586a674e400098feb2dd111f3c9e9fc1077477c70d91b3cf62947f7f15b",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_pmm.py",
+      "symbol": "bind_configured_output_cuts",
+      "local_line_start": 251,
+      "local_line_end": 331,
+      "same_ast": true,
+      "ast_sha256": "149d1f2e5a9ed12594c47d643e31e946054fe3075bd2d26fb4cec9d67761daf5",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_pmm.py",
+      "symbol": "_required_cut_coverage",
+      "local_line_start": 334,
+      "local_line_end": 349,
+      "same_ast": true,
+      "ast_sha256": "ff5d6404cb7a1837608642724d7f6a1453070d8dc59b5a69d01053727e3cbd4c",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/analysis_setup.py",
+      "symbol": "audit_model_analysis_setup",
+      "local_line_start": 17,
+      "local_line_end": 148,
+      "same_ast": true,
+      "ast_sha256": "57a933d32453c4295dc4d88d54865461a29a917449359ef92a4e38e743354886",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/vs05_d4_source_authority.py",
+      "symbol": "audit_d4_source_authority",
+      "local_line_start": 341,
+      "local_line_end": 455,
+      "same_ast": true,
+      "ast_sha256": "959d1bbf28f3767d21ef041a08efb9795a748c215f0e72675e41effbde088050",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/mixed_demands.py",
+      "symbol": "linear_coefficients",
+      "local_line_start": 51,
+      "local_line_end": 70,
+      "same_ast": true,
+      "ast_sha256": "1e08b0ec2dc435aa9ace91cd973471360434a44b26f87e7897c6cabdc8fead9e",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/mixed_demands.py",
+      "symbol": "earthquake_partition",
+      "local_line_start": 181,
+      "local_line_end": 216,
+      "same_ast": true,
+      "ast_sha256": "7b83393baebe33ad25d0173d8021ea2e21b58714e1474d0402d100fd23a80f0b",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/column_engine/spectral_envelope.py",
+      "symbol": "replay_component_envelope",
+      "local_line_start": 174,
+      "local_line_end": 228,
+      "same_ast": true,
+      "ast_sha256": "f566ff79a86fa697a9dd09f100db4987fa2df72400c3fd96236a1cea19f5de9d",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/next_checks.py",
+      "symbol": "_material_items",
+      "local_line_start": 71,
+      "local_line_end": 110,
+      "same_ast": true,
+      "ast_sha256": "7e5249f122bc45524ae739ee9459952a39dd3acf080e210cfbae764c9e0ee5c6",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/source_control_bundle.py",
+      "symbol": "concrete_upper_subcondition",
+      "local_line_start": 36,
+      "local_line_end": 44,
+      "same_ast": true,
+      "ast_sha256": "6330f27f05c7e3d0da2824fd2749b62e5dd41713e278602885796fb9eca3650a",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/source_control_bundle.py",
+      "symbol": "_concrete",
+      "local_line_start": 101,
+      "local_line_end": 169,
+      "same_ast": true,
+      "ast_sha256": "33e4c0cc4e7dffe835dd1d0d58dfcd73eae4b73ff6c8d1d81ca81d5d77cce0bc",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/quick_checks.py",
+      "symbol": "evaluate_geometry_capture",
+      "local_line_start": 151,
+      "local_line_end": 300,
+      "same_ast": true,
+      "ast_sha256": "7501899270e3a8da1a817c4a80bb1f5fa86ab941bce48ae1e2f11ed65f11d586",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/column_engine/ts500_column.py",
+      "symbol": "section_axial_limits_kn",
+      "local_line_start": 138,
+      "local_line_end": 146,
+      "same_ast": true,
+      "ast_sha256": "60273b40c17d6e4511a40b30582cb38e2f5a99893594f221959ede741cdc6f94",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_gates.py",
+      "symbol": "evaluate_axial_caps",
+      "local_line_start": 241,
+      "local_line_end": 316,
+      "same_ast": true,
+      "ast_sha256": "f51e8c1fb601776e9027672fa6ed03f97d32efbc2bb470d05754100112184e83",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_live_gates.py",
+      "symbol": "_axial_gates",
+      "local_line_start": 34,
+      "local_line_end": 70,
+      "same_ast": true,
+      "ast_sha256": "898a80ad81e0479091351298c34736aaedcdb79f57bcd85ffd251e7ee4127a10",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_axial.py",
+      "symbol": "evaluate_column_axial",
+      "local_line_start": 282,
+      "local_line_end": 318,
+      "same_ast": true,
+      "ast_sha256": "e58cc7ffe637b933c2971ac51d252bd569423803444cb90ce567d921cdff633d",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/modal.py",
+      "symbol": "evaluate_modal_mass",
+      "local_line_start": 41,
+      "local_line_end": 60,
+      "same_ast": true,
+      "ast_sha256": "e48194838547ba0823737f9de7b869ad159ebfc178cbba8b6d8cae68f3b58b37",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/column_engine/section_capacity.py",
+      "symbol": "solver",
+      "local_line_start": 426,
+      "local_line_end": 428,
+      "same_ast": true,
+      "ast_sha256": "8767b5719562511f2602f1c5d3d19e24b5fef45eb7907a577bb3eb17cbf0cc77",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_pmm.py",
+      "symbol": "evaluate_column_pmm",
+      "local_line_start": 489,
+      "local_line_end": 535,
+      "same_ast": true,
+      "ast_sha256": "c01142a7681293e08eb5ad874fce67e55999187af69eeca5491bba388b468289",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_gates.py",
+      "symbol": "evaluate_reinforcement_state",
+      "local_line_start": 323,
+      "local_line_end": 431,
+      "same_ast": true,
+      "ast_sha256": "eedb13004e4ea3e50290f4b21129d003fc29b7f1713a00477d2db328cb6d2535",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/rebar_selection.py",
+      "symbol": "select_column_rebar",
+      "local_line_start": 595,
+      "local_line_end": 735,
+      "same_ast": true,
+      "ast_sha256": "51000a0ae62657a1e85fcb1f07c1616cabdb125374e49de4e58d3443b34ab917",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/story_drift_binding.py",
+      "symbol": "bind_story_drift",
+      "local_line_start": 31,
+      "local_line_end": 101,
+      "same_ast": true,
+      "ast_sha256": "fc320c08296cb90958f606de59e20f9e1f25289a226d2f002017be32a8e72128",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/story_delta.py",
+      "symbol": "calculate",
+      "local_line_start": 246,
+      "local_line_end": 270,
+      "same_ast": true,
+      "ast_sha256": "dbcf41a51387b46bcc3ce9d769ec99f058c0d0969c68662ea03f6076e7c6c828",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/spectrum_reconstruction.py",
+      "symbol": "review_spectrum_reconstruction",
+      "local_line_start": 132,
+      "local_line_end": 305,
+      "same_ast": true,
+      "ast_sha256": "4a71c74348b7a4e610fe9284dcbcd65ae6c9c6e24241405960e1d45195599429",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/basis_linkage.py",
+      "symbol": "_mass",
+      "local_line_start": 163,
+      "local_line_end": 240,
+      "same_ast": true,
+      "ast_sha256": "68dcfbd16d1676e1f4888dffb3b2517f38bc0ccca0a6fb4fe8c666a39eb3daca",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/analysis_numerics.py",
+      "symbol": "_periods",
+      "local_line_start": 139,
+      "local_line_end": 210,
+      "same_ast": true,
+      "ast_sha256": "c51c21a47cce0a0fe5e5e8f213c2cf70c354d7bf35337bdc154f5497bf3a1225",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/basis_linkage.py",
+      "symbol": "_spectrum_modal",
+      "local_line_start": 398,
+      "local_line_end": 409,
+      "same_ast": true,
+      "ast_sha256": "e3988f569c1ef0a97656bc01abdd6fc7c61176b98bf0209d36052280f8412623",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/normative_basis.py",
+      "symbol": "eq_4_19_equivalent_base_shear_kn",
+      "local_line_start": 60,
+      "local_line_end": 82,
+      "same_ast": true,
+      "ast_sha256": "477a516c6a8364200861f5eb7218110cf1eb8efc87a81d83f22a429e2cedeb27",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/base_shear_screening.py",
+      "symbol": "review_base_shear_screening",
+      "local_line_start": 70,
+      "local_line_end": 182,
+      "same_ast": true,
+      "ast_sha256": "16e4eaed17602d308efd63454b5b83105d187c058fc07fd5af4bec34aa5a856f",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/normative_basis.py",
+      "symbol": "eq_4_31_base_scale",
+      "local_line_start": 85,
+      "local_line_end": 107,
+      "same_ast": true,
+      "ast_sha256": "3c09d696b35e6f9fd53fc005f5336f803eb5184394fba86f9badbe9d04b8c6e2",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/normative_basis.py",
+      "symbol": "eq_4_34_effective_drift",
+      "local_line_start": 110,
+      "local_line_end": 142,
+      "same_ast": true,
+      "ast_sha256": "12811f28b778491eafc74b0eb5eca3f9f960d05fc56400a246f5cd84228fcee6",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/effective_drift_readiness.py",
+      "symbol": "review_effective_drift_readiness",
+      "local_line_start": 29,
+      "local_line_end": 168,
+      "same_ast": true,
+      "ast_sha256": "30ffd69edfedfc44aa19cd340ef3facedccf71156b94f72ec5aa593190c49e78",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/next_checks.py",
+      "symbol": "_a1_items",
+      "local_line_start": 138,
+      "local_line_end": 192,
+      "same_ast": true,
+      "ast_sha256": "896a15a7368c7aa0c36e773e0ccfeab6704d2d46d9c53708f024cb44792e42f7",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_gates.py",
+      "symbol": "resolve_legacy73_catalog_entry",
+      "local_line_start": 123,
+      "local_line_end": 139,
+      "same_ast": true,
+      "ast_sha256": "5be48b0fbe93a0d6eb74b263561a6af3c067a4b0c5522bfc1cc900a57af1b27a",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/weak_story_b1.py",
+      "symbol": "evaluate_b1",
+      "local_line_start": 40,
+      "local_line_end": 170,
+      "same_ast": true,
+      "ast_sha256": "6438a555408ef3fb7322d44fc2275318cf692cc30bed311d5fb07c486ab59a35",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/b1_source_bridge.py",
+      "symbol": "evaluate_b1_sources",
+      "local_line_start": 159,
+      "local_line_end": 447,
+      "same_ast": true,
+      "ast_sha256": "5e35b888d0a13d2492e47975d4004a57133280d9596fa961efbf878b52b75fe1",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/soft_story_b2.py",
+      "symbol": "compare_adjacent",
+      "local_line_start": 43,
+      "local_line_end": 152,
+      "same_ast": true,
+      "ast_sha256": "b086ebef288c55742a09658c560b9869afa0c9f019cc74d9b68e5f5549d9f25f",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/soft_story_b2.py",
+      "symbol": "bind_soft_story_b2",
+      "local_line_start": 161,
+      "local_line_end": 341,
+      "same_ast": true,
+      "ast_sha256": "9739f6676e64196ef71ef52fbbb21f97412936ca8f9a449f55930b008ea5c7b1",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/analysis_numerics.py",
+      "symbol": "_base_reactions",
+      "local_line_start": 213,
+      "local_line_end": 249,
+      "same_ast": true,
+      "ast_sha256": "f87acb901245f93fd02bd1424308017819bffd58d609d91eb88a0eb41413590e",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/story_pdelta.py",
+      "symbol": "review_story_pdelta",
+      "local_line_start": 31,
+      "local_line_end": 138,
+      "same_ast": true,
+      "ast_sha256": "e436569f86af76adba1f70ad893f658e7570abc2331d22358d2043e95d7b0771",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/story_second_order.py",
+      "symbol": "bind_story_second_order",
+      "local_line_start": 128,
+      "local_line_end": 325,
+      "same_ast": true,
+      "ast_sha256": "d23f12dcdb24de0b0aaaf0cc9745b1f2aaeb56314d6b94b914165d77410ef7b7",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/column_engine/ts500_column.py",
+      "symbol": "minimum_eccentricity_mm",
+      "local_line_start": 53,
+      "local_line_end": 60,
+      "same_ast": true,
+      "ast_sha256": "dcb2d4fb3d7225b34c8faec33c1ce8dbba3111b533c9b6eb3aff2f692fcdb1a9",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/column_engine/ts500_column.py",
+      "symbol": "apply_minimum_eccentricity",
+      "local_line_start": 63,
+      "local_line_end": 135,
+      "same_ast": true,
+      "ast_sha256": "6f3a733302a141339be5bf1bc4301a7b65f9842892f24e2304cd605ad76b2de8",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/column_engine/ts500_column.py",
+      "symbol": "rectangle_properties",
+      "local_line_start": 40,
+      "local_line_end": 50,
+      "same_ast": true,
+      "ast_sha256": "8eac0633b35a182f18a59183ef31f5cb513b0f19af48a951d56e5adc4b40992d",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/column_engine/ts500_column.py",
+      "symbol": "evaluate_slenderness",
+      "local_line_start": 179,
+      "local_line_end": 199,
+      "same_ast": true,
+      "ast_sha256": "cfeda027335b000177f89ea1a63a7be2dbb530f97131f7dd585112614fae40e1",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_r10_live.py",
+      "symbol": "_column_clear_length_m",
+      "local_line_start": 1065,
+      "local_line_end": 1094,
+      "same_ast": true,
+      "ast_sha256": "7384b80fe828d1d0443fbf98b46ff301758c6e322c01c22e4d8c349294ce680b",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/column_engine/ts500_column.py",
+      "symbol": "effective_stiffness_nmm2",
+      "local_line_start": 202,
+      "local_line_end": 216,
+      "same_ast": true,
+      "ast_sha256": "21b7a2e3343ed9e7a5b447d8e4046118ecea873fc6211543beb11f2de11ad4df",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/column_engine/ts500_column.py",
+      "symbol": "euler_load_kn",
+      "local_line_start": 219,
+      "local_line_end": 222,
+      "same_ast": true,
+      "ast_sha256": "b690c71fb6358d6fc3bd7886f3beb3656514f207eeee351954223818cf17ebcd",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/column_engine/ts500_column.py",
+      "symbol": "moment_magnification_factors",
+      "local_line_start": 225,
+      "local_line_end": 256,
+      "same_ast": true,
+      "ast_sha256": "da57385ba7ee208f2b5e512f24276bbf70b4178d3cbebac1d484e0603d9c2b10",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_r08_local_live.py",
+      "symbol": "project_column_r08_local_live",
+      "local_line_start": 562,
+      "local_line_end": 694,
+      "same_ast": true,
+      "ast_sha256": "addc3289bc4774ce0b30f7429bc6789a6555a38553914a1a5b80fd6d733c9fc6",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_r08_local_live.py",
+      "symbol": "_evaluate_spectral_bounding_corners",
+      "local_line_start": 421,
+      "local_line_end": 559,
+      "same_ast": true,
+      "ast_sha256": "bde413033e112b820d6daf58f86b1a5887e814335ae27cb3293d7d302945108a",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_r14_closure.py",
+      "symbol": "project_column_r14_and_r15_closure",
+      "local_line_start": 441,
+      "local_line_end": 552,
+      "same_ast": true,
+      "ast_sha256": "6e59d850d6a17062a0b1efacf45b3c783857e8e2111b3a90124bc54b6493518b",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/rebar_selection.py",
+      "symbol": "_evaluate_column_transverse_choice",
+      "local_line_start": 458,
+      "local_line_end": 592,
+      "same_ast": true,
+      "ast_sha256": "df588f63df7ae6bd43f09107e4eef47b1418cb4d7157d4d73049d78cd1b99cb1",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_gates.py",
+      "symbol": "evaluate_transverse_leg_topology",
+      "local_line_start": 438,
+      "local_line_end": 536,
+      "same_ast": true,
+      "ast_sha256": "1f190fb8fb5f25b798e2e6c106d519ab62dde9221b56b0927c2a5d9fbed37c0b",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/rebar_selection.py",
+      "symbol": "_min_crosstie_legs_for_face",
+      "local_line_start": 406,
+      "local_line_end": 420,
+      "same_ast": true,
+      "ast_sha256": "0dffd7fb9ab6bafb9531e5befbb05d089312dae636a94cdbae50e02e7d231974",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/column_engine/transverse_kernel.py",
+      "symbol": "confinement_reference",
+      "local_line_start": 37,
+      "local_line_end": 57,
+      "same_ast": true,
+      "ast_sha256": "17f553aa70bf80d7b269047168a5a1454f0bc74e2ea7b75aecf9441f1674c71e",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/column_engine/scwb_kernel.py",
+      "symbol": "compute_scwb_joint_result",
+      "local_line_start": 64,
+      "local_line_end": 112,
+      "same_ast": true,
+      "ast_sha256": "498bc1d4c33957eeab3a6965ff26ee602ea297a45b76c32b30dac5b7f16f8a0f",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/column_engine/scwb_kernel.py",
+      "symbol": "column_axis_capacity",
+      "local_line_start": 144,
+      "local_line_end": 146,
+      "same_ast": true,
+      "ast_sha256": "f131803c39591f3d315cd8daffdfab59d4cc885f35d6413c23946c932f1fd78f",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_r10_live.py",
+      "symbol": "_evaluate_scwb_at_joint_ends",
+      "local_line_start": 541,
+      "local_line_end": 883,
+      "same_ast": true,
+      "ast_sha256": "d17fb4b1e8ef234a17d761a8fd307656827a57175404f298cc549927f767fe87",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_r10_live.py",
+      "symbol": "_compute_capacity_shear_axes",
+      "local_line_start": 1097,
+      "local_line_end": 1201,
+      "same_ast": true,
+      "ast_sha256": "f1f11fad057e3f38f7534fc2ff6c0da015df3653ef4235c82551627337b8cd11",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/column_engine/transverse_kernel.py",
+      "symbol": "shear_reference",
+      "local_line_start": 65,
+      "local_line_end": 116,
+      "same_ast": true,
+      "ast_sha256": "e959b1c571feeb69dc7ccedba570fed065d466796b69baeb5a26325f3d7f968c",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/column_engine/transverse_kernel.py",
+      "symbol": "zero_concrete_gate",
+      "local_line_start": 15,
+      "local_line_end": 34,
+      "same_ast": true,
+      "ast_sha256": "a822a34321fc7efa917131731333f3645dbe1393f6041664529b6d8bb150fe8d",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_r10_live.py",
+      "symbol": "_finish_column_shear_and_confinement",
+      "local_line_start": 923,
+      "local_line_end": 1037,
+      "same_ast": true,
+      "ast_sha256": "f937920e91cc9586efd8f869064a29b7428b41a068df6d60e9870c1318cc0258",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/column_engine/joint_kernel.py",
+      "symbol": "centered_joint_limit",
+      "local_line_start": 25,
+      "local_line_end": 43,
+      "same_ast": true,
+      "ast_sha256": "51f31b136cd39b84acc4ecc6bbb3230fad2d149fc77eaec3080498b0a7a6077e",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_r10_live.py",
+      "symbol": "_attach_r13_joint_shear_and_transverse",
+      "local_line_start": 1467,
+      "local_line_end": 1665,
+      "same_ast": true,
+      "ast_sha256": "e5394177264a7fbfffbbbaac9e99ff923457a9a7d8896694f419ed8b1c48e3ff",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/alpha_iteration.py",
+      "symbol": "run_bounded_feedback",
+      "local_line_start": 238,
+      "local_line_end": 286,
+      "same_ast": true,
+      "ast_sha256": "3e539d8ba025eb384022c093cb77df33de5113173f60894a659fa3f37432513e",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/alpha_iteration.py",
+      "symbol": "run_alpha_design_iteration",
+      "local_line_start": 421,
+      "local_line_end": 483,
+      "same_ast": true,
+      "ast_sha256": "488690fbf1aa2198643f99bace81d59dd18750700c3c37945d1c87e7f17e48fa",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/column_engine/story_alpha.py",
+      "symbol": "evaluate_story_alpha_reference",
+      "local_line_start": 23,
+      "local_line_end": 45,
+      "same_ast": true,
+      "ast_sha256": "aebdec3d951b13b4ad5916305b164220ef440457cc8ea68df43eb7fb0b68040d",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/column_engine/story_alpha.py",
+      "symbol": "alpha_feedback_factor",
+      "local_line_start": 48,
+      "local_line_end": 57,
+      "same_ast": true,
+      "ast_sha256": "87ce028cc77944c3ea3080ca6ead9a5df2cdf9ffa13871140227df2507fc2995",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/beam_r10_live.py",
+      "symbol": "project_beam_r10_live",
+      "local_line_start": 529,
+      "local_line_end": 776,
+      "same_ast": true,
+      "ast_sha256": "1ce15cce21a798ef2f2bdcf0807a5f7b18560ee0389da743f97cb8969ddd3056",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/beam_r10_live.py",
+      "symbol": "_evaluate_beam_end",
+      "local_line_start": 308,
+      "local_line_end": 440,
+      "same_ast": true,
+      "ast_sha256": "f3c7ba0f7e2a10b353a631db6cf6daed359391ba2f8fc878ecc85658c73df209",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/column_engine/beam_capacity.py",
+      "symbol": "signed_beam_capacity",
+      "local_line_start": 49,
+      "local_line_end": 51,
+      "same_ast": true,
+      "ast_sha256": "c6722c25e58ab4edfcb6bd0f6a776da7efcef0dbf43be344bb6f40de61898574",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/column_engine/beam_capacity.py",
+      "symbol": "build_selected_beam_cage",
+      "local_line_start": 347,
+      "local_line_end": 470,
+      "same_ast": true,
+      "ast_sha256": "bcc20167724628ce0eb16c6006faae0f19eb6a8480d5f0ce01447c07929e9fbd",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/rebar_selection.py",
+      "symbol": "select_beam_station_rebar",
+      "local_line_start": 184,
+      "local_line_end": 317,
+      "same_ast": true,
+      "ast_sha256": "225c78fce0c0230d3d05e09ff2bcb4582ab40cfcf6b649ee7ae5958c785f4593",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/beam_r10_live.py",
+      "symbol": "_beam_longitudinal_rho_bounds",
+      "local_line_start": 63,
+      "local_line_end": 74,
+      "same_ast": true,
+      "ast_sha256": "592b8a84efae8758ee1c2d98294e00953844dbc657b335ffc69fd7410a8ef7af",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/beam_r10_live.py",
+      "symbol": "_beam_gravity_shear_kn",
+      "local_line_start": 443,
+      "local_line_end": 460,
+      "same_ast": true,
+      "ast_sha256": "ba6204c2b7f7621a5bf92464581a4875b9e2b50aac3542f424981afa436765b7",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/beam_r10_live.py",
+      "symbol": "_beam_shear_ve",
+      "local_line_start": 463,
+      "local_line_end": 526,
+      "same_ast": true,
+      "ast_sha256": "a9d2503e317f100ec530f4b232f8e75458040a59cc6ff52d89a7b959c043e7c9",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/rebar_selection.py",
+      "symbol": "evaluate_beam_stirrups",
+      "local_line_start": 320,
+      "local_line_end": 403,
+      "same_ast": true,
+      "ast_sha256": "e5f01dc9b213bd7f005894f143e05cbec77516ec5d44a1e56976dc4d154a912f",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/wall_geometry.py",
+      "symbol": "bind_wall_geometry",
+      "local_line_start": 96,
+      "local_line_end": 254,
+      "same_ast": true,
+      "ast_sha256": "f8dccac3fc92b0f55ee472353b59219b4afb49c4be24b69b0acc4dd263dab899",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/design_dependencies.py",
+      "symbol": "build_member_dependency_plan",
+      "local_line_start": 77,
+      "local_line_end": 156,
+      "same_ast": true,
+      "ast_sha256": "dc2318eab88c67a7f2bd2fd661833bd3fc0760064d1c400838193d6971ccbaef",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_r10_live.py",
+      "symbol": "_build_frame_catalog",
+      "local_line_start": 263,
+      "local_line_end": 324,
+      "same_ast": true,
+      "ast_sha256": "7019adeefc9d2aa6b3e0cebe7772e3f4b35756589233e2cf936b787db8a59491",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_r10_live.py",
+      "symbol": "_evaluate_joint_end",
+      "local_line_start": 327,
+      "local_line_end": 448,
+      "same_ast": true,
+      "ast_sha256": "feb8f04570e247509a0d1c04c80d75dad1b1b55f19bcdfc15854fc520c565280",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/column_engine/joint_kernel.py",
+      "symbol": "width_reference",
+      "local_line_start": 19,
+      "local_line_end": 22,
+      "same_ast": true,
+      "ast_sha256": "81c0e8815e64a3ee0a7f6d6183b0e2140df205371bf1d437f6ab9b5528055acd",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    },
+    {
+      "path": "src/tbdy_next/column_engine/joint_kernel.py",
+      "symbol": "joint_transverse_reference",
+      "local_line_start": 46,
+      "local_line_end": 65,
+      "same_ast": true,
+      "ast_sha256": "be817062ae4bd0470026a7d3fa7cd3c36f4dfe0e0d97beaf8ba66dcc51dc1788",
+      "scope": "Mechanical AST identity only; dependencies and complete engineering applicability are not certified."
+    }
+  ],
+  "recipe_owner_mapping_counts": {
+    "PARTIAL": 44,
+    "UNMAPPED": 29
+  },
+  "mechanical_binding_limits": "Symbol and byte compatibility only; this is not a complete semantic audit of 73 controls or the dependency graph.",
+  "local_owner_comparisons": {
+    "matched": 3,
+    "mismatched": 0,
+    "dependencies": [
+      {
+        "path": "src/tbdy_next/__init__.py",
+        "local_raw_sha256": "ae57124a94a2b3f86715032535a2af3fab6828c67e1c76bb340b9645734b001e",
+        "published_lf_sha256": "14d85518cd6df9aa033853fb7bae5e70da6c95e216fa6031f4ac8e00d94d1951",
+        "review": "Identical source after CRLF-to-LF normalization; original bytes retained."
+      },
+      {
+        "path": "src/tbdy_next/column_engine/__init__.py",
+        "local_raw_sha256": "bdd08094e26059bacdcd10b47a438e525911288daff5decf4795d51ab407cd46",
+        "published_lf_sha256": "d092219f153b83146e1757c96639ed591c56f513cbc2af12cf12a803571ae185",
+        "review": "Identical source after CRLF-to-LF normalization; original bytes retained."
+      },
+      {
+        "path": "src/tbdy_next/column_engine/ts500_column.py",
+        "local_raw_sha256": "8411247559fc7605385a69f120b49299415138d20044381e28bb9f648f10e735",
+        "published_lf_sha256": "8411247559fc7605385a69f120b49299415138d20044381e28bb9f648f10e735",
+        "review": "Identical source after CRLF-to-LF normalization; original bytes retained."
+      },
+      {
+        "path": "src/tbdy_next/column_engine/native_archive.py",
+        "local_raw_sha256": "967ee844dc4bbe8f1fa27fe1d12f36624fa6e98d064742949f08f1b93d0acadb",
+        "published_lf_sha256": "231ccb8ebfa4030f0f310bb967930b73ed1b7e51d6871090231d723457d14c14",
+        "review": "Identical source after CRLF-to-LF normalization; original bytes retained."
+      },
+      {
+        "path": "src/tbdy_next/column_engine/csi_geometry.py",
+        "local_raw_sha256": "1a7b0860dde89b9301c4818d6f42c725795decfe7a131ef97dea0b8cdd0158d6",
+        "published_lf_sha256": "1a7b0860dde89b9301c4818d6f42c725795decfe7a131ef97dea0b8cdd0158d6",
+        "review": "Identical source after CRLF-to-LF normalization; original bytes retained."
+      }
+    ],
+    "results": [
+      {
+        "case_id": "GE-CHK-004",
+        "assertion_id": "GE-CHK-004-A01",
+        "owner_path": "src/tbdy_next/column_engine/ts500_column.py",
+        "owner_function": "section_axial_limits_kn",
+        "inputs": {
+          "fck_mpa": 30,
+          "fcd_mpa": 20.0,
+          "ac_mm2": 90000
+        },
+        "input_preparation": {
+          "input_case_ids": [
+            "GE-CHK-004",
+            "GE-CHK-005"
+          ],
+          "input_preparation": "fcd is prepared as the declared fck/gamma_c input; no claim is made to test a separate material owner.",
+          "scope": "Concrete-section axial limit only; role applicability, demand coverage and full control acceptance are not tested."
+        },
+        "output_key": "tbdy_7_3_1_2_max_ndm_kn",
+        "unit": "kN",
+        "expected": 1080,
+        "observed": 1080.0,
+        "absolute_difference": 0.0,
+        "absolute_tolerance": 1e-09,
+        "relative_tolerance": 0,
+        "status": "MATCH",
+        "engineering_check_closed": false
+      },
+      {
+        "case_id": "GE-CHK-005",
+        "assertion_id": "GE-CHK-005-A02",
+        "owner_path": "src/tbdy_next/column_engine/ts500_column.py",
+        "owner_function": "section_axial_limits_kn",
+        "inputs": {
+          "fck_mpa": 30,
+          "fcd_mpa": 20.0,
+          "ac_mm2": 90000
+        },
+        "input_preparation": {
+          "input_case_ids": [
+            "GE-CHK-005"
+          ],
+          "input_preparation": "fcd is prepared as the declared fck/gamma_c input; no claim is made to test a separate material owner.",
+          "scope": "Concrete-section axial limit only; role applicability, demand coverage and full control acceptance are not tested."
+        },
+        "output_key": "ts500_eq_7_7_max_nd_kn",
+        "unit": "kN",
+        "expected": 1620,
+        "observed": 1620.0,
+        "absolute_difference": 0.0,
+        "absolute_tolerance": 1e-09,
+        "relative_tolerance": 0,
+        "status": "MATCH",
+        "engineering_check_closed": false
+      },
+      {
+        "case_id": "GE-CHK-115",
+        "assertion_id": "GE-CHK-115-A01",
+        "owner_path": "src/tbdy_next/column_engine/ts500_column.py",
+        "owner_function": "minimum_eccentricity_mm",
+        "inputs": {
+          "bending_dimension_mm": 300
+        },
+        "input_preparation": {
+          "input_case_ids": [
+            "GE-CHK-115"
+          ],
+          "scope": "Scalar 300 mm bending-depth primitive only; no moment, sign or rotated-axis claim."
+        },
+        "output_key": null,
+        "unit": "mm",
+        "expected": 24,
+        "observed": 24.0,
+        "absolute_difference": 0.0,
+        "absolute_tolerance": 1e-09,
+        "relative_tolerance": 0,
+        "status": "MATCH",
+        "engineering_check_closed": false
+      }
+    ],
+    "complete_engineering_checks_closed": 0
+  },
+  "current_44_production_records": {
+    "record_count": 44,
+    "classification_counts": {
+      "INSUFFICIENT_SOURCE": 25,
+      "NUMERICAL_MATCH": 15,
+      "ENGINEERING_INTERPRETATION_DIFFERENCE": 4
+    },
+    "source_manifest_sha256": "59dedec19a7e6c3d5f496e8d616b8c708af3c99701e271bd872644e39361bec7",
+    "result_sha256": "7e5c3abebb036476b3d400ceb180b431d1824b15cf31a07ec4bc90564b997084",
+    "acceptance_eligible": false,
+    "historical_stored_result_sha256": "9c20dde6af108f5f4a491ea36cb46bf36afdf7aa37e5d1c89bf0948ed7397e19",
+    "historical_classification_changes": [
+      {
+        "id": "G02_ALPHA_top",
+        "historical_classification": "INSUFFICIENT_SOURCE",
+        "current_classification": "NUMERICAL_MATCH",
+        "historical_yeni": null,
+        "current_yeni": 1.0,
+        "independent": 1.0,
+        "report": 1.0
+      },
+      {
+        "id": "G02_ALPHA_ground",
+        "historical_classification": "INSUFFICIENT_SOURCE",
+        "current_classification": "NUMERICAL_MATCH",
+        "historical_yeni": null,
+        "current_yeni": 0.6262267468066423,
+        "independent": 0.6262267468066423,
+        "report": 0.6262
+      }
+    ],
+    "limits": "Printed Vis/Vik arithmetic agrees; complete physical storey scope and two-end SCWB qualification remain open. Historical evidence is not rewritten."
+  },
+  "runtime_changed_by_intake": false,
+  "production_pipeline_replay": "NOT_RERUN_FOR_REFERENCE_ONLY_INTAKE",
+  "live_ETABS": "NOT_RUN_USER_ORDERED_AFTER_INTEGRATION",
+  "engineering_acceptance": "NOT_RUN",
+  "engineering_release": "NOT_READY",
+  "R14_R15": {
+    "closed": 0,
+    "partial": 87
+  }
+}

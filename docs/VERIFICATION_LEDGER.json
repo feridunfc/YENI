@@ -12,29 +12,20 @@
     "integration_base_branch": "baseline/local_import",
     "integration_base_role": "LOGICAL_MAIN",
     "work_branch_pattern": "work/<scope>",
-    "active_local_branch": "work/spectral-modal-source",
+    "active_local_branch": "baseline/local_import",
     "integration_policy": "Start scoped branches from the current local baseline; integrate reviewed, verified milestones. Keep unfinished work on the work branch.",
     "publication_policy": "LOCAL_ONLY_UNTIL_EXPLICIT_GITHUB_CHECKPOINT_REQUEST"
   },
   "local_checkpoint": {
-    "status": "LOCAL_MODAL_NUMERIC_ADAPTER_SOFTWARE_VERIFIED_LIVE_PENDING",
-    "branch": "work/spectral-modal-source",
+    "status": "LOCAL_BASELINE_RECIPE_INTEGRATED_LIVE_ACCEPTANCE_PENDING",
+    "branch": "baseline/local_import",
     "integration_base_branch": "baseline/local_import",
-    "integration_base_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
-    "tested_base_commit": "a2e26b664d9b2b217e828de2c1df0c3df26068b1",
-    "tests_ran_on_dirty_worktree": true,
-    "head_resolution": "git rev-parse HEAD; this context is committed after verification",
-    "tested_manifest_path": "docs/context/TESTED_FILES_MODAL_NUMERIC_20261118.json",
-    "tested_manifest_sha256": "16e69bfae0fc5e1e7fb877cc71b3c710ab1a789f86ae52c19b2ec2504e85c422",
-    "tested_manifest_entries": 410,
-    "same_raw_bytes_before_documentation_update": 410,
-    "document_only_post_test_changes": [
-      "docs/CURRENT_STATE.md",
-      "docs/ENGINEERING_GAPS.yaml",
-      "docs/VERIFICATION_LEDGER.json",
-      "docs/engineering/PIPELINE_UNIFICATION_20261115.md",
-      "docs/context/TESTED_FILES_MODAL_NUMERIC_20261118.json"
-    ],
+    "previous_integration_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+    "runtime_source_commit": "250ff1974316070393f3fff9847d941a80dcd47e",
+    "head_resolution": "git rev-parse baseline/local_import; this context is committed before the validated fast-forward integration",
+    "preserved_work_branch": "work/spectral-modal-source",
+    "runtime_changes_during_recipe_intake": false,
+    "tests_or_config_changes_during_recipe_intake": false,
     "method": {
       "python_implementation": "CPython",
       "python_version": "3.12.10",
@@ -44,7 +35,15 @@
       "configuration_file_count": 9
     },
     "registered_method": "same-source-spectral-components.v5",
+    "prior_test_manifest_path": "docs/context/TESTED_FILES_MODAL_NUMERIC_20261118.json",
+    "prior_test_manifest_sha256": "16e69bfae0fc5e1e7fb877cc71b3c710ab1a789f86ae52c19b2ec2504e85c422",
+    "prior_tests_rerun_for_this_reference_intake": false,
     "evidence_refs": [
+      "EV-RECIPE18-INTAKE",
+      "EV-RECIPE18-ARITHMETIC",
+      "EV-RECIPE18-LOCAL-OWNERS"
+    ],
+    "prior_runtime_evidence_refs": [
       "EV-LOCAL-MODAL-NUMERIC-ADAPTER",
       "EV-LOCAL-MODAL-NUMERIC-TESTS",
       "EV-LOCAL-MODAL-NUMERIC-REPLAY"
@@ -53,7 +52,9 @@
     "run_id": "RUN-567d448b129c4adebbeb983f433d4577",
     "results_sha256": "c172474dc5e3cdab8357a865d38e8ea03c1fd88ebdcfd471b21e06836cffa9f5",
     "engineering_release": "NOT_READY",
-    "live_validation": "NOT_RUN"
+    "live_validation": "NOT_RUN_USER_ORDERED_AFTER_INTEGRATION",
+    "github_push": false,
+    "reference_entry_point": "docs/engineering/reference/recipe_20261118/README.md"
   },
   "last_observed_remote_implementation": {
     "branch": "audit/pipeline-pmm-v6-20261117",
@@ -143,6 +144,17 @@
         "supersedes": "Only the source-absence assertion in the earlier v3 handoff, not its arithmetic results or logs.",
         "evidence_ref": "EV-LOCAL-MODAL-PARAMETERS"
       }
+    },
+    {
+      "id": "SRC-RECIPE18-FULL",
+      "kind": "combined_reference_delivery_and_private_evidence",
+      "file_name": "YENI_RECIPE_FULL_20261118.zip",
+      "sha256": "6f46177e64a5d0ee8e9b6fc7d7b5ba74e252e2cb547fb3655ad97d6aaf490b1f",
+      "bytes": 104775039,
+      "local_path": ".receipts/recipe18/",
+      "in_public_repo": false,
+      "public_text_subset": "docs/engineering/reference/recipe_20261118/delivery/",
+      "private_sqlite_or_report_bytes_published": false
     }
   ],
   "records": [
@@ -1879,6 +1891,344 @@
         "24 calculation entry points and live capture disabled during report verification; the temporary HTTP server is closed.",
         "No new independent force arithmetic; no alpha execution; R14/R15 remain 0 closed / 87 partial; NOT_READY."
       ]
+    },
+    {
+      "observed_at": "2026-11-18T18:38:32.698750+00:00",
+      "implementation_commit": "250ff1974316070393f3fff9847d941a80dcd47e",
+      "source_tree": "be2d9852d4d7a831347dd774964fc33c2e37be51",
+      "runtime_tree_changed_during_intake": false,
+      "work_branch_at_execution": "work/spectral-modal-source",
+      "integration_branch": "baseline/local_import",
+      "environment": {
+        "python": "3.12.10",
+        "implementation": "CPython",
+        "platform": "Windows-11-10.0.26200-SP0"
+      },
+      "source_ids": [
+        "SRC-RECIPE18-FULL"
+      ],
+      "engineering_release_granted": false,
+      "new_live_etabs_capture": false,
+      "git_push": false,
+      "public_reference_paths": [
+        "docs/engineering/reference/recipe_20261118/README.md",
+        "docs/engineering/reference/recipe_20261118/LOCAL_VERIFICATION.json",
+        "docs/engineering/reference/recipe_20261118/LOCAL_BINDING.json"
+      ],
+      "private_proof_directory": ".receipts/verification/recipe-intake-20261118/",
+      "id": "EV-RECIPE18-INTAKE",
+      "status": "VALID_REFERENCE_STRUCTURE_AND_MECHANICAL_BINDING",
+      "scope": "Reference identity, schemas, provenance and local symbol compatibility; not complete control implementation.",
+      "counts": {
+        "payload_files_hashed": 250,
+        "payload_hash_mismatches": 0,
+        "public_text_files_imported": 30,
+        "private_files_imported": 0,
+        "schemas_valid": 5,
+        "negative_contract_probes_detected": 6,
+        "published_source_git_objects_matched": 142,
+        "current_symbols_found": 88,
+        "same_AST_symbols": 88,
+        "partial_recipe_mappings": 44,
+        "unmapped_recipe_labels": 29
+      },
+      "file_comparison_counts": {
+        "CONTENT_CHANGED": 11,
+        "LINE_ENDINGS_ONLY": 101,
+        "EXACT_BYTES": 30
+      },
+      "commands": [
+        ".\\.venv\\Scripts\\python.exe -X utf8 -B .receipts/recipe18/YENI_RECIPE_INTEGRATION_PUBLIC_20261118/tools/inspect_local_binding.py --repo . --mapping .receipts/recipe18/YENI_RECIPE_INTEGRATION_PUBLIC_20261118/CHECK_MAPPING.json --output ../.recipe18-private/LOCAL_BINDING_250ff197.json",
+        {
+          "interpreter": ".\\.venv\\Scripts\\python.exe",
+          "flags": [
+            "-X",
+            "utf8",
+            "-B"
+          ],
+          "bootstrap": "import sys,runpy; sys.path.insert(0,'.receipts/verification/recipe-intake-20261118/schema-deps'); sys.argv[0]='.receipts/recipe18/YENI_RECIPE_INTEGRATION_PUBLIC_20261118/tools/validate_delivery.py'; runpy.run_path(sys.argv[0],run_name='__main__')",
+          "arguments": [
+            "--root",
+            ".receipts/recipe18/YENI_RECIPE_INTEGRATION_PUBLIC_20261118",
+            "--repo",
+            ".receipts/recipe18/YENI_RECIPE_INTEGRATION_PRIVATE_EVIDENCE_20261118/reviewed_published_snapshot_b255c303",
+            "--self-test",
+            "--output",
+            ".receipts/verification/recipe-intake-20261118/LOCAL_DOCUMENT_VALIDATION.json"
+          ]
+        },
+        ".\\.venv\\Scripts\\python.exe -X utf8 -B .receipts/verification/recipe-intake-20261118/reconcile_local.py"
+      ],
+      "schema_dependency": "jsonschema==4.26.0 installed only under private schema-deps; application dependencies unchanged.",
+      "schema_receipt_sha256": "c751c125b64f414c5751e7f42ea312d6ec562830f6e55477c666c4e0cff311a0",
+      "local_binding_sha256": "cef425297439cfe30c22a9d580554102b2a59d84850f8609a72b0b502f74f83a",
+      "initial_setup_attempts": [
+        "Initial extraction hit Windows path length; partial files retained, shorter complete extraction verified.",
+        "Initial schema dependency download failed DNS before network permission; isolated install then succeeded. These are setup attempts, not engineering test results."
+      ],
+      "limits": [
+        "Mechanical AST equality does not certify dependencies, engineering applicability or an entire control.",
+        "Source documents are references and do not override the user or current repository guidance.",
+        "Generated PDF/DOCX visual QA remains the delivery authors historical claim; not newly performed here."
+      ],
+      "public_evidence_line_endings": "New public JSON projections use LF; raw private receipts retain their recorded hashes. The 30 imported delivery files remain byte-identical."
+    },
+    {
+      "observed_at": "2026-11-18T18:38:32.698750+00:00",
+      "implementation_commit": "250ff1974316070393f3fff9847d941a80dcd47e",
+      "source_tree": "be2d9852d4d7a831347dd774964fc33c2e37be51",
+      "runtime_tree_changed_during_intake": false,
+      "work_branch_at_execution": "work/spectral-modal-source",
+      "integration_branch": "baseline/local_import",
+      "environment": {
+        "python": "3.12.10",
+        "implementation": "CPython",
+        "platform": "Windows-11-10.0.26200-SP0"
+      },
+      "source_ids": [
+        "SRC-RECIPE18-FULL"
+      ],
+      "engineering_release_granted": false,
+      "new_live_etabs_capture": false,
+      "git_push": false,
+      "public_reference_paths": [
+        "docs/engineering/reference/recipe_20261118/README.md",
+        "docs/engineering/reference/recipe_20261118/LOCAL_VERIFICATION.json",
+        "docs/engineering/reference/recipe_20261118/LOCAL_BINDING.json"
+      ],
+      "private_proof_directory": ".receipts/verification/recipe-intake-20261118/",
+      "id": "EV-RECIPE18-ARITHMETIC",
+      "status": "FROZEN_EXAMPLE_ARITHMETIC_MATCH",
+      "scope": "Two separate reference populations; no production arithmetic imported into independent oracles.",
+      "counts": {
+        "primary_examples": 73,
+        "adapter_fixtures": 12,
+        "recipe_assertions_matched": 333,
+        "recipe_mismatches": 0,
+        "additional_chain_fixtures": 1,
+        "chain_assertions_matched": 1294,
+        "chain_mismatches": 0,
+        "engineering_controls_closed": 0
+      },
+      "commands": [
+        ".\\.venv\\Scripts\\python.exe -X utf8 -B .receipts/recipe18/YENI_RECIPE_INTEGRATION_PUBLIC_20261118/tools/verify_golden_arithmetic.py --bank .receipts/recipe18/YENI_RECIPE_INTEGRATION_PUBLIC_20261118/GOLDEN_CASES.json --output .receipts/verification/recipe-intake-20261118/LOCAL_GOLDEN_ARITHMETIC.json",
+        ".\\.venv\\Scripts\\python.exe -X utf8 -B .receipts/recipe18/YENI_RECIPE_INTEGRATION_PUBLIC_20261118/tools/verify_priority_chain.py --fixture .receipts/recipe18/YENI_RECIPE_INTEGRATION_PUBLIC_20261118/PRIORITY_CHAIN.json --output .receipts/verification/recipe-intake-20261118/LOCAL_PRIORITY_CHAIN.json"
+      ],
+      "private_artifacts": [
+        {
+          "path": ".receipts/verification/recipe-intake-20261118/LOCAL_GOLDEN_ARITHMETIC.json",
+          "sha256": "4068e49bad365793194f2cef79739964be3caf2dcc4e1f1d8cf722688ed963ef"
+        },
+        {
+          "path": ".receipts/verification/recipe-intake-20261118/LOCAL_PRIORITY_CHAIN.json",
+          "sha256": "7c8497456c90daf04ed6fe5f05cb98c84f6d1100826d22cafd6d6641ac06e217"
+        }
+      ],
+      "decimal_chain_precision": 80,
+      "limits": [
+        "Proportional synthetic modal fields and declared capacity curves are not a building analysis or cage design.",
+        "These 333 recipe assertions differ from the historical PDF-bank 333-record subset.",
+        "E-only versus total-M/V alpha policy remains unresolved; corner adequacy and physical story shares require qualification."
+      ]
+    },
+    {
+      "observed_at": "2026-11-18T18:38:32.698750+00:00",
+      "implementation_commit": "250ff1974316070393f3fff9847d941a80dcd47e",
+      "source_tree": "be2d9852d4d7a831347dd774964fc33c2e37be51",
+      "runtime_tree_changed_during_intake": false,
+      "work_branch_at_execution": "work/spectral-modal-source",
+      "integration_branch": "baseline/local_import",
+      "environment": {
+        "python": "3.12.10",
+        "implementation": "CPython",
+        "platform": "Windows-11-10.0.26200-SP0"
+      },
+      "source_ids": [
+        "SRC-RECIPE18-FULL"
+      ],
+      "engineering_release_granted": false,
+      "new_live_etabs_capture": false,
+      "git_push": false,
+      "public_reference_paths": [
+        "docs/engineering/reference/recipe_20261118/README.md",
+        "docs/engineering/reference/recipe_20261118/LOCAL_VERIFICATION.json",
+        "docs/engineering/reference/recipe_20261118/LOCAL_BINDING.json"
+      ],
+      "private_proof_directory": ".receipts/verification/recipe-intake-20261118/",
+      "id": "EV-RECIPE18-LOCAL-OWNERS",
+      "status": "THREE_PRIMITIVES_MATCH_EXISTING_44_POPULATION_PRESERVED",
+      "scope": "Explicit inputs/outputs for two current owners plus the unchanged 44-record golden gate.",
+      "commands": [
+        ".\\.venv\\Scripts\\python.exe -X utf8 -B .receipts/verification/recipe-intake-20261118/reconcile_local.py"
+      ],
+      "audit_script_sha256": "84a5e8bddbc505612335389c0a1fed471a31562c5d159a8f98204cae63539f5f",
+      "private_artifacts": [
+        {
+          "path": ".receipts/verification/recipe-intake-20261118/LOCAL_RECONCILIATION.json",
+          "sha256": "9d31dc5993e6a6db77e309e368e99a2f557e7b670ee78fb8c761b0049c194f0a"
+        },
+        {
+          "path": ".receipts/verification/recipe-intake-20261118/LOCAL_CURRENT_GOLDEN.json",
+          "sha256": "7e5c3abebb036476b3d400ceb180b431d1824b15cf31a07ec4bc90564b997084"
+        }
+      ],
+      "owner_comparison": {
+        "matched": 3,
+        "mismatched": 0,
+        "dependencies": [
+          {
+            "path": "src/tbdy_next/__init__.py",
+            "local_raw_sha256": "ae57124a94a2b3f86715032535a2af3fab6828c67e1c76bb340b9645734b001e",
+            "published_lf_sha256": "14d85518cd6df9aa033853fb7bae5e70da6c95e216fa6031f4ac8e00d94d1951",
+            "review": "Identical source after CRLF-to-LF normalization; original bytes retained."
+          },
+          {
+            "path": "src/tbdy_next/column_engine/__init__.py",
+            "local_raw_sha256": "bdd08094e26059bacdcd10b47a438e525911288daff5decf4795d51ab407cd46",
+            "published_lf_sha256": "d092219f153b83146e1757c96639ed591c56f513cbc2af12cf12a803571ae185",
+            "review": "Identical source after CRLF-to-LF normalization; original bytes retained."
+          },
+          {
+            "path": "src/tbdy_next/column_engine/ts500_column.py",
+            "local_raw_sha256": "8411247559fc7605385a69f120b49299415138d20044381e28bb9f648f10e735",
+            "published_lf_sha256": "8411247559fc7605385a69f120b49299415138d20044381e28bb9f648f10e735",
+            "review": "Identical source after CRLF-to-LF normalization; original bytes retained."
+          },
+          {
+            "path": "src/tbdy_next/column_engine/native_archive.py",
+            "local_raw_sha256": "967ee844dc4bbe8f1fa27fe1d12f36624fa6e98d064742949f08f1b93d0acadb",
+            "published_lf_sha256": "231ccb8ebfa4030f0f310bb967930b73ed1b7e51d6871090231d723457d14c14",
+            "review": "Identical source after CRLF-to-LF normalization; original bytes retained."
+          },
+          {
+            "path": "src/tbdy_next/column_engine/csi_geometry.py",
+            "local_raw_sha256": "1a7b0860dde89b9301c4818d6f42c725795decfe7a131ef97dea0b8cdd0158d6",
+            "published_lf_sha256": "1a7b0860dde89b9301c4818d6f42c725795decfe7a131ef97dea0b8cdd0158d6",
+            "review": "Identical source after CRLF-to-LF normalization; original bytes retained."
+          }
+        ],
+        "results": [
+          {
+            "case_id": "GE-CHK-004",
+            "assertion_id": "GE-CHK-004-A01",
+            "owner_path": "src/tbdy_next/column_engine/ts500_column.py",
+            "owner_function": "section_axial_limits_kn",
+            "inputs": {
+              "fck_mpa": 30,
+              "fcd_mpa": 20.0,
+              "ac_mm2": 90000
+            },
+            "input_preparation": {
+              "input_case_ids": [
+                "GE-CHK-004",
+                "GE-CHK-005"
+              ],
+              "input_preparation": "fcd is prepared as the declared fck/gamma_c input; no claim is made to test a separate material owner.",
+              "scope": "Concrete-section axial limit only; role applicability, demand coverage and full control acceptance are not tested."
+            },
+            "output_key": "tbdy_7_3_1_2_max_ndm_kn",
+            "unit": "kN",
+            "expected": 1080,
+            "observed": 1080.0,
+            "absolute_difference": 0.0,
+            "absolute_tolerance": 1e-09,
+            "relative_tolerance": 0,
+            "status": "MATCH",
+            "engineering_check_closed": false
+          },
+          {
+            "case_id": "GE-CHK-005",
+            "assertion_id": "GE-CHK-005-A02",
+            "owner_path": "src/tbdy_next/column_engine/ts500_column.py",
+            "owner_function": "section_axial_limits_kn",
+            "inputs": {
+              "fck_mpa": 30,
+              "fcd_mpa": 20.0,
+              "ac_mm2": 90000
+            },
+            "input_preparation": {
+              "input_case_ids": [
+                "GE-CHK-005"
+              ],
+              "input_preparation": "fcd is prepared as the declared fck/gamma_c input; no claim is made to test a separate material owner.",
+              "scope": "Concrete-section axial limit only; role applicability, demand coverage and full control acceptance are not tested."
+            },
+            "output_key": "ts500_eq_7_7_max_nd_kn",
+            "unit": "kN",
+            "expected": 1620,
+            "observed": 1620.0,
+            "absolute_difference": 0.0,
+            "absolute_tolerance": 1e-09,
+            "relative_tolerance": 0,
+            "status": "MATCH",
+            "engineering_check_closed": false
+          },
+          {
+            "case_id": "GE-CHK-115",
+            "assertion_id": "GE-CHK-115-A01",
+            "owner_path": "src/tbdy_next/column_engine/ts500_column.py",
+            "owner_function": "minimum_eccentricity_mm",
+            "inputs": {
+              "bending_dimension_mm": 300
+            },
+            "input_preparation": {
+              "input_case_ids": [
+                "GE-CHK-115"
+              ],
+              "scope": "Scalar 300 mm bending-depth primitive only; no moment, sign or rotated-axis claim."
+            },
+            "output_key": null,
+            "unit": "mm",
+            "expected": 24,
+            "observed": 24.0,
+            "absolute_difference": 0.0,
+            "absolute_tolerance": 1e-09,
+            "relative_tolerance": 0,
+            "status": "MATCH",
+            "engineering_check_closed": false
+          }
+        ],
+        "complete_engineering_checks_closed": 0
+      },
+      "existing_44_record_comparison": {
+        "record_count": 44,
+        "classification_counts": {
+          "INSUFFICIENT_SOURCE": 25,
+          "NUMERICAL_MATCH": 15,
+          "ENGINEERING_INTERPRETATION_DIFFERENCE": 4
+        },
+        "source_manifest_sha256": "59dedec19a7e6c3d5f496e8d616b8c708af3c99701e271bd872644e39361bec7",
+        "result_sha256": "7e5c3abebb036476b3d400ceb180b431d1824b15cf31a07ec4bc90564b997084",
+        "acceptance_eligible": false,
+        "historical_stored_result_sha256": "9c20dde6af108f5f4a491ea36cb46bf36afdf7aa37e5d1c89bf0948ed7397e19",
+        "historical_classification_changes": [
+          {
+            "id": "G02_ALPHA_top",
+            "historical_classification": "INSUFFICIENT_SOURCE",
+            "current_classification": "NUMERICAL_MATCH",
+            "historical_yeni": null,
+            "current_yeni": 1.0,
+            "independent": 1.0,
+            "report": 1.0
+          },
+          {
+            "id": "G02_ALPHA_ground",
+            "historical_classification": "INSUFFICIENT_SOURCE",
+            "current_classification": "NUMERICAL_MATCH",
+            "historical_yeni": null,
+            "current_yeni": 0.6262267468066423,
+            "independent": 0.6262267468066423,
+            "report": 0.6262
+          }
+        ],
+        "limits": "Printed Vis/Vik arithmetic agrees; complete physical storey scope and two-end SCWB qualification remain open. Historical evidence is not rewritten."
+      },
+      "limits": [
+        "Three scalar values do not complete CHK-004, CHK-005 or CHK-115.",
+        "The existing 44 records retain their own denominator.",
+        "Printed Vis/Vik agreement does not prove physical story/SCWB scope or alpha authority.",
+        "Full regression, pipeline replay and live ETABS were not rerun for this reference-only import."
+      ]
     }
   ],
   "new_record_template": {
@@ -1903,7 +2253,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-18T15:53:30.313126+00:00",
+  "updated_at_utc": "2026-11-18T18:38:32.698750+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -2029,6 +2379,45 @@
         "build.zip",
         "YENI_MASTER_HANDOFF_ENGINEERING_RECIPE_2026-11-14.md"
       ]
+    },
+    {
+      "status": "LOCAL_MODAL_NUMERIC_ADAPTER_SOFTWARE_VERIFIED_LIVE_PENDING",
+      "branch": "work/spectral-modal-source",
+      "integration_base_branch": "baseline/local_import",
+      "integration_base_commit": "b255c3030c09c88a17bbec766fc2bb22682ad027",
+      "tested_base_commit": "a2e26b664d9b2b217e828de2c1df0c3df26068b1",
+      "tests_ran_on_dirty_worktree": true,
+      "head_resolution": "git rev-parse HEAD; this context is committed after verification",
+      "tested_manifest_path": "docs/context/TESTED_FILES_MODAL_NUMERIC_20261118.json",
+      "tested_manifest_sha256": "16e69bfae0fc5e1e7fb877cc71b3c710ab1a789f86ae52c19b2ec2504e85c422",
+      "tested_manifest_entries": 410,
+      "same_raw_bytes_before_documentation_update": 410,
+      "document_only_post_test_changes": [
+        "docs/CURRENT_STATE.md",
+        "docs/ENGINEERING_GAPS.yaml",
+        "docs/VERIFICATION_LEDGER.json",
+        "docs/engineering/PIPELINE_UNIFICATION_20261115.md",
+        "docs/context/TESTED_FILES_MODAL_NUMERIC_20261118.json"
+      ],
+      "method": {
+        "python_implementation": "CPython",
+        "python_version": "3.12.10",
+        "package_sha256": "fd204205682c2d88c404ca4a7420631fc56638ec6fff2e36ce6f29c2f5e1f5e4",
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 126,
+        "configuration_file_count": 9
+      },
+      "registered_method": "same-source-spectral-components.v5",
+      "evidence_refs": [
+        "EV-LOCAL-MODAL-NUMERIC-ADAPTER",
+        "EV-LOCAL-MODAL-NUMERIC-TESTS",
+        "EV-LOCAL-MODAL-NUMERIC-REPLAY"
+      ],
+      "source_sha256": "8b4851511cdcae04734866924bbacb079f9e7903a01d6c7a9b2bd8ebcd32a311",
+      "run_id": "RUN-567d448b129c4adebbeb983f433d4577",
+      "results_sha256": "c172474dc5e3cdab8357a865d38e8ea03c1fd88ebdcfd471b21e06836cffa9f5",
+      "engineering_release": "NOT_READY",
+      "live_validation": "NOT_RUN"
     }
   ]
 }
