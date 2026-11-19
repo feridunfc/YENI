@@ -799,6 +799,77 @@ def _build_legacy_report(directory: Path, source: dict[str, Any],
     return _assemble_complete_report(directory.name, source, receipts, stages, evidence, snapshot)
 
 
+def _column_candidate_schedule(stages: Mapping[str, Any], evidence: Mapping[str, Any]) -> dict | None:
+    """Display recorded candidates and dependent results; never select or assess a cage."""
+    r10 = stages.get("r10_live") or {}
+    members = r10.get("per_member")
+    if members is None:
+        members = {r10["member_id"]: r10} if r10.get("member_id") else {}
+    dependencies = evidence.get("design_dependencies") or {}
+    ledger = dependencies.get("selected_candidates") or {}
+    if not ledger and not any(m.get("engineer_column_selection") for m in members.values()):
+        return None
+    pmm = stages.get("column_pmm") or {}
+    pmm_members = {m["member_id"]: m for m in pmm.get("members", ())}
+    if not pmm_members and pmm.get("member_id") not in (None, "ALL"):
+        pmm_members = {pmm["member_id"]: pmm}
+    bindings = {r["member_id"]: r for r in ledger.get("rows", ())}
+    local = stages.get("r08_local_slenderness") or {}
+    local_members = local.get("per_member")
+    if local_members is None:
+        local_members = {local["member_id"]: local} if local.get("member_id") else {}
+    # Retain expected-but-blocked members, including a missing PMM projection.
+    expected_ids = dict.fromkeys([*pmm_members, *bindings, *members])
+    rows = []
+    for uid in expected_ids:
+        member = pmm_members.get(uid) or {}
+        section = member.get("section_evidence") or {}
+        selection = (members.get(uid) or {}).get("engineer_column_selection") or {}
+        identity_matches = selection.get("member_id") == uid
+        candidate = (selection.get("selected") or {}) if identity_matches else {}
+        tie = candidate.get("selected_transverse") or {}
+        binding = bindings.get(uid) or {}
+        binding_status = binding.get("status", "SAME_RUN_BINDING_UNAVAILABLE")
+        if selection and not identity_matches:
+            binding_status = "CANDIDATE_IDENTITY_MISMATCH"
+        elif binding_status == "SAME_RUN_CANDIDATE_BOUND" and not candidate:
+            binding_status = "RECORDED_CANDIDATE_UNAVAILABLE"
+        dependent = local_members.get(uid) or {}
+        magnified = dependent.get("magnified_selected_pmm") or {}
+        spectral = dependent.get("spectral_envelope_pmm_scenario") or {}
+        rows.append({
+            "member_id": uid, "story": member.get("story"), "section": member.get("section"),
+            "t2_mm": section.get("t2_mm"), "t3_mm": section.get("t3_mm"),
+            "cover_to_tie_mm": section.get("cover_to_tie_mm"),
+            "recorded_reinforcement_role": section.get("reinforcement_role"),
+            "selection_status": selection.get("status", "CANDIDATE_UNAVAILABLE"),
+            "binding_status": binding_status, "candidate_sha256": binding.get("candidate_sha256"),
+            **{key: candidate.get(key) for key in (
+                "label", "bar_count", "diameter_mm", "area_mm2", "rho_percent",
+                "num_bars_2_dir", "num_bars_3_dir", "minimum_clear_spacing_mm",
+                "pmm_max_utilization", "pmm_satisfied")},
+            "minimum_area_mm2": selection.get("tbdy_minimum_longitudinal_area_mm2") if identity_matches else None,
+            **{key: tie.get(key) for key in (
+                "tie_diameter_mm", "confinement_spacing_mm", "midspan_spacing_mm",
+                "legs_v2", "legs_v3", "crossties_parallel_v2", "crossties_parallel_v3",
+                "crosstie_max_spacing_a_mm", "crosstie_limit_25_phi_mm", "all_tbdy_checks_met")},
+            "transverse_alerts": tie.get("alerts", []),
+            "magnified_pmm_status": magnified.get("status"),
+            "magnified_pmm_utilization": magnified.get("max_utilization"),
+            "magnified_pmm_resolved_rows": magnified.get("resolved_row_count"),
+            "magnified_pmm_expected_rows": magnified.get("expected_row_count"),
+            "spectral_bound_status": spectral.get("status"),
+            "spectral_bound_utilization": spectral.get("max_bounding_utilization"),
+        })
+    return {
+        "schema": "tbdy.next.column-candidate-schedule.v1",
+        "expected_column_count": ledger.get("expected_column_count", pmm.get("expected_column_count", len(rows))),
+        "bound_column_count": sum(r["binding_status"] == "SAME_RUN_CANDIDATE_BOUND" for r in rows),
+        "selection_role": ledger.get("selection_role", "CANDIDATE_APPROVAL_PENDING"),
+        "rows": rows, "formal_compliance": "NOT_PROVEN", "engineering_release": "NOT_READY",
+    }
+
+
 def _assemble_complete_report(run_id: str, source: Mapping[str, Any],
                               receipts: Mapping[str, Mapping[str, Any]], stages: Mapping[str, Any],
                               evidence: Mapping[str, Any], snapshot: Mapping[str, Any] | None) -> dict[str, Any]:
@@ -964,6 +1035,7 @@ def _assemble_complete_report(run_id: str, source: Mapping[str, Any],
             "column_gates", "beam_r10", "r10_live", "r08_local_slenderness", "r14_closure",
         ) if stages[key] is not None},
         **{key: value for key, value in evidence.items() if value is not None},
+        "column_candidate_schedule": _column_candidate_schedule(stages, evidence),
         "vs03": display_check_group(new_checks),
         "checks": [display_check(check) for check in checks],
         "material_member_groups": material_member_groups(checks),
@@ -1200,6 +1272,8 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
                                              report["source_provenance"]["column_pmm_receipt_sha256"],
                                              report.get("column_pmm_reinforcement"),
                                              (report.get("r10_live") or {}).get("engineer_column_selection")))
+    if report.get("column_candidate_schedule") is not None:
+        vs04_sections.append(_column_candidate_schedule_html(report["column_candidate_schedule"]))
     if report.get("mixed_demand_components") is not None:
         vs04_sections.append(_mixed_components_html(report["mixed_demand_components"]))
     if report.get("native_demand_sources") is not None:
@@ -1950,6 +2024,33 @@ def _column_pmm_html(result: Mapping[str, Any], receipt_sha: str, reinforcement:
     )
 
 
+def _column_candidate_schedule_html(schedule: Mapping[str, Any]) -> str:
+    return (
+        '<section class="percheck" id="column-candidate-schedule"><h2>Selected column reinforcement candidates</h2>'
+        f'<p>{_val(schedule["bound_column_count"])}/{_val(schedule["expected_column_count"])} columns bound in the same run. '
+        'Algorithm-selected candidates; approval pending. As ≥ 0.01 Ac: TBDY 2018 §7.3.2.1. '
+        'Ties and crossties: TBDY 2018 §7.3.4.1–7.3.4.2. '
+        'The selected-cage results below are distinct from the recorded ETABS template PMM results. '
+        'Magnified PMM uses the recorded reference assumptions; spectral corners are independent bounds, not simultaneous force vectors.</p>'
+        + _table((("member_id", "ETABS Unique ID"), ("story", "Story"), ("section", "Section"),
+                  ("label", "Selected candidate"), ("bar_count", "Bars"), ("diameter_mm", "Bar Ø (mm)"),
+                  ("area_mm2", "Selected As (mm²)"), ("rho_percent", "As / Ac (%)"),
+                  ("minimum_area_mm2", "Minimum As (mm²)"), ("cover_to_tie_mm", "Cover to tie (mm)"),
+                  ("minimum_clear_spacing_mm", "Clear bar spacing (mm)"),
+                  ("tie_diameter_mm", "Tie Ø (mm)"), ("confinement_spacing_mm", "Confinement pitch (mm)"),
+                  ("midspan_spacing_mm", "Midspan pitch (mm)"),
+                  ("legs_v2", "Legs V2"), ("legs_v3", "Legs V3"),
+                  ("crossties_parallel_v2", "Crossties V2"), ("crossties_parallel_v3", "Crossties V3"),
+                  ("crosstie_max_spacing_a_mm", "Tied-bar spacing a (mm)"),
+                  ("all_tbdy_checks_met", "Recorded transverse criteria met"),
+                  ("pmm_max_utilization", "Selected static PMM utilization"),
+                  ("magnified_pmm_utilization", "Magnified reference PMM utilization"),
+                  ("spectral_bound_utilization", "Spectral bound utilization"),
+                  ("binding_status", "Same-run cage binding"), ("selection_status", "Selection status")), schedule["rows"])
+        + '<p>Hooks, anchorage, splice locations and physical confinement lengths remain subject to detailing verification.</p></section>'
+    )
+
+
 def _column_gates_html(gates: Mapping[str, Any]) -> str:
     axial, reinforcement = gates["axial_gates"], gates.get("reinforcement_gate")
     summary = [{
@@ -1958,7 +2059,8 @@ def _column_gates_html(gates: Mapping[str, Any]) -> str:
         "basis": axial["seismic_applicability_basis"], "pairs": axial["evaluated_pair_count"],
         "status": gates["status"], "formal": gates["formal_compliance"]}]
     return (
-        '<section class="percheck"><h2>Column P0 gates · CHK-004 / CHK-005 / CHK-117</h2>'
+        '<section class="percheck"><h2>Recorded ETABS reinforcement gates · CHK-004 / CHK-005 / CHK-117</h2>'
+        '<p>These gates retain the original ETABS reinforcement basis. Engine-selected candidates are listed separately above.</p>'
         '<p>Same axial and PMM results as above, evaluated against TS 500 Eq. (7.7), TBDY 7.3.1.2 and TBDY 7.3.2.1. '
         'A locally proven FAIL is never folded into NOT_PROVEN; no PASS or READY is issued.</p>'
         + _table((("pairs", "Evaluated pairs"), ("chk005", "CHK-005 exceedances"),

@@ -423,6 +423,45 @@
         ['Global P–Δ precheck', slenderness.global_pdelta_status],
       ]);
     }
+    const schedule = report.column_candidate_schedule;
+    if (schedule?.rows?.length) {
+      const candidates = schedule.rows;
+      const identity = row => [row.member_id, row.story, row.section];
+      const ids = ['ETABS Unique ID', 'Story', 'Section'];
+      const state = 'Selected candidates · ' + schedule.bound_column_count + '/' + schedule.expected_column_count + ' bound';
+      const note = 'Algorithm-selected candidates from this saved run; approval pending. '
+        + 'The recorded ETABS template is a separate reinforcement basis. '
+        + 'TBDY 2018 §7.3.2.1: As ≥ 0.01 Ac. Ties and crossties: §7.3.4.1–7.3.4.2.';
+      const inputs = [['Expected columns', schedule.expected_column_count], ['Same-run cage bindings', schedule.bound_column_count],
+        ['Reinforcement role', schedule.selection_role], ['Formal compliance', schedule.formal_compliance]];
+      tables['4.2'] = table([...ids, 'Selected candidate', 'Bar count', 'Bar Ø (mm)', 'Selected As (mm²)',
+        'As / Ac (%)', 'Minimum As (mm²)', 'Cover to tie (mm)', 'Clear bar spacing (mm)', 'Same-run cage binding', 'Selection status'],
+        candidates.map(row => [...identity(row), row.label, row.bar_count, row.diameter_mm, decimals(row.area_mm2, 2),
+          decimals(row.rho_percent, 3), decimals(row.minimum_area_mm2, 2), decimals(row.cover_to_tie_mm, 1),
+          decimals(row.minimum_clear_spacing_mm, 1), row.binding_status, row.selection_status]), state, note, inputs);
+      tables['4.6'] = table([...ids, 'Longitudinal candidate', 'Tie Ø (mm)', 'Confinement pitch (mm)', 'Midspan pitch (mm)',
+        'Legs V2', 'Legs V3', 'Crossties V2', 'Crossties V3', 'Tied-bar spacing a (mm)', '25Ø limit (mm)',
+        'Recorded transverse criteria met', 'Alerts', 'Same-run cage binding'],
+        candidates.map(row => [...identity(row), row.label, row.tie_diameter_mm, row.confinement_spacing_mm,
+          row.midspan_spacing_mm, row.legs_v2, row.legs_v3, row.crossties_parallel_v2, row.crossties_parallel_v3,
+          decimals(row.crosstie_max_spacing_a_mm, 1), decimals(row.crosstie_limit_25_phi_mm, 1),
+          bool(row.all_tbdy_checks_met), row.transverse_alerts.join(' · '), row.binding_status]), state,
+        note + ' Hooks, anchorage, splice locations and physical confinement lengths require detailing verification.', inputs);
+      tables['4.4'] = table([...ids, 'Selected candidate', 'Selected As (mm²)', 'As / Ac (%)', 'Minimum As (mm²)',
+        'Static PMM utilization', 'Magnified reference PMM utilization', 'Spectral bound utilization',
+        'Magnified PMM status', 'Spectral bound status', 'Same-run cage binding'],
+        candidates.map(row => [...identity(row), row.label, decimals(row.area_mm2, 2), decimals(row.rho_percent, 3),
+          decimals(row.minimum_area_mm2, 2), decimals(row.pmm_max_utilization, 4), decimals(row.magnified_pmm_utilization, 4),
+          decimals(row.spectral_bound_utilization, 4), row.magnified_pmm_status, row.spectral_bound_status, row.binding_status]), state,
+        note + ' Selected-cage static PMM includes minimum eccentricity. Magnification uses reference assumptions. '
+          + 'Spectral corners bound independent extremes; they are not simultaneous force vectors.', inputs);
+      tables['4.5'] = table([...ids, 'Selected candidate', 'Magnified reference PMM utilization',
+        'Resolved rows', 'Expected rows', 'Magnified PMM status', 'Same-run cage binding'],
+        candidates.map(row => [...identity(row), row.label, decimals(row.magnified_pmm_utilization, 4),
+          row.magnified_pmm_resolved_rows, row.magnified_pmm_expected_rows, row.magnified_pmm_status, row.binding_status]), state,
+        note + ' The same selected cage is used by the recorded R08 calculation. Physical clear length, effective length, '
+          + 'sway classification, creep and analysis order remain subject to verification.', inputs);
+    }
     if (wall?.items?.length) tables['7.1'] = table(['Story', 'ETABS Unique ID', 'Section', 'Panel length (m)', 'Thickness (mm)', 'Length/thickness', 'Status'],
       wall.items.map(row => [row.story, row.element_id, row.section, decimals(row.panel_length_m),
         decimals(row.thickness_mm), decimals(row.panel_length_thickness_ratio), row.status]),

@@ -7,3 +7,4 @@ src/tbdy_next/verification/*.py text eol=lf
 docs/engineering/reference/recipe_20261118/** text eol=lf
 # This tested-file manifest is referenced by its exact SHA in the evidence ledger.
 docs/context/TESTED_FILES_MODAL_LIVE_20261118.json text eol=lf
+docs/context/TESTED_FILES_COLUMN_CANDIDATES_20261119.json text eol=lf

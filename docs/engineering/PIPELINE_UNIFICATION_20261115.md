@@ -4,6 +4,25 @@ Historical baseline: 2026-11-15. The original working-tree-only status below was
 
 D3B continuation: [mixed demands, spectral interval evidence and remaining acceptance limits](OFFLINE_D3B_MIXED_DEMANDS_20261117.md). Coverage counts in the historical sections are not engineering completion percentages.
 
+## Selected column candidates — 2026-11-19
+
+[The candidate-selection record](COLUMN_CAGE_SELECTION_ACCEPTANCE_20261119.md)
+binds 87/87 columns to selected 32Φ16 cages and Φ10/90 ties with three crossties
+per direction. Existing scenario, R10 and R08 owners produce 1,206 resolved
+magnified PMM rows and 25,728 spectral bounding corners. Both confinement and
+shear reference branches are within their recorded limits. The initial Φ8 trial
+is preserved; 40 columns per direction exceeded its zero-concrete Ve reference.
+
+The added schedule is presentation of sealed results in JSON, HTML and four
+workspace tabs, with complete unique-ID rows and explicit candidate/template
+roles. No selection or force calculation runs while viewing it. Thirty focused
+Python tests, 11 JavaScript files, 435 independent area comparisons and 27 disabled
+report-time calculation entry points support this bounded result. Full regression,
+wheel and CI were not rerun for this presentation increment. No normative CHECK
+is closed: spectral alpha, physical detailing and source/input approval gates
+remain, with R14 still 0 closed / 87 partial. No new solver or acquisition route
+was added; the existing pipeline performed both explicit scenario executions.
+
 ## Native modal identity — live acceptance, 2026-11-18
 
 [The v6 acceptance record](LIVE_MODAL_IDENTITY_ACCEPTANCE_20261118.md) verifies

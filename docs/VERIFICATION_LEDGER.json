@@ -1,7 +1,7 @@
 {
   "schema": "yeni.project-memory.verification-ledger.v2",
   "repository": "feridunfc/YENI",
-  "updated_on": "2026-11-18",
+  "updated_on": "2026-11-19",
   "purpose": "Durable evidence index. It is not a source receipt or formal engineering acceptance.",
   "workflow": {
     "primary_workspace": "LOCAL_CODEX",
@@ -17,46 +17,31 @@
     "publication_policy": "LOCAL_ONLY_UNTIL_EXPLICIT_GITHUB_CHECKPOINT_REQUEST"
   },
   "local_checkpoint": {
-    "status": "LIVE_NATIVE_MODAL_INPUT_ACCEPTANCE_VERIFIED",
+    "status": "COLUMN_CANDIDATES_AND_REPORT_REFERENCE_VERIFIED",
     "integration_base_branch": "baseline/local_import",
-    "verified_work_branch": "work/spectral-live-acceptance",
+    "verified_work_branch": "work/column-cage-selection",
+    "implementation_base_commit": "5e1e10c1b9ffd0be777202873f4b428ded19b152",
     "published_baseline_commit": "a9d053f3422d981e3c576fe5e4c0d4b72549d150",
     "new_increment_published": false,
-    "implementation_base_commit": "a9d053f3422d981e3c576fe5e4c0d4b72549d150",
-    "implementation_identity": "Resolve final local HEAD; raw tested-file manifest identifies tested dirty-tree runtime over this base.",
-    "method_version": "same-source-spectral-components.v6",
-    "runtime_package_sha256": "92f34f2baf472c4e30cfbeee8721a7225416ed7cbf4bdf37326cf50fd47599bc",
-    "source_sha256": "9e5535ad2fe5749aa897a16023a3f7288062388df65f23013d243bbdb77bf640",
-    "results_sha256": "c88b0245b764cef48534c966c4fb5d680d4b2cac20f4d14ea975193e5dafaac8",
-    "live_run_id": "RUN-77039b97519e45029e209f0031d72d36",
-    "repeat_run_id": "RUN-01b2d1ec09bc405d9f73b5aba3341a6a",
-    "tests": {
-      "focused": 87,
-      "python": 1407,
-      "skipped": 1,
-      "javascript_files": 10,
-      "installed_wheel": 241,
-      "github_ci": "NOT_RUN",
-      "manifest_path": "docs/context/TESTED_FILES_MODAL_LIVE_20261118.json",
-      "manifest_sha256": "4dc69b85204ae68e076c4005b625c1cc4a9fffc3909a3bb6b2eb7314d6cfb196",
-      "manifest_file_count": 445,
-      "runtime_test_tool_config_files_rechecked": 316,
-      "wheel_sha256": "6f0f35cb3434a122857dadda8f245d8fc073db9d89fe2e427a51ec3423ed630c",
-      "original_private_manifest_sha256": "1d9f8e714d2538f8d9e8928cd68c4f3b3c526b3f4f9fad0865db213eee7f46a9"
+    "source_run_id": "RUN-4c6e8d795ca94411a1cd6d7f7f54c9de",
+    "source_sha256": "3de017a56036769e7436bac7f16363b552224740d75014678c73119fd1cd2171",
+    "results_sha256": "84740c17a28a7b9542ae21e0eee9dabeb51a7e6f8d2b2d7ced20b285f1365b83",
+    "method": {
+      "configuration_file_count": 9,
+      "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+      "file_count": 126,
+      "package_sha256": "6cf4e08485fdb7b021a91988faca578c6b5cf9045231fa0f7740969cae731e52",
+      "python_implementation": "CPython",
+      "python_version": "3.12.10"
     },
+    "tested_file_manifest_path": "docs/context/TESTED_FILES_COLUMN_CANDIDATES_20261119.json",
+    "tested_file_manifest_sha256": "731de054fa8350f60aa9b15ee2b49034f2a734fe61e8ce7281b1ce2022544bd7",
     "evidence_refs": [
-      "EV-LIVE-MODAL-IDENTITY",
-      "EV-LIVE-MODAL-NUMERIC-ORACLE",
-      "EV-LIVE-MODAL-ACCEPTANCE-TESTS",
-      "EV-LIVE-MODAL-REPLAY-REPORT"
+      "EV-COLUMN-CAGE-TIE10",
+      "EV-COLUMN-CAGE-REPORT-TESTS"
     ],
-    "server_restart_pending": false,
-    "observed_server_method": "same-source-spectral-components.v6",
-    "next_action": "Qualify amplitude/damping precision and applied torsion through existing owners, then independently verify modal/directional aggregation before SCWB/alpha consumption.",
-    "engineering_checks_closed": 0,
     "engineering_release": "NOT_READY",
-    "formal_compliance": "NOT_PROVEN",
-    "local_integration": "Verified milestone fast-forward integrated; work/spectral-live-acceptance retained."
+    "next_action": "Resume GAP-018 amplitude/active damping/applied torsion qualification; then GAP-013/GAP-016. No user question pending."
   },
   "last_observed_remote_implementation": {
     "branch": "audit/pipeline-pmm-v6-20261117",
@@ -2576,6 +2561,426 @@
       "alpha_iteration_executed": false,
       "original_private_manifest_sha256": "1d9f8e714d2538f8d9e8928cd68c4f3b3c526b3f4f9fad0865db213eee7f46a9",
       "manifest_publication_note": "Public JSON is LF-normalized; all 445 recorded path/hash pairs are identical to the preserved pre-test private CRLF manifest."
+    },
+    {
+      "observed_at": "2026-11-19T04:34:19.938092+00:00",
+      "implementation_commit": "5e1e10c1b9ffd0be777202873f4b428ded19b152",
+      "implementation_commit_role": "BASE_OF_TESTED_DIRTY_WORKTREE",
+      "dirty_worktree": true,
+      "untracked_code_included": true,
+      "tested_file_manifest_path": "docs/context/TESTED_FILES_COLUMN_CANDIDATES_20261119.json",
+      "tested_file_manifest_sha256": "731de054fa8350f60aa9b15ee2b49034f2a734fe61e8ce7281b1ce2022544bd7",
+      "diff_scope": [
+        "src/tbdy_next/reporting.py",
+        "src/tbdy_next/static/workspace-source.js",
+        "tests/test_column_candidate_schedule.py",
+        "tests/test_workspace_candidates.cjs"
+      ],
+      "environment": {
+        "platform": "Windows-11-10.0.26200-SP0",
+        "python": "3.12.10",
+        "node": "24.22.1"
+      },
+      "engineering_release_granted": false,
+      "public_reference_paths": [
+        "docs/engineering/COLUMN_CAGE_SELECTION_ACCEPTANCE_20261119.md"
+      ],
+      "id": "EV-COLUMN-CAGE-TIE10",
+      "status": "REFERENCE_SCOPE_VERIFIED",
+      "scope": "87 selected candidates, same-run R08/PMM and both transverse/shear reference branches; not full normative acceptance.",
+      "source_run_id": "RUN-4c6e8d795ca94411a1cd6d7f7f54c9de",
+      "source_sha256": "3de017a56036769e7436bac7f16363b552224740d75014678c73119fd1cd2171",
+      "parent_source_sha256": "9e5535ad2fe5749aa897a16023a3f7288062388df65f23013d243bbdb77bf640",
+      "results_sha256": "84740c17a28a7b9542ae21e0eee9dabeb51a7e6f8d2b2d7ced20b285f1365b83",
+      "method": {
+        "configuration_file_count": 9,
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 126,
+        "package_sha256": "6cf4e08485fdb7b021a91988faca578c6b5cf9045231fa0f7740969cae731e52",
+        "python_implementation": "CPython",
+        "python_version": "3.12.10"
+      },
+      "private_artifact": ".receipts/verification/column-cage-selection-20261118T193312Z/RUN-4c6e8d795ca94411a1cd6d7f7f54c9de.evidence.json",
+      "private_artifact_sha256": "ca4802afb5c5f080d137d33bf5faaa67f1ba7c46e95efcc12bd789a698e56837",
+      "counts": {
+        "selected_and_bound_columns": 87,
+        "magnified_rows": 1206,
+        "spectral_corner_count": 25728,
+        "receipt_count": 16,
+        "closed_columns": 0,
+        "partial_columns": 87,
+        "normative_fail_count": 0,
+        "alpha_iteration_count": 0
+      },
+      "selected_groups": [
+        {
+          "selection": [
+            "32Φ16",
+            10,
+            90.0,
+            90.0,
+            3,
+            3
+          ],
+          "count": 87
+        }
+      ],
+      "reference_maxima": {
+        "magnified_max_utilization": 0.4228290026485705,
+        "spectral_max_bound_utilization": 0.6467940916289202,
+        "ve_max_ts500_reference_utilization": 0.5783171785487936,
+        "ve_max_zero_concrete_reference_utilization": 0.7930698502208398
+      },
+      "independent_arithmetic": {
+        "method": "Decimal(80), separate pi/count/area arithmetic, no production formulas",
+        "comparisons": 435,
+        "outside_absolute_1e_8_tolerance": 0,
+        "max_abs_error": "5.52371493648956421906835802929920216721356686525046408000074156E-13"
+      },
+      "remaining_gate_codes": {
+        "D2:ALPHA_ITERATION:BLOCKED_INPUTS": 87,
+        "D2:DESIGN_ALPHA_FEEDBACK_NOT_RESOLVED_OR_NOT_CONSUMED": 87,
+        "EFFECTIVE_LENGTH_K_AND_SWAY_CLASSIFICATION_NOT_APPROVED": 87,
+        "INDEPENDENT_ANALYSIS_CUT_CENSUS_NOT_PROVEN": 87,
+        "PHYSICAL_JOINT_FACES_OFFSETS_AND_ANCHORAGE_NOT_PROVEN": 87,
+        "R03:ANALYSIS_GENERATION_NOT_PROVEN": 87,
+        "R03:APPROVED_MODEL_PROFILE_MISSING": 87,
+        "R03:LOAD_CASE_ROLES_AND_REMAINING_DESIGN_FAMILIES_UNAPPROVED": 87,
+        "R08_LOCAL:ACTUAL_ANALYSIS_ORDER_UNVERIFIED": 87,
+        "R08_LOCAL:CREEP_RATIO_RM_AND_SECTION_CRACKING_NOT_APPROVED": 87,
+        "R08_LOCAL:END_RESTRAINTS_K_AND_SWAY_CLASSIFICATION_NOT_APPROVED": 87,
+        "R08_LOCAL:EQ729_LENGTH_AMBIGUITY_NOT_RESOLVED": 87,
+        "R08_LOCAL:PHYSICAL_SUPPORT_FACES_AND_CLEAR_LENGTH_NOT_PROVEN": 87,
+        "SCWB_AND_CAPACITY_SHEAR_SPECTRAL_DEMAND_POLICY_NOT_PROVEN": 87,
+        "STORY_ALPHA_BOTH_DIRECTIONS_REQUIRED": 87,
+        "STORY_ALPHA_I_NOT_EVALUATED": 87,
+        "TS500_CREEP_RATIO_RM_NOT_APPROVED": 87
+      },
+      "initial_trial": {
+        "run_id": "RUN-0505da6ae4394ceabd4c5a22f8e8ff4c",
+        "tie_diameter_mm": 8,
+        "adopted_as_final": false,
+        "zero_concrete_reference_exceeding_columns_per_direction": 40,
+        "maximum_utilization": 1.2388257520913595
+      },
+      "commands": [
+        ".\\.venv\\Scripts\\python.exe -X utf8 -B -m tbdy_next.cli run-pipeline --source .receipts/RUN-77039b97519e45029e209f0031d72d36/input.source --case Modal --out .receipts --design-scenario .receipts/verification/column-cage-selection-20261118T193312Z/selection-request-tie10.json",
+        ".\\.venv\\Scripts\\python.exe -X utf8 -B .receipts/verification/column-cage-selection-20261118T193312Z/verify_cage_run.py RUN-4c6e8d795ca94411a1cd6d7f7f54c9de --require-reference-limits"
+      ],
+      "limitations": [
+        "Candidates are not approved or as-built.",
+        "Magnified PMM uses reference local-second-order assumptions.",
+        "Spectral corners are not simultaneous force vectors.",
+        "Confinement and zero-concrete design branches still require normative qualification.",
+        "No new ETABS capture, analysis, model edit or save was performed."
+      ]
+    },
+    {
+      "observed_at": "2026-11-19T04:34:19.938092+00:00",
+      "implementation_commit": "5e1e10c1b9ffd0be777202873f4b428ded19b152",
+      "implementation_commit_role": "BASE_OF_TESTED_DIRTY_WORKTREE",
+      "dirty_worktree": true,
+      "untracked_code_included": true,
+      "tested_file_manifest_path": "docs/context/TESTED_FILES_COLUMN_CANDIDATES_20261119.json",
+      "tested_file_manifest_sha256": "731de054fa8350f60aa9b15ee2b49034f2a734fe61e8ce7281b1ce2022544bd7",
+      "diff_scope": [
+        "src/tbdy_next/reporting.py",
+        "src/tbdy_next/static/workspace-source.js",
+        "tests/test_column_candidate_schedule.py",
+        "tests/test_workspace_candidates.cjs"
+      ],
+      "environment": {
+        "platform": "Windows-11-10.0.26200-SP0",
+        "python": "3.12.10",
+        "node": "24.22.1"
+      },
+      "engineering_release_granted": false,
+      "public_reference_paths": [
+        "docs/engineering/COLUMN_CAGE_SELECTION_ACCEPTANCE_20261119.md"
+      ],
+      "id": "EV-COLUMN-CAGE-REPORT-TESTS",
+      "status": "PASS_AFTER_RECORDED_TEST_ENVIRONMENT_RETRIES",
+      "scope": "Selected-candidate display preserves IDs, missing members, source templates and precision; sealed report and actual server projection.",
+      "focused_python_tests": 30,
+      "javascript_files_passed": 11,
+      "new_python_tests_included": 6,
+      "new_javascript_files_included": 1,
+      "full_python_suite": "NOT_RUN",
+      "installed_wheel": "NOT_RUN",
+      "github_ci": "NOT_RUN",
+      "initial_commands": [
+        {
+          "command": [
+            ".venv/Scripts/python.exe",
+            "-X",
+            "utf8",
+            "-B",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_column_candidate_schedule.py",
+            "-v"
+          ],
+          "exit_code": 0,
+          "log": ".receipts\\verification\\column-cage-selection-20261118T193312Z\\report-regression-00.log",
+          "log_sha256": "501dbc5e6ada767bf7f1adf953fa714cf647cd76c0fe90348b02e0e1f4aebb15"
+        },
+        {
+          "command": [
+            ".venv/Scripts/python.exe",
+            "-X",
+            "utf8",
+            "-B",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_report_export.py",
+            "-v"
+          ],
+          "exit_code": 0,
+          "log": ".receipts\\verification\\column-cage-selection-20261118T193312Z\\report-regression-01.log",
+          "log_sha256": "e87ddf8f983b90da4b89fea38a7cfcd5774cb2d0be4ddbfa27d521ce11501ad5"
+        },
+        {
+          "command": [
+            ".venv/Scripts/python.exe",
+            "-X",
+            "utf8",
+            "-B",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_rebar_selection.py",
+            "-v"
+          ],
+          "exit_code": 0,
+          "log": ".receipts\\verification\\column-cage-selection-20261118T193312Z\\report-regression-02.log",
+          "log_sha256": "b60a18ee431fc9f646f30478042de266cdfc0e67f0b6b1102e930b10fe7dc841"
+        },
+        {
+          "command": [
+            ".venv/Scripts/python.exe",
+            "-X",
+            "utf8",
+            "-B",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_web.py",
+            "-v"
+          ],
+          "exit_code": 0,
+          "log": ".receipts\\verification\\column-cage-selection-20261118T193312Z\\report-regression-03.log",
+          "log_sha256": "434bf1904faa88896c06d102c849be7dbc701fbddbb9dcf0710e3d46cbb12be6"
+        },
+        {
+          "command": [
+            "node",
+            "tests\\test_engine_console_ui.cjs"
+          ],
+          "exit_code": 0,
+          "log": ".receipts\\verification\\column-cage-selection-20261118T193312Z\\report-regression-04.log",
+          "log_sha256": "b6f185cee30d6887c322c8702d758593e67599fc27044e04328f70be884653cb"
+        },
+        {
+          "command": [
+            "node",
+            "tests\\test_vs07_ui_state.cjs"
+          ],
+          "exit_code": 0,
+          "log": ".receipts\\verification\\column-cage-selection-20261118T193312Z\\report-regression-05.log",
+          "log_sha256": "200320537d981961ed97f3f98b89797772ecc4d7a790c226f4e07faffd83f04d"
+        },
+        {
+          "command": [
+            "node",
+            "tests\\test_vs11_column_ui.cjs"
+          ],
+          "exit_code": 0,
+          "log": ".receipts\\verification\\column-cage-selection-20261118T193312Z\\report-regression-06.log",
+          "log_sha256": "4ba776e4f3889be179ba1416b102456fdeceb5b66c1754a68e76086bebefedf4"
+        },
+        {
+          "command": [
+            "node",
+            "tests\\test_vs20_column_ui.cjs"
+          ],
+          "exit_code": 1,
+          "log": ".receipts\\verification\\column-cage-selection-20261118T193312Z\\report-regression-07.log",
+          "log_sha256": "e7659514ac2376c6a10f2c08071452c3b8bb822dff287ceece75a29e3af43b61"
+        },
+        {
+          "command": [
+            "node",
+            "tests\\test_vs21_column_ui.cjs"
+          ],
+          "exit_code": 1,
+          "log": ".receipts\\verification\\column-cage-selection-20261118T193312Z\\report-regression-08.log",
+          "log_sha256": "6978904be1c9aaa3105a4e916bfcc079a242efdb928f26d7634d798a92e98fc9"
+        },
+        {
+          "command": [
+            "node",
+            "tests\\test_vs22_column_ui.cjs"
+          ],
+          "exit_code": 1,
+          "log": ".receipts\\verification\\column-cage-selection-20261118T193312Z\\report-regression-09.log",
+          "log_sha256": "f8a63d975dbc690f422348d634a86bd296e8cee023980c09acb9432ad180cfcf"
+        },
+        {
+          "command": [
+            "node",
+            "tests\\test_vs23_column_ui.cjs"
+          ],
+          "exit_code": 1,
+          "log": ".receipts\\verification\\column-cage-selection-20261118T193312Z\\report-regression-10.log",
+          "log_sha256": "e04cb50503a943b6599899ec0f60a2036076a6a0ad86e55a8af05e9f7b52e643"
+        },
+        {
+          "command": [
+            "node",
+            "tests\\test_vs24_column_ui.cjs"
+          ],
+          "exit_code": 1,
+          "log": ".receipts\\verification\\column-cage-selection-20261118T193312Z\\report-regression-11.log",
+          "log_sha256": "100723e0d9fb3c7fc45a22b3c4d2cc13caa995b7b55b1eb30e5ea722c5ecd78e"
+        },
+        {
+          "command": [
+            "node",
+            "tests\\test_vs26_column_ui.cjs"
+          ],
+          "exit_code": 1,
+          "log": ".receipts\\verification\\column-cage-selection-20261118T193312Z\\report-regression-12.log",
+          "log_sha256": "28abc2dfb8b5217f7c8357304ee19daed681476f24852247aba726efbf6c8ce8"
+        },
+        {
+          "command": [
+            "node",
+            "tests\\test_vs26_design_ui.cjs"
+          ],
+          "exit_code": 1,
+          "log": ".receipts\\verification\\column-cage-selection-20261118T193312Z\\report-regression-13.log",
+          "log_sha256": "065e0e36eb26f727fd1ef98ecc289bd5a99673ae3fe142a10fda589d27603c85"
+        },
+        {
+          "command": [
+            "node",
+            "tests\\test_workspace_candidates.cjs"
+          ],
+          "exit_code": 1,
+          "log": ".receipts\\verification\\column-cage-selection-20261118T193312Z\\report-regression-14.log",
+          "log_sha256": "7b813323e8a6896c277c85a011acd8baaf86d403623cc4a80dfaed94e1f97a35"
+        }
+      ],
+      "retries": [
+        {
+          "command": [
+            "node",
+            "tests\\test_vs20_column_ui.cjs"
+          ],
+          "exit_code": 0,
+          "log": ".receipts\\verification\\column-cage-selection-20261118T193312Z\\report-retry-07.log",
+          "reason": "Venv python precedes Windows Store stub; workspace harness boundary corrected",
+          "log_sha256": "f35260705540cabae5fbcb76e14a8cec54690482cd38eaea9c5a4bea0755e008"
+        },
+        {
+          "command": [
+            "node",
+            "tests\\test_vs21_column_ui.cjs"
+          ],
+          "exit_code": 0,
+          "log": ".receipts\\verification\\column-cage-selection-20261118T193312Z\\report-retry-08.log",
+          "reason": "Venv python precedes Windows Store stub; workspace harness boundary corrected",
+          "log_sha256": "ee74d5be4b0a04a22ba8b44d07e9bb1642d458a64d9f04f4fec8a22a651f4ef9"
+        },
+        {
+          "command": [
+            "node",
+            "tests\\test_vs22_column_ui.cjs"
+          ],
+          "exit_code": 0,
+          "log": ".receipts\\verification\\column-cage-selection-20261118T193312Z\\report-retry-09.log",
+          "reason": "Venv python precedes Windows Store stub; workspace harness boundary corrected",
+          "log_sha256": "66f10ef891938d959834ff5ac801e7add3182a21addf2f699ff33cb899c87101"
+        },
+        {
+          "command": [
+            "node",
+            "tests\\test_vs23_column_ui.cjs"
+          ],
+          "exit_code": 0,
+          "log": ".receipts\\verification\\column-cage-selection-20261118T193312Z\\report-retry-10.log",
+          "reason": "Venv python precedes Windows Store stub; workspace harness boundary corrected",
+          "log_sha256": "040ac1f2513ec5f709dde19f4ffdfc16dd979819a80dffd893a2d5f2908ad925"
+        },
+        {
+          "command": [
+            "node",
+            "tests\\test_vs24_column_ui.cjs"
+          ],
+          "exit_code": 0,
+          "log": ".receipts\\verification\\column-cage-selection-20261118T193312Z\\report-retry-11.log",
+          "reason": "Venv python precedes Windows Store stub; workspace harness boundary corrected",
+          "log_sha256": "61bf4e69fcf387cd3e8af54fde4819c7e302b5a2cae7e9103d3c9032af25df71"
+        },
+        {
+          "command": [
+            "node",
+            "tests\\test_vs26_column_ui.cjs"
+          ],
+          "exit_code": 0,
+          "log": ".receipts\\verification\\column-cage-selection-20261118T193312Z\\report-retry-12.log",
+          "reason": "Venv python precedes Windows Store stub; workspace harness boundary corrected",
+          "log_sha256": "481c9d15d15c5a1c9a3767b5c0f2eb7c39652d062096ceff890900c08903cd44"
+        },
+        {
+          "command": [
+            "node",
+            "tests\\test_vs26_design_ui.cjs"
+          ],
+          "exit_code": 0,
+          "log": ".receipts\\verification\\column-cage-selection-20261118T193312Z\\report-retry-13.log",
+          "reason": "Venv python precedes Windows Store stub; workspace harness boundary corrected",
+          "log_sha256": "36b79f3a471c4030a2a7402808a49840a3c4bab37afaa4226ff922d7b89348f0"
+        },
+        {
+          "command": [
+            "node",
+            "tests\\test_workspace_candidates.cjs"
+          ],
+          "exit_code": 0,
+          "log": ".receipts\\verification\\column-cage-selection-20261118T193312Z\\report-retry-14.log",
+          "reason": "Venv python precedes Windows Store stub; workspace harness boundary corrected",
+          "log_sha256": "41cff9804941dfbcbfe928586b5f0286de556822e949137381f49aac65cd457a"
+        }
+      ],
+      "disabled_calculator_count": 27,
+      "calculator_calls": 0,
+      "user_server": "JSON_HTML_AND_WORKSPACE_SOURCE_MATCH_CURRENT_PROJECTION",
+      "html_sha256": "2d773f090aa8e6336a449c8f8c0f031194ca5f2d20960e7492d40994ec55a93a",
+      "view_rows_per_tab": 87,
+      "view_tabs": [
+        "4.2",
+        "4.4",
+        "4.5",
+        "4.6"
+      ],
+      "visual_browser_inspection": "NOT_RUN",
+      "verification_script_sha256": "4ea259c7c0b65d9604d68e1c3210c23bbcd3d7d1a726e35b38c0363db000160e",
+      "workspace_verification_script_sha256": "bcda802f4b3de24fccba181f86ecb0887cad3ab75c0c7b26cff58fe7f564ff8d"
     }
   ],
   "new_record_template": {
@@ -2600,7 +3005,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-18T19:21:27.180303+00:00",
+  "updated_at_utc": "2026-11-19T04:34:19.938092+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -2888,6 +3293,48 @@
       "current_full_regression": "RUNNING",
       "server_restart_confirmed": true,
       "server_registry_method": "same-source-spectral-components.v6"
+    },
+    {
+      "status": "LIVE_NATIVE_MODAL_INPUT_ACCEPTANCE_VERIFIED",
+      "integration_base_branch": "baseline/local_import",
+      "verified_work_branch": "work/spectral-live-acceptance",
+      "published_baseline_commit": "a9d053f3422d981e3c576fe5e4c0d4b72549d150",
+      "new_increment_published": false,
+      "implementation_base_commit": "a9d053f3422d981e3c576fe5e4c0d4b72549d150",
+      "implementation_identity": "Resolve final local HEAD; raw tested-file manifest identifies tested dirty-tree runtime over this base.",
+      "method_version": "same-source-spectral-components.v6",
+      "runtime_package_sha256": "92f34f2baf472c4e30cfbeee8721a7225416ed7cbf4bdf37326cf50fd47599bc",
+      "source_sha256": "9e5535ad2fe5749aa897a16023a3f7288062388df65f23013d243bbdb77bf640",
+      "results_sha256": "c88b0245b764cef48534c966c4fb5d680d4b2cac20f4d14ea975193e5dafaac8",
+      "live_run_id": "RUN-77039b97519e45029e209f0031d72d36",
+      "repeat_run_id": "RUN-01b2d1ec09bc405d9f73b5aba3341a6a",
+      "tests": {
+        "focused": 87,
+        "python": 1407,
+        "skipped": 1,
+        "javascript_files": 10,
+        "installed_wheel": 241,
+        "github_ci": "NOT_RUN",
+        "manifest_path": "docs/context/TESTED_FILES_MODAL_LIVE_20261118.json",
+        "manifest_sha256": "4dc69b85204ae68e076c4005b625c1cc4a9fffc3909a3bb6b2eb7314d6cfb196",
+        "manifest_file_count": 445,
+        "runtime_test_tool_config_files_rechecked": 316,
+        "wheel_sha256": "6f0f35cb3434a122857dadda8f245d8fc073db9d89fe2e427a51ec3423ed630c",
+        "original_private_manifest_sha256": "1d9f8e714d2538f8d9e8928cd68c4f3b3c526b3f4f9fad0865db213eee7f46a9"
+      },
+      "evidence_refs": [
+        "EV-LIVE-MODAL-IDENTITY",
+        "EV-LIVE-MODAL-NUMERIC-ORACLE",
+        "EV-LIVE-MODAL-ACCEPTANCE-TESTS",
+        "EV-LIVE-MODAL-REPLAY-REPORT"
+      ],
+      "server_restart_pending": false,
+      "observed_server_method": "same-source-spectral-components.v6",
+      "next_action": "Qualify amplitude/damping precision and applied torsion through existing owners, then independently verify modal/directional aggregation before SCWB/alpha consumption.",
+      "engineering_checks_closed": 0,
+      "engineering_release": "NOT_READY",
+      "formal_compliance": "NOT_PROVEN",
+      "local_integration": "Verified milestone fast-forward integrated; work/spectral-live-acceptance retained."
     }
   ]
 }

@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-18T19:21:27.180303+00:00",
+  "updated_at_utc": "2026-11-19T04:34:19.938092+00:00",
   "repository": "feridunfc/YENI",
   "baseline_implementation_commit": "60938da94b770631c6a5c34a545c8863162ac8a4",
   "local_reconciled": true,
-  "scope_note": "18 stable GAP IDs. Native modal numeric input and eccentricity definition subscopes now have same-session live acceptance. No normative GAP or engineering CHECK is newly closed.",
+  "scope_note": "18 stable GAP IDs. Native modal acceptance and the 87-column selected-cage reference scope are verified. No normative GAP or engineering CHECK is newly closed.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -223,7 +223,8 @@
       "evidence_refs": [
         "EV-D1",
         "EV-D2",
-        "EV-D3"
+        "EV-D3",
+        "EV-COLUMN-CAGE-TIE10"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false
@@ -253,7 +254,7 @@
       "title": "Reinforcement selection and detailing",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "87 algorithm-selected candidates can bind source/revision; selection must supply at least 0.01 Ac.",
+      "achieved_scope": "87 same-run candidates on the verified live source: 32Phi16, As/Ac 1.0053%, Phi10/90 ties and three crossties per direction. Both confinement and shear reference branches verified; selected cages feed local R08/PMM and the recorded report. Original source preserved.",
       "blocker": "Candidates are not engineer-approved or as-built. Complete crosstie, anchorage and detailing acceptance remains open.",
       "closure_criteria": "Separately verify cage role, bar/leg geometry, cover, clear spacing, pitch, area and anchorage; retain actual-vs-proposed distinction.",
       "owner_paths": [
@@ -262,7 +263,9 @@
       ],
       "evidence_refs": [
         "EV-D1",
-        "EV-D2"
+        "EV-D2",
+        "EV-COLUMN-CAGE-TIE10",
+        "EV-COLUMN-CAGE-REPORT-TESTS"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false
