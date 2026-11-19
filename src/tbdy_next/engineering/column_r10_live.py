@@ -1605,7 +1605,7 @@ def _attach_r13_joint_shear_and_transverse(
                     ve_gov = max(ve_a, ve_b)
                     lim_kn = float(calc["geometric_limit_kn"])
                     axis_entry["joint_shear_ve"] = {
-                        "code_ref": "TBDY 7.5.2.1 / Eq. 7.9",
+                        "code_ref": "TBDY 7.5.2.1 / Eq. 7.11",
                         "sway_a_tension_kn": sway_a_t,
                         "sway_b_tension_kn": sway_b_t,
                         "v_kol_used_kn": v_kol_kn,
@@ -1637,22 +1637,22 @@ def _attach_r13_joint_shear_and_transverse(
                 lower_t = transverse_by_uid.get(lower_uid) or {}
                 if conf_lower and sel_tr.get("confinement_spacing_mm") and sel_tr.get("tie_diameter_mm"):
                     dims_l = frames[lower_uid].get("dims")
-                    fck_l = end_row.get("fck_mpa")
-                    n_max_l = lower_ax.get("n_max_kn")
-                    high_axial = True
-                    if dims_l is not None and fck_l and n_max_l is not None:
-                        high_axial = float(n_max_l) * 1000.0 > 0.2 * (dims_l.local2_extent_mm * dims_l.local3_extent_mm) * float(fck_l)
-                    lower_req = float(
-                        conf_lower["high_axial_required_ash_mm2"]
-                        if high_axial
-                        else conf_lower["low_axial_required_ash_mm2"]
-                    )
+                    fck_l = _float_or_none(lower_ax.get("fck_mpa"))
+                    n_max_l = _float_or_none(lower_ax.get("n_max_kn"))
+                    axial_branch = "CONSERVATIVE_HIGH_AXIAL_REFERENCE_INPUTS_UNBOUND"
+                    lower_req = conf_lower["high_axial_required_ash_mm2"]
+                    if dims_l is not None and fck_l is not None and fck_l > 0 and n_max_l is not None:
+                        threshold_kn = 0.2 * dims_l.local2_extent_mm * dims_l.local3_extent_mm * fck_l / 1000.0
+                        axial_branch = "HIGH_AXIAL_GT_0_2_AC_FCK"
+                        if n_max_l <= threshold_kn:
+                            axial_branch = "LOW_AXIAL_LE_0_2_AC_FCK"
+                            lower_req = conf_lower["low_axial_required_ash_mm2"]
                     s_low = float(sel_tr["confinement_spacing_mm"])
                     ash_prop = float(conf_lower["ash_mm2"])
                     tie_d = float(sel_tr["tie_diameter_mm"])
                     axis_entry["joint_transverse_7_5_2_3"] = {
                         "lower_column_id": lower_uid,
-                        "axial_branch": "HIGH_AXIAL_GT_0_2_AC_FCK" if high_axial else "LOW_AXIAL_LE_0_2_AC_FCK",
+                        "axial_branch": axial_branch,
                         "lower_column_has_confinement_calc": bool(lower_t),
                         **joint_transverse_reference(
                             lower_required_ash_mm2=lower_req,

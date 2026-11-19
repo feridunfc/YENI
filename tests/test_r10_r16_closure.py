@@ -266,6 +266,7 @@ class R10ToR16OracleUnitTests(unittest.TestCase):
         v2_jve = ax_by_name["V2"]["joint_shear_ve"]
         v3_jve = ax_by_name["V3"]["joint_shear_ve"]
         self.assertEqual(v2_jve["v_kol_basis"], "ROOF_JOINT_NO_UPPER_COLUMN_VKOL_ZERO")
+        self.assertEqual(v2_jve["code_ref"], "TBDY 7.5.2.1 / Eq. 7.11")
         self.assertAlmostEqual(v2_jve["v_kol_used_kn"], 0.0, places=6)
 
         # Independent oracle on orthogonal axes (axis_angle="90": local2 aligns with Global Y beams 516/518; local3 aligns with Global X beams 511/517)
@@ -288,6 +289,14 @@ class R10ToR16OracleUnitTests(unittest.TestCase):
         jt_v3 = ax_by_name["V3"]["joint_transverse_7_5_2_3"]
         self.assertEqual(jt_v3["fraction_of_lower_required_density"], 0.4)
         self.assertEqual(jt_v3["spacing_limit_mm"], 150)
+        lower = next(c for c in axial["columns"] if c["element_id"] == jt_v3["lower_column_id"])
+        # A missing demand takes the conservative amount without asserting an observed high axial load.
+        lower.pop("n_max_kn", None)
+        conservative = project_column_r10_live(payload, geometry, axial, pmm, extra, beam_live=beam_live)
+        j_end = next(end for end in conservative["member_joint_ends"] if end["end"] == "J")
+        tie = next(a for a in j_end["axes"] if a["axis"] == "V3")["joint_transverse_7_5_2_3"]
+        self.assertEqual(tie["axial_branch"], "CONSERVATIVE_HIGH_AXIAL_REFERENCE_INPUTS_UNBOUND")
+        self.assertGreaterEqual(tie["lower_required_ash_mm2"], jt_v3["lower_required_ash_mm2"])
 
     def test_r11_alpha_i_and_r15_87_columns_population_and_pdelta_oracle(self):
         payload, geometry, extra, axial = _make_87_column_live_fixtures()
