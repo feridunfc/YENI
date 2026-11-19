@@ -1,7 +1,7 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-19T04:34:19.938092+00:00",
+  "updated_at_utc": "2026-11-19T13:17:01.539561+00:00",
   "repository": "feridunfc/YENI",
   "baseline_implementation_commit": "60938da94b770631c6a5c34a545c8863162ac8a4",
   "local_reconciled": true,
@@ -441,8 +441,8 @@
       "title": "Spectral design demands and simultaneity",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Same-session live v6 source binds 100/100 native modal numeric modes and 2/2 eccentricity definitions. Independent Decimal(80) checks all 500 native numeric relationships with zero outside the unchanged tolerance. Existing 200/200 displayed spectrum mode rows, 1131/1131 supporting member-case pairs and 3216 scalar spectral cuts remain recorded. Repeat receipts are 16/16 IDENTICAL; report projection invokes zero calculators. No physical concurrency or alpha authority is granted.",
-      "blocker": "Spectrum amplitude/active-damping precision, applied accidental-torsion contributions, modal/directional aggregation, governing Nd and story-shear allocation remain unqualified. Successful modal input and coefficient binding does not close spectral design acceptance.",
+      "achieved_scope": "Same-session live v6 source binds 100/100 native modal numeric modes and 2/2 eccentricity definitions. Independent Decimal(80) checks all 500 native numeric relationships with zero outside the unchanged tolerance. Existing 200/200 displayed spectrum mode rows, 1131/1131 supporting member-case pairs and 3216 scalar spectral cuts remain recorded. Repeat receipts are 16/16 IDENTICAL; report projection invokes zero calculators. No physical concurrency or alpha authority is granted. The v7 archived selected scenario independently matches 200 signed amplitude relationships at printed resolution across 100 modes and two directions. All 16 repeat receipt payloads match. The new same-session source readers have synthetic contract coverage.",
+      "blocker": "A fresh v7 acquisition is pending. The archive contains no native spectrum curve/getter returns or isolated applied torsion for its 804 configured spectrum case–cuts. Effective damping, applied amplitude precision, modal/directional aggregation, governing Nd and story allocation require independent qualification.",
       "closure_criteria": "Preserve the existing bound modal sources; qualify precision and accidental-torsion contributions through existing owners, then independently verify aggregation before SCWB/alpha consumption and a complete example. Never call scalar intervals simultaneous vectors.",
       "owner_paths": [
         "src/tbdy_next/engineering/demand_sources.py",
@@ -451,7 +451,9 @@
         "src/tbdy_next/engineering/alpha_iteration.py",
         "src/tbdy_next/basis_probe.py",
         "src/tbdy_next/etabs_source_gateway_windows.py",
-        "src/tbdy_next/frame_force_capture.py"
+        "src/tbdy_next/frame_force_capture.py",
+        "src/tbdy_next/diaphragm_probe.py",
+        "src/tbdy_next/spectrum_reconstruction.py"
       ],
       "evidence_refs": [
         "EV-D3B",
@@ -472,7 +474,8 @@
         "EV-LIVE-MODAL-IDENTITY",
         "EV-LIVE-MODAL-NUMERIC-ORACLE",
         "EV-LIVE-MODAL-ACCEPTANCE-TESTS",
-        "EV-LIVE-MODAL-REPLAY-REPORT"
+        "EV-LIVE-MODAL-REPLAY-REPORT",
+        "EV-GAP018-SPECTRUM-ARCHIVE-20261119"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,

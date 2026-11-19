@@ -4,20 +4,69 @@
 Final candidate: **32Φ16 + Φ10/90 mm ties, three crossties per local direction**.
 Selected As 6,433.98 mm² ≥ 6,400 mm² (1.0053%). The final reference checks pass,
 but R14 remains **0 closed / 87 partial**, formal compliance `NOT_PROVEN`,
-engineering release `NOT_READY`. No user input or server restart is pending.
+engineering release `NOT_READY`.
 
-## Repository and source identity
+## Active GAP-018 work branch
+
+The local and published `baseline/local_import` were verified at
+`24ddc371c66ebcba24bf8672fe3038564e26d48c`. The working branch
+`work/gap-018-spectrum-evidence` starts there. The existing mixed-demand stage
+uses `same-source-spectral-components.v7`. Fresh live acceptance is pending
+on the existing user-session gateway at port 8876.
+
+The selected, sealed scenario supplied 100 native modes and 200 signed
+amplitudes from the RSX and RSY display table. The amplitude comparison uses
+the native signed participation factor and eigenvalue for the same mode. It
+propagates the last printed digit of both acceleration and displacement.
+All 200 intervals overlap. A separate exact-rational oracle checked the
+predicted center, residual and interval allowance for each row. The largest
+displayed-center residual was 0.00000641024 m. Trailing zeros can be suppressed
+in the table, so this agreement establishes compatibility at printed resolution.
+[CSI response-spectrum analysis FAQ](https://wikicsiamerica.atlassian.net/wiki/spaces/kb/pages/2006323)
+
+On a fresh PMM capture, the gateway records the native modal case, load axis,
+function, acceleration scale, curve knots, damping type, constant and mode
+overrides through the same model connection. A selected-case XML response and
+the in-plane diaphragm force table are retained for inspection. A native-curve
+amplitude is an unadjusted reference. Effective damping also depends on material
+and link/support contributions. The selected archive predates these new reads.
+[CSI Analysis Reference Manual, chapter on response-spectrum analysis](https://docs.csiamerica.com/manuals/etabs/Analysis%20Reference.pdf)
+
+The configured inventory covers 87 members and 402 element-side cuts across
+two spectrum cases. Isolated accidental-torsion contributions are **0/804**.
+The case eccentricity and in-plane loads cannot isolate the internally applied
+torsional response. The next live read must establish effective per-mode
+damping, amplitude precision and the applied response before modal/directional
+aggregation, story allocation or SCWB/alpha can consume it.
+[CSI accidental eccentricity guidance](https://web.wiki.csiamerica.com/wiki/spaces/kb/pages/2001549)
+
+The implementation commit is `f5dc030beb7475c975b0d68a2e8ccc664cc1af7e`.
+Both v7 CLI runs produced identical payloads for all 16 receipts. The JSON
+and HTML report matched the sealed result with 34 entry points disabled and
+zero calculation or live calls. The full local suite ran 1,426 Python tests
+with one Windows symlink skip and passed 11 JavaScript test files. The
+installed wheel passed 251 tests. An earlier full run exposed a stale report
+heading assertion on the published baseline. The corrected assertion retains
+the ETABS reinforcement gate heading and all three check identities.
+
+The ledger record `EV-GAP018-SPECTRUM-ARCHIVE-20261119` identifies the 319-file
+manifest, independent audit, replay and repeat runs, commands, and private log
+hashes. The v7 result digest is
+`a44cf26136085d5f73b1d8aa7cd1e04467be070b4a1d074a209ad821977dd105`.
+All 16 original candidate receipts also passed integrity verification.
+The latest gateway probe returned socket error 10061. The work branch awaits
+live acceptance before integration and publication.
+
+## Integrated candidate checkpoint and source identity
 
 - Logical integration base: `baseline/local_import`.
 - Both verified milestones are integrated locally: native modal identity
   `5e1e10c1b9ffd0be777202873f4b428ded19b152`, then candidate reporting
   `46dcb3ccc5c6dfe052a88c81e1d7758838a0f1b5`. The retained work branches are
-  historical milestones; the active branch is `baseline/local_import`.
-- This documentation checkpoint continues from `46dcb3c...`. Resolve its full
-  HEAD with `git rev-parse HEAD` and inspect working changes. The GitHub ref
-  observed immediately before publication was `a9d053f3422d981e3c576fe5e4c0d4b72549d150`.
-  Publication of this checkpoint is requested; the actual remote ref and private
-  `.receipts/handoff/publication.json` establish success, not the pre-push snapshot.
+  historical milestones integrated into `baseline/local_import`.
+- The documentation handoff at `24ddc371` followed `46dcb3c...`. Its published
+  ref was rechecked directly with `git ls-remote` before the GAP-018 work.
+  Original publication evidence remains in `.receipts/handoff/publication.json`.
 - Keep baseline current at every completed, verified milestone. Start scoped work
   from that baseline, synchronize it using a normal push and verify the remote SHA.
   Preserve pending work separately; never reset local changes to an older remote.
@@ -69,8 +118,9 @@ As, percentage, minimum As, ties and crossties across all IDs in tabs 4.2, 4.4,
 4.5 and 4.6. Original ETABS template gates are explicitly labelled separately.
 The data remains full precision; only display precision is reduced.
 
-The user restarted server 8876. Its JSON, HTML and workspace script match the
-final projection. All four tables contain the same 87 unique IDs. During local
+At the candidate-report checkpoint, the user restarted server 8876. Its JSON,
+HTML and workspace script matched the final projection. All four tables contained
+the same 87 unique IDs. During local
 report verification 27 calculation entry points were disabled; zero were called.
 No mouse/browser takeover or visual inspection was performed. The existing
 server's session probe observed PID 11788, locked model, units 6; rediscover the
@@ -100,7 +150,7 @@ generation; physical joint faces/cuts/anchorage; local R08 effective-length,
 sway, creep and analysis-order approval; spectral SCWB/story-alpha policy and
 alpha feedback. No engineering CHECK or stable GAP is newly CLOSED.
 
-Next bounded task resumes `SPECTRAL-MODAL-PRECISION-AND-TORSION-QUALIFICATION`,
+The active bounded task is `SPECTRAL-MODAL-PRECISION-AND-TORSION-QUALIFICATION`,
 GAP-018, then GAP-013 / GAP-016. Acquire unrounded spectrum amplitude and active
 damping/applied-torsion evidence through the existing gateway; preserve expected
 case/mode/direction/cut scope. Independently verify modal/directional aggregation
@@ -113,7 +163,7 @@ complete CheckInstance accounting remain GAP-005 / GAP-017.
 100/100 native numeric modes, 2/2 eccentricity definitions, 500 independent
 numeric relationships, 16/16 identical repeat receipts, 1,407 Python / 10 JS /
 241 wheel tests. This earlier scope is preserved. Eccentricity definitions do not
-prove applied torsion or active damping. The existing registered method remains
+prove applied torsion or active damping. The registered method at that checkpoint was
 `same-source-spectral-components.v6`.
 
 Historical PMM v6 configured-cut proof remains 2,409 cuts for 73 single-element
@@ -126,13 +176,13 @@ Published recipe/v5 source assets remain at a9d053f…; their evidence and the
 The old exported context ZIP describes b255c303… and is superseded by current
 Git documents and ledger. No background GitHub sync is configured.
 
-## Handoff and publication checkpoint
+## Earlier handoff and publication checkpoint
 
 [Worker and new-chat handoff](context/WORKER_HANDOFF_20261119.md) defines the
 baseline workflow, reference boundaries and the next bounded acceptance task.
 The private local resource index is `.receipts/handoff/LOCAL_RESOURCES_20261119.md`;
 it identifies the working directory, Drive connection, reference locations, run
 files, SQLite banks and launch command. It is intentionally absent from GitHub.
-This handoff changes guidance and evidence indexes only. Engineering tests and
-live ETABS operations are **NOT_RUN during this documentation checkpoint**.
+The baseline handoff at `24ddc371` updated guidance and evidence indexes.
+Engineering tests and live ETABS operations were **NOT_RUN for that handoff**.
 See `EV-HANDOFF-20261119`; earlier test records retain their original scopes.

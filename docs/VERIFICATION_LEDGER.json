@@ -12,51 +12,37 @@
     "integration_base_branch": "baseline/local_import",
     "integration_base_role": "LOGICAL_MAIN",
     "work_branch_pattern": "work/<scope>",
-    "active_local_branch": "baseline/local_import",
+    "active_local_branch": "work/gap-018-spectrum-evidence",
     "integration_policy": "Keep baseline/local_import current at each completed, reviewed and verified milestone. New scoped work starts from current baseline; unfinished work remains separate.",
     "publication_policy": "USER_STANDING_REQUEST_TO_KEEP_BASELINE_CURRENT; NORMAL_PUSH_ONLY; VERIFY_REMOTE_HEAD; REPORT_PENDING_PUBLICATION",
     "standing_instruction_date": "2026-11-19",
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "VERIFIED_IMPLEMENTATION_INTEGRATED_HANDOFF_PREPARED",
+    "status": "ARCHIVED_VERIFICATION_COMPLETE_LIVE_ACCEPTANCE_PENDING",
     "integration_base_branch": "baseline/local_import",
-    "verified_work_branch": "work/column-cage-selection",
-    "implementation_base_commit": "5e1e10c1b9ffd0be777202873f4b428ded19b152",
+    "published_baseline_commit": "24ddc371c66ebcba24bf8672fe3038564e26d48c",
+    "work_branch": "work/gap-018-spectrum-evidence",
+    "active_local_branch": "work/gap-018-spectrum-evidence",
+    "implementation_commit": "f5dc030beb7475c975b0d68a2e8ccc664cc1af7e",
     "source_run_id": "RUN-4c6e8d795ca94411a1cd6d7f7f54c9de",
     "source_sha256": "3de017a56036769e7436bac7f16363b552224740d75014678c73119fd1cd2171",
-    "results_sha256": "84740c17a28a7b9542ae21e0eee9dabeb51a7e6f8d2b2d7ced20b285f1365b83",
+    "results_sha256": "a44cf26136085d5f73b1d8aa7cd1e04467be070b4a1d074a209ad821977dd105",
     "method": {
       "configuration_file_count": 9,
       "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
       "file_count": 126,
-      "package_sha256": "6cf4e08485fdb7b021a91988faca578c6b5cf9045231fa0f7740969cae731e52",
+      "package_sha256": "49546af3565df5e90f356d65b54d85812422ec4fecd7c2107cd7a55fa9789554",
       "python_implementation": "CPython",
       "python_version": "3.12.10"
     },
-    "tested_file_manifest_path": "docs/context/TESTED_FILES_COLUMN_CANDIDATES_20261119.json",
-    "tested_file_manifest_sha256": "731de054fa8350f60aa9b15ee2b49034f2a734fe61e8ce7281b1ce2022544bd7",
     "evidence_refs": [
-      "EV-COLUMN-CAGE-TIE10",
-      "EV-COLUMN-CAGE-REPORT-TESTS",
-      "EV-HANDOFF-20261119"
+      "EV-GAP018-SPECTRUM-ARCHIVE-20261119"
     ],
+    "tested_file_manifest_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/final/tested-files.json",
+    "tested_file_manifest_sha256": "9a698a754d7c16fb70ce136920ed27b80d75e4d677d6cac1cf7a35cbee4fcad1",
     "engineering_release": "NOT_READY",
-    "next_action": "Resume GAP-018 amplitude/active damping/applied torsion qualification; then GAP-013/GAP-016. No user question pending.",
-    "active_local_branch": "baseline/local_import",
-    "integrated_implementation_commit": "46dcb3ccc5c6dfe052a88c81e1d7758838a0f1b5",
-    "integrated_implementation_tree": "52070e5aa3883cb5839d622d0f1b8af83bd7518c",
-    "local_integration": "Both modal and candidate milestones are integrated; retained work branches are historical checkpoints.",
-    "handoff_path": "docs/context/WORKER_HANDOFF_20261119.md",
-    "private_local_resources_path": ".receipts/handoff/LOCAL_RESOURCES_20261119.md",
-    "documentation_checkpoint_identity": "Resolve containing commit with git rev-parse HEAD and inspect dirty state.",
-    "publication_evidence": {
-      "status_at_document_preparation": "REQUESTED_NOT_YET_VERIFIED",
-      "remote_ref_observed_before_publication": "a9d053f3422d981e3c576fe5e4c0d4b72549d150",
-      "observation_date": "2026-11-19",
-      "completion_authority": "Actual remote baseline ref and private .receipts/handoff/publication.json; do not infer push success from this pre-push record."
-    },
-    "new_engineering_tests_during_handoff": "NOT_RUN_DOCUMENTATION_ONLY"
+    "next_action": "Read the intended locked ETABS session through the existing v7 gateway. Audit the raw spectrum, effective damping and isolated torsion evidence before aggregation."
   },
   "last_observed_remote_implementation": {
     "branch": "audit/pipeline-pmm-v6-20261117",
@@ -3037,6 +3023,205 @@
       },
       "source_and_parent_hashes_rechecked": true,
       "log_sha256": "5fc83198e89e36c69594936ca467ebbb5ebdfbe0120aed32d289ac13d598ab43"
+    },
+    {
+      "id": "EV-GAP018-SPECTRUM-ARCHIVE-20261119",
+      "observed_at": "2026-11-19T13:17:01.539561+00:00",
+      "implementation_commit": "f5dc030beb7475c975b0d68a2e8ccc664cc1af7e",
+      "implementation_commit_role": "VERIFIED_ON_WORK_BRANCH_PENDING_LIVE_ACCEPTANCE",
+      "base_commit": "24ddc371c66ebcba24bf8672fe3038564e26d48c",
+      "dirty_worktree": true,
+      "tested_file_manifest_sha256": "9a698a754d7c16fb70ce136920ed27b80d75e4d677d6cac1cf7a35cbee4fcad1",
+      "diff_sha256": "8987041dbcd0f5404db010f332047d28f5d424cc8bea40d580e12e2a10f9c933",
+      "untracked_code_included": false,
+      "changed_paths": [
+        "src/tbdy_next/diaphragm_probe.py",
+        "src/tbdy_next/engineering/demand_sources.py",
+        "src/tbdy_next/engineering/pipeline.py",
+        "src/tbdy_next/frame_force_capture.py",
+        "src/tbdy_next/live_etabs.py",
+        "src/tbdy_next/reporting.py",
+        "src/tbdy_next/spectrum_reconstruction.py",
+        "tests/test_native_demand_sources.py",
+        "tests/test_pipeline_unification.py",
+        "tests/test_vs04g_probe.py"
+      ],
+      "environment": {
+        "python": "3.12.10",
+        "node": "v24.22.1",
+        "platform": "Windows-11-10.0.26200-SP0"
+      },
+      "scope": "Existing mixed-demand stage v7, ETABS getter software contracts and signed modal amplitude checks on the immutable selected scenario.",
+      "status": "PASS_ARCHIVED_SOURCE_AND_SOFTWARE_LIVE_CAPTURE_PENDING",
+      "source_run": "RUN-4c6e8d795ca94411a1cd6d7f7f54c9de",
+      "source_sha256": "3de017a56036769e7436bac7f16363b552224740d75014678c73119fd1cd2171",
+      "method_version": "same-source-spectral-components.v7",
+      "method": {
+        "configuration_file_count": 9,
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 126,
+        "package_sha256": "49546af3565df5e90f356d65b54d85812422ec4fecd7c2107cd7a55fa9789554",
+        "python_implementation": "CPython",
+        "python_version": "3.12.10"
+      },
+      "replay": "RUN-a3727819537a4de18457c830a3fcf92c",
+      "repeat": "RUN-a8ddc8f5b13145ee9a56c7b78a391a81",
+      "results_sha256": "a44cf26136085d5f73b1d8aa7cd1e04467be070b4a1d074a209ad821977dd105",
+      "commands": [
+        ".venv/Scripts/python.exe -X utf8 -B .receipts/verification/gap018-spectrum-20261119T051100Z/final/prepare_evidence.py",
+        ".venv/Scripts/python.exe -X utf8 -B -m unittest discover -s tests -p test_native_demand_sources.py -v",
+        ".venv/Scripts/python.exe -X utf8 -B -m unittest discover -s tests -p test_vs04g_probe.py -v",
+        ".venv/Scripts/python.exe -X utf8 -B tools/test_offline.py",
+        ".venv/Scripts/python.exe -X utf8 -B -m pip wheel --no-build-isolation --no-index --disable-pip-version-check --no-deps --wheel-dir .receipts/verification/gap018-spectrum-20261119T051100Z/final/wheel .receipts/verification/gap018-spectrum-20261119T051100Z/final/wheel-source",
+        ".venv/Scripts/python.exe -X utf8 -B tools/test_installed_wheel.py .receipts/verification/gap018-spectrum-20261119T051100Z/final/wheel",
+        ".venv/Scripts/python.exe -X utf8 -B -m tbdy_next.cli run-pipeline --source .receipts/RUN-4c6e8d795ca94411a1cd6d7f7f54c9de/input.source --case Modal --out .receipts/verification/gap018-spectrum-20261119T051100Z/final/replay",
+        ".venv/Scripts/python.exe -X utf8 -B -m tbdy_next.cli run-pipeline --source .receipts/RUN-4c6e8d795ca94411a1cd6d7f7f54c9de/input.source --case Modal --out .receipts/verification/gap018-spectrum-20261119T051100Z/final/repeat",
+        ".venv/Scripts/python.exe -X utf8 -B .receipts/verification/gap018-spectrum-20261119T051100Z/final/audit_replay.py .receipts/verification/gap018-spectrum-20261119T051100Z/final/replay/RUN-a3727819537a4de18457c830a3fcf92c",
+        ".venv/Scripts/python.exe -X utf8 -B .receipts/verification/gap018-spectrum-20261119T051100Z/final/sealed_report.py .receipts/verification/gap018-spectrum-20261119T051100Z/final/replay/RUN-a3727819537a4de18457c830a3fcf92c",
+        ".venv/Scripts/python.exe -X utf8 -B .receipts/verification/gap018-spectrum-20261119T051100Z/final/verify_checkpoint.py",
+        "POST http://127.0.0.1:8876/api/etabs-session",
+        "git ls-remote --exit-code origin refs/heads/baseline/local_import"
+      ],
+      "counts": {
+        "native_modes": 100,
+        "displayed_case_modes": 200,
+        "compatible_at_printed_digits": 200,
+        "oracle_numeric_comparisons": 600,
+        "configured_element_side_cuts": 402,
+        "expected_torsion_case_cuts": 804,
+        "isolated_torsion_case_cuts": 0,
+        "identical_repeat_stages": 16,
+        "disabled_report_entry_points": 34,
+        "report_calls": 0,
+        "python_tests_run": 1426,
+        "python_skipped": 1,
+        "js_test_files": 11,
+        "wheel_tests": 251,
+        "focused_python_tests": 111
+      },
+      "tolerances": {
+        "comparison": "Signed participation factor / eigenvalue applied to the printed acceleration interval, intersected with the printed amplitude interval.",
+        "independent_reference": "Exact binary and decimal fractions. The three stored decimal results per case/mode agreed within 1e-58 * max(1, abs(exact)).",
+        "largest_oracle_residual_m": 6.83533624618936e-61,
+        "largest_printed_center_residual_m": 6.410239399198615e-06
+      },
+      "private_artifacts": [
+        {
+          "private_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/final/checkpoint.json",
+          "sha256": "efda13c5b2360432a516fa08df78656ac9fd08b482c9dd062232ad7ed19e5383"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/final/independent-audit.json",
+          "sha256": "09da0de9b8c3c14fb23bc8399b50ffec26f0d27b7a4030a7080f90356b82fab9"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/final/sealed-report.json",
+          "sha256": "b47fc90e7222f712c94b26dd2b9043aff0a01c2dcd18b74e91208acef64fdada"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/final/tested-files.json",
+          "sha256": "9a698a754d7c16fb70ce136920ed27b80d75e4d677d6cac1cf7a35cbee4fcad1"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/final/runtime-tests.patch",
+          "sha256": "8987041dbcd0f5404db010f332047d28f5d424cc8bea40d580e12e2a10f9c933"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/final/offline.log",
+          "sha256": "45cb43ac8521c17b77a0052475728f79012ae3b7540c429c2422c744243f2a35"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/final/focused-demand.log",
+          "sha256": "4b5c259e0a9397169933ff35ab4e38e66355311316d78ea1e74f96e6295b819b"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/final/focused-diaphragm.log",
+          "sha256": "9036980030349a85e826a2d493bfbd3e0d69fd6c5d9eaab2d59ed8e35c9a1d5e"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/final/wheel-build.log",
+          "sha256": "34f84360e28fe7eaea0c8831e81e42482fc5dfa60ab911529822aecac0fae684"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/final/wheel-test.log",
+          "sha256": "18d6fac0e1c97b53101c2ddddafee51fdf54c91a1d804bc3d457a7b39e248056"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/final/replay.log",
+          "sha256": "cd98a7853314bbf119ac5944de785d300749a3f313d61b0edd9a44a2d3df0bb0"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/final/repeat.log",
+          "sha256": "9d77b286aa40126f666787978e43959534119eff42796eee48b613f789d55962"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/final/prepare_evidence.py",
+          "sha256": "f017cedf5b80bf0331937cff195ab0188484538434f63e642b1d06ea93686461"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/final/audit_replay.py",
+          "sha256": "51a00ae88962fb0cc4b3f28b957fe8ddeda761abaf55b92b52107f2832ed39f4"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/final/sealed_report.py",
+          "sha256": "dca09aa1a21dd588fa89d82b1535ae8562753bc85f09ddca9ef5cc405f8750dd"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/final/verify_checkpoint.py",
+          "sha256": "57784f71f7ca43094076d0f69658ec7dcbbaac0a6723b747997c37122d564869"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/final/probe_gateway.py",
+          "sha256": "3f84a611d52aa5a1cd82295308f8c53906fd55d7168f7053def76cdf08e75089"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/final/original-integrity.json",
+          "sha256": "d2dcbfd631d2333567a989a9281250dad5d5e803f7ce33061f1e78a4cec5f60e"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/final/live-check.json",
+          "sha256": "8c036ceb494f74597431edd693c57e66cfe6603b12c0912c029945fa7ca89975"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/etabs23-abi.json",
+          "sha256": "1900400684089f53f95d870027237af4f43b3ff305053085df3633277209df6b"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/offline.log",
+          "sha256": "c7f3ae1454aa9e895dd5015f1c94d72f7ad07d71d5f499c198f0a0857930a5ac"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/baseline-report-test.log",
+          "sha256": "620b4027e2fa521732ed73b9dd298ccea79ca5d642f6e65d14fa4022cc1ea042"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/report-heading-fix.log",
+          "sha256": "9960ac469e643ed55db047cf98ee195fa555f9c5f63998da4da569b57a3dbd4a"
+        }
+      ],
+      "limits": [
+        "The original source has display-format spectrum amplitudes and effective damping. New getter coverage was exercised on synthetic returns.",
+        "Case damping definitions do not establish effective modal damping from all sources. The XML export has no verified field-level precision.",
+        "The in-plane diaphragm load table and eccentricity definitions do not isolate accidental-torsion response at each member cut.",
+        "Fresh ETABS capture, independent modal/directional aggregation, story allocation and a complete building oracle remain pending.",
+        "The baseline report-heading test failed on its original expectation. The updated contract asserts the existing heading and check IDs. The complete local retry passed."
+      ],
+      "release": {
+        "R14_closed": 0,
+        "R14_partial": 87,
+        "open_gate_codes": 17,
+        "alpha_status": "BLOCKED_INPUTS",
+        "iterations": 0,
+        "formal_compliance": "NOT_PROVEN",
+        "engineering_release": "NOT_READY"
+      },
+      "engineering_release_granted": false,
+      "github_ci": "NOT_RUN",
+      "publication": "Work branch retained locally pending live acceptance. Verified published baseline remains at base_commit.",
+      "public_reference_paths": [
+        "docs/CURRENT_STATE.md",
+        "docs/ENGINEERING_GAPS.yaml"
+      ]
     }
   ],
   "new_record_template": {
@@ -3061,7 +3246,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-19T04:47:26+00:00",
+  "updated_at_utc": "2026-11-19T13:17:01.539561+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -3418,6 +3603,46 @@
       ],
       "engineering_release": "NOT_READY",
       "next_action": "Resume GAP-018 amplitude/active damping/applied torsion qualification; then GAP-013/GAP-016. No user question pending."
+    },
+    {
+      "status": "VERIFIED_IMPLEMENTATION_INTEGRATED_HANDOFF_PREPARED",
+      "integration_base_branch": "baseline/local_import",
+      "verified_work_branch": "work/column-cage-selection",
+      "implementation_base_commit": "5e1e10c1b9ffd0be777202873f4b428ded19b152",
+      "source_run_id": "RUN-4c6e8d795ca94411a1cd6d7f7f54c9de",
+      "source_sha256": "3de017a56036769e7436bac7f16363b552224740d75014678c73119fd1cd2171",
+      "results_sha256": "84740c17a28a7b9542ae21e0eee9dabeb51a7e6f8d2b2d7ced20b285f1365b83",
+      "method": {
+        "configuration_file_count": 9,
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 126,
+        "package_sha256": "6cf4e08485fdb7b021a91988faca578c6b5cf9045231fa0f7740969cae731e52",
+        "python_implementation": "CPython",
+        "python_version": "3.12.10"
+      },
+      "tested_file_manifest_path": "docs/context/TESTED_FILES_COLUMN_CANDIDATES_20261119.json",
+      "tested_file_manifest_sha256": "731de054fa8350f60aa9b15ee2b49034f2a734fe61e8ce7281b1ce2022544bd7",
+      "evidence_refs": [
+        "EV-COLUMN-CAGE-TIE10",
+        "EV-COLUMN-CAGE-REPORT-TESTS",
+        "EV-HANDOFF-20261119"
+      ],
+      "engineering_release": "NOT_READY",
+      "next_action": "Resume GAP-018 amplitude/active damping/applied torsion qualification; then GAP-013/GAP-016. No user question pending.",
+      "active_local_branch": "baseline/local_import",
+      "integrated_implementation_commit": "46dcb3ccc5c6dfe052a88c81e1d7758838a0f1b5",
+      "integrated_implementation_tree": "52070e5aa3883cb5839d622d0f1b8af83bd7518c",
+      "local_integration": "Both modal and candidate milestones are integrated; retained work branches are historical checkpoints.",
+      "handoff_path": "docs/context/WORKER_HANDOFF_20261119.md",
+      "private_local_resources_path": ".receipts/handoff/LOCAL_RESOURCES_20261119.md",
+      "documentation_checkpoint_identity": "Resolve containing commit with git rev-parse HEAD and inspect dirty state.",
+      "publication_evidence": {
+        "status_at_document_preparation": "REQUESTED_NOT_YET_VERIFIED",
+        "remote_ref_observed_before_publication": "a9d053f3422d981e3c576fe5e4c0d4b72549d150",
+        "observation_date": "2026-11-19",
+        "completion_authority": "Actual remote baseline ref and private .receipts/handoff/publication.json; do not infer push success from this pre-push record."
+      },
+      "new_engineering_tests_during_handoff": "NOT_RUN_DOCUMENTATION_ONLY"
     }
   ]
 }
