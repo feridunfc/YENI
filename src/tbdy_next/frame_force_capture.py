@@ -60,6 +60,17 @@ SPECTRUM_GETTERS = {
 CURVE_FIELDS = ("NumberItems", "MyTime", "Value")
 
 
+def capture_spectrum_damping_properties(sap, material_names, linear_link_names):
+    """Read native damping parameters for names from the same model's property tables."""
+    materials = {name: _spectrum_getter(getattr(sap, "PropMaterial", None), "PropMaterial.GetDamping", name,
+        ("ModalRatio", "ViscousMassCoeff", "ViscousStiffCoeff", "HystereticMassCoeff", "HystereticStiffCoeff"),
+        0., 0., 0., 0., 0., 0.) for name in material_names}
+    links = {name: _spectrum_getter(getattr(sap, "PropLink", None), "PropLink.GetLinear", name,
+        ("DOF", "Fixed", "Ke", "Ce", "DJ2", "DJ3", "KeCoupled", "CeCoupled", "Notes", "GUID"),
+        [], [], [], [], 0., 0., False, False, "", "") for name in linear_link_names}
+    return {"material_temperature": 0., "materials": materials, "linear_links": links}
+
+
 def _capture_spectrum_inputs(sap, cases):
     records, functions = {}, {}
     for case in cases:

@@ -15,7 +15,7 @@ from ..frame_force_capture import (
     MODAL_RESULTS_SCHEMA, ECCENTRICITY_SCHEMA, MODAL_RESULT_FIELDS,
     SPECTRUM_INPUT_SCHEMA, SPECTRUM_GETTERS, CURVE_FIELDS, MAX_FORCE_ROWS, native_modal_rows, native_eccentricity,
 )
-from ..spectrum_reconstruction import modal_amplitude_comparison, native_curve_amplitude
+from ..spectrum_reconstruction import FUNCTION as TSC_FUNCTION_TABLE, modal_amplitude_comparison, native_curve_amplitude
 from ..vs05_d4_source_authority import _case_summary, _source_table
 
 SUPPORT_SCHEMA = "tbdy.next.native-demand-support.v1"
@@ -301,7 +301,35 @@ def _native_number(value):
     return value
 
 
-def _case_curve(methods, functions, case):
+def _curve_points(curve, count, periods, values, tables):
+    if (type(count) is not int or not 2 <= count <= MAX_FORCE_ROWS
+            or not all(isinstance(a, (tuple, list)) for a in (periods, values))
+            or len(periods) != len(values) or len(periods) not in (count, count + 1)):
+        raise ValueError("SPECTRUM_NATIVE_FUNCTION_ARRAYS_INVALID")
+    periods = [Decimal(_native_number(p)) for p in periods]
+    values = [Decimal(_native_number(v)) for v in values]
+    layout = {"native_array_offset": 0}
+    if len(periods) == count + 1:
+        # ETABS 23 returned a leading (0, 0) before the true, nonzero ordinate at T=0.
+        # Resolve this layout only against the same named function's complete table.
+        if periods[:2] != [0, 0] or values[0] != 0 or values[1] <= 0:
+            raise ValueError("SPECTRUM_NATIVE_FUNCTION_PADDING_UNBOUND")
+        fields = {"Name": "", "Period": "sec", "Value": ""}
+        rows = _read_table(tables.get(TSC_FUNCTION_TABLE), TSC_FUNCTION_TABLE, set(fields), fields)
+        points = sorted((r for r in rows if r["Name"] == curve), key=lambda r: _decimal(r["Period"]))
+        periods, values = periods[1:], values[1:]
+        if (len(points) != count or len({_decimal(r["Period"]) for r in points}) != count
+                or _decimal(points[0]["Period"]) != 0 or _decimal(points[0]["Value"]) <= 0
+                or any(not _printed_compatible(row[field], num)[0] for row, p, v in zip(points, periods, values)
+                       for field, num in (("Period", p), ("Value", v)))):
+            raise ValueError("SPECTRUM_NATIVE_FUNCTION_PADDING_UNBOUND")
+        layout = {"native_array_offset": 1, "function_definition_rows_sha256": _digest(points)}
+    if periods[0] < 0 or any(a >= b for a, b in zip(periods, periods[1:])) or min(values) < 0:
+        raise ValueError("SPECTRUM_NATIVE_FUNCTION_KNOTS_INVALID")
+    return periods, list(zip(periods, values, [Decimal(0)] * count)), layout
+
+
+def _case_curve(methods, functions, case, tables):
     name = case["case"]
     if _case_return(methods, name, "GetModalCase")[0] != case["modal_case"]:
         raise ValueError("SPECTRUM_NATIVE_MODAL_CASE_CONFLICT")
@@ -316,14 +344,8 @@ def _case_curve(methods, functions, case):
         raise ValueError("SPECTRUM_NATIVE_LOAD_DEFINITION_CONFLICT")
     rec = functions.get(curve)
     n, periods, values = _spectrum_return(rec, "Func.GetValues", curve, CURVE_FIELDS)
-    if (type(n) is not int or not 2 <= n <= MAX_FORCE_ROWS or any(
-            not isinstance(a, (tuple, list)) or len(a) != n for a in (periods, values))):
-        raise ValueError("SPECTRUM_NATIVE_FUNCTION_ARRAYS_INVALID")
-    periods = [Decimal(_native_number(p)) for p in periods]
-    values = [Decimal(_native_number(v)) for v in values]
-    if periods[0] < 0 or any(a >= b for a, b in zip(periods, periods[1:])) or min(values) < 0:
-        raise ValueError("SPECTRUM_NATIVE_FUNCTION_KNOTS_INVALID")
-    return periods, list(zip(periods, values, [Decimal(0)] * n)), scale
+    periods, knots, layout = _curve_points(curve, n, periods, values, tables)
+    return periods, knots, scale, layout
 
 
 def _case_damping(methods, case, tables):
@@ -410,6 +432,8 @@ def spectrum_response_evidence(source, modal):
               "modal_xml_status": xml.get("status") if isinstance(xml, dict) else "NOT_CAPTURED"}
     if isinstance(xml, dict):
         result["modal_xml_source_sha256"] = _digest(xml)
+    if isinstance(probe.get("damping_source_context"), dict):
+        result["damping_component_source_sha256"] = _digest(probe["damping_source_context"])
     methods_by_case, functions = {}, {}
     if capture is not None:
         result["native_input_sha256"] = _digest(capture)
@@ -444,8 +468,8 @@ def spectrum_response_evidence(source, modal):
             try:
                 if not aligned:
                     raise ValueError("ALIGNED_GLOBAL_EXCITATION_REQUIRED")
-                curve = _case_curve(methods, functions, case)
-                item.update(curve_status="NATIVE_CURVE_AND_SCALE_BOUND", knot_count=len(curve[0]))
+                curve = _case_curve(methods, functions, case, tables)
+                item.update(curve_status="NATIVE_CURVE_AND_SCALE_BOUND", knot_count=len(curve[0]), **curve[3])
             except (KeyError, ValueError, TypeError, ArithmeticError) as exc:
                 item.update(curve_status="BLOCKED_SOURCE", curve_error=str(exc))
                 if str(exc) in ("SPECTRUM_NATIVE_LOAD_DEFINITION_CONFLICT", "SPECTRUM_NATIVE_MODAL_CASE_CONFLICT",

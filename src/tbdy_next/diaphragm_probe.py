@@ -16,6 +16,7 @@ from .basis_probe import parse_available_tables
 from .etabs_geometry import _read_one
 from .etabs_modal import ModalCaptureError, _selected_cases, _set_cases
 from .etabs_source_gateway_windows import field_schema, read_table
+from .frame_force_capture import capture_spectrum_damping_properties
 
 DIAPHRAGM_TABLES = (
     "Diaphragm Definitions",
@@ -24,6 +25,11 @@ DIAPHRAGM_TABLES = (
 )
 SPECTRUM_MODAL_TABLE = "Response Spectrum Modal Info"
 DIAPHRAGM_FORCE_TABLE = "Diaphragm Forces"
+SPECTRUM_DAMPING_TABLES = (
+    "Material Properties - General", "Material Properties - Damping Parameters",
+    "Link Property Definitions - Summary", "Link Property Definitions - Linear",
+    "Objects and Elements - Links", "Area Assignments - Area Springs", "Spring Property Definitions - Area Springs",
+)
 REQUIRED_KEYS = DIAPHRAGM_TABLES + (SPECTRUM_MODAL_TABLE,)
 SCHEMA = "tbdy.next.vs04g.diaphragm-modal-probe.v1"
 
@@ -53,6 +59,26 @@ def _modal_xml(db):
     except Exception as exc:
         record.update(status="CAPTURE_ERROR", error=f"{type(exc).__name__}: {exc}"[:400])
     return record
+
+
+def _selected_table(db, available, key):
+    if key not in available:
+        return {"table_key": key, "status": "NOT_AVAILABLE"}
+    record = read_table(db, key, max_rows=100_000)
+    record["field_metadata"] = field_schema(db, key)
+    return record
+
+
+def _damping_source_context(sap, db, available):
+    tables = {key: _selected_table(db, available, key) for key in SPECTRUM_DAMPING_TABLES}
+    def property_names(table, field, **criteria):
+        if table.get("status") != "CAPTURED":
+            return []
+        return sorted({row[field] for row in table["rows"] if isinstance(row.get(field), str)
+                       and row[field].strip() and all(row.get(k) == v for k, v in criteria.items())})
+    materials = property_names(tables["Material Properties - General"], "Material")
+    links = property_names(tables["Link Property Definitions - Summary"], "Name", Type="Linear")
+    return {"tables": tables, **capture_spectrum_damping_properties(sap, materials, links)}
 
 
 def capture_diaphragm_modal_probe(
@@ -108,11 +134,8 @@ def capture_diaphragm_modal_probe(
         if capture_spectrum_evidence:
             supplemental["spectrum_modal_xml"] = (_modal_xml(db) if SPECTRUM_MODAL_TABLE in available
                 else {"table_key": SPECTRUM_MODAL_TABLE, "status": "NOT_AVAILABLE"})
-            force_table = {"table_key": DIAPHRAGM_FORCE_TABLE, "status": "NOT_AVAILABLE"}
-            if DIAPHRAGM_FORCE_TABLE in available:
-                force_table = read_table(db, DIAPHRAGM_FORCE_TABLE, max_rows=100_000)
-                force_table["field_metadata"] = field_schema(db, DIAPHRAGM_FORCE_TABLE)
-            supplemental["diaphragm_forces_selected_cases"] = force_table
+            supplemental["diaphragm_forces_selected_cases"] = _selected_table(db, available, DIAPHRAGM_FORCE_TABLE)
+            supplemental["damping_source_context"] = _damping_source_context(sap, db, available)
             if _selected_cases(db) != spectrum_cases:
                 raise ModalCaptureError("SPECTRUM_EVIDENCE_CASE_SELECTION_CHANGED")
     except Exception as exc:

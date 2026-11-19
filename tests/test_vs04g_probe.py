@@ -135,6 +135,28 @@ class Vs04GTests(unittest.TestCase):
         self.assertEqual(result["diaphragm_forces_selected_cases"]["status"], "NOT_AVAILABLE")
         self.assertEqual(sap.DatabaseTables.selected, ())
 
+    def test_damping_property_reads_use_the_captured_names_and_keep_failures(self):
+        from unittest.mock import Mock
+        from tbdy_next.diaphragm_probe import SPECTRUM_DAMPING_TABLES
+        sap = FakeSap(modal_fails=False, selected=("Dead",))
+        db = sap.DatabaseTables
+        mats, props = "Material Properties - General", "Link Property Definitions - Summary"
+        db.available.extend((mats, props))
+        db.records[mats] = (["Material"], [["C35"], ["Steel"]])
+        db.records[props] = (["Name", "Type"], [["L1", "Linear"], ["L2", "Damper"]])
+        sap.PropMaterial = Mock()
+        sap.PropMaterial.GetDamping.side_effect = [(0.025, 0., 0., 0., 0., 0), (0., 0., 0., 0., 0., 9)]
+        sap.PropLink = Mock()
+        sap.PropLink.GetLinear.side_effect = RuntimeError("Getter unavailable")
+        context = capture_diaphragm_modal_probe(sap, capture_spectrum_evidence=True)["damping_source_context"]
+        self.assertEqual(set(context["tables"]), set(SPECTRUM_DAMPING_TABLES))
+        self.assertEqual(context["materials"]["C35"]["raw"][0], 0.025)
+        self.assertEqual(context["materials"]["Steel"]["raw"][-1], 9)
+        self.assertEqual(set(context["linear_links"]), {"L1"})
+        self.assertEqual(context["linear_links"]["L1"]["status"], "CAPTURE_ERROR")
+        self.assertEqual(context["tables"]["Objects and Elements - Links"]["status"], "NOT_AVAILABLE")
+        self.assertEqual(db.selected, ("Dead",))
+
     def test_case_drift_after_supplemental_read_blocks_capture_even_after_restore(self):
         for original in ((), ("RSX", "RSY")):
             with self.subTest(original=original):

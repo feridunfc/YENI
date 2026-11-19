@@ -1139,6 +1139,39 @@ class SpectrumResponseEvidenceTests(unittest.TestCase):
         self.assertFalse(row["curve_display_compatible"])
         self.assertFalse(row["damping_display_compatible"])
 
+    def test_padded_native_function_requires_the_complete_matching_definition(self):
+        from tbdy_next.spectrum_reconstruction import FUNCTION
+        args = self.source()
+        inputs = args[0]["column_axial"]["demand_support"]["force_source"]["native_spectrum_inputs"]
+        inputs["functions"]["FUNC"]["raw"] = (2, [0., 0., 1.], [0., 1., 3.], 0)
+        points = table(FUNCTION, [{"Name": "FUNC", "Period": "1.0", "Value": "3.000"},
+                                  {"Name": "FUNC", "Period": "0", "Value": "1.000"}])
+        points["field_metadata"]["field_count"] = 3
+        points["field_metadata"]["units_by_field"]["Period"] = "sec"
+        args[0]["vs04_basis_probe"]["table_reads"][FUNCTION] = points
+        before = deepcopy(inputs)
+        evidence = self.evidence(args)
+        self.assertEqual(evidence["curve_reference_count"], 3)
+        self.assertEqual(evidence["cases"][0]["native_array_offset"], 1)
+        self.assertTrue(all(r["curve_display_compatible"] for r in evidence["cases"][0]["rows"]))
+        self.assertEqual(inputs, before)
+        for problem in ("foreign", "count", "clock_units", "duplicate", "mismatch", "prefix", "first_period"):
+            with self.subTest(problem=problem):
+                broken = deepcopy(args)
+                tab = broken[0]["vs04_basis_probe"]["table_reads"][FUNCTION]
+                raw = broken[0]["column_axial"]["demand_support"]["force_source"]["native_spectrum_inputs"]["functions"]["FUNC"]["raw"]
+                if problem == "foreign": tab["rows"][1]["Name"] = "OTHER"
+                elif problem == "count": tab["row_count"] += 1
+                elif problem == "clock_units": tab["field_metadata"]["units_by_field"]["Period"] = "ms"
+                elif problem == "duplicate": tab["rows"][0]["Period"] = "0.00"
+                elif problem == "mismatch": tab["rows"][0]["Value"] = "3.001"
+                elif problem == "prefix": raw[2][0] = 0.02
+                else: raw[1][1] = 0.001
+                result = self.evidence(broken)
+                self.assertEqual(result["curve_reference_count"], 0)
+                self.assertEqual(result["expected_case_mode_count"], 3)
+                self.assertFalse(result["applied_amplitudes_full_precision_proven"])
+
     def test_legacy_and_missing_mode_keep_the_expected_case_mode_and_cut_grid(self):
         args = self.source()
         del args[0]["column_axial"]["demand_support"]["force_source"]["native_spectrum_inputs"]

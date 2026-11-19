@@ -113,7 +113,7 @@ STAGES: tuple[StageSpec, ...] = (
     StageSpec("mixed-demand-components", LIVE, "tbdy_next.engineering.mixed_demands", (), (),
               "Native cut coverage, signed modal amplitude evidence, spectrum input definitions and same-source scalar replay",
               "PMM_SCOPE", consumes=(_AXIAL_RESULT, _PMM_SCOPE),
-              produces=(_MIXED_COMPONENTS, _DEMAND_SOURCE), method_version="same-source-spectral-components.v7"),
+              produces=(_MIXED_COMPONENTS, _DEMAND_SOURCE), method_version="same-source-spectral-components.v8"),
     StageSpec("column-gates", LIVE, "tbdy_next.engineering.column_live_gates", (),
               ("COLUMN_REBAR", "COLUMN_AXIAL", "COLUMN_PMM"),
               "CHK-004/CHK-005 caps, reinforcement role and open gates over the SAME axial/PMM results "
