@@ -4,6 +4,7 @@ No routine supplies joint Ve, SCWB capacities, actual reinforcement, offsets
 or physical connection authority. Units: mm, mm2, MPa and explicitly kN.
 """
 from decimal import Decimal
+from fractions import Fraction
 import math
 
 from .native_archive import BankError, finite
@@ -53,12 +54,17 @@ def joint_transverse_reference(*, lower_required_ash_mm2, lower_spacing_mm, prop
     fraction,cap = (.4,150) if confined else (.6,100)
     required_density = positive(fraction*lower/ls,"required_joint_density")
     required_area = positive(required_density*s,"required_joint_area")
-    met = Decimal(str(ash))/Decimal(str(s)) >= Decimal(str(fraction))*Decimal(str(lower))/Decimal(str(ls))
+    # Cross-multiply Ash/s so the check and the inverse pitch use the same exact boundary.
+    available = Fraction(str(ash)) * Fraction(str(ls))
+    required = Fraction(str(fraction)) * Fraction(str(lower))
+    met = available >= required * Fraction(str(s))
+    whole_pitch = min(cap, available // required)
     ratio = finite(required_area/ash,"joint_transverse_ratio")
     return {"fraction_of_lower_required_density":fraction,"lower_required_ash_mm2":lower,
         "lower_spacing_mm":ls,"required_ash_per_s_mm2_per_mm":required_density,
         "required_ash_at_joint_spacing_mm2":required_area,"proposed_ash_mm2":ash,
         "joint_spacing_mm":s,"tie_diameter_mm":t,"spacing_limit_mm":cap,
+        "max_whole_spacing_for_selected_tie_mm":whole_pitch if t >= 8 and whole_pitch > 0 else None,
         "minimum_diameter_mm":8,"density_reference_met":met,"required_to_proposed_ratio":ratio,
         "spacing_reference_met":s<=cap,"diameter_reference_met":t>=8,
         "all_references_met":met and s<=cap and t>=8,

@@ -398,6 +398,7 @@ def _evaluate_single_r14_column(
                 "magnified_pmm_status": mag_status,
                 "max_magnified_utilization": mag_pmm.get("max_utilization"),
                 "governing_combination": mag_pmm.get("governing_combination"),
+                "governing_static_station": mag_pmm.get("governing_station"),
                 "max_reference_beta_sway_prevented": (r08_local_col or {}).get("max_reference_beta_sway_prevented"),
                 "global_pdelta_within_limit": global_pdelta_ok,
                 "cracked_stiffness_tbdy_4_2_verified": cracked_verified,

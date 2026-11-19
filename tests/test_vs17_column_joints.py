@@ -100,6 +100,18 @@ class JointKernelTests(unittest.TestCase):
         r=joint_transverse_reference(**(base|{'enclosure':'UNENCLOSED','joint_spacing_mm':100,'proposed_ash_mm2':300}))
         self.assertTrue(r['all_references_met']);self.assertEqual(r['fraction_of_lower_required_density'],.6)
 
+    def test_maximum_whole_joint_pitch_sizes_the_given_legs_and_diameter(self):
+        base = dict(lower_required_ash_mm2=500, lower_spacing_mm=100, proposed_ash_mm2=301,
+                    joint_spacing_mm=100, tie_diameter_mm=8, enclosure="UNENCLOSED")
+        for area, diameter, expected in ((301, 8, 100), (299.999, 8, 99), (300, 8, 100),
+                                         (301, 7.99, None), (2.99, 8, None)):
+            with self.subTest(area=area, diameter=diameter):
+                params = dict(base, proposed_ash_mm2=area, tie_diameter_mm=diameter)
+                self.assertEqual(joint_transverse_reference(**params)["max_whole_spacing_for_selected_tie_mm"], expected)
+                if expected is not None:
+                    self.assertTrue(joint_transverse_reference(**dict(params, joint_spacing_mm=expected))["all_references_met"])
+                    self.assertFalse(joint_transverse_reference(**dict(params, joint_spacing_mm=expected + 1))["all_references_met"])
+
     def test_invalid_or_unknown_inputs_do_not_authorize_any_reference(self):
         for value in (0,-1,True,None,float('inf'),float('nan')):
             with self.subTest(value=value),self.assertRaises(BankError):width_reference(value,800)

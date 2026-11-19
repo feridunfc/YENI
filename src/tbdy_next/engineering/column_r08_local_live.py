@@ -319,6 +319,7 @@ def _project_single_r08_local(
         blocked_buckling = False
         max_util = None
         gov_combo = None
+        governing_station = None
         exceeds = False
         expected_stations = pmm.get("expected_station_count")
         resolved_station_count = 0
@@ -357,23 +358,38 @@ def _project_single_r08_local(
                 resolved_station_count += 1
             if assess.get("status") == "OUTSIDE_SCENARIO_AXIAL_RANGE" or (util is not None and util > 1.0 + 1e-6):
                 exceeds = True
-            if util is not None and (max_util is None or util >= max_util):
-                max_util = util
-                gov_combo = cname
-            mag_rows.append({
+            station = {
                 "combination": cname,
                 "object_station_m": row.get("object_station_m"),
                 "analysis_element_id": row.get("analysis_element_id"),
                 "element_station_m": row.get("element_station_m"),
+                "step_type": row.get("step_type"),
+                "step_number": row.get("step_number"),
                 "nd_kn": row.get("nd_kn"),
+                "first_order_m2_knm": row["m2_knm"],
+                "first_order_m3_knm": row["m3_knm"],
                 "beta_m2": b_m2,
                 "beta_m3": b_m3,
                 "global_beta_ii_applied": g_fac,
                 "magnified_m2_design_knm": demand.get("m2_design_knm"),
                 "magnified_m3_design_knm": demand.get("m3_design_knm"),
+                "moment_demand_knm": None,
+                "radial_capacity_knm": None,
+                "moment_reserve_knm": None,
                 "utilization": util,
                 "status": assess["status"],
-            })
+            }
+            if util is not None and assess["status"] in ("WITHIN_SCENARIO_SURFACE", "EXCEEDS_SCENARIO_SURFACE"):
+                capacity = assess.get("radial_capacity_kNm")
+                if type(capacity) in (float, int) and math.isfinite(capacity) and capacity > 0:
+                    moment = math.hypot(demand["m2_design_knm"], demand["m3_design_knm"])
+                    station.update(moment_demand_knm=moment, radial_capacity_knm=capacity,
+                                   moment_reserve_knm=capacity - moment)
+            mag_rows.append(station)
+            if util is not None and (max_util is None or util >= max_util):
+                max_util = util
+                gov_combo = cname
+                governing_station = station
         complete = (type(expected_stations) is int and expected_stations > 0
                     and resolved_station_count == expected_stations == len(mag_rows))
         if exceeds:
@@ -387,6 +403,7 @@ def _project_single_r08_local(
         out["magnified_selected_pmm"] = {
             "status": mag_status,
             "governing_combination": gov_combo,
+            "governing_station": governing_station if complete and all(r["utilization"] is not None for r in mag_rows) else None,
             "max_utilization": max_util if complete or exceeds else None,
             "global_beta_ii_factor": global_beta_ii,
             "global_beta_ii_basis": "STORY_PRECHECK_REFERENCE" if global_beta_ii is not None else "UNIT_FACTOR_REFERENCE_ASSUMPTION",

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import math
 import unittest
 from unittest.mock import patch
 
@@ -114,13 +115,45 @@ class R08LocalUnitTests(unittest.TestCase):
                    ) as assess:
             bound = project_column_r08_local_live(source, geometry, axial, pmm, r10_live=r10, selected_cages=cages)
             self.assertIs(assess.call_args.args[0], section)
-            self.assertEqual(bound["magnified_selected_pmm"]["resolved_row_count"], 2)
+            result = bound["magnified_selected_pmm"]
+            self.assertEqual(result["resolved_row_count"], 2)
+            station = result["governing_station"]
+            self.assertEqual(station, max(result["rows"], key=lambda item: item["utilization"]))
+            moment = math.hypot(station["magnified_m2_design_knm"], station["magnified_m3_design_knm"])
+            self.assertAlmostEqual(moment, station["moment_demand_knm"])
+            self.assertAlmostEqual(moment / station["radial_capacity_knm"], result["max_utilization"])
+            self.assertAlmostEqual(station["moment_reserve_knm"], station["radial_capacity_knm"] - moment)
             assess.reset_mock()
             # A fresh run that failed to produce a candidate cannot use an old receipt or section.
             unbound = project_column_r08_local_live(source, geometry, axial, pmm, r10_live=r10, selected_cages={})
             assess.assert_not_called()
         self.assertIn("SAME_RUN_SELECTED_COLUMN_CAGE_UNAVAILABLE", unbound["open_gates"])
         self.assertNotIn("magnified_selected_pmm", unbound)
+
+    def test_static_reserve_requires_resolved_bending_and_complete_governing_coverage(self):
+        source, geometry, axial, pmm = _r08_local_fixture()
+        source["column_selection"] = {}
+        pmm["expected_station_count"] = 2
+        bars, _, _ = perimeter(800, 800, 40, 10, 25, n2=4, n3=4)
+        section = Section(800, 800, bars, Material(35, 35 / 1.5, 420 / 1.15))
+        selection = {"member_id": "127", "selected": {"label": "12Ø25"}}
+        valid = {"status": "EXCEEDS_SCENARIO_SURFACE", "utilization": 2.0, "radial_capacity_kNm": 10.0}
+        for other in (
+            {"status": "NUMERIC_UNRESOLVED", "trial_utilization": 1.0, "radial_capacity_kNm": 50.0},
+            {"status": "OUTSIDE_SCENARIO_AXIAL_RANGE"},
+            {"status": "AXIAL_ONLY_SCENARIO", "axial_utilization": 0.3},
+        ):
+            with self.subTest(status=other["status"]), patch("tbdy_next.engineering.column_r08_local_live.solver") as factory:
+                factory.return_value.assess.side_effect = [valid, other]
+                result = project_column_r08_local_live(
+                    source, geometry, axial, pmm, r10_live={"member_id": "127", "engineer_column_selection": selection},
+                    selected_cages={"127": SelectedColumnCage(selection, section)},
+                )["magnified_selected_pmm"]
+                first, second = result["rows"]
+                self.assertLess(first["moment_reserve_knm"], 0)
+                self.assertIsNone(second["radial_capacity_knm"])
+                self.assertIsNone(second["moment_reserve_knm"])
+                self.assertEqual(result["governing_station"], first if other["status"] == "AXIAL_ONLY_SCENARIO" else None)
 
 
 class R08LocalWebIntegration(live.ColumnAxialIntegration):
