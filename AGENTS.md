@@ -1,5 +1,16 @@
 # YENI project guidance
 
+## Read this file first
+
+Start every YENI assignment, including a review, revision, audit or delegated
+task, with this instruction in the task brief.
+
+> Önce `feridunfc/YENI` reposunun `baseline/local_import` dalındaki kök `AGENTS.md` dosyasını oku. Çalıştığın dalda belirtilen başlangıç sırasını izle, ardından aşağıdaki görevi yap.
+
+This file is the entry point on `baseline/local_import`. Keep lasting project
+decisions and the next reproducible step in the GitHub handoff whenever a
+milestone is shared. A later worker must be able to recover them from a checkout.
+
 The product is `feridunfc/YENI`; the runtime is `src/tbdy_next`. Communicate with
 the user in Turkish. Keep product UI, calculations and new technical documentation
 in English. Other repositories, PDFs and `YENI_P0` are references; `YENI_P0` is
@@ -22,9 +33,12 @@ At a new session, handoff or context compaction:
    within the user's existing authorization. Do not repeatedly ask for authorization
    already provided in the conversation.
 
-For a new local chat or a GitHub worker, also read
-`docs/context/WORKER_HANDOFF_20261119.md`. Local resource locations and connected
-account details are in the ignored `.receipts/handoff/LOCAL_RESOURCES_20261119.md`.
+For a new local chat or a GitHub worker, read the
+[worker handoff](docs/context/WORKER_HANDOFF_20261119.md) and the
+[project charter and source guide](docs/context/PROJECT_CHARTER.md).
+Use that guide to identify the existing source, its revision and its calculation
+owner before searching for inputs. Local machine and account details are in
+the ignored `.receipts/handoff/LOCAL_RESOURCES_20261119.md`.
 Missing private evidence must be reported as unavailable, not inferred from a hash.
 
 `CURRENT_STATE` is a concise checkpoint, not the full chat. These files are durable

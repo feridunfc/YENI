@@ -3904,6 +3904,32 @@
       "source_scope": "Public synthetic fixtures and existing production comparison records; original private project sources unavailable.",
       "limits": "Offline software verification of the existing owners and supported synthetic contracts. No private source inspection, live ETABS acquisition, local unpublished tree inspection, complete building proof or normative release. Runtime/test files remained unchanged during and after the recorded runs; final documentation edits are checked separately.",
       "engineering_release": "NOT_READY"
+    },
+    {
+      "id": "EV-HANDOFF-RESOURCES-20261119",
+      "observed_at_utc": "2026-11-19T18:29:38Z",
+      "implementation_commit": "ee2eccaeb1ac471af6f1aa0a6d7ded594cae9bca",
+      "scope": "Agent entry, shareable project charter, existing source discovery and three direct GOLDEN-01 production checks.",
+      "environment": "Windows, CPython 3.12.10, project virtual environment",
+      "source_ids": ["MASTER-HANDOFF", "SRC-PDF-V2", "GOLDEN-01", "GOLDEN-02", "GOLDEN-03", "GOLDEN-04"],
+      "method": "Matched the original master document against the recipe manifest. Rehashed original PDF editions 02 through 04 and the canonical SQLite bank. Opened the databases read-only, ran inspect-golden-regression and compared three production returns against independent arithmetic and the printed reference with the existing tolerances.",
+      "historical_verifier_sha256": "b538ac0580a28c12c794184130b3884023d555cf5948217401108da381e0d72e",
+      "canonical_bank_counts": {"documents": 3, "pages": 716, "reference_cases": 467, "raw_observations": 245},
+      "registered_report_gate": {"records": 44, "NUMERICAL_MATCH": 15, "INSUFFICIENT_SOURCE": 25, "ENGINEERING_INTERPRETATION_DIFFERENCE": 4, "insufficient_rows_with_independent_and_report_results": 21, "require_complete_exit": 3},
+      "direct_owner_checks": [
+        {"id": "G01_AXIAL_TBDY_LIMIT", "owner": "ts500_column.section_axial_limits_kn", "unit": "kN", "production": 1920.0, "independent": 1920.0, "printed": 1920.0},
+        {"id": "G01_AXIAL_TS500_LIMIT", "owner": "ts500_column.section_axial_limits_kn", "unit": "kN", "production": 2880.0, "independent": 2880.0, "printed": 2880.0},
+        {"id": "G01_DRIFT_LAMBDA", "owner": "normative_basis.eq_4_9_lambda", "unit": "ratio", "production": 0.3974383483081629, "independent": 0.3974383483081629, "printed": 0.3975}
+      ],
+      "commands": [
+        "python -B -m tbdy_next.cli inspect-golden-regression --require-complete --json <private-output.json>",
+        "python -B -m unittest discover -s tests -p test_vs26_golden_gate.py"
+      ],
+      "focused_golden_regression_tests": {"run": 14, "failures": 0, "errors": 0},
+      "status": "HANDOFF_AND_THREE_DIRECT_OWNER_COMPARISONS_VERIFIED",
+      "public_reference_paths": ["AGENTS.md", "docs/context/PROJECT_CHARTER.md", "docs/context/WORKER_HANDOFF_20261119.md", "src/tbdy_next/verification/data/SOURCE_MANIFEST.json"],
+      "limits": "The three direct checks are outside the registered gate. The 467-case bank was inventoried. The historical handoff verifier was inspected. Live ETABS and the full software suites were outside this documentation update.",
+      "engineering_release_granted": false
     }
   ],
   "new_record_template": {
@@ -3928,7 +3954,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-19T16:39:29.914816+00:00",
+  "updated_at_utc": "2026-11-19T18:29:38Z",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",

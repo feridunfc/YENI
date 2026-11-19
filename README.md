@@ -1,5 +1,8 @@
 # TBDY Next Engine
 
+[Read AGENTS.md first](AGENTS.md) for every assignment. It links the current
+worker handoff, the project charter and the startup order for this repository.
+
 [Current checkpoint](docs/CURRENT_STATE.md) · [English recipe and local integration evidence](docs/engineering/reference/recipe_20261118/README.md). The recipe is a reference contract; implemented scope and engineering acceptance remain separately recorded.
 
 [VS11 / CE-01: offline column force bank, static replay and UI](docs/VS11_CE01_COLUMN_SOURCE_BANK_TR.md)

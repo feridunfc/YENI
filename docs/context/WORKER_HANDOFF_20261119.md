@@ -1,9 +1,10 @@
 # Local development and GitHub worker handoff
 
-Start on `baseline/local_import`. Calculation checkpoint `79f534a` carries the
-selected-column radial moment reserve and the maximum usable whole-mm tie pitch
-for a given joint cage. GAP-018's coverage matrix records the finished private
-ETABS comparison. Use the branch tip for the code and the linked evidence.
+Begin each assignment at [AGENTS.md](../../AGENTS.md) on the current
+`baseline/local_import`. The [project charter and source guide](PROJECT_CHARTER.md)
+links the design contract, reference banks and the next report comparison.
+For the building calculation, the GAP-018 coverage matrix and the
+[current checkpoint](../CURRENT_STATE.md) identify the completed ETABS work.
 
 ## Start from the actual state
 

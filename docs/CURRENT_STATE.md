@@ -1,3 +1,14 @@
+# Agent entry and report comparison handoff
+
+Start each assignment at [AGENTS.md](../AGENTS.md). The
+[worker handoff](context/WORKER_HANDOFF_20261119.md) and
+[project charter and source guide](context/PROJECT_CHARTER.md) are available
+in a GitHub checkout. At runtime commit `ee2ecca`, the 44 GAP-016 records contain
+15 production matches, 25 insufficient-source labels and four adopted-factor
+interpretation differences. The first three unbound production values were
+checked directly. Their case IDs, source owners and next integration step are in
+the guide and `EV-HANDOFF-RESOURCES-20261119`.
+
 # Remote code audit corrections - 2026-11-19
 
 The reviewed published baseline and work branch were both at
