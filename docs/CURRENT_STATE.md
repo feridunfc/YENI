@@ -6,6 +6,25 @@ Selected As 6,433.98 mm² ≥ 6,400 mm² (1.0053%). The final reference checks p
 but R14 remains **0 closed / 87 partial**, formal compliance `NOT_PROVEN`,
 engineering release `NOT_READY`.
 
+## GAP-018 private comparison and R14 closure inventory
+
+A fresh read of the original model reproduced all 4,824 native scalar controls at
+402 element-side cuts for two spectrum cases, with zero numerical difference.
+The selected scenario `RUN-17fbcff4be754227acb61dd1151b94cf` reproduced
+16/16 stage payloads on replay. All 87 members have the same 17 open gates.
+Fourteen block numerical closure. The other three still require source evidence
+for engineering acceptance. The approved project profile, actual faces and
+anchorage, axis-specific restraints, creep and spectral story feedback remain open.
+
+The private Save As export reproduced 3,175 original lines byte-for-byte after
+excluding the file header and the additional save-history line. The prepared
+input added six definition lines for two zero-eccentricity controls. The
+original model's solver log identifies eight internal static cases, including
+two torsion solves. The private paired analysis has four response-spectrum cases in the first completed solver phase. The first API invocation returned 1. Qualification awaits the manual ETABS run, finished-case statuses and independent member-side comparisons.
+
+Ledger `EV-GAP018-PAIR-CONTROL-20261119` links the frozen roster, selected replay and private proof.
+R14 is 0 closed / 87 partial. Engineering release is `NOT_READY`.
+
 ## GAP-018 live ETABS checkpoint
 
 The user-session gateway on port 8876 captured the locked model twice on

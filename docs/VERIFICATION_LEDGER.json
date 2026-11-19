@@ -19,17 +19,17 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "LIVE_V8_SOURCE_AND_CQC_DIAGNOSTIC_VERIFIED_APPLIED_RESPONSE_PENDING",
+    "status": "FRESH_ORIGINAL_CONTROL_VERIFIED_PRIVATE_MANUAL_COMPARISON_PENDING",
     "integration_base_branch": "baseline/local_import",
     "published_baseline_commit": "24ddc371c66ebcba24bf8672fe3038564e26d48c",
     "work_branch": "work/gap-018-spectrum-evidence",
     "active_local_branch": "work/gap-018-spectrum-evidence",
     "implementation_commit": "9e01f92617a3a37a6e6a79ea913dafe5feb2b8da",
-    "source_run_id": "RUN-9ad3c981cd9a4875bf383530429a1173",
-    "source_sha256": "61c5417b8f5f11b7352c9c02f2d518b67666fac09f1c7f6f53546fac207d7db9",
-    "results_sha256": "6589f792202b95e6de680c5c67152f36a415d251310b0b631fea72e6142a3a46",
-    "selected_run_id": "RUN-20e3c9ea485448aeb4c71461e3237f9f",
-    "selected_results_sha256": "4afd7127d77ded04b802a5e3703fd2d7a46c10f170cd91525906c5d142a57b62",
+    "source_run_id": "RUN-caaf8c60060b4b20b53d6e37f00d67c3",
+    "source_sha256": "5833f62755a25bf232d88ee58e42a3aba0b184b88b40d4ca037cbb2a2879973e",
+    "results_sha256": "b3d782042e22bdf4012d771342fb660a07f76a4367fa70578e0eb62fe48d5ce2",
+    "selected_run_id": "RUN-17fbcff4be754227acb61dd1151b94cf",
+    "selected_results_sha256": "5e33b3af68dc8c17528a0a7be142af0a48cca3b53758534bcb92af9cd472e577",
     "method": {
       "configuration_file_count": 9,
       "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
@@ -39,12 +39,13 @@
       "python_version": "3.12.10"
     },
     "evidence_refs": [
-      "EV-GAP018-LIVE-SPECTRUM-20261119"
+      "EV-GAP018-LIVE-SPECTRUM-20261119",
+      "EV-GAP018-PAIR-CONTROL-20261119"
     ],
     "tested_file_manifest_path": ".receipts/verification/gap018-live-20261119T132305Z/tested-files.json",
     "tested_file_manifest_sha256": "8d7f2f11a3f7f02079c6d2e4978793e0121a8e9450dc786455d01e4567dff7e2",
     "engineering_release": "NOT_READY",
-    "next_action": "Obtain same-source unrounded applied modal results and isolated accidental-torsion evidence before story allocation or spectral alpha acceptance."
+    "next_action": "The private paired analysis has four response-spectrum cases in the first completed solver phase. The first API invocation returned 1. Qualification awaits the manual ETABS run, finished-case statuses and independent member-side comparisons."
   },
   "last_observed_remote_implementation": {
     "branch": "audit/pipeline-pmm-v6-20261117",
@@ -3645,6 +3646,60 @@
         }
       ],
       "publication": "Scope retained on the local work branch pending applied-response acceptance."
+    },
+    {
+      "id": "EV-GAP018-PAIR-CONTROL-20261119",
+      "recorded_at_utc": "2026-11-19T14:33:09.367423+00:00",
+      "base_commit": "7b36d5acac033915e56b8d52543c9c6fd9dfb852",
+      "implementation_commit": "9e01f92617a3a37a6e6a79ea913dafe5feb2b8da",
+      "integration_base_commit": "24ddc371c66ebcba24bf8672fe3038564e26d48c",
+      "work_branch": "work/gap-018-spectrum-evidence",
+      "private_root": ".receipts/verification/gap018-pair-20261119T140500Z",
+      "environment": "Windows, repository CPython 3.12.10, ETABS UltimateC 23.2.0 build 4400, native units code 6",
+      "method": "Existing live-vs04 gateway and EnginePipelineRunner, signed native frame records, independent scalar/identity and saved-input tests.",
+      "input_source_sha256": "5833f62755a25bf232d88ee58e42a3aba0b184b88b40d4ca037cbb2a2879973e",
+      "selected_run": "RUN-17fbcff4be754227acb61dd1151b94cf",
+      "selected_results_sha256": "5e33b3af68dc8c17528a0a7be142af0a48cca3b53758534bcb92af9cd472e577",
+      "fresh_control_run": "RUN-caaf8c60060b4b20b53d6e37f00d67c3",
+      "selected_repeat_run": "RUN-c00f31129e27454cb206b47bd6b16122",
+      "original_numeric_control_count": 4824,
+      "max_abs_native_repeat_difference": 0.0,
+      "captured_original_case_cuts": 804,
+      "member_count": 87,
+      "frozen_element_side_cuts": 402,
+      "all_87_share_same_r14_gate_codes": 17,
+      "binding_numerical_gates_per_member": 14,
+      "private_input_equivalence": {
+        "original_lines_reproduced_beyond_header": 3175,
+        "only_extra_definition_records": 6
+      },
+      "native_solver_evidence": "Original solver log includes eight internal static cases; public source catalog exposes neither signed torsion case. The solver log lists 5,711 link/support elements; 5,579 area-spring links appear in the public link table.",
+      "commands": [
+        ".\\.venv\\Scripts\\python.exe -X utf8 -B .receipts/verification/gap018-pair-20261119T140500Z/capture_original.py",
+        ".\\.venv\\Scripts\\python.exe -X utf8 -B .receipts/verification/gap018-pair-20261119T140500Z/check_comparator.py",
+        ".\\.venv\\Scripts\\python.exe -X utf8 -B .receipts/verification/gap018-pair-20261119T140500Z/verify_save_as.py",
+        ".\\.venv\\Scripts\\python.exe -X utf8 -B .receipts/verification/gap018-pair-20261119T140500Z/verify_fresh_selection.py",
+        ".\\.venv\\Scripts\\python.exe -X utf8 -B .receipts/verification/gap018-pair-20261119T140500Z/gate_matrix.py",
+        ".\\.venv\\Scripts\\python.exe -X utf8 -B .receipts/verification/gap018-pair-20261119T140500Z/audit_pair.py",
+        ".\\.venv\\Scripts\\python.exe -X utf8 -B .receipts/verification/gap018-pair-20261119T140500Z/check_single.py"
+      ],
+      "runtime_changes": false,
+      "new_full_offline_suite": "NOT_RUN",
+      "new_installed_wheel_suite": "NOT_RUN",
+      "pair_status": "The private paired analysis has four response-spectrum cases in the first completed solver phase. The first API invocation returned 1. Qualification awaits the manual ETABS run, finished-case statuses and independent member-side comparisons.",
+      "private_artifacts_sha256": {
+        "original/fresh-control.json": "7f977c438bac67070fface7155187942787b9ea0098ee296edd719b961694d23",
+        "original/selected-confirmation.json": "5a4e113f87560f10e1fec3ec763ac290d967e87121487752ee6fa9f5ce29e446",
+        "save-as-equivalence.json": "a31168c3b28656cc3ed245f9fe51a249eab408455ec634a33c78be4a74b5b006",
+        "single-pre-analysis.json": "00546d4aaed5f27e130a7dd4fef7c71375aac499fb5d5773122e53534943ea29",
+        "solver-and-pair-audit.json": "7556960c602b79d8206c7eaf023e6d39259784d60140a29329418effe88d9dbe",
+        "r14-gate-matrix.json": "65ade498de7d1a0f56be0404389b124d35a50aa5e10b3813038227470e791180",
+        "comparator-check.json": "1477af5862b6af14fc727d83a38e853c770d8db2da122d15fb3950ec5df34c76",
+        "single-preflight-regression.json": "22e6ff10514489bb38f3abfcbbfe3c8f42b6ae239e805d4773a80b3b97b93f8a"
+      },
+      "limits": "Scalar envelope effects do not determine simultaneous vectors. The project design basis, physical support faces/anchorage, independent cut inventory, local K/sway/Rm and validated story/joint feedback remain open.",
+      "formal_compliance": "NOT_PROVEN",
+      "engineering_release": "NOT_READY"
     }
   ],
   "new_record_template": {
@@ -3669,7 +3724,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-19T13:45:01.068926+00:00",
+  "updated_at_utc": "2026-11-19T14:33:09.367423+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -4092,6 +4147,34 @@
       "tested_file_manifest_sha256": "9a698a754d7c16fb70ce136920ed27b80d75e4d677d6cac1cf7a35cbee4fcad1",
       "engineering_release": "NOT_READY",
       "next_action": "Read the intended locked ETABS session through the existing v7 gateway. Audit the raw spectrum, effective damping and isolated torsion evidence before aggregation."
+    },
+    {
+      "status": "LIVE_V8_SOURCE_AND_CQC_DIAGNOSTIC_VERIFIED_APPLIED_RESPONSE_PENDING",
+      "integration_base_branch": "baseline/local_import",
+      "published_baseline_commit": "24ddc371c66ebcba24bf8672fe3038564e26d48c",
+      "work_branch": "work/gap-018-spectrum-evidence",
+      "active_local_branch": "work/gap-018-spectrum-evidence",
+      "implementation_commit": "9e01f92617a3a37a6e6a79ea913dafe5feb2b8da",
+      "source_run_id": "RUN-9ad3c981cd9a4875bf383530429a1173",
+      "source_sha256": "61c5417b8f5f11b7352c9c02f2d518b67666fac09f1c7f6f53546fac207d7db9",
+      "results_sha256": "6589f792202b95e6de680c5c67152f36a415d251310b0b631fea72e6142a3a46",
+      "selected_run_id": "RUN-20e3c9ea485448aeb4c71461e3237f9f",
+      "selected_results_sha256": "4afd7127d77ded04b802a5e3703fd2d7a46c10f170cd91525906c5d142a57b62",
+      "method": {
+        "configuration_file_count": 9,
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 126,
+        "package_sha256": "ab941176367f559ab7d9cbb35ddfa1029ccb03c8087f92f5c4295f0166697b13",
+        "python_implementation": "CPython",
+        "python_version": "3.12.10"
+      },
+      "evidence_refs": [
+        "EV-GAP018-LIVE-SPECTRUM-20261119"
+      ],
+      "tested_file_manifest_path": ".receipts/verification/gap018-live-20261119T132305Z/tested-files.json",
+      "tested_file_manifest_sha256": "8d7f2f11a3f7f02079c6d2e4978793e0121a8e9450dc786455d01e4567dff7e2",
+      "engineering_release": "NOT_READY",
+      "next_action": "Obtain same-source unrounded applied modal results and isolated accidental-torsion evidence before story allocation or spectral alpha acceptance."
     }
   ]
 }

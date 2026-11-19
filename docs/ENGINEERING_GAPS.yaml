@@ -1,7 +1,7 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-19T13:45:01.068926+00:00",
+  "updated_at_utc": "2026-11-19T14:33:09.367423+00:00",
   "repository": "feridunfc/YENI",
   "baseline_implementation_commit": "60938da94b770631c6a5c34a545c8863162ac8a4",
   "local_reconciled": true,
@@ -476,7 +476,8 @@
         "EV-LIVE-MODAL-ACCEPTANCE-TESTS",
         "EV-LIVE-MODAL-REPLAY-REPORT",
         "EV-GAP018-SPECTRUM-ARCHIVE-20261119",
-        "EV-GAP018-LIVE-SPECTRUM-20261119"
+        "EV-GAP018-LIVE-SPECTRUM-20261119",
+        "EV-GAP018-PAIR-CONTROL-20261119"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -486,7 +487,13 @@
           "source_sha256": "6f46177e64a5d0ee8e9b6fc7d7b5ba74e252e2cb547fb3655ad97d6aaf490b1f",
           "acceptance": "REFERENCE_ONLY_NO_ENGINEERING_CLOSURE"
         }
-      ]
+      ],
+      "paired_control_checkpoint": {
+        "evidence_ref": "EV-GAP018-PAIR-CONTROL-20261119",
+        "original_control": "4,824/4,824 exact repeat values",
+        "selected_scenario": "16/16 stage payloads reproduce",
+        "status": "The private paired analysis has four response-spectrum cases in the first completed solver phase. The first API invocation returned 1. Qualification awaits the manual ETABS run, finished-case statuses and independent member-side comparisons."
+      }
     }
   ]
 }
