@@ -9,11 +9,18 @@ engineering release `NOT_READY`. No user input or server restart is pending.
 ## Repository and source identity
 
 - Logical integration base: `baseline/local_import`.
-- Verified work branch: `work/column-cage-selection`, based on local baseline
-  `5e1e10c1b9ffd0be777202873f4b428ded19b152`. Integrate the reviewed milestone locally;
-  resolve the final commit with `git rev-parse HEAD` and inspect working changes.
-- Published GitHub baseline remains `a9d053f3422d981e3c576fe5e4c0d4b72549d150`.
-  The modal-identity and candidate-schedule increments are local; no new push.
+- Both verified milestones are integrated locally: native modal identity
+  `5e1e10c1b9ffd0be777202873f4b428ded19b152`, then candidate reporting
+  `46dcb3ccc5c6dfe052a88c81e1d7758838a0f1b5`. The retained work branches are
+  historical milestones; the active branch is `baseline/local_import`.
+- This documentation checkpoint continues from `46dcb3c...`. Resolve its full
+  HEAD with `git rev-parse HEAD` and inspect working changes. The GitHub ref
+  observed immediately before publication was `a9d053f3422d981e3c576fe5e4c0d4b72549d150`.
+  Publication of this checkpoint is requested; the actual remote ref and private
+  `.receipts/handoff/publication.json` establish success, not the pre-push snapshot.
+- Keep baseline current at every completed, verified milestone. Start scoped work
+  from that baseline, synchronize it using a normal push and verify the remote SHA.
+  Preserve pending work separately; never reset local changes to an older remote.
 - Original live source: `RUN-77039b97519e45029e209f0031d72d36`, SHA
   `9e5535ad2fe5749aa897a16023a3f7288062388df65f23013d243bbdb77bf640`.
 - Final selection run: `RUN-4c6e8d795ca94411a1cd6d7f7f54c9de`, derived-source SHA
@@ -69,7 +76,7 @@ No mouse/browser takeover or visual inspection was performed. The existing
 server's session probe observed PID 11788, locked model, units 6; rediscover the
 session before future reads rather than making that PID permanent.
 
-Fresh tests: **30 focused Python tests / 11 JavaScript files passed**. Initial
+Tests at the candidate-report milestone: **30 focused Python tests / 11 JavaScript files passed**. Initial
 Node Python-path and view-harness failures are retained with successful retries.
 Full Python suite, installed wheel and CI are **NOT_RUN for this presentation
 increment**. Do not relabel the prior modal milestone's 1,407 Python / 241 wheel
@@ -117,4 +124,15 @@ joints. Do not convert a configured subset into a complete physical census.
 Published recipe/v5 source assets remain at a9d053f…; their evidence and the
 73-control map are reference coverage, not 73 accepted production checks.
 The old exported context ZIP describes b255c303… and is superseded by current
-Git documents and ledger. No automatic GitHub sync is configured.
+Git documents and ledger. No background GitHub sync is configured.
+
+## Handoff and publication checkpoint
+
+[Worker and new-chat handoff](context/WORKER_HANDOFF_20261119.md) defines the
+baseline workflow, reference boundaries and the next bounded acceptance task.
+The private local resource index is `.receipts/handoff/LOCAL_RESOURCES_20261119.md`;
+it identifies the working directory, Drive connection, reference locations, run
+files, SQLite banks and launch command. It is intentionally absent from GitHub.
+This handoff changes guidance and evidence indexes only. Engineering tests and
+live ETABS operations are **NOT_RUN during this documentation checkpoint**.
+See `EV-HANDOFF-20261119`; earlier test records retain their original scopes.

@@ -6,23 +6,23 @@
   "workflow": {
     "primary_workspace": "LOCAL_CODEX",
     "checkpoint_cadence": "EACH_SPRINT_AND_HANDOFF",
-    "github_sync_cadence": "USER_REQUESTED_CHECKPOINT",
+    "github_sync_cadence": "EACH_COMPLETED_VERIFIED_MILESTONE_WHEN_ACCESS_AVAILABLE",
     "automatic_push": false,
     "imported_cadence_note": "The source guide suggested 3-5 sprints; this is not an automatic schedule or authorization.",
     "integration_base_branch": "baseline/local_import",
     "integration_base_role": "LOGICAL_MAIN",
     "work_branch_pattern": "work/<scope>",
     "active_local_branch": "baseline/local_import",
-    "integration_policy": "Start scoped branches from the current local baseline; integrate reviewed, verified milestones. Keep unfinished work on the work branch.",
-    "publication_policy": "LOCAL_ONLY_UNTIL_EXPLICIT_GITHUB_CHECKPOINT_REQUEST"
+    "integration_policy": "Keep baseline/local_import current at each completed, reviewed and verified milestone. New scoped work starts from current baseline; unfinished work remains separate.",
+    "publication_policy": "USER_STANDING_REQUEST_TO_KEEP_BASELINE_CURRENT; NORMAL_PUSH_ONLY; VERIFY_REMOTE_HEAD; REPORT_PENDING_PUBLICATION",
+    "standing_instruction_date": "2026-11-19",
+    "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "COLUMN_CANDIDATES_AND_REPORT_REFERENCE_VERIFIED",
+    "status": "VERIFIED_IMPLEMENTATION_INTEGRATED_HANDOFF_PREPARED",
     "integration_base_branch": "baseline/local_import",
     "verified_work_branch": "work/column-cage-selection",
     "implementation_base_commit": "5e1e10c1b9ffd0be777202873f4b428ded19b152",
-    "published_baseline_commit": "a9d053f3422d981e3c576fe5e4c0d4b72549d150",
-    "new_increment_published": false,
     "source_run_id": "RUN-4c6e8d795ca94411a1cd6d7f7f54c9de",
     "source_sha256": "3de017a56036769e7436bac7f16363b552224740d75014678c73119fd1cd2171",
     "results_sha256": "84740c17a28a7b9542ae21e0eee9dabeb51a7e6f8d2b2d7ced20b285f1365b83",
@@ -38,10 +38,25 @@
     "tested_file_manifest_sha256": "731de054fa8350f60aa9b15ee2b49034f2a734fe61e8ce7281b1ce2022544bd7",
     "evidence_refs": [
       "EV-COLUMN-CAGE-TIE10",
-      "EV-COLUMN-CAGE-REPORT-TESTS"
+      "EV-COLUMN-CAGE-REPORT-TESTS",
+      "EV-HANDOFF-20261119"
     ],
     "engineering_release": "NOT_READY",
-    "next_action": "Resume GAP-018 amplitude/active damping/applied torsion qualification; then GAP-013/GAP-016. No user question pending."
+    "next_action": "Resume GAP-018 amplitude/active damping/applied torsion qualification; then GAP-013/GAP-016. No user question pending.",
+    "active_local_branch": "baseline/local_import",
+    "integrated_implementation_commit": "46dcb3ccc5c6dfe052a88c81e1d7758838a0f1b5",
+    "integrated_implementation_tree": "52070e5aa3883cb5839d622d0f1b8af83bd7518c",
+    "local_integration": "Both modal and candidate milestones are integrated; retained work branches are historical checkpoints.",
+    "handoff_path": "docs/context/WORKER_HANDOFF_20261119.md",
+    "private_local_resources_path": ".receipts/handoff/LOCAL_RESOURCES_20261119.md",
+    "documentation_checkpoint_identity": "Resolve containing commit with git rev-parse HEAD and inspect dirty state.",
+    "publication_evidence": {
+      "status_at_document_preparation": "REQUESTED_NOT_YET_VERIFIED",
+      "remote_ref_observed_before_publication": "a9d053f3422d981e3c576fe5e4c0d4b72549d150",
+      "observation_date": "2026-11-19",
+      "completion_authority": "Actual remote baseline ref and private .receipts/handoff/publication.json; do not infer push success from this pre-push record."
+    },
+    "new_engineering_tests_during_handoff": "NOT_RUN_DOCUMENTATION_ONLY"
   },
   "last_observed_remote_implementation": {
     "branch": "audit/pipeline-pmm-v6-20261117",
@@ -2981,6 +2996,47 @@
       "visual_browser_inspection": "NOT_RUN",
       "verification_script_sha256": "4ea259c7c0b65d9604d68e1c3210c23bbcd3d7d1a726e35b38c0363db000160e",
       "workspace_verification_script_sha256": "bcda802f4b3de24fccba181f86ecb0887cad3ab75c0c7b26cff58fe7f564ff8d"
+    },
+    {
+      "id": "EV-HANDOFF-20261119",
+      "observed_on": "2026-11-19",
+      "implementation_commit": "46dcb3ccc5c6dfe052a88c81e1d7758838a0f1b5",
+      "implementation_commit_role": "UNCHANGED_RUNTIME_BASE_OF_DOCUMENTATION_CHECKPOINT",
+      "scope": "Durable baseline workflow, remote-worker contract and local resource handoff; prior engineering evidence retained.",
+      "status": "PASS_DOCUMENTATION_AND_EXISTING_EVIDENCE_INTEGRITY",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        ".receipts/handoff/verify_handoff.py"
+      ],
+      "environment": {
+        "platform": "Windows 11 build 26200",
+        "python": "3.12.10",
+        "execution": "Local PowerShell"
+      },
+      "log_path_private": ".receipts/handoff/validation.json",
+      "public_reference_paths": [
+        "AGENTS.md",
+        "docs/CURRENT_STATE.md",
+        "docs/context/WORKER_HANDOFF_20261119.md",
+        "docs/context/KURULUM_VE_HANDOFF_TR.md"
+      ],
+      "runtime_changes": false,
+      "engineering_tests": "NOT_RUN",
+      "live_etabs_operations": "NOT_RUN",
+      "github_publication": "Tracked separately by exact remote-ref verification; see private publication.json.",
+      "engineering_checks_closed": 0,
+      "engineering_release_granted": false,
+      "exit_code": 0,
+      "counts": {
+        "runtime_test_tool_config_files_unchanged": 319,
+        "historical_records_preserved": 35,
+        "relative_links_resolved": 16
+      },
+      "source_and_parent_hashes_rechecked": true,
+      "log_sha256": "5fc83198e89e36c69594936ca467ebbb5ebdfbe0120aed32d289ac13d598ab43"
     }
   ],
   "new_record_template": {
@@ -3005,7 +3061,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-19T04:34:19.938092+00:00",
+  "updated_at_utc": "2026-11-19T04:47:26+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -3335,6 +3391,33 @@
       "engineering_release": "NOT_READY",
       "formal_compliance": "NOT_PROVEN",
       "local_integration": "Verified milestone fast-forward integrated; work/spectral-live-acceptance retained."
+    },
+    {
+      "status": "COLUMN_CANDIDATES_AND_REPORT_REFERENCE_VERIFIED",
+      "integration_base_branch": "baseline/local_import",
+      "verified_work_branch": "work/column-cage-selection",
+      "implementation_base_commit": "5e1e10c1b9ffd0be777202873f4b428ded19b152",
+      "published_baseline_commit": "a9d053f3422d981e3c576fe5e4c0d4b72549d150",
+      "new_increment_published": false,
+      "source_run_id": "RUN-4c6e8d795ca94411a1cd6d7f7f54c9de",
+      "source_sha256": "3de017a56036769e7436bac7f16363b552224740d75014678c73119fd1cd2171",
+      "results_sha256": "84740c17a28a7b9542ae21e0eee9dabeb51a7e6f8d2b2d7ced20b285f1365b83",
+      "method": {
+        "configuration_file_count": 9,
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 126,
+        "package_sha256": "6cf4e08485fdb7b021a91988faca578c6b5cf9045231fa0f7740969cae731e52",
+        "python_implementation": "CPython",
+        "python_version": "3.12.10"
+      },
+      "tested_file_manifest_path": "docs/context/TESTED_FILES_COLUMN_CANDIDATES_20261119.json",
+      "tested_file_manifest_sha256": "731de054fa8350f60aa9b15ee2b49034f2a734fe61e8ce7281b1ce2022544bd7",
+      "evidence_refs": [
+        "EV-COLUMN-CAGE-TIE10",
+        "EV-COLUMN-CAGE-REPORT-TESTS"
+      ],
+      "engineering_release": "NOT_READY",
+      "next_action": "Resume GAP-018 amplitude/active damping/applied torsion qualification; then GAP-013/GAP-016. No user question pending."
     }
   ]
 }

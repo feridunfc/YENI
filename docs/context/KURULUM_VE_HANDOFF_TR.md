@@ -1,5 +1,10 @@
 # YENI — Güncel yerel bağlam ve devir paketi
 
+> Historical package dated 2026-11-17. For the current workflow and checkpoint,
+> read [WORKER_HANDOFF_20261119.md](WORKER_HANDOFF_20261119.md),
+> [CURRENT_STATE.md](../CURRENT_STATE.md) and the repository AGENTS.md.
+> The version and test counts below describe that original package only.
+
 17 Kasım 2026 tarihinde gerçek yerel kod ve disk kanıtlarıyla uzlaştırıldı.
 Dal: `baseline/local_import`. Uygulama checkpoint'i:
 `60938da94b770631c6a5c34a545c8863162ac8a4`.

@@ -22,6 +22,11 @@ At a new session, handoff or context compaction:
    within the user's existing authorization. Do not repeatedly ask for authorization
    already provided in the conversation.
 
+For a new local chat or a GitHub worker, also read
+`docs/context/WORKER_HANDOFF_20261119.md`. Local resource locations and connected
+account details are in the ignored `.receipts/handoff/LOCAL_RESOURCES_20261119.md`.
+Missing private evidence must be reported as unavailable, not inferred from a hash.
+
 `CURRENT_STATE` is a concise checkpoint, not the full chat. These files are durable
 guidance and an evidence index, not a memory service or an engineering approval.
 No automatic pre-compaction hook is assumed. Update the checkpoint at meaningful
@@ -29,14 +34,18 @@ milestones and before handoff; do not wait until the context is nearly full.
 
 ## Preserve evidence and local work
 
-- Local code and local evidence are primary. GitHub is a requested sharing/backup
-  checkpoint; updating memory does not require a push. No automatic sync schedule.
+- Local code and local evidence are primary. GitHub is the sharing/backup
+  checkpoint. No background or scheduled sync is configured.
 - `baseline/local_import` is the active integration base (the project's logical
   main), per the user's 2026-11-17 instruction. Start scoped `work/<scope>` branches
-  from the current local baseline. Develop and checkpoint locally; integrate reviewed,
-  verified milestones into this baseline. Keep unfinished work on its work branch.
+  from the current local baseline. Per the user's 2026-11-19 standing instruction,
+  keep baseline current: integrate each completed, reviewed and verified milestone
+  locally and synchronize this branch to GitHub when access is available. Verify
+  the remote ref after a normal push; report any pending publication explicitly.
+  Keep unfinished work on its work branch. A handoff must not leave a completed
+  milestone only on an old work branch or describe a pending push as successful.
   The old `main` and audit branches are historical references unless the user changes
-  this policy. Publish only at an explicitly requested GitHub checkpoint.
+  this policy. Do not publish unrelated branches or change the default branch.
 - Select files explicitly for commits. Preserve unrelated files. No `git add .`,
   reset/clean, force-push or unsolicited main merge. Use the requested branch.
 - Keep stable GAP IDs. Append new verification IDs; retain historical records and
