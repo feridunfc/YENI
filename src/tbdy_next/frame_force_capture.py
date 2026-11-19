@@ -19,6 +19,66 @@ MODAL_RESULT_FIELDS = {
 }
 MODAL_RESULTS_SCHEMA = "tbdy.next.native-modal-results.v1"
 ECCENTRICITY_SCHEMA = "tbdy.next.native-spectrum-eccentricity.v1"
+SPECTRUM_INPUT_SCHEMA = "tbdy.next.native-spectrum-inputs.v1"
+
+
+def _spectrum_getter(owner, api, name, fields, *outputs):
+    """Keep the requested identity and the JSON-safe native return, including errors."""
+    record = {"api": api, "name": name}
+    try:
+        raw = getattr(owner, api.rsplit(".", 1)[-1])(name, *outputs)
+        if not isinstance(raw, (tuple, list)) or len(raw) > 32 or any(
+            isinstance(v, (list, tuple)) and len(v) > MAX_FORCE_ROWS for v in raw
+        ):
+            raise SourceError("SPECTRUM_GETTER_RETURN_SHAPE_INVALID")
+        try:
+            json.dumps(raw, allow_nan=False)
+        except (ValueError, TypeError):
+            record["invalid_native_values"] = [
+                {"field_index": i, "item_index": j, "type": type(v).__name__, "representation": repr(v)[:100]}
+                for i, field in enumerate(raw)
+                for j, v in enumerate(field if isinstance(field, (list, tuple)) else [field])
+                if type(v) not in (str, int, float, bool, type(None)) or type(v) is float and not math.isfinite(v)
+            ][:16]
+            raise
+        record["raw"] = raw
+        if len(raw) != len(fields) + 1 or type(raw[-1]) is not int or raw[-1] != 0:
+            raise SourceError("SPECTRUM_GETTER_ABI_OR_RETURN_INVALID")
+        record["status"] = "CAPTURED"
+    except Exception as exc:
+        record.update(status="CAPTURE_ERROR", error=f"{type(exc).__name__}: {exc}"[:400])
+    return record
+
+
+SPECTRUM_GETTERS = {
+    "GetModalCase": (("ModalCase",), ("",)),
+    "GetLoads": (("NumberLoads", "LoadName", "Func", "SF", "CSys", "Ang"), (0, (), (), (), (), ())),
+    "GetDampType": (("DampType",), (0,)),
+    "GetDampConstant": (("Damp",), (0.,)),
+    "GetDampOverrides": (("NumberItems", "Mode", "Damp"), (0, (), ())),
+}
+CURVE_FIELDS = ("NumberItems", "MyTime", "Value")
+
+
+def _capture_spectrum_inputs(sap, cases):
+    records, functions = {}, {}
+    for case in cases:
+        methods = {}
+        for method, (fields, outputs) in SPECTRUM_GETTERS.items():
+            methods[method] = _spectrum_getter(sap.LoadCases.ResponseSpectrum,
+                "LoadCases.ResponseSpectrum." + method, case, fields,
+                *([] if isinstance(value, tuple) else value for value in outputs))
+        records[case] = methods
+        loads = methods["GetLoads"]
+        if loads["status"] == "CAPTURED":
+            count, _, names, *_ = loads["raw"]
+            if (type(count) is int and 0 < count <= MAX_RESPONSE_COMBINATIONS
+                    and isinstance(names, (tuple, list)) and len(names) == count):
+                for name in names:
+                    if isinstance(name, str) and name and name == name.strip() and name not in functions:
+                        functions[name] = _spectrum_getter(getattr(sap, "Func", None), "Func.GetValues", name,
+                                                          CURVE_FIELDS, 0, [], [])
+    return {"schema": SPECTRUM_INPUT_SCHEMA, "units_code": 6, "cases": records, "functions": functions}
 
 
 def native_modal_rows(record, method, modes, *, period_record=None):
@@ -214,7 +274,7 @@ def capture_frame_forces(sap, *, members: tuple[str, ...], combinations: tuple[s
     mode_before = _mode_shape_option(setup) if modal_modes else None
     mode_during = mode_before
     rowsets, errors = {}, {}
-    modal_numbers = eccentricity = None
+    modal_numbers = eccentricity = spectrum_inputs = None
     count = 0
     try:
         if before != selected:
@@ -241,6 +301,7 @@ def capture_frame_forces(sap, *, members: tuple[str, ...], combinations: tuple[s
             modal_numbers = _capture_modal_numbers(results, modal_modes)
         if spectrum_cases:
             eccentricity = _capture_spectrum_eccentricity(sap, spectrum_cases)
+            spectrum_inputs = _capture_spectrum_inputs(sap, spectrum_cases)
 
         for member in members:
             try:
@@ -294,6 +355,7 @@ def capture_frame_forces(sap, *, members: tuple[str, ...], combinations: tuple[s
         "output_selection_after": after, "rowsets": rowsets, "errors": errors,
         **({"native_modal_results": modal_numbers} if modal_numbers is not None else {}),
         **({"native_spectrum_eccentricity": eccentricity} if eccentricity is not None else {}),
+        **({"native_spectrum_inputs": spectrum_inputs} if spectrum_inputs is not None else {}),
         **({"mode_shape_option": {"before": list(mode_before), "during": list(mode_during),
                                   "after": list(mode_after)},
             "expected_modal_modes": {k: list(v) for k, v in sorted(modal_modes.items())}}

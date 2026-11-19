@@ -126,7 +126,9 @@ class LiveGatesAndCli(live.ColumnAxialIntegration):
         self.assertEqual(gates["reinforcement_gate"]["role"], "TEMPLATE")
         self.assertFalse(gates["canonical_design_pass_allowed"])
         self.assertEqual(gates["axial_gates"]["seismic_applicability_basis"], "ASSIGNED_DESIGN_GROUP")
-        self.assertIn(b"Column P0 gates", self.get("/report/print?run_id=" + run_id))
+        html = self.get("/report/print?run_id=" + run_id)
+        self.assertIn(b"Recorded ETABS reinforcement gates", html)
+        self.assertIn(b"CHK-004 / CHK-005 / CHK-117", html)
         # The receipt payloads stay untouched, so historical runs keep replaying.
         self.assertNotIn("column_gates", report["column_pmm"])
 

@@ -1050,5 +1050,175 @@ class NativeNumericEvidenceTests(unittest.TestCase):
         self.assertIn('&lt;script&gt;', html); self.assertNotIn('<script>', html)
 
 
+class SpectrumResponseEvidenceTests(unittest.TestCase):
+    def capture_inputs(self):
+        fixture = native_numeric_capture_fixture()
+        api = fixture.sap.LoadCases.ResponseSpectrum
+        api.GetModalCase.return_value = ("M", 0)
+        api.GetLoads.return_value = (1, ["U2"], ["FUNC"], [10.], ["Global"], [0.], 0)
+        api.GetDampType.return_value = (1, 0)
+        api.GetDampConstant.return_value = (0.025, 0)
+        api.GetDampOverrides.return_value = (1, [2], [0.037500000000000006], 0)
+        fixture.sap.Func.GetValues.return_value = (2, [0., 1.], [1., 3.], 0)
+        return fixture
+
+    def inputs(self, fixture):
+        return capture_frame_forces(fixture.sap, members=("C1",), cases=("M", "RS"),
+            modal_modes={"M": [1, 2, 3]}, spectrum_cases=("RS",))["native_spectrum_inputs"]
+
+    def source(self):
+        from fractions import Fraction
+        args = numeric_parameter_fixture()
+        force = args[0]["column_axial"]["demand_support"]["force_source"]
+        force["native_spectrum_inputs"] = self.inputs(self.capture_inputs())
+        native = force["native_modal_results"]["methods"]
+        native["ModalParticipationFactors"]["data"]["UY"] = [1.25, -2.5, 0.]
+        selected = args[0]["vs04_diaphragm_probe"]["spectrum_modal_selected_cases"]
+        for i, row in enumerate(selected["rows"]):
+            period = native["ModalPeriod"]["data"]["Period"][i]
+            eigenvalue = native["ModalPeriod"]["data"]["EigenValue"][i]
+            participation = native["ModalParticipationFactors"]["data"]["UY"][i]
+            acceleration = 10 * (1 + 2 * Fraction(period))
+            amp = Fraction(participation) * acceleration / Fraction(eigenvalue)
+            row.update(U2Acc=format(float(acceleration), ".6f"), U2Amp=format(float(amp), ".12f"),
+                       DampRatio="0.0375" if i == 1 else "0.025")
+        key = "Load Case Definitions - Damping - Modal"
+        damping = table(key, [{"Name": "RS", "DampType": "Constant", "ConstDamp": "0.025",
+                               "OverMode": "2", "OverDamp": "0.0375"}])
+        damping["field_metadata"]["field_count"] = len(damping["fields"])
+        args[0]["vs04_basis_probe"]["table_reads"][key] = damping
+        return args
+
+    def evidence(self, args):
+        return native_demand_source_evidence(*args, input_sha="fixture")["spectral_modal_parameters"]["spectrum_response_evidence"]
+
+    def test_gateway_retains_the_raw_case_function_and_override_returns(self):
+        fixture = self.capture_inputs()
+        captured = self.inputs(fixture)
+        raw = captured["cases"]["RS"]["GetDampOverrides"]
+        self.assertEqual(raw["raw"], (1, [2], [0.037500000000000006], 0))
+        self.assertEqual(raw["name"], "RS")
+        self.assertEqual(captured["functions"]["FUNC"]["raw"], (2, [0., 1.], [1., 3.], 0))
+        fixture.sap.Func.GetValues.assert_called_once_with("FUNC", 0, [], [])
+        self.assertEqual(fixture.mode_option, (1, 1, False))
+
+    def test_bad_native_return_preserves_diagnostics_and_other_methods(self):
+        fixture = self.capture_inputs()
+        fixture.sap.LoadCases.ResponseSpectrum.GetDampConstant.return_value = (0.05, 7)
+        fixture.sap.Func.GetValues.return_value = (2, [0., 1.], [math.nan, 1.], 0)
+        captured = self.inputs(fixture)
+        bad = captured["cases"]["RS"]["GetDampConstant"]
+        self.assertEqual((bad["status"], bad["raw"]), ("CAPTURE_ERROR", (0.05, 7)))
+        self.assertEqual(captured["functions"]["FUNC"]["invalid_native_values"][0]["representation"], "nan")
+        self.assertEqual(captured["cases"]["RS"]["GetLoads"]["status"], "CAPTURED")
+
+    def test_native_knots_signed_amplitude_and_damping_override_bind_same_mode(self):
+        from fractions import Fraction
+        args = self.source()
+        result = self.evidence(args)
+        self.assertEqual(result["curve_reference_count"], 3)
+        self.assertEqual(result["display_status_counts"], {"DISPLAY_INTERVALS_OVERLAP": 2, "ZERO_DISPLAY_PRECISION_UNRESOLVED": 1})
+        case = result["cases"][0]
+        self.assertEqual(case["case_damping"]["overrides"], {"2": 0.037500000000000006})
+        self.assertTrue(all(r["curve_display_compatible"] and r["damping_display_compatible"] for r in case["rows"]))
+        self.assertEqual(case["rows"][1]["case_damping_ratio"], 0.037500000000000006)
+        native = args[0]["column_axial"]["demand_support"]["force_source"]["native_modal_results"]["methods"]["ModalPeriod"]["data"]
+        for i, participant in enumerate((1.25, -2.5, 0.)):
+            expected = 10 * (1 + 2 * Fraction(native["Period"][i])) * Fraction(participant) / Fraction(native["EigenValue"][i])
+            self.assertLess(abs(expected - Fraction(case["rows"][i]["unadjusted_curve_amplitude_m"])), Fraction(1, 10**57))
+        self.assertFalse(result["applied_amplitudes_full_precision_proven"])
+        self.assertFalse(result["active_damping_full_precision_proven"])
+        self.assertFalse(result["force_reconstruction_qualified"])
+
+    def test_effective_display_disagreement_and_curve_mismatch_remain_visible(self):
+        args = self.source()
+        rows = args[0]["vs04_diaphragm_probe"]["spectrum_modal_selected_cases"]["rows"]
+        rows[0].update(U2Amp="-9.000000", DampRatio="0.075")
+        row = self.evidence(args)["cases"][0]["rows"][0]
+        self.assertEqual(row["status"], "DISPLAY_CONFLICT")
+        self.assertFalse(row["curve_display_compatible"])
+        self.assertFalse(row["damping_display_compatible"])
+
+    def test_legacy_and_missing_mode_keep_the_expected_case_mode_and_cut_grid(self):
+        args = self.source()
+        del args[0]["column_axial"]["demand_support"]["force_source"]["native_spectrum_inputs"]
+        selected = args[0]["vs04_diaphragm_probe"]["spectrum_modal_selected_cases"]
+        selected["rows"].pop(1)
+        selected["row_count"] -= 1
+        result = native_demand_source_evidence(*args, input_sha="fixture")
+        scope = result["torsion_cut_scope"]
+        self.assertEqual((scope["expected_case_cut_count"], scope["isolated_contribution_count"]), (6, 0))
+        evidence = result["spectral_modal_parameters"]["spectrum_response_evidence"]
+        self.assertEqual(evidence["expected_case_mode_count"], 3)
+        self.assertEqual(evidence["cases"][0]["rows"][1]["status"], "BLOCKED_SOURCE")
+        self.assertEqual(evidence["curve_reference_count"], 0)
+        self.assertEqual(evidence["cases"][0]["case_damping"]["status"], "NOT_CAPTURED")
+
+    def test_foreign_case_function_angle_scale_and_rejected_returns_block_curve(self):
+        for defect in ("case", "function", "direction", "angle", "scale", "getter", "ret", "status", "units", "duplicated_knots"):
+            with self.subTest(defect=defect):
+                args = self.source()
+                raw = args[0]["column_axial"]["demand_support"]["force_source"]["native_spectrum_inputs"]
+                methods = raw["cases"]["RS"]
+                if defect == "case": methods["GetModalCase"]["raw"] = ("Other", 0)
+                elif defect == "function": methods["GetLoads"]["raw"][2][0] = "Other"
+                elif defect == "direction": methods["GetLoads"]["raw"][1][0] = "U1"
+                elif defect == "angle": methods["GetLoads"]["raw"][5][0] = 0.001
+                elif defect == "scale": methods["GetLoads"]["raw"][3][0] = 100.
+                elif defect == "getter": raw["functions"]["FUNC"]["name"] = "Other"
+                elif defect == "ret": raw["functions"]["FUNC"]["raw"] = (2, [0., 1.], [1., 3.], False)
+                elif defect == "status": methods["GetLoads"]["status"] = "CAPTURE_ERROR"
+                elif defect == "duplicated_knots": raw["functions"]["FUNC"]["raw"][1][1] = 0.
+                else: raw["units_code"] = 12
+                evidence = self.evidence(args)
+                self.assertEqual(evidence["curve_reference_count"], 0)
+                self.assertEqual(evidence["expected_case_mode_count"], 3)
+
+    def test_damping_table_and_native_override_cannot_disagree(self):
+        args = self.source()
+        key = "Load Case Definitions - Damping - Modal"
+        args[0]["vs04_basis_probe"]["table_reads"][key]["rows"][0]["OverMode"] = "1"
+        evidence = self.evidence(args)
+        self.assertEqual(evidence["cases"][0]["case_damping"]["status"], "BLOCKED_SOURCE")
+        self.assertEqual(evidence["curve_reference_count"], 3)
+
+    def test_display_percent_or_zero_cannot_bind_to_a_positive_native_ratio(self):
+        for field in ("units", "constant", "override"):
+            with self.subTest(field=field):
+                args = self.source()
+                damping = args[0]["vs04_basis_probe"]["table_reads"]["Load Case Definitions - Damping - Modal"]
+                if field == "units":
+                    damping["field_metadata"]["units_by_field"]["OverDamp"] = "%"
+                else:
+                    damping["rows"][0]["ConstDamp" if field == "constant" else "OverDamp"] = "0"
+                self.assertEqual(self.evidence(args)["cases"][0]["case_damping"]["status"], "BLOCKED_SOURCE")
+
+    def test_printed_boundary_signed_factor_and_curve_endpoints(self):
+        from decimal import Decimal
+        from tbdy_next.spectrum_reconstruction import modal_amplitude_comparison, native_curve_amplitude
+        self.assertEqual(modal_amplitude_comparison("1.0", "-1.1", -1., 1.)["status"], "DISPLAY_INTERVALS_OVERLAP")
+        self.assertEqual(modal_amplitude_comparison("1.0", "-1.11", -1., 1.)["status"], "DISPLAY_CONFLICT")
+        periods = [Decimal(0), Decimal(1)]
+        knots = [(p, p+1, Decimal(0)) for p in periods]
+        for t, a in ((0., -2.), (1., -4.)):
+            self.assertEqual(native_curve_amplitude(periods, knots, t, 2., -1., 1.)[1], a)
+        with self.assertRaisesRegex(ValueError, "OUTSIDE_AVAILABLE_FUNCTION_RANGE"):
+            native_curve_amplitude(periods, knots, math.nextafter(1., 2.), 2., 1., 1.)
+
+    def test_total_diaphragm_loads_preserve_case_scope_without_isolating_torsion(self):
+        from tbdy_next.diaphragm_probe import DIAPHRAGM_FORCE_TABLE
+        args = self.source()
+        force = table(DIAPHRAGM_FORCE_TABLE, [{"Story": "Roof", "UniqueName": "7", "OutputCase": "RS",
+            "StepType": "Max", "FXA": "2.5", "FYA": "3.5"}])
+        force["field_metadata"].update(field_count=len(force["fields"]))
+        force["field_metadata"]["units_by_field"].update(FXA="kN", FYA="kN")
+        args[0]["vs04_diaphragm_probe"]["diaphragm_forces_selected_cases"] = force
+        context = self.evidence(args)["diaphragm_force_context"]
+        self.assertEqual(context["rows_by_case"], {"RS": 1})
+        self.assertFalse(context["isolated_accidental_contributions_bound"])
+        force["rows"][0]["OutputCase"] = "Other"
+        self.assertEqual(self.evidence(args)["diaphragm_force_context"]["status"], "BLOCKED_SOURCE")
+
+
 if __name__ == '__main__':
     unittest.main()

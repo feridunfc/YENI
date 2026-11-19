@@ -10,11 +10,12 @@ import math
 from ..analysis_sources import _digest
 from ..column_engine.source_bank import native_frame_force_rows
 from ..diaphragm_linkage import MODAL_FIELDS, MODAL_UNITS, _decimal, _read_table
-from ..diaphragm_probe import SCHEMA as MODAL_PROBE_SCHEMA, SPECTRUM_MODAL_TABLE
+from ..diaphragm_probe import SCHEMA as MODAL_PROBE_SCHEMA, SPECTRUM_MODAL_TABLE, DIAPHRAGM_FORCE_TABLE
 from ..frame_force_capture import (
     MODAL_RESULTS_SCHEMA, ECCENTRICITY_SCHEMA, MODAL_RESULT_FIELDS,
-    native_modal_rows, native_eccentricity,
+    SPECTRUM_INPUT_SCHEMA, SPECTRUM_GETTERS, CURVE_FIELDS, MAX_FORCE_ROWS, native_modal_rows, native_eccentricity,
 )
+from ..spectrum_reconstruction import modal_amplitude_comparison, native_curve_amplitude
 from ..vs05_d4_source_authority import _case_summary, _source_table
 
 SUPPORT_SCHEMA = "tbdy.next.native-demand-support.v1"
@@ -278,6 +279,216 @@ def component_force_rows(source, uid, combination_plan):
     return rows
 
 
+def _spectrum_return(record, api, name, fields):
+    if (not isinstance(record, dict) or record.get("status") != "CAPTURED"
+            or record.get("api") != api or record.get("name") != name):
+        raise ValueError("NATIVE_SPECTRUM_RETURN_UNAVAILABLE:" + api)
+    raw = record.get("raw")
+    if (not isinstance(raw, (tuple, list)) or len(raw) != len(fields) + 1
+            or type(raw[-1]) is not int or raw[-1] != 0):
+        raise ValueError("NATIVE_SPECTRUM_RETURN_INVALID:" + api)
+    return raw[:-1]
+
+
+def _case_return(methods, case, method):
+    return _spectrum_return(methods.get(method), "LoadCases.ResponseSpectrum." + method,
+                            case, SPECTRUM_GETTERS[method][0])
+
+
+def _native_number(value):
+    if type(value) not in (int, float) or not math.isfinite(value):
+        raise ValueError("NATIVE_SPECTRUM_NUMBER_INVALID")
+    return value
+
+
+def _case_curve(methods, functions, case):
+    name = case["case"]
+    if _case_return(methods, name, "GetModalCase")[0] != case["modal_case"]:
+        raise ValueError("SPECTRUM_NATIVE_MODAL_CASE_CONFLICT")
+    n, axes, curves, scales, systems, angles = _case_return(methods, name, "GetLoads")
+    if (type(n) is not int or n != 1 or any(not isinstance(a, (tuple, list)) or len(a) != 1
+            for a in (axes, curves, scales, systems, angles))):
+        raise ValueError("SPECTRUM_NATIVE_SINGLE_LOAD_REQUIRED")
+    curve, scale = curves[0], _native_number(scales[0])
+    if (axes[0] != case["active_axis"] or systems[0] != "Global" or _native_number(angles[0]) != 0
+            or curve != case["spectrum_function"] or scale <= 0
+            or not _printed_compatible(case["acceleration_scale_m_s2"], scale)[0]):
+        raise ValueError("SPECTRUM_NATIVE_LOAD_DEFINITION_CONFLICT")
+    rec = functions.get(curve)
+    n, periods, values = _spectrum_return(rec, "Func.GetValues", curve, CURVE_FIELDS)
+    if (type(n) is not int or not 2 <= n <= MAX_FORCE_ROWS or any(
+            not isinstance(a, (tuple, list)) or len(a) != n for a in (periods, values))):
+        raise ValueError("SPECTRUM_NATIVE_FUNCTION_ARRAYS_INVALID")
+    periods = [Decimal(_native_number(p)) for p in periods]
+    values = [Decimal(_native_number(v)) for v in values]
+    if periods[0] < 0 or any(a >= b for a, b in zip(periods, periods[1:])) or min(values) < 0:
+        raise ValueError("SPECTRUM_NATIVE_FUNCTION_KNOTS_INVALID")
+    return periods, list(zip(periods, values, [Decimal(0)] * n)), scale
+
+
+def _case_damping(methods, case, tables):
+    name = case["case"]
+    code, = _case_return(methods, name, "GetDampType")
+    constant, = _case_return(methods, name, "GetDampConstant")
+    n, modes, damping = _case_return(methods, name, "GetDampOverrides")
+    if n == 0:
+        modes = [] if modes is None else modes
+        damping = [] if damping is None else damping
+    if (type(code) is not int or code < 0 or type(n) is not int or not 0 <= n <= MAX_FORCE_ROWS
+            or not 0 <= _native_number(constant) < 1
+            or any(not isinstance(a, (tuple, list)) or len(a) != n for a in (modes, damping))
+            or any(type(m) is not int or m < 1 for m in modes) or len(set(modes)) != n
+            or any(not 0 <= _native_number(d) < 1 for d in damping)):
+        raise ValueError("SPECTRUM_CASE_DAMPING_RETURN_INVALID")
+    key = "Load Case Definitions - Damping - Modal"
+    table = tables.get(key)
+    units = {"Name": "", "DampType": "", "ConstDamp": ""}
+    if isinstance(table, dict) and isinstance(table.get("fields"), list):
+        units.update({field: "" for field in ("OverMode", "OverDamp") if field in table["fields"]})
+    rows = _read_table(table, key, set(units), units)
+    case_rows = [r for r in rows if r["Name"] == name]
+    definitions = [r for r in case_rows if r["DampType"] == "Constant" and r["ConstDamp"] not in ("", "None")]
+    if (len(definitions) != 1 or any(r["DampType"] not in ("Constant", "", "None") for r in case_rows)
+            or (_decimal(definitions[0]["ConstDamp"]) == 0) != (constant == 0)
+            or not _printed_compatible(definitions[0]["ConstDamp"], constant)[0]):
+        raise ValueError("SPECTRUM_CONSTANT_DAMPING_DEFINITION_UNBOUND")
+    overrides = dict(zip(modes, damping))
+    printed = {}
+    for r in case_rows:
+        mode_text, value = r.get("OverMode"), r.get("OverDamp")
+        if mode_text in (None, "", "None") and value in (None, "", "None"):
+            continue
+        mode = _decimal(mode_text, positive=True)
+        if mode != mode.to_integral_value() or mode in printed:
+            raise ValueError("SPECTRUM_DAMPING_OVERRIDE_MODE_INVALID")
+        printed[int(mode)] = value
+    if set(printed) != set(overrides) or any((_decimal(printed[m]) == 0) != (d == 0)
+            or not _printed_compatible(printed[m], d)[0] for m, d in overrides.items()):
+        raise ValueError("SPECTRUM_DAMPING_OVERRIDE_DEFINITION_CONFLICT")
+    return {"status": "CONSTANT_PARAMETER_AND_OVERRIDES_RECORDED", "native_type_code": code,
+            "constant_ratio": constant, "overrides": {str(m): d for m, d in overrides.items()},
+            "case_definition_sha256": _digest(case_rows), "effective_modal_damping_proven": False}
+
+
+def _torsion_force_context(probe, cases):
+    table = probe.get("diaphragm_forces_selected_cases")
+    result = {"table_key": DIAPHRAGM_FORCE_TABLE, "status": "NOT_CAPTURED", "rows_by_case": {},
+              "expected_cases": sorted(cases), "isolated_accidental_contributions_bound": False}
+    if table is None:
+        return result
+    try:
+        rows = _read_table(table, DIAPHRAGM_FORCE_TABLE,
+            {"Story", "UniqueName", "OutputCase", "StepType", "FXA", "FYA"}, {"FXA": "kN", "FYA": "kN"})
+        selected = set(probe["temporary_display_cases"])
+        counts = Counter()
+        for row in rows:
+            if row["OutputCase"] not in selected or not all(row[k].strip() for k in ("Story", "UniqueName")):
+                raise ValueError("DIAPHRAGM_FORCE_IDENTITY_OR_SELECTION_INVALID")
+            _decimal(row["FXA"])
+            _decimal(row["FYA"])
+            counts[row["OutputCase"]] += 1
+        result.update(status="IN_PLANE_LOAD_ROWS_OBSERVED", rows_by_case={c: counts[c] for c in sorted(cases)},
+                      missing_cases=sorted(set(cases) - counts.keys()), source_sha256=_digest(table))
+    except (KeyError, ValueError, TypeError, ArithmeticError) as exc:
+        result.update(status="BLOCKED_SOURCE", reason=str(exc))
+    return result
+
+
+def spectrum_response_evidence(source, modal):
+    """Audit signed modal amplitudes and available source inputs on the frozen case/mode grid."""
+    probe = source["vs04_diaphragm_probe"]
+    tables = source["vs04_basis_probe"]["table_reads"]
+    case_names = {c["case"] for c in modal["cases"]}
+    force = ((source.get("column_axial") or {}).get("demand_support") or {}).get("force_source") or {}
+    capture = force.get("native_spectrum_inputs")
+    xml = probe.get("spectrum_modal_xml")
+    result = {"schema": "tbdy.next.spectrum-response-evidence.v1", "cases": [],
+              "expected_case_mode_count": modal["expected_mode_rows"], "display_status_counts": {},
+              "curve_reference_count": 0, "active_damping_full_precision_proven": False,
+              "applied_amplitudes_full_precision_proven": False, "force_reconstruction_qualified": False,
+              "diaphragm_force_context": _torsion_force_context(probe, case_names),
+              "modal_xml_status": xml.get("status") if isinstance(xml, dict) else "NOT_CAPTURED"}
+    if isinstance(xml, dict):
+        result["modal_xml_source_sha256"] = _digest(xml)
+    methods_by_case, functions = {}, {}
+    if capture is not None:
+        result["native_input_sha256"] = _digest(capture)
+        if (isinstance(capture, dict) and capture.get("schema") == SPECTRUM_INPUT_SCHEMA
+                and type(capture.get("units_code")) is int and capture["units_code"] == 6
+                and isinstance(capture.get("cases"), dict) and set(capture["cases"]) == case_names
+                and isinstance(capture.get("functions"), dict)):
+            methods_by_case, functions = capture["cases"], capture["functions"]
+        else:
+            result["native_input_error"] = "NATIVE_SPECTRUM_INPUT_INVENTORY_INVALID"
+    native = {(r["modal_case"], r["mode"]): r for r in modal["native_numeric_precision"]["rows"]
+              if r["status"] == "NATIVE_DOUBLE_MODAL_INPUTS_BOUND"}
+    counts = Counter()
+    for case in modal["cases"]:
+        name = case["case"]
+        axis = case.get("active_axis")
+        item = {"case": name, "case_guid": case["case_guid"], "modal_case": case["modal_case"],
+                "modal_case_guid": case["modal_case_guid"], "axis": axis, "rows": [],
+                "parameter_status": case["status"], "parameter_reason_codes": list(case["reason_codes"]),
+                "expected_modes": case["expected_modes"],
+                "case_damping": {"status": "NOT_CAPTURED"}, "curve_status": "NOT_CAPTURED"}
+        result["cases"].append(item)
+        methods = methods_by_case.get(name)
+        aligned = (axis in ("U1", "U2", "U3") and case.get("coordinate_system") == "Global"
+                   and _decimal(case["angle_deg"]) == 0)
+        curve = None
+        if isinstance(methods, dict) and case.get("case_definition_sha256"):
+            try:
+                item["case_damping"] = _case_damping(methods, case, tables)
+            except (KeyError, ValueError, TypeError, ArithmeticError) as exc:
+                item["case_damping"] = {"status": "BLOCKED_SOURCE", "reason": str(exc)}
+            try:
+                if not aligned:
+                    raise ValueError("ALIGNED_GLOBAL_EXCITATION_REQUIRED")
+                curve = _case_curve(methods, functions, case)
+                item.update(curve_status="NATIVE_CURVE_AND_SCALE_BOUND", knot_count=len(curve[0]))
+            except (KeyError, ValueError, TypeError, ArithmeticError) as exc:
+                item.update(curve_status="BLOCKED_SOURCE", curve_error=str(exc))
+                if str(exc) in ("SPECTRUM_NATIVE_LOAD_DEFINITION_CONFLICT", "SPECTRUM_NATIVE_MODAL_CASE_CONFLICT",
+                                "SPECTRUM_NATIVE_SINGLE_LOAD_REQUIRED"):
+                    aligned = False
+        display = {r["mode"]: r["native_values"] for r in case["mode_rows"]}
+        for mode in case["expected_modes"]:
+            row = {"mode": mode, "status": "BLOCKED_SOURCE"}
+            item["rows"].append(row)
+            numeric = native.get((case["modal_case"], mode))
+            if not aligned or numeric is None or mode not in display:
+                row["reason"] = "ALIGNED_AXIS_AND_SAME_CASE_NATIVE_AND_DISPLAY_MODE_REQUIRED"
+            else:
+                values = display[mode]
+                damping = item["case_damping"]
+                if "constant_ratio" in damping:
+                    ratio = damping["overrides"].get(str(mode), damping["constant_ratio"])
+                    row["case_damping_ratio"] = ratio
+                    row["effective_display_ratio"] = values["DampRatio"]
+                    row["damping_display_compatible"] = _printed_compatible(values["DampRatio"], ratio)[0]
+                participation = numeric["participation_api_values"][{"U1": "UX", "U2": "UY", "U3": "UZ"}[axis]]
+                period = numeric["period_api_values"]
+                try:
+                    row.update(modal_amplitude_comparison(values[axis+"Acc"], values[axis+"Amp"],
+                                                          participation, period["EigenValue"]))
+                except (ValueError, ArithmeticError) as exc:
+                    row["reason"] = str(exc)
+                if curve is not None:
+                    try:
+                        acceleration, amp = native_curve_amplitude(*curve[:2], period["Period"], curve[2],
+                                                                   participation, period["EigenValue"])
+                        row.update(unadjusted_curve_acceleration_m_s2=str(acceleration),
+                                   unadjusted_curve_amplitude_m=str(amp),
+                                   curve_display_compatible=(_printed_compatible(values[axis+"Acc"], acceleration)[0]
+                                       and _printed_compatible(values[axis+"Amp"], amp)[0]))
+                        result["curve_reference_count"] += 1
+                    except (ValueError, ArithmeticError) as exc:
+                        row["curve_error"] = str(exc)
+            counts[row["status"]] += 1
+    result["display_status_counts"] = dict(sorted(counts.items()))
+    return {**result, "sha256": _digest(result)}
+
+
 def spectral_modal_parameters(source, plan):
     """Bind existing selected-case output, never the failed initial display read.
 
@@ -437,6 +648,7 @@ def spectral_modal_parameters(source, plan):
     result["bound_case_count"] = sum(r["status"] == "NATIVE_MODAL_PARAMETERS_BOUND" for r in result["cases"])
     result["bound_mode_rows"] = sum(r["bound_mode_count"] for r in result["cases"])
     result["status"] = ("NATIVE_MODAL_PARAMETERS_BOUND" if result["bound_case_count"] == result["expected_case_count"] else "SOURCE_PARTIAL")
+    result["spectrum_response_evidence"] = spectrum_response_evidence(source, result)
     result["sha256"] = _digest(result)
     return result
 
@@ -468,9 +680,17 @@ def native_demand_source_evidence(source, axial, scope, *, input_sha):
                       reason_codes=result["reason_codes"] + [str(exc)])
         result["sha256"] = _digest(result)
         return result
-    result["spectral_modal_parameters"] = spectral_modal_parameters(source, plan)
     grids = (scope or {}).get("configured_output_cuts") or {}
     members = sorted({x["element_id"] for x in (scope or {}).get("instances", ())})
+    unbound = [uid for uid in members if (grids.get(uid) or {}).get("status") != "REQUIRED_SUBSET_BOUND"]
+    case_count = len(plan["spectrum_modal_bindings"])
+    known_cuts = sum(len(grids[uid]["cuts"]) for uid in members if uid not in unbound)
+    result["torsion_cut_scope"] = {"basis": "CONFIGURED_ANALYSIS_ELEMENT_SIDE_CUTS", "expected_members": members,
+        "unbound_grid_members": unbound, "expected_spectrum_cases": sorted(plan["spectrum_modal_bindings"]),
+        "known_case_cut_count": case_count * known_cuts,
+        "expected_case_cut_count": case_count * known_cuts if members and not unbound else None,
+        "isolated_contribution_count": 0, "grid_sha256": _digest(grids)}
+    result["spectral_modal_parameters"] = spectral_modal_parameters(source, plan)
     result["expected_member_case_count"] = len(members) * len(plan["cases"])
     result["reason_codes"].extend((scope or {}).get("dependency_blockers", ()))
     if not members:

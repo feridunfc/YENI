@@ -110,6 +110,43 @@ class Vs04GTests(unittest.TestCase):
         self.assertIn("ETABS_TABLE_NOT_CAPTURED",out["tables"][-1]["reason_codes"])
         self.assertEqual(out["engineering_release"],"NOT_READY")
 
+    def test_supplemental_xml_and_force_table_use_and_restore_the_same_display_cases(self):
+        from tbdy_next.diaphragm_probe import DIAPHRAGM_FORCE_TABLE
+        sap = FakeSap(modal_fails=False, selected=("Dead",))
+        db = sap.DatabaseTables
+        db.available.append(DIAPHRAGM_FORCE_TABLE)
+        db.records[DIAPHRAGM_FORCE_TABLE] = (["OutputCase", "FXA"], [["RSX", "3.12"]])
+        def xml(key, fields, group, schema, version, data):
+            self.assertEqual((key, fields, group, schema), (SPECTRUM_MODAL_TABLE, [""], "", True))
+            self.assertEqual(db.selected, ("RSX", "RSY"))
+            return (fields, 1, "<Table/>", 0)
+        db.GetTableForDisplayXMLString = xml
+        result = capture_diaphragm_modal_probe(sap, capture_spectrum_evidence=True)
+        self.assertEqual(result["spectrum_modal_xml"]["raw"][2], "<Table/>")
+        self.assertEqual(result["diaphragm_forces_selected_cases"]["rows"][0]["FXA"], "3.12")
+        self.assertEqual(db.selected, ("Dead",))
+
+    def test_xml_failure_retains_return_and_optional_force_table_can_be_absent(self):
+        sap = FakeSap(modal_fails=False)
+        sap.DatabaseTables.GetTableForDisplayXMLString = lambda *args: (None, 1, "", 9)
+        result = capture_diaphragm_modal_probe(sap, capture_spectrum_evidence=True)
+        self.assertEqual(result["spectrum_modal_xml"]["status"], "CAPTURE_ERROR")
+        self.assertEqual(result["spectrum_modal_xml"]["raw"][-1], 9)
+        self.assertEqual(result["diaphragm_forces_selected_cases"]["status"], "NOT_AVAILABLE")
+        self.assertEqual(sap.DatabaseTables.selected, ())
+
+    def test_case_drift_after_supplemental_read_blocks_capture_even_after_restore(self):
+        for original in ((), ("RSX", "RSY")):
+            with self.subTest(original=original):
+                sap = FakeSap(modal_fails=False, selected=original)
+                def drift(*args):
+                    sap.DatabaseTables.selected = ("Dead",)
+                    return (None, 1, "<Table/>", 0)
+                sap.DatabaseTables.GetTableForDisplayXMLString = drift
+                with self.assertRaisesRegex(ModalCaptureError, "CASE_SELECTION_CHANGED"):
+                    capture_diaphragm_modal_probe(sap, capture_spectrum_evidence=True)
+                self.assertEqual(sap.DatabaseTables.selected, original)
+
     def test_missing_static_table_is_not_fabricated(self):
         result=capture_diaphragm_modal_probe(FakeSap(no_static=True))
         out=review_diaphragm_modal_probe(result)

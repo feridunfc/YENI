@@ -2552,6 +2552,34 @@ def _native_demand_sources_html(record):
     modal = record.get("spectral_modal_parameters") or {}
     precision = modal.get("native_numeric_precision") or {}
     torsion = modal.get("native_torsion_definitions") or {}
+    spectrum = modal.get("spectrum_response_evidence") or {}
+    diaphragm = spectrum.get("diaphragm_force_context") or {}
+    cut_scope = record.get("torsion_cut_scope") or {}
+    spectrum_html = ('<h4>Signed spectrum amplitude evidence</h4>'
+        f'<p>Expected case–mode rows {_val(spectrum.get("expected_case_mode_count"))}. '
+        f'Comparison at printed precision {_val(spectrum.get("display_status_counts"))}. '
+        f'Unadjusted native-curve references {_val(spectrum.get("curve_reference_count"))}.</p>'
+        '<p>The comparison uses the signed participation factor and eigenvalue for the same mode. '
+        'Applied amplitudes, effective modal damping and accidental-torsion forces require separate evidence.</p>'
+        + _table((("case", "Spectrum case"), ("modal_case", "Modal case"), ("axis", "Excitation axis"),
+                  ("curve_status", "Native spectrum curve"), ("damping_status", "Case damping definition"),
+                  ("constant_ratio", "Constant damping ratio"), ("overrides", "Mode overrides")),
+                 [{**c, "damping_status": c["case_damping"]["status"],
+                   "constant_ratio": c["case_damping"].get("constant_ratio"),
+                   "overrides": c["case_damping"].get("overrides")} for c in spectrum.get("cases", [])])
+        + ''.join('<details><summary>' + _val(c.get("case")) + ' · Modal amplitude comparisons</summary>'
+                  + _table((("mode", "Mode"), ("status", "Display comparison"),
+                            ("amplitude_from_displayed_acceleration_m", "Amplitude from displayed acceleration (m)"),
+                            ("absolute_difference_m", "Absolute difference (m)"),
+                            ("printed_interval_budget_m", "Printed interval allowance (m)"),
+                            ("unadjusted_curve_amplitude_m", "Unadjusted native-curve amplitude (m)"),
+                            ("case_damping_ratio", "Case damping ratio"), ("effective_display_ratio", "Displayed effective ratio"),
+                            ("curve_error", "Curve input gap"), ("reason", "Source gap")), c.get("rows", []))
+                  + '</details>' for c in spectrum.get("cases", []))
+        + f'<p>Modal XML capture {_val(spectrum.get("modal_xml_status"))}. '
+        f'Diaphragm forces {_val(diaphragm.get("status"))}. '
+        f'Isolated contributions {_val(cut_scope.get("isolated_contribution_count"))} / '
+        f'{_val(cut_scope.get("expected_case_cut_count"))} configured case–cuts.</p>') if spectrum else ''
     numeric_html = ('<h4>Native modal numeric precision</h4>'
         f'<p>{_val(precision.get("status"))} · {_val(precision.get("bound_mode_count"))} / '
         f'{_val(precision.get("expected_mode_count"))} modal modes. '
@@ -2589,7 +2617,7 @@ def _native_demand_sources_html(record):
                   ("modal_combination", "Modal combination"), ("directional_combination", "Directional combination"),
                   ("eccentricity_ratio", "Defined eccentricity ratio"), ("accidental_torsion_status", "Torsion evidence"),
                   ("status", "Parameter status"), ("reason_codes", "Source gaps")), modal.get("cases", []))
-        + numeric_html + torsion_html
+        + numeric_html + spectrum_html + torsion_html
         + f'<p>Remaining requirements: {_val(modal.get("remaining_requirements"))}</p>') if modal else ''
     return ('<section class="percheck"><h2>Native load-case and modal force coverage</h2>'
             f'<p>{_val(record["status"])} · {_val(record.get("completed_member_case_count"))} / '

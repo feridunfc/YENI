@@ -111,9 +111,9 @@ STAGES: tuple[StageSpec, ...] = (
               "DESIGN_SCENARIO", consumes=(_AXIAL_GEOMETRY, _PMM_SCOPE), produces=(_DESIGN_SCOPE,),
               method_version="offline-member-dependencies.d2.v1"),
     StageSpec("mixed-demand-components", LIVE, "tbdy_next.engineering.mixed_demands", (), (),
-              "Native primitive/modal cut coverage, numeric modal inputs, torsion definitions and same-source spectral replay; no concurrent vector or alpha authority",
+              "Native cut coverage, signed modal amplitude evidence, spectrum input definitions and same-source scalar replay",
               "PMM_SCOPE", consumes=(_AXIAL_RESULT, _PMM_SCOPE),
-              produces=(_MIXED_COMPONENTS, _DEMAND_SOURCE), method_version="same-source-spectral-components.v6"),
+              produces=(_MIXED_COMPONENTS, _DEMAND_SOURCE), method_version="same-source-spectral-components.v7"),
     StageSpec("column-gates", LIVE, "tbdy_next.engineering.column_live_gates", (),
               ("COLUMN_REBAR", "COLUMN_AXIAL", "COLUMN_PMM"),
               "CHK-004/CHK-005 caps, reinforcement role and open gates over the SAME axial/PMM results "

@@ -3,10 +3,9 @@
 This is an acquisition tool, not a verification of constraints, accidental
 eccentricity, analysis generation or TBDY normative compliance.
 
-Only three exact diaphragm definition/assignment tables plus one modal
-spectrum output table are read. The modal table is deliberately probed
-twice: under the existing display selection, then with RSX/RSY temporarily
-selected and *exactly restored* in finally.
+The original and selected modal tables share the diaphragm assignment probe.
+Supplemental XML and diaphragm force returns use the verified temporary display
+selection. Only the original selection is restored in finally.
 """
 from __future__ import annotations
 
@@ -16,6 +15,7 @@ from .analysis_sources import _full_metadata
 from .basis_probe import parse_available_tables
 from .etabs_geometry import _read_one
 from .etabs_modal import ModalCaptureError, _selected_cases, _set_cases
+from .etabs_source_gateway_windows import field_schema, read_table
 
 DIAPHRAGM_TABLES = (
     "Diaphragm Definitions",
@@ -23,6 +23,7 @@ DIAPHRAGM_TABLES = (
     "Joint Assignments - Diaphragms",
 )
 SPECTRUM_MODAL_TABLE = "Response Spectrum Modal Info"
+DIAPHRAGM_FORCE_TABLE = "Diaphragm Forces"
 REQUIRED_KEYS = DIAPHRAGM_TABLES + (SPECTRUM_MODAL_TABLE,)
 SCHEMA = "tbdy.next.vs04g.diaphragm-modal-probe.v1"
 
@@ -34,8 +35,28 @@ def _capture(db: Any, key: str) -> dict:
     return t
 
 
+def _modal_xml(db):
+    """Preserve CSI's XML representation for a precision audit on the same rows."""
+    record = {"api": "DatabaseTables.GetTableForDisplayXMLString", "table_key": SPECTRUM_MODAL_TABLE}
+    try:
+        raw = db.GetTableForDisplayXMLString(SPECTRUM_MODAL_TABLE, [""], "", True, 0, "")
+        if (not isinstance(raw, (tuple, list)) or len(raw) != 4
+                or not isinstance(raw[2], (str, type(None))) or len(raw[2] or "") > 8_000_000
+                or not isinstance(raw[0], (tuple, list, type(None)))
+                or not all(isinstance(key, str) for key in (raw[0] or ()))
+                or type(raw[1]) is not int or type(raw[3]) is not int):
+            raise ValueError("SPECTRUM_XML_ABI_INVALID")
+        record["raw"] = raw
+        if raw[3] != 0 or not raw[2]:
+            raise ValueError("SPECTRUM_XML_UNAVAILABLE")
+        record["status"] = "CAPTURED"
+    except Exception as exc:
+        record.update(status="CAPTURE_ERROR", error=f"{type(exc).__name__}: {exc}"[:400])
+    return record
+
+
 def capture_diaphragm_modal_probe(
-    sap: Any, *, spectrum_cases: tuple[str, str] = ("RSX", "RSY")
+    sap: Any, *, spectrum_cases: tuple[str, str] = ("RSX", "RSY"), capture_spectrum_evidence: bool = False
 ) -> dict:
     if sap is None or sap.GetModelIsLocked() is not True:
         raise ModalCaptureError("VS04G_LOCKED_EXISTING_ANALYSIS_REQUIRED")
@@ -70,6 +91,7 @@ def capture_diaphragm_modal_probe(
                           "field_metadata":{"status":"UNAVAILABLE"}}
     changed = original != spectrum_cases
     modal_selected = None
+    supplemental = {}
     read_error = None
     try:
         if changed:
@@ -83,19 +105,29 @@ def capture_diaphragm_modal_probe(
             modal_selected = _capture(db, SPECTRUM_MODAL_TABLE)
         else:
             modal_selected = dict(original_modal)
+        if capture_spectrum_evidence:
+            supplemental["spectrum_modal_xml"] = (_modal_xml(db) if SPECTRUM_MODAL_TABLE in available
+                else {"table_key": SPECTRUM_MODAL_TABLE, "status": "NOT_AVAILABLE"})
+            force_table = {"table_key": DIAPHRAGM_FORCE_TABLE, "status": "NOT_AVAILABLE"}
+            if DIAPHRAGM_FORCE_TABLE in available:
+                force_table = read_table(db, DIAPHRAGM_FORCE_TABLE, max_rows=100_000)
+                force_table["field_metadata"] = field_schema(db, DIAPHRAGM_FORCE_TABLE)
+            supplemental["diaphragm_forces_selected_cases"] = force_table
+            if _selected_cases(db) != spectrum_cases:
+                raise ModalCaptureError("SPECTRUM_EVIDENCE_CASE_SELECTION_CHANGED")
     except Exception as exc:
         read_error = exc
     finally:
-        if changed:
-            try:
+        try:
+            if changed or _selected_cases(db) != original:
                 _set_cases(db, original)
                 restored = _selected_cases(db)
                 if restored != original:
                     raise ModalCaptureError(
                         f"VS04G_DISPLAY_RESTORE_MISMATCH:{restored!r}!={original!r}")
-            except Exception as exc:
-                raise ModalCaptureError(
-                    "VS04G_DISPLAY_RESTORE_FAILED:"+str(exc)) from exc
+        except Exception as exc:
+            raise ModalCaptureError(
+                "VS04G_DISPLAY_RESTORE_FAILED:"+str(exc)) from exc
     if read_error is not None:
         raise ModalCaptureError("VS04G_SOURCE_READ_REJECTED:"+str(read_error)) from read_error
     if _selected_cases(db) != original:
@@ -115,6 +147,7 @@ def capture_diaphragm_modal_probe(
         "diaphragm_tables":observed,
         "spectrum_modal_original_selection":original_modal,
         "spectrum_modal_selected_cases":modal_selected,
+        **supplemental,
         "analysis_generation_proven":False,
         "diaphragm_constraints_applied_proven":False,
         "eccentricity_applied_proven":False,

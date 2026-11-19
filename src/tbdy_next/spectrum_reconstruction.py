@@ -13,6 +13,7 @@ regulatory analysis, applied accidental eccentricity, base shear or drift.
 from __future__ import annotations
 
 from decimal import Decimal, InvalidOperation, localcontext
+from bisect import bisect_left
 from itertools import product
 from typing import Any, Mapping
 
@@ -88,6 +89,41 @@ def _interpolate(knots: list[tuple[Decimal, Decimal, Decimal]],
                     (Decimal(1) - a) * h0 + a * h1,
                     t1 - t0)
     raise ValueError("MODAL_PERIOD_OUTSIDE_AVAILABLE_FUNCTION_RANGE")
+
+
+def modal_amplitude_comparison(acceleration_text, amplitude_text, participation, eigenvalue):
+    """CSI's aligned-axis amplitude identity using the two printed intervals."""
+    with localcontext() as ctx:
+        ctx.prec = 60
+        acceleration = _d(acceleration_text, "acceleration")
+        amplitude = _d(amplitude_text, "amplitude")
+        multiplier = Decimal(participation) / Decimal(eigenvalue)
+        center = multiplier * acceleration
+        budget = abs(multiplier) * _half(acceleration_text, "acceleration") + _half(amplitude_text, "amplitude")
+        if abs(center - amplitude) > budget:
+            status = "DISPLAY_CONFLICT"
+        elif not amplitude or not acceleration:
+            status = "ZERO_DISPLAY_PRECISION_UNRESOLVED"
+        else:
+            status = "DISPLAY_INTERVALS_OVERLAP"
+        return {"status": status, "amplitude_from_displayed_acceleration_m": str(center),
+                "absolute_difference_m": str(abs(center - amplitude)), "printed_interval_budget_m": str(budget)}
+
+
+def native_curve_amplitude(periods, knots, period, scale, participation, eigenvalue):
+    """Unadjusted curve reference for one aligned excitation, with the scale applied once."""
+    with localcontext() as ctx:
+        ctx.prec = 60
+        t = Decimal(period)
+        end = bisect_left(periods, t)
+        if end < len(periods) and periods[end] == t:
+            ordinate = knots[end][1]
+        elif 0 < end < len(periods):
+            ordinate, _, _ = _interpolate(knots[end-1:end+1], t)
+        else:
+            raise ValueError("MODAL_PERIOD_OUTSIDE_AVAILABLE_FUNCTION_RANGE")
+        acceleration = ordinate * Decimal(scale)
+        return acceleration, acceleration * Decimal(participation) / Decimal(eigenvalue)
 
 
 def _predict_interval(
