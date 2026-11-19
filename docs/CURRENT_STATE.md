@@ -6,6 +6,22 @@ Selected As 6,433.98 mm² ≥ 6,400 mm² (1.0053%). The final reference checks p
 but R14 remains **0 closed / 87 partial**, formal compliance `NOT_PROVEN`,
 engineering release `NOT_READY`.
 
+## Selected column and roof-joint calculation
+
+The original selected ETABS scenario runs through the shared pipeline. R08
+returns the governing signed static cut, resultant moment demand, radial capacity
+at its axial force, and remaining moment for the same selected cage. R10 sizes
+the maximum whole-mm tie pitch from the proposed legs, the lower-column required
+Ash/s, enclosure class, diameter and code spacing cap. The three signed static
+combinations reconstructed 1,206 station vectors (7,236 native scalars) on
+87 columns. All 1,206 selected-cage moment reserves were nonnegative. The joint
+owner sized 252 of 272 returned member-end/axis records. The worked roof-joint
+calculation includes both sway directions, the axial and column shear checks,
+and its selected reinforcement. Ledger `EV-COLUMN-JOINT-SLICE-20261119`
+identifies the sealed result and verification at `79f534a`. The example also
+calculates the lower interior joint with zero deduction. Connecting the actual
+earthquake-compatible upper and lower column shears is the next calculation.
+
 ## GAP-018 manual ETABS comparison
 
 ETABS finished Modal, RSX, RSY and both zero-eccentricity cases on the private
@@ -59,7 +75,7 @@ SHA-256 `61c5417b8f5f11b7352c9c02f2d518b67666fac09f1c7f6f53546fac207d7db9`.
 Both reads observed the same model and units (kN/m/°C). The display, output
 and mode selections were restored. The EDB digest matched before and after.
 Implementation `9e01f92617a3a37a6e6a79ea913dafe5feb2b8da` is on
-`work/gap-018-spectrum-evidence`. The integrated baseline is `24ddc371`.
+`work/gap-018-spectrum-evidence`. Baseline at that checkpoint was `24ddc371`.
 
 The native function getter reported 26 points and returned 27 slots per array.
 The first live v7 run retained the raw return and blocked the curve. The v8
@@ -80,7 +96,7 @@ element-side cuts in each of two cases (4,824 comparisons). It used a uniform
 ETABS total maxima exceeded that conditional dynamic reference. The model's
 15-case catalog contains two spectrum cases, both with 5% eccentricity and
 zero eccentricity overrides. Isolated accidental torsion remains **0/804**.
-The next required evidence is a source
+At that checkpoint the next required evidence was a source
 for the applied unrounded amplitudes and effective ratios, and a separately
 identifiable torsional response at the same cuts. Story allocation and spectral
 alpha remain open. [CSI accidental eccentricity guidance](https://web.wiki.csiamerica.com/wiki/spaces/kb/pages/2001549)
@@ -95,7 +111,7 @@ local projections, where 39 calculation or live entry points were guarded
 and received zero calls. The full local suite
 ran 1,428 Python tests with one Windows symlink skip and passed 11 JavaScript
 test files. The installed wheel passed 252 tests. Engineering release remains
-`NOT_READY`. Integration awaits the remaining source acceptance criteria.
+`NOT_READY`. The later paired comparison and calculation are recorded above.
 
 ## Earlier GAP-018 archive checkpoint
 
@@ -227,7 +243,7 @@ Node 24.22.1.
 Private proof: `.receipts/verification/column-cage-selection-20261118T193312Z/`.
 Ledger IDs: `EV-COLUMN-CAGE-TIE10`, `EV-COLUMN-CAGE-REPORT-TESTS`.
 
-## Remaining engineering boundary and next task
+## Engineering boundary at the candidate-selection checkpoint
 
 The candidates are not engineer-approved or as-built. Hooks, splices, anchorage,
 physical confinement lengths and complete physical-cut scope remain open.
@@ -241,7 +257,7 @@ generation; physical joint faces/cuts/anchorage; local R08 effective-length,
 sway, creep and analysis-order approval; spectral SCWB/story-alpha policy and
 alpha feedback. No engineering CHECK or stable GAP is newly CLOSED.
 
-The active bounded task is `SPECTRAL-MODAL-PRECISION-AND-TORSION-QUALIFICATION`,
+The next task at that checkpoint was `SPECTRAL-MODAL-PRECISION-AND-TORSION-QUALIFICATION`,
 GAP-018, then GAP-013 / GAP-016. Qualify the remaining applied amplitude,
 effective damping and isolated torsional response on the frozen case/mode/cut
 scope. Independent modal and directional acceptance and story allocation are

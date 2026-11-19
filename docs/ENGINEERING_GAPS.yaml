@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-19T15:03:58.392463+00:00",
+  "updated_at_utc": "2026-11-19T15:36:11.333803+00:00",
   "repository": "feridunfc/YENI",
-  "baseline_implementation_commit": "60938da94b770631c6a5c34a545c8863162ac8a4",
+  "baseline_implementation_commit": "79f534a8dee005afaafab5a907c594c99d153eff",
   "local_reconciled": true,
-  "scope_note": "18 stable GAP IDs. Native modal acceptance and the 87-column selected-cage reference scope are verified. No normative GAP or engineering CHECK is newly closed.",
+  "scope_note": "18 stable GAPs. The current vertical calculation covers signed static selected-cage capacities and joint tie sizing. GAP-018 records the completed private ETABS comparisons separately from original-generation transfer.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -27,7 +27,7 @@
     "GAP-013",
     "GAP-016"
   ],
-  "active_task": "SPECTRAL-MODAL-PRECISION-AND-TORSION-QUALIFICATION",
+  "active_task": "Interior joint earthquake shear from the upper and lower columns, then directional story SCWB and alpha",
   "gaps": [
     {
       "id": "GAP-001",
@@ -172,8 +172,8 @@
       "title": "Exact static Linear Add",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Signed E partition remains supported. The newer acquisition now supplies 22 native patterns and the required primitive case-force records.",
-      "blocker": "Broader nested/operator/role and full real signed design-example acceptance remain open; the old missing-primitive blocker applies only to its old source.",
+      "achieved_scope": "Signed E partition remains supported. The newer acquisition now supplies 22 native patterns and the required primitive case-force records. All three signed static Linear Add design combinations were reconstructed from primitive ETABS rows at 1,206 original member/case/cuts, including the element side and step. All 7,236 direct scalar controls agreed.",
+      "blocker": "Other combination operators, nested definitions and an approved design-family roster remain open.",
       "closure_criteria": "Verify supported same-source signed expressions and nested role/operator scope with independent expected values and tolerances.",
       "owner_paths": [
         "src/tbdy_next/engineering/mixed_demands.py",
@@ -182,7 +182,8 @@
       "evidence_refs": [
         "EV-D3B",
         "EV-LOCAL-NATIVE",
-        "EV-LOCAL-ORACLE"
+        "EV-LOCAL-ORACLE",
+        "EV-COLUMN-JOINT-SLICE-20261119"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false
@@ -212,7 +213,7 @@
       "title": "Global and local second-order effects",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Selected candidates can bind same-run R08 inputs; EI/Nk and second-order reference calculations exist.",
+      "achieved_scope": "Selected candidates can bind same-run R08 inputs; EI/Nk and second-order reference calculations exist. Same-run selected sections now carry both first-order and magnified design moments with the local/global factors and fixed-N radial reserve.",
       "blocker": "k/sway/Rm/free length, creep and second-order components already included in native analysis are not approved.",
       "closure_criteria": "Independently verify both-axis clear/effective lengths and EI, prevent double counting, and prove consumption of the qualified demands.",
       "owner_paths": [
@@ -224,7 +225,8 @@
         "EV-D1",
         "EV-D2",
         "EV-D3",
-        "EV-COLUMN-CAGE-TIE10"
+        "EV-COLUMN-CAGE-TIE10",
+        "EV-COLUMN-JOINT-SLICE-20261119"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false
@@ -234,7 +236,7 @@
       "title": "Independent PMM capacity acceptance",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "PMM solver and required-cut checks remain active; latest plain replay evaluates 1206 signed-static station rows with zero observed exceedances.",
+      "achieved_scope": "PMM solver and required-cut checks remain active; latest plain replay evaluates 1206 signed-static station rows with zero observed exceedances. The selected-cage run returns a verified governing static station for 87/87 members, with fixed-N radial capacity and signed reserve at each of 1,206 cuts.",
       "blocker": "Full normative load/cut/axis/cage scope and independent complete-design oracle acceptance remain open.",
       "closure_criteria": "Use independent capacity solutions and normative prerequisite evidence with explicit source identities and tolerances.",
       "owner_paths": [
@@ -244,7 +246,8 @@
       "evidence_refs": [
         "EV-PMM6",
         "EV-D3",
-        "EV-LOCAL-REPORT"
+        "EV-LOCAL-REPORT",
+        "EV-COLUMN-JOINT-SLICE-20261119"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false
@@ -326,7 +329,7 @@
       "title": "Capacity shear, ties and joint panel",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Existing Ve owner can reevaluate revised Vd and retain revision lineage.",
+      "achieved_scope": "Existing Ve owner can reevaluate revised Vd and retain revision lineage. The worked roof joint sizes its tie pitch from the lower-column Ash/s and actual proposed legs; 252/272 returned joint axes have sizing inputs. The adjacent interior joint also has a conservative demand upper bound.",
       "blocker": "Post-alpha joint equilibrium, clear faces/anchorage and all normative branches are not approved.",
       "closure_criteria": "Independently accept capacity shear, brittle limits, transverse reinforcement and panel/anchorage for every face/sign/cage.",
       "owner_paths": [
@@ -336,7 +339,8 @@
       ],
       "evidence_refs": [
         "EV-D3",
-        "EV-RECIPE18-INTAKE"
+        "EV-RECIPE18-INTAKE",
+        "EV-COLUMN-JOINT-SLICE-20261119"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -495,6 +499,49 @@
         "selected_scenario": "16/16 stage payloads reproduce",
         "status": "Private same-analysis static effect and zero-eccentricity component maxima verified at 804 direction-specific cuts. Original-to-private transfer blocked by 138 force control exceptions.",
         "latest_evidence_ref": "EV-GAP018-MANUAL-PAIR-20261119"
+      },
+      "coverage_matrix": {
+        "evidence_refs": [
+          "EV-GAP018-MANUAL-PAIR-20261119",
+          "EV-GAP018-PAIR-CONTROL-20261119"
+        ],
+        "private_same_analysis": {
+          "finished_requested_cases": [
+            5,
+            5
+          ],
+          "signed_static_eccentricity_direction_cuts": [
+            804,
+            804
+          ],
+          "spectrum_increment_scalar_controls": [
+            4824,
+            4824
+          ],
+          "zero_eccentricity_CQC_at_5pct_scalar_controls": [
+            4824,
+            4824
+          ]
+        },
+        "original_to_private": {
+          "force_controls_within_frozen_tolerance": [
+            4686,
+            4824
+          ],
+          "outside_tolerance": 138,
+          "affected_columns": 34,
+          "status": "OPEN"
+        },
+        "building_design": {
+          "R14_numerically_closed": [
+            0,
+            87
+          ],
+          "shared_open_gates": 17,
+          "numerical_gates": 14,
+          "other_engineering_gates": 3,
+          "open_work": "Earthquake-compatible column-end shears and story allocation; input generation, physical faces, effective length and creep."
+        }
       }
     }
   ]

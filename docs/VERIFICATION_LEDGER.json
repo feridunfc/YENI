@@ -19,34 +19,19 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "PRIVATE_SAME_ANALYSIS_TORSION_VERIFIED_ORIGINAL_FORCE_CONTROL_MISMATCH",
-    "integration_base_branch": "baseline/local_import",
-    "published_baseline_commit": "24ddc371c66ebcba24bf8672fe3038564e26d48c",
+    "status": "ORIGINAL_SELECTED_COLUMN_AND_JOINT_CALCULATED",
     "work_branch": "work/gap-018-spectrum-evidence",
-    "active_local_branch": "work/gap-018-spectrum-evidence",
-    "implementation_commit": "9e01f92617a3a37a6e6a79ea913dafe5feb2b8da",
-    "source_run_id": "RUN-caaf8c60060b4b20b53d6e37f00d67c3",
-    "source_sha256": "5833f62755a25bf232d88ee58e42a3aba0b184b88b40d4ca037cbb2a2879973e",
-    "results_sha256": "b3d782042e22bdf4012d771342fb660a07f76a4367fa70578e0eb62fe48d5ce2",
-    "selected_run_id": "RUN-17fbcff4be754227acb61dd1151b94cf",
-    "selected_results_sha256": "5e33b3af68dc8c17528a0a7be142af0a48cca3b53758534bcb92af9cd472e577",
-    "method": {
-      "configuration_file_count": 9,
-      "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
-      "file_count": 126,
-      "package_sha256": "ab941176367f559ab7d9cbb35ddfa1029ccb03c8087f92f5c4295f0166697b13",
-      "python_implementation": "CPython",
-      "python_version": "3.12.10"
-    },
+    "integration_base_branch": "baseline/local_import",
+    "implementation_commit": "79f534a8dee005afaafab5a907c594c99d153eff",
+    "source_run_id": "RUN-44c5816bcb5447eb97e9653177880244",
+    "source_sha256": "e56eafa3c36f7f0cf5cfc797e418d69207e608c35f153c2e2c7b087f5747f393",
+    "results_sha256": "1f9c82f2bb68fb444387eaf2974bc68ebc7d44766bce64d23c9413b576bbd3ed",
     "evidence_refs": [
-      "EV-GAP018-LIVE-SPECTRUM-20261119",
-      "EV-GAP018-PAIR-CONTROL-20261119",
-      "EV-GAP018-MANUAL-PAIR-20261119"
+      "EV-GAP018-MANUAL-PAIR-20261119",
+      "EV-COLUMN-JOINT-SLICE-20261119"
     ],
-    "tested_file_manifest_path": ".receipts/verification/gap018-live-20261119T132305Z/tested-files.json",
-    "tested_file_manifest_sha256": "8d7f2f11a3f7f02079c6d2e4978793e0121a8e9450dc786455d01e4567dff7e2",
     "engineering_release": "NOT_READY",
-    "next_action": "Resolve the 138 original-generation control exceptions using generation-bound native evidence. Keep the current tolerance. Preserve the private static-effect proof and conditional CQC check. Original story allocation, physical concurrency and design feedback remain open."
+    "next_action": "Use the controlling interior joint of the same column to bind compatible upper and lower seismic end shears. Compute both sway demands with their deduction, then carry the direction to the story SCWB and alpha owners."
   },
   "last_observed_remote_implementation": {
     "branch": "audit/pipeline-pmm-v6-20261117",
@@ -3812,6 +3797,79 @@
       "R14_partial": 87,
       "formal_compliance": "NOT_PROVEN",
       "engineering_release": "NOT_READY"
+    },
+    {
+      "id": "EV-COLUMN-JOINT-SLICE-20261119",
+      "observed_at_utc": "2026-11-19T15:36:11.333803+00:00",
+      "implementation_commit": "79f534a8dee005afaafab5a907c594c99d153eff",
+      "tested_base_commit": "d58548747b660f7f7c78f76918f92a8fa5d0f39f",
+      "tested_files_manifest_path": ".receipts/verification/vertical-c29-20261119/accepted-tests/tested-files.json",
+      "scope": "Original signed Linear Add -> same-cut selected column PMM -> column capacity shear -> two sway directions and tie sizing at one four-beam roof joint, plus conservative bounds at the adjacent interior joint.",
+      "source_sha256": "e56eafa3c36f7f0cf5cfc797e418d69207e608c35f153c2e2c7b087f5747f393",
+      "results_sha256": "1f9c82f2bb68fb444387eaf2974bc68ebc7d44766bce64d23c9413b576bbd3ed",
+      "source_run": "RUN-17fbcff4be754227acb61dd1151b94cf",
+      "run_id": "RUN-44c5816bcb5447eb97e9653177880244",
+      "environment": {
+        "python": "3.12.10",
+        "node": "v24.22.1",
+        "os": "Windows-11-10.0.26200-SP0"
+      },
+      "method": {
+        "configuration_file_count": 9,
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 126,
+        "package_sha256": "d3acada24ffb12d4d7e6a5899173f2ce1f23112ad7395932847ef279c8316dda",
+        "python_implementation": "CPython",
+        "python_version": "3.12.10"
+      },
+      "counts": {
+        "column_count": 87,
+        "complete_static_rows": 1206,
+        "reconstructed_scalar_count": 7236,
+        "static_exceedances": 0,
+        "joint_axes_returned": 272,
+        "joint_axis_pitches_with_results": 252,
+        "r14_closed": 0,
+        "r14_partial": 87
+      },
+      "static_component_tolerance": {
+        "absolute_native_units": 1e-09,
+        "relative": 1e-10
+      },
+      "verification": {
+        "focused_python": 26,
+        "offline_python_run": 1430,
+        "offline_platform_skips": 1,
+        "javascript_files": 11,
+        "isolated_wheel": 253,
+        "exit_codes": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "commands": [
+        "python -B -m tbdy_next.cli run-pipeline --source .receipts/RUN-17fbcff4be754227acb61dd1151b94cf/input.source --case Modal --out .receipts/verification/vertical-c29-20261119/accepted",
+        "python -B .receipts/verification/vertical-c29-20261119/vertical_c29.py . <private-worked-example.md>",
+        "python -B tools/test_offline.py",
+        "python -m pip wheel --no-build-isolation --no-index --no-deps --disable-pip-version-check --wheel-dir .receipts/verification/vertical-c29-20261119/accepted-tests/wheels .receipts/verification/vertical-c29-20261119/accepted-tests/wheel-source",
+        "python -B tools/test_installed_wheel.py .receipts/verification/vertical-c29-20261119/accepted-tests/wheels"
+      ],
+      "private_root": ".receipts/verification/vertical-c29-20261119",
+      "private_artifacts_sha256": {
+        "calculation-summary.json": "e14c3752ce609f9bfa74afd394fbe52ad0d6d4dcca491086f139f21257e307c6",
+        "vertical_c29.py": "d47b933de6619f7e77c6f19e391866113d81b76b6040624cee558efaffb93adf",
+        "accepted-offline.log": "baee4a238d792d5bd0d201f67703f651ae44e7b959126d2eedec767a8a5ad8c3",
+        "accepted-tests/wheel.log": "b70c2030ad1b99ca5c464b026ed081f474e3f86b1d9e6828eea6b7329e02b228",
+        "accepted-tests/wheel-build.log": "3b4191228871552b1f13c1dacf974288def02dc0c56638122ec76d4ee19ea29c",
+        "accepted-tests/tested-files.json": "bcf473b8d39cc5a0464cc76870890d90671e729bd0ddc5158843018839cb977f",
+        "accepted-tests/runtime-tests.patch": "584fd49e3142db1bdbeba04adb89ed7102f1741ee2e90a5595cad50020ed8008",
+        "accepted-tests/wheels/tbdy_next_engine-0.1.0-py3-none-any.whl": "82e6e8b6c402130b86298d095056966ed012a442401d0f40fcfb8f3f02cc0b73"
+      },
+      "private_worked_example_sha256": "30cd1fd4d4bf092666ae701aa5a6c96f5b1ef72f477a8064190f41ba80736f25",
+      "limits": "Reference effective length and creep, centered joint geometry and selected reinforcement. Original/private spectral transfer, earthquake-compatible story demands and detailing approval remain open.",
+      "engineering_release": "NOT_READY"
     }
   ],
   "new_record_template": {
@@ -3836,7 +3894,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-19T15:03:58.392463+00:00",
+  "updated_at_utc": "2026-11-19T15:36:11.333803+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -4316,6 +4374,36 @@
       "tested_file_manifest_sha256": "8d7f2f11a3f7f02079c6d2e4978793e0121a8e9450dc786455d01e4567dff7e2",
       "engineering_release": "NOT_READY",
       "next_action": "The private paired analysis has four response-spectrum cases in the first completed solver phase. The first API invocation returned 1. Qualification awaits the manual ETABS run, finished-case statuses and independent member-side comparisons."
+    },
+    {
+      "status": "PRIVATE_SAME_ANALYSIS_TORSION_VERIFIED_ORIGINAL_FORCE_CONTROL_MISMATCH",
+      "integration_base_branch": "baseline/local_import",
+      "published_baseline_commit": "24ddc371c66ebcba24bf8672fe3038564e26d48c",
+      "work_branch": "work/gap-018-spectrum-evidence",
+      "active_local_branch": "work/gap-018-spectrum-evidence",
+      "implementation_commit": "9e01f92617a3a37a6e6a79ea913dafe5feb2b8da",
+      "source_run_id": "RUN-caaf8c60060b4b20b53d6e37f00d67c3",
+      "source_sha256": "5833f62755a25bf232d88ee58e42a3aba0b184b88b40d4ca037cbb2a2879973e",
+      "results_sha256": "b3d782042e22bdf4012d771342fb660a07f76a4367fa70578e0eb62fe48d5ce2",
+      "selected_run_id": "RUN-17fbcff4be754227acb61dd1151b94cf",
+      "selected_results_sha256": "5e33b3af68dc8c17528a0a7be142af0a48cca3b53758534bcb92af9cd472e577",
+      "method": {
+        "configuration_file_count": 9,
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 126,
+        "package_sha256": "ab941176367f559ab7d9cbb35ddfa1029ccb03c8087f92f5c4295f0166697b13",
+        "python_implementation": "CPython",
+        "python_version": "3.12.10"
+      },
+      "evidence_refs": [
+        "EV-GAP018-LIVE-SPECTRUM-20261119",
+        "EV-GAP018-PAIR-CONTROL-20261119",
+        "EV-GAP018-MANUAL-PAIR-20261119"
+      ],
+      "tested_file_manifest_path": ".receipts/verification/gap018-live-20261119T132305Z/tested-files.json",
+      "tested_file_manifest_sha256": "8d7f2f11a3f7f02079c6d2e4978793e0121a8e9450dc786455d01e4567dff7e2",
+      "engineering_release": "NOT_READY",
+      "next_action": "Resolve the 138 original-generation control exceptions using generation-bound native evidence. Keep the current tolerance. Preserve the private static-effect proof and conditional CQC check. Original story allocation, physical concurrency and design feedback remain open."
     }
   ]
 }

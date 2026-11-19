@@ -1,9 +1,9 @@
 # Local development and GitHub worker handoff
 
-This handoff is based on the local YENI checkout on 2026-11-19. Its implementation
-checkpoint is `46dcb3ccc5c6dfe052a88c81e1d7758838a0f1b5`, following native modal
-acceptance at `5e1e10c1b9ffd0be777202873f4b428ded19b152`. The containing commit adds
-documentation only. Branch names and old ZIPs are not version evidence.
+Start on `baseline/local_import`. Calculation checkpoint `79f534a` carries the
+selected-column radial moment reserve and the maximum usable whole-mm tie pitch
+for a given joint cage. GAP-018's coverage matrix records the finished private
+ETABS comparison. Use the branch tip for the code and the linked evidence.
 
 ## Start from the actual state
 
@@ -64,9 +64,9 @@ round only presentation. Selected column As must be at least 0.01 Ac. Selected
 candidates, recorded ETABS templates, approved cages and as-built cages differ.
 Spectral component bounds and their corners do not prove concurrent force vectors.
 
-## Verified checkpoint and its limits
+## Earlier candidate-selection checkpoint
 
-The final selected scenario is `RUN-4c6e8d795ca94411a1cd6d7f7f54c9de`:
+The initial selected scenario was `RUN-4c6e8d795ca94411a1cd6d7f7f54c9de`:
 87/87 columns have the same-run bound candidate of 32 bars of 16 mm diameter,
 10 mm ties at 90 mm, and three crossties per local direction. As is 6,433.98 mm²
 against the 6,400 mm² minimum. The earlier 8 mm tie trial is retained but was
@@ -79,7 +79,7 @@ candidate schedule for all 87 unique IDs; they do not recalculate it.
 | Candidate reference calculations | 1,206 magnified PMM rows; 25,728 spectral corners; 435 independent bar-area comparisons | Reference assumptions and component bounds are not complete normative acceptance |
 | Earlier modal tests | 1,407 Python tests, 1 OS-specific skip; 10 JS files; 241 installed-wheel tests | Historical milestone scope; not rerun for this handoff |
 | Candidate-report tests | 30 focused Python tests; 11 JS files; sealed report made zero calls to 27 disabled calculation entry points | Full Python/wheel/CI were not run for that presentation increment |
-| This handoff | Documentation, evidence links, hashes and Git identity checks only | No new engineering tests or live ETABS capture |
+| Initial handoff at `24ddc371` | Documentation, evidence links, hashes and Git identity checks | Engineering tests and live ETABS capture were outside that checkpoint |
 
 Read [native modal acceptance](../engineering/LIVE_MODAL_IDENTITY_ACCEPTANCE_20261118.md)
 and [candidate acceptance](../engineering/COLUMN_CAGE_SELECTION_ACCEPTANCE_20261119.md)
@@ -116,25 +116,30 @@ Private paths/account information are in the ignored
 captures, credentials, environments and build copies are excluded from public
 publication. GitHub code backup is not a backup of those private artifacts.
 
-## Next bounded sprint and acceptance
+## Continue the column and joint calculation
 
-Resume `SPECTRAL-MODAL-PRECISION-AND-TORSION-QUALIFICATION` (GAP-018), then
-GAP-013/GAP-016. Do not start unrelated CHECKs while this source/method boundary
-is unresolved. The next bounded milestone must:
+Read `GAP-018.coverage_matrix` before requesting another capture. The finished
+private comparison isolates static eccentricity at 804 direction-cuts and
+reproduces the zero-eccentricity spectrum under the tested 5% damping model.
+The original/private transfer still has 138 scalar exceptions. Keep each result
+with its own analysis generation.
 
-1. Reuse the existing gateway to obtain unrounded spectrum amplitude, active
-   damping and applied accidental-torsion evidence, with expected case/mode/
-   direction/cut inventory fixed before accepting successful records.
-2. Preserve raw returns and provenance. Missing, ambiguous, rounded-only or
-   incompatible inputs remain explicitly blocked; do not guess coefficients.
-3. Verify modal/directional aggregation and story allocation independently before
-   allowing SCWB, governing axial demand or alpha feedback to consume them.
-4. Demonstrate deterministic replay and a sealed report with no calculator calls;
-   retain independent positive, negative and boundary evidence at the same source
-   and method version. Obtain a complete independent example before normative
-   closure, including the applicable clauses and scope-specific acceptance rules.
-5. Update the ledger, current state and existing GAPs without erasing limitations;
-   integrate the verified milestone into baseline and verify its publication.
+Replay the original selected scenario through `tbdy_next.cli run-pipeline`.
+Read `r14_closure.columns[].pillars.second_order_selected_pmm.governing_static_station`
+for the coincident force row, selected radial capacity and reserve at fixed N.
+On each joint axis, `joint_transverse_7_5_2_3.max_whole_spacing_for_selected_tie_mm`
+sizes the pitch for the proposed legs. The local worked roof-joint example follows
+the signed load sum through both sway directions and tie sizing. At the same
+column's lower interior joint it also gives the conservative demand upper bound
+with zero shear deduction. The original
+selected input, a command and a compact result census are indexed by
+`EV-COLUMN-JOINT-SLICE-20261119`. Public fixtures exercise both calculations.
+
+Replace the zero deduction at that interior joint with its actual value. Bind the upper and lower
+column-end shears to the same earthquake combination, direction and physical
+faces; compute both sway demands, the governing joint and its tie pitch. Carry
+the resulting direction into the story SCWB sum and alpha iteration when its
+earthquake demand is qualified. Reuse the existing R08/R10 owners and gateway.
 
 GAP-005 general scheduling and GAP-017 complete CheckInstance accounting remain
 open. Do not relabel the current pipeline as a fully accepted structural engine.
