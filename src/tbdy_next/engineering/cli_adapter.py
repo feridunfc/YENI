@@ -30,12 +30,13 @@ def _write_new(path: Path, value: dict) -> None:
 
 
 def _load_selection_arg(value: str | None, kind: str) -> dict | None:
-    from .rebar_selection import normalize_beam_selection_policy, normalize_column_selection_policy
+    from .design_scenario import normalize_selection_overrides
 
     if not value:
         return None
     raw = "default" if value.strip().lower() == "default" else _read(Path(value))
-    return normalize_beam_selection_policy(raw) if kind == "beam" else normalize_column_selection_policy(raw)
+    key = kind + "_selection"
+    return normalize_selection_overrides({key: raw})[key]
 
 
 def _run_pipeline_replay(args) -> int:
@@ -43,45 +44,29 @@ def _run_pipeline_replay(args) -> int:
     from tbdy_next.receipts import ReceiptRun
     from .pipeline import EnginePipelineRunner
 
-    from .design_scenario import (PARENT_FILE, SCHEMA as SCENARIO_SCHEMA, create_design_scenario,
-                                  validate_design_scenario, verify_archived_scenario)
+    from .design_scenario import prepare_pipeline_source, validate_design_scenario
     from ..history import _MAX_SOURCE_BYTES
 
     if (args.source.is_symlink() or not args.source.is_file()
             or not 0 < args.source.stat().st_size <= _MAX_SOURCE_BYTES):
         raise ValueError("SOURCE_PATH_MISSING_OR_UNSAFE")
     raw = args.source.read_bytes()
-    payload = decode(raw)
-    if not isinstance(payload, dict) or payload.get("source_mode") != "LIVE_ETABS":
-        raise ValueError("LIVE_ETABS_ARCHIVED_SOURCE_REQUIRED")
     beam_sel = _load_selection_arg(getattr(args, "beam_selection", None), "beam")
     col_sel = _load_selection_arg(getattr(args, "column_selection", None), "column")
     scenario_path = getattr(args, "design_scenario", None)
     if scenario_path is not None and (beam_sel is not None or col_sel is not None):
         raise ValueError("SCENARIO_AND_SELECTION_FLAGS_ARE_EXCLUSIVE")
     request = _read(scenario_path) if scenario_path is not None else None
-    if request is None and (beam_sel is not None or col_sel is not None):
-        request = {"schema": SCENARIO_SCHEMA, "scenario_id": "cli-selection",
-                   "parent_input_sha256": sha256(raw).hexdigest(),
-                   "beam_selection": beam_sel if beam_sel is not None else payload.get("beam_selection"),
-                   "column_selection": col_sel if col_sel is not None else payload.get("column_selection")}
-    parent_raw = None
-    if request is not None:
-        parent_raw = raw
-        raw = create_design_scenario(parent_raw, request)
-        payload = decode(raw)
-    elif "design_scenario" in payload:
-        verify_archived_scenario(args.source.parent, payload)
-        parent_raw = (args.source.parent / PARENT_FILE).read_bytes()
+    overrides = {key: value for key, value in (("beam_selection", beam_sel), ("column_selection", col_sel))
+                 if value is not None}
+    prepared = prepare_pipeline_source(raw, source_directory=args.source.parent, request=request,
+                                       selection_overrides=overrides or None)
+    raw, payload = prepared.raw, prepared.payload
     scenario = validate_design_scenario(payload)
-    if len(raw) > _MAX_SOURCE_BYTES:
-        raise ValueError("SCENARIO_SOURCE_EXCEEDS_ARCHIVE_LIMIT")
     input_sha = sha256(raw).hexdigest()
     run = ReceiptRun(args.out)
     run.archive_input(raw, expected_sha256=input_sha)
-    if parent_raw is not None:
-        with (run.root / PARENT_FILE).open("xb") as parent:
-            parent.write(parent_raw)
+    prepared.archive_parent(run.root)
     suite = "geometry_capture" in payload or "analysis_sources" in payload
     stages = EnginePipelineRunner().run(payload, case=args.case, run=run, input_sha=input_sha, suite=suite)
     summary = {"run_dir": str(run.root), "input_sha256": input_sha,

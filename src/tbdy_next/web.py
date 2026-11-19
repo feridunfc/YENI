@@ -40,11 +40,8 @@ _RUN_ID_PATTERN = re.compile(r"RUN-[a-f0-9]{32}\Z")
 _LIVE_CAPTURE_LOCK = Lock()
 
 
-def _parse_rebar_selection_spec(raw_value: Any, kind: str) -> dict[str, Any]:
-    from .engineering.rebar_selection import (
-        normalize_beam_selection_policy,
-        normalize_column_selection_policy,
-    )
+def _parse_rebar_selection_spec(raw_value: Any, kind: str) -> dict[str, Any] | None:
+    from .engineering.design_scenario import normalize_selection_overrides
 
     if isinstance(raw_value, str):
         if len(raw_value) > 32_000:
@@ -52,11 +49,8 @@ def _parse_rebar_selection_spec(raw_value: Any, kind: str) -> dict[str, Any]:
         parsed = "default" if raw_value.strip().lower() in ("default", "true", "1") else json.loads(raw_value)
     else:
         parsed = raw_value
-    return (
-        normalize_beam_selection_policy(parsed)
-        if kind == "beam"
-        else normalize_column_selection_policy(parsed)
-    )
+    key = kind + "_selection"
+    return normalize_selection_overrides({key: parsed})[key]
 
 
 def _execute_and_reply_live_payload(
@@ -66,14 +60,28 @@ def _execute_and_reply_live_payload(
     case: str,
     *,
     suite: bool,
+    source_raw: bytes | None = None,
+    source_directory: Path | None = None,
+    selection_overrides: Mapping[str, Any] | None = None,
 ) -> None:
-    raw = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    from .engineering.design_scenario import prepare_pipeline_source
+
+    raw = (source_raw if source_raw is not None else
+           json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8"))
     if len(raw) > _MAX_SOURCE_BYTES:
         handler.reply(422, {"status": "CAPTURE_REJECTED", "reason": "ETABS_SOURCE_ARCHIVE_TOO_LARGE"})
         return
+    try:
+        prepared = prepare_pipeline_source(raw, source_directory=source_directory,
+                                           selection_overrides=selection_overrides)
+    except (OSError, ValueError, TypeError, KeyError) as exc:
+        handler.reply(422, {"status": "REJECTED", "reason": str(exc), "engineering_release": "NOT_READY"})
+        return
+    raw, payload = prepared.raw, prepared.payload
     input_sha = sha256(raw).hexdigest()
     run = ReceiptRun(output_root)
     run.archive_input(raw, expected_sha256=input_sha)
+    prepared.archive_parent(run.root)
     try:
         # One owner for stage order: engineering/pipeline.py (registry + runner).
         from .engineering.pipeline import EnginePipelineRunner
@@ -625,21 +633,34 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                     base_report = build_complete_report(output_root, base_run_id)
                     if base_report["source_mode"] != "LIVE_ETABS":
                         raise ValueError("LIVE_ETABS_BASE_RUN_REQUIRED")
-                    payload = dict(base_report["source_snapshot"])
-                    beam_raw = body.get("beam_selection") if "beam_selection" in body else (q.get("beam_selection") or [None])[0]
-                    col_raw = body.get("column_selection") if "column_selection" in body else (q.get("column_selection") or [None])[0]
-                    if beam_raw is not None:
-                        payload["beam_selection"] = _parse_rebar_selection_spec(beam_raw, "beam")
-                    if col_raw is not None:
-                        payload["column_selection"] = _parse_rebar_selection_spec(col_raw, "column")
+                    source_directory = output_root / base_run_id
+                    source_path = source_directory / "input.source"
+                    if (source_path.is_symlink() or not source_path.is_file()
+                            or not 0 < source_path.stat().st_size <= _MAX_SOURCE_BYTES):
+                        raise ValueError("SOURCE_PATH_MISSING_OR_UNSAFE")
+                    source_raw = source_path.read_bytes()
+                    if sha256(source_raw).hexdigest() != base_report["source_provenance"]["input_sha256"]:
+                        raise ValueError("SCENARIO_BASE_SOURCE_HASH_MISMATCH")
+                    selection_overrides = {}
+                    for key, kind in (("beam_selection", "beam"), ("column_selection", "column")):
+                        if key in body:
+                            selection_overrides[key] = _parse_rebar_selection_spec(body[key], kind)
+                        elif key in q:
+                            if len(q[key]) != 1:
+                                raise ValueError(f"Multiple {key} parameters are not allowed.")
+                            selection_overrides[key] = _parse_rebar_selection_spec(q[key][0], kind)
                     case = base_report["modal_case"]
                 except ReportUnavailable as exc:
                     self.reply(404, {"status": "REJECTED", "reason": str(exc)})
                     return
-                except (ValueError, TypeError, json.JSONDecodeError) as exc:
+                except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
                     self.reply(422, {"status": "REJECTED", "reason": str(exc)})
                     return
-                _execute_and_reply_live_payload(self, output_root, payload, case, suite=True)
+                _execute_and_reply_live_payload(
+                    self, output_root, base_report["source_snapshot"], case, suite=True,
+                    source_raw=source_raw, source_directory=source_directory,
+                    selection_overrides=selection_overrides,
+                )
                 return
             if url.path in ("/api/live-modal", "/api/live-suite", "/api/live-vs04", "/api/etabs-session"):
                 # Browser can POST to loopback from a foreign page; reject any
@@ -752,11 +773,10 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                     self.reply(422, {"status": "CAPTURE_REJECTED",
                                      "reason": "VS04_REQUIRED_SAME_SESSION_SOURCES_MISSING"})
                     return
-                if rebar_selection_opts:
-                    payload = {**payload, **rebar_selection_opts}
                 _execute_and_reply_live_payload(
                     self, output_root, payload, case,
                     suite=url.path in ("/api/live-suite", "/api/live-vs04"),
+                    selection_overrides=rebar_selection_opts or None,
                 )
                 return
             if url.path not in ("/api/discovery", "/api/modal", "/api/modal-schema"):

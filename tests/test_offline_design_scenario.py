@@ -12,7 +12,8 @@ from unittest.mock import patch
 
 from tbdy_next.engineering.design_scenario import (
     PARENT_FILE, SCHEMA, create_design_scenario, design_dependency_ledger,
-    selected_candidate_ledger, validate_design_scenario, verify_archived_scenario, verify_parent,
+    prepare_pipeline_source, selected_candidate_ledger, validate_design_scenario,
+    verify_archived_scenario, verify_parent,
 )
 from tbdy_next.engineering.pipeline_snapshot import (
     REQUIRED_KEYS, SCHEMA as SNAPSHOT_SCHEMA, compare_runs, read_snapshot, record_snapshot,
@@ -102,6 +103,81 @@ class ScenarioSourceContracts(unittest.TestCase):
     def test_duplicate_and_nonfinite_source_json_is_rejected(self):
         for raw in (b'{"source_mode":"LIVE_ETABS","source_mode":"other"}', b'{"value":NaN}'):
             with self.assertRaises(ValueError): create_design_scenario(raw, request(raw))
+
+    def test_adapter_preparation_preserves_original_bytes_and_inherits_omitted_policy(self):
+        plain = prepare_pipeline_source(self.raw)
+        self.assertEqual(plain.raw, self.raw)
+        self.assertIsNone(plain.parent_raw)
+        first = prepare_pipeline_source(self.raw, selection_overrides={
+            "beam_selection": "default", "column_selection": {"min_rho": .02}})
+        with TemporaryDirectory() as temp:
+            root = Path(temp)
+            first.archive_parent(root)
+            source = root / "input.source"
+            source.write_bytes(first.raw)
+            replay = prepare_pipeline_source(source.read_bytes(), source_directory=root)
+            self.assertEqual(replay.raw, first.raw)
+            unchanged = prepare_pipeline_source(first.raw, source_directory=root, selection_overrides={})
+            self.assertEqual(unchanged.raw, first.raw)
+            revised = prepare_pipeline_source(first.raw, source_directory=root,
+                selection_overrides={"beam_selection": {"allowed_additional_diameters_mm": [16, 20]}})
+            self.assertEqual(revised.payload["column_selection"], first.payload["column_selection"])
+            self.assertEqual(revised.parent_raw, self.raw)
+            self.assertEqual(revised.payload["design_scenario"]["parent_input_sha256"], sha256(self.raw).hexdigest())
+            self.assertNotEqual(revised.payload["design_scenario"]["scenario_sha256"],
+                                first.payload["design_scenario"]["scenario_sha256"])
+            self.assertEqual(source.read_bytes(), first.raw)
+            self.assertEqual((root / PARENT_FILE).read_bytes(), self.raw)
+            verify_parent(revised.payload, self.raw)
+
+    def test_adapter_preparation_validates_existing_lineage_before_any_policy_change(self):
+        first = prepare_pipeline_source(self.raw, selection_overrides={"column_selection": "default"})
+        with TemporaryDirectory() as temp:
+            root = Path(temp)
+            with self.assertRaisesRegex(ValueError, "PARENT_SOURCE"):
+                prepare_pipeline_source(first.raw, source_directory=root,
+                                        selection_overrides={"column_selection": {"min_rho": .02}})
+            first.archive_parent(root)
+            mutated = deepcopy(first.payload)
+            mutated["native"]["N"] += 1
+            with self.assertRaisesRegex(ValueError, "SOURCE_OR_POLICY_CHANGED"):
+                prepare_pipeline_source(json.dumps(mutated).encode(), source_directory=root,
+                                        selection_overrides={"column_selection": "default"})
+            (root / PARENT_FILE).write_bytes(b"{}")
+            with self.assertRaisesRegex(ValueError, "PARENT_HASH_MISMATCH"):
+                prepare_pipeline_source(first.raw, source_directory=root,
+                                        selection_overrides={"column_selection": "default"})
+
+    def test_adapter_explicit_request_uses_verified_native_parent_not_scenario_bytes(self):
+        first = prepare_pipeline_source(self.raw, selection_overrides={"column_selection": "default"})
+        with TemporaryDirectory() as temp:
+            root = Path(temp)
+            first.archive_parent(root)
+            revised = prepare_pipeline_source(first.raw, source_directory=root,
+                                              request=request(self.raw, column_selection={"min_rho": .02}))
+            verify_parent(revised.payload, self.raw)
+            self.assertEqual(revised.parent_raw, self.raw)
+            with self.assertRaisesRegex(ValueError, "PARENT_HASH_MISMATCH"):
+                prepare_pipeline_source(first.raw, source_directory=root, request=request(first.raw))
+
+    def test_adapter_explicit_null_disables_one_policy_without_an_implicit_default(self):
+        first = prepare_pipeline_source(self.raw, selection_overrides={
+            "beam_selection": "default", "column_selection": "default"})
+        with TemporaryDirectory() as temp:
+            root = Path(temp)
+            first.archive_parent(root)
+            revised = prepare_pipeline_source(first.raw, source_directory=root,
+                                              selection_overrides={"beam_selection": None})
+            self.assertNotIn("beam_selection", revised.payload)
+            self.assertEqual(revised.payload["column_selection"], first.payload["column_selection"])
+            self.assertIsNone(revised.payload["design_scenario"]["policies"]["beam_selection"])
+
+    def test_adapter_unknown_fields_and_conflicting_requests_are_rejected(self):
+        for overrides in ({"column_selection": {"min_rhoo": .02}}, {"invented_selection": "default"}):
+            with self.subTest(overrides=overrides), self.assertRaises(ValueError):
+                prepare_pipeline_source(self.raw, selection_overrides=overrides)
+        with self.assertRaisesRegex(ValueError, "EXCLUSIVE"):
+            prepare_pipeline_source(self.raw, request=request(self.raw), selection_overrides={})
 
 
 class CandidateDependencyContracts(unittest.TestCase):

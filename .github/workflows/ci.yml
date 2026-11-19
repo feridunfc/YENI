@@ -1,9 +1,9 @@
 name: Offline vertical-slice checks
 on:
   push:
-    branches: [main, "work/**", "recovery/**", "integration/**", "docs/**", "audit/**"]
+    branches: [main, "baseline/local_import", "work/**", "recovery/**", "integration/**", "docs/**", "audit/**"]
   pull_request:
-    branches: [main, "work/**", "docs/**"]
+    branches: [main, "baseline/local_import", "work/**", "docs/**"]
 jobs:
   tests:
     runs-on: ${{ matrix.os }}

@@ -16,7 +16,9 @@ from dataclasses import asdict, dataclass, replace
 import math
 from typing import Any, Mapping, MutableMapping, Sequence
 
-from ..column_engine.csi_geometry import NativeSectionDims, to_local_dimensions
+from ..column_engine.csi_geometry import (
+    NativeSectionDims, physical_column_side_at_joint, physical_shear_axis, to_local_dimensions,
+)
 from ..column_engine.joint_kernel import centered_joint_limit, joint_transverse_reference, width_reference
 from ..column_engine.joint_moment_signs import moment_sign_mapping
 from ..column_engine.native_archive import BankError, finite
@@ -1423,6 +1425,15 @@ def _evaluate_engineer_column_selection(
     return res, sel_sec
 
 
+def _assigned_seismic_combinations(axial: Mapping[str, Any]) -> list[str]:
+    """Keep the assigned population independently of returned force rows."""
+    plan = axial.get("combination_plan") or {}
+    if plan.get("source") != "ASSIGNED_DESIGN" or not isinstance(plan.get("design_assignment"), Mapping):
+        return []
+    groups = plan["design_assignment"].get("groups") or {}
+    return list(dict.fromkeys(name for group in ("ductile", "capacity") for name in groups.get(group, ())))
+
+
 def _combo_roles(axial: Mapping[str, Any]) -> tuple[list[str], list[str]]:
     plan = axial.get("combination_plan") or {}
     static_combos = [
@@ -1430,11 +1441,7 @@ def _combo_roles(axial: Mapping[str, Any]) -> tuple[list[str], list[str]]:
         for c in plan.get("combinations", ())
         if c.get("force_semantics") == "STATIC_SIGNED_VECTOR"
     ]
-    seismic_set: set[str] = set()
-    if plan.get("source") == "ASSIGNED_DESIGN" and isinstance(plan.get("design_assignment"), Mapping):
-        groups = plan["design_assignment"].get("groups") or {}
-        for grp in ("ductile", "capacity"):
-            seismic_set |= set(groups.get(grp, ()))
+    seismic_set = set(_assigned_seismic_combinations(axial))
     seismic_combos = [c for c in static_combos if c in seismic_set]
     return static_combos, seismic_combos
 
@@ -1446,22 +1453,36 @@ def _projected_column_end_shear_kn(
     dir_unit: list[float],
     combo: str,
     rowset: Mapping[str, Any] | None,
+    points: Mapping[str, list[float]],
 ) -> float | None:
     if rowset is None or not col_frame.get("axes_global"):
         return None
     uid = col_frame["frame_id"]
-    rows = [r for r in native_frame_force_rows(rowset, uid) if r[4] == combo and r[6] == 0]
-    if not rows:
+    try:
+        rows = [r for r in native_frame_force_rows(rowset, uid) if r[4] == combo]
+    except BankError:
         return None
-    sta = min(r[1] for r in rows) if col_frame["point_i"] == pt_id else max(r[1] for r in rows)
+    if not rows or any(r[5] not in ("Single Value", "") or r[6] != 0 for r in rows):
+        return None
+    pi, pj = col_frame.get("point_i"), col_frame.get("point_j")
+    if pt_id not in (pi, pj) or pi not in points or pj not in points:
+        return None
+    # Native object endpoints are independent of the returned force population.
+    # Nonzero physical face offsets are not inferred from the first/last row.
+    try:
+        length_m = math.dist(points[pi], points[pj])
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(length_m) or length_m <= _GEOMETRY_TOL:
+        return None
+    sta = 0.0 if pi == pt_id else length_m
     cuts = [r for r in rows if abs(r[1] - sta) <= 1e-7]
-    if not cuts:
+    # A favorable deduction cannot be chosen from ambiguous element-side cuts.
+    if len(cuts) != 1:
         return None
     c_axes = col_frame["axes_global"]
-    return max(
-        abs(float(r[8]) * _dot(c_axes[1], dir_unit) + float(r[9]) * _dot(c_axes[2], dir_unit))
-        for r in cuts
-    )
+    row = cuts[0]
+    return abs(float(row[8]) * _dot(c_axes[1], dir_unit) + float(row[9]) * _dot(c_axes[2], dir_unit))
 
 
 def _attach_r13_joint_shear_and_transverse(
@@ -1481,8 +1502,8 @@ def _attach_r13_joint_shear_and_transverse(
     """Attach R13 TBDY 7.5.2.1 joint shear Ve and 7.5.2.3 joint transverse checks when selected."""
     if not beam_sel_active and not col_sel_active:
         return
-    static_combos, seismic_combos = _combo_roles(axial)
-    combos_for_vkol = seismic_combos  # Gravity-only evidence cannot authorize seismic joint shear.
+    _, seismic_combos = _combo_roles(axial)
+    expected_seismic_combos = _assigned_seismic_combinations(axial)
     axial_by_id = {c["element_id"]: c for c in axial.get("columns", ())}
 
     for end_row in end_rows:
@@ -1494,33 +1515,33 @@ def _attach_r13_joint_shear_and_transverse(
         if not col_frame or not col_frame.get("axes_global") or pt_id not in points:
             continue
         incident = adjacency.get(pt_id, ())
-        inc_cols = [item for item in incident if item["type"] == "Column" and item["frame_id"] in frames]
-        lower_cols = [
-            frames[item["frame_id"]]
-            for item in inc_cols
-            if (
-                points.get(
-                    frames[item["frame_id"]]["point_i"] if item["end"] == "J" else frames[item["frame_id"]]["point_j"],
-                    [0.0, 0.0, points[pt_id][2]],
-                )[2] < points[pt_id][2] - _GEOMETRY_TOL
-                or item["end"] == "J"
-            )
-        ]
-        upper_cols = [
-            frames[item["frame_id"]]
-            for item in inc_cols
-            if (
-                points.get(
-                    frames[item["frame_id"]]["point_j"] if item["end"] == "I" else frames[item["frame_id"]]["point_i"],
-                    [0.0, 0.0, points[pt_id][2]],
-                )[2] > points[pt_id][2] + _GEOMETRY_TOL
-                or item["end"] == "I"
-            )
-        ]
-        # Avoid classifying the same column into both when z-coordinates tie
-        upper_ids = {c["frame_id"] for c in upper_cols}
-        lower_cols = [c for c in lower_cols if c["frame_id"] not in upper_ids]
-        lower_uid = lower_cols[0]["frame_id"] if len(lower_cols) == 1 else (uid if end_row["end"] == "J" else None)
+        lower_cols: list[Mapping[str, Any]] = []
+        upper_cols: list[Mapping[str, Any]] = []
+        topology_issues: list[str] = []
+        for item in incident:
+            if item["type"] != "Column":
+                continue
+            frame = frames.get(item["frame_id"])
+            if frame is None:
+                topology_issues.append(f"JOINT_COLUMN_FRAME_MISSING:{item['frame_id']}")
+                continue
+            pi, pj = frame.get("point_i"), frame.get("point_j")
+            if pi == pt_id and pj != pt_id:
+                other = pj
+            elif pj == pt_id and pi != pt_id:
+                other = pi
+            else:
+                topology_issues.append(f"JOINT_COLUMN_ENDPOINT_NOT_BOUND:{item['frame_id']}")
+                continue
+            try:
+                side = physical_column_side_at_joint(points[pt_id], points.get(other), tolerance_m=_GEOMETRY_TOL)
+            except BankError as exc:
+                topology_issues.append(f"{exc}:{item['frame_id']}")
+                continue
+            (lower_cols if side == "LOWER" else upper_cols).append(frame)
+        if len(lower_cols) > 1 or len(upper_cols) > 1:
+            topology_issues.append("JOINT_UNIQUE_UPPER_LOWER_COLUMNS_NOT_BOUND")
+        lower_uid = lower_cols[0]["frame_id"] if len(lower_cols) == 1 and not topology_issues else None
 
         faces = end_row.get("faces") or {}
         enclosure = end_row.get("enclosure_scenario")
@@ -1531,6 +1552,7 @@ def _attach_r13_joint_shear_and_transverse(
             axis_key = axis_entry["axis"]
             axis_idx = 1 if axis_key == "V2" else 2
             face_pos, face_neg = f"{axis_idx + 1}+", f"{axis_idx + 1}-"
+            dir_unit = col_frame["axes_global"][axis_idx]
 
             # 1) TBDY 7.5.2.1 Vj = 1.25 * fyk * (As1 + As2) - Vkol
             if beam_sel_active:
@@ -1565,40 +1587,61 @@ def _attach_r13_joint_shear_and_transverse(
                 if missing_reason is None:
                     sway_a_t = face_terms[face_pos]["t_top_kn"] + face_terms[face_neg]["t_bot_kn"]
                     sway_b_t = face_terms[face_pos]["t_bot_kn"] + face_terms[face_neg]["t_top_kn"]
-                    dir_unit = col_frame["axes_global"][axis_idx]
                     v_kol_kn = 0.0
-                    v_kol_basis = "CONSERVATIVE_ZERO_VKOL_BOUNDARY_OR_MISSING"
-                    if not upper_cols and lower_cols:
-                        v_kol_kn = 0.0
-                        v_kol_basis = "ROOF_JOINT_NO_UPPER_COLUMN_VKOL_ZERO"
-                    elif upper_cols and lower_cols and combos_for_vkol:
-                        combo_min_v: list[float] = []
-                        for combo in combos_for_vkol:
-                            u_vals = [
-                                _projected_column_end_shear_kn(
-                                    col_frame=c, pt_id=pt_id, dir_unit=dir_unit,
-                                    combo=combo, rowset=force_rowsets.get(c["frame_id"]),
-                                )
-                                for c in upper_cols
-                            ]
-                            l_vals = [
-                                _projected_column_end_shear_kn(
-                                    col_frame=c, pt_id=pt_id, dir_unit=dir_unit,
-                                    combo=combo, rowset=force_rowsets.get(c["frame_id"]),
-                                )
-                                for c in lower_cols
-                            ]
-                            if any(v is None for v in u_vals) or any(v is None for v in l_vals):
-                                continue
-                            v_up = sum(u_vals)  # type: ignore[arg-type]
-                            v_lo = sum(l_vals)  # type: ignore[arg-type]
-                            if max(v_up, v_lo) > 1.0:
-                                combo_min_v.append(min(v_up, v_lo))
-                        if combo_min_v:
-                            v_kol_kn = min(combo_min_v)
-                            v_kol_basis = "MIN_UPPER_LOWER_COLUMN_SHEAR"
+                    roof_boundary = not upper_cols and bool(lower_cols) and not topology_issues
+                    column_shear_cases: list[dict[str, Any]] = []
+                    for combo in expected_seismic_combos:
+                        case: dict[str, Any] = {
+                            "combination": combo, "status": "COLUMN_SHEAR_UNBOUND",
+                            "upper_shear_kn": None, "lower_shear_kn": None,
+                            "deduction_kn": None, "missing_column_ids": [],
+                        }
+                        if roof_boundary:
+                            case.update(status="ROOF_ZERO_BOUNDARY", upper_shear_kn=0.0, deduction_kn=0.0)
+                        elif topology_issues or not upper_cols or not lower_cols:
+                            case["status"] = "COLUMN_TOPOLOGY_UNBOUND"
+                        elif combo not in seismic_combos:
+                            # Retain assigned spectral/unclassified cases without treating
+                            # their component extrema as signed column-shear deductions.
+                            case["status"] = "STATIC_SIGNED_COMBINATION_NOT_BOUND"
                         else:
-                            v_kol_basis = "CONSERVATIVE_ZERO_VKOL_NO_INPLANE_SEISMIC_SHEAR"
+                            upper_values = {
+                                c["frame_id"]: _projected_column_end_shear_kn(
+                                    col_frame=c, pt_id=pt_id, dir_unit=dir_unit,
+                                    combo=combo, rowset=force_rowsets.get(c["frame_id"]), points=points,
+                                ) for c in upper_cols
+                            }
+                            lower_values = {
+                                c["frame_id"]: _projected_column_end_shear_kn(
+                                    col_frame=c, pt_id=pt_id, dir_unit=dir_unit,
+                                    combo=combo, rowset=force_rowsets.get(c["frame_id"]), points=points,
+                                ) for c in lower_cols
+                            }
+                            case["missing_column_ids"] = sorted(
+                                cid for cid, value in (upper_values | lower_values).items() if value is None
+                            )
+                            if all(v is not None for v in upper_values.values()):
+                                case["upper_shear_kn"] = math.fsum(upper_values.values())
+                            if all(v is not None for v in lower_values.values()):
+                                case["lower_shear_kn"] = math.fsum(lower_values.values())
+                            if not case["missing_column_ids"]:
+                                case.update(status="BOUND", deduction_kn=min(case["upper_shear_kn"], case["lower_shear_kn"]))
+                        column_shear_cases.append(case)
+                    missing_shear_combos = [c["combination"] for c in column_shear_cases if c["deduction_kn"] is None]
+                    shear_scope_complete = bool(column_shear_cases) and not missing_shear_combos
+                    if roof_boundary:
+                        v_kol_basis = "ROOF_JOINT_NO_UPPER_COLUMN_VKOL_ZERO"
+                    elif topology_issues or not upper_cols or not lower_cols:
+                        v_kol_basis = "CONSERVATIVE_ZERO_VKOL_COLUMN_TOPOLOGY_UNBOUND"
+                    elif not expected_seismic_combos:
+                        v_kol_basis = "CONSERVATIVE_ZERO_VKOL_SEISMIC_CASES_UNBOUND"
+                    elif not shear_scope_complete:
+                        v_kol_basis = "CONSERVATIVE_ZERO_VKOL_INCOMPLETE_SEISMIC_SHEAR"
+                    else:
+                        # Every applicable case participates, including zero and sub-kN
+                        # shears. Missing cases must never increase a favorable deduction.
+                        v_kol_kn = min(c["deduction_kn"] for c in column_shear_cases)
+                        v_kol_basis = "MIN_UPPER_LOWER_COLUMN_SHEAR"
 
                     ve_a = max(0.0, sway_a_t - v_kol_kn)
                     ve_b = max(0.0, sway_b_t - v_kol_kn)
@@ -1610,6 +1653,16 @@ def _attach_r13_joint_shear_and_transverse(
                         "sway_b_tension_kn": sway_b_t,
                         "v_kol_used_kn": v_kol_kn,
                         "v_kol_basis": v_kol_basis,
+                        "v_kol_applicability": "CONDITIONAL_NONNEGATIVE_DEDUCTION_FOR_QUALIFIED_SWAY_MECHANISM",
+                        "target_axis": axis_key,
+                        "global_direction": list(dir_unit),
+                        "upper_column_ids": [c["frame_id"] for c in upper_cols],
+                        "lower_column_ids": [c["frame_id"] for c in lower_cols],
+                        "column_topology_issues": topology_issues,
+                        "expected_seismic_combinations": expected_seismic_combos,
+                        "column_shear_cases": column_shear_cases,
+                        "missing_column_shear_combinations": missing_shear_combos,
+                        "column_shear_scope_complete": shear_scope_complete,
                         "sway_a_ve_kn": ve_a,
                         "sway_b_ve_kn": ve_b,
                         "governing_ve_kn": ve_gov,
@@ -1628,10 +1681,32 @@ def _attach_r13_joint_shear_and_transverse(
                     }
 
             # 2) TBDY 7.5.2.3 Joint transverse reinforcement (0.4 / 0.6 of lower column Ash/s)
-            if col_sel_active and lower_uid and enclosure in ("ENCLOSED", "UNENCLOSED"):
+            if col_sel_active and enclosure in ("ENCLOSED", "UNENCLOSED"):
+                tie_result: dict[str, Any] = {
+                    "status": "JOINT_TRANSVERSE_UNBOUND",
+                    "reason": "JOINT_UNIQUE_LOWER_COLUMN_NOT_BOUND",
+                    "target_axis": axis_key,
+                    "global_direction": list(dir_unit),
+                    "lower_column_id": lower_uid,
+                    "lower_axis": None,
+                    "axis_mapping_status": "NOT_BOUND",
+                    "column_topology_issues": topology_issues,
+                    "all_references_met": None,
+                    "formal_compliance": "NOT_PROVEN",
+                }
+                axis_entry["joint_transverse_7_5_2_3"] = tie_result
+                if lower_uid is None:
+                    continue
+                try:
+                    lower_axis = physical_shear_axis(dir_unit, frames[lower_uid].get("axes_global"), tolerance=_GEOMETRY_TOL)
+                except BankError as exc:
+                    tie_result["reason"] = str(exc)
+                    continue
+                tie_result.update(lower_axis=lower_axis, axis_mapping_status="PHYSICAL_AXIS_BOUND",
+                                  reason="JOINT_LOWER_CONFINEMENT_REFERENCE_NOT_BOUND")
                 sel_col = (eng_col_selections.get(lower_uid) or {}).get("selected") or {}
                 sel_tr = sel_col.get("selected_transverse") or {}
-                conf_key = "confinement_v2" if axis_key == "V2" else "confinement_v3"
+                conf_key = "confinement_" + lower_axis.lower()
                 conf_lower = sel_tr.get(conf_key) or {}
                 lower_ax = axial_by_id.get(lower_uid) or {}
                 lower_t = transverse_by_uid.get(lower_uid) or {}
@@ -1650,8 +1725,9 @@ def _attach_r13_joint_shear_and_transverse(
                     s_low = float(sel_tr["confinement_spacing_mm"])
                     ash_prop = float(conf_lower["ash_mm2"])
                     tie_d = float(sel_tr["tie_diameter_mm"])
-                    axis_entry["joint_transverse_7_5_2_3"] = {
-                        "lower_column_id": lower_uid,
+                    tie_result.update({
+                        "status": "JOINT_TRANSVERSE_REFERENCES_CALCULATED_NOT_PROVEN",
+                        "reason": None,
                         "axial_branch": axial_branch,
                         "lower_column_has_confinement_calc": bool(lower_t),
                         **joint_transverse_reference(
@@ -1662,7 +1738,7 @@ def _attach_r13_joint_shear_and_transverse(
                             tie_diameter_mm=tie_d,
                             enclosure=enclosure,
                         ),
-                    }
+                    })
 
 
 def _evaluate_story_alpha_summary(

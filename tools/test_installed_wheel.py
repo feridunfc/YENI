@@ -22,6 +22,9 @@ WHEEL_TESTS = (
     "test_mixed_design_demands",
     "test_native_demand_sources",
     "test_same_source_spectral_replay",
+    "test_r13_joint_adapters",
+    "test_rebar_selection",
+    "test_recorded_column_calculation_report",
 )
 
 

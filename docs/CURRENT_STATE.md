@@ -1,3 +1,37 @@
+# Remote code audit corrections - 2026-11-19
+
+The reviewed published baseline and work branch were both at
+`1697a968dc30e342b83685bec898bda3109643ca`. The new corrections extend the existing
+joint adapters, scenario preparation, R14 consumer and sealed report. See
+[implementation and next slice](engineering/AUDIT_FIXES_20261119.md) and the
+[historical pinned audit](engineering/AUDIT_PIPELINE_20261119.md).
+
+Zero/small/missing seismic cases cannot yield a favorable incomplete joint
+deduction. Physical coordinates and directions determine upper/lower columns
+and lower confinement axes. Exceeded unresolved zero bounds require refinement
+or redesign without being mislabeled as proven demand failures. Web/CLI use the
+same verified parent/scenario contract. The normal report displays recorded
+PMM cuts, forces, capacity/reserve and joint shear/tie calculations.
+
+Fresh offline verification: **1464 Python tests, 11 JavaScript test files,
+293 isolated-wheel tests passed**. The initial invalid-policy/incomplete
+fixture failure is retained with its correction; no production guard was
+weakened. Exact base, dirty-tree hashes, commands and limits are recorded in
+`EV-AUDIT-ADAPTER-FIXES-20261119` and
+[the execution record](context/AUDIT_ADAPTER_FIXES_VERIFICATION_20261119.json). No stable
+GAP or engineering CHECK is newly closed. Engineering release remains `NOT_READY`.
+
+The Windows working tree and private original 87-column source were not
+available to this remote review. The local/private calculation checkpoint
+below is retained as historical evidence, not a newly rerun result. Integrate
+the published correction normally with any newer local work; do not replace
+uncommitted work with this remote snapshot.
+
+Next deliverable: one interior joint with its governing SCWB axial-demand
+branch, followed by a complete story-direction denominator and the existing
+alpha feedback loop. Preserve a valid passing conservative bound. The spectral
+method and the original/private numerical transfer questions remain separate.
+
 # Current local checkpoint — 2026-11-19
 
 **87 column reinforcement candidates are selected and bound to the same pipeline run.**

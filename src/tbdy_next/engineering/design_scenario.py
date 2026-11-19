@@ -7,6 +7,7 @@ These are algorithm-selected reference candidates, not engineer approvals.
 from __future__ import annotations
 
 from copy import deepcopy
+from dataclasses import dataclass
 from hashlib import sha256
 import json
 from pathlib import Path
@@ -24,6 +25,20 @@ SCHEMA = "tbdy.next.offline-design-scenario.v1"
 LINEAGE = "tbdy.next.design-scenario-lineage.v1"
 PARENT_FILE = "parent.source"
 POLICIES = ("beam_selection", "column_selection")
+
+
+@dataclass(frozen=True)
+class PreparedPipelineSource:
+    """Validated bytes and original parent for the existing pipeline adapters."""
+
+    raw: bytes
+    payload: dict[str, Any]
+    parent_raw: bytes | None
+
+    def archive_parent(self, directory: Path) -> None:
+        if self.parent_raw is not None:
+            with (directory / PARENT_FILE).open("xb") as parent:
+                parent.write(self.parent_raw)
 
 
 def _bytes(value: Any) -> bytes:
@@ -57,6 +72,13 @@ def _policy(raw: Any, kind: str) -> dict[str, Any] | None:
                 raise ValueError("SCENARIO_UNSUPPORTED_POLICY:" + kind + ":" + key)
     normalize = normalize_beam_selection_policy if kind == "beam_selection" else normalize_column_selection_policy
     return normalize(raw)
+
+
+def normalize_selection_overrides(overrides: Mapping[str, Any]) -> dict[str, Any]:
+    """Validate requested policy fields before either adapter starts work."""
+    if not isinstance(overrides, Mapping) or set(overrides) - set(POLICIES):
+        raise ValueError("SCENARIO_SELECTION_FIELDS_INVALID")
+    return {key: _policy(value, key) for key, value in overrides.items()}
 
 
 def create_design_scenario(parent_raw: bytes, request: Mapping[str, Any]) -> bytes:
@@ -140,11 +162,61 @@ def verify_parent(payload: Mapping[str, Any], parent_raw: bytes) -> None:
 def verify_archived_scenario(directory: Path, payload: Mapping[str, Any]) -> dict[str, Any] | None:
     item = validate_design_scenario(payload)
     if item is not None:
-        parent = directory / PARENT_FILE
-        if parent.is_symlink() or not parent.is_file() or not 0 < parent.stat().st_size <= _MAX_SOURCE_BYTES:
-            raise ValueError("SCENARIO_PARENT_SOURCE_MISSING_OR_UNSAFE")
-        verify_parent(payload, parent.read_bytes())
+        _read_verified_parent(directory, payload)
     return item
+
+
+def _read_verified_parent(directory: Path | None, payload: Mapping[str, Any]) -> bytes:
+    if directory is None:
+        raise ValueError("SCENARIO_PARENT_SOURCE_MISSING_OR_UNSAFE")
+    parent = directory / PARENT_FILE
+    if parent.is_symlink() or not parent.is_file() or not 0 < parent.stat().st_size <= _MAX_SOURCE_BYTES:
+        raise ValueError("SCENARIO_PARENT_SOURCE_MISSING_OR_UNSAFE")
+    raw = parent.read_bytes()
+    verify_parent(payload, raw)
+    return raw
+
+
+def prepare_pipeline_source(
+    source_raw: bytes,
+    *,
+    source_directory: Path | None = None,
+    request: Mapping[str, Any] | None = None,
+    selection_overrides: Mapping[str, Any] | None = None,
+) -> PreparedPipelineSource:
+    """Prepare replay or selection identically for Web and CLI.
+
+    Existing scenarios must pass lineage and original-parent verification before
+    replay or policy revision. Revisions are siblings derived from those original
+    bytes, not nested scenarios. Omitted policies inherit the selected scenario's
+    policy; explicit null disables that selection. No native source is rewritten.
+    """
+    if not 0 < len(source_raw) <= _MAX_SOURCE_BYTES:
+        raise ValueError("SCENARIO_SOURCE_EXCEEDS_ARCHIVE_LIMIT")
+    if request is not None and selection_overrides is not None:
+        raise ValueError("SCENARIO_AND_SELECTION_FLAGS_ARE_EXCLUSIVE")
+    payload = decode(source_raw)
+    if not isinstance(payload, dict) or payload.get("source_mode") != "LIVE_ETABS":
+        raise ValueError("LIVE_ETABS_ARCHIVED_SOURCE_REQUIRED")
+    scenario = validate_design_scenario(payload)
+    parent_raw = _read_verified_parent(source_directory, payload) if scenario is not None else None
+    if selection_overrides is not None:
+        overrides = normalize_selection_overrides(selection_overrides)
+        parent = parent_raw if parent_raw is not None else source_raw
+        request = {
+            "schema": SCHEMA,
+            "scenario_id": scenario["scenario_id"] if scenario is not None else "selection",
+            "parent_input_sha256": sha256(parent).hexdigest(),
+            **{key: overrides[key] if key in overrides else payload.get(key) for key in POLICIES},
+        }
+    raw = source_raw
+    if request is not None:
+        parent_raw = parent_raw if parent_raw is not None else source_raw
+        raw = create_design_scenario(parent_raw, request)
+        payload = decode(raw)
+    if len(raw) > _MAX_SOURCE_BYTES:
+        raise ValueError("SCENARIO_SOURCE_EXCEEDS_ARCHIVE_LIMIT")
+    return PreparedPipelineSource(raw, payload, parent_raw)
 
 
 def design_dependency_ledger(scope: Mapping[str, Any] | None, *, input_sha: str) -> dict[str, Any]:

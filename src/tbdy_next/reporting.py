@@ -2074,6 +2074,124 @@ def _column_gates_html(gates: Mapping[str, Any]) -> str:
         + '</section>')
 
 
+def _recorded_joint_calculations_html(r10: Mapping[str, Any]) -> str:
+    """Display recorded member/end/axis results, including all-column captures."""
+    members = r10.get("per_member")
+    member_rows = (list(members.items()) if isinstance(members, Mapping) and members
+                   else [(r10.get("member_id"), r10)])
+    parts = ['<h3>Recorded joint calculation details</h3>'
+             '<p>Values below belong to the saved calculation. A dash means the field was not recorded; '
+             'missing legacy results and physical-axis mappings are not reconstructed by the report.</p>']
+    for uid, member in member_rows:
+        if not isinstance(member, Mapping):
+            continue
+        ends = member.get("member_joint_ends") or ()
+        selection = (member.get("engineer_column_selection") or {}).get("selected") or {}
+        if not ends:
+            parts.append(f'<p>Column {_val(uid)}: joint calculation details were not recorded.</p>')
+        for end in ends:
+            parts.append(
+                '<article class="calculation-trace">'
+                f'<h4>Column {_val(end.get("member_id", uid))} · joint {_val(end.get("point_id"))} '
+                f'· end {_val(end.get("end"))}</h4>'
+                f'<p>Story {_val(end.get("story"))} · Section {_val(end.get("section_name"))} '
+                f'· Selected candidate {_val(selection.get("label"))} '
+                f'· AxisAngle {_val(member.get("local_axis_angle_deg"))} deg '
+                f'· Enclosure {_val(end.get("enclosure_scenario"))} '
+                f'· Status {_val(end.get("status"))} · Reason {_val(end.get("reason"))}</p>')
+            axes = end.get("axes") or ()
+            if not axes:
+                parts.append('<p>Joint axis calculations were not recorded.</p></article>')
+                continue
+            geometry, identities, shears, ties, face_terms, shear_cases = [], [], [], [], [], []
+            for axis in axes:
+                key = axis.get("axis")
+                calculation = axis.get("calculation") or {}
+                shear = axis.get("joint_shear_ve") or {}
+                tie = axis.get("joint_transverse_7_5_2_3") or {}
+                geometry.append({**calculation, "axis": key, "axis_status": axis.get("status")})
+                identities.append({
+                    "axis": key,
+                    "target_axis": tie.get("target_axis", shear.get("target_axis")),
+                    "global_direction": tie.get("global_direction", shear.get("global_direction")),
+                    "lower_column_id": tie.get("lower_column_id"), "lower_axis": tie.get("lower_axis"),
+                    "axis_mapping_status": tie.get("axis_mapping_status"),
+                })
+                shears.append({**shear, "axis": key,
+                               "status": shear.get("status", "NOT_RECORDED")})
+                ties.append({**tie, "axis": key,
+                             "record_status": tie.get("status", "RECORDED" if tie else "NOT_RECORDED")})
+                for face, term in (shear.get("faces") or {}).items():
+                    face_terms.append({**term, "axis": key, "face": face})
+                for case in shear.get("column_shear_cases") or ():
+                    shear_cases.append({**case, "axis": key})
+            parts.append(_table((
+                ("axis", "Target local axis"), ("target_axis", "Recorded target axis"),
+                ("global_direction", "Global direction [X, Y, Z]"),
+                ("lower_column_id", "Lower column"), ("lower_axis", "Lower local axis"),
+                ("axis_mapping_status", "Physical-axis mapping")), identities))
+            parts.append(_table((
+                ("axis", "Axis"), ("b_mm", "b (mm)"), ("h_mm", "h (mm)"), ("bj_mm", "bj (mm)"),
+                ("fck_mpa", "fck (MPa)"), ("centered_sections_assumed", "Centered sections assumed"),
+                ("physical_geometry_proven", "Physical geometry proven"),
+                ("axis_status", "Geometry status")), geometry))
+            parts.append('<h5>Joint shear · TBDY 7.5.2.1–7.5.2.2</h5>' + _table((
+                ("axis", "Axis"), ("sway_a_tension_kn", "Sway A beam tension (kN)"),
+                ("sway_b_tension_kn", "Sway B beam tension (kN)"),
+                ("v_kol_used_kn", "Column shear deduction (kN)"),
+                ("sway_a_ve_kn", "Sway A Ve (kN)"), ("sway_b_ve_kn", "Sway B Ve (kN)")), shears))
+            parts.append(_table((
+                ("axis", "Axis"), ("v_kol_basis", "Deduction basis"),
+                ("v_kol_applicability", "Deduction applicability and unresolved conditions")), shears))
+            parts.append(_table((
+                ("axis", "Axis"), ("governing_ve_kn", "Governing joint Ve (kN)"),
+                ("geometric_limit_kn", "Joint limit (kN)"), ("utilization", "Utilization"),
+                ("within_geometric_limit", "Within recorded limit"), ("status", "Shear status"),
+                ("reason", "Reason"), ("formal_compliance", "Formal compliance")), shears))
+            parts.append(_table((
+                ("axis", "Axis"), ("upper_column_ids", "Upper columns"),
+                ("lower_column_ids", "Lower columns"),
+                ("expected_seismic_combinations", "Expected seismic combinations"),
+                ("missing_column_shear_combinations", "Unresolved combinations"),
+                ("column_shear_scope_complete", "Deduction scope complete"),
+                ("column_topology_issues", "Topology issues")), shears))
+            if face_terms:
+                parts.append(_table((
+                    ("axis", "Axis"), ("face", "Column face"), ("frame_id", "Beam"),
+                    ("native_end", "Beam end"), ("present", "Beam present"),
+                    ("fyk_mpa", "fyk (MPa)")), face_terms))
+                parts.append(_table((
+                    ("axis", "Axis"), ("face", "Column face"),
+                    ("as_top_mm2", "Selected top As (mm²)"), ("as_bot_mm2", "Selected bottom As (mm²)"),
+                    ("t_top_kn", "Top tension (kN)"), ("t_bot_kn", "Bottom tension (kN)")), face_terms))
+            if shear_cases:
+                parts.append(_table((
+                    ("axis", "Axis"), ("combination", "Combination"),
+                    ("upper_shear_kn", "Upper shear (kN)"), ("lower_shear_kn", "Lower shear (kN)"),
+                    ("deduction_kn", "Deduction (kN)"), ("status", "Case status"),
+                    ("missing_column_ids", "Columns without a bound cut")), shear_cases))
+            parts.append('<h5>Joint transverse reinforcement · TBDY 7.5.2.3</h5>' + _table((
+                ("axis", "Axis"), ("lower_required_ash_mm2", "Lower required Ash (mm²)"),
+                ("lower_spacing_mm", "Lower pitch (mm)"),
+                ("fraction_of_lower_required_density", "Required fraction of lower Ash/s"),
+                ("required_ash_per_s_mm2_per_mm", "Required joint Ash/s (mm²/mm)"),
+                ("axial_branch", "Axial branch"), ("record_status", "Record status"),
+                ("reason", "Reason")), ties))
+            parts.append(_table((
+                ("axis", "Axis"), ("required_ash_at_joint_spacing_mm2", "Required joint Ash (mm²)"),
+                ("proposed_ash_mm2", "Selected joint Ash (mm²)"),
+                ("required_to_proposed_ratio", "Required / selected Ash"),
+                ("all_references_met", "All recorded references met")), ties))
+            parts.append(_table((
+                ("axis", "Axis"), ("tie_diameter_mm", "Tie Ø (mm)"),
+                ("joint_spacing_mm", "Selected pitch (mm)"), ("spacing_limit_mm", "Code pitch cap (mm)"),
+                ("max_whole_spacing_for_selected_tie_mm", "Maximum whole-mm pitch for selected tie (mm)"),
+                ("spacing_reference_met", "Spacing reference met"),
+                ("diameter_reference_met", "Diameter reference met")), ties))
+            parts.append('</article>')
+    return ''.join(parts)
+
+
 def _column_r10_html(r10: Mapping[str, Any]) -> str:
     enclosure = ", ".join(f"{k}:{v}" for k, v in (r10.get("enclosure_counts") or {}).items()) or None
     summary = [{
@@ -2165,8 +2283,9 @@ def _column_r10_html(r10: Mapping[str, Any]) -> str:
     scwb_cols = scwb_cols + (("status", "SCWB status"),)
     return (
         '<section class="percheck"><h2>Column R10 · Joints, SCWB and shear/confinement</h2>'
-        '<p>Same locked live ETABS run projected through joint, SCWB and transverse kernels. '
-        'Beam actual reinforcement and capacity-design Ve remain unbound; formal compliance stays NOT_PROVEN.</p>'
+        '<p>Recorded joint, SCWB and transverse results from the saved pipeline run. '
+        'Selected reinforcement and capacity references are shown where recorded; '
+        'formal compliance stays NOT_PROVEN.</p>'
         + _table((("member_id", "Target column"), ("angle", "AxisAngle (deg)"), ("joint_ends", "Column ends checked"),
                   ("enclosure", "Enclosure counts"), ("narrow", "Narrow-beam ends"),
                   ("scwb_joints", "SCWB joint checks"), ("formal", "Formal compliance")), summary)
@@ -2181,7 +2300,9 @@ def _column_r10_html(r10: Mapping[str, Any]) -> str:
         + (_table((("axis", "Axis"), ("asw_mm2", "Asw (mm²)"), ("provided_ash_mm2", "Provided Ash (mm²)"),
                    ("req_ratio", "7.3.4.1(a) Ash (mm²)"), ("req_floor", "7.3.4.1(b) Ash (mm²)"),
                    ("s_bound", "Max s bound (mm)"), ("max_util", "Max TS500 Vd/Vr"), ("status", "Status")), trans_rows) if trans_rows else '')
-        + '<ul>' + ''.join(f'<li>{_val(item)}</li>' for item in r10.get("open_basis") or ()) + '</ul>'
+        + _recorded_joint_calculations_html(r10)
+        + '<h3>Recorded stage open-basis codes</h3><ul>'
+        + ''.join(f'<li>{_val(item)}</li>' for item in r10.get("open_basis") or ()) + '</ul>'
         + '</section>'
     )
 
@@ -2336,6 +2457,46 @@ def _alpha_feedback_html(record: Mapping[str, Any]) -> str:
         + '</section>')
 
 
+def _recorded_static_pmm_html(columns: list[Mapping[str, Any]]) -> str:
+    """Project the sealed governing cut; never derive a capacity from a ratio."""
+    parts = ['<h3>Recorded governing static PMM calculations</h3>'
+             '<p>N is compression-positive; M2 and M3 retain the recorded local axes. '
+             'Radial capacity and reserve apply at the stated N, moment direction and selected cage. '
+             'These reference results do not establish engineering acceptance. '
+             'A dash means the field was not recorded.</p>']
+    for column in columns:
+        pillar = (column.get("pillars") or {}).get("second_order_selected_pmm") or {}
+        station = pillar.get("governing_static_station")
+        parts.append('<article class="calculation-trace">'
+                     f'<h4>Column {_val(column.get("member_id"))} · story {_val(column.get("story"))}</h4>'
+                     f'<p>Selected longitudinal cage {_val(pillar.get("longitudinal_label"))} '
+                     f'· Selected transverse cage {_val(pillar.get("transverse_label"))} '
+                     f'· Selection {_val(pillar.get("selection_status"))} '
+                     f'· PMM status {_val(pillar.get("magnified_pmm_status"))}</p>')
+        if not isinstance(station, Mapping) or not station:
+            parts.append('<p>Governing static station was not recorded. '
+                         'No force, capacity or reserve is reconstructed from the summary ratio.</p></article>')
+            continue
+        parts.append(_table((
+            ("combination", "Governing combination"), ("object_station_m", "Object station (m)"),
+            ("analysis_element_id", "Analysis element"), ("element_station_m", "Element station (m)"),
+            ("step_type", "Step type"), ("step_number", "Step number"),
+            ("nd_kn", "N, compression positive (kN)")), [station]))
+        parts.append(_table((
+            ("first_order_m2_knm", "Source M2 (kN·m)"), ("first_order_m3_knm", "Source M3 (kN·m)"),
+            ("beta_m2", "Local M2 factor"), ("beta_m3", "Local M3 factor"),
+            ("global_beta_ii_applied", "Applied global factor"),
+            ("magnified_m2_design_knm", "Design M2 (kN·m)"),
+            ("magnified_m3_design_knm", "Design M3 (kN·m)")), [station]))
+        parts.append(_table((
+            ("moment_demand_knm", "Resultant design moment (kN·m)"),
+            ("radial_capacity_knm", "Radial capacity at recorded N (kN·m)"),
+            ("moment_reserve_knm", "Moment reserve (kN·m)"), ("utilization", "Utilization"),
+            ("status", "Station status")), [station]))
+        parts.append('</article>')
+    return ''.join(parts)
+
+
 def _column_r14_r15_html(r14: Mapping[str, Any]) -> str:
     if r14.get("scope") == "ALL_COLUMNS":
         summary = [{
@@ -2386,6 +2547,7 @@ def _column_r14_r15_html(r14: Mapping[str, Any]) -> str:
                       ("status", "R14 Status"), ("pmm_util", "2nd-Order PMM"),
                       ("ve_util", "Ve/Vr"), ("scwb_ratio", "SCWB"), ("vj_util", "Vj util"),
                       ("failures", "Normative failures")), cols_tbl)
+            + _recorded_static_pmm_html(r14.get("columns") or [])
             + '</section>'
         )
     p = r14.get("pillars") or {}
@@ -2404,6 +2566,7 @@ def _column_r14_r15_html(r14: Mapping[str, Any]) -> str:
         + _table((("member_id", "Column"), ("story", "Story"), ("status", "R14 Status"),
                   ("pmm_util", "2nd-Order PMM"), ("ve_util", "Ve/Vr"), ("scwb_ratio", "SCWB"),
                   ("vj_util", "Vj util"), ("failures", "Normative failures")), row)
+        + _recorded_static_pmm_html([r14])
         + '</section>'
     )
 

@@ -72,3 +72,44 @@ def to_local_dimensions(dims: NativeSectionDims) -> LocalSectionDims:
         raise TypeError("NATIVE_SECTION_DIMS_REQUIRED")
     d2, d3 = local_dimensions(dims.native_t2_mm, dims.native_t3_mm)
     return LocalSectionDims(local2_extent_mm=d2, local3_extent_mm=d3)
+
+
+def physical_column_side_at_joint(joint_xyz_m, other_xyz_m, *, tolerance_m=1e-8):
+    """Classify the physical other end; native I/J is not an above/below rule."""
+    if any(not isinstance(p, (list, tuple)) or len(p) != 3 for p in (joint_xyz_m, other_xyz_m)):
+        raise BankError("JOINT_COLUMN_COORDINATES_NOT_BOUND")
+    joint = [finite(v, "joint_coordinate_m") for v in joint_xyz_m]
+    other = [finite(v, "other_column_end_coordinate_m") for v in other_xyz_m]
+    tolerance = finite(tolerance_m, "joint_geometry_tolerance_m")
+    if tolerance < 0:
+        raise BankError("JOINT_GEOMETRY_TOLERANCE_INVALID")
+    delta_z = other[2] - joint[2]
+    if delta_z < -tolerance:
+        return "LOWER"
+    if delta_z > tolerance:
+        return "UPPER"
+    raise BankError("JOINT_COLUMN_VERTICAL_SIDE_NOT_BOUND")
+
+
+def physical_shear_axis(direction, axes_global, *, tolerance=1e-8):
+    """Map a physical unit direction to one lower-column V2/V3 axis.
+
+    Parallel and antiparallel axes carry the same confinement area. Unsupported
+    oblique or ambiguous directions do not inherit the target column's label.
+    """
+    if (not isinstance(direction, (list, tuple)) or len(direction) != 3
+            or not isinstance(axes_global, (list, tuple)) or len(axes_global) != 3
+            or any(not isinstance(a, (list, tuple)) or len(a) != 3 for a in axes_global)):
+        raise BankError("JOINT_LOWER_AXIS_MAPPING_NOT_BOUND")
+    vector = [finite(v, "joint_direction") for v in direction]
+    axes = [[finite(v, "column_axis") for v in a] for a in axes_global]
+    tol = finite(tolerance, "joint_axis_tolerance")
+    if tol < 0 or abs(sum(v * v for v in vector) - 1.0) > tol:
+        raise BankError("JOINT_LOWER_AXIS_MAPPING_NOT_BOUND")
+    if any(abs(sum(axes[i][k] * axes[j][k] for k in range(3)) - (1.0 if i == j else 0.0)) > tol
+           for i in range(3) for j in range(3)):
+        raise BankError("JOINT_LOWER_AXIS_MAPPING_NOT_BOUND")
+    matches = [i for i in (1, 2) if abs(abs(sum(a * b for a, b in zip(vector, axes[i]))) - 1.0) <= tol]
+    if len(matches) != 1:
+        raise BankError("JOINT_LOWER_AXIS_MAPPING_NOT_BOUND")
+    return "V" + str(matches[0] + 1)

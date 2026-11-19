@@ -232,13 +232,28 @@ def _evaluate_single_r14_column(
     if not joint_ends_with_beams and any(any(f is not None for f in (e.get("faces") or {}).values()) for e in det.get("member_joint_ends") or ()):
         open_gates.append("JOINT_SHEAR_GEOMETRY_INCOMPLETE")
     vj_utils: list[float] = []
+    joint_bound_exceedances: list[dict[str, Any]] = []
     for e in joint_ends_with_beams:
         for ax in e.get("axes") or ():
             if ax.get("calculation") is None:
                 continue
             jve = ax.get("joint_shear_ve") or {}
             if jve.get("within_geometric_limit") is False:
-                normative_failures.append(f"JOINT_SHEAR_VJ_EXCEEDS_7_5_2_2_LIMIT:{e['end']}:{ax['axis']}")
+                if str(jve.get("v_kol_basis", "")).startswith("CONSERVATIVE_ZERO_VKOL_"):
+                    # An exceeded upper bound with an unbound deduction is not
+                    # proof that the actual joint demand exceeds its limit.
+                    open_gates.append(f"JOINT_SHEAR_CONSERVATIVE_BOUND_EXCEEDS_LIMIT_REFINEMENT_REQUIRED:{e['end']}:{ax['axis']}")
+                    joint_bound_exceedances.append({
+                        "end": e["end"], "axis": ax["axis"],
+                        "v_kol_basis": jve.get("v_kol_basis"),
+                        "governing_ve_kn": jve.get("governing_ve_kn"),
+                        "geometric_limit_kn": jve.get("geometric_limit_kn"),
+                        "utilization": jve.get("utilization"),
+                        "missing_column_shear_combinations": jve.get("missing_column_shear_combinations", []),
+                        "column_topology_issues": jve.get("column_topology_issues", []),
+                    })
+                else:
+                    normative_failures.append(f"JOINT_SHEAR_VJ_EXCEEDS_7_5_2_2_LIMIT:{e['end']}:{ax['axis']}")
             elif jve.get("within_geometric_limit") is True and (util := _finite_number(jve.get("utilization"))) is not None and util >= 0:
                 vj_utils.append(util)
             else:
@@ -429,6 +444,7 @@ def _evaluate_single_r14_column(
             },
             "joint_shear_and_transverse": {
                 "max_vj_utilization": max(vj_utils) if vj_utils else None,
+                "conservative_bound_exceedances": joint_bound_exceedances,
             },
         },
         **({"design_dependency_revision": dependency_row} if dependency_evidence is not None else {}),

@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-19T15:36:11.333803+00:00",
+  "updated_at_utc": "2026-11-19T16:39:29.914816+00:00",
   "repository": "feridunfc/YENI",
   "baseline_implementation_commit": "79f534a8dee005afaafab5a907c594c99d153eff",
   "local_reconciled": true,
-  "scope_note": "18 stable GAPs. The current vertical calculation covers signed static selected-cage capacities and joint tie sizing. GAP-018 records the completed private ETABS comparisons separately from original-generation transfer.",
+  "scope_note": "18 stable GAPs. The current vertical calculation covers signed static selected-cage capacities and joint tie sizing. GAP-018 records the completed private ETABS comparisons separately from original-generation transfer. A01-A06 adapter/report corrections and conditional-bound consumer behavior are verified offline in EV-AUDIT-ADAPTER-FIXES-20261119; historical private model counts are not rerun or relabeled.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -27,7 +27,7 @@
     "GAP-013",
     "GAP-016"
   ],
-  "active_task": "Interior joint earthquake shear from the upper and lower columns, then directional story SCWB and alpha",
+  "active_task": "Complete the interior-joint -> governing SCWB axial-demand -> full story-direction -> alpha design slice; retain qualified passing bounds and use the corrected existing adapters.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -329,7 +329,7 @@
       "title": "Capacity shear, ties and joint panel",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Existing Ve owner can reevaluate revised Vd and retain revision lineage. The worked roof joint sizes its tie pitch from the lower-column Ash/s and actual proposed legs; 252/272 returned joint axes have sizing inputs. The adjacent interior joint also has a conservative demand upper bound.",
+      "achieved_scope": "Existing Ve owner can reevaluate revised Vd and retain revision lineage. The worked roof joint sizes its tie pitch from the lower-column Ash/s and actual proposed legs; 252/272 returned joint axes have sizing inputs. The adjacent interior joint also has a conservative demand upper bound. Joint deductions retain expected cases including zero/small shears; missing endpoints/cases use an explicit conditional zero bound. Lower confinement maps by physical axis and coordinate-based topology. R14 distinguishes an exceeded unresolved bound from a proven demand failure.",
       "blocker": "Post-alpha joint equilibrium, clear faces/anchorage and all normative branches are not approved.",
       "closure_criteria": "Independently accept capacity shear, brittle limits, transverse reinforcement and panel/anchorage for every face/sign/cage.",
       "owner_paths": [
@@ -340,7 +340,8 @@
       "evidence_refs": [
         "EV-D3",
         "EV-RECIPE18-INTAKE",
-        "EV-COLUMN-JOINT-SLICE-20261119"
+        "EV-COLUMN-JOINT-SLICE-20261119",
+        "EV-AUDIT-ADAPTER-FIXES-20261119"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -415,7 +416,7 @@
       "title": "One pipeline, dependency graph and sealed reports",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "One runner and finalized v2 remain; current same-source stage repeats 16/16 IDENTICAL, and report projection makes zero calls with 21 entry points disabled.",
+      "achieved_scope": "One runner and finalized v2 remain; current same-source stage repeats 16/16 IDENTICAL, and report projection makes zero calls with 21 entry points disabled. Web and CLI now share scenario preparation and original-parent verification, with complete sealed-result equality checks. Normal single/all-column reports project governing PMM cuts and joint shear/tie details without calculation. The logical baseline is included in CI filters.",
       "blocker": "General catalog-wide topological execution and complete CHECK-instance ledger remain open; legacy compatibility still exists.",
       "closure_criteria": "Execute one registry with typed dependencies and complete expected scope; block missing upstreams and project the same sealed result in UI/CLI/report.",
       "owner_paths": [
@@ -428,7 +429,8 @@
         "EV-D2",
         "EV-D3B-REPLAY",
         "EV-LOCAL-REPORT",
-        "EV-RECIPE18-INTAKE"
+        "EV-RECIPE18-INTAKE",
+        "EV-AUDIT-ADAPTER-FIXES-20261119"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -544,5 +546,6 @@
         }
       }
     }
-  ]
+  ],
+  "remote_audit_correction_base_commit": "1697a968dc30e342b83685bec898bda3109643ca"
 }

@@ -37,6 +37,7 @@ from test_beam_r10_live import _attach_r10_beam_sources, _beam_table
 from test_column_axial_live import SPECTRAL, STATIC
 from test_r03_analysis_setup import capture_table
 from test_r10_live import R10WebAndReportIntegration, _add_field, _base_live_payload, _pmm_sec_source, _rowset
+from rebar_selection_fixture import attach_configured_selection_scope, configure_three_cut_forces
 
 
 def _make_87_column_live_fixtures():
@@ -422,10 +423,15 @@ class R10ToR16OracleUnitTests(unittest.TestCase):
 
 
 class R10ToR15WebAndOracleIntegration(R10WebAndReportIntegration):
+    def setUp(self):
+        super().setUp()
+        configure_three_cut_forces(self.outputs)
+
     def capture(self, case, *, column_axial_request=None):
         data = super().capture(case, column_axial_request=column_axial_request)
         if column_axial_request and column_axial_request.get("pmm_member"):
             _attach_r10_beam_sources(data)
+            attach_configured_selection_scope(data)
             # Inject beam static gravity shear Vdy inside r10_source["beam_force_source"]
             data["column_axial"]["r10_source"]["beam_force_source"] = {
                 "rowsets": {
@@ -444,13 +450,14 @@ class R10ToR15WebAndOracleIntegration(R10WebAndReportIntegration):
     def test_r12_beam_vdy_and_selected_column_ve_and_all_columns_web_report(self):
         # 1) Single-column end-to-end R10-R14 over real Web HTTP + HTML report with Vdy + selected steel
         q1 = self.pmm_query()
-        q1["beam_selection"] = json.dumps({"enabled": True})
-        q1["column_selection"] = json.dumps({"enabled": True})
+        q1["beam_selection"] = "default"
+        q1["column_selection"] = "default"
         ack1 = self.post(q1)
         self.assertEqual(ack1["r14_closure"]["scope"], "SINGLE_COLUMN")
         self.assertEqual(ack1["r14_closure"]["member_id"], "C1")
 
         exp1 = json.loads(self.get("/api/export-checks?run_id=" + ack1["run_id"]))
+        self.assertTrue(exp1["r14_closure"]["design_dependencies"]["candidate_execution_allowed"])
         b1 = next(b for b in exp1["beam_r10"]["beams"] if b["member_id"] == "B1")
         ve_b1 = b1["engineer_shear_ve"]
         self.assertEqual(ve_b1["status"], "SCENARIO_VE_CALCULATED_NOT_PROVEN")

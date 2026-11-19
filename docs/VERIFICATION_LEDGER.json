@@ -3870,6 +3870,40 @@
       "private_worked_example_sha256": "30cd1fd4d4bf092666ae701aa5a6c96f5b1ef72f477a8064190f41ba80736f25",
       "limits": "Reference effective length and creep, centered joint geometry and selected reinforcement. Original/private spectral transfer, earthquake-compatible story demands and detailing approval remain open.",
       "engineering_release": "NOT_READY"
+    },
+    {
+      "id": "EV-AUDIT-ADAPTER-FIXES-20261119",
+      "observed_at_utc": "2026-11-19T16:39:29.914816+00:00",
+      "tested_base_commit": "1697a968dc30e342b83685bec898bda3109643ca",
+      "dirty_worktree": true,
+      "tested_file_manifest_path": "docs/context/TESTED_FILES_AUDIT_ADAPTER_FIXES_20261119.json",
+      "tested_file_manifest_sha256": "1c5877d0c5b5cd1e4f522f5ade37feac22611d20795de7bc4abb623876dfced0",
+      "public_execution_record": "docs/context/AUDIT_ADAPTER_FIXES_VERIFICATION_20261119.json",
+      "public_execution_record_sha256": "eb26b84eb497d3c5dead7e3968b557fd497877135fd60df1c162c53203535d89",
+      "scope": "A01-A06 audit corrections in existing joint adapters, scenario owner, sealed report and CI; R14 conditional-bound consumer semantics. No stable GAP closure.",
+      "verification": {
+        "python_tests": 1464,
+        "javascript_test_files": 11,
+        "installed_wheel_tests": 293
+      },
+      "commands": [
+        "python -B tools/test_offline.py",
+        "python -m pip wheel --no-index --no-build-isolation --no-deps --wheel-dir <wheel-directory> .",
+        "python -B tools/test_installed_wheel.py <wheel-directory>"
+      ],
+      "environment": {
+        "python": "Python 3.12.14",
+        "node": "v24.22.3",
+        "platform": "Linux-6.18.57-x86_64-with-glibc2.41"
+      },
+      "final_log_sha256": {
+        "full_offline": "1104f390390ce2970bb52b4e161add1ec7d77d3e3b678e2e953964397026530d",
+        "installed_wheel": "c4e30c3e543a9a493f94fa5ae1a0652255b14a1a821b3e7ecdfffc726323ce29"
+      },
+      "initial_failed_attempt_retained": true,
+      "source_scope": "Public synthetic fixtures and existing production comparison records; original private project sources unavailable.",
+      "limits": "Offline software verification of the existing owners and supported synthetic contracts. No private source inspection, live ETABS acquisition, local unpublished tree inspection, complete building proof or normative release. Runtime/test files remained unchanged during and after the recorded runs; final documentation edits are checked separately.",
+      "engineering_release": "NOT_READY"
     }
   ],
   "new_record_template": {
@@ -3894,7 +3928,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-19T15:36:11.333803+00:00",
+  "updated_at_utc": "2026-11-19T16:39:29.914816+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -4405,5 +4439,17 @@
       "engineering_release": "NOT_READY",
       "next_action": "Resolve the 138 original-generation control exceptions using generation-bound native evidence. Keep the current tolerance. Preserve the private static-effect proof and conditional CQC check. Original story allocation, physical concurrency and design feedback remain open."
     }
-  ]
+  ],
+  "remote_audit_correction_checkpoint": {
+    "reviewed_base_commit": "1697a968dc30e342b83685bec898bda3109643ca",
+    "work_branch": "work/gap-018-spectrum-evidence",
+    "integration_base_branch": "baseline/local_import",
+    "evidence_refs": [
+      "EV-AUDIT-ADAPTER-FIXES-20261119"
+    ],
+    "local_original_project_checkpoint_preserved": true,
+    "implementation_note": "docs/engineering/AUDIT_FIXES_20261119.md",
+    "next_action": "Complete one interior joint and governing SCWB axial-demand branch, then the full story-direction population and existing alpha feedback loop. Keep qualified passing upper bounds; refine only where the design outcome requires it.",
+    "engineering_release": "NOT_READY"
+  }
 }

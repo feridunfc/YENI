@@ -1,0 +1,268 @@
+{
+  "schema": "yeni.audit-adapter-fixes.verification.v1",
+  "evidence_id": "EV-AUDIT-ADAPTER-FIXES-20261119",
+  "observed_at_utc": "2026-11-19T16:39:29.914816+00:00",
+  "tested_base_commit": "1697a968dc30e342b83685bec898bda3109643ca",
+  "dirty_worktree": true,
+  "untracked_test_files_included_in_manifest": true,
+  "tested_file_manifest": "docs/context/TESTED_FILES_AUDIT_ADAPTER_FIXES_20261119.json",
+  "tested_file_manifest_sha256": "1c5877d0c5b5cd1e4f522f5ade37feac22611d20795de7bc4abb623876dfced0",
+  "tested_file_count": 312,
+  "tracked_runtime_and_test_diff_sha256": "b32cc23d6326a647e3f0159942e04958fb352dbefd068ef22bd0d2dde4a5fc80",
+  "changed_executable_files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "f6276ae9346e47ab743f25e78efa604314604581cb5a8b692cf07dd78586b295"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/column_joints.py",
+      "sha256": "e426fb3a5250a04302d1fbecdcf7e45bf564bbec6b6af62512cc04066cce683e"
+    },
+    {
+      "path": "src/tbdy_next/column_engine/csi_geometry.py",
+      "sha256": "e8c1a04e6bb26f8d3800cfc7ac768e639e196f10516f86a8940f86b89bb8d64b"
+    },
+    {
+      "path": "src/tbdy_next/engineering/cli_adapter.py",
+      "sha256": "b1263ba98000755ad7b0d227e92cbc3096bd381bf2dcbb436a541f94801ec1ac"
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_r10_live.py",
+      "sha256": "e8df3cb3554559ffa1b2dba4e8499b6271eb79dd057f6284c63eebee00387c8a"
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_r14_closure.py",
+      "sha256": "bddc320043b2eb5ee53d99ebcf303b0239a08038bde3704c51daf3d0c4c3b0ea"
+    },
+    {
+      "path": "src/tbdy_next/engineering/design_scenario.py",
+      "sha256": "3a6642feb7e08d1ec8ba2ffe9091d22bb7372d59c762ca7be382e888db84ec20"
+    },
+    {
+      "path": "src/tbdy_next/reporting.py",
+      "sha256": "9a2f44e673dff74e5c946c30882577d1f5c409f4ccbdc385d309dcaab93d6f0d"
+    },
+    {
+      "path": "src/tbdy_next/web.py",
+      "sha256": "26c8aede1136c99edcb3c0f52ce7e7d7511c641dd5d6d74f8656495c8b0223ec"
+    },
+    {
+      "path": "tests/rebar_selection_fixture.py",
+      "sha256": "edce838a27a693c18e763a24741f96c3227ea0872f0ba142aef2a9557cdb250c"
+    },
+    {
+      "path": "tests/test_offline_design_scenario.py",
+      "sha256": "fe68af515bc8627a4264d243a3b77aec166ae0914f66eb62c1d31c8aea6b2a74"
+    },
+    {
+      "path": "tests/test_r10_r16_closure.py",
+      "sha256": "20c5998c23742731bae7e480b2fb8818ae36dd58af5d426aabc5d2df3ac96bfe"
+    },
+    {
+      "path": "tests/test_r13_joint_adapters.py",
+      "sha256": "79bc02bf6370b9e8377c4f2de959bef493e08f8fa99de77938a7f6829f4ee67e"
+    },
+    {
+      "path": "tests/test_rebar_selection.py",
+      "sha256": "5f58cd270a8875d529a05b3afc857c6bd56e1d3f0d9e02da31d902b7b3ea5cdc"
+    },
+    {
+      "path": "tests/test_recorded_column_calculation_report.py",
+      "sha256": "476a3c1ab2b2d8d81ff57ba5b02dcd38a051153a772990689148a025c3e476f1"
+    },
+    {
+      "path": "tools/test_installed_wheel.py",
+      "sha256": "45573c15e9ff5d26951fd1e4ae6937c3b0e51f9d209a29b48c5628210ffd39f7"
+    }
+  ],
+  "full_offline_execution": {
+    "schema": "yeni.audit-fixes.execution.v1",
+    "check": "full",
+    "tested_base_commit": "1697a968dc30e342b83685bec898bda3109643ca",
+    "dirty_tree": true,
+    "tested_file_manifest": "full-tested-files.json",
+    "tested_file_manifest_sha256": "1c5877d0c5b5cd1e4f522f5ade37feac22611d20795de7bc4abb623876dfced0",
+    "tested_files_unchanged_during_execution": true,
+    "commands": [
+      [
+        "/workspace/scratch/675b0dc139de/audit_20261119/implementation_venv/bin/python",
+        "-B",
+        "tools/test_offline.py"
+      ]
+    ],
+    "started_at_utc": "2026-11-19T16:35:18.258060+00:00",
+    "completed_at_utc": "2026-11-19T16:38:17.249190+00:00",
+    "elapsed_s": 178.99112454399983,
+    "exit_codes": [
+      0
+    ],
+    "environment": {
+      "python": "Python 3.12.14",
+      "node": "v24.22.3",
+      "platform": "Linux-6.18.57-x86_64-with-glibc2.41"
+    },
+    "test_summaries": [
+      "Ran 1464 tests in 167.179s"
+    ],
+    "log": "full.log",
+    "log_sha256": "1104f390390ce2970bb52b4e161add1ec7d77d3e3b678e2e953964397026530d",
+    "limits": "Offline software and synthetic-source verification. No private model replay, live ETABS, or engineering acceptance."
+  },
+  "installed_wheel_execution": {
+    "schema": "yeni.audit-fixes.execution.v1",
+    "check": "wheel",
+    "tested_base_commit": "1697a968dc30e342b83685bec898bda3109643ca",
+    "dirty_tree": true,
+    "tested_file_manifest": "wheel-tested-files.json",
+    "tested_file_manifest_sha256": "1c5877d0c5b5cd1e4f522f5ade37feac22611d20795de7bc4abb623876dfced0",
+    "tested_files_unchanged_during_execution": true,
+    "commands": [
+      [
+        "/workspace/scratch/675b0dc139de/audit_20261119/implementation_venv/bin/python",
+        "-m",
+        "pip",
+        "wheel",
+        "--no-index",
+        "--no-build-isolation",
+        "--no-deps",
+        "--disable-pip-version-check",
+        "--wheel-dir",
+        "/workspace/scratch/675b0dc139de/audit_20261119/implementation_evidence/wheels",
+        "."
+      ],
+      [
+        "/workspace/scratch/675b0dc139de/audit_20261119/implementation_venv/bin/python",
+        "-B",
+        "tools/test_installed_wheel.py",
+        "/workspace/scratch/675b0dc139de/audit_20261119/implementation_evidence/wheels"
+      ]
+    ],
+    "started_at_utc": "2026-11-19T16:35:18.264214+00:00",
+    "completed_at_utc": "2026-11-19T16:35:45.553461+00:00",
+    "elapsed_s": 27.289249605999885,
+    "exit_codes": [
+      0,
+      0
+    ],
+    "environment": {
+      "python": "Python 3.12.14",
+      "node": "v24.22.3",
+      "platform": "Linux-6.18.57-x86_64-with-glibc2.41"
+    },
+    "test_summaries": [
+      "Ran 293 tests in 22.131s"
+    ],
+    "log": "wheel.log",
+    "log_sha256": "c4e30c3e543a9a493f94fa5ae1a0652255b14a1a821b3e7ecdfffc726323ce29",
+    "limits": "Offline software and synthetic-source verification. No private model replay, live ETABS, or engineering acceptance."
+  },
+  "counts": {
+    "python_tests": 1464,
+    "javascript_test_files": 11,
+    "installed_wheel_tests": 293
+  },
+  "existing_production_golden_gate": {
+    "records": 44,
+    "NUMERICAL_MATCH": 15,
+    "INSUFFICIENT_SOURCE": 25,
+    "ENGINEERING_INTERPRETATION_DIFFERENCE": 4,
+    "acceptance_eligible": false
+  },
+  "initial_attempt": {
+    "full": {
+      "schema": "yeni.audit-fixes.execution.v1",
+      "check": "full",
+      "tested_base_commit": "1697a968dc30e342b83685bec898bda3109643ca",
+      "dirty_tree": true,
+      "tested_file_manifest": "full-tested-files.json",
+      "tested_file_manifest_sha256": "9806ef0534b2da89f01245b937abc33cc65f16eec3658a3ec7d078ba9a3e1552",
+      "tested_files_unchanged_during_execution": true,
+      "commands": [
+        [
+          "/workspace/scratch/675b0dc139de/audit_20261119/implementation_venv/bin/python",
+          "-B",
+          "tools/test_offline.py"
+        ]
+      ],
+      "started_at_utc": "2026-11-19T16:29:52.405313+00:00",
+      "completed_at_utc": "2026-11-19T16:32:52.274537+00:00",
+      "elapsed_s": 179.86922146799998,
+      "exit_codes": [
+        1
+      ],
+      "environment": {
+        "python": "Python 3.12.14",
+        "node": "v24.22.3",
+        "platform": "Linux-6.18.57-x86_64-with-glibc2.41"
+      },
+      "test_summaries": [
+        "Ran 1459 tests in 178.738s"
+      ],
+      "log": "full.log",
+      "log_sha256": "c8ccd4c738473cecd7381f6b7c7523d7cf2a4d6f8d4d708f6a3cdaf876135e73",
+      "limits": "Offline software and synthetic-source verification. No private model replay, live ETABS, or engineering acceptance."
+    },
+    "wheel": {
+      "schema": "yeni.audit-fixes.execution.v1",
+      "check": "wheel",
+      "tested_base_commit": "1697a968dc30e342b83685bec898bda3109643ca",
+      "dirty_tree": true,
+      "tested_file_manifest": "wheel-tested-files.json",
+      "tested_file_manifest_sha256": "9806ef0534b2da89f01245b937abc33cc65f16eec3658a3ec7d078ba9a3e1552",
+      "tested_files_unchanged_during_execution": true,
+      "commands": [
+        [
+          "/workspace/scratch/675b0dc139de/audit_20261119/implementation_venv/bin/python",
+          "-m",
+          "pip",
+          "wheel",
+          "--no-index",
+          "--no-build-isolation",
+          "--no-deps",
+          "--disable-pip-version-check",
+          "--wheel-dir",
+          "/workspace/scratch/675b0dc139de/audit_20261119/implementation_evidence/wheels",
+          "."
+        ],
+        [
+          "/workspace/scratch/675b0dc139de/audit_20261119/implementation_venv/bin/python",
+          "-B",
+          "tools/test_installed_wheel.py",
+          "/workspace/scratch/675b0dc139de/audit_20261119/implementation_evidence/wheels"
+        ]
+      ],
+      "started_at_utc": "2026-11-19T16:29:52.405368+00:00",
+      "completed_at_utc": "2026-11-19T16:30:23.058536+00:00",
+      "elapsed_s": 30.653223335999883,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "environment": {
+        "python": "Python 3.12.14",
+        "node": "v24.22.3",
+        "platform": "Linux-6.18.57-x86_64-with-glibc2.41"
+      },
+      "test_summaries": [
+        "Ran 288 tests in 25.188s"
+      ],
+      "log": "wheel.log",
+      "log_sha256": "c4fac5bf9b96250e18c7aaaee3ef2ff6ae2f4de6a23019303d2325b9c7325960",
+      "limits": "Offline software and synthetic-source verification. No private model replay, live ETABS, or engineering acceptance."
+    },
+    "resolution": "The older HTTP fixture supplied an unsupported enabled policy key and omitted independent configured-cut prerequisites. It now requests the supported default policy and provides explicit synthetic source tables/cuts. Production validation was not relaxed. The subsequent R14 conservative-bound consumer correction and five tests are included in the final manifest."
+  },
+  "verification_levels": {
+    "document_and_source_consistency": "VERIFIED",
+    "independent_fixture_arithmetic": "EXECUTED_LIMITED",
+    "existing_production_owner_comparison": "EXECUTED_PUBLIC_SYNTHETIC_AND_EXISTING_GOLDEN_SCOPE",
+    "synthetic_recorded_pipeline_and_sealed_report": "EXECUTED",
+    "private_original_model_pipeline_replay": "NOT_RUN",
+    "live_etabs_source_validation": "NOT_RUN",
+    "engineering_acceptance": "NOT_RUN",
+    "external_ci_for_published_commit": "RECORDED_SEPARATELY_AFTER_PUBLICATION"
+  },
+  "limits": "Offline software verification of the existing owners and supported synthetic contracts. No private source inspection, live ETABS acquisition, local unpublished tree inspection, complete building proof or normative release. Runtime/test files remained unchanged during and after the recorded runs; final documentation edits are checked separately.",
+  "formal_compliance": "NOT_PROVEN",
+  "engineering_release": "NOT_READY"
+}

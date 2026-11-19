@@ -135,11 +135,20 @@ with zero shear deduction. The original
 selected input, a command and a compact result census are indexed by
 `EV-COLUMN-JOINT-SLICE-20261119`. Public fixtures exercise both calculations.
 
-Replace the zero deduction at that interior joint with its actual value. Bind the upper and lower
-column-end shears to the same earthquake combination, direction and physical
-faces; compute both sway demands, the governing joint and its tie pitch. Carry
-the resulting direction into the story SCWB sum and alpha iteration when its
-earthquake demand is qualified. Reuse the existing R08/R10 owners and gateway.
+Retain the interior joint's zero-deduction result as a conditional upper bound when the
+physical mechanism and sign convention establish a nonnegative deductive column shear.
+A passing qualified upper bound does not need a favorable measured deduction to prove
+that inequality. When a reduced demand is needed, bind complete upper/lower column-end
+shears to the same applicable earthquake demand family, direction, physical cuts and
+source generation. Missing, ambiguous or nonconcurrent rows cannot authorize a reduced
+deduction. Compute both sway demands and the selected tie pitch through the existing owners.
+
+Complete the interior SCWB axial-demand policy, physical end applicability and one full
+storey/direction population before alpha feedback. The original/private 138-control
+transfer question is separate from the missing production spectral method transition;
+fixing those comparisons alone does not enable spectral SCWB or alpha. Implement the
+accepted bounded method already described in the recipe through the existing R08/R10/
+alpha owners and gateway. See ../engineering/AUDIT_FIXES_20261119.md for the current adapter milestone.
 
 GAP-005 general scheduling and GAP-017 complete CheckInstance accounting remain
 open. Do not relabel the current pipeline as a fully accepted structural engine.

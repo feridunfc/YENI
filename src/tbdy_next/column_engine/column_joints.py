@@ -10,7 +10,9 @@ import math
 
 from .column_stability import OPTIONAL_ERRORS
 from .column_prechecks import _number
-from .csi_geometry import AXIS_CONVENTION, local_dimensions
+from .csi_geometry import (
+    AXIS_CONVENTION, local_dimensions, physical_column_side_at_joint, physical_shear_axis,
+)
 from .joint_kernel import centered_joint_limit, joint_transverse_reference, width_reference
 from .native_archive import BankError, digest, finite, identity
 from .observed_context import EXPECTED_FIELDS
@@ -180,7 +182,8 @@ def _tie_rows(node,column,frames,points,transverse,enclosure):
         if frame["design_orientation"]!=1: continue
         _vertical(frame)
         other = frame["point_j"] if frame["point_i"]==node["point_id"] else frame["point_i"]
-        if points[other]["xyz_m"][2]<node["xyz_m"][2]-GEOMETRY_TOL: lower.append(frame)
+        if physical_column_side_at_joint(node["xyz_m"], points[other]["xyz_m"],
+                                         tolerance_m=GEOMETRY_TOL)=="LOWER": lower.append(frame)
     if len(lower)!=1: raise BankError("JOINT_UNIQUE_LOWER_COLUMN_NOT_BOUND")
     lower = lower[0]
     member = next((m for m in transverse["members"] if m["member_id"]==lower["frame_id"]),None)
@@ -190,9 +193,7 @@ def _tie_rows(node,column,frames,points,transverse,enclosure):
     rows = []
     for axis in (2,3):
         direction = column["geometry"]["axes_global"][axis-1]
-        matches = [a for a in (2,3) if _parallel(direction,lower["geometry"]["axes_global"][a-1])]
-        if len(matches)!=1: raise BankError("JOINT_LOWER_AXIS_MAPPING_NOT_BOUND")
-        lower_axis = "V"+str(matches[0])
+        lower_axis = physical_shear_axis(direction, lower["geometry"]["axes_global"], tolerance=GEOMETRY_TOL)
         for proposal in proposals:
             if proposal["status"]!="PROPOSED_TRANSVERSE_REFERENCES_CALCULATED":
                 raise BankError("JOINT_LOWER_CONFINEMENT_REFERENCE_NOT_BOUND")

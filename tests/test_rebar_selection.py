@@ -2,12 +2,14 @@
 from __future__ import annotations
 
 import contextlib
+from hashlib import sha256
 import io
 import json
 from math import pi
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 from tbdy_next.cli import main as cli_main
@@ -22,6 +24,7 @@ from tbdy_next.engineering.rebar_selection import (
     select_column_rebar,
 )
 import test_beam_r10_live
+from rebar_selection_fixture import attach_configured_selection_scope, configure_three_cut_forces
 
 _C30 = {"fck_mpa": 30.0, "fcd_mpa": 20.0, "fctd_mpa": 1.28, "gamma_c": 1.5}
 _B420 = {"fyk_mpa": 420.0, "fyd_mpa": 420.0 / 1.15, "gamma_s": 1.15}
@@ -231,6 +234,17 @@ class RebarSelectionUnitTests(unittest.TestCase):
 
 
 class RebarSelectionWebCliTests(test_beam_r10_live.BeamR10WebAndReportIntegration):
+    def setUp(self):
+        self.complete_selection_scope = True
+        super().setUp()
+        configure_three_cut_forces(self.outputs)
+
+    def capture(self, case, *, column_axial_request=None):
+        data = super().capture(case, column_axial_request=column_axial_request)
+        if not self.complete_selection_scope or not (column_axial_request or {}).get("pmm_member"):
+            return data
+        return attach_configured_selection_scope(data)
+
     def _post_json(self, path: str, body: dict) -> dict:
         req = Request(
             self.url + path,
@@ -240,6 +254,113 @@ class RebarSelectionWebCliTests(test_beam_r10_live.BeamR10WebAndReportIntegratio
         )
         with urlopen(req, timeout=20) as resp:
             return json.loads(resp.read().decode("utf-8"))
+
+    def _run_cli_selection(self, run_id, **policies):
+        with TemporaryDirectory() as temp:
+            args = ["run-pipeline", "--source", str(self.root / run_id / "input.source"),
+                    "--case", "Modal", "--out", str(self.root)]
+            for key, value in policies.items():
+                if value == "default":
+                    argument = value
+                else:
+                    path = Path(temp) / (key + ".json")
+                    path.write_text(json.dumps(value), encoding="utf-8")
+                    argument = str(path)
+                args.extend(("--" + key.replace("_", "-"), argument))
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                self.assertEqual(cli_main(args), 0)
+            return json.loads(output.getvalue())
+
+    def _sealed_results(self, run_id):
+        path = next((self.root / run_id).glob("*-engine-results.json"))
+        return json.loads(path.read_bytes())["payload"]["results"]
+
+    def _assert_adapter_parity(self, web_run_id, cli_summary):
+        cli_run_id = Path(cli_summary["run_dir"]).name
+        self.assertEqual((self.root / web_run_id / "input.source").read_bytes(),
+                         (self.root / cli_run_id / "input.source").read_bytes())
+        self.assertEqual(self._sealed_results(web_run_id), self._sealed_results(cli_run_id))
+        return self._sealed_results(web_run_id)
+
+    def test_web_cli_selection_and_sibling_reapplication_share_full_engineering_results(self):
+        base = self.post(self.pmm_query())["run_id"]
+        native = (self.root / base / "input.source").read_bytes()
+        policies = {"beam_selection": "default", "column_selection": "default"}
+        selected = self._post_json("/api/apply-rebar-selection", {"base_run_id": base, **policies})["run_id"]
+        cli = self._run_cli_selection(base, **policies)
+        results = self._assert_adapter_parity(selected, cli)
+        evidence = results["report_evidence"]
+        self.assertTrue(evidence["design_dependencies"]["candidate_execution_allowed"])
+        self.assertEqual(evidence["design_dependencies"]["selected_candidates"]["rows"][0]["status"],
+                         "SAME_RUN_CANDIDATE_BOUND")
+        self.assertIsNotNone(evidence["alpha_iteration"])
+        selected_raw = (self.root / selected / "input.source").read_bytes()
+        self.assertEqual((self.root / selected / "parent.source").read_bytes(), native)
+        cli_selected = Path(cli["run_dir"]).name
+        unchanged = self._post_json("/api/apply-rebar-selection", {"base_run_id": cli_selected, **policies})["run_id"]
+        self._assert_adapter_parity(unchanged, self._run_cli_selection(cli_selected, **policies))
+        self.assertEqual((self.root / unchanged / "input.source").read_bytes(), selected_raw)
+
+        changed_policy = {"min_rho": .02, "allowed_longitudinal_diameters_mm": [16, 20]}
+        changed = self._post_json("/api/apply-rebar-selection", {
+            "base_run_id": cli_selected, "column_selection": changed_policy})["run_id"]
+        changed_results = self._assert_adapter_parity(changed,
+            self._run_cli_selection(cli_selected, column_selection=changed_policy))
+        changed_source = json.loads((self.root / changed / "input.source").read_bytes())
+        original_source = json.loads(selected_raw)
+        self.assertEqual(changed_source["beam_selection"], original_source["beam_selection"])
+        self.assertNotEqual(changed_source["column_selection"], original_source["column_selection"])
+        self.assertNotEqual(changed_results["report_evidence"]["design_scenario"]["scenario_sha256"],
+                            evidence["design_scenario"]["scenario_sha256"])
+        self.assertEqual(changed_source["design_scenario"]["parent_input_sha256"], sha256(native).hexdigest())
+        self.assertEqual((self.root / changed / "parent.source").read_bytes(), native)
+        self.assertEqual((self.root / selected / "input.source").read_bytes(), selected_raw)
+        self.assertEqual((self.root / cli_selected / "input.source").read_bytes(), selected_raw)
+        self.assertEqual((self.root / base / "input.source").read_bytes(), native)
+
+    def test_missing_scope_blocks_identically_through_web_and_cli(self):
+        self.complete_selection_scope = False
+        base = self.post(self.pmm_query())["run_id"]
+        policies = {"beam_selection": "default", "column_selection": "default"}
+        web = self._post_json("/api/apply-rebar-selection", {"base_run_id": base, **policies})
+        results = self._assert_adapter_parity(web["run_id"], self._run_cli_selection(base, **policies))
+        evidence = results["report_evidence"]
+        self.assertFalse(evidence["design_dependencies"]["candidate_execution_allowed"])
+        self.assertEqual(evidence["alpha_iteration"]["status"], "BLOCKED_INPUTS")
+        self.assertIsNone(results["r10_live"])
+        self.assertEqual(evidence["design_dependencies"]["selected_candidates"]["rows"][0]["status"],
+                         "BLOCKED_DEPENDENCY")
+
+    def test_live_selection_also_archives_native_parent_and_uses_scenario_dependencies(self):
+        query = self.pmm_query()
+        query.update(beam_selection="default", column_selection="default")
+        run_id = self.post(query)["run_id"]
+        parent = (self.root / run_id / "parent.source").read_bytes()
+        self.assertNotIn("beam_selection", json.loads(parent))
+        self.assertNotIn("column_selection", json.loads(parent))
+        self.assertNotIn("design_scenario", json.loads(parent))
+        results = self._sealed_results(run_id)
+        self.assertEqual(results["report_evidence"]["design_scenario"]["parent_input_sha256"], sha256(parent).hexdigest())
+        self.assertIsNotNone(results["report_evidence"]["design_dependencies"])
+        self.assertIsNotNone(results["report_evidence"]["alpha_iteration"])
+        self._assert_adapter_parity(run_id, self._run_cli_selection(run_id))
+
+    def test_reapplication_rejects_corrupt_parent_and_unknown_policy_without_new_run(self):
+        base = self.post(self.pmm_query())["run_id"]
+        with self.assertRaises(HTTPError) as error:
+            self._post_json("/api/apply-rebar-selection", {
+                "base_run_id": base, "column_selection": {"min_rhoo": .02}})
+        self.assertEqual(error.exception.code, 422)
+        selected = self._post_json("/api/apply-rebar-selection", {
+            "base_run_id": base, "column_selection": "default"})["run_id"]
+        before = set(self.root.glob("RUN-*"))
+        (self.root / selected / "parent.source").write_bytes(b"{}")
+        with self.assertRaises(HTTPError) as error:
+            self._post_json("/api/apply-rebar-selection", {
+                "base_run_id": selected, "column_selection": "default"})
+        self.assertEqual(error.exception.code, 404)
+        self.assertEqual(set(self.root.glob("RUN-*")), before)
 
     def test_live_vs04_apply_endpoint_html_report_cli_and_workspace_ui(self):
         # 1. Live capture with engineer default beam & column policies
