@@ -6,7 +6,32 @@ Selected As 6,433.98 mm² ≥ 6,400 mm² (1.0053%). The final reference checks p
 but R14 remains **0 closed / 87 partial**, formal compliance `NOT_PROVEN`,
 engineering release `NOT_READY`.
 
-## GAP-018 private comparison and R14 closure inventory
+## GAP-018 manual ETABS comparison
+
+ETABS finished Modal, RSX, RSY and both zero-eccentricity cases on the private
+copy. The two readbacks reproduced the same native spectral forces and case
+definitions. The original model's 3,175 input lines match in order after
+excluding the file header, six new case-definition lines and three Save As records.
+
+At 402 element-side cuts on 87 columns, the signed half-difference between
+the positive and negative eccentric static cases gives 804 direction-specific
+static vectors. Its component magnitude matches the increase in the ETABS
+spectrum maximum from zero to 5% eccentricity for 4,824/4,824 scalars.
+Eight of ten selected internal cases returned rows. The two dedicated torsion
+cases returned zero frame rows. Independent CQC on the private model's own
+100 modes, using 5% damping and the unadjusted native spectrum, reproduced
+4,824/4,824 zero-eccentricity maxima within the recorded tolerance.
+
+Across the original and private analyses, all 100 modal controls matched the
+existing tolerance and 4,686/4,824 original force controls passed.
+The 138 exceptions affect 103 of 804 case-cuts on 34 columns. The largest
+exception is 1.19003e-6 kN m in RSX M2. The original-model transfer gate
+remains open. The signed result applies to the static eccentricity component.
+Dynamic simultaneity, story allocation and the original scenario's R14/alpha
+gates remain open. Ledger `EV-GAP018-MANUAL-PAIR-20261119` links the native
+readbacks, independent audit and per-component exceptions.
+
+## Earlier original controls and R14 closure inventory
 
 A fresh read of the original model reproduced all 4,824 native scalar controls at
 402 element-side cuts for two spectrum cases, with zero numerical difference.
@@ -20,12 +45,13 @@ The private Save As export reproduced 3,175 original lines byte-for-byte after
 excluding the file header and the additional save-history line. The prepared
 input added six definition lines for two zero-eccentricity controls. The
 original model's solver log identifies eight internal static cases, including
-two torsion solves. The private paired analysis has four response-spectrum cases in the first completed solver phase. The first API invocation returned 1. Qualification awaits the manual ETABS run, finished-case statuses and independent member-side comparisons.
+two torsion solves. The first private API analysis invocation returned 1.
+The later manual run and its original-control comparison are recorded above.
 
 Ledger `EV-GAP018-PAIR-CONTROL-20261119` links the frozen roster, selected replay and private proof.
 R14 is 0 closed / 87 partial. Engineering release is `NOT_READY`.
 
-## GAP-018 live ETABS checkpoint
+## Earlier GAP-018 live ETABS checkpoint on the original model
 
 The user-session gateway on port 8876 captured the locked model twice on
 2026-11-19. The v8 source is `RUN-9ad3c981cd9a4875bf383530429a1173`,

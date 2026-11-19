@@ -1,7 +1,7 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-19T14:33:09.367423+00:00",
+  "updated_at_utc": "2026-11-19T15:03:58.392463+00:00",
   "repository": "feridunfc/YENI",
   "baseline_implementation_commit": "60938da94b770631c6a5c34a545c8863162ac8a4",
   "local_reconciled": true,
@@ -441,8 +441,8 @@
       "title": "Spectral design demands and simultaneity",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Same-session live v6 source binds 100/100 native modal numeric modes and 2/2 eccentricity definitions. Independent Decimal(80) checks all 500 native numeric relationships with zero outside the unchanged tolerance. Existing 200/200 displayed spectrum mode rows, 1131/1131 supporting member-case pairs and 3216 scalar spectral cuts remain recorded. Repeat receipts are 16/16 IDENTICAL; report projection invokes zero calculators. No physical concurrency or alpha authority is granted. The v7 archived selected scenario independently matches 200 signed amplitude relationships at printed resolution across 100 modes and two directions. All 16 repeat receipt payloads match. The new same-session source readers have synthetic contract coverage. Live v8 binds 26 native function points, two case damping definitions, eight material getter returns and the two area-spring assignments behind 5,579 generated link elements. The independent reference checks 1,000 numbers for 200 case-modes. Conditional dynamic CQC was evaluated for all six force components at 804 case-cuts. Raw and same-policy selected replays each reproduce 16 sealed stage payloads.",
-      "blocker": "XML and array output share display precision. The native applied amplitude, effective modal ratio and separate accidental-torsion contribution remain unqualified (0/804 isolated case-cuts). The dynamic-only CQC comparison assumes 5% damping and uses the unadjusted curve. Directional design acceptance, governing Nd and story allocation remain open.",
+      "achieved_scope": "Same-session live v6 source binds 100/100 native modal numeric modes and 2/2 eccentricity definitions. Independent Decimal(80) checks all 500 native numeric relationships with zero outside the unchanged tolerance. Existing 200/200 displayed spectrum mode rows, 1131/1131 supporting member-case pairs and 3216 scalar spectral cuts remain recorded. Repeat receipts are 16/16 IDENTICAL; report projection invokes zero calculators. No physical concurrency or alpha authority is granted. The v7 archived selected scenario independently matches 200 signed amplitude relationships at printed resolution across 100 modes and two directions. All 16 repeat receipt payloads match. The new same-session source readers have synthetic contract coverage. Live v8 binds 26 native function points, two case damping definitions, eight material getter returns and the two area-spring assignments behind 5,579 generated link elements. The independent reference checks 1,000 numbers for 200 case-modes. Conditional dynamic CQC was evaluated for all six force components at 804 case-cuts. Raw and same-policy selected replays each reproduce 16 sealed stage payloads. The private manual analysis yielded 804 signed static eccentricity effects from paired internal static cases. All 4,824 absolute component increments agree with the native spectrum envelope change. Independent conditional CQC on that same analysis reproduces all 4,824 zero-eccentricity maxima.",
+      "blocker": "The original scenario still lacks full-precision applied amplitudes, effective modal ratios and transferable static eccentricity vectors. The private study reproduces 4,686/4,824 original force controls within the fixed tolerance. Two dedicated torsion cases yielded zero native frame rows. Directional design acceptance, governing Nd, story allocation and dynamic simultaneity remain open.",
       "closure_criteria": "Preserve the existing bound modal sources; qualify precision and accidental-torsion contributions through existing owners, then independently verify aggregation before SCWB/alpha consumption and a complete example. Never call scalar intervals simultaneous vectors.",
       "owner_paths": [
         "src/tbdy_next/engineering/demand_sources.py",
@@ -477,7 +477,8 @@
         "EV-LIVE-MODAL-REPLAY-REPORT",
         "EV-GAP018-SPECTRUM-ARCHIVE-20261119",
         "EV-GAP018-LIVE-SPECTRUM-20261119",
-        "EV-GAP018-PAIR-CONTROL-20261119"
+        "EV-GAP018-PAIR-CONTROL-20261119",
+        "EV-GAP018-MANUAL-PAIR-20261119"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -492,7 +493,8 @@
         "evidence_ref": "EV-GAP018-PAIR-CONTROL-20261119",
         "original_control": "4,824/4,824 exact repeat values",
         "selected_scenario": "16/16 stage payloads reproduce",
-        "status": "The private paired analysis has four response-spectrum cases in the first completed solver phase. The first API invocation returned 1. Qualification awaits the manual ETABS run, finished-case statuses and independent member-side comparisons."
+        "status": "Private same-analysis static effect and zero-eccentricity component maxima verified at 804 direction-specific cuts. Original-to-private transfer blocked by 138 force control exceptions.",
+        "latest_evidence_ref": "EV-GAP018-MANUAL-PAIR-20261119"
       }
     }
   ]

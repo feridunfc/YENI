@@ -19,7 +19,7 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "FRESH_ORIGINAL_CONTROL_VERIFIED_PRIVATE_MANUAL_COMPARISON_PENDING",
+    "status": "PRIVATE_SAME_ANALYSIS_TORSION_VERIFIED_ORIGINAL_FORCE_CONTROL_MISMATCH",
     "integration_base_branch": "baseline/local_import",
     "published_baseline_commit": "24ddc371c66ebcba24bf8672fe3038564e26d48c",
     "work_branch": "work/gap-018-spectrum-evidence",
@@ -40,12 +40,13 @@
     },
     "evidence_refs": [
       "EV-GAP018-LIVE-SPECTRUM-20261119",
-      "EV-GAP018-PAIR-CONTROL-20261119"
+      "EV-GAP018-PAIR-CONTROL-20261119",
+      "EV-GAP018-MANUAL-PAIR-20261119"
     ],
     "tested_file_manifest_path": ".receipts/verification/gap018-live-20261119T132305Z/tested-files.json",
     "tested_file_manifest_sha256": "8d7f2f11a3f7f02079c6d2e4978793e0121a8e9450dc786455d01e4567dff7e2",
     "engineering_release": "NOT_READY",
-    "next_action": "The private paired analysis has four response-spectrum cases in the first completed solver phase. The first API invocation returned 1. Qualification awaits the manual ETABS run, finished-case statuses and independent member-side comparisons."
+    "next_action": "Resolve the 138 original-generation control exceptions using generation-bound native evidence. Keep the current tolerance. Preserve the private static-effect proof and conditional CQC check. Original story allocation, physical concurrency and design feedback remain open."
   },
   "last_observed_remote_implementation": {
     "branch": "audit/pipeline-pmm-v6-20261117",
@@ -3700,6 +3701,117 @@
       "limits": "Scalar envelope effects do not determine simultaneous vectors. The project design basis, physical support faces/anchorage, independent cut inventory, local K/sway/Rm and validated story/joint feedback remain open.",
       "formal_compliance": "NOT_PROVEN",
       "engineering_release": "NOT_READY"
+    },
+    {
+      "id": "EV-GAP018-MANUAL-PAIR-20261119",
+      "recorded_at_utc": "2026-11-19T15:03:58.392463+00:00",
+      "base_commit": "bc3c62f039a056362fbdac0833f1a3fd13eed201",
+      "implementation_commit": "9e01f92617a3a37a6e6a79ea913dafe5feb2b8da",
+      "scope": "Manual private analysis and offline independent verification, GAP-018.",
+      "environment": "ETABS UltimateC 23.2.0 Build 4400, Windows, CPython 3.12.10, kN/m/C. One running ETABS application.",
+      "method": "Existing live_etabs and frame_force_capture owners. Native cases bound by exact catalog name and PID discovered in the current desktop session. Element-side matching uses the frozen member/element ID and both stations. CQC uses the private analysis modal shapes, exact-period participation factors, native curve and 5% equal damping.",
+      "prior_control_evidence": "EV-GAP018-PAIR-CONTROL-20261119",
+      "analysis_status": "5/5 native cases Finished; both checks read the same locked private EDB; output and mode selections restored.",
+      "same_analysis": {
+        "members": 87,
+        "physical_element_side_cuts": 402,
+        "direction_specific_case_cuts": 804,
+        "native_internal_cases_selected": 10,
+        "native_internal_cases_returning_frame_rows": 8,
+        "native_internal_frame_rows": 3216,
+        "dedicated_torsion_case_rows": 0,
+        "signed_static_vectors_from_plus_minus_half_difference": 804,
+        "simultaneous_dynamic_vectors": 0,
+        "scalar_checks": {
+          "conditional_cqc_vs_e0_same_analysis": {
+            "in_tolerance": 4824,
+            "max_abs_difference": 1.7053025658242404e-13,
+            "total": 4824
+          },
+          "original_to_private_five_percent": {
+            "in_tolerance": 4686,
+            "max_abs_difference": 1.1900263672259825e-06,
+            "total": 4824
+          },
+          "rs_max_increment_vs_abs_signed_static": {
+            "in_tolerance": 4824,
+            "max_abs_difference": 1.1823431123048067e-11,
+            "total": 4824
+          },
+          "static_baseline_exact": {
+            "in_tolerance": 4824,
+            "max_abs_difference": 0.0,
+            "total": 4824
+          },
+          "static_midpoint": {
+            "in_tolerance": 4824,
+            "max_abs_difference": 1.4551915228366852e-11,
+            "total": 4824
+          }
+        }
+      },
+      "original_control": {
+        "modal_controls_in_tolerance": 100,
+        "force_controls_in_tolerance": 4686,
+        "total": 4824,
+        "outside": 138,
+        "affected_case_cuts": 103,
+        "affected_members": 34,
+        "largest_force_exception_kN_m": 1.1900263672259825e-06,
+        "status": "ORIGINAL_CONTROL_MISMATCH",
+        "tolerance": "abs(a-b) <= 1e-8 + 1e-8*max(abs(a),abs(b)); exact equality for the static baseline check"
+      },
+      "native_input_body": {
+        "identical_original_lines_in_order": 3175,
+        "added_spectrum_definition_lines": 6,
+        "new_save_history_records": 3
+      },
+      "private_model_sha256": "d3450899b29fb8f02875b8f61ca2712fc3234eb119105210b17ba427c0e5ea92",
+      "original_model_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+      "original_source_sha256": "5833f62755a25bf232d88ee58e42a3aba0b184b88b40d4ca037cbb2a2879973e",
+      "frozen_roster_sha256": "2c61b6a1f32fb2904b4d032adbe5c430054bc675b7b3ec1a3ac4a71701629b44",
+      "private_root": ".receipts/verification/gap018-pair-20261119T140500Z",
+      "readbacks": [
+        "20261119T145705078859Z",
+        "20261119T145922684342Z"
+      ],
+      "byte_identical_readback_files": [
+        "private-frame-force.json",
+        "pair-values.json",
+        "pair-comparison.json",
+        "case-definitions.json",
+        "model-input.$et",
+        "solver.LOG"
+      ],
+      "private_artifacts_sha256": {
+        "manual-readbacks/20261119T145922684342Z/reader-used.py": "60dd626c72ee32ff6245c7320bb39bb6c65d6830911911f4e37fd72b9f74f539",
+        "manual-readbacks/20261119T145922684342Z/session-discovery.json": "fa8e80dcb162608afebb230f1fe776e719573fb65442e9683562869c7d38d161",
+        "manual-readbacks/20261119T145922684342Z/native-state.json": "91ff965ddcdf928ee54af8a7564d8d89601acba0aadce366e045bd6d642e6c7b",
+        "manual-readbacks/20261119T145922684342Z/solver.LOG": "c66bd31ca8e4e48d4585ace65e2c0aa230a9b93d28f690a3de6c57895cc574de",
+        "manual-readbacks/20261119T145922684342Z/model-input.$et": "46975a344fc7f6caf8f0aee9f4f8c6d74ac4edbe400df868a5294048c3e32981",
+        "manual-readbacks/20261119T145922684342Z/case-definitions.json": "48950cb2a21166c1a87e5ffc000d677ec1bceeb7bcdecfff82f2dd51ba953827",
+        "manual-readbacks/20261119T145922684342Z/private-result-summary.json": "3755ae8e44306d7823cea6ae65fb4ecce034c760ca1ec8e61857859a486328d3",
+        "manual-readbacks/20261119T145922684342Z/private-frame-force.json": "45cd79720e115ea23466b3774b5c70bc6463cd3e4b77a989b899a2337486311b",
+        "manual-readbacks/20261119T145922684342Z/internal-static-frame-forces.json": "6282d916511a85eb4bbaed965fcd121d1a30e7cf31e1765874321f4fd87f5407",
+        "manual-readbacks/20261119T145922684342Z/pair-values.json": "c89a8900d41359846db94f07bb35e18d5b1f080f44c632d24fec400f24d533e1",
+        "manual-readbacks/20261119T145922684342Z/pair-comparison.json": "706e005aee36f254dbe15ef41bc29b246c77dd3f4368f45e6f6d474d451f287f",
+        "manual-readbacks/20261119T145922684342Z/signed-static-derived.json": "604439c75b34b980edf60019fc0d92b7ed40aa0081bbdfadcd49ce254a6fe54c",
+        "manual-readbacks/20261119T145922684342Z/original-control-exceptions.json": "7a53648baff9e13c29bfb114d7e0bf94eb51401c1c3e53468c86e619b2916b9c",
+        "manual-readbacks/20261119T145922684342Z/manual-native-audit.json": "decd0efe31dfd5ef37e5fd0150a9cf1dbce31af2a6a7541f856740a97c7b37e9",
+        "audit_manual_results.py": "32e285a46e25a63e71a5d51437a39ccb226ee565bedbc0a4072c43fdfc2471e2"
+      },
+      "commands": [
+        ".\\.venv\\Scripts\\python.exe -X utf8 -B .\\.receipts\\GAP018_PAIR\\gap018_sonuclari_oku.py",
+        ".\\.venv\\Scripts\\python.exe -X utf8 -B .\\.receipts\\verification\\gap018-pair-20261119T140500Z\\audit_manual_results.py"
+      ],
+      "verification": "Replayed the offline audit twice with identical JSON. Earlier readback and second readback have identical spectral raw bytes. Current-session PID selection checks cover zero, one, multiple, explicit and stale process IDs.",
+      "runtime_changes": false,
+      "runtime_test_suite": "NOT_RUN for this private readback and documentation checkpoint.",
+      "next_action": "Resolve the 138 original-generation control exceptions using generation-bound native evidence. Keep the current tolerance. Preserve the private static-effect proof and conditional CQC check. Original story allocation, physical concurrency and design feedback remain open.",
+      "R14_closed": 0,
+      "R14_partial": 87,
+      "formal_compliance": "NOT_PROVEN",
+      "engineering_release": "NOT_READY"
     }
   ],
   "new_record_template": {
@@ -3724,7 +3836,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-19T14:33:09.367423+00:00",
+  "updated_at_utc": "2026-11-19T15:03:58.392463+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -4175,6 +4287,35 @@
       "tested_file_manifest_sha256": "8d7f2f11a3f7f02079c6d2e4978793e0121a8e9450dc786455d01e4567dff7e2",
       "engineering_release": "NOT_READY",
       "next_action": "Obtain same-source unrounded applied modal results and isolated accidental-torsion evidence before story allocation or spectral alpha acceptance."
+    },
+    {
+      "status": "FRESH_ORIGINAL_CONTROL_VERIFIED_PRIVATE_MANUAL_COMPARISON_PENDING",
+      "integration_base_branch": "baseline/local_import",
+      "published_baseline_commit": "24ddc371c66ebcba24bf8672fe3038564e26d48c",
+      "work_branch": "work/gap-018-spectrum-evidence",
+      "active_local_branch": "work/gap-018-spectrum-evidence",
+      "implementation_commit": "9e01f92617a3a37a6e6a79ea913dafe5feb2b8da",
+      "source_run_id": "RUN-caaf8c60060b4b20b53d6e37f00d67c3",
+      "source_sha256": "5833f62755a25bf232d88ee58e42a3aba0b184b88b40d4ca037cbb2a2879973e",
+      "results_sha256": "b3d782042e22bdf4012d771342fb660a07f76a4367fa70578e0eb62fe48d5ce2",
+      "selected_run_id": "RUN-17fbcff4be754227acb61dd1151b94cf",
+      "selected_results_sha256": "5e33b3af68dc8c17528a0a7be142af0a48cca3b53758534bcb92af9cd472e577",
+      "method": {
+        "configuration_file_count": 9,
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 126,
+        "package_sha256": "ab941176367f559ab7d9cbb35ddfa1029ccb03c8087f92f5c4295f0166697b13",
+        "python_implementation": "CPython",
+        "python_version": "3.12.10"
+      },
+      "evidence_refs": [
+        "EV-GAP018-LIVE-SPECTRUM-20261119",
+        "EV-GAP018-PAIR-CONTROL-20261119"
+      ],
+      "tested_file_manifest_path": ".receipts/verification/gap018-live-20261119T132305Z/tested-files.json",
+      "tested_file_manifest_sha256": "8d7f2f11a3f7f02079c6d2e4978793e0121a8e9450dc786455d01e4567dff7e2",
+      "engineering_release": "NOT_READY",
+      "next_action": "The private paired analysis has four response-spectrum cases in the first completed solver phase. The first API invocation returned 1. Qualification awaits the manual ETABS run, finished-case statuses and independent member-side comparisons."
     }
   ]
 }
