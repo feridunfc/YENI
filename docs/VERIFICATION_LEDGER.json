@@ -3930,6 +3930,49 @@
       "public_reference_paths": ["AGENTS.md", "docs/context/PROJECT_CHARTER.md", "docs/context/WORKER_HANDOFF_20261119.md", "src/tbdy_next/verification/data/SOURCE_MANIFEST.json"],
       "limits": "The three direct checks are outside the registered gate. The 467-case bank was inventoried. The historical handoff verifier was inspected. Live ETABS and the full software suites were outside this documentation update.",
       "engineering_release_granted": false
+    },
+    {
+      "id": "EV-GOLDEN01-OWNER-BINDINGS-20261119",
+      "observed_at_utc": "2026-11-19T18:42:53Z",
+      "tested_base_commit": "6e2777c45425deae36d1e49003c62f447df0c4a9",
+      "tested_worktree_delta": {
+        "src/tbdy_next/verification/golden_gate.py": "79e7f10e047a5f55febedc94544a7e58b0f2f347f10437aaebde39117705d671",
+        "tests/test_vs26_golden_gate.py": "f0b06820fa383176b082faaa08868407eb2936b336b6a797ee24264d9aeef9ba"
+      },
+      "tested_file_manifest_sha256": "2902603a6b8601413655b41a8d02fafdbdd6c5b5b8004cd4d44570764c88a24f",
+      "scope": "Three registered GOLDEN-01 production comparisons on PDF pages 192 and 27.",
+      "source_manifest_sha256": "59dedec19a7e6c3d5f496e8d616b8c708af3c99701e271bd872644e39361bec7",
+      "cases": ["G01_AXIAL_TBDY_LIMIT", "G01_AXIAL_TS500_LIMIT", "G01_DRIFT_LAMBDA"],
+      "production_values": {"tbdy_limit_kn": 1920, "ts500_limit_kn": 2880, "drift_lambda": 0.3974383483081629},
+      "method": "Matched both reported gross areas to the section geometry. Called the existing section-limit and drift-ratio owners on the printed inputs. Compared independent arithmetic and the printed results at the existing tolerances. The other 41 comparison rows are identical to the earlier gate.",
+      "registered_report_gate": {"records": 44, "NUMERICAL_MATCH": 18, "INSUFFICIENT_SOURCE": 22, "ENGINEERING_INTERPRETATION_DIFFERENCE": 4, "require_complete_exit": 3},
+      "environment": "Windows, CPython 3.12.10, Node.js 24.22.1, setuptools 83.0.0",
+      "commands": [
+        "python -B -m unittest discover -s tests -p test_vs26_golden_gate.py",
+        "python -B -m tbdy_next.cli inspect-golden-regression --require-complete --json <receipt>/golden.json",
+        "python -B tools/test_offline.py",
+        "python -B -m pip wheel --no-cache-dir --no-index --no-build-isolation --no-deps --wheel-dir <receipt>/wheel <clean-package-source>",
+        "python -B tools/test_installed_wheel.py <receipt>/wheel"
+      ],
+      "private_logs": ".receipts/verification/gap016-golden01-owners-20261119T183912Z",
+      "gate_result_sha256": "cec06fa62771426884264aeb85d049b981745650b72e1c67c473184f892dad26",
+      "installed_and_editable_report_file_sha256": "eb54a3f01c7d79e59bdf486aa02b548f61096b981aeb19f6b142247f115549ad",
+      "wheel_sha256": "85c6ea60cc3e538dc0ba45c2bd5deeb53c0425c2cb01f0ef1b187c2d863de57e",
+      "focused_tests": 16,
+      "installed_wheel_tests": 293,
+      "first_offline_run": {
+        "python_tests": 1466, "errors": 1, "skipped": 1,
+        "error": "Windows aborted the loopback connection in test_body_upload_is_not_allowed_for_live_endpoint (10053). All 18 tests in its module passed on the separate repeat.",
+        "log_sha256": "0b41e846a0c9ffb8494542d422e078c268d3d5edd7a56a50cc647e534053eab1"
+      },
+      "final_offline_run": {
+        "status": "OFFLINE_SOFTWARE_REGRESSIONS=PASS",
+        "python_tests": 1466, "skipped": 1, "javascript_test_files": 11,
+        "skip_reason": "The Windows test environment disallowed symlink creation.",
+        "log_sha256": "c01786465c75eec6f0ccd0512b9cebda73816cf4d4627efccef04556d329f5d9"
+      },
+      "limits": "The limits and paired spectral ordinate ratio are scalar comparisons. Member demand acceptance, spectrum period qualification, full drift and the independent building example remain open.",
+      "engineering_release_granted": false
     }
   ],
   "new_record_template": {
@@ -3954,7 +3997,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-19T18:29:38Z",
+  "updated_at_utc": "2026-11-19T18:42:53Z",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",

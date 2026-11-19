@@ -3,11 +3,12 @@
 Start each assignment at [AGENTS.md](../AGENTS.md). The
 [worker handoff](context/WORKER_HANDOFF_20261119.md) and
 [project charter and source guide](context/PROJECT_CHARTER.md) are available
-in a GitHub checkout. At runtime commit `ee2ecca`, the 44 GAP-016 records contain
-15 production matches, 25 insufficient-source labels and four adopted-factor
-interpretation differences. The first three unbound production values were
-checked directly. Their case IDs, source owners and next integration step are in
-the guide and `EV-HANDOFF-RESOURCES-20261119`.
+in a GitHub checkout. The 44 GAP-016 records contain 18 production matches,
+22 insufficient-source labels and four adopted-factor interpretation differences.
+The normal report comparison now runs both GOLDEN-01 section axial limits and
+the drift ratio through their production owners. The next report example is the
+ground and upper storey second-order indicator on GOLDEN-01 PDF page 28.
+`EV-GOLDEN01-OWNER-BINDINGS-20261119` records the three newly matched rows.
 
 # Remote code audit corrections - 2026-11-19
 

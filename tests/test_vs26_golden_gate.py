@@ -52,13 +52,46 @@ class GoldenReportGateTests(unittest.TestCase):
     def test_three_classifications_and_missing_coverage_stay_visible(self):
         r=gate.build_golden_gate()
         self.assertEqual(r['record_count'],44)
-        self.assertEqual(r['classification_counts'],{'NUMERICAL_MATCH':15,'ENGINEERING_INTERPRETATION_DIFFERENCE':4,'INSUFFICIENT_SOURCE':25})
+        self.assertEqual(r['classification_counts'],{'NUMERICAL_MATCH':18,'ENGINEERING_INTERPRETATION_DIFFERENCE':4,'INSUFFICIENT_SOURCE':22})
         self.assertEqual(len(r['legacy_reference_bank']['golden02_replayed_test_groups']),7)
         self.assertFalse(r['acceptance_eligible']);self.assertEqual(r['engineering_release'],'NOT_READY')
         self.assertEqual({d['domain'] for d in r['required_domains']},set(gate.REQUIRED_DOMAINS))
         self.assertTrue(all(not d['report_golden_complete'] for d in r['required_domains']))
         self.assertFalse(r['independent_numerical_bank']['is_golden_report_01_02'])
         self.assertTrue(r['real_model_bank']['not_substituted_for_report_gate'])
+
+    def test_axial_limits_and_drift_ratio_use_the_printed_inputs_and_production_owners(self):
+        with patch.object(gate.ts500_column, "section_axial_limits_kn",
+                          wraps=gate.ts500_column.section_axial_limits_kn) as axial, \
+             patch.object(gate.normative_basis, "eq_4_9_lambda",
+                          wraps=gate.normative_basis.eq_4_9_lambda) as drift:
+            rows = {row["id"]: row for row in gate.build_golden_gate()["comparisons"]}
+        axial.assert_called_once_with(fck_mpa=30, fcd_mpa=20, ac_mm2=160000)
+        drift.assert_called_once_with(sae_dd3_m_s2=0.2079, sae_dd2_m_s2=0.5231)
+        cases = (
+            ("G01_AXIAL_TBDY_LIMIT", 1920, 1920, 192, "ts500_column.section_axial_limits_kn"),
+            ("G01_AXIAL_TS500_LIMIT", 2880, 2880, 192, "ts500_column.section_axial_limits_kn"),
+            ("G01_DRIFT_LAMBDA", 0.3974383483081629, 0.3975, 27, "normative_basis.eq_4_9_lambda"),
+        )
+        for case_id, production, printed, page, owner in cases:
+            with self.subTest(case_id=case_id):
+                row = rows[case_id]
+                self.assertEqual(row["classification"], "NUMERICAL_MATCH")
+                self.assertEqual(row["yeni_kernel"], owner)
+                self.assertEqual(row["pdf_pages_1_based"], [page])
+                self.assertEqual(row["report"], printed)
+                self.assertAlmostEqual(row["yeni"], production)
+                self.assertLessEqual(row["yeni_oracle_difference"], row["yeni_oracle_tolerance"])
+
+    def test_axial_input_rows_must_identify_the_same_section_area(self):
+        manifest, first, _, _ = gate.load_bank()
+        for case_id in ("AXIAL_TBDY_LIMIT", "AXIAL_TS500_LIMIT"):
+            with self.subTest(case_id=case_id):
+                altered = deepcopy(first)
+                case = next(c for c in altered["arithmetic_cases"] if c["id"] == case_id)
+                case["inputs"]["Ac_cm2"] = 1500
+                with self.assertRaisesRegex(gate.GoldenRegressionError, "AXIAL_SECTION_AREA_CONFLICT"):
+                    gate._first_adapters(altered, manifest)
 
     def test_actual_yeni_beta_matches_independent_report_values(self):
         r=gate.build_golden_gate();rows={v['id']:v for v in r['comparisons']}
@@ -114,6 +147,9 @@ class GoldenReportGateTests(unittest.TestCase):
             with self.subTest(args=args),self.assertRaises(gate.GoldenRegressionError):gate.compare_values(*args)
         with patch.object(gate.ts500_column,'moment_magnification_factors',return_value={'beta':1,'beta_story':1,'final_factor':None,'status':'EQ729_DECISION_NOT_PROVEN'}):
             with self.assertRaisesRegex(gate.GoldenRegressionError,'YENI_ORACLE_MISMATCH'):gate.build_golden_gate()
+        with patch.object(gate.normative_basis, "eq_4_9_lambda", return_value="0.3975"):
+            with self.assertRaisesRegex(gate.GoldenRegressionError, "YENI_ORACLE_MISMATCH"):
+                gate.build_golden_gate()
 
     def test_source_manifest_and_member_tampering_fail_closed(self):
         with TemporaryDirectory() as folder:

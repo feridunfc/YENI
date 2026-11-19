@@ -13,6 +13,7 @@ import math
 from pathlib import Path
 from zipfile import ZipFile
 
+from .. import normative_basis
 from ..column_engine.native_archive import digest
 from ..column_engine import ts500_column, section_capacity, scwb_kernel, joint_kernel, story_alpha
 from . import report_oracles
@@ -141,6 +142,21 @@ def _scwb(first, manifest):
 def _first_adapters(first, manifest):
     model = first["model"]["from_pdf"]
     b, h = model["column_width_cm"]*10, model["column_depth_cm"]*10
+    inputs = {case["id"]: case["inputs"] for case in first["arithmetic_cases"]}
+    tbdy = inputs["AXIAL_TBDY_LIMIT"]
+    ts500 = inputs["AXIAL_TS500_LIMIT"]
+    area_mm2 = ts500_column.rectangle_properties(b, h)["area_mm2"]
+    if not (tbdy["Ac_cm2"] == ts500["Ac_cm2"] == area_mm2 / 100):
+        raise GoldenRegressionError("GOLDEN_AXIAL_SECTION_AREA_CONFLICT")
+    axial_limits = ts500_column.section_axial_limits_kn(
+        fck_mpa=tbdy["fck_MPa"], fcd_mpa=ts500["fcd_MPa"], ac_mm2=area_mm2,
+    )
+    drift = inputs["DRIFT_LAMBDA"]
+    # The printed pair shares one acceleration scale. A common reference of
+    # 1 m/s² per printed unit preserves the dimensionless ratio.
+    drift_ratio = normative_basis.eq_4_9_lambda(
+        sae_dd3_m_s2=drift["Sae_DD3"], sae_dd2_m_s2=drift["Sae_DD2"],
+    )
     # Bar count/area alone is independent of coordinates. Two explicit layout
     # scaffolds exercise the existing perimeter constructor; neither supplies
     # report bar coordinates to a PMM solver.
@@ -157,7 +173,10 @@ def _first_adapters(first, manifest):
         enclosure=kind)["geometric_limit_kn"] for name, kind in
         (("JOINT_UNCONFINED_LIMIT", "UNENCLOSED"), ("JOINT_CONFINED_LIMIT", "ENCLOSED"))}
     scwb = _scwb(first, manifest)
-    return {"PROVIDED_AS": area[0], "AC": ts500_column.rectangle_properties(b,h)["area_mm2"]/100,
+    return {"PROVIDED_AS": area[0], "AC": area_mm2 / 100,
+        "AXIAL_TBDY_LIMIT": axial_limits["tbdy_7_3_1_2_max_ndm_kn"],
+        "AXIAL_TS500_LIMIT": axial_limits["ts500_eq_7_7_max_nd_kn"],
+        "DRIFT_LAMBDA": float(drift_ratio),
         **joint, "SCWB_COLUMN_SUM": scwb["sum_mrc_reference_knm"],
         "SCWB_BEAM_1P2_SUM": scwb["required_mrc_reference_knm"],
         "SCWB_NUMERIC_INEQUALITY": scwb["reference_satisfied"]}
@@ -232,14 +251,21 @@ def build_golden_gate(*, source_dir=None):
         domain = "SCWB" if key.startswith("SCWB") else "REINFORCEMENT_AREA" if key=="PROVIDED_AS" else "REPORT_ARITHMETIC"
         pages = [183,196] if key=="PROVIDED_AS" else [case["source_pdf_page"]]
         explanation = case["comment"]
+        production = {}
         if key not in adapters:
             explanation += " The historical independent report calculation is preserved. A link to the production YENI calculation remains pending."
+        elif key in ("AXIAL_TBDY_LIMIT", "AXIAL_TS500_LIMIT"):
+            production["yeni_kernel"] = "ts500_column.section_axial_limits_kn"
+            explanation += " This compares the section limit in kN. Member demand and combination checks have their own scope."
+        elif key == "DRIFT_LAMBDA":
+            production["yeni_kernel"] = "normative_basis.eq_4_9_lambda"
+            explanation += " This compares the printed DD3/DD2 ordinate ratio. Spectrum-period selection and the storey drift check have their own scope."
         elif key=="PROVIDED_AS":
             explanation += " The check covers the area of 12 bars. Coordinates represent two test layouts. Report-linked PMM geometry requires independent evidence."
         elif domain=="SCWB":
             explanation += " The check sums the printed end capacities. I/J denote test roles. Native end identity and capacity calculation require independent evidence."
         rows.append({"id":"G01_"+key,"domain":domain,"legacy_case_id":key, **_source(manifest,"GOLDEN-01",pages),
-            "inputs":case["inputs"],"formula":case["formula"],
+            "inputs":case["inputs"],"formula":case["formula"], **production,
             **compare_values(adapters.get(key),report_oracles.calculate(case),case["expected"],case["absolute_tolerance"]),
             "explanation":explanation.strip()})
     rows.extend(_second_comparisons(second,manifest))
@@ -258,7 +284,8 @@ def build_golden_gate(*, source_dir=None):
             "report_golden_complete":False,"acceptance_eligible":False,
             "reason":"The arithmetic checks cover the listed comparisons. Overall algorithm and scope acceptance require further evidence."})
     modules = {"ts500_column":ts500_column,"section_capacity":section_capacity,"scwb_kernel":scwb_kernel,
-        "joint_kernel":joint_kernel,"story_alpha":story_alpha,"report_oracles":report_oracles}
+        "joint_kernel":joint_kernel,"story_alpha":story_alpha,"report_oracles":report_oracles,
+        "normative_basis":normative_basis}
     code_hashes = {name:sha256(Path(module.__file__).read_bytes()).hexdigest() for name,module in modules.items()}
     code_hashes["golden_gate"] = sha256(Path(__file__).read_bytes()).hexdigest()
     result = {"schema":SCHEMA,"source_manifest_sha256":MANIFEST_SHA256,"source_repositories":manifest["source_repositories"],

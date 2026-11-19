@@ -44,14 +44,14 @@ can start with the bundled report fixtures and the source IDs above.
 ## Resume the 44 report comparisons (GAP-016)
 
 Run `python -B -m tbdy_next.cli inspect-golden-regression --require-complete`
-from the checkout with the project interpreter. At runtime commit `ee2ecca` it
-returned exit 3 with 15 numerical matches, 25 insufficient-source labels and
-four interpretation differences. In 21 of the 25 rows the independent
+from the checkout with the project interpreter. The current gate returns
+exit 3 with 18 numerical matches, 22 insufficient-source labels and
+four interpretation differences. In 18 of the 22 rows the independent
 calculation and the report value already agree.
 
 | Open group | Count | Next calculation or input |
 | --- | ---: | --- |
-| GOLDEN-01 scalar comparisons | 16 | Use the printed inputs to call or complete each production calculation. Start with the two axial limits on PDF page 192 and the drift ratio on page 27. |
+| GOLDEN-01 scalar comparisons | 13 | Reproduce the ground and upper storey second-order indicators on PDF page 28 with the storey data and existing global P-delta owner. |
 | GOLDEN-02 second-order comparisons | 5 | Four rows need the Eq. 7.29 length and support basis. The fifth compares the sway branch. The reported displacement, sum of axial force over length and storey shear are available on PDF page 185 of the revised report. |
 | GOLDEN-01 full column checks | 2 | For biaxial capacity, bind bar coordinates, axes and concurrent N/M2/M3 to an independent capacity at that axial load and direction. For capacity shear, bind both end moments, clear length, the D branch and the design shear lower bound. |
 | GOLDEN-03 and GOLDEN-04 | 2 | Each has an open second-order record. Select a page-bound case per original report, calculate it independently and connect the same inputs to the production owner. |
@@ -61,9 +61,10 @@ magnification factor was chosen. On GOLDEN-02 page 186 the reported factors
 round to the member and storey factor products. The method still needs the
 applicable length, selection rule and transfer to the final moment.
 
-For the first three GOLDEN-01 rows, direct production calls reproduced
-1,920 kN (TBDY axial limit), 2,880 kN (TS 500 axial limit), and 0.39743835
-(drift ratio). These are the next three calls to bind to the registered
-comparisons. See `EV-HANDOFF-RESOURCES-20261119` for the checked scope.
+The registered GOLDEN-01 cases on page 192 call the production section owner
+and compare 1,920 kN (TBDY) and 2,880 kN (TS 500). The page 27 case calls the
+production drift-ratio owner and compares 0.39743835 with the rounded 0.3975.
+The public case IDs, source pages and test results are in
+`EV-GOLDEN01-OWNER-BINDINGS-20261119`.
 [Column section owner](../../src/tbdy_next/column_engine/ts500_column.py)
 and [drift ratio owner](../../src/tbdy_next/normative_basis.py)
