@@ -19,30 +19,32 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "ARCHIVED_VERIFICATION_COMPLETE_LIVE_ACCEPTANCE_PENDING",
+    "status": "LIVE_V8_SOURCE_AND_CQC_DIAGNOSTIC_VERIFIED_APPLIED_RESPONSE_PENDING",
     "integration_base_branch": "baseline/local_import",
     "published_baseline_commit": "24ddc371c66ebcba24bf8672fe3038564e26d48c",
     "work_branch": "work/gap-018-spectrum-evidence",
     "active_local_branch": "work/gap-018-spectrum-evidence",
-    "implementation_commit": "f5dc030beb7475c975b0d68a2e8ccc664cc1af7e",
-    "source_run_id": "RUN-4c6e8d795ca94411a1cd6d7f7f54c9de",
-    "source_sha256": "3de017a56036769e7436bac7f16363b552224740d75014678c73119fd1cd2171",
-    "results_sha256": "a44cf26136085d5f73b1d8aa7cd1e04467be070b4a1d074a209ad821977dd105",
+    "implementation_commit": "9e01f92617a3a37a6e6a79ea913dafe5feb2b8da",
+    "source_run_id": "RUN-9ad3c981cd9a4875bf383530429a1173",
+    "source_sha256": "61c5417b8f5f11b7352c9c02f2d518b67666fac09f1c7f6f53546fac207d7db9",
+    "results_sha256": "6589f792202b95e6de680c5c67152f36a415d251310b0b631fea72e6142a3a46",
+    "selected_run_id": "RUN-20e3c9ea485448aeb4c71461e3237f9f",
+    "selected_results_sha256": "4afd7127d77ded04b802a5e3703fd2d7a46c10f170cd91525906c5d142a57b62",
     "method": {
       "configuration_file_count": 9,
       "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
       "file_count": 126,
-      "package_sha256": "49546af3565df5e90f356d65b54d85812422ec4fecd7c2107cd7a55fa9789554",
+      "package_sha256": "ab941176367f559ab7d9cbb35ddfa1029ccb03c8087f92f5c4295f0166697b13",
       "python_implementation": "CPython",
       "python_version": "3.12.10"
     },
     "evidence_refs": [
-      "EV-GAP018-SPECTRUM-ARCHIVE-20261119"
+      "EV-GAP018-LIVE-SPECTRUM-20261119"
     ],
-    "tested_file_manifest_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/final/tested-files.json",
-    "tested_file_manifest_sha256": "9a698a754d7c16fb70ce136920ed27b80d75e4d677d6cac1cf7a35cbee4fcad1",
+    "tested_file_manifest_path": ".receipts/verification/gap018-live-20261119T132305Z/tested-files.json",
+    "tested_file_manifest_sha256": "8d7f2f11a3f7f02079c6d2e4978793e0121a8e9450dc786455d01e4567dff7e2",
     "engineering_release": "NOT_READY",
-    "next_action": "Read the intended locked ETABS session through the existing v7 gateway. Audit the raw spectrum, effective damping and isolated torsion evidence before aggregation."
+    "next_action": "Obtain same-source unrounded applied modal results and isolated accidental-torsion evidence before story allocation or spectral alpha acceptance."
   },
   "last_observed_remote_implementation": {
     "branch": "audit/pipeline-pmm-v6-20261117",
@@ -3222,6 +3224,427 @@
         "docs/CURRENT_STATE.md",
         "docs/ENGINEERING_GAPS.yaml"
       ]
+    },
+    {
+      "id": "EV-GAP018-LIVE-SPECTRUM-20261119",
+      "observed_at": "2026-11-19T13:31:33.471628+00:00",
+      "recorded_at_utc": "2026-11-19T13:45:01.068926+00:00",
+      "base_commit": "2a0b8ce1c905f0401acaffecd4b0369bfe0be855",
+      "integration_base_commit": "24ddc371c66ebcba24bf8672fe3038564e26d48c",
+      "implementation_commit": "9e01f92617a3a37a6e6a79ea913dafe5feb2b8da",
+      "tested_on_dirty_worktree": true,
+      "untracked_runtime_included": false,
+      "changed_paths": [
+        "src/tbdy_next/diaphragm_probe.py",
+        "src/tbdy_next/engineering/demand_sources.py",
+        "src/tbdy_next/engineering/pipeline.py",
+        "src/tbdy_next/frame_force_capture.py",
+        "tests/test_native_demand_sources.py",
+        "tests/test_vs04g_probe.py"
+      ],
+      "tested_file_manifest_sha256": "8d7f2f11a3f7f02079c6d2e4978793e0121a8e9450dc786455d01e4567dff7e2",
+      "diff_sha256": "f8f856ca99c1b1587b6571f1518bc19a8a8eeff848802f3307a31fd97498a2ca",
+      "environment": {
+        "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+        "node": "v24.22.1",
+        "platform": "Windows-11-10.0.26200-SP0"
+      },
+      "status": "LIVE_SOURCE_AND_CONDITIONAL_CQC_VERIFIED_GAP_PARTIAL",
+      "method": {
+        "configuration_file_count": 9,
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 126,
+        "package_sha256": "ab941176367f559ab7d9cbb35ddfa1029ccb03c8087f92f5c4295f0166697b13",
+        "python_implementation": "CPython",
+        "python_version": "3.12.10"
+      },
+      "method_version": "same-source-spectral-components.v8",
+      "initial_live_run": "RUN-d864b2c4a3344cd8ad713b690fc6d2fe",
+      "initial_live_source_sha256": "cd60964f02d3d071bc98e70692f9e56f03ab5b375eef145c9e4e3555daab88a9",
+      "source_run": "RUN-9ad3c981cd9a4875bf383530429a1173",
+      "source_sha256": "61c5417b8f5f11b7352c9c02f2d518b67666fac09f1c7f6f53546fac207d7db9",
+      "results_sha256": "6589f792202b95e6de680c5c67152f36a415d251310b0b631fea72e6142a3a46",
+      "selected_run": "RUN-20e3c9ea485448aeb4c71461e3237f9f",
+      "selected_source_sha256": "8496665b1edc478bee1f30578c2b78c5dc3f62ad8ee2f36899b14e5a2331a33f",
+      "selected_results_sha256": "4afd7127d77ded04b802a5e3703fd2d7a46c10f170cd91525906c5d142a57b62",
+      "repeat_runs": [
+        "RUN-95d9ac6133e14cfca0c8a4e0959c5bc6",
+        "RUN-08f268c1d770416d9d6583a4964f1c96"
+      ],
+      "observations": {
+        "native_modes": 100,
+        "spectrum_cases": [
+          "RSX",
+          "RSY"
+        ],
+        "function": "RESP_YATAY",
+        "function_scale_once": 10.0,
+        "native_curve_points": 26,
+        "native_array_slots": 27,
+        "amplitudes_compatible_at_printed_resolution": 200,
+        "expected_case_modes": 200,
+        "independent_exact_fraction_comparisons": 1000,
+        "numeric_tolerance": "1e-58 * max(1, abs(exact))",
+        "max_exact_comparison_error_m_or_m_s2": 5.693187987978358e-60,
+        "xml_table_cells_identical": 2200,
+        "damping_case_parameters": {
+          "RSX": 0.05,
+          "RSY": 0.05
+        },
+        "mode_overrides": 0,
+        "material_modal_ratios_zero": 8,
+        "named_linear_link_damping_coefficients_zero": 6,
+        "generated_analysis_links_mapped": 5579,
+        "area_spring_assignments": 2,
+        "in_plane_diaphragm_rows": 170
+      },
+      "conditional_cqc": {
+        "assumptions": "Uniform 5% effective damping and the unadjusted native curve. Each case has one global excitation direction.",
+        "members": 87,
+        "configured_element_side_cuts": 402,
+        "case_cuts": 804,
+        "scalar_comparisons": 4824,
+        "all_total_maxima_exceed_dynamic_reference": true,
+        "component_differences": {
+          "P": {
+            "case_cuts": 804,
+            "unit": "kN",
+            "min_total_minus_reference": 0.06260036591055851,
+            "max_total_minus_reference": 20.734475899543312,
+            "median_absolute_difference": 2.823935729501521
+          },
+          "V2": {
+            "case_cuts": 804,
+            "unit": "kN",
+            "min_total_minus_reference": 0.029650601278383704,
+            "max_total_minus_reference": 17.598217025111637,
+            "median_absolute_difference": 1.509391258460318
+          },
+          "V3": {
+            "case_cuts": 804,
+            "unit": "kN",
+            "min_total_minus_reference": 0.0006316440721605421,
+            "max_total_minus_reference": 23.819302470001475,
+            "median_absolute_difference": 1.818382017459614
+          },
+          "T": {
+            "case_cuts": 804,
+            "unit": "kN m",
+            "min_total_minus_reference": 0.19028449467820163,
+            "max_total_minus_reference": 9.436748431132134,
+            "median_absolute_difference": 2.845611287319843
+          },
+          "M2": {
+            "case_cuts": 804,
+            "unit": "kN m",
+            "min_total_minus_reference": 0.006168289712676245,
+            "max_total_minus_reference": 47.974750232606766,
+            "median_absolute_difference": 1.9446675024187048
+          },
+          "M3": {
+            "case_cuts": 804,
+            "unit": "kN m",
+            "min_total_minus_reference": 5.7181864892008605e-05,
+            "max_total_minus_reference": 43.94162443757216,
+            "median_absolute_difference": 2.031378430405433
+          }
+        },
+        "native_case_catalog_count": 15,
+        "zero_eccentricity_spectrum_cases": 0,
+        "spectrum_cases_with_5_percent_eccentricity": 2,
+        "isolated_accidental_torsion_case_cuts": 0,
+        "conditional_differences_prove_torsion": false
+      },
+      "verification": {
+        "receipt_payloads_identical_for_each_of_two_repeats": 16,
+        "original_candidate_rows_reproduced": 87,
+        "guarded_local_report_owners": 39,
+        "local_report_calls": 0,
+        "served_reports_verified": 2,
+        "focused_python": 113,
+        "python_run": 1428,
+        "python_skipped": 1,
+        "skip_reason": "Windows symlink creation unavailable",
+        "javascript_test_files": 11,
+        "installed_wheel_tests": 252,
+        "verified_wheel_payload_files": 143,
+        "wheel_sha256": "ae5768dc290b988b89c9d9b33f5d1a7a975e1b580ed0acfd31c452cd825696a1",
+        "github_ci": "NOT_RUN"
+      },
+      "limits": [
+        "The v7 live return exposed a leading zero slot. All 26 v8 function points bind to the same-session named function table.",
+        "Both selected-case XML and array exports return the same printed modal fields. Direct solver values for full-precision effective damping and applied amplitudes are unavailable in these exports.",
+        "Both 5% case parameters are native doubles. Material and named link coefficients were read and the generated area-spring roster was mapped. The generated element damping matrix and analysis generation remain unverified.",
+        "The dynamic CQC comparison assumes equal effective and function damping. The combined positive maxima and their differences do not identify the isolated accidental-torsion force on a cut.",
+        "Cross-direction design combinations, governing axial demand, story shear allocation and spectral alpha require separate qualification."
+      ],
+      "release": {
+        "gap_018": "PARTIAL",
+        "R14_closed": 0,
+        "R14_partial": 87,
+        "open_gate_codes": 17,
+        "alpha_status": "BLOCKED_INPUTS",
+        "alpha_iterations": 0,
+        "formal_compliance": "NOT_PROVEN",
+        "engineering_release": "NOT_READY",
+        "remaining": "Solver-output precision for applied amplitudes/effective modal ratios, isolated accidental torsion at each cut, independent directional and story allocation acceptance."
+      },
+      "engineering_release_granted": false,
+      "references": {
+        "csi_function": "https://docs.csiamerica.com/help-files/etabs/Menus/Define/Functions/Response_Spectrum_Functions/Response_Spectrum_Functions.htm",
+        "csi_torsion": "https://web.wiki.csiamerica.com/wiki/spaces/kb/pages/2001549",
+        "cqc_formula": "https://peer.berkeley.edu/sites/default/files/web_peer2010_04_dastous_jean-bernard_dastous_and_armen_der_kiureghian_.pdf"
+      },
+      "commands": [
+        ".venv/Scripts/python.exe -X utf8 -B .receipts/verification/gap018-live-20261119T132305Z/capture_live.py",
+        ".venv/Scripts/python.exe -X utf8 -B .receipts/verification/gap018-live-20261119T132305Z/v8/capture_live.py",
+        ".venv/Scripts/python.exe -X utf8 -B .receipts/verification/gap018-live-20261119T132305Z/audit_live.py .receipts/verification/gap018-live-20261119T132305Z",
+        ".venv/Scripts/python.exe -X utf8 -B .receipts/verification/gap018-live-20261119T132305Z/audit_live.py .receipts/verification/gap018-live-20261119T132305Z/v8",
+        ".venv/Scripts/python.exe -X utf8 -B .receipts/verification/gap018-live-20261119T132305Z/audit_components.py",
+        ".venv/Scripts/python.exe -X utf8 -B -m tbdy_next.cli run-pipeline --case Modal --source .receipts/RUN-9ad3c981cd9a4875bf383530429a1173/input.source --out .receipts/verification/gap018-live-20261119T132305Z/v8/raw-repeat --compare-run .receipts/RUN-9ad3c981cd9a4875bf383530429a1173",
+        ".venv/Scripts/python.exe -X utf8 -B -m tbdy_next.cli run-pipeline --case Modal --source .receipts/RUN-9ad3c981cd9a4875bf383530429a1173/input.source --out .receipts --design-scenario .receipts/verification/gap018-live-20261119T132305Z/v8/selected-request.json",
+        ".venv/Scripts/python.exe -X utf8 -B -m tbdy_next.cli run-pipeline --case Modal --source .receipts/RUN-9ad3c981cd9a4875bf383530429a1173/input.source --out .receipts/verification/gap018-live-20261119T132305Z/v8/selected-repeat --design-scenario .receipts/verification/gap018-live-20261119T132305Z/v8/selected-request.json",
+        ".venv/Scripts/python.exe -X utf8 -B .receipts/verification/gap018-live-20261119T132305Z/verify_projection.py raw",
+        ".venv/Scripts/python.exe -X utf8 -B .receipts/verification/gap018-live-20261119T132305Z/verify_projection.py selected",
+        ".venv/Scripts/python.exe -X utf8 -B .receipts/verification/gap018-live-20261119T132305Z/prepare_evidence.py",
+        ".venv/Scripts/python.exe -X utf8 -B -m unittest discover -s tests -p test_native_demand_sources.py -v",
+        ".venv/Scripts/python.exe -X utf8 -B -m unittest discover -s tests -p test_vs04g_probe.py -v",
+        ".venv/Scripts/python.exe -X utf8 -B tools/test_offline.py",
+        ".venv/Scripts/python.exe -X utf8 -B -m pip wheel --no-build-isolation --no-index --disable-pip-version-check --no-deps --wheel-dir .receipts/verification/gap018-live-20261119T132305Z/wheel .receipts/verification/gap018-live-20261119T132305Z/wheel-source",
+        ".venv/Scripts/python.exe -X utf8 -B tools/test_installed_wheel.py .receipts/verification/gap018-live-20261119T132305Z/wheel",
+        ".venv/Scripts/python.exe -X utf8 -B .receipts/verification/gap018-live-20261119T132305Z/index_live.py"
+      ],
+      "private_artifacts": [
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/capture_live.py",
+          "sha256": "9d6c978b44fbc815fc4edbee423e8d5236cd997ad3138ae8ff9ad50b62460992"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/capture-request.json",
+          "sha256": "b94583ae13f20365882d778075d7876dba014a389da583002bb2271c81109f3a"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/session-before.json",
+          "sha256": "2dd7a710294800f7a5d9fd9b9090b0e317fe5e30a2531d0075dc8b3a89cbef22"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/pipeline.json",
+          "sha256": "a6ccd97f365b9b854996789f69e8203cc4a529465be0129137fbb5338b8ee3c2"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/expected-scope.json",
+          "sha256": "5c7643c1d3028367d08ad50d848e16d45cb5c035b79a87188ed2fe8e2c85dccc"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/capture-response.json",
+          "sha256": "39cdf965f09ac84fef783d51035497fa5d4159861001a4e42224748c593207c2"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/session-after.json",
+          "sha256": "2dd7a710294800f7a5d9fd9b9090b0e317fe5e30a2531d0075dc8b3a89cbef22"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/capture-summary.json",
+          "sha256": "f6f6279d6edd2e981fb812f874dd6802f55003c3403fd1792c492e0cd4e533ed"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/independent-audit.json",
+          "sha256": "df2ba1a594292077ff5ec509d56381f62af849785cf3b7fdaaca99932008a0b8"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/audit_live.py",
+          "sha256": "b647f8a652f66123bace4c66028f613b60b67bdbdc9b3d4147711e02e4620541"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/audit_components.py",
+          "sha256": "23c0fd85ead292804fc5ce214c61e054db9f6ea0387804f0191d72e386b9e001"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/verify_projection.py",
+          "sha256": "4ed16eab6bd7995f7dfd8af02c71ddcfa9097357a0858a3ffb9361e1847e6f69"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/prepare_evidence.py",
+          "sha256": "f017cedf5b80bf0331937cff195ab0188484538434f63e642b1d06ea93686461"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/tested-files.json",
+          "sha256": "8d7f2f11a3f7f02079c6d2e4978793e0121a8e9450dc786455d01e4567dff7e2"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/runtime-tests.patch",
+          "sha256": "f8f856ca99c1b1587b6571f1518bc19a8a8eeff848802f3307a31fd97498a2ca"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/v8/capture_live.py",
+          "sha256": "d606c015ad86b07c1c40cc46bb731e7a2791ba84d6d50c52893f0908d02a2f57"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/v8/capture-request.json",
+          "sha256": "b214c9e025b4b9d4e9387d6634a93d93a4112e69dbc12fb9766fb3d4df8ed171"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/v8/session-before.json",
+          "sha256": "2dd7a710294800f7a5d9fd9b9090b0e317fe5e30a2531d0075dc8b3a89cbef22"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/v8/pipeline.json",
+          "sha256": "0a77589acddc995d3b7f3403fdc383252cdced81f6ae1c53db11cedc9b37cd60"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/v8/expected-scope.json",
+          "sha256": "2c61b6a1f32fb2904b4d032adbe5c430054bc675b7b3ec1a3ac4a71701629b44"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/v8/capture-response.json",
+          "sha256": "f9d3e162bd9488a06a72f0c9914226c91d82bce0b049727a7b13a67a06ca407e"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/v8/session-after.json",
+          "sha256": "2dd7a710294800f7a5d9fd9b9090b0e317fe5e30a2531d0075dc8b3a89cbef22"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/v8/capture-summary.json",
+          "sha256": "839d3f9fb2ab78435c0e4ee262c98abb1884802c548d8f67f160b7d579b861d3"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/v8/independent-audit.json",
+          "sha256": "5739f9371092f77fb7014a2301b373f86fe507bc4a497196092d0327cf61c50b"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/v8/damping-audit.json",
+          "sha256": "0b9199df50936d537a05d6f7e4fb5d0e3ea22dd5d59e4ed90388db1815d7c672"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/v8/cqc-diagnostic.json",
+          "sha256": "e8e6c7d32a78b918ece522901d002e4ebc8531a16cdd44bfabe2af2294ef62c4"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/v8/cqc-component-values.json",
+          "sha256": "7dd5b00ffaa268f5219416f6eefd9a0fef580299eae38d0fba816a50b082b3ea"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/v8/selected-request.json",
+          "sha256": "93d953a2058c1e15ed90f834f2bd353152421b0f9eff5c40fdfdbb50d8442506"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/v8/raw-repeat.json",
+          "sha256": "8540725b2f63c6c9d8844dfeb2832e6f4aa66d06d197cf149ea49fb7f37c0dee"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/v8/selected.json",
+          "sha256": "1d3ea82efa5bb454f494fcebd94593591a8941b015cfa1fa8e59db28189d987e"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/v8/selected-repeat.json",
+          "sha256": "cf8463dd53a7ec693f08c4bf49ea2b7f031f2b074ea4a70c507d54aecd5ef9bc"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/v8/selected-comparison.json",
+          "sha256": "e0488e0e9188e75fc7d2f3e59b08aabc9246d2792b57b3b39836385d4d99486b"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/v8/selected-report-proof.json",
+          "sha256": "3a629a666720e9fa2fc4dd0cb5628a1083242477151d0437f607fd1062119ebb"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/v8/raw-report-proof.json",
+          "sha256": "4ece47bb5fd4977ae990f907b623162983d34e1b797728b992c32cd97c14ee11"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/v8/live-evidence.json",
+          "sha256": "6667a0b3ce33a34fb72620e90bf0b7e8becb9653e76baccc7ee163f03ae64155"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/focused-demand.log",
+          "sha256": "d4c1c005734ab5d91d9381dce7bc4675c5437f444c9733bb00b5ad99e5a83f60"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/focused-probe.log",
+          "sha256": "ad60b9f51bbdb4ebb155146647dee60f5c8529306f590830f51505631e50a1d3"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/offline.log",
+          "sha256": "5de963b7783bb99a5be9145562ffe4a4d8d89ef6b4df2fb5c1f290c411ea2098"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/wheel-build.log",
+          "sha256": "2d0fc7e3c14ca23d0b1c48af01aca27064a24ee6889831d69996890f9b4d9367"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/wheel-test.log",
+          "sha256": "6c336017a104ef4f368cefc71ee9895b529f58eaacd54f4de70fd853d81b55d7"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/focused-demand.exit",
+          "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/focused-probe.exit",
+          "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/offline.exit",
+          "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/wheel-build.exit",
+          "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/wheel-test.exit",
+          "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/v8/raw-repeat.exit",
+          "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/v8/selected.exit",
+          "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/v8/selected-repeat.exit",
+          "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/wheel/tbdy_next_engine-0.1.0-py3-none-any.whl",
+          "sha256": "ae5768dc290b988b89c9d9b33f5d1a7a975e1b580ed0acfd31c452cd825696a1"
+        },
+        {
+          "private_path": ".receipts/verification/gap018-live-20261119T132305Z/index_live.py",
+          "sha256": "4f75e90503f9390dd66ea169960292cbda3b450c640addb8fba28633e7f76a50"
+        },
+        {
+          "private_path": ".receipts/RUN-d864b2c4a3344cd8ad713b690fc6d2fe/input.source",
+          "sha256": "cd60964f02d3d071bc98e70692f9e56f03ab5b375eef145c9e4e3555daab88a9"
+        },
+        {
+          "private_path": ".receipts/RUN-9ad3c981cd9a4875bf383530429a1173/input.source",
+          "sha256": "61c5417b8f5f11b7352c9c02f2d518b67666fac09f1c7f6f53546fac207d7db9"
+        },
+        {
+          "private_path": ".receipts/RUN-20e3c9ea485448aeb4c71461e3237f9f/input.source",
+          "sha256": "8496665b1edc478bee1f30578c2b78c5dc3f62ad8ee2f36899b14e5a2331a33f"
+        },
+        {
+          "private_path": ".receipts/RUN-20e3c9ea485448aeb4c71461e3237f9f/parent.source",
+          "sha256": "61c5417b8f5f11b7352c9c02f2d518b67666fac09f1c7f6f53546fac207d7db9"
+        },
+        {
+          "private_path": ".receipts/RUN-d864b2c4a3344cd8ad713b690fc6d2fe/15-engine-results.json",
+          "sha256": "715e31bd9bb3a0135659fc7004e06676715319940fe939d8e39eae4b1595c85d"
+        },
+        {
+          "private_path": ".receipts/RUN-9ad3c981cd9a4875bf383530429a1173/15-engine-results.json",
+          "sha256": "0301f09ff81619e83de74797e164e1fa5aae4bc0a1928b78ce7f7c058d89ea0b"
+        },
+        {
+          "private_path": ".receipts/RUN-20e3c9ea485448aeb4c71461e3237f9f/15-engine-results.json",
+          "sha256": "9e216e2e279ce131fbab16fdaa26c186fa1b41748b834d1200bb3e26d011a8f5"
+        }
+      ],
+      "publication": "Scope retained on the local work branch pending applied-response acceptance."
     }
   ],
   "new_record_template": {
@@ -3246,7 +3669,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-19T13:17:01.539561+00:00",
+  "updated_at_utc": "2026-11-19T13:45:01.068926+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -3643,6 +4066,32 @@
         "completion_authority": "Actual remote baseline ref and private .receipts/handoff/publication.json; do not infer push success from this pre-push record."
       },
       "new_engineering_tests_during_handoff": "NOT_RUN_DOCUMENTATION_ONLY"
+    },
+    {
+      "status": "ARCHIVED_VERIFICATION_COMPLETE_LIVE_ACCEPTANCE_PENDING",
+      "integration_base_branch": "baseline/local_import",
+      "published_baseline_commit": "24ddc371c66ebcba24bf8672fe3038564e26d48c",
+      "work_branch": "work/gap-018-spectrum-evidence",
+      "active_local_branch": "work/gap-018-spectrum-evidence",
+      "implementation_commit": "f5dc030beb7475c975b0d68a2e8ccc664cc1af7e",
+      "source_run_id": "RUN-4c6e8d795ca94411a1cd6d7f7f54c9de",
+      "source_sha256": "3de017a56036769e7436bac7f16363b552224740d75014678c73119fd1cd2171",
+      "results_sha256": "a44cf26136085d5f73b1d8aa7cd1e04467be070b4a1d074a209ad821977dd105",
+      "method": {
+        "configuration_file_count": 9,
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 126,
+        "package_sha256": "49546af3565df5e90f356d65b54d85812422ec4fecd7c2107cd7a55fa9789554",
+        "python_implementation": "CPython",
+        "python_version": "3.12.10"
+      },
+      "evidence_refs": [
+        "EV-GAP018-SPECTRUM-ARCHIVE-20261119"
+      ],
+      "tested_file_manifest_path": ".receipts/verification/gap018-spectrum-20261119T051100Z/final/tested-files.json",
+      "tested_file_manifest_sha256": "9a698a754d7c16fb70ce136920ed27b80d75e4d677d6cac1cf7a35cbee4fcad1",
+      "engineering_release": "NOT_READY",
+      "next_action": "Read the intended locked ETABS session through the existing v7 gateway. Audit the raw spectrum, effective damping and isolated torsion evidence before aggregation."
     }
   ]
 }

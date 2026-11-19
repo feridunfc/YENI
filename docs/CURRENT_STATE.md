@@ -6,13 +6,59 @@ Selected As 6,433.98 mm² ≥ 6,400 mm² (1.0053%). The final reference checks p
 but R14 remains **0 closed / 87 partial**, formal compliance `NOT_PROVEN`,
 engineering release `NOT_READY`.
 
-## Active GAP-018 work branch
+## GAP-018 live ETABS checkpoint
+
+The user-session gateway on port 8876 captured the locked model twice on
+2026-11-19. The v8 source is `RUN-9ad3c981cd9a4875bf383530429a1173`,
+SHA-256 `61c5417b8f5f11b7352c9c02f2d518b67666fac09f1c7f6f53546fac207d7db9`.
+Both reads observed the same model and units (kN/m/°C). The display, output
+and mode selections were restored. The EDB digest matched before and after.
+Implementation `9e01f92617a3a37a6e6a79ea913dafe5feb2b8da` is on
+`work/gap-018-spectrum-evidence`. The integrated baseline is `24ddc371`.
+
+The native function getter reported 26 points and returned 27 slots per array.
+The first live v7 run retained the raw return and blocked the curve. The v8
+stage resolved the leading zero pair against all 26 points of the same named
+ETABS function table. Its signed, unadjusted curve references agree at printed
+resolution for all 200 RSX/RSY case-modes. An exact-fraction calculation checked
+1,000 numeric values. XML and array exports contain the same 2,200 text values.
+
+Both cases specify 5% constant damping with zero overrides. All eight material
+getters returned zero modal ratios. The one named linear-link property returned
+six zero uncoupled damping coefficients. All 5,579 generated link elements map
+to two area-spring assignments with user-defined stiffness. The effective modal
+ratio is available at display precision. [CSI damping documentation](https://docs.csiamerica.com/help-files/etabs/Menus/Define/Load_Cases/Damping.htm)
+
+An independent CQC calculation compared six force components at 402 configured
+element-side cuts in each of two cases (4,824 comparisons). It used a uniform
+5% effective ratio and the native curve without damping adjustment. All 4,824
+ETABS total maxima exceeded that conditional dynamic reference. The model's
+15-case catalog contains two spectrum cases, both with 5% eccentricity and
+zero eccentricity overrides. Isolated accidental torsion remains **0/804**.
+The next required evidence is a source
+for the applied unrounded amplitudes and effective ratios, and a separately
+identifiable torsional response at the same cuts. Story allocation and spectral
+alpha remain open. [CSI accidental eccentricity guidance](https://web.wiki.csiamerica.com/wiki/spaces/kb/pages/2001549)
+
+Ledger `EV-GAP018-LIVE-SPECTRUM-20261119` records the run identities, frozen
+scope, numerical references, replay and test evidence. The selected scenario
+`RUN-20e3c9ea485448aeb4c71461e3237f9f` retains the original live input
+bytes. All 87 candidate IDs and candidate digests match the earlier selection.
+Independent repeats reproduced 16/16 stage payloads for each of the two runs.
+The existing gateway served both reports with the same JSON and HTML as the
+local projections, where 39 calculation or live entry points were guarded
+and received zero calls. The full local suite
+ran 1,428 Python tests with one Windows symlink skip and passed 11 JavaScript
+test files. The installed wheel passed 252 tests. Engineering release remains
+`NOT_READY`. Integration awaits the remaining source acceptance criteria.
+
+## Earlier GAP-018 archive checkpoint
 
 The local and published `baseline/local_import` were verified at
 `24ddc371c66ebcba24bf8672fe3038564e26d48c`. The working branch
 `work/gap-018-spectrum-evidence` starts there. The existing mixed-demand stage
-uses `same-source-spectral-components.v7`. Fresh live acceptance is pending
-on the existing user-session gateway at port 8876.
+used `same-source-spectral-components.v7`. At this checkpoint the
+user-session gateway at port 8876 was unavailable.
 
 The selected, sealed scenario supplied 100 native modes and 200 signed
 amplitudes from the RSX and RSY display table. The amplitude comparison uses
@@ -54,8 +100,8 @@ manifest, independent audit, replay and repeat runs, commands, and private log
 hashes. The v7 result digest is
 `a44cf26136085d5f73b1d8aa7cd1e04467be070b4a1d074a209ad821977dd105`.
 All 16 original candidate receipts also passed integrity verification.
-The latest gateway probe returned socket error 10061. The work branch awaits
-live acceptance before integration and publication.
+At the archive checkpoint the gateway probe returned socket error 10061.
+The live checkpoint above supersedes that connection status.
 
 ## Integrated candidate checkpoint and source identity
 
@@ -151,10 +197,10 @@ sway, creep and analysis-order approval; spectral SCWB/story-alpha policy and
 alpha feedback. No engineering CHECK or stable GAP is newly CLOSED.
 
 The active bounded task is `SPECTRAL-MODAL-PRECISION-AND-TORSION-QUALIFICATION`,
-GAP-018, then GAP-013 / GAP-016. Acquire unrounded spectrum amplitude and active
-damping/applied-torsion evidence through the existing gateway; preserve expected
-case/mode/direction/cut scope. Independently verify modal/directional aggregation
-and story allocation before qualifying spectral alpha. General scheduler and
+GAP-018, then GAP-013 / GAP-016. Qualify the remaining applied amplitude,
+effective damping and isolated torsional response on the frozen case/mode/cut
+scope. Independent modal and directional acceptance and story allocation are
+required before qualifying spectral alpha. General scheduler and
 complete CheckInstance accounting remain GAP-005 / GAP-017.
 
 ## Earlier verified work and recipe
