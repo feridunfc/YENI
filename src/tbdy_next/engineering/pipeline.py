@@ -126,7 +126,7 @@ STAGES: tuple[StageSpec, ...] = (
               ("JOINT_TOPOLOGY_CHECK", "JOINT_SHEAR", "SCWB", "COLUMN_SHEAR", "COLUMN_SHEAR_REBAR"),
               "TBDY 7.3.5 joint applicability, 7.3.6 SCWB, 7.5 joint shear and column confinement/shear "
               "(computed by pipeline; persisted in engine-results)", "COLUMN_REQUEST", produces=(_R10_RESULT,),
-              method_version="column-r10-low-axial.v3"),
+              method_version="column-r10-spectral-shear.v4"),
     StageSpec("second-order", LIVE, "tbdy_next.story_second_order", ("r08-second-order",),
               ("GLOBAL_SECOND_ORDER",), "TBDY 4.33 story second-order precheck", "R08_SOURCE"),
     StageSpec("column-r08-local", LIVE, "tbdy_next.engineering.column_r08_local_live", (),

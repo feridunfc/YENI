@@ -1410,6 +1410,8 @@ def _column_capacity_shear_ve(
     engineer_column_selection: Mapping[str, Any] | None = None,
     use_engineer_selection: bool = False,
     demand_revision: Mapping[str, Any] | None = None,
+    spectral_context: Mapping[str, Any] | None = None,
+    candidate_revision: str | None = None,
 ) -> dict[str, Any] | None:
     """TBDY 2018 §7.3.7 (CHK-126) conditional column capacity shear Ve = (Ma + Mü) / ln."""
     if not col_frame or not transverse_shear or not col_frame.get("axes_global"):
@@ -1495,6 +1497,12 @@ def _column_capacity_shear_ve(
     )
     if not axes_out:
         return None
+    spectral = None
+    if use_engineer_selection and spectral_context is not None:
+        from .column_spectral_shear import selected_spectral_shear
+        spectral = selected_spectral_shear(
+            spectral_context, col_frame, rowset, engineer_col_section, sel_cage, ev, fywk_mpa,
+            ln_m, ln_basis, axes_out, candidate_revision, demand_revision)
     return {
         "check_id": "CHK-126",
         "clear_length_m": ln_m,
@@ -1502,6 +1510,7 @@ def _column_capacity_shear_ve(
         "overstrength_factor": 1.4,
         **({"selection_basis": "ENGINEER_SELECTED_BEAM_AND_COLUMN"} if use_engineer_selection else {}),
         "axes": axes_out,
+        **({"assigned_spectral": spectral} if spectral is not None else {}),
         "status": ("SCENARIO_VE_CALCULATED_NOT_PROVEN"
                    if all(axis["status"] == "SCENARIO_VE_CALCULATED_NOT_PROVEN" for axis in axes_out.values())
                    else "CAPACITY_SHEAR_INPUTS_UNRESOLVED"),
@@ -2135,6 +2144,7 @@ def _evaluate_single_member_r10_details(
     dependency_plan: Mapping[str, Any] | None = None,
     demand_revision: Mapping[str, Any] | None = None,
     low_axial_by_joint: Mapping[str, Any] | None = None,
+    spectral_context: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     angle_deg = member_local_axis_angle_deg(source, uid)
     scwb_joints = _evaluate_scwb_at_joint_ends(
@@ -2165,6 +2175,8 @@ def _evaluate_single_member_r10_details(
             engineer_col_section=eng_col_sections.get(uid),
             engineer_column_selection=eng_col_res,
             use_engineer_selection=True,
+            spectral_context=spectral_context,
+            candidate_revision=((dependency_plan or {}).get("members", {}).get(uid) or {}).get("candidate_revision_sha256"),
         )
     if transverse_shear is not None:
         if dependency_blockers:
@@ -2311,6 +2323,8 @@ def project_column_r10_live(
     if dependency_plan is not None:
         from .design_dependencies import bind_joint_candidates
         dependency_plan = bind_joint_candidates(dependency_plan, eng_col_sections, eng_col_selections, beam_live)
+    from .column_spectral_shear import shear_context
+    spectral_context = shear_context(source, axial, pmm_scope, mixed_components, dependency_plan, input_sha)
     beam_by_id = {b["member_id"]: b for b in (beam_live or {}).get("beams") or ()}
     beam_sel_active = bool((beam_live or {}).get("beam_selection_policy"))
     col_sel_active = source.get("column_selection") is not None
@@ -2347,6 +2361,7 @@ def project_column_r10_live(
             col_sections_cache=col_sections_cache, beam_sel_active=beam_sel_active,
             pmm_single=pmm_members_map.get(uid), dependency_plan=dependency_plan, demand_revision=demand_revision,
             low_axial_by_joint=low_axial_by_joint,
+            spectral_context=spectral_context,
         )
         per_member[uid] = det
         all_scwb_joints.extend(det["scwb_joints"])

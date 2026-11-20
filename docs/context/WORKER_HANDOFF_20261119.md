@@ -25,7 +25,7 @@ For the building calculation, the GAP-018 coverage matrix and the
 > Önce `feridunfc/YENI` reposunun `baseline/local_import` dalındaki kök `AGENTS.md` dosyasını oku. Çalıştığın dalda belirtilen başlangıç sırasını izle, ardından aşağıdaki görevi yap.
 
 Audit the current original-model vertical slice through its normal entry point.
-Read [CURRENT_STATE](../CURRENT_STATE.md), GAP-013 and GAP-018 and the current
+Read [CURRENT_STATE](../CURRENT_STATE.md), GAP-006, GAP-014 and GAP-018 and the current
 ledger entry. Use the private receipt directory and full input and result
 hashes in that entry. Verify Git HEAD, local changes and the published ref.
 Replay the specified fresh `input.source` with `--case Modal` and
@@ -33,23 +33,34 @@ Replay the specified fresh `input.source` with `--case Modal` and
 directory. Keep the adjacent parent source. Reconstruct the physical joint
 population from native connectivity before counting the results.
 
-For the current story calculation, use `EV-STORY-STATIC-APPLICABILITY-20261120`.
+For current C29 shear use `EV-C29-SPECTRAL-SHEAR-20261120`. Both C29 segments
+have eight assigned cases for V2 and V3 inside the selected R10 capacity shear
+result at `assigned_spectral.axes`. Verify the two end cuts, the continuous
+upper moment bound, ordinary shear floor, full-moment demand, and resistance at
+the lowest compression within each case. The independently captured model-D
+controls are indexed in the same ledger entry. Compare all Min/Max values
+at the same native cut. The next physical calculation binds the support and
+beam faces to the C29 end elevations and compares the resulting clear height
+with each ETABS offset-based length. Local resources index the exact two
+segments, their shared joint, the private audit and the available source files.
+
+For the earlier story calculation, use `EV-STORY-STATIC-APPLICABILITY-20261120`.
 Trace the +4.50/X result across the 32 common bottom cuts. Recompute the signed
 global force from each column's recorded axis angle and both local shears.
 Reconstruct maximum compression from each assigned gravity combination plus
 and minus one supplementary static case, over all native cuts. Check both
 the numerator population and the source load definitions. Then inspect the
 separate applicability result for the eight assigned spectral families and
-the R14 column ratios. Reproduce the 16 stage comparison before extending C29.
+the R14 column ratios. The ledger indexes the 16-stage comparison.
 
 For C29 the same ledger entry identifies a separate native read for all
 eight model-defined capacity combinations, together with eleven original
 control combinations. Use its existing rows and cuts for both members.
-Determine how each combination participates in the governing §7.3.7 branch.
-The full November 20 audit reproduces one of 160 transcribed moment ratios
+The earlier 520-line November 20 audit reproduces one of 160 transcribed moment ratios
 at six decimal places. Use the sealed numerical rows for the remaining 159
 and the already factored beam sum for each sway. Local resources point to
-the corrected 40-row table and the two original audit files.
+the corrected 40-row table. The subsequent 293-line audit reproduced all 160
+ratios, all 160 axial endpoints and all 120 moment values at printed precision.
 
 Starting from a governing non-exempt joint, reconstruct column-end component
 extrema, selected cages, section equilibrium, beam-end signs and the required

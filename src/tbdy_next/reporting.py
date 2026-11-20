@@ -2084,6 +2084,29 @@ def _recorded_capacity_shear_html(uid, member: Mapping[str, Any]) -> str:
     for key, label in (("capacity_shear_ve", "model reinforcement"),
                        ("engineer_capacity_shear_ve", "reinforcement selection")):
         result = shear.get(key) or {}
+        spectral = result.get("assigned_spectral")
+        if spectral:
+            parts.append(f'<h4>Column {_val(uid)} · assigned seismic capacity shear</h4>')
+            parts.append(f'<p>{_val(spectral["status"])} · offset-based clear length '
+                         f'{_val(spectral["clear_length_m"])} m · {_val(", ".join(spectral["reasons"]))}</p>')
+            spectral_rows = []
+            for axis in spectral["axes"].values():
+                for item in axis["cases"]:
+                    ends = item.get("end_moments", {})
+                    cap = item.get("cap_control", {})
+                    spectral_rows.append({**item, "mp_i": ends.get("I", {}).get("mp_upper_knm"),
+                                          "mp_j": ends.get("J", {}).get("mp_upper_knm"),
+                                          "cap_case": cap.get("combination"), "cap_kn": cap.get("abs_max_kn"),
+                                          "bounded_control": cap.get("bounded_ve_kn"),
+                                          "cap_nd": cap.get("minimum_nd_kn"), "cap_zero_u": cap.get("zero_concrete_utilization")})
+            parts.append(_table((("axis","Local shear"), ("combination","Assigned combination"),
+                ("mp_i","I-end Mp upper (kN·m)"), ("mp_j","J-end Mp upper (kN·m)"), ("vd_floor_kn","Analysis floor (kN)"),
+                ("ve_upper_kn","Unreduced design check (kN)"), ("cap_case","Model capacity combination"),
+                ("cap_kn","Model control (kN)"), ("bounded_control","D-bounded scenario (kN)"),
+                ("cap_nd","Control minimum Nd (kN)"), ("cap_zero_u","Control Ve/Vsw"),
+                ("minimum_nd_kn","Minimum compression (kN)"), ("concrete_basis","Concrete basis"),
+                ("vr_used_kn","Vr used (kN)"), ("tbdy_eq7_7_limit_kn","Eq. (7.7) limit (kN)"),
+                ("resistance_utilization","Ve/Vr"), ("status","Case status"), ("reason","Unresolved input")), spectral_rows))
         rows = []
         for axis, values in (result.get("axes") or {}).items():
             for case in values.get("cases") or ():

@@ -19,26 +19,27 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "ORIGINAL_ASSIGNED_STORY_APPLICABILITY_AND_SIGNED_STATIC_REFERENCE",
-    "work_branch": "work/story-alpha-applicability",
+    "status": "ORIGINAL_ASSIGNED_SPECTRAL_COLUMN_SHEAR_AND_C29_CONTROLS",
+    "work_branch": "work/c29-seismic-capacity-shear",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "64c03641206d6b51f4834369bb3394e40b62b402",
+    "inspected_base_commit": "a359cd8f20c208df69c1524eafe2be179c65cd0b",
     "source_run_id": "RUN-163007b8f3ad44b691048c800a71ab4d",
-    "production_run_id": "RUN-8ecd564f0e4f4c49a53d7984b551dfb9",
+    "control_run_id": "RUN-36026224ac7e49c591b1981dff639e21",
+    "production_run_id": "RUN-a445e64620a9403cbf3d18b013c71fe5",
     "source_sha256": "5ab25239f5f01f4c72df143876a8582cf7b52d91eddeb4e0674ff5d9a7fef5f2",
-    "results_sha256": "6dd0b469a86c98f0af97990707fac954eeeb5d7591eee0188e66ac605e42a7a6",
+    "results_sha256": "94c0ac679fb41c46432a055042eb5f309b2d02710f3b879f53a46a191efa4fb0",
     "evidence_refs": [
-      "EV-STORY-STATIC-APPLICABILITY-20261120"
+      "EV-C29-SPECTRAL-SHEAR-20261120"
     ],
     "engineering_release": "NOT_READY",
-    "next_action": "Complete the original C29 capacity-shear calculation under TBDY 7.3.7. Use the captured ductile and capacity combination rows. Bind governing end moments, physical clear length, assigned seismic demand and the transverse cage in both directions. Establish the applicable seismic load factor and force bounds before changing the R14 spectral shear gate."
+    "next_action": "Reconstruct the two C29 physical clear heights from support and beam face elevations at the lower, shared and upper joints. Reconcile cuts and offsets, then rerun both axes with verified physical lengths. GAP-006 and GAP-014."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
-    "commit_sha": "64c03641206d6b51f4834369bb3394e40b62b402",
-    "git_tree_sha": "4170660762d12031f4ef7b4a18c9c6dda3bca221",
+    "commit_sha": "a359cd8f20c208df69c1524eafe2be179c65cd0b",
+    "git_tree_sha": "0051bc2fa75028f9dd1ed0df3d6f30394589dd7a",
     "observed_on": "2026-11-20",
-    "scope": "Verified integration base before publication of this milestone. Resolve the current ref with git ls-remote."
+    "scope": "Remote integration base verified before publishing these changes. Resolve the current ref with git ls-remote."
   },
   "record_policy": {
     "append_new_ids": true,
@@ -4478,6 +4479,212 @@
         },
         "private_member_controls": ".receipts/verification/story-audit-20261120T134428Z/full-audit-comparison.json#c29_native_controls"
       }
+    },
+    {
+      "id": "EV-C29-SPECTRAL-SHEAR-20261120",
+      "observed_at_utc": "2026-11-20T16:01:42.870841Z",
+      "inspected_base_commit": "a359cd8f20c208df69c1524eafe2be179c65cd0b",
+      "work_branch": "work/c29-seismic-capacity-shear",
+      "prior_evidence": [
+        "EV-STORY-STATIC-APPLICABILITY-20261120"
+      ],
+      "scope": "Assigned spectral column capacity shear under TBDY 2018 §§7.3.7.1–6, with separately captured native horizontal D controls.",
+      "environment": "Windows, CPython 3.12.10, original locked-model source archived in units code 6.",
+      "software_owner": "engineering/column_r10_live.py::_column_capacity_shear_ve, selected_spectral_shear, existing section and transverse kernels",
+      "method_version": "column-r10-spectral-shear.v4 / assigned-column-spectral-shear.v1",
+      "private_receipt_root": ".receipts/verification/c29-spectral-20261120-153157Z",
+      "tested_file_manifest": ".receipts/verification/c29-spectral-20261120-153157Z/tested-files.json",
+      "tested_patch_sha256": "07317f10f7550f0b9c5dbde17ac0f290fd931fff3d34755c8d15a9f171c85f00",
+      "inputs": {
+        "assigned_source": ".receipts/RUN-163007b8f3ad44b691048c800a71ab4d/input.source",
+        "assigned_input_sha256": "5ab25239f5f01f4c72df143876a8582cf7b52d91eddeb4e0674ff5d9a7fef5f2",
+        "unchanged_adjacent_parent_sha256": "5eb873abec3f667da864dd224b39f9fc46d65fd2f1812e211f46d59e5455616b",
+        "capacity_control_source": ".receipts/RUN-36026224ac7e49c591b1981dff639e21/input.source",
+        "control_input_sha256": "51e98804e199294d66f3ca317c034641098c964e783351f03c483b70b839e6db",
+        "matching_assigned_control_rows": 7638,
+        "native_capacity_rows": 6432,
+        "numeric_cap_shear_extrema_compared": 12864,
+        "maximum_cap_residual_kn": 1.7053025658242404e-13
+      },
+      "audit_review": {
+        "private_report": ".receipts/verification/auditor-story-20261120-173956364/DENETIM_RAPORU_KAT_VE_C29_2026-11-20.txt",
+        "utf8_copies": 4,
+        "line_count": 293,
+        "byte_count": 43850,
+        "sha256": "0260979288b7eb2812316a3843aa3ec162ceb6fa445214f7440ca22da1e17e53",
+        "independently_recompared_previous_run": "RUN-5b8b4e3e12084fc3ba1796cb4da1f5d1",
+        "previous_compare": "IDENTICAL",
+        "printed_numeric_comparison": {
+          "story_v2_total": 32,
+          "story_v2_matched": 32,
+          "story_v3_total": 32,
+          "story_v3_matched": 32,
+          "story_global_total": 32,
+          "story_global_matched": 32,
+          "story_max_nd_total": 32,
+          "story_max_nd_matched": 32,
+          "beam_rosters_verified": 10,
+          "printed_beam_moment_sum_total": 20,
+          "printed_beam_moment_sum_matched": 20,
+          "cage_and_cut_verified": 10,
+          "axial_total": 160,
+          "axial_matched": 160,
+          "moment_total": 120,
+          "moment_matched": 120,
+          "ratio_total": 160,
+          "ratio_matched": 160
+        },
+        "reported_static_vr_range_kn": [
+          1855.702,
+          2014.432
+        ],
+        "sealed_522_static_vr_range_kn": [
+          1803.1251201343703,
+          1980.1180936734263
+        ],
+        "corrections": [
+          "TS 500 web reference and the TBDY Eq. (7.7) brittle limit are separate checks.",
+          "The low compression threshold alone does not establish the confinement and earthquake-only shear-share conditions of §7.3.7.6."
+        ]
+      },
+      "assigned_result": {
+        "members": 87,
+        "assigned_spectral_cases": 8,
+        "axes_per_member": 2,
+        "within_unreduced_capacity_and_brittle_limits": 1392,
+        "r14_open_gates_before": 13,
+        "r14_open_gates_after": 12,
+        "released_gate": "SCWB_AND_CAPACITY_SHEAR_SPECTRAL_DEMAND_POLICY_NOT_PROVEN",
+        "fully_closed_columns": 0,
+        "actual_c29_rows": 32,
+        "c29": {
+          "upper": {
+            "offset_based_length_m": 3.8,
+            "max_ve_upper_kn": 1053.485642444045,
+            "max_case_matched_resistance_utilization": 0.6548724125070842,
+            "min_assigned_compression_kn": 734.4628324320121,
+            "min_control_compression_kn": 595.4463336515407,
+            "max_control_kn_by_local_axis": {
+              "V2": 207.7970653903256,
+              "V3": 250.74817153652987
+            }
+          },
+          "lower": {
+            "offset_based_length_m": 4.45,
+            "max_ve_upper_kn": 1007.7945670938699,
+            "max_case_matched_resistance_utilization": 0.5205438716273135,
+            "min_assigned_compression_kn": 1120.7831275490385,
+            "min_control_compression_kn": 921.8192304217084,
+            "max_control_kn_by_local_axis": {
+              "V2": 106.593515602568,
+              "V3": 222.33523961831878
+            }
+          }
+        },
+        "c29_zero_concrete_kn": 1407.6459836736874,
+        "c29_eq7_7_limit_kn": 3218.3474020061913,
+        "c29_ts500_web_reference_kn": 3047.1466666666665
+      },
+      "independent_section": {
+        "equilibrium_anchor_checks": 320,
+        "interior_checks": 1088,
+        "max_anchor_delta_knm": 1.3642420526593924e-12,
+        "minimum_upper_margin_knm": 7.726662555149687
+      },
+      "next_face_source": {
+        "connected_beam_ends_at_three_physical_nodes": [
+          0,
+          4,
+          4
+        ],
+        "nominal_depth_m": [
+          0.7
+        ],
+        "unbound": "Beam vertical insertion and joint offsets, and the lower support face elevation.",
+        "private_trace": ".receipts/verification/c29-spectral-20261120-153157Z/face-inputs.json"
+      },
+      "limits": [
+        "Both column end moments are bounded over continuous componentwise axial intervals on the selected symmetric section.",
+        "Design uses the unreduced moment upper bound and the all-cut ordinary shear floor. A separate floor-bounded D scenario is reported for the exact model-defined companion. Reduction is not assigned.",
+        "A potential low axial interval uses tie resistance alone throughout the member. Physical simultaneity is not inferred.",
+        "Clear lengths are based on end offsets. Physical faces and anchorage, source generation, restraint and creep remain open."
+      ],
+      "cli": {
+        "reference": ".receipts/verification/c29-spectral-20261120-153157Z/final/RUN-a445e64620a9403cbf3d18b013c71fe5",
+        "repeat": ".receipts/verification/c29-spectral-20261120-153157Z/final-repeat/RUN-308548a125df41c081878ec98b532971",
+        "snapshot": {
+          "schema": "tbdy.next.pipeline-stage-snapshot.v2",
+          "snapshot_sha256": "1342c2159ac22ac3f31f41187ebcc3677162d760c69ce7d8fedad6c94af3f040",
+          "results_sha256": "94c0ac679fb41c46432a055042eb5f309b2d02710f3b879f53a46a191efa4fb0"
+        },
+        "compare": {
+          "reference_stages": 16,
+          "current_stages": 16,
+          "mismatched_stages": [],
+          "missing_stages": [],
+          "extra_stages": [],
+          "source_identical": true,
+          "sealed_stage_coverage": true,
+          "comparison_scope": "PIPELINE_RESULTS_REPORT_EVIDENCE_AND_ALL_RECORDED_RECEIPTS",
+          "status": "IDENTICAL"
+        }
+      },
+      "superseded_development_compare": {
+        "reference": ".receipts/verification/c29-spectral-20261120-153157Z/runs",
+        "repeat": ".receipts/verification/c29-spectral-20261120-153157Z/repeat",
+        "status": "DIFFERENT",
+        "accepted": false,
+        "reason": "The additional D-control axial minima and tie-only utilization fields were added between these two development snapshots. The final pair above uses the frozen manifest."
+      },
+      "regression": {
+        "python_run": 1546,
+        "python_passed": 1545,
+        "windows_symlink_skipped": 1,
+        "javascript_files_passed": 11,
+        "installed_wheel_tests_passed": 394,
+        "wheel": {
+          "runtime_python_files": 129,
+          "wheel_sha256": "d712ace35ed30d0e815f00d65c96e548125730b79c207c029bde215b45c05950"
+        },
+        "reports": {
+          "C29_ve_87_kolon_kesme_hesabi.html": {
+            "bytes": 5523286,
+            "sha256": "78ee44f42c9fe3313cd396b559ab4481af4ec67b365987dfc891ac3b76ff6613"
+          },
+          "C29_atanmis_deprem_kesme_hesabi.txt": {
+            "bytes": 9303,
+            "sha256": "64772cdc075385299b7c44cf3b6a7c48d7bf558423779aa2902378c574362ea7"
+          }
+        }
+      },
+      "commands": [
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --source .receipts/RUN-163007b8f3ad44b691048c800a71ab4d/input.source --case Modal --out .receipts/verification/c29-spectral-20261120-153157Z/final",
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --source .receipts/RUN-163007b8f3ad44b691048c800a71ab4d/input.source --case Modal --out .receipts/verification/c29-spectral-20261120-153157Z/final-repeat --compare-run .receipts/verification/c29-spectral-20261120-153157Z/final/RUN-a445e64620a9403cbf3d18b013c71fe5",
+        "python -X utf8 -B .receipts/verification/c29-spectral-20261120-153157Z/verify_new_audit.py",
+        "python -X utf8 -B .receipts/verification/c29-spectral-20261120-153157Z/verify_shear.py",
+        "python -X utf8 -B .receipts/verification/c29-spectral-20261120-153157Z/export_c29.py",
+        "python -X utf8 -B .receipts/verification/c29-spectral-20261120-153157Z/wheel_final.py",
+        "python -X utf8 -B tools/test_offline.py"
+      ],
+      "private_sha256": {
+        "final.json": "da0aa3eba3b1a27f8d752d86ffb7f8f357218786faefb1060d00b140b0a5bd06",
+        "final-repeat.json": "f0e9e8aa7cefccd3599c25af42719f68505d23e7514ac88f545b1ecc44226fb3",
+        "tested-files.json": "a79452cee5c8d45e176e9d6376e0bd214023acd9611d6868c9bcb3aa9f7d0daa",
+        "verify_new_audit.py": "294834ee1ee2a094a6476250b8d0a5689ab56049b4d92784d5cb64d2eec92ce4",
+        "audit-review.json": "412f6c8cee2dfadac9f01ce36ab74a1db6ee83014ca20555a9bb84b8e8005b54",
+        "verify_shear.py": "a2061a9949c1803e641d3ce5d9c4d4e35ee04f59216f6c9e00fd6f82c1ca0cfa",
+        "independent-shear.json": "5736a3e6b3da1d2e5bd9b05a9f53eb8a0deec9a133a032bdda19051b758a7666",
+        "trace_face_inputs.py": "9065555be6d6b31ef31ffab23c240043f221237ebb86f4db58ee1e7954d480e2",
+        "face-inputs.json": "20dc181e411830cc3c60633b0b6c64ce5df22b9f1bd2ae03d8847f839e13ea79",
+        "export_c29.py": "0f222b84f6ae53b3c52965d32e630648523353847df2499d79681ee3aacc3eb9",
+        "report-check.json": "855202945042592b7e9ec20fbc4a99985493e3a3a8c8e4a540f5db2e9919d8d6",
+        "offline-tests.log": "c34ff55c735d62cbb40f18af9c87bcb09303a707088d0329e4b1e294d4aafcd9",
+        "wheel-tests.log": "737064507ccb81573d1d29e3ba444423b74e7ff83520c341716f6a8609a427d3",
+        "wheel-content.json": "c6b3f9396e28da42ccde7bb1b1fe3fd25665f3693d271d36851a3e9a427bb991"
+      },
+      "engineering_release": "NOT_READY",
+      "engineering_release_granted": false,
+      "next_action": "Reconstruct the two C29 physical clear heights from support and beam face elevations at the lower, shared and upper joints. Reconcile cuts and offsets, then rerun both axes with verified physical lengths. GAP-006 and GAP-014."
     }
   ],
   "new_record_template": {
@@ -4502,7 +4709,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-20T14:32:43.204447Z",
+  "updated_at_utc": "2026-11-20T16:01:42.870841Z",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -5058,6 +5265,21 @@
       ],
       "engineering_release": "NOT_READY",
       "next_action": "Determine section 7.3.6 applicability for one entire original story-direction from both ends of every column. Where required, bind compatible signed shears at one cut, compute Vis, Vik and alpha, and carry any demand revision through cage, PMM, Ve and joint rechecks."
+    },
+    {
+      "status": "ORIGINAL_ASSIGNED_STORY_APPLICABILITY_AND_SIGNED_STATIC_REFERENCE",
+      "work_branch": "work/story-alpha-applicability",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "64c03641206d6b51f4834369bb3394e40b62b402",
+      "source_run_id": "RUN-163007b8f3ad44b691048c800a71ab4d",
+      "production_run_id": "RUN-8ecd564f0e4f4c49a53d7984b551dfb9",
+      "source_sha256": "5ab25239f5f01f4c72df143876a8582cf7b52d91eddeb4e0674ff5d9a7fef5f2",
+      "results_sha256": "6dd0b469a86c98f0af97990707fac954eeeb5d7591eee0188e66ac605e42a7a6",
+      "evidence_refs": [
+        "EV-STORY-STATIC-APPLICABILITY-20261120"
+      ],
+      "engineering_release": "NOT_READY",
+      "next_action": "Complete the original C29 capacity-shear calculation under TBDY 7.3.7. Use the captured ductile and capacity combination rows. Bind governing end moments, physical clear length, assigned seismic demand and the transverse cage in both directions. Establish the applicable seismic load factor and force bounds before changing the R14 spectral shear gate."
     }
   ],
   "remote_audit_correction_checkpoint": {
@@ -5084,9 +5306,10 @@
     "next_action": "Integrate this verified milestone normally; repeat exact selected source on Windows, then complete the five non-exempt seismic joint branches and one full story-direction through existing owners."
   },
   "previous_observed_remote_implementation": {
-    "branch": "audit/pipeline-pmm-v6-20261117",
-    "commit_sha": "85e720d18683a71737c1919d32e393c9d903737b",
-    "git_tree_sha": "069342dfd21b828bbaeba73d601db5f49aafb6e3",
-    "observed_on": "2026-11-17"
+    "branch": "baseline/local_import",
+    "commit_sha": "64c03641206d6b51f4834369bb3394e40b62b402",
+    "git_tree_sha": "4170660762d12031f4ef7b4a18c9c6dda3bca221",
+    "observed_on": "2026-11-20",
+    "scope": "Verified integration base before publication of this milestone. Resolve the current ref with git ls-remote."
   }
 }

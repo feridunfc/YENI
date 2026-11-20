@@ -85,6 +85,7 @@ before editing; extend them rather than introducing ad hoc scripts or entry poin
 | PMM / local second order | `column_engine/section_capacity.py`, `column_engine/ts500_column.py` |
 | Global P-delta / alpha | `engineering/story_pdelta.py`, `column_engine/story_alpha.py`, `engineering/alpha_iteration.py` |
 | Directional joint applicability / supplementary signed static story forces | `engineering/scwb_axial.py`, `engineering/story_static_reference.py` (called by the alpha stage) |
+| Selected-column seismic capacity shear, model D controls and R14 projection | `engineering/column_r10_live.py::_column_capacity_shear_ve`, `engineering/column_spectral_shear.py`, `column_engine/scwb_kernel.py`, `column_engine/transverse_kernel.py` |
 | Scenario and dependencies | `engineering/design_scenario.py`, `engineering/design_dependencies.py` |
 | Immutable source/results and report | `history.py`, `receipts.py`, `engineering/pipeline_snapshot.py`, `reporting.py` |
 

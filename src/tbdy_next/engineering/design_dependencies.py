@@ -363,6 +363,7 @@ an explicit open dependency rather than pretending the original Ve is revised.
         if feedback is not None:
             deps.append("alpha-iteration")
         det = details.get(uid) or {}
+        shear = ((det.get("column_transverse_and_shear") or {}).get("engineer_capacity_shear_ve") or {}).get("assigned_spectral")
         ve = add("ve-review:" + uid, {"reference": det.get("column_transverse_and_shear"),
                  "feedback_consumed": not reasons, "open_dependencies": sorted(set(reasons))}, deps)
         closure_key = add("r14-input:" + uid, {"blockers": sorted(set(reasons))}, [ve, "r08:" + uid])
@@ -371,6 +372,9 @@ an explicit open dependency rather than pretending the original Ve is revised.
                         "reference_ve_is_revised_design_demand": False,
                         "alpha_feedback_consumed": feedback_consumed,
                         "alpha_feedback_not_required": alpha_not_required}
+        if (shear and not reasons and shear.get("candidate_revision_sha256") == selected.get("candidate_sha256")
+                and shear.get("input_sha256") == input_sha):
+            columns[uid]["spectral_shear_sha256"] = _digest(shear)
     result = {"schema": REVISION_SCHEMA, "method_revision": METHOD, "input_sha256": input_sha,
               "artifacts": artifacts, "columns": columns, "cache_reuse_performed": False,
               "alpha_demand_iteration_implemented": feedback is not None,

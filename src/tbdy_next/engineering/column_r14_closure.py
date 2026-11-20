@@ -155,6 +155,7 @@ def _evaluate_single_r14_column(
         normative_failures.append("COLUMN_TRANSVERSE_AND_CROSSTIE_TBDY_RULES_NOT_MET")
     ts_block = det.get("column_transverse_and_shear") or {}
     ve_block = ts_block.get("engineer_capacity_shear_ve")
+    spectral_shear = (ve_block or {}).get("assigned_spectral") or {}
     max_ve_ts500_util = None
     max_ve_zero_util = None
     if ve_block and ve_block.get("axes"):
@@ -348,8 +349,10 @@ def _evaluate_single_r14_column(
                 and spectral_required <= set(spec_pmm.get("combinations_evaluated", ()))
                 and finite_number(spec_pmm.get("max_bounding_utilization"), nonnegative=True)):
             open_gates.append("SPECTRAL_PMM_REQUIRED_POPULATION_NOT_PROVEN")
-        if seismic_names & spectral_required:
-            # Static-only SCWB/shear cannot become seismic proof through a PMM box.
+        from .column_spectral_shear import complete_spectral_shear
+        if seismic_names & spectral_required and not (alpha_not_required and complete_spectral_shear(
+                spectral_shear, seismic_names & spectral_required, uid, dependency_evidence.get("input_sha256"),
+                dependency_row.get("spectral_shear_sha256"))):
             open_gates.append("SCWB_AND_CAPACITY_SHEAR_SPECTRAL_DEMAND_POLICY_NOT_PROVEN")
 
     ve_axes = (ve_block or {}).get("axes") or {}
@@ -442,6 +445,11 @@ def _evaluate_single_r14_column(
                 "spectral_envelope_max_utilization": spec_pmm.get("max_bounding_utilization"),
             },
             "column_shear_ve": {
+                **({"assigned_spectral_status": spectral_shear.get("status"),
+                    "spectral_case_axis_count": spectral_shear.get("calculated_axis_case_count", 0),
+                    "max_spectral_resistance_utilization": spectral_shear.get("max_resistance_utilization"),
+                    "max_spectral_brittle_utilization": spectral_shear.get("max_brittle_utilization")}
+                   if spectral_shear else {}),
                 "max_ve_ts500_utilization": max_ve_ts500_util,
                 "max_ve_zero_concrete_utilization": max_ve_zero_util,
                 "all_tbdy_transverse_checks_met": sel_tr.get("all_tbdy_checks_met") if sel_tr else None,

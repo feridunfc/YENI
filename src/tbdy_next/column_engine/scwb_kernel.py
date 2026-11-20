@@ -158,8 +158,8 @@ def column_axis_capacity(section,n_n,axis):
     return deepcopy(_column_axis_capacity(section,n_n,axis))
 
 
-def column_axis_interval_bound(section, axis, nd_min_kn, nd_max_kn):
-    """Lower bound on the symmetric section's principal-plane Mr over an entire Nd interval.
+def column_axis_interval_bound(section, axis, nd_min_kn, nd_max_kn, *, include_upper=False):
+    """Bound the symmetric section's principal-plane Mr over an entire Nd interval.
 
     Along _Curve's fixed-axis strain path each bar force increases with neutral-axis depth.
     The constant compressive concrete stress acts on an expanding region excluding the bar
@@ -186,11 +186,16 @@ def column_axis_interval_bound(section, axis, nd_min_kn, nd_max_kn):
     if anchors[0]["nd_kn"] > lo or anchors[-1]["nd_kn"] < hi:
         raise BankError("SCWB_EQUILIBRIUM_ANCHORS_DO_NOT_BRACKET_ND")
     bounds = []
+    upper_bounds = []
     for a, b in zip(anchors, anchors[1:]):
         gap = b["nd_kn"] - a["nd_kn"]
         if gap < 0:
             raise BankError("SCWB_AXIAL_INTERVAL_ANCHORS_UNORDERED")
         resistance = min(a["mr_knm"] - a["tolerance_knm"], b["mr_knm"] - b["tolerance_knm"])
         bounds.append(resistance - lever_m * gap / 2)
+        if include_upper:
+            largest = max(a["mr_knm"] + a["tolerance_knm"], b["mr_knm"] + b["tolerance_knm"])
+            upper_bounds.append(largest + lever_m * gap / 2)
     return {"axis": axis, "nd_interval_kn": [lo, hi], "lever_bound_m": lever_m, "anchors": anchors,
-            "mr_lower_bound_knm": max(0., min(bounds))}
+            "mr_lower_bound_knm": max(0., min(bounds)),
+            **({"mr_upper_bound_knm": max(upper_bounds)} if include_upper else {})}

@@ -6,7 +6,42 @@ Start each assignment at [AGENTS.md](../AGENTS.md). The
 in a GitHub checkout. Follow the [November 18 full recipe](engineering/reference/recipe_20261118/delivery/RECIPE.md)
 and its [six-step calculation sequence](engineering/reference/recipe_20261118/delivery/PRIORITY_CHAIN.json).
 
-## Current story calculation and R14 projection
+## Current column shear calculation
+
+The R10 selected-cage result now evaluates the eight assigned seismic combinations
+for both local axes of all 87 columns. All 1,392 checks meet the resistance and
+TBDY Eq. (7.7) brittle limits with unreduced column end moments. The offset-based
+clear lengths and selected reinforcement define this result. Both ends have
+continuous upper bounds on moment resistance over their own axial intervals.
+The analysis shear floor includes both native extrema at every captured cut.
+The eight model-defined capacity controls scale horizontal spectrum terms by 2.5.
+All 12,864 control shear values reproduce the separate native ETABS read to within
+1.8e-13 kN. The assigned check uses full capacity moments. The report also gives
+the D-bounded value for each case and axis. See `EV-C29-SPECTRAL-SHEAR-20261120`
+in [the verification ledger](VERIFICATION_LEDGER.json).
+
+For C29 the largest unreduced shear bounds are 1,007.794567 kN on the lower
+column and 1,053.485642 kN on the upper column. The maximum case-matched Ve/Vr
+ratios are 0.520544 and 0.654872. The upper column's governing ratio occurs in
+a different combination from its maximum shear. Its axial interval can cross
+the low-compression threshold, so the conservative check uses the selected ties
+alone. The original building's shared R14 open gates fall from 13 to 12.
+All 87 columns remain partial. GAP-016 has 20 numerical matches, 20
+insufficient-source comparisons and four interpretation differences.
+The offline suite passed 1,545 Python tests with one Windows skip and
+11 JavaScript test files. The isolated installed wheel passed 394 tests.
+
+**Next calculation.** Reconcile the physical clear height of the two C29
+segments with actual support and beam faces at the lower, shared and upper
+joints. The two beam-framed joints each have four rectangular beam ends, all
+0.70 m deep. No beam frames into the lower support. The missing inputs are
+the beam insertion/vertical offsets and the actual lower support face elevation.
+Compare those faces against the native frame lengths and end offsets, then propagate the verified
+length through the same shear calculation. Index the result in GAP-006 and
+GAP-014. The approved restraint and TS 500 effective length remain separate
+design inputs. The reference provisions are in [TBDY 2018, pp. 118–120](https://fakulte.adu.edu.tr/muhendislik/personel/uploads/eakin/deprem-yonetmeligi-2018-1576678666.pdf#page=140).
+
+## Previous story calculation and R14 projection
 
 The existing Windows gateway read two supplementary linear static earthquake
 cases on the locked original model. Each returned 402 signed frame-force rows
@@ -48,13 +83,8 @@ Two CLI runs match at all 16 stages. The offline suite passed 1,538 Python
 tests with one skip and 11 JavaScript test files. The installed wheel passed
 387 tests.
 
-**Next vertical slice.** Carry the original C29 column from the governing
-end moments and clear length into the §7.3.7 capacity shear calculation.
-Reconcile it with the assigned seismic shear demand and selected transverse
-reinforcement in both directions. Use the captured ductile and capacity
-combination rows. Establish the applicable seismic load factor and bounds
-from the governing design rule before changing that R14 gate. See the
-[worker handoff](context/WORKER_HANDOFF_20261119.md#local-auditor-brief).
+The column shear calculation above supersedes the outstanding seismic-shear
+gate at this checkpoint. See the [worker handoff](context/WORKER_HANDOFF_20261119.md#local-auditor-brief).
 
 ## Previous original-model joint calculation
 
