@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-20T05:31:09Z",
+  "updated_at_utc": "2026-11-20T07:19:50.846674Z",
   "repository": "feridunfc/YENI",
   "baseline_implementation_commit": "79f534a8dee005afaafab5a907c594c99d153eff",
   "local_reconciled": true,
-  "scope_note": "18 stable GAPs. The current vertical calculation covers signed static selected-cage capacities and joint tie sizing. GAP-018 records the completed private ETABS comparisons separately from original-generation transfer. A01-A06 adapter/report corrections and conditional-bound consumer behavior are verified offline in EV-AUDIT-ADAPTER-FIXES-20261119; historical private model counts are not rerun or relabeled.",
+  "scope_note": "18 stable GAPs. The current vertical calculation covers signed static selected-cage capacities and joint tie sizing. GAP-018 records the completed private ETABS comparisons separately from original-generation transfer. A01-A06 adapter/report corrections and conditional-bound consumer behavior are verified offline in EV-AUDIT-ADAPTER-FIXES-20261119; historical private model counts are not rerun or relabeled. The 20 November remote correction milestone is indexed by EV-AUDIT-FIXES-20261120. Original 87-column and live ETABS results were not rerun; no stable GAP is closed.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -124,7 +124,7 @@
       "title": "Complete expected check population",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "87 columns / 957 design pairs and expected supporting cut/mode populations remain in their ledgers.",
+      "achieved_scope": "87 columns / 957 design pairs and expected supporting cut/mode populations remain in their ledgers. Fresh sources with embedded selection policies now enter the same prepared-scenario member/cut dependency checks as explicit selection. Missing native Vd combinations and element-side cuts remain in the capacity-shear result rather than disappearing from its maximum.",
       "blocker": "A general ExpectedCheckInstance census and execution for every check family are not implemented.",
       "closure_criteria": "Freeze each rule population at the correct grain before calculation; account for missing data and proven exceptions explicitly.",
       "owner_paths": [
@@ -135,7 +135,8 @@
         "EV-PMM6",
         "EV-D2",
         "EV-LOCAL-NATIVE",
-        "EV-RECIPE18-INTAKE"
+        "EV-RECIPE18-INTAKE",
+        "EV-AUDIT-FIXES-20261120"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -213,7 +214,7 @@
       "title": "Global and local second-order effects",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Selected candidates can bind same-run R08 inputs; EI/Nk and second-order reference calculations exist. Same-run selected sections now carry both first-order and magnified design moments with the local/global factors and fixed-N radial reserve.",
+      "achieved_scope": "Selected candidates can bind same-run R08 inputs; EI/Nk and second-order reference calculations exist. Same-run selected sections now carry both first-order and magnified design moments with the local/global factors and fixed-N radial reserve. R08 applies the existing minimum-eccentricity owner before local/global magnification for static and spectral-box references. Raw, floored and final moments are recorded and projected in the normal report. The two GOLDEN-01 theta scalars now call the existing global P-delta owner.",
       "blocker": "k/sway/Rm/free length, creep and second-order components already included in native analysis are not approved.",
       "closure_criteria": "Independently verify both-axis clear/effective lengths and EI, prevent double counting, and prove consumption of the qualified demands.",
       "owner_paths": [
@@ -226,7 +227,8 @@
         "EV-D2",
         "EV-D3",
         "EV-COLUMN-CAGE-TIE10",
-        "EV-COLUMN-JOINT-SLICE-20261119"
+        "EV-COLUMN-JOINT-SLICE-20261119",
+        "EV-AUDIT-FIXES-20261120"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false
@@ -297,7 +299,7 @@
       "title": "SCWB and alpha demand feedback",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Bounded signed-reference iteration, mixed signed E partition and scalar spectral replay exist. R10 applies the two-column low-axial exception at qualified ends. On the original 52 two-column joints, 47 qualify and five exceed a seismic threshold. The report records each end and R14 distinguishes exempt joints from actual moment-ratio satisfaction.",
+      "achieved_scope": "Bounded signed-reference iteration, mixed signed E partition and scalar spectral replay exist. R10 applies the two-column low-axial exception at qualified ends. On the original 52 two-column joints, 47 qualify and five exceed a seismic threshold. The report records each end and R14 distinguishes exempt joints from actual moment-ratio satisfaction. The supported signed alpha consumer now admits qualified per-column low-N numerator credit, using the existing all-cut axial maxima and both configured-end records. Credit to Vis and eligibility for demand amplification are recorded separately. The independent 60/20/20 consumer example gives alpha=0.8 and amplifies only the actual two-end SCWB column; its SCWB flags are explicit contract fixtures, not a completed actual-owner building slice.",
       "blocker": "The five joints outside the low-axial exception need direction-compatible governing Nd and moment capacities. The original full story-direction shear allocation and alpha feedback remain unqualified.",
       "closure_criteria": "Prove alpha-to-demand-to-cage-to-PMM/shear/joint feedback at the same story/cut with all neighbors in an independent complete example, including correct nonconvergence states.",
       "owner_paths": [
@@ -316,7 +318,8 @@
         "EV-RECIPE18-INTAKE",
         "EV-RECIPE18-ARITHMETIC",
         "EV-C29-INTERIOR-LOW-AXIAL-20261120",
-        "EV-R10-LOW-AXIAL-20261120"
+        "EV-R10-LOW-AXIAL-20261120",
+        "EV-AUDIT-FIXES-20261120"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -333,7 +336,7 @@
       "title": "Capacity shear, ties and joint panel",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Existing Ve owner can reevaluate revised Vd and retain revision lineage. The worked roof joint sizes its tie pitch from the lower-column Ash/s and actual proposed legs; 252/272 returned joint axes have sizing inputs. The adjacent interior joint also has a conservative demand upper bound. Joint deductions retain expected cases including zero/small shears; missing endpoints/cases use an explicit conditional zero bound. Lower confinement maps by physical axis and coordinate-based topology. R14 distinguishes an exceeded unresolved bound from a proven demand failure.",
+      "achieved_scope": "Existing Ve owner can reevaluate revised Vd and retain revision lineage. The worked roof joint sizes its tie pitch from the lower-column Ash/s and actual proposed legs; 252/272 returned joint axes have sizing inputs. The adjacent interior joint also has a conservative demand upper bound. Joint deductions retain expected cases including zero/small shears; missing endpoints/cases use an explicit conditional zero bound. Lower confinement maps by physical axis and coordinate-based topology. R14 distinguishes an exceeded unresolved bound from a proven demand failure. Initial and revised Ve now both retain the original/revised Vd lower bound and its native governing-cut witness. The signed alpha terminal check consumes expected joint-panel and physically mapped tie outcomes. A qualified passing zero bound remains admissible as a reference; exceeded unresolved bounds require refinement, while bound panel/tie failures return JOINT_DESIGN_FAILURE.",
       "blocker": "Post-alpha joint equilibrium, clear faces/anchorage and all normative branches are not approved.",
       "closure_criteria": "Independently accept capacity shear, brittle limits, transverse reinforcement and panel/anchorage for every face/sign/cage.",
       "owner_paths": [
@@ -345,7 +348,8 @@
         "EV-D3",
         "EV-RECIPE18-INTAKE",
         "EV-COLUMN-JOINT-SLICE-20261119",
-        "EV-AUDIT-ADAPTER-FIXES-20261119"
+        "EV-AUDIT-ADAPTER-FIXES-20261119",
+        "EV-AUDIT-FIXES-20261120"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -386,8 +390,8 @@
       "title": "Golden coverage and complete independent example",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Historical 467-fixture bank, 10 alpha targets and 115776 separate-bank scalar comparisons are retained; new same-source oracle matches 38592 native comparisons and 45024 derived values. A separate source-binding audit matches 1600 native modal fields and 200 periods; this is not a new building arithmetic oracle. Separate recipe intake reproduced 333 frozen assertions, 1294 assertions in one proportional-modal synthetic chain, and three current-owner primitive values. Of 44 registered comparison and coverage records, 18 have production numerical matches, 22 carry insufficient-source labels and four carry interpretation differences. The three newest matches are the GOLDEN-01 section axial limits and drift ratio.",
-      "blocker": "Of the 22 insufficient-source labels, 18 already have an independent and printed result. The next comparison uses the two GOLDEN-01 storey second-order indicators on PDF page 28. Four adopted second-order factors still need a justified selection rule. The full independent building example is open.",
+      "achieved_scope": "Historical 467-fixture bank, 10 alpha targets and 115776 separate-bank scalar comparisons are retained; new same-source oracle matches 38592 native comparisons and 45024 derived values. A separate source-binding audit matches 1600 native modal fields and 200 periods; this is not a new building arithmetic oracle. Separate recipe intake reproduced 333 frozen assertions, 1294 assertions in one proportional-modal synthetic chain, and three current-owner primitive values. Of 44 registered comparison and coverage records, 20 have production numerical matches, 20 carry insufficient-source labels and four carry interpretation differences. The two newest matches are the GOLDEN-01 ground and upper storey theta scalars through the existing global P-delta owner; the preceding section axial-limit and drift-ratio matches are retained.",
+      "blocker": "Of the 20 insufficient-source labels, 16 already have agreeing independent/reference values, including five derived Boolean expectations; adapter or method work remains. The matched theta scalars do not establish source-population qualification or the global factor policy. Four adopted second-order factors still need a justified selection rule. The full independent building example is open.",
       "closure_criteria": "Run the production owner on a complete independent example with inputs, intermediate values, tolerances, identities and a sealed result chain.",
       "owner_paths": [
         "src/tbdy_next/verification/golden_gate.py",
@@ -405,7 +409,8 @@
         "EV-RECIPE18-ARITHMETIC",
         "EV-RECIPE18-LOCAL-OWNERS",
         "EV-HANDOFF-RESOURCES-20261119",
-        "EV-GOLDEN01-OWNER-BINDINGS-20261119"
+        "EV-GOLDEN01-OWNER-BINDINGS-20261119",
+        "EV-AUDIT-FIXES-20261120"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -422,7 +427,7 @@
       "title": "One pipeline, dependency graph and sealed reports",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "One runner and finalized v2 remain; current same-source stage repeats 16/16 IDENTICAL, and report projection makes zero calls with 21 entry points disabled. Web and CLI now share scenario preparation and original-parent verification, with complete sealed-result equality checks. Normal single/all-column reports project governing PMM cuts and joint shear/tie details without calculation. The logical baseline is included in CI filters.",
+      "achieved_scope": "One runner and finalized v2 remain; current same-source stage repeats 16/16 IDENTICAL, and report projection makes zero calls with 21 entry points disabled. Web and CLI now share scenario preparation and original-parent verification, with complete sealed-result equality checks. Normal single/all-column reports project governing PMM cuts and joint shear/tie details without calculation. The logical baseline is included in CI filters. All declared method versions are exported even when a stage has no consumes contract. New legacy-policy selections are prepared through the single scenario owner; an unprepared direct-run selection is rejected before calculation receipts. New raw/floored/final moment and alpha-population report fields are sealed-result projections.",
       "blocker": "General catalog-wide topological execution and complete CHECK-instance ledger remain open; legacy compatibility still exists.",
       "closure_criteria": "Execute one registry with typed dependencies and complete expected scope; block missing upstreams and project the same sealed result in UI/CLI/report.",
       "owner_paths": [
@@ -436,7 +441,8 @@
         "EV-D3B-REPLAY",
         "EV-LOCAL-REPORT",
         "EV-RECIPE18-INTAKE",
-        "EV-AUDIT-ADAPTER-FIXES-20261119"
+        "EV-AUDIT-ADAPTER-FIXES-20261119",
+        "EV-AUDIT-FIXES-20261120"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -553,5 +559,15 @@
       }
     }
   ],
-  "remote_audit_correction_base_commit": "1697a968dc30e342b83685bec898bda3109643ca"
+  "remote_audit_correction_base_commit": "1697a968dc30e342b83685bec898bda3109643ca",
+  "remote_correction_checkpoint": {
+    "base_commit": "f57e6194155b2f9cfc30e3beecf75e0c83a39c16",
+    "work_branch": "work/engine-audit-fixes-20261120",
+    "evidence_refs": [
+      "EV-AUDIT-FIXES-20261120"
+    ],
+    "unseen_windows_working_tree": "NOT_INSPECTED",
+    "original_87_column_replay": "NOT_RUN",
+    "live_ETABS": "NOT_RUN"
+  }
 }

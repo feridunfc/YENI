@@ -1,0 +1,274 @@
+{
+  "schema": "yeni.audit-fixes.verification.v1",
+  "evidence_id": "EV-AUDIT-FIXES-20261120",
+  "observed_at_utc": "2026-11-20T07:28:01.488749+00:00",
+  "tested_base_commit": "f57e6194155b2f9cfc30e3beecf75e0c83a39c16",
+  "work_branch": "work/engine-audit-fixes-20261120",
+  "integration_branch": "baseline/local_import",
+  "dirty_worktree": true,
+  "distribution_identity": "The containing Git commit identifies the published revision; the exact base and manifest identify the tested dirty tree.",
+  "tested_file_manifest": "docs/context/TESTED_FILES_AUDIT_FIXES_20261120.json",
+  "tested_file_manifest_sha256": "6a7cbe1409f634adc2980886d05511af98e911fd68c348f8b764c13959da2103",
+  "tested_file_count": 320,
+  "tested_files_unchanged_during_final_execution": true,
+  "tracked_runtime_and_test_diff_sha256": "2b1a82e68ac15fd54e37631cf8643902f4c76351969e455e9aec9ae39f840e6d",
+  "changed_executable_files": [
+    {
+      "path": "src/tbdy_next/engineering/alpha_iteration.py",
+      "sha256": "b362e3ba12a9ec62b2808ee58bfe7cebfb98370ee0a442620418fcc7753240c9"
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_r08_local_live.py",
+      "sha256": "a537b3e408b56ea76a814b076629f5b086be4529ae8730d6ca330d17c5f55132"
+    },
+    {
+      "path": "src/tbdy_next/engineering/column_r10_live.py",
+      "sha256": "5001deeb91f53e7e5695075c3af003e39d259cee5abb97970c7777c0ef1acf85"
+    },
+    {
+      "path": "src/tbdy_next/engineering/design_scenario.py",
+      "sha256": "a73f48ee9f6fa05ddaf7f12a2c4a6d8516fccf95f825ecc2899244c6b247b73a"
+    },
+    {
+      "path": "src/tbdy_next/engineering/pipeline.py",
+      "sha256": "9108cea3c561d1c2b5e380fbb37a08fa4e8843fc7f57f46941071cbda992d502"
+    },
+    {
+      "path": "src/tbdy_next/engineering/scwb_axial.py",
+      "sha256": "9080364f4f15503e22c67a5372d884f73b1bd3e66e01a94a2cc2c16f17d32a00"
+    },
+    {
+      "path": "src/tbdy_next/engineering/story_pdelta.py",
+      "sha256": "ee200ce03d3e17724beccb786ef4062fd7686dbd64c41260cea0f45532c712d2"
+    },
+    {
+      "path": "src/tbdy_next/reporting.py",
+      "sha256": "dc11e4d151a14e8213ce45487cc09c9d663707f1400082ae149f2385bc884f18"
+    },
+    {
+      "path": "src/tbdy_next/verification/golden_gate.py",
+      "sha256": "1f0d90f0f47e745db5c3596f7c969c98fdf965669e59f38ec073035551432d5a"
+    },
+    {
+      "path": "tests/test_alpha_design_iteration.py",
+      "sha256": "1332a0cc9d29048d6ccce79ed6dcc8d5796d9b7c34b820c6507068da320691dc"
+    },
+    {
+      "path": "tests/test_alpha_joint_feasibility.py",
+      "sha256": "7221863fad8ee72468d97ff881405fc8384a8c89a5454717fa4c08c57251f20d"
+    },
+    {
+      "path": "tests/test_alpha_low_axial_credit.py",
+      "sha256": "501cc0f673bd8bbd2a4b1cb9244685fe5bdea3f26f83a6bc68774e6c926e617c"
+    },
+    {
+      "path": "tests/test_audit_hardening.py",
+      "sha256": "a6c4bd0d269bbf42b74126fb8e406d23c1ce6d3e5a8269ebb7c24ca1248d268e"
+    },
+    {
+      "path": "tests/test_engine_r08_story.py",
+      "sha256": "f6f2c02e202b93bc6883ede2b737da2f64ee711ba78b4a962a89b9e22fddfdac"
+    },
+    {
+      "path": "tests/test_offline_design_scenario.py",
+      "sha256": "c9738681be0a7968ef20c6c6bcecbb0e673cb00d16ee1b6c28abd89c1ea379af"
+    },
+    {
+      "path": "tests/test_pipeline_unification.py",
+      "sha256": "4a0af088dbd4837ac774bdd641bb57184841bb23d776486bf43711ec485ac657"
+    },
+    {
+      "path": "tests/test_rebar_selection.py",
+      "sha256": "8d4e475ca0c297430199f6e108b5bc0e94d3ddb2100a85b24b4975d502da8930"
+    },
+    {
+      "path": "tests/test_recorded_column_calculation_report.py",
+      "sha256": "c9d91ff5026a6e5136d4ff5a9bb6ad09ea84ddf41af6202c84cddf9098d7fefa"
+    },
+    {
+      "path": "tests/test_structural_demand_floors.py",
+      "sha256": "31131aa3e82dc4fe804ae044a0e6df4b6ccd156148b21dd735366772fe8616df"
+    },
+    {
+      "path": "tests/test_vs26_golden_gate.py",
+      "sha256": "2de3ef0f6f287c285d30243e34c09fdb88a478052d919db0217058e72a747818"
+    },
+    {
+      "path": "tools/test_installed_wheel.py",
+      "sha256": "7e4d0f8e741a2ef092985f99ac8abd6aa1d4d696dd9163fbe47f2d2d60a4cd4a"
+    }
+  ],
+  "environment": {
+    "python": "3.12.14",
+    "python_executable": "/workspace/scratch/675b0dc139de/implementation_20261120_env/bin/python",
+    "node": "v24.22.3",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "pipeline_import": "/workspace/scratch/675b0dc139de/implementation_20261120/src/tbdy_next/engineering/pipeline.py",
+    "cwd": "/workspace/scratch/675b0dc139de/implementation_20261120"
+  },
+  "method_versions": {
+    "column-r10": "column-r10-low-axial.v2",
+    "column-r08-local": "column-r08-local.v6",
+    "alpha-feedback": "alpha-feedback.mixed-signed-same-cut.v3"
+  },
+  "full_offline_execution": {
+    "command": [
+      "/workspace/scratch/675b0dc139de/implementation_20261120_env/bin/python",
+      "-B",
+      "tools/test_offline.py"
+    ],
+    "exit_code": 0,
+    "result": "PASS",
+    "python_tests": 1522,
+    "python_test_elapsed_seconds": 155.253,
+    "skipped": 0,
+    "javascript_test_files": 11,
+    "python_compilation": "PASS",
+    "javascript_syntax": "PASS",
+    "log_name": "full_offline.log",
+    "sha256": "72a237d7f41ffa314e12da456a6d11a54945fee024573f6503f87b66cd768643",
+    "raw_log_published": false
+  },
+  "wheel_build": {
+    "command": [
+      "/workspace/scratch/675b0dc139de/implementation_20261120_env/bin/python",
+      "-m",
+      "pip",
+      "wheel",
+      "--no-deps",
+      "--no-build-isolation",
+      "--wheel-dir",
+      "/workspace/scratch/675b0dc139de/implementation_notes/final/wheel",
+      "."
+    ],
+    "result": "PASS",
+    "wheel_filename": "tbdy_next_engine-0.1.0-py3-none-any.whl",
+    "wheel_sha256": "52b77c8600ffb5583a8e9d40775e731def459c459d8283a5ea00bc8e8b0b1926",
+    "log_name": "wheel_build.log",
+    "sha256": "657adee31534a621575fec69b869fded6a05b174033321e8caea64467ad81b30",
+    "raw_log_published": false
+  },
+  "installed_wheel_execution": {
+    "command": [
+      "/workspace/scratch/675b0dc139de/implementation_20261120_env/bin/python",
+      "-B",
+      "tools/test_installed_wheel.py",
+      "/workspace/scratch/675b0dc139de/implementation_notes/final/wheel"
+    ],
+    "exit_code": 0,
+    "result": "PASS",
+    "python_tests": 370,
+    "python_test_elapsed_seconds": 20.259,
+    "skipped": 0,
+    "scope": "Isolated installed wheel; overlaps full offline suite, do not add counts.",
+    "log_name": "installed_wheel.log",
+    "sha256": "36325b59c0bfc8e5cd2488180b09a6db8f3c02063e431b611fce098ecb18113b",
+    "raw_log_published": false
+  },
+  "golden_comparison": {
+    "command": [
+      "/workspace/scratch/675b0dc139de/implementation_20261120_env/bin/python",
+      "-B",
+      "-m",
+      "tbdy_next.cli",
+      "inspect-golden-regression",
+      "--require-complete"
+    ],
+    "expected_exit_code": 3,
+    "record_count": 44,
+    "classification_counts": {
+      "INSUFFICIENT_SOURCE": 20,
+      "NUMERICAL_MATCH": 20,
+      "ENGINEERING_INTERPRETATION_DIFFERENCE": 4
+    },
+    "changed_existing_record_ids": [
+      "G01_THETA_GROUND",
+      "G01_THETA_UPPER"
+    ],
+    "source_ids_and_original_tolerances_unchanged": true,
+    "remaining_42_comparisons_unchanged": true,
+    "acceptance_eligible": false,
+    "result_sha256": "c8a1eee5790e61f72f6a0eec6d9e10bc36adc81df03fdddc9c7015c1fbf5ce2b"
+  },
+  "verification_levels": {
+    "independent_example_arithmetic": {
+      "status": "PASS",
+      "examples": [
+        "Moment floor before beta: 200.9484578985197 kN m",
+        "Initial and revised capacity shear: max(280,500)=500 kN",
+        "Signed consumer fixture: (60+20)/(60+20+20)=0.8, only C1 amplified",
+        "Two existing PDF theta scalars versus independent Decimal arithmetic"
+      ]
+    },
+    "production_owner_comparisons": {
+      "status": "PASS_WITH_EXPLICIT_OPEN_RECORDS",
+      "scope": "Existing R08/R10/axial/joint owners and 20 of 44 golden comparison records; the alpha population fixture retains explicit SCWB Boolean inputs."
+    },
+    "saved_source_pipeline_repeat": {
+      "status": "PASS_PUBLIC_SYNTHETIC_SOURCES",
+      "scope": "Existing Web/CLI/runner tests preserve source/parent bytes, expected cuts and exact sealed-result equality. Not the private original model."
+    },
+    "original_87_column_source_replay": {
+      "status": "NOT_RUN",
+      "reason": "Exact private source and parent bytes were unavailable in this workspace."
+    },
+    "live_ETABS_source_validation": {
+      "status": "NOT_RUN",
+      "reason": "No live ETABS acquisition in this milestone; user will run the existing Windows gateway."
+    },
+    "unseen_windows_working_tree": {
+      "status": "NOT_INSPECTED"
+    },
+    "engineering_acceptance": {
+      "status": "NOT_GRANTED",
+      "engineering_release": "NOT_READY",
+      "stable_GAPs_closed": 0,
+      "engineering_CHECKs_closed": 0
+    },
+    "document_reference_and_hash_consistency": {
+      "status": "PASS",
+      "stable_GAP_count": 18,
+      "prior_verification_records_unchanged": 46,
+      "relative_links_checked": 38,
+      "recipe_files_unchanged": [
+        "docs/engineering/reference/recipe_20261118/delivery/GOLDEN_CASES.json",
+        "docs/engineering/reference/recipe_20261118/delivery/CHECK_MAPPING.json"
+      ],
+      "tested_file_hashes_checked": 320,
+      "engineering_scope": "No engineering calculation is closed by this document validation."
+    }
+  },
+  "attempt_history": [
+    {
+      "result": "FAILED_ONE_LEGACY_FIXTURE",
+      "python_tests": 1522,
+      "log_name": "full_offline_initial.log",
+      "sha256": "f839a7164288b8d742db07ab0be7bd5e61cb9850f16a90ff27e0cff8847a4396",
+      "raw_log_published": false,
+      "reason": "Existing capacity-ratio regression supplied neither native force rows nor projected Vd. The new required floor correctly remained unresolved. Fixture now includes explicit synthetic 50 kN Vd; independent unreduced capacity expectation is unchanged. No production guard was weakened."
+    },
+    {
+      "result": "PASS_BEFORE_FINAL_REPORT_VISIBILITY_CORRECTION",
+      "log_name": "full_offline_before_report_fix.log",
+      "sha256": "07808b9a25be3ea257f4a8ccae24e6ed399a1fac21c5ac94770838c6ea5378e9",
+      "raw_log_published": false,
+      "superseded_by": "full_offline.log",
+      "note": "Final report now unions qualification, unresolved and proved-failure reasons; existing regression tests verify concurrent failures remain visible."
+    },
+    {
+      "result": "PASS_BEFORE_FINAL_REPORT_VISIBILITY_CORRECTION",
+      "python_tests": 370,
+      "log_name": "installed_wheel_before_report_fix.log",
+      "sha256": "6ebad24fcc1f064f1616243610fe075cab98512ec1015194015be2bd7eac6f9d",
+      "raw_log_published": false,
+      "superseded_by": "installed_wheel.log"
+    }
+  ],
+  "population_policy": "73 recipe identities, 44 comparison records, historical 333 arithmetic populations, 94 DAG nodes, software tests and member counts remain separate. Historical executions were not relabeled as new.",
+  "limits": [
+    "Source-generation/physical faces/clear and effective lengths/K/sway/Rm and nonlinear spectral-box acceptance remain unapproved.",
+    "The five recorded original non-exempt joint demands, complete actual-owner original story example and spectral alpha method are not completed by this signed-consumer increment.",
+    "No ETABS model setter, analysis operation, second solver or connection route was introduced.",
+    "The final source/reinforcement selection must be verified on the user model; no original-building utilization is inferred from public fixtures."
+  ]
+}

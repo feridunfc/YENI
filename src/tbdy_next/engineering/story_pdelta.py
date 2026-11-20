@@ -28,6 +28,23 @@ def finite(value, name: str, *, positive=False):
     return x
 
 
+def theta_ii_reference(*, cumulative_weight_kn, average_reduced_drift_m,
+                       story_shear_kn, height_m) -> float:
+    """Return the dimensionless Eq.4.35 scalar from explicit kN/m inputs.
+
+    Weight is already cumulative at and above the story; it is not summed
+    here. Drift is an average reduced displacement in metres, not a drift
+    ratio. This arithmetic does not qualify the source population, seismic
+    weight, direction, spectrum scaling or Eq.4.36 limit. The source wrapper
+    retains those validation responsibilities.
+    """
+    weight = finite(cumulative_weight_kn, "cumulative_weight_kn", positive=True)
+    drift = finite(average_reduced_drift_m, "average_reduced_drift_m")
+    shear = finite(story_shear_kn, "story_shear_kn", positive=True)
+    height = finite(height_m, "height_m", positive=True)
+    return finite(drift * weight / (shear * height), "theta_II_reference")
+
+
 def review_story_pdelta(source: dict) -> dict:
     """Evaluate one consistent story census, returning reference-only theta_II.
 
@@ -102,7 +119,10 @@ def review_story_pdelta(source: dict) -> dict:
         for axis in ("X", "Y"):
             vi = finite(v[axis], "V_" + axis, positive=True)
             di = finite(delta[axis], "delta_" + axis)
-            theta = di * total_w / (vi * h)
+            theta = theta_ii_reference(
+                cumulative_weight_kn=total_w, average_reduced_drift_m=di,
+                story_shear_kn=vi, height_m=h,
+            )
             axes[axis] = {
                 "case": source_path[axis]["shear_case"], "shear_kN": vi,
                 "average_reduced_drift_m": di, "theta_II_reference": theta,

@@ -189,7 +189,8 @@ def prepare_pipeline_source(
     Existing scenarios must pass lineage and original-parent verification before
     replay or policy revision. Revisions are siblings derived from those original
     bytes, not nested scenarios. Omitted policies inherit the selected scenario's
-    policy; explicit null disables that selection. No native source is rewritten.
+    policy; explicit null disables that selection. Embedded legacy policies also
+    create a scenario for a new calculation. No native source is rewritten.
     """
     if not 0 < len(source_raw) <= _MAX_SOURCE_BYTES:
         raise ValueError("SCENARIO_SOURCE_EXCEEDS_ARCHIVE_LIMIT")
@@ -200,6 +201,11 @@ def prepare_pipeline_source(
         raise ValueError("LIVE_ETABS_ARCHIVED_SOURCE_REQUIRED")
     scenario = validate_design_scenario(payload)
     parent_raw = _read_verified_parent(source_directory, payload) if scenario is not None else None
+    if (scenario is None and request is None and selection_overrides is None
+            and any(payload.get(key) is not None for key in POLICIES)):
+        # Historical input bytes remain the parent. A fresh selection must use
+        # the same required member/cut dependencies as an explicit request.
+        selection_overrides = {key: payload.get(key) for key in POLICIES}
     if selection_overrides is not None:
         overrides = normalize_selection_overrides(selection_overrides)
         parent = parent_raw if parent_raw is not None else source_raw

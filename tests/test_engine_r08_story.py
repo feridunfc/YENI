@@ -1,7 +1,10 @@
 """Unit tests for direction-matched R08 story numeric screening."""
+from decimal import Decimal
 import unittest
+from unittest.mock import patch
 
 from tbdy_next.column_engine.native_archive import digest
+from tbdy_next.engineering import story_pdelta
 from tbdy_next.engineering.story_pdelta import StorySourceError, review_story_pdelta
 
 
@@ -44,6 +47,61 @@ def example():
 
 
 class StoryScreeningTests(unittest.TestCase):
+
+    def test_scalar_uses_explicit_cumulative_kn_and_displacement_m(self):
+        # Exact decimal arithmetic is independent of the production function.
+        expected = (Decimal("2392.23") * Decimal("0.001519")
+                    / (Decimal("161.14") * Decimal("3")))
+        result = story_pdelta.theta_ii_reference(
+            cumulative_weight_kn=2392.23, average_reduced_drift_m=.001519,
+            story_shear_kn=161.14, height_m=3,
+        )
+        self.assertAlmostEqual(result, float(expected), places=15)
+        self.assertEqual(story_pdelta.theta_ii_reference(
+            cumulative_weight_kn=2392.23, average_reduced_drift_m=0,
+            story_shear_kn=161.14, height_m=3), 0.)
+
+    def test_scalar_rejects_invalid_physical_inputs(self):
+        valid = dict(cumulative_weight_kn=2000, average_reduced_drift_m=.002,
+                     story_shear_kn=100, height_m=3)
+        for key, value in (
+            ("cumulative_weight_kn", 0), ("cumulative_weight_kn", True),
+            ("average_reduced_drift_m", -.001),
+            ("average_reduced_drift_m", float("nan")),
+            ("story_shear_kn", 0), ("story_shear_kn", float("inf")),
+            ("height_m", 0), ("height_m", "3"),
+        ):
+            with self.subTest(key=key, value=value), self.assertRaises(StorySourceError):
+                story_pdelta.theta_ii_reference(**{**valid, key: value})
+
+    def test_source_wrapper_calls_the_scalar_after_individual_weight_accumulation(self):
+        source = example()  # Synthetic acquisition metadata, not a PDF capture.
+        with patch.object(story_pdelta, "theta_ii_reference",
+                          wraps=story_pdelta.theta_ii_reference) as owner:
+            result = review_story_pdelta(source)
+        self.assertEqual(owner.call_count, 4)
+        owner.assert_any_call(cumulative_weight_kn=1000., average_reduced_drift_m=.002,
+                              story_shear_kn=100., height_m=4.5)
+        owner.assert_any_call(cumulative_weight_kn=3000., average_reduced_drift_m=.004,
+                              story_shear_kn=180., height_m=4.5)
+        expected = Decimal("0.004") * Decimal("3000") / (Decimal("180") * Decimal("4.5"))
+        self.assertAlmostEqual(result["rows"][1]["axes"]["Y"]["theta_II_reference"],
+                               float(expected), places=15)
+
+    def test_source_metadata_remains_required_before_scalar_evaluation(self):
+        for key, value, reason in (
+            ("drift_units", "mm", "WEIGHT_OR_UNITS"),
+            ("weight_kind", "CUMULATIVE_AT_CUT", "WEIGHT_OR_UNITS"),
+            ("design_parameters", {}, "INVALID_STORY_NUMBER"),
+            ("directions", {}, "MISSING_DIRECTION_SOURCE_PATH"),
+        ):
+            with self.subTest(key=key):
+                source = example()
+                source[key] = value
+                with patch.object(story_pdelta, "theta_ii_reference") as owner:
+                    with self.assertRaisesRegex(StorySourceError, reason):
+                        review_story_pdelta(source)
+                    owner.assert_not_called()
 
     def test_cumulative_weight_and_two_axes(self):
         result = review_story_pdelta(example())

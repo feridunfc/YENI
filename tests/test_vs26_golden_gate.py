@@ -52,7 +52,7 @@ class GoldenReportGateTests(unittest.TestCase):
     def test_three_classifications_and_missing_coverage_stay_visible(self):
         r=gate.build_golden_gate()
         self.assertEqual(r['record_count'],44)
-        self.assertEqual(r['classification_counts'],{'NUMERICAL_MATCH':18,'ENGINEERING_INTERPRETATION_DIFFERENCE':4,'INSUFFICIENT_SOURCE':22})
+        self.assertEqual(r['classification_counts'],{'NUMERICAL_MATCH':20,'ENGINEERING_INTERPRETATION_DIFFERENCE':4,'INSUFFICIENT_SOURCE':20})
         self.assertEqual(len(r['legacy_reference_bank']['golden02_replayed_test_groups']),7)
         self.assertFalse(r['acceptance_eligible']);self.assertEqual(r['engineering_release'],'NOT_READY')
         self.assertEqual({d['domain'] for d in r['required_domains']},set(gate.REQUIRED_DOMAINS))
@@ -92,6 +92,60 @@ class GoldenReportGateTests(unittest.TestCase):
                 case["inputs"]["Ac_cm2"] = 1500
                 with self.assertRaisesRegex(gate.GoldenRegressionError, "AXIAL_SECTION_AREA_CONFLICT"):
                     gate._first_adapters(altered, manifest)
+
+    def test_theta_rows_call_the_existing_owner_with_cumulative_weights_and_one_unit_conversion(self):
+        with patch.object(gate.story_pdelta, "theta_ii_reference",
+                          wraps=gate.story_pdelta.theta_ii_reference) as owner, \
+             patch.object(gate.story_pdelta, "review_story_pdelta",
+                          side_effect=AssertionError("A PDF is not a captured ETABS story source")):
+            result = gate.build_golden_gate()
+        self.assertEqual(owner.call_count, 2)
+        owner.assert_any_call(cumulative_weight_kn=2392.23, average_reduced_drift_m=1.519/1000,
+                              story_shear_kn=161.14, height_m=3)
+        owner.assert_any_call(cumulative_weight_kn=1230.62, average_reduced_drift_m=1.612/1000,
+                              story_shear_kn=110.25, height_m=3)
+        rows = {row["id"]: row for row in result["comparisons"]}
+        # Direct Decimal references do not call any production arithmetic.
+        cases = (
+            ("G01_THETA_GROUND", "2392.23", "0.001519", "161.14", .0075),
+            ("G01_THETA_UPPER", "1230.62", "0.001612", "110.25", .0060),
+        )
+        for case_id, weight, drift, shear, printed in cases:
+            with self.subTest(case_id=case_id):
+                row = rows[case_id]
+                expected = Decimal(weight) * Decimal(drift) / (Decimal(shear) * Decimal("3"))
+                self.assertAlmostEqual(row["yeni"], float(expected), places=15)
+                self.assertAlmostEqual(row["independent"], float(expected), places=15)
+                self.assertEqual(row["report"], printed)
+                self.assertEqual(row["report_rounding_tolerance"], .00005)
+                self.assertEqual(row["pdf_pages_1_based"], [28])
+                self.assertEqual(row["source_directions"], ["X", "Y"])
+                self.assertEqual(row["source_weight_kind"], "CUMULATIVE_AT_AND_ABOVE_STORY")
+                self.assertEqual(row["quantity_unit"], "dimensionless")
+                self.assertEqual(row["yeni_kernel"], "engineering.story_pdelta.theta_ii_reference")
+                self.assertEqual(row["classification"], "NUMERICAL_MATCH")
+        self.assertEqual(result["algorithm_sha256"]["story_pdelta"],
+                         sha256(Path(gate.story_pdelta.__file__).read_bytes()).hexdigest())
+        self.assertFalse(result["acceptance_eligible"])
+        self.assertEqual(result["negative_system_reference"]["golden01"], "BLOCKED_A15_SYSTEM_MISMATCH")
+
+    def test_theta_unit_and_double_accumulation_defects_fail_the_independent_comparison(self):
+        original = gate.story_pdelta.theta_ii_reference
+
+        def millimetres_as_metres(**values):
+            values["average_reduced_drift_m"] *= 1000
+            return original(**values)
+
+        def accumulate_the_already_cumulative_ground_weight(**values):
+            if values["cumulative_weight_kn"] == 2392.23:
+                values["cumulative_weight_kn"] += 1230.62
+            return original(**values)
+
+        for defect in (millimetres_as_metres, accumulate_the_already_cumulative_ground_weight):
+            with self.subTest(defect=defect.__name__), \
+                 patch.object(gate.story_pdelta, "theta_ii_reference", side_effect=defect):
+                with self.assertRaisesRegex(gate.GoldenRegressionError, "YENI_ORACLE_MISMATCH"):
+                    gate.build_golden_gate()
 
     def test_actual_yeni_beta_matches_independent_report_values(self):
         r=gate.build_golden_gate();rows={v['id']:v for v in r['comparisons']}

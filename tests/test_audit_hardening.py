@@ -503,9 +503,13 @@ class SourceAndNormativeRepairContracts(unittest.TestCase):
     def test_unsafe_capacity_ratio_reduction_replaced_by_unreduced_reference(self):
         joints=[{"target_end":e,"direction":"X","cases":[{"output_case":"G","target_column_capacity_knm":500.,
             "sum_mrc_reference_knm":2000.,"sum_mrb_reference_knm":800.,"reference_satisfied":True}]} for e in ("I","J")]
+        # Explicit synthetic Vd lies below the unreduced capacity reference.
+        forces=_rowset([("C1",s,"C1-1",s,"G","Single Value",0.,-300.,50.,0.,0.,0.,0.)
+                        for s in (0.,3.)])
         r=_compute_capacity_shear_axes(uid="C1",col_frame={"axes_global":[[0,0,1],[1,0,0],[0,1,0]]},ln_m=3.,
-            scwb_joints=joints,stations=[],static_combos=["G"],rowset=None,section=None,use_engineer=False,vr_lookup=lambda *x:(1000.,1000.))
+            scwb_joints=joints,stations=[],static_combos=["G"],rowset=forces,section=None,use_engineer=False,vr_lookup=lambda *x:(1000.,1000.))
         self.assertAlmostEqual(r["V2"]["max_ve_scwb_scenario_kn"],2*1.4*500/3)
+        self.assertEqual(r["V2"]["cases"][0]["vd_floor_kn"],50.)
         self.assertEqual(r["V2"]["cases"][0]["mp_i_basis"],"UNREDUCED_7_3_7_3_NO_ANALYSIS_MOMENT_SHARE")
     def test_spectral_only_seismic_group_does_not_use_gravity_for_alpha(self):
         frames={c:{"frame_id":c,"story":"S1","axes_global":[[0,0,1],[1,0,0],[0,1,0]]} for c in ("C1","C2")}

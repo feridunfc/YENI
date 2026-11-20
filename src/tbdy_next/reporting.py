@@ -2452,8 +2452,13 @@ def _column_slenderness_html(evidence: Mapping[str, Any], local: Mapping[str, An
 def _alpha_feedback_html(record: Mapping[str, Any]) -> str:
     """Display stored iteration evidence. No qualification, solver or arithmetic."""
     qualification = record.get("final_qualification") or {}
-    reasons = qualification.get("reason_codes") or (record.get("final_feasibility") or {}).get("reason_codes") or []
+    feasibility = record.get("final_feasibility") or {}
+    reasons = sorted(set(qualification.get("reason_codes") or ())
+                     | set(feasibility.get("reason_codes") or ())
+                     | set(feasibility.get("failure_codes") or ()))
     cases = [{**case, "eligible": ", ".join(case.get("eligible_member_ids", ())),
+              "amplified": ", ".join(case.get("amplification_member_ids", case.get("eligible_member_ids", ()))),
+              "low_n_credit": ", ".join(case.get("low_axial_credit_member_ids", ())),
               "reasons": ", ".join(case.get("reason_codes", ()))}
              for case in qualification.get("cases", ())]
     trace = [{"iteration": step["iteration"], "members": ", ".join(step["changed_member_ids"]),
@@ -2469,7 +2474,8 @@ def _alpha_feedback_html(record: Mapping[str, Any]) -> str:
                   ("sha256", "Recorded revision")), [record])
         + ('<p>' + escape(", ".join(reasons)) + '</p>' if reasons else '')
         + _table((("story", "Story"), ("direction", "Direction"), ("combination", "Combination"),
-                  ("alpha", "Alpha"), ("factor", "Factor"), ("eligible", "Eligible columns"),
+                  ("alpha", "Alpha"), ("factor", "Factor"), ("eligible", "Vis columns"),
+                  ("amplified", "1/alpha columns"), ("low_n_credit", "Optional low-N credit"),
                   ("status", "Input status"), ("reasons", "Open reasons")), cases)
         + _table((("iteration", "Iteration"), ("members", "Re-selected columns"),
                   ("joint_consumers", "Rechecked joint consumers"), ("demand_sha", "Demand revision")), trace)
@@ -2503,6 +2509,9 @@ def _recorded_static_pmm_html(columns: list[Mapping[str, Any]]) -> str:
             ("nd_kn", "N, compression positive (kN)")), [station]))
         parts.append(_table((
             ("first_order_m2_knm", "Source M2 (kN·m)"), ("first_order_m3_knm", "Source M3 (kN·m)"),
+            ("first_order_m2_design_knm", "M2 after eccentricity floor (kN·m)"),
+            ("first_order_m3_design_knm", "M3 after eccentricity floor (kN·m)")), [station]))
+        parts.append(_table((
             ("beta_m2", "Local M2 factor"), ("beta_m3", "Local M3 factor"),
             ("global_beta_ii_applied", "Applied global factor"),
             ("magnified_m2_design_knm", "Design M2 (kN·m)"),

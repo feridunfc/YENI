@@ -3912,23 +3912,72 @@
       "implementation_commit": "ee2eccaeb1ac471af6f1aa0a6d7ded594cae9bca",
       "scope": "Agent entry, shareable project charter, existing source discovery and three direct GOLDEN-01 production checks.",
       "environment": "Windows, CPython 3.12.10, project virtual environment",
-      "source_ids": ["MASTER-HANDOFF", "SRC-PDF-V2", "GOLDEN-01", "GOLDEN-02", "GOLDEN-03", "GOLDEN-04"],
+      "source_ids": [
+        "MASTER-HANDOFF",
+        "SRC-PDF-V2",
+        "GOLDEN-01",
+        "GOLDEN-02",
+        "GOLDEN-03",
+        "GOLDEN-04"
+      ],
       "method": "Matched the original master document against the recipe manifest. Rehashed original PDF editions 02 through 04 and the canonical SQLite bank. Opened the databases read-only, ran inspect-golden-regression and compared three production returns against independent arithmetic and the printed reference with the existing tolerances.",
       "historical_verifier_sha256": "b538ac0580a28c12c794184130b3884023d555cf5948217401108da381e0d72e",
-      "canonical_bank_counts": {"documents": 3, "pages": 716, "reference_cases": 467, "raw_observations": 245},
-      "registered_report_gate": {"records": 44, "NUMERICAL_MATCH": 15, "INSUFFICIENT_SOURCE": 25, "ENGINEERING_INTERPRETATION_DIFFERENCE": 4, "insufficient_rows_with_independent_and_report_results": 21, "require_complete_exit": 3},
+      "canonical_bank_counts": {
+        "documents": 3,
+        "pages": 716,
+        "reference_cases": 467,
+        "raw_observations": 245
+      },
+      "registered_report_gate": {
+        "records": 44,
+        "NUMERICAL_MATCH": 15,
+        "INSUFFICIENT_SOURCE": 25,
+        "ENGINEERING_INTERPRETATION_DIFFERENCE": 4,
+        "insufficient_rows_with_independent_and_report_results": 21,
+        "require_complete_exit": 3
+      },
       "direct_owner_checks": [
-        {"id": "G01_AXIAL_TBDY_LIMIT", "owner": "ts500_column.section_axial_limits_kn", "unit": "kN", "production": 1920.0, "independent": 1920.0, "printed": 1920.0},
-        {"id": "G01_AXIAL_TS500_LIMIT", "owner": "ts500_column.section_axial_limits_kn", "unit": "kN", "production": 2880.0, "independent": 2880.0, "printed": 2880.0},
-        {"id": "G01_DRIFT_LAMBDA", "owner": "normative_basis.eq_4_9_lambda", "unit": "ratio", "production": 0.3974383483081629, "independent": 0.3974383483081629, "printed": 0.3975}
+        {
+          "id": "G01_AXIAL_TBDY_LIMIT",
+          "owner": "ts500_column.section_axial_limits_kn",
+          "unit": "kN",
+          "production": 1920.0,
+          "independent": 1920.0,
+          "printed": 1920.0
+        },
+        {
+          "id": "G01_AXIAL_TS500_LIMIT",
+          "owner": "ts500_column.section_axial_limits_kn",
+          "unit": "kN",
+          "production": 2880.0,
+          "independent": 2880.0,
+          "printed": 2880.0
+        },
+        {
+          "id": "G01_DRIFT_LAMBDA",
+          "owner": "normative_basis.eq_4_9_lambda",
+          "unit": "ratio",
+          "production": 0.3974383483081629,
+          "independent": 0.3974383483081629,
+          "printed": 0.3975
+        }
       ],
       "commands": [
         "python -B -m tbdy_next.cli inspect-golden-regression --require-complete --json <private-output.json>",
         "python -B -m unittest discover -s tests -p test_vs26_golden_gate.py"
       ],
-      "focused_golden_regression_tests": {"run": 14, "failures": 0, "errors": 0},
+      "focused_golden_regression_tests": {
+        "run": 14,
+        "failures": 0,
+        "errors": 0
+      },
       "status": "HANDOFF_AND_THREE_DIRECT_OWNER_COMPARISONS_VERIFIED",
-      "public_reference_paths": ["AGENTS.md", "docs/context/PROJECT_CHARTER.md", "docs/context/WORKER_HANDOFF_20261119.md", "src/tbdy_next/verification/data/SOURCE_MANIFEST.json"],
+      "public_reference_paths": [
+        "AGENTS.md",
+        "docs/context/PROJECT_CHARTER.md",
+        "docs/context/WORKER_HANDOFF_20261119.md",
+        "src/tbdy_next/verification/data/SOURCE_MANIFEST.json"
+      ],
       "limits": "The three direct checks are outside the registered gate. The 467-case bank was inventoried. The historical handoff verifier was inspected. Live ETABS and the full software suites were outside this documentation update.",
       "engineering_release_granted": false
     },
@@ -3943,10 +3992,24 @@
       "tested_file_manifest_sha256": "2902603a6b8601413655b41a8d02fafdbdd6c5b5b8004cd4d44570764c88a24f",
       "scope": "Three registered GOLDEN-01 production comparisons on PDF pages 192 and 27.",
       "source_manifest_sha256": "59dedec19a7e6c3d5f496e8d616b8c708af3c99701e271bd872644e39361bec7",
-      "cases": ["G01_AXIAL_TBDY_LIMIT", "G01_AXIAL_TS500_LIMIT", "G01_DRIFT_LAMBDA"],
-      "production_values": {"tbdy_limit_kn": 1920, "ts500_limit_kn": 2880, "drift_lambda": 0.3974383483081629},
+      "cases": [
+        "G01_AXIAL_TBDY_LIMIT",
+        "G01_AXIAL_TS500_LIMIT",
+        "G01_DRIFT_LAMBDA"
+      ],
+      "production_values": {
+        "tbdy_limit_kn": 1920,
+        "ts500_limit_kn": 2880,
+        "drift_lambda": 0.3974383483081629
+      },
       "method": "Matched both reported gross areas to the section geometry. Called the existing section-limit and drift-ratio owners on the printed inputs. Compared independent arithmetic and the printed results at the existing tolerances. The other 41 comparison rows are identical to the earlier gate.",
-      "registered_report_gate": {"records": 44, "NUMERICAL_MATCH": 18, "INSUFFICIENT_SOURCE": 22, "ENGINEERING_INTERPRETATION_DIFFERENCE": 4, "require_complete_exit": 3},
+      "registered_report_gate": {
+        "records": 44,
+        "NUMERICAL_MATCH": 18,
+        "INSUFFICIENT_SOURCE": 22,
+        "ENGINEERING_INTERPRETATION_DIFFERENCE": 4,
+        "require_complete_exit": 3
+      },
       "environment": "Windows, CPython 3.12.10, Node.js 24.22.1, setuptools 83.0.0",
       "commands": [
         "python -B -m unittest discover -s tests -p test_vs26_golden_gate.py",
@@ -3962,13 +4025,17 @@
       "focused_tests": 16,
       "installed_wheel_tests": 293,
       "first_offline_run": {
-        "python_tests": 1466, "errors": 1, "skipped": 1,
+        "python_tests": 1466,
+        "errors": 1,
+        "skipped": 1,
         "error": "Windows aborted the loopback connection in test_body_upload_is_not_allowed_for_live_endpoint (10053). All 18 tests in its module passed on the separate repeat.",
         "log_sha256": "0b41e846a0c9ffb8494542d422e078c268d3d5edd7a56a50cc647e534053eab1"
       },
       "final_offline_run": {
         "status": "OFFLINE_SOFTWARE_REGRESSIONS=PASS",
-        "python_tests": 1466, "skipped": 1, "javascript_test_files": 11,
+        "python_tests": 1466,
+        "skipped": 1,
+        "javascript_test_files": 11,
         "skip_reason": "The Windows test environment disallowed symlink creation.",
         "log_sha256": "c01786465c75eec6f0ccd0512b9cebda73816cf4d4627efccef04556d329f5d9"
       },
@@ -3985,7 +4052,9 @@
       "scope": "TBDY 7.3.5.3(a) at both configured column-end cuts of one original interior joint. Topology, mesh ends, cut assignments, design groups and section properties came from the same input.",
       "method": "Read native axial extrema with compression positive. Compare earthquake bounds with the existing primitive-load replay. Check each column against 0.10 Ac fck, including the three assigned static combinations.",
       "result": "Both columns are below the threshold. All 32 earthquake bounds matched across eight combinations, with a maximum absolute difference of 4.55e-13 kN.",
-      "commands": ["python -X utf8 -B .receipts/verification/review-ee2ecca-c29/check_joint6_axial.py"],
+      "commands": [
+        "python -X utf8 -B .receipts/verification/review-ee2ecca-c29/check_joint6_axial.py"
+      ],
       "private_check_sha256": "174cfa252a99c30d2b691a19596fb21252b53a9c90ce92d9ff9d468bdc9c8747",
       "limits": "Local calculation on the saved original input. The capture lacks independent analysis-generation proof. Production seismic joint classification, story shear, alpha and redesign remain open.",
       "engineering_release_granted": false
@@ -4041,6 +4110,28 @@
       "supersession": "An exploratory comparison that included gravity-only combinations yielded 40 exempt joints. Chapter 7 defines Nd for combined gravity and earthquake action. The production decision uses that definition.",
       "limits": "Saved original model inputs. Source-generation identity, the five directional seismic capacity checks, full story shear allocation and alpha feedback remain open. The replay returned BLOCKED_INPUTS with zero alpha iterations.",
       "engineering_release_granted": false
+    },
+    {
+      "id": "EV-AUDIT-FIXES-20261120",
+      "observed_at_utc": "2026-11-20T07:28:01.488749+00:00",
+      "inspected_base_commit": "f57e6194155b2f9cfc30e3beecf75e0c83a39c16",
+      "work_branch": "work/engine-audit-fixes-20261120",
+      "verification_record_path": "docs/context/AUDIT_FIXES_VERIFICATION_20261120.json",
+      "verification_record_sha256": "8f7bf5772c7c99ede33542574b5448155656d48f8b8657c797f8562ed6179ba6",
+      "tested_file_manifest_path": "docs/context/TESTED_FILES_AUDIT_FIXES_20261120.json",
+      "tested_file_manifest_sha256": "6a7cbe1409f634adc2980886d05511af98e911fd68c348f8b764c13959da2103",
+      "method_versions": {
+        "column-r10": "column-r10-low-axial.v2",
+        "column-r08-local": "column-r08-local.v6",
+        "alpha-feedback": "alpha-feedback.mixed-signed-same-cut.v3"
+      },
+      "scope": "Corrections to minimum-eccentricity magnification order, original/revised Vd floor, legacy selection dependencies, signed alpha low-N credit and terminal joint/tie outcomes; two existing theta production adapters.",
+      "result": "1522 Python tests and 11 JavaScript test files passed; 370 overlapping isolated-wheel tests passed. Golden gate:20 numerical/20 insufficient/4 interpretation.",
+      "engineering_release_granted": false,
+      "original_87_column_replay": "NOT_RUN",
+      "live_ETABS": "NOT_RUN",
+      "windows_working_tree": "NOT_INSPECTED",
+      "limits": "Reference calculations and synthetic source integrations. Original non-exempt seismic joint demand, complete original story direction and spectral alpha remain open."
     }
   ],
   "new_record_template": {
@@ -4065,7 +4156,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-20T05:43:55Z",
+  "updated_at_utc": "2026-11-20T07:28:01.488749+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -4603,5 +4694,16 @@
     "implementation_note": "docs/engineering/AUDIT_FIXES_20261119.md",
     "next_action": "Complete one interior joint and governing SCWB axial-demand branch, then the full story-direction population and existing alpha feedback loop. Keep qualified passing upper bounds; refine only where the design outcome requires it.",
     "engineering_release": "NOT_READY"
+  },
+  "remote_correction_checkpoint_20261120": {
+    "tested_base_commit": "f57e6194155b2f9cfc30e3beecf75e0c83a39c16",
+    "work_branch": "work/engine-audit-fixes-20261120",
+    "integration_base_branch": "baseline/local_import",
+    "evidence_refs": [
+      "EV-AUDIT-FIXES-20261120"
+    ],
+    "status": "OFFLINE_CORRECTIONS_VERIFIED_LIVE_VALIDATION_PENDING",
+    "engineering_release": "NOT_READY",
+    "next_action": "Integrate this verified milestone normally; repeat exact selected source on Windows, then complete the five non-exempt seismic joint branches and one full story-direction through existing owners."
   }
 }

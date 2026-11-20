@@ -31,6 +31,7 @@ def recorded_column(uid="C29", combination="Grav_Ult"):
                 "analysis_element_id": uid + "-E2", "element_station_m": 1.25,
                 "step_type": "Single Value", "step_number": 0., "nd_kn": 1025.20,
                 "first_order_m2_knm": 321.45, "first_order_m3_knm": -83.21,
+                "first_order_m2_design_knm": 321.45, "first_order_m3_design_knm": -83.21,
                 "beta_m2": 1.11, "beta_m3": 1.12, "global_beta_ii_applied": 1.03,
                 "magnified_m2_design_knm": 367.52, "magnified_m3_design_knm": -95.87,
                 "moment_demand_knm": 379.73, "radial_capacity_knm": 1245.60,
@@ -106,6 +107,8 @@ class RecordedColumnCalculationReportTests(unittest.TestCase):
                              "32Φ16", "Φ10/90", "Single Value", "WITHIN_SCENARIO_SURFACE"):
                     self.assertIn(text, html)
                 self.assertIn("Radial capacity at recorded N", html)
+                self.assertIn("M2 after eccentricity floor", html)
+                self.assertIn("M3 after eccentricity floor", html)
                 if record.get("scope") == "ALL_COLUMNS":
                     self.assertIn("C30-E2", html)
                     self.assertIn("Other_G", html)
@@ -114,6 +117,7 @@ class RecordedColumnCalculationReportTests(unittest.TestCase):
         edits = {"combination": "Changed_G", "object_station_m": 2.625,
                  "analysis_element_id": "CHANGED-ELEMENT", "element_station_m": .625,
                  "step_type": "Changed step", "step_number": 4., "nd_kn": 925.,
+                 "first_order_m2_design_knm": 322.75, "first_order_m3_design_knm": -84.25,
                  "moment_demand_knm": 410., "radial_capacity_knm": 1400., "moment_reserve_knm": 990.}
         for scope in ("SINGLE_COLUMN", "ALL_COLUMNS"):
             for key, value in edits.items():

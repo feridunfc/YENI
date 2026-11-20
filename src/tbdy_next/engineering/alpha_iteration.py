@@ -2,8 +2,9 @@
 
 Supported reference branch: full physical story population, upward vertical
 orthogonal frames, qualified configured bottom cuts, assigned signed seismic
-combinations and selected two-sign SCWB evidence at both ends. No spectral
-vector reconstruction, implied support exemption or low-N numerator credit.
+combinations and selected two-sign SCWB evidence at both ends, or qualified
+per-column low-N numerator credit. No spectral vector reconstruction or implied
+support exemption. Numerator credit and demand-amplification eligibility differ.
 """
 from __future__ import annotations
 
@@ -19,7 +20,7 @@ from .design_scenario import _digest
 
 SCHEMA = "tbdy.next.alpha-design-iteration.v1"
 DEMAND_SCHEMA = "tbdy.next.alpha-demand-revision.v1"
-METHOD = "alpha-feedback.mixed-signed-same-cut.v2"
+METHOD = "alpha-feedback.mixed-signed-same-cut.v3"
 MAX_ITERATIONS = 8
 
 
@@ -59,6 +60,7 @@ SCWB is still a selected-candidate reference, not engineering approval.
     from .design_dependencies import story_blockers
     from .mixed_demands import earthquake_row
     from .demand_sources import component_force_rows
+    from .scwb_axial import alpha_low_axial_credit
 
     plan = (axial or {}).get("combination_plan") or {}
     groups = (plan.get("design_assignment") or {}).get("groups") or {}
@@ -83,6 +85,8 @@ SCWB is still a selected-candidate reference, not engineering approval.
     rowsets = ((source.get("column_axial") or {}).get("force_source") or {}).get("rowsets") or {}
     cuts = (scope or {}).get("configured_output_cuts") or {}
     details = (r10 or {}).get("per_member") or {}
+    source_payload_sha = _digest(source)
+    credit_cache = {}
     results = []
     for story, uids in dependencies["story_columns"].items():
         st_reasons = story_blockers(dependencies, story)
@@ -116,20 +120,38 @@ SCWB is still a selected-candidate reference, not engineering approval.
                         if not math.isfinite(shear):
                             raise ValueError("ALPHA_NONFINITE_SHEAR")
                         elevations.append(points[frame["point_i"]][2])
-                        checks = []
+                        checks, end_joints = [], {}
                         for end in ("I", "J"):
                             js = [j for j in details.get(uid, {}).get("scwb_joints", ())
                                   if j.get("target_end") == end and j.get("direction") == direction]
                             if len(js) != 1:
                                 raise ValueError("ALPHA_TWO_END_SCWB_OR_EXEMPTION_UNVERIFIED")
+                            end_joints[end] = js[0]
                             cr = [r for r in (js[0].get("engineer_selected_scwb") or {}).get("cases", ())
                                   if r.get("output_case") == combo]
                             signs = [r.get("rotation_sign") for r in cr]
-                            if sorted(signs) != [-1, 1] or any(type(r.get("reference_satisfied")) is not bool for r in cr):
-                                raise ValueError("ALPHA_SELECTED_TWO_SIGN_SCWB_UNRESOLVED")
-                            checks.extend(r["reference_satisfied"] for r in cr)
+                            checks.append(all(r["reference_satisfied"] for r in cr)
+                                if sorted(signs) == [-1, 1] and all(type(r.get("reference_satisfied")) is bool for r in cr)
+                                else None)
+                        credit_key = (uid, direction)
+                        if credit_key not in credit_cache:
+                            credit_cache[credit_key] = alpha_low_axial_credit(
+                                source, axial, scope, dependencies, frame, end_joints, names,
+                                source_payload_sha256=source_payload_sha)
+                        credit = credit_cache[credit_key]
+                        if any(v is None for v in checks) and not credit["eligible"]:
+                            codes.extend(uid + ":" + reason for reason in credit["reason_codes"])
+                            if credit["status"] == "LOW_AXIAL_LIMIT_EXCEEDED":
+                                codes.append(uid + ":ALPHA_LOW_N_MEMBER_LIMIT_EXCEEDED")
+                            raise ValueError("ALPHA_SELECTED_TWO_SIGN_SCWB_UNRESOLVED")
+                        ratio_satisfied = all(v is True for v in checks)
+                        credit_used = bool(credit["eligible"] and not ratio_satisfied)
                         terms.append({"member_id": uid, "source_cut": cut, "shear_kn": shear,
-                                      "two_end_scwb_satisfied": all(checks), "source_row_key": list(row[:7]),
+                                      "two_end_scwb_satisfied": ratio_satisfied,
+                                      "numerator_eligible": ratio_satisfied or credit_used,
+                                      "amplification_eligible": ratio_satisfied,
+                                      "low_axial_credit_used": credit_used, "low_axial_credit": credit,
+                                      "source_row_key": list(row[:7]),
                                       "source_force_sha256": _digest(target), "earthquake_component_sha256": _digest(row),
                                       "earthquake_component_rows": component_rows})
                     except (KeyError, ValueError, TypeError, ArithmeticError) as exc:
@@ -143,14 +165,16 @@ SCWB is still a selected-candidate reference, not engineering approval.
                 if positive and negative:
                     codes.append("ALPHA_COUNTERACTING_SHEARS_OUTSIDE_SUPPORTED_BRANCH")
                 vik = math.fsum(abs(t["shear_kn"]) for t in terms)
-                vis = math.fsum(abs(t["shear_kn"]) for t in terms if t["two_end_scwb_satisfied"])
+                vis = math.fsum(abs(t["shear_kn"]) for t in terms if t["numerator_eligible"])
                 if vik <= 0:
                     codes.append("ALPHA_ZERO_DIRECTIONAL_SHEAR")
                 record = {"story": story, "direction": direction, "combination": combo,
                           "expected_member_ids": list(uids), "terms": terms,
-                          "eligible_member_ids": [t["member_id"] for t in terms if t["two_end_scwb_satisfied"]],
+                          "eligible_member_ids": [t["member_id"] for t in terms if t["numerator_eligible"]],
+                          "amplification_member_ids": [t["member_id"] for t in terms if t["amplification_eligible"]],
+                          "low_axial_credit_member_ids": [t["member_id"] for t in terms if t["low_axial_credit_used"]],
                           "reason_codes": sorted(set(codes)), "vis_kn": vis, "vik_kn": vik,
-                          "low_axial_optional_credit_used": False}
+                          "low_axial_optional_credit_used": any(t["low_axial_credit_used"] for t in terms)}
                 if not codes:
                     reference = evaluate_story_alpha_reference(vis_kn=vis, vik_kn=vik)
                     record.update(alpha=float(reference["alpha"]), factor=alpha_feedback_factor(reference),
@@ -162,7 +186,7 @@ SCWB is still a selected-candidate reference, not engineering approval.
               "REANALYSIS_REQUIRED" if any(r["status"] == "REANALYSIS_REQUIRED" for r in results) else "QUALIFIED_REFERENCE")
     return {"status": status, "reason_codes": sorted({c for r in results for c in r["reason_codes"]}),
             "cases": results, "seismic_shear_provenance": seismic_basis,
-            "basis": "ORIGINAL_SIGNED_EARTHQUAKE_COMPONENT_COMMON_BOTTOM_CUT_NO_LOW_N_CREDIT"}
+            "basis": "ORIGINAL_SIGNED_EARTHQUAKE_COMPONENT_COMMON_BOTTOM_CUT_QUALIFIED_COLUMN_CREDIT"}
 
 
 def build_demand_revision(source, cases, *, input_sha):
@@ -180,9 +204,14 @@ def build_demand_revision(source, cases, *, input_sha):
         factor = case.get("factor")
         if type(factor) not in (int, float) or not math.isfinite(factor) or not 1 <= factor <= 1/0.70:
             raise ValueError("ALPHA_FACTOR_INVALID")
+        eligible = case["eligible_member_ids"]
+        amplified = case.get("amplification_member_ids", eligible)
+        if (case.get("low_axial_optional_credit_used") and "amplification_member_ids" not in case
+                or len(set(amplified)) != len(amplified) or not set(amplified) <= set(eligible)):
+            raise ValueError("ALPHA_AMPLIFICATION_ELIGIBILITY_UNBOUND")
         if factor == 1:
             continue
-        for uid in case["eligible_member_ids"]:
+        for uid in amplified:
             v, m = _axis_indices(frames[uid], case["direction"])
             entry = factors.setdefault(uid, {}).setdefault(case["combination"], [1.0]*4)
             for index in (v, m):
@@ -248,7 +277,7 @@ def run_bounded_feedback(*, initial, qualify, demand, rebuild, signature, feasib
     qualification = None
     for index in range(max_iterations + 1):
         check = feasible(state)
-        if check["status"] == "NO_FEASIBLE_CANDIDATE":
+        if check["status"] in ("NO_FEASIBLE_CANDIDATE", "JOINT_DESIGN_FAILURE"):
             status = check["status"]; break
         qualification = qualify(state)
         if qualification["status"] != "QUALIFIED_REFERENCE":
@@ -291,12 +320,141 @@ def _candidate_signature(state):
             for u, c in sorted(state["cages"].items())}
 
 
+def _joint_feasibility(uid, detail, state):
+    """Consume the existing R10 panel/tie results on independently expected ends.
+
+    This checks recorded result coverage and outcomes, not joint formulas. A
+    passing qualified zero-deduction bound remains a reference success. An
+    exceeded unresolved bound needs refinement; a bound actual demand or tie
+    failure needs redesign, not repeated column-cage selection by alpha.
+    """
+    blocked, failed = [], []
+    dependencies = state.get("dependencies") or {}
+    member = (dependencies.get("members") or {}).get(uid) or {}
+    joint_ids = member.get("joint_ids")
+    ends = detail.get("member_joint_ends")
+    if (not isinstance(joint_ids, list) or len(joint_ids) != 2
+            or any(not isinstance(j, str) or not j for j in joint_ids) or len(set(joint_ids)) != 2
+            or not isinstance(ends, list) or len(ends) != 2
+            or any(not isinstance(e, Mapping) for e in ends)
+            or any(e.get("end") not in ("I", "J") for e in ends)
+            or {e.get("end") for e in ends} != {"I", "J"}):
+        return [uid + ":JOINT_END_SCOPE_UNRESOLVED"], []
+
+    def finite(value, *, positive=False):
+        return (type(value) in (int, float) and math.isfinite(value)
+                and (value > 0 if positive else value >= 0))
+
+    for end in ends:
+        prefix = uid + ":" + end["end"] + ":"
+        point = joint_ids[0 if end["end"] == "I" else 1]
+        joint = (dependencies.get("joints") or {}).get(point) or {}
+        columns, beams = joint.get("column_ids"), joint.get("beam_ends")
+        faces = end.get("faces")
+        if (end.get("member_id") != uid or end.get("point_id") != point
+                or joint.get("joint_id") != point or joint.get("execution_allowed") is not True
+                or not isinstance(columns, list) or uid not in columns
+                or any(not isinstance(c, str) or not c for c in columns) or len(set(columns)) != len(columns)
+                or not isinstance(beams, list) or any(not isinstance(b, Mapping) for b in beams)
+                or not isinstance(faces, Mapping) or set(faces) != {"2+", "2-", "3+", "3-"}
+                or any(f is not None and not isinstance(f, Mapping) for f in faces.values())):
+            blocked.append(prefix + "JOINT_PHYSICAL_SCOPE_UNRESOLVED"); continue
+        expected_beams = [(b.get("member_id"), b.get("end")) for b in beams]
+        observed_beams = [(f.get("frame_id"), f.get("native_end")) for f in faces.values() if f is not None]
+        if (any(not isinstance(b, str) or not b or e not in ("I", "J") for b, e in expected_beams + observed_beams)
+                or len(set(expected_beams)) != len(expected_beams)
+                or len(set(observed_beams)) != len(observed_beams)
+                or set(expected_beams) != set(observed_beams)):
+            blocked.append(prefix + "JOINT_BEAM_FACE_CENSUS_UNRESOLVED"); continue
+        if not expected_beams:
+            if end.get("status") != "NO_RECORDED_BEAM_AT_NODE" or end.get("axes") != []:
+                blocked.append(prefix + "JOINT_UNFRAMED_APPLICABILITY_UNRESOLVED")
+            continue
+        expected_axes = {"V" + key[0] for key, face in faces.items() if face is not None}
+        axes = end.get("axes")
+        if (end.get("status") != "JOINT_GEOMETRIC_REFERENCES_CALCULATED"
+                or not isinstance(axes, list) or any(not isinstance(a, Mapping) for a in axes)
+                or any(a.get("axis") not in ("V2", "V3") for a in axes)
+                or len({a["axis"] for a in axes}) != len(axes)
+                or {a["axis"] for a in axes if a.get("calculation") is not None} != expected_axes):
+            blocked.append(prefix + "JOINT_APPLICABLE_AXIS_SCOPE_UNRESOLVED"); continue
+        required = state.get("required_seismic_combinations")
+        if (not isinstance(required, list) or not required
+                or any(not isinstance(c, str) or not c for c in required) or len(set(required)) != len(required)):
+            blocked.append(prefix + "JOINT_REQUIRED_SEISMIC_SCOPE_UNRESOLVED"); continue
+        for axis in axes:
+            if axis["axis"] not in expected_axes:
+                continue
+            code = prefix + axis["axis"] + ":"
+            calc = axis.get("calculation") or {}
+            shear = axis.get("joint_shear_ve") or {}
+            tie = axis.get("joint_transverse_7_5_2_3") or {}
+            if not isinstance(calc, Mapping) or not isinstance(shear, Mapping):
+                blocked.append(code + "JOINT_SHEAR_RESULT_UNRESOLVED"); continue
+            expected = shear.get("expected_seismic_combinations")
+            cases = shear.get("column_shear_cases")
+            upper, lower = shear.get("upper_column_ids"), shear.get("lower_column_ids")
+            if (shear.get("status") != "JOINT_SHEAR_VE_CALCULATED_NOT_PROVEN"
+                    or shear.get("target_axis") != axis["axis"] or shear.get("column_topology_issues") != []
+                    or not isinstance(shear.get("global_direction"), list) or len(shear["global_direction"]) != 3
+                    or any(type(v) not in (int, float) or not math.isfinite(v) for v in shear["global_direction"])
+                    or not any(shear["global_direction"])
+                    or not isinstance(upper, list) or not isinstance(lower, list) or len(lower) != 1 or len(upper) > 1
+                    or any(not isinstance(c, str) for c in upper + lower)
+                    or len(set(upper + lower)) != len(upper + lower) or set(upper + lower) != set(columns)
+                    or not isinstance(expected, list) or any(not isinstance(c, str) for c in expected)
+                    or len(expected) != len(required) or set(expected) != set(required)
+                    or not isinstance(cases, list) or any(not isinstance(c, Mapping) for c in cases)
+                    or any(not isinstance(c.get("combination"), str) for c in cases)
+                    or len(cases) != len(required) or {c.get("combination") for c in cases} != set(required)):
+                blocked.append(code + "JOINT_SHEAR_SOURCE_SCOPE_UNRESOLVED"); continue
+            basis = shear.get("v_kol_basis")
+            conservative = basis == "CONSERVATIVE_ZERO_VKOL_INCOMPLETE_SEISMIC_SHEAR" and len(upper) == 1
+            bound = basis == "MIN_UPPER_LOWER_COLUMN_SHEAR" and len(upper) == 1
+            roof = basis == "ROOF_JOINT_NO_UPPER_COLUMN_VKOL_ZERO" and not upper
+            if (shear.get("v_kol_applicability") != "CONDITIONAL_NONNEGATIVE_DEDUCTION_FOR_QUALIFIED_SWAY_MECHANISM"
+                    or not (conservative or bound or roof)
+                    or not finite(shear.get("v_kol_used_kn"))
+                    or ((conservative or roof) and shear["v_kol_used_kn"] != 0)
+                    or ((bound or roof) and (shear.get("column_shear_scope_complete") is not True
+                        or shear.get("missing_column_shear_combinations") != []
+                        or any(c.get("status") != ("ROOF_ZERO_BOUNDARY" if roof else "BOUND")
+                               or not finite(c.get("deduction_kn")) for c in cases)))):
+                blocked.append(code + "JOINT_SHEAR_DEDUCTION_UNQUALIFIED"); continue
+            if (not finite(calc.get("geometric_limit_kn"), positive=True)
+                    or shear.get("geometric_limit_kn") != calc["geometric_limit_kn"]
+                    or any(not finite(shear.get(k)) for k in ("sway_a_ve_kn", "sway_b_ve_kn", "governing_ve_kn", "utilization"))
+                    or type(shear.get("within_geometric_limit")) is not bool
+                    or shear["within_geometric_limit"] != (shear["governing_ve_kn"] <= shear["geometric_limit_kn"] + 1e-6)):
+                blocked.append(code + "JOINT_SHEAR_RESULT_UNRESOLVED")
+            elif not shear["within_geometric_limit"]:
+                (blocked if conservative else failed).append(code + (
+                    "JOINT_SHEAR_BOUND_REFINEMENT_REQUIRED" if conservative else "JOINT_SHEAR_LIMIT_EXCEEDED"))
+            tie_flags = ("density_reference_met", "spacing_reference_met", "diameter_reference_met")
+            if (not isinstance(tie, Mapping)
+                    or tie.get("status") != "JOINT_TRANSVERSE_REFERENCES_CALCULATED_NOT_PROVEN"
+                    or tie.get("target_axis") != axis["axis"] or tie.get("lower_column_id") != lower[0]
+                    or tie.get("global_direction") != shear.get("global_direction")
+                    or tie.get("lower_axis") not in ("V2", "V3")
+                    or tie.get("axis_mapping_status") != "PHYSICAL_AXIS_BOUND" or tie.get("column_topology_issues") != []
+                    or tie.get("lower_column_has_confinement_calc") is not True
+                    or any(not finite(tie.get(k), positive=True) for k in
+                           ("required_ash_at_joint_spacing_mm2", "proposed_ash_mm2", "joint_spacing_mm", "tie_diameter_mm", "spacing_limit_mm"))
+                    or any(type(tie.get(k)) is not bool for k in (*tie_flags, "all_references_met"))
+                    or tie["all_references_met"] != all(tie[k] for k in tie_flags)):
+                blocked.append(code + "JOINT_TRANSVERSE_RESULT_UNRESOLVED")
+            elif tie["all_references_met"] is False:
+                failed.append(code + "JOINT_TRANSVERSE_REFERENCE_FAILED")
+    return blocked, failed
+
+
 def _feasibility(state):
     """Numerical reference feasibility, never engineering approval or source repair."""
     r10, r08 = state.get("r10") or {}, state.get("r08") or {}
     details, locals_ = r10.get("per_member") or {}, r08.get("per_member") or {}
     reselect = []
     blocked = []
+    failed = []
     for uid in state["dependencies"]["members"]:
         selected = (details.get(uid) or {}).get("engineer_column_selection") or {}
         if selected.get("status") == "ENGINEER_COLUMN_SELECTION_NO_PASSING_CAGE":
@@ -304,6 +462,9 @@ def _feasibility(state):
                     "scope": "SUPPORTED_CANDIDATE_FAMILY_AND_CURRENT_DEMAND_CONSTRAINTS"}
         if not selected.get("selected"):
             blocked.append(uid + ":SELECTED_CAGE_UNAVAILABLE"); continue
+        joint_blocked, joint_failed = _joint_feasibility(uid, details[uid], state)
+        blocked.extend(joint_blocked)
+        failed.extend(joint_failed)
         pmm = (locals_.get(uid) or {}).get("magnified_selected_pmm") or {}
         if (pmm.get("status") not in ("MAGNIFIED_PMM_WITHIN_CAPACITY_NOT_PROVEN", "MAGNIFIED_PMM_EXCEEDS_CAPACITY")
                 or type(pmm.get("global_beta_ii_factor")) not in (int, float)
@@ -345,8 +506,10 @@ def _feasibility(state):
                 blocked.append(uid + ":SELECTED_SHEAR_NONFINITE")
             elif value > 1.0 + 1e-6:
                 reselect.append(uid)
-    return {"status": "NUMERIC_OR_DEPENDENCY_UNRESOLVED" if blocked else "FEASIBLE_REFERENCE",
-            "reselect_member_ids": sorted(set(reselect)), "reason_codes": sorted(set(blocked))}
+    return {"status": "JOINT_DESIGN_FAILURE" if failed else
+                      "NUMERIC_OR_DEPENDENCY_UNRESOLVED" if blocked else "FEASIBLE_REFERENCE",
+            "reselect_member_ids": [] if failed else sorted(set(reselect)),
+            "reason_codes": sorted(set(blocked)), "failure_codes": sorted(set(failed))}
 
 
 def _selection_constraints(state, pmm, changed):
@@ -425,8 +588,10 @@ def run_alpha_design_iteration(*, source, geometry, axial, pmm, extra, scope, de
     from .column_r08_local_live import project_column_r08_local_live
     from .design_scenario import selected_candidate_ledger
 
+    groups = ((axial or {}).get("combination_plan", {}).get("design_assignment") or {}).get("groups") or {}
     initial = {"r10": r10, "r08": r08, "cages": cages, "dependencies": dependencies,
                "revision": None, "additional_demands": {}, "additional_shears": {},
+               "required_seismic_combinations": sorted(set(groups.get("ductile", ())) | set(groups.get("capacity", ()))),
                "required_signed_combinations": [c["name"] for c in (axial or {}).get("combination_plan", {}).get("combinations", ())
                                                 if c.get("force_semantics") == "STATIC_SIGNED_VECTOR"]}
 
@@ -462,6 +627,7 @@ def run_alpha_design_iteration(*, source, geometry, axial, pmm, extra, scope, de
                    "capacity_shear_constraint_count": sum(map(len, more_v.values()))}
         return {"r10": next_r10, "r08": next_r08, "cages": new_cages, "dependencies": plan,
                 "revision": revision, "additional_demands": more_m, "additional_shears": more_v,
+                "required_seismic_combinations": state["required_seismic_combinations"],
                 "required_signed_combinations": state["required_signed_combinations"]}, actions
 
     state, record = run_bounded_feedback(

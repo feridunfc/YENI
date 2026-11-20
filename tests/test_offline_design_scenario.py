@@ -148,6 +148,54 @@ class ScenarioSourceContracts(unittest.TestCase):
                 prepare_pipeline_source(first.raw, source_directory=root,
                                         selection_overrides={"column_selection": "default"})
 
+    def test_legacy_embedded_policies_use_the_same_scenario_and_exact_parent(self):
+        parent = json.loads(self.raw)
+        parent.update(beam_selection="default", column_selection={"min_rho": .02})
+        raw = json.dumps(parent, indent=2).encode("utf-8")
+        implicit = prepare_pipeline_source(raw)
+        explicit = prepare_pipeline_source(raw, selection_overrides={
+            "beam_selection": "default", "column_selection": {"min_rho": .02}})
+        self.assertEqual(implicit.raw, explicit.raw)
+        self.assertEqual(implicit.parent_raw, raw)
+        self.assertEqual(implicit.payload["design_scenario"]["parent_input_sha256"], sha256(raw).hexdigest())
+        verify_parent(implicit.payload, raw)
+        with TemporaryDirectory() as temp:
+            root = Path(temp)
+            implicit.archive_parent(root)
+            replay = prepare_pipeline_source(implicit.raw, source_directory=root)
+            self.assertEqual(replay.raw, implicit.raw)
+            self.assertEqual((root / PARENT_FILE).read_bytes(), raw)
+
+    def test_legacy_disabled_policies_leave_source_bytes_and_no_selection_unchanged(self):
+        parent = json.loads(self.raw)
+        parent.update(beam_selection=None, column_selection=None)
+        raw = json.dumps(parent, indent=2).encode("utf-8")
+        prepared = prepare_pipeline_source(raw)
+        self.assertEqual(prepared.raw, raw)
+        self.assertIsNone(prepared.parent_raw)
+        self.assertIsNone(validate_design_scenario(prepared.payload))
+
+    def test_legacy_embedded_policy_uses_existing_strict_validation(self):
+        parent = json.loads(self.raw)
+        parent["column_selection"] = {"min_rhoo": .02}
+        with self.assertRaisesRegex(ValueError, "SCENARIO_UNKNOWN_POLICY_FIELD"):
+            prepare_pipeline_source(json.dumps(parent).encode())
+
+    def test_runner_rejects_unprepared_selection_before_any_calculation_receipt(self):
+        from tbdy_next.engineering.pipeline import EnginePipelineRunner
+
+        for key in ("beam_selection", "column_selection"):
+            with self.subTest(policy=key), TemporaryDirectory() as temp:
+                payload = json.loads(self.raw)
+                payload[key] = "default"
+                raw = json.dumps(payload).encode()
+                digest = sha256(raw).hexdigest()
+                run = ReceiptRun(Path(temp))
+                run.archive_input(raw, expected_sha256=digest)
+                with self.assertRaisesRegex(ValueError, "DESIGN_SELECTION_REQUIRES_PREPARED_SCENARIO"):
+                    EnginePipelineRunner().run(payload, case="Modal", run=run, input_sha=digest, suite=True)
+                self.assertEqual(list(run.root.glob("*.json")), [])
+
     def test_adapter_explicit_request_uses_verified_native_parent_not_scenario_bytes(self):
         first = prepare_pipeline_source(self.raw, selection_overrides={"column_selection": "default"})
         with TemporaryDirectory() as temp:

@@ -8,6 +8,7 @@ import json
 from math import pi
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 import unittest
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
@@ -331,6 +332,69 @@ class RebarSelectionWebCliTests(test_beam_r10_live.BeamR10WebAndReportIntegratio
         self.assertIsNone(results["r10_live"])
         self.assertEqual(evidence["design_dependencies"]["selected_candidates"]["rows"][0]["status"],
                          "BLOCKED_DEPENDENCY")
+
+    def test_legacy_embedded_policies_block_missing_cut_and_keep_independent_candidate(self):
+        from tbdy_next.column_engine.source_bank import FIELDS
+        from tbdy_next.engineering.column_pmm_section import COLUMN_REINFORCING
+        from tbdy_next.web import _execute_and_reply_live_payload
+
+        query = self.pmm_query()
+        query["member"] = "ALL"
+        base = self.post(query)["run_id"]
+        original = {p.name: p.read_bytes() for p in (self.root / base).iterdir() if p.is_file()}
+        payload = json.loads(original["input.source"])
+        # Complete the independent C2 section source and use modest demands so
+        # its actual owner can select a cage. C1 alone loses a required cut.
+        table = payload["column_axial"]["pmm_section_source"]["table_reads"][COLUMN_REINFORCING]
+        table["rows"].append({**table["rows"][0], "Name": "C25"})
+        table["row_count"] = len(table["rows"])
+        forces = payload["column_axial"]["force_source"]["rowsets"]
+        forces["C2"]["P"] = [value / 10.0 for value in forces["C2"]["P"]]
+        keep = [i for i, station in enumerate(forces["C1"]["ObjSta"]) if station != 1.5]
+        for field in FIELDS:
+            forces["C1"][field] = [forces["C1"][field][i] for i in keep]
+        forces["C1"]["NumberResults"] = len(keep)
+        policies = {"beam_selection": "default", "column_selection": {
+            "stirrup_confinement_spacing_mm": 50, "stirrup_span_spacing_mm": 50}}
+        payload.update(beam_selection=normalize_beam_selection_policy(policies["beam_selection"]),
+                       column_selection=normalize_column_selection_policy(policies["column_selection"]))
+        raw = json.dumps(payload, indent=2).encode("utf-8")
+        legacy = self.root / "legacy-input"
+        legacy.mkdir()
+        (legacy / "input.source").write_bytes(raw)
+        results = []
+        for overrides in (None, policies):
+            with self.subTest(explicit_request=overrides is not None):
+                replies = []
+                handler = SimpleNamespace(reply=lambda status, body: replies.append((status, body)))
+                _execute_and_reply_live_payload(handler, self.root, payload, "Modal", suite=True,
+                    source_raw=raw, source_directory=legacy, selection_overrides=overrides)
+                self.assertEqual(replies[0][0], 200, replies)
+                web_id = replies[0][1]["run_id"]
+                result = self._assert_adapter_parity(web_id,
+                    self._run_cli_selection(legacy.name, **(overrides or {})))
+                results.append(result)
+                self.assertEqual((self.root / web_id / "parent.source").read_bytes(), raw)
+                evidence = result["report_evidence"]
+                dependencies = evidence["design_dependencies"]
+                self.assertEqual(dependencies["blocked_member_ids"], ["C1"])
+                self.assertEqual(dependencies["ready_member_ids"], ["C2"])
+                self.assertEqual(dependencies["expected_member_combination_count"], 4)
+                selected = {row["member_id"]: row for row in dependencies["selected_candidates"]["rows"]}
+                self.assertEqual(selected["C1"]["status"], "BLOCKED_DEPENDENCY")
+                self.assertEqual(selected["C2"]["status"], "SAME_RUN_CANDIDATE_BOUND")
+                self.assertIsNone(result["r10_live"]["per_member"]["C1"].get("engineer_column_selection"))
+                self.assertTrue(result["r10_live"]["per_member"]["C2"]["engineer_column_selection"]["selected"])
+                for row in evidence["column_pmm_expected_instances"]["instances"]:
+                    if row["element_id"] == "C1":
+                        self.assertEqual(row["execution_status"], "BLOCKED")
+                        self.assertEqual(row["configured_cut_coverage"]["required_count"], 3)
+                        self.assertEqual(row["configured_cut_coverage"]["matched_count"], 2)
+                self.assertEqual(result["r14_closure"]["expected_column_count"], 2)
+                self.assertEqual(result["r14_closure"]["engineering_release"], "NOT_READY")
+        self.assertEqual(results[0], results[1])
+        self.assertEqual((legacy / "input.source").read_bytes(), raw)
+        self.assertEqual(original, {p.name: p.read_bytes() for p in (self.root / base).iterdir() if p.is_file()})
 
     def test_live_selection_also_archives_native_parent_and_uses_scenario_dependencies(self):
         query = self.pmm_query()

@@ -126,18 +126,18 @@ STAGES: tuple[StageSpec, ...] = (
               ("JOINT_TOPOLOGY_CHECK", "JOINT_SHEAR", "SCWB", "COLUMN_SHEAR", "COLUMN_SHEAR_REBAR"),
               "TBDY 7.3.5 joint applicability, 7.3.6 SCWB, 7.5 joint shear and column confinement/shear "
               "(computed by pipeline; persisted in engine-results)", "COLUMN_REQUEST", produces=(_R10_RESULT,),
-              method_version="column-r10-low-axial.v1"),
+              method_version="column-r10-low-axial.v2"),
     StageSpec("second-order", LIVE, "tbdy_next.story_second_order", ("r08-second-order",),
               ("GLOBAL_SECOND_ORDER",), "TBDY 4.33 story second-order precheck", "R08_SOURCE"),
     StageSpec("column-r08-local", LIVE, "tbdy_next.engineering.column_r08_local_live", (),
               ("COLUMN_SLENDERNESS", "COLUMN_PMM"),
               "TS500 local slenderness, EI, Nk and beta reference scenarios (computed by pipeline; persisted in engine-results)",
               "COLUMN_PMM_MEMBER", consumes=(_AXIAL_GEOMETRY, _AXIAL_RESULT, _PMM_RESULT, _PMM_SCOPE),
-              produces=(_R08_LOCAL_RESULT,), method_version="column-r08-local.v5"),
+              produces=(_R08_LOCAL_RESULT,), method_version="column-r08-local.v6"),
     StageSpec("alpha-feedback", LIVE, "tbdy_next.engineering.alpha_iteration", (), (),
               "Bounded qualified signed alpha demand revision and dirty-member rechecks", "EXPLICIT_DESIGN_SCENARIO",
               consumes=(_DESIGN_SCOPE, _PMM_SCOPE, _PMM_RESULT, _R10_RESULT, _R08_LOCAL_RESULT),
-              produces=(_ALPHA_ITERATION,), method_version="alpha-feedback.mixed-signed-same-cut.v2"),
+              produces=(_ALPHA_ITERATION,), method_version="alpha-feedback.mixed-signed-same-cut.v3"),
     StageSpec("design-revisions", LIVE, "tbdy_next.engineering.design_dependencies", (), (),
               "Recorded candidate/demand to joint/story/Ve/R14 dependency revisions and consumed alpha feedback; no persistent cache",
               "DESIGN_SCENARIO", consumes=(_DESIGN_SCOPE,), produces=(_DESIGN_REVISIONS,),
@@ -160,8 +160,8 @@ STAGES: tuple[StageSpec, ...] = (
 def stage_registry() -> list[dict[str, Any]]:
     return [{"key": s.key, "mode": s.mode, "owner": s.owner, "receipts": list(s.receipts),
              "dag_nodes": list(s.dag_nodes), "condition": s.condition, "summary": s.summary,
-             **({"consumes": [c.describe() for c in s.consumes], "method_version": s.method_version}
-                if s.consumes else {}),
+             **({"consumes": [c.describe() for c in s.consumes]} if s.consumes else {}),
+             **({"method_version": s.method_version} if s.method_version is not None else {}),
              **({"produces": [c.describe() for c in s.produces]} if s.produces else {})}
             for s in STAGES]
 
@@ -572,11 +572,13 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
     """Execute the live-source stage sequence once; receipts are written in registry order."""
     from .pipeline_snapshot import SCHEMA, record_snapshot
 
-    from .design_scenario import selected_candidate_ledger, verify_archived_scenario
+    from .design_scenario import POLICIES, selected_candidate_ledger, verify_archived_scenario
     from .design_dependencies import build_member_dependency_plan, build_revision_evidence, bind_joint_candidates
 
     _validate_dependency_contracts()
     scenario = verify_archived_scenario(run.root, payload)
+    if scenario is None and any(payload.get(key) is not None for key in POLICIES):
+        raise ValueError("DESIGN_SELECTION_REQUIRES_PREPARED_SCENARIO")
     out: dict[str, Any] = {
         "result": calculate_modal(payload, case=case, run=run, input_sha=input_sha, receipt_schema=SCHEMA),
     }

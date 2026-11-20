@@ -1,11 +1,45 @@
-# Active building calculation on baseline/local_import
+# Audit corrections and next live calculation — 2026-11-20
 
 Start each assignment at [AGENTS.md](../AGENTS.md). The
 [worker handoff](context/WORKER_HANDOFF_20261119.md) and
 [project charter and source guide](context/PROJECT_CHARTER.md) are available
 in a GitHub checkout. Follow the [November 18 full recipe](engineering/reference/recipe_20261118/delivery/RECIPE.md)
 and its [six-step calculation sequence](engineering/reference/recipe_20261118/delivery/PRIORITY_CHAIN.json).
-The active delivery is the [original interior joint through one full story and direction](engineering/AUDIT_FIXES_20261119.md#next-bounded-delivery-in-order).
+The current milestone is described in [audit corrections and live handoff](engineering/AUDIT_FIXES_20261120.md).
+It starts at `f57e6194155b2f9cfc30e3beecf75e0c83a39c16` on
+`work/engine-audit-fixes-20261120`. The execution record is
+`EV-AUDIT-FIXES-20261120`; commit ancestry and its tested-file hashes identify
+the implementation. The unseen Windows working tree was not inspected.
+
+Final verification passed **1,522 Python tests, 11 JavaScript test files and
+370 overlapping isolated-wheel tests**, with the final tested-file manifest
+unchanged. The [execution record](context/AUDIT_FIXES_VERIFICATION_20261120.json)
+retains the initial incomplete-fixture failure and the final successful runs.
+
+The existing owners now floor first-order moments for minimum eccentricity
+before applying local/global factors; use the analysis shear lower bound on
+both initial and revised capacity shear; and route embedded legacy selection
+policies through the same source/dependency checks as explicit scenarios.
+R10's declared method version is now present in the registry even without
+declared input contracts. The standard report displays the recorded raw,
+floored and final moments.
+
+The supported signed alpha branch consumes qualified per-column low-N credit
+under TBDY 7.3.6.1. Credit to Vis and eligibility for 1/alpha demand amplification
+are separate recorded populations. The existing axial owner supplies the maximum
+over all native cuts, so low end forces cannot hide a higher interior demand.
+Terminal feasibility also requires the expected joint panels and physically
+mapped ties. A proven joint failure stops with `JOINT_DESIGN_FAILURE`; an
+exceeded unresolved bound requires refinement. Neither becomes a fixed point.
+
+The new source-level examples and regressions do not complete the original
+building story slice. The next original-model calculation remains
+[one interior joint through a full story and direction](engineering/AUDIT_FIXES_20261119.md#next-bounded-delivery-in-order).
+Live ETABS and the exact private 87-column replay were **NOT_RUN** for this
+milestone. The user will run the existing gateway on Windows after integration.
+Engineering release remains `NOT_READY`; no stable GAP or CHECK is closed.
+
+## Previous original-model low-axial checkpoint
 
 R10 now decides the TBDY 7.3.5.3(a) low-axial exception at two connected column
 ends. It compares each end's largest compression under the assigned combined
@@ -24,12 +58,18 @@ population and apply the existing alpha iteration.
 
 ## GAP-016 report comparisons
 
-The 44 GAP-016 records contain 18 production matches,
-22 insufficient-source labels and four adopted-factor interpretation differences.
-The normal report comparison now runs both GOLDEN-01 section axial limits and
-the drift ratio through their production owners. The next report example is the
-ground and upper storey second-order indicator on GOLDEN-01 PDF page 28.
-`EV-GOLDEN01-OWNER-BINDINGS-20261119` records the three newly matched rows.
+The 44 GAP-016 records now contain **20 production numerical matches,
+20 insufficient-source labels and four adopted-factor interpretation differences**.
+The GOLDEN-01 ground and upper storey theta scalars on PDF page 28 call the
+existing global P-delta owner. The reference values are 0.007516853605560383
+and 0.005997760967498111; cumulative weight and the mm-to-m drift conversion
+are each applied once. These two scalar matches do not approve the story
+source, theta limit or global magnification policy. Of the remaining 20
+insufficient-source records, 16 already have independent/reference values and
+need the stated adapter or method work. See the
+[current comparison tasks](context/PROJECT_CHARTER.md#resume-the-44-report-comparisons-gap-016).
+The 73 recipe labels, 44 production comparison records and historical 333
+arithmetic assertions remain separate populations.
 
 # Remote code audit corrections - 2026-11-19
 

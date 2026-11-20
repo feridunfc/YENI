@@ -62,6 +62,51 @@ def _assessed_utilization(assessment: Mapping[str, Any]) -> float | None:
     return number if math.isfinite(number) and number >= 0 else None
 
 
+def _magnified_moment_demand(
+    *, nd_kn: float, m2_knm: float, m3_knm: float, dims: LocalSectionDims,
+    beta_m2: float, beta_m3: float, global_factor: float,
+) -> dict[str, Any]:
+    """Compose the existing minimum-eccentricity owner before magnification.
+
+    TS 500 7.26 applies beta to M2 subject to the 6.16 minimum, not to a raw
+    moment that is floored afterwards. The current local/global factor policy
+    is unchanged; its engineering acceptance remains a separate requirement.
+    """
+    factors = (beta_m2, beta_m3, global_factor)
+    try:
+        valid = all(not isinstance(v, bool) and math.isfinite(float(v)) and float(v) >= 1.0 for v in factors)
+    except (TypeError, ValueError, OverflowError):
+        valid = False
+    if not valid:
+        raise ValueError("MOMENT_MAGNIFICATION_FACTOR_INVALID")
+    beta_m2, beta_m3, global_factor = map(float, factors)
+    first_order = apply_minimum_eccentricity(
+        nd_kn=nd_kn, m2_knm=m2_knm, m3_knm=m3_knm, dims=dims,
+    )
+    m2_final = first_order["m2_design_knm"] * beta_m2 * global_factor
+    m3_final = first_order["m3_design_knm"] * beta_m3 * global_factor
+    if not all(math.isfinite(v) for v in (m2_final, m3_final)):
+        raise ValueError("MAGNIFIED_MOMENT_NONFINITE")
+    return {
+        "first_order_m2_knm": first_order["m2_raw_knm"],
+        "first_order_m3_knm": first_order["m3_raw_knm"],
+        "first_order_m2_design_knm": first_order["m2_design_knm"],
+        "first_order_m3_design_knm": first_order["m3_design_knm"],
+        "minimum_m2_knm": first_order["m2_min_knm"],
+        "minimum_m3_knm": first_order["m3_min_knm"],
+        "minimum_eccentricity_m2_mm": first_order["e_min_m2_mm"],
+        "minimum_eccentricity_m3_mm": first_order["e_min_m3_mm"],
+        "m2_floor_governed": first_order["m2_floor_governed"],
+        "m3_floor_governed": first_order["m3_floor_governed"],
+        "beta_m2": beta_m2,
+        "beta_m3": beta_m3,
+        "global_beta_ii_applied": global_factor,
+        "magnified_m2_design_knm": m2_final,
+        "magnified_m3_design_knm": m3_final,
+        "moment_operation_order": "MINIMUM_ECCENTRICITY_THEN_LOCAL_AND_GLOBAL_MAGNIFICATION",
+    }
+
+
 def global_pdelta_precheck_within_limit(record: Mapping[str, Any] | None) -> bool | None:
     """Read the canonical story precheck only when its direction coverage is complete."""
     if not record or record.get("status") != "NUMERIC_PRECHECK_UNAPPROVED":
@@ -339,17 +384,17 @@ def _project_single_r08_local(
                 })
                 continue
             g_fac = global_beta_ii if (global_beta_ii is not None and global_beta_ii > 1.0) else 1.0
-            m2_mag = float(row["m2_knm"]) * b_m2 * g_fac
-            m3_mag = float(row["m3_knm"]) * b_m3 * g_fac
             demand = {}
             try:
-                demand = apply_minimum_eccentricity(
-                    nd_kn=float(row["nd_kn"]), m2_knm=m2_mag, m3_knm=m3_mag, dims=dims_local,
+                demand = _magnified_moment_demand(
+                    nd_kn=float(row["nd_kn"]), m2_knm=float(row["m2_knm"]),
+                    m3_knm=float(row["m3_knm"]), dims=dims_local,
+                    beta_m2=b_m2, beta_m3=b_m3, global_factor=g_fac,
                 )
                 assess = cap_solver.assess(
                     float(row["nd_kn"]) * 1000.0,
-                    demand["m2_design_knm"] * 1e6,
-                    demand["m3_design_knm"] * 1e6,
+                    demand["magnified_m2_design_knm"] * 1e6,
+                    demand["magnified_m3_design_knm"] * 1e6,
                 )
             except (ValueError, ArithmeticError):
                 assess = {"status": "NUMERIC_UNRESOLVED"}
@@ -371,8 +416,11 @@ def _project_single_r08_local(
                 "beta_m2": b_m2,
                 "beta_m3": b_m3,
                 "global_beta_ii_applied": g_fac,
-                "magnified_m2_design_knm": demand.get("m2_design_knm"),
-                "magnified_m3_design_knm": demand.get("m3_design_knm"),
+                "first_order_m2_design_knm": None,
+                "first_order_m3_design_knm": None,
+                "magnified_m2_design_knm": None,
+                "magnified_m3_design_knm": None,
+                **demand,
                 "moment_demand_knm": None,
                 "radial_capacity_knm": None,
                 "moment_reserve_knm": None,
@@ -382,7 +430,7 @@ def _project_single_r08_local(
             if util is not None and assess["status"] in ("WITHIN_SCENARIO_SURFACE", "EXCEEDS_SCENARIO_SURFACE"):
                 capacity = assess.get("radial_capacity_kNm")
                 if type(capacity) in (float, int) and math.isfinite(capacity) and capacity > 0:
-                    moment = math.hypot(demand["m2_design_knm"], demand["m3_design_knm"])
+                    moment = math.hypot(demand["magnified_m2_design_knm"], demand["magnified_m3_design_knm"])
                     station.update(moment_demand_knm=moment, radial_capacity_knm=capacity,
                                    moment_reserve_knm=capacity - moment)
             mag_rows.append(station)
@@ -522,6 +570,7 @@ def _evaluate_spectral_bounding_corners(
         "evaluated_corner_count": 0,
         "governing_combination": None,
         "governing_station_m": None,
+        "governing_corner": None,
         "max_bounding_utilization": None,
         "reason_codes": sorted(set(errors)),
         "formal_compliance": "NOT_PROVEN",
@@ -530,9 +579,10 @@ def _evaluate_spectral_bounding_corners(
         return result
     max_util, corner_count = 0.0, 0
     gov_combo = gov_sta = None
+    governing_corner = None
     numeric_block = False
     outside = False
-    for (name, sta, _elm, _elmsta), grp in sorted(grouped.items()):
+    for (name, sta, elm, elmsta), grp in sorted(grouped.items()):
         nds = [-float(r[7]) for r in grp]
         m2_abs, m3_abs = (max(abs(float(r[idx])) for r in grp) for idx in (11, 12))
         for nd in sorted({min(nds), max(nds)}):
@@ -545,24 +595,35 @@ def _evaluate_spectral_bounding_corners(
                 continue
             for sign2 in (1.0, -1.0):
                 for sign3 in (1.0, -1.0):
-                    demand = apply_minimum_eccentricity(
-                        nd_kn=nd, m2_knm=sign2*m2_abs*factors["M2"]*float(global_beta_ii),
-                        m3_knm=sign3*m3_abs*factors["M3"]*float(global_beta_ii), dims=dims_local)
-                    assessment = cap_solver.assess(nd*1000.0, demand["m2_design_knm"]*1e6,
-                                                   demand["m3_design_knm"]*1e6)
+                    demand = _magnified_moment_demand(
+                        nd_kn=nd, m2_knm=sign2*m2_abs, m3_knm=sign3*m3_abs, dims=dims_local,
+                        beta_m2=factors["M2"], beta_m3=factors["M3"], global_factor=float(global_beta_ii))
+                    assessment = cap_solver.assess(nd*1000.0, demand["magnified_m2_design_knm"]*1e6,
+                                                   demand["magnified_m3_design_knm"]*1e6)
                     corner_count += 1
+                    witness = {
+                        "combination": name, "object_station_m": sta,
+                        "analysis_element_id": elm, "element_station_m": elmsta,
+                        "nd_kn": nd, **demand,
+                        "status": assessment.get("status"),
+                        "utilization": _assessed_utilization(assessment),
+                        "basis": "NONCONCURRENT_COMPONENT_BOX_CORNER_NOT_NATIVE_FORCE_VECTOR",
+                    }
                     if assessment.get("status") == "OUTSIDE_SCENARIO_AXIAL_RANGE":
                         outside = True
                         gov_combo, gov_sta = name, sta
+                        governing_corner = witness
                         continue
                     util = _assessed_utilization(assessment)
                     if util is None:
                         numeric_block = True
                     elif not outside and util >= max_util:
                         max_util, gov_combo, gov_sta = util, name, sta
+                        governing_corner = witness
     result.update(evaluated_corner_count=corner_count,
                   combinations_evaluated=sorted(names), governing_combination=gov_combo,
                   governing_station_m=gov_sta,
+                  governing_corner=governing_corner if not numeric_block else None,
                   max_bounding_utilization=max_util if not (numeric_block or outside) else None)
     if numeric_block:
         result["status"] = "SPECTRAL_BOUNDING_NUMERIC_UNRESOLVED"

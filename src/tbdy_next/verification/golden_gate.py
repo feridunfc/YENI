@@ -16,6 +16,7 @@ from zipfile import ZipFile
 from .. import normative_basis
 from ..column_engine.native_archive import digest
 from ..column_engine import ts500_column, section_capacity, scwb_kernel, joint_kernel, story_alpha
+from ..engineering import story_pdelta
 from . import report_oracles
 
 SCHEMA = "tbdy.next.golden-regression-gate.v1"
@@ -157,6 +158,17 @@ def _first_adapters(first, manifest):
     drift_ratio = normative_basis.eq_4_9_lambda(
         sae_dd3_m_s2=drift["Sae_DD3"], sae_dd2_m_s2=drift["Sae_DD2"],
     )
+    # Page 28 supplies cumulative weights, not individual story weights.
+    # Compare only theta: no invented ETABS case or mass-source metadata and
+    # no conclusion about the report's limit, beta or system applicability.
+    theta = {}
+    for key in ("THETA_GROUND", "THETA_UPPER"):
+        values = inputs[key]
+        theta[key] = story_pdelta.theta_ii_reference(
+            cumulative_weight_kn=values["sum_W_above_kN"],
+            average_reduced_drift_m=values["delta_avg_mm"] / 1000,
+            story_shear_kn=values["story_shear_kN"], height_m=values["height_m"],
+        )
     # Bar count/area alone is independent of coordinates. Two explicit layout
     # scaffolds exercise the existing perimeter constructor; neither supplies
     # report bar coordinates to a PMM solver.
@@ -177,7 +189,7 @@ def _first_adapters(first, manifest):
         "AXIAL_TBDY_LIMIT": axial_limits["tbdy_7_3_1_2_max_ndm_kn"],
         "AXIAL_TS500_LIMIT": axial_limits["ts500_eq_7_7_max_nd_kn"],
         "DRIFT_LAMBDA": float(drift_ratio),
-        **joint, "SCWB_COLUMN_SUM": scwb["sum_mrc_reference_knm"],
+        **theta, **joint, "SCWB_COLUMN_SUM": scwb["sum_mrc_reference_knm"],
         "SCWB_BEAM_1P2_SUM": scwb["required_mrc_reference_knm"],
         "SCWB_NUMERIC_INEQUALITY": scwb["reference_satisfied"]}
 
@@ -260,6 +272,16 @@ def build_golden_gate(*, source_dir=None):
         elif key == "DRIFT_LAMBDA":
             production["yeni_kernel"] = "normative_basis.eq_4_9_lambda"
             explanation += " This compares the printed DD3/DD2 ordinate ratio. Spectrum-period selection and the storey drift check have their own scope."
+        elif key in ("THETA_GROUND", "THETA_UPPER"):
+            production.update(
+                yeni_kernel="engineering.story_pdelta.theta_ii_reference",
+                quantity_unit="dimensionless",
+                source_weight_kind="CUMULATIVE_AT_AND_ABOVE_STORY",
+                source_directions=["X", "Y"],
+            )
+            explanation += (" This compares the page-28 theta scalar, printed identically for X and Y. "
+                            "The cumulative weight is used once and the printed average drift is converted from mm to m once. "
+                            "Story/source qualification, the theta limit, beta and the report's system acceptance are separate.")
         elif key=="PROVIDED_AS":
             explanation += " The check covers the area of 12 bars. Coordinates represent two test layouts. Report-linked PMM geometry requires independent evidence."
         elif domain=="SCWB":
@@ -285,7 +307,7 @@ def build_golden_gate(*, source_dir=None):
             "reason":"The arithmetic checks cover the listed comparisons. Overall algorithm and scope acceptance require further evidence."})
     modules = {"ts500_column":ts500_column,"section_capacity":section_capacity,"scwb_kernel":scwb_kernel,
         "joint_kernel":joint_kernel,"story_alpha":story_alpha,"report_oracles":report_oracles,
-        "normative_basis":normative_basis}
+        "normative_basis":normative_basis,"story_pdelta":story_pdelta}
     code_hashes = {name:sha256(Path(module.__file__).read_bytes()).hexdigest() for name,module in modules.items()}
     code_hashes["golden_gate"] = sha256(Path(__file__).read_bytes()).hexdigest()
     result = {"schema":SCHEMA,"source_manifest_sha256":MANIFEST_SHA256,"source_repositories":manifest["source_repositories"],

@@ -41,6 +41,14 @@ class RegistryContract(unittest.TestCase):
         names = {name for stage in STAGES for name in stage.receipts}
         self.assertLessEqual({SETUP, AXIAL, PMM}, names)
 
+    def test_every_declared_method_is_exported_without_requiring_input_contracts(self):
+        registry = {row["key"]: row for row in stage_registry()}
+        for stage in STAGES:
+            with self.subTest(stage=stage.key):
+                self.assertEqual(registry[stage.key].get("method_version"), stage.method_version)
+        r10 = next(stage for stage in STAGES if stage.key == "column-r10")
+        self.assertIsNotNone(registry[r10.key]["method_version"])
+
 
 def _axial(source: str, ductile: list[str], nd: float, tbdy_limit: float = 1000.0, ts500: float = 2000.0):
     plan = {"source": source, "blockers": [], "combinations": []}

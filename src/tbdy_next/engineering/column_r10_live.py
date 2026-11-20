@@ -1117,10 +1117,78 @@ def _compute_capacity_shear_axes(
     vr_lookup: Any,
     demand_revision: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Compute CHK-126 Ve = (Ma + Mü) / ln axes for either ETABS template or engineer selection."""
+    """Compute conditional CHK-126 capacity shear, with the 7.3.7.5 Vd floor.
+
+    The original and revised demands use the same rule. Native case/cut/step
+    identities survive the scalar Vd envelope; incomplete cases remain in the
+    output and cannot produce a favorable complete-axis utilization.
+    """
     c_axes = col_frame["axes_global"]
     by_joint_dir = {(j["target_end"], j["direction"]): j for j in scwb_joints}
     axes_out: dict[str, Any] = {}
+    native_rows, demand_rows = [], []
+    force_error = None
+    if rowset is not None:
+        try:
+            native_rows = list(native_frame_force_rows(rowset, uid))
+            if demand_revision is None:
+                demand_rows = native_rows
+            else:
+                from .alpha_iteration import revised_force_rows
+                demand_rows = revised_force_rows(rowset, uid, demand_revision)
+        except (ValueError, TypeError, KeyError, ArithmeticError) as exc:
+            force_error = "VD_FORCE_SOURCE_UNRESOLVED:" + str(exc)
+    expected_cuts = {r[1:4] for r in native_rows}
+
+    def _vd_floor(combo: str, v_axis: str) -> dict[str, Any]:
+        key = "v2_kn" if v_axis == "V2" else "v3_kn"
+        errors = [force_error] if force_error else []
+        if rowset is not None:
+            rows = [r for r in demand_rows if r[4] == combo]
+            observed_cuts = {r[1:4] for r in rows}
+            missing_cuts = sorted(expected_cuts - observed_cuts)
+            if missing_cuts:
+                errors.append("VD_REQUIRED_NATIVE_CUT_MISSING")
+            if any(r[5] not in ("", "Single Value") or r[6] != 0 for r in rows):
+                errors.append("VD_STATIC_SIGNED_STEP_REQUIRED")
+            if len(observed_cuts) != len(rows):
+                errors.append("VD_STATIC_CUT_AMBIGUOUS")
+            references = [{
+                "member_id": uid, "combination": combo,
+                "object_station_m": r[1], "analysis_element_id": r[2], "element_station_m": r[3],
+                "step_type": r[5], "step_number": r[6], "shear_axis": v_axis,
+                "signed_shear_kn": r[8 if v_axis == "V2" else 9],
+            } for r in rows]
+            basis = "SOURCE_WIDE_NATIVE_CUT_CENSUS_NOT_PHYSICAL_CUT_ACCEPTANCE"
+            expected_count = len(expected_cuts)
+        else:
+            # Retain the existing direct-owner station contract. The live
+            # pipeline supplies its native rowset and never uses this fallback.
+            references = [{
+                "member_id": uid, "combination": combo,
+                **{name: st.get(name) for name in (
+                    "object_station_m", "analysis_element_id", "element_station_m", "step_type", "step_number")},
+                "shear_axis": v_axis, "signed_shear_kn": st.get(key),
+            } for st in stations if st.get("combination") == combo]
+            missing_cuts, expected_count = [], None
+            basis = "PROJECTED_SHEAR_STATIONS_REFERENCE_WITHOUT_NATIVE_CUT_CENSUS"
+        if not references:
+            errors.append("VD_REQUIRED_COMBINATION_MISSING")
+        values = [_float_or_none(r["signed_shear_kn"]) for r in references]
+        if any(value is None for value in values):
+            errors.append("VD_SHEAR_VALUE_MISSING_OR_INVALID")
+        witness = (max(zip(references, values), key=lambda pair: abs(pair[1]))
+                   if references and not errors else None)
+        return {
+            "vd_floor_kn": abs(witness[1]) if witness else None,
+            "vd_floor_basis": basis,
+            "vd_governing_cut": witness[0] if witness else None,
+            "vd_expected_cut_count": expected_count,
+            "vd_observed_cut_count": len(references),
+            "vd_missing_cuts": [{"object_station_m": c[0], "analysis_element_id": c[1],
+                                 "element_station_m": c[2]} for c in missing_cuts],
+            "reason_codes": sorted(set(errors)),
+        }
 
     for direction, dir_vec in (("X", [1.0, 0.0, 0.0]), ("Y", [0.0, 1.0, 0.0])):
         shear_idx = [i for i in (1, 2) if _parallel(c_axes[i], dir_vec)]
@@ -1137,8 +1205,8 @@ def _compute_capacity_shear_axes(
                 if joint_entry:
                     src_block = (joint_entry.get("engineer_selected_scwb") or {}) if use_engineer else joint_entry
                     rows = [c for c in src_block.get("cases") or () if c["output_case"] == combo]
-                    m_col = (max(float(c["target_column_capacity_knm"]) for c in rows)
-                             if rows and all(c.get("target_column_capacity_knm") is not None for c in rows) else None)
+                    capacities = [_float_or_none(c.get("target_column_capacity_knm")) for c in rows]
+                    m_col = (max(capacities) if capacities and all(v is not None and v >= 0 for v in capacities) else None)
                     if m_col is None:
                         return None, None, "COLUMN_CAPACITY_MISSING"
                     mp_unred = 1.4 * float(m_col)
@@ -1149,7 +1217,7 @@ def _compute_capacity_shear_axes(
                     return mp_unred, mp_unred, "UNREDUCED_7_3_7_3_NO_ANALYSIS_MOMENT_SHARE"
                 if section is None or rowset is None:
                     return None, None, "SUPPORT_END_SECTION_UNBOUND"
-                f_rows = [r for r in native_frame_force_rows(rowset, uid) if r[4] == combo and r[6] == 0]
+                f_rows = [r for r in native_rows if r[4] == combo and r[5] in ("", "Single Value") and r[6] == 0]
                 if not f_rows:
                     return None, None, "SUPPORT_END_FORCE_MISSING"
                 sta = min(r[1] for r in f_rows) if end_label == "I" else max(r[1] for r in f_rows)
@@ -1164,47 +1232,59 @@ def _compute_capacity_shear_axes(
 
             mp_i_unred, mp_i_eff, i_basis = _end_mp(j_i, "I")
             mp_j_unred, mp_j_eff, j_basis = _end_mp(j_j, "J")
-            if mp_i_unred is None or mp_j_unred is None:
-                continue
-            ve_unred = (mp_i_unred + mp_j_unred) / ln_m
-            ve_eff = (mp_i_eff + mp_j_eff) / ln_m
-            vd_floor = None
-            if demand_revision is not None:
-                # 7.3.7.5: revised Vd is a lower bound, not a factor on Mr.
-                values = [abs(float(st["v2_kn" if v_axis == "V2" else "v3_kn"]))
-                          for st in stations if st["combination"] == combo]
-                if not values:
-                    continue
-                vd_floor = max(values)
-                ve_eff = max(ve_eff, vd_floor)
-            vr_min, vr_z_min = vr_lookup(combo, v_axis, ve_eff)
+            vd = _vd_floor(combo, v_axis)
+            errors = list(vd.pop("reason_codes"))
+            ends_resolved = all(_float_or_none(v) is not None and float(v) >= 0
+                                for v in (mp_i_unred, mp_j_unred, mp_i_eff, mp_j_eff))
+            if not ends_resolved:
+                errors.append("CAPACITY_SHEAR_END_MOMENT_UNRESOLVED")
+            ve_unred = (mp_i_unred + mp_j_unred) / ln_m if ends_resolved else None
+            ve_eff = (max((mp_i_eff + mp_j_eff) / ln_m, vd["vd_floor_kn"])
+                      if ends_resolved and not errors else None)
+            vr_min, vr_z_min = vr_lookup(combo, v_axis, ve_eff) if ve_eff is not None else (None, None)
+            vr_min, vr_z_min = _float_or_none(vr_min), _float_or_none(vr_z_min)
+            if ve_eff is not None and (vr_min is None or vr_min <= 0 or vr_z_min is None or vr_z_min <= 0):
+                errors.append("CAPACITY_SHEAR_RESISTANCE_MISSING_OR_INVALID")
             cases_ve.append({
                 "combination": combo,
+                "status": "CAPACITY_SHEAR_CASE_UNRESOLVED" if errors else "CAPACITY_SHEAR_CASE_CALCULATED_NOT_PROVEN",
+                "reason_codes": sorted(set(errors)),
                 "mp_i_basis": i_basis,
                 "mp_j_basis": j_basis,
                 "ve_unreduced_kn": ve_unred,
                 "ve_scwb_scenario_kn": ve_eff,
-                **({"revised_vd_floor_kn": vd_floor, "alpha_demand_revision_sha256": demand_revision["sha256"]} if demand_revision is not None else {}),
+                **vd,
+                **({"revised_vd_floor_kn": vd["vd_floor_kn"], "alpha_demand_revision_sha256": demand_revision.get("sha256")} if demand_revision is not None else {}),
                 "vr_ts500_min_kn": vr_min,
                 "vr_zero_concrete_min_kn": vr_z_min,
-                "utilization_ts500": (ve_eff / vr_min) if vr_min else None,
-                "utilization_zero_concrete": (ve_eff / vr_z_min) if vr_z_min else None,
+                "utilization_ts500": (ve_eff / vr_min) if ve_eff is not None and vr_min is not None and vr_min > 0 else None,
+                "utilization_zero_concrete": (ve_eff / vr_z_min) if ve_eff is not None and vr_z_min is not None and vr_z_min > 0 else None,
             })
         if cases_ve:
-            gov = max(cases_ve, key=lambda item: item["ve_scwb_scenario_kn"])
+            complete = all(c["status"] == "CAPACITY_SHEAR_CASE_CALCULATED_NOT_PROVEN" for c in cases_ve)
+            def _complete_max(key: str) -> float | None:
+                values = [_float_or_none(c.get(key)) for c in cases_ve]
+                return max(values) if all(v is not None for v in values) else None
+            gov = (max(cases_ve, key=lambda item: item["ve_scwb_scenario_kn"])
+                   if _complete_max("ve_scwb_scenario_kn") is not None else None)
             axes_out[v_axis] = {
                 "direction": direction,
                 "bending_axis": bend_axis,
+                "status": "SCENARIO_VE_CALCULATED_NOT_PROVEN" if complete else "CAPACITY_SHEAR_INPUTS_UNRESOLVED",
+                "expected_combination_count": len(static_combos),
+                "evaluated_combination_count": sum(c["status"] == "CAPACITY_SHEAR_CASE_CALCULATED_NOT_PROVEN" for c in cases_ve),
+                "unresolved_combinations": [c["combination"] for c in cases_ve if c["status"] != "CAPACITY_SHEAR_CASE_CALCULATED_NOT_PROVEN"],
+                "reason_codes": sorted({reason for c in cases_ve for reason in c["reason_codes"]}),
                 "ve_basis": (
                     "FRAMED_JOINT_ENDS"
                     if has_framing_beams
                     else "NO_FRAMING_BEAMS_BOTH_ENDS_1_4_MR"
                 ),
-                "governing_combination": gov["combination"],
-                "max_ve_unreduced_kn": max(c["ve_unreduced_kn"] for c in cases_ve),
-                "max_ve_scwb_scenario_kn": gov["ve_scwb_scenario_kn"],
-                "max_utilization_ts500": max((c["utilization_ts500"] for c in cases_ve if c["utilization_ts500"] is not None), default=None),
-                "max_utilization_zero_concrete": max((c["utilization_zero_concrete"] for c in cases_ve if c["utilization_zero_concrete"] is not None), default=None),
+                "governing_combination": gov["combination"] if gov else None,
+                "max_ve_unreduced_kn": _complete_max("ve_unreduced_kn"),
+                "max_ve_scwb_scenario_kn": _complete_max("ve_scwb_scenario_kn"),
+                "max_utilization_ts500": _complete_max("utilization_ts500"),
+                "max_utilization_zero_concrete": _complete_max("utilization_zero_concrete"),
                 "cases": cases_ve,
             }
     return axes_out
@@ -1315,7 +1395,9 @@ def _column_capacity_shear_ve(
         "overstrength_factor": 1.4,
         **({"selection_basis": "ENGINEER_SELECTED_BEAM_AND_COLUMN"} if use_engineer_selection else {}),
         "axes": axes_out,
-        "status": "SCENARIO_VE_CALCULATED_NOT_PROVEN",
+        "status": ("SCENARIO_VE_CALCULATED_NOT_PROVEN"
+                   if all(axis["status"] == "SCENARIO_VE_CALCULATED_NOT_PROVEN" for axis in axes_out.values())
+                   else "CAPACITY_SHEAR_INPUTS_UNRESOLVED"),
         "formal_compliance": "NOT_PROVEN",
     }
 

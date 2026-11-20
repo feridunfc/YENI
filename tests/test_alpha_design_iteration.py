@@ -300,6 +300,10 @@ class AlphaRevisionIntegration(unittest.TestCase):
                 'status':'MAGNIFIED_PMM_WITHIN_CAPACITY_NOT_PROVEN', 'global_beta_ii_factor':1.,
                 'expected_row_count':1, 'evaluated_row_count':1, 'resolved_row_count':1, 'max_utilization':.5}, 'open_gates':[]}
         for uid, detail in r10['per_member'].items(): make_feasible(uid, detail)
+        from test_alpha_joint_feasibility import attach_reference_joint_results
+        attach_reference_joint_results(plan, r10, ['Q'])
+        axial = {'combination_plan': {'design_assignment': {'groups': {'ductile': ['Q']}},
+                                     'combinations': [{'name': 'Q', 'force_semantics': 'STATIC_SIGNED_VECTOR'}]}}
         calls=[]
         def r10_owner(s,g,a,p,e,**kwargs):
             self.assertEqual(kwargs['reselect_member_ids'],['C1'])
@@ -330,7 +334,7 @@ class AlphaRevisionIntegration(unittest.TestCase):
              patch('tbdy_next.engineering.alpha_iteration.build_demand_revision',side_effect=revision), \
              patch('tbdy_next.engineering.column_r10_live.project_column_r10_live',side_effect=r10_owner), \
              patch('tbdy_next.engineering.column_r08_local_live.project_column_r08_local_live',side_effect=r08_owner):
-            state,candidates,record=run_alpha_design_iteration(source=source,geometry={},axial={},pmm={},extra={},
+            state,candidates,record=run_alpha_design_iteration(source=source,geometry={},axial=axial,pmm={},extra={},
                 scope=scope,dependencies=plan,r10=r10,r08=r08,cages=cages,beam=beam,
                 global_pdelta={},input_sha='input-hash')
         return source,scope,state,candidates,record,calls

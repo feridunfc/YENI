@@ -1,6 +1,6 @@
 """Bind the TBDY 7.3.5.3(a) decision to native column ends for R10."""
 from collections import defaultdict
-from math import isclose
+from math import isclose, isfinite
 
 from ..column_engine.beam_references import station_budget
 from ..column_engine.csi_geometry import physical_column_side_at_joint
@@ -176,3 +176,80 @@ def joint_low_axial_decisions(source, axial, scope, mixed, dependency_plan, fram
         exempt = all(end["max_seismic_nd_kn"] <= end["limit_kn"] for end in ends)
         decision.update(exempt=exempt, status="EXEMPT_LOW_AXIAL" if exempt else "LOW_AXIAL_LIMIT_EXCEEDED")
     return results
+
+
+def alpha_low_axial_credit(source, axial, scope, dependency_plan, frame, end_joints, seismic,
+                           *, source_payload_sha256):
+    """Consume existing axial/end results for optional TBDY 7.3.6.1 credit.
+
+This is a per-column decision, not the two-column joint exception. A neighbor
+may exceed its limit while the target column qualifies. Credit never asserts
+that Eq. 7.3 is satisfied and therefore does not itself authorize 1/alpha demand
+amplification. No force or section-capacity calculation is repeated here.
+"""
+    from .design_dependencies import SCHEMA as DEPENDENCY_SCHEMA
+
+    result = {"clause": "TBDY 7.3.6.1", "eligible": False, "status": "UNVERIFIED",
+              "column_ends": [], "reason_codes": []}
+    try:
+        # The caller hashes this immutable source once per qualification, not
+        # once per member/direction/combination. No source force is mutated.
+        if (dependency_plan.get("schema") != DEPENDENCY_SCHEMA
+                or dependency_plan.get("source_payload_sha256") != source_payload_sha256):
+            raise ValueError("ALPHA_LOW_N_DEPENDENCY_SOURCE_MISMATCH")
+        identity = scope.get("input_sha256")
+        if not identity or dependency_plan.get("input_sha256") != identity:
+            raise ValueError("ALPHA_LOW_N_SOURCE_IDENTITY_UNBOUND")
+        uid = frame["frame_id"]
+        plan = axial["combination_plan"]
+        semantics = {c["name"]: c.get("force_semantics") for c in plan["combinations"]}
+        verify_combined_seismic_axial_cases(source, seismic, semantics)
+        columns = [c for c in axial.get("columns", ()) if c.get("element_id") == uid]
+        if len(columns) != 1:
+            raise ValueError("ALPHA_LOW_N_COLUMN_RESULT_UNBOUND")
+        column = columns[0]
+        limit = low_axial_limit_kn(column.get("gross_area_mm2"), column.get("fck_mpa"))
+        maxima = {}
+        for name in seismic:
+            checks = [r for r in column.get("combination_checks", ()) if r.get("combination") == name]
+            if (len(checks) != 1 or checks[0].get("status") not in ("WITHIN_LIMIT", "OUTSIDE_LIMIT")
+                    or type(checks[0].get("nd_kn")) not in (int, float)
+                    or not isfinite(checks[0]["nd_kn"]) or checks[0]["nd_kn"] < 0):
+                raise ValueError("ALPHA_LOW_N_MEMBER_MAXIMUM_UNBOUND:" + name)
+            maxima[name] = checks[0]["nd_kn"]
+        for end in ("I", "J"):
+            joint = end_joints[end]
+            decision = joint.get("low_axial_exception") or {}
+            if (decision.get("input_sha256") != identity or decision.get("reasons")
+                    or decision.get("status") not in ("EXEMPT_LOW_AXIAL", "LOW_AXIAL_LIMIT_EXCEEDED")
+                    or set(decision.get("seismic_combinations", ())) != set(seismic)):
+                raise ValueError("ALPHA_LOW_N_END_EVIDENCE_UNBOUND:" + end)
+            ends = [r for r in decision.get("column_ends", ())
+                    if r.get("member_id") == uid and r.get("end") == end]
+            if len(ends) != 1:
+                raise ValueError("ALPHA_LOW_N_END_IDENTITY_UNBOUND:" + end)
+            evidence = ends[0]
+            cut, length = _configured_end(scope, frame, end)
+            observed = evidence.get("configured_cut") or ()
+            if (len(observed) != 4 or observed[0] != cut[0] or observed[2] != cut[2]
+                    or any(type(observed[k]) not in (int, float) or not isfinite(observed[k]) for k in (1, 3))
+                    or abs(observed[1] - cut[1]) > station_budget(observed[1], cut[1], length)
+                    or abs(observed[3] - cut[3]) > station_budget(observed[3], cut[3], length)
+                    or evidence.get("gross_area_mm2") != column["gross_area_mm2"]
+                    or evidence.get("fck_mpa") != column["fck_mpa"] or evidence.get("limit_kn") != limit):
+                raise ValueError("ALPHA_LOW_N_END_CUT_OR_SECTION_CONFLICT:" + end)
+            values = evidence.get("nd_max_by_combination_kn") or {}
+            for name in seismic:
+                value = values.get(name)
+                if type(value) not in (int, float) or not isfinite(value):
+                    raise ValueError("ALPHA_LOW_N_END_VALUE_UNBOUND:" + end)
+                if value > maxima[name]:
+                    raise ValueError("ALPHA_LOW_N_END_MEMBER_MAXIMUM_CONFLICT:" + end)
+            result["column_ends"].append(evidence)
+        eligible = all(n <= limit for n in maxima.values())
+        result.update(status="QUALIFIED_LOW_AXIAL_CREDIT" if eligible else "LOW_AXIAL_LIMIT_EXCEEDED",
+                      eligible=eligible, input_sha256=identity, limit_kn=limit,
+                      member_max_compression_by_combination_kn=maxima)
+    except (KeyError, TypeError, ValueError, ArithmeticError) as exc:
+        result["reason_codes"] = [str(exc)]
+    return result

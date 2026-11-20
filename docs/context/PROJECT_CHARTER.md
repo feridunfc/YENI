@@ -45,16 +45,47 @@ can start with the bundled report fixtures and the source IDs above.
 
 Run `python -B -m tbdy_next.cli inspect-golden-regression --require-complete`
 from the checkout with the project interpreter. The current gate returns
-exit 3 with 18 numerical matches, 22 insufficient-source labels and
-four interpretation differences. In 18 of the 22 rows the independent
-calculation and the report value already agree.
+exit 3 with 20 numerical matches, 20 insufficient-source labels and
+four interpretation differences. Sixteen of the 20 open rows already contain
+agreeing independent and reference values at their recorded tolerances; five
+of these references are derived Boolean expectations, not printed numeric
+results. The existing `INSUFFICIENT_SOURCE` classification therefore includes
+missing production adapters and unresolved method or source qualification,
+as well as missing inputs.
+
+The existing `G01_THETA_GROUND` and `G01_THETA_UPPER` records now call
+`engineering.story_pdelta.theta_ii_reference`, the same scalar operation used
+by the production story-P-delta wrapper. GOLDEN-01 PDF page 28 supplies the
+cumulative weights, average drifts, shears and heights for both directions.
+The resulting dimensionless values are 0.007516853605560383 and
+0.005997760967498111. The original IDs, source identity, expected values and
+tolerances are unchanged. `EV-AUDIT-FIXES-20261120` records these additions.
+The comparison verifies theta arithmetic and its units; source qualification,
+the theta limit, beta and system acceptance remain separate. The production
+wrapper retains its complete source and limit checks.
+[Story-P-delta owner](../../src/tbdy_next/engineering/story_pdelta.py)
 
 | Open group | Count | Next calculation or input |
 | --- | ---: | --- |
-| GOLDEN-01 scalar comparisons | 13 | Reproduce the ground and upper storey second-order indicators on PDF page 28 with the storey data and existing global P-delta owner. |
-| GOLDEN-02 second-order comparisons | 5 | Four rows need the Eq. 7.29 length and support basis. The fifth compares the sway branch. The reported displacement, sum of axial force over length and storey shear are available on PDF page 185 of the revised report. |
+| GOLDEN-01 scalar comparisons | 11 | Four spectrum coefficients/periods, two confinement quantities, two joint-shear equilibria, two sway indicators and one local-beta result. Their scalar source inputs are bundled. Complete the existing-owner adapters or the explicit stability-method decision described below. |
+| GOLDEN-02 second-order comparisons | 5 | Four printed-symbol Eq. 7.29 Boolean probes have source inputs; distinguish that arithmetic from physical clear length, support and final-factor approval. The fifth compares the sway branch. Revised displacement, sum of axial force over length and storey shear are available on PDF page 185; bind both compared cases to the production sway calculation. |
 | GOLDEN-01 full column checks | 2 | For biaxial capacity, bind bar coordinates, axes and concurrent N/M2/M3 to an independent capacity at that axial load and direction. For capacity shear, bind both end moments, clear length, the D branch and the design shear lower bound. |
 | GOLDEN-03 and GOLDEN-04 | 2 | Each has an open second-order record. Select a page-bound case per original report, calculate it independently and connect the same inputs to the production owner. |
+
+The next two G01 comparisons are the one- and two-beam joint equilibria on
+page 194. Reuse the arithmetic owned by
+`engineering.column_r10_live._attach_r13_joint_shear_and_transverse`, exposing
+a shared scalar operation within that owner if needed. Retain the source
+steel areas, strength, column-shear deduction and rounding allowance; this
+does not qualify the complete physical joint. The six spectrum/confinement
+quantities need adapters to arithmetic already present in `basis_linkage`,
+`spectrum_reconstruction`, `engineering.rebar_selection` and
+`column_engine.transverse_kernel`, not another request for the same source
+numbers. The two sway indicators require a production operation within the
+existing stability owner, `column_engine.ts500_column`. Its local-beta
+adapter also needs the explicit Cm/end-moment interpretation and a
+factor-greater-than-one reference; a result of 1.0 alone cannot diagnose a
+wrong denominator.
 
 The four separately classified interpretation rows ask how the final moment
 magnification factor was chosen. On GOLDEN-02 page 186 the reported factors
