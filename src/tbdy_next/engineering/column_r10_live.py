@@ -554,6 +554,7 @@ def _evaluate_scwb_at_joint_ends(
     engineer_col_sections: Mapping[str, Any] | None = None,
     col_sections_cache: dict[str, tuple[Any, dict]] | None = None,
     dependency_plan: Mapping[str, Any] | None = None,
+    low_axial_by_joint: Mapping[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     """Build TBDY 7.3.6 / CHK-125 SCWB reference summaries at I/J joints of `uid`."""
     from .column_axial import _columns
@@ -568,7 +569,9 @@ def _evaluate_scwb_at_joint_ends(
         for c in (axial.get("combination_plan") or {}).get("combinations", ())
         if c.get("force_semantics") == "STATIC_SIGNED_VECTOR"
     ]
-    if not static_combos or not force_rowsets or not pmm_sec_source or uid not in frames or not points:
+    if uid not in frames or not points:
+        return []
+    if not low_axial_by_joint and (not static_combos or not force_rowsets or not pmm_sec_source):
         return []
 
     beam_by_id = {b["member_id"]: b for b in (beam_live or {}).get("beams") or ()}
@@ -586,6 +589,8 @@ def _evaluate_scwb_at_joint_ends(
 
     for end, pt_id in (("I", target_col["point_i"]), ("J", target_col["point_j"])):
         incident = adjacency.get(pt_id, [])
+        applicability = (low_axial_by_joint or {}).get(pt_id)
+        applicability_field = {"low_axial_exception": applicability} if applicability else {}
         if dependency_plan is not None:
             from .design_dependencies import joint_blockers
             blocked = joint_blockers(dependency_plan, pt_id)
@@ -598,6 +603,7 @@ def _evaluate_scwb_at_joint_ends(
                         "status": "BLOCKED_DEPENDENCY", "execution_status": "NOT_RUN", "reasons": blocked,
                         "cases": [], "scenario_reference_satisfied": None,
                         "sampled_minimum_normalized_ratio": None, "formal_compliance": "NOT_PROVEN",
+                        **applicability_field,
                     })
                 continue
         if pt_id not in points:
@@ -877,7 +883,8 @@ def _evaluate_scwb_at_joint_ends(
                 **({"engineer_selected_scwb": eng_scwb_block} if eng_scwb_block is not None else {}),
                 "static_case_count": len(static_combos),
                 "cases": case_results,
-                "status": joint_status,
+                "status": "SCWB_EQ_7_3_EXEMPT_LOW_AXIAL" if applicability and applicability["exempt"] is True else joint_status,
+                **applicability_field,
                 "scwb_ratio": None,
                 "formal_compliance": "NOT_PROVEN",
                 "reasons": dir_reasons,
@@ -1938,6 +1945,7 @@ def _evaluate_single_member_r10_details(
     pmm_single: Mapping[str, Any] | None,
     dependency_plan: Mapping[str, Any] | None = None,
     demand_revision: Mapping[str, Any] | None = None,
+    low_axial_by_joint: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     angle_deg = member_local_axis_angle_deg(source, uid)
     scwb_joints = _evaluate_scwb_at_joint_ends(
@@ -1945,7 +1953,7 @@ def _evaluate_single_member_r10_details(
         beam_live=beam_live,
         engineer_col_section=eng_col_sections.get(uid),
         engineer_col_sections=eng_col_sections,
-        col_sections_cache=col_sections_cache, dependency_plan=dependency_plan,
+        col_sections_cache=col_sections_cache, dependency_plan=dependency_plan, low_axial_by_joint=low_axial_by_joint,
     )
     transverse_shear = _evaluate_column_shear_and_confinement_for_id(uid, source, geometry, axial, demand_revision=demand_revision)
     dependency_blockers = []
@@ -2009,6 +2017,9 @@ def project_column_r10_live(
     reselect_member_ids: Sequence[str] | None = None,
     additional_demands: Mapping[str, Sequence[Mapping[str, Any]]] | None = None,
     additional_shears: Mapping[str, Sequence[Mapping[str, Any]]] | None = None,
+    pmm_scope: Mapping[str, Any] | None = None,
+    mixed_components: Mapping[str, Any] | None = None,
+    input_sha: str | None = None,
 ) -> dict[str, Any] | None:
     """Deterministic R10-R13 projection (joints, 7.5 Ve/7.5.2.3, SCWB, story alpha_i, shear/Ve)."""
     if dependency_plan is not None:
@@ -2049,6 +2060,10 @@ def project_column_r10_live(
 
     frames, points, graph_meta = _build_frame_catalog(source)
     adjacency = graph_meta.pop("adjacency")
+    from .scwb_axial import joint_low_axial_decisions
+    low_axial_by_joint = joint_low_axial_decisions(
+        source, axial, pmm_scope, mixed_components, dependency_plan, frames, points, adjacency,
+        _assigned_seismic_combinations(axial), input_sha=input_sha)
     fck_map = _materials_fck(extra)
 
     target_cols = [
@@ -2142,6 +2157,7 @@ def project_column_r10_live(
             eng_col_res=eng_col_selections.get(uid), eng_col_sections=eng_col_sections,
             col_sections_cache=col_sections_cache, beam_sel_active=beam_sel_active,
             pmm_single=pmm_members_map.get(uid), dependency_plan=dependency_plan, demand_revision=demand_revision,
+            low_axial_by_joint=low_axial_by_joint,
         )
         per_member[uid] = det
         all_scwb_joints.extend(det["scwb_joints"])

@@ -2219,8 +2219,18 @@ def _column_r10_html(r10: Mapping[str, Any]) -> str:
         })
     has_eng_scwb = any(isinstance(j.get("engineer_selected_scwb"), Mapping) for j in r10.get("scwb_joints") or ())
     scwb_rows = []
+    axial_ends = {}
     for j in r10.get("scwb_joints") or ():
         eng_s = j.get("engineer_selected_scwb") if isinstance(j.get("engineer_selected_scwb"), Mapping) else {}
+        exception = j.get("low_axial_exception") or {}
+        for end in exception.get("column_ends", ()):
+            axial_ends[j.get("joint_id"), end["member_id"]] = {
+                "joint": j.get("joint_id"), "member": end["member_id"], "side": end["physical_side"],
+                "end": end["end"], "station": end["configured_cut"][1], "seismic_case": end["governing_seismic_combination"],
+                "seismic": end["max_seismic_nd_kn"],
+                "case": end["governing_combination"], "nd": end["max_nd_kn"], "limit": end["limit_kn"],
+                "decision": exception.get("status"),
+            }
         scwb_rows.append({
             "joint_id": j.get("joint_id"), "target_end": j.get("target_end"), "direction": j.get("direction"),
             "column_ids": ", ".join(j.get("column_ids") or ()),
@@ -2230,6 +2240,7 @@ def _column_r10_html(r10: Mapping[str, Any]) -> str:
             "min_scwb_ratio": j.get("sampled_minimum_normalized_ratio"),
             "eng_min_mrb": eng_s.get("sampled_minimum_beam_sum_knm"),
             "eng_scwb_ratio": eng_s.get("sampled_minimum_normalized_ratio"),
+            "low_axial": exception.get("status"),
             "status": j.get("status"),
         })
     eng_col = r10.get("engineer_column_selection")
@@ -2280,6 +2291,8 @@ def _column_r10_html(r10: Mapping[str, Any]) -> str:
             ("eng_min_mrb", "Eng. min sum Mrb (kN·m)"),
             ("eng_scwb_ratio", "Eng. SCWB ratio"),
         )
+    if any(row["low_axial"] for row in scwb_rows):
+        scwb_cols += (("low_axial", "7.3.5.3(a) low-axial exception"),)
     scwb_cols = scwb_cols + (("status", "SCWB status"),)
     return (
         '<section class="percheck"><h2>Column R10 · Joints, SCWB and shear/confinement</h2>'
@@ -2293,6 +2306,12 @@ def _column_r10_html(r10: Mapping[str, Any]) -> str:
                    ("missing_faces", "Missing faces"), ("narrow_faces", "Narrow faces"),
                    ("limits", "Centered 7.5 limits"), ("status", "Status")), end_rows) if end_rows else '')
         + (_table(scwb_cols, scwb_rows) if scwb_rows else '')
+        + ('<h3>Axial force at the connected column ends · TBDY 7.3.5.3(a)</h3>' +
+           _table((("joint", "Joint"), ("member", "Column"), ("side", "Side"), ("end", "End"),
+                   ("station", "Object station (m)"), ("seismic_case", "Governing seismic combination"),
+                   ("seismic", "Max seismic Nd (kN)"), ("case", "Governing over all assignments"), ("nd", "Max assigned Nd (kN)"),
+                   ("limit", "0.10 Ac fck (kN)"), ("decision", "Joint decision")), list(axial_ends.values()))
+           if axial_ends else '')
         + (_table((("role", "Choice"), ("diam", "Φ (mm)"), ("cage", "Bar grid"), ("rho", "Rho (%)"),
                    ("pmm", "PMM (max util)"), ("stirrups", "Stirrups (conf/span)"),
                    ("legs", "Legs V2/V3"), ("alerts", "TBDY/TS500 checks")), eng_col_rows)

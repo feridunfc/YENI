@@ -1,7 +1,7 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-19T18:42:53Z",
+  "updated_at_utc": "2026-11-20T05:31:09Z",
   "repository": "feridunfc/YENI",
   "baseline_implementation_commit": "79f534a8dee005afaafab5a907c594c99d153eff",
   "local_reconciled": true,
@@ -297,10 +297,12 @@
       "title": "SCWB and alpha demand feedback",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Bounded signed-reference iteration and mixed signed E partition exist. Scalar spectral replay is independently matched. One original interior joint meets the two-column low-axial threshold for its assigned combinations at the configured ends in a private worked calculation.",
-      "blocker": "Governing Nd and story-shear allocation are not qualified. Prior real spectral scenario is BLOCKED_INPUTS / 0 iterations; latest plain replay executes no alpha iteration.",
+      "achieved_scope": "Bounded signed-reference iteration, mixed signed E partition and scalar spectral replay exist. R10 applies the two-column low-axial exception at qualified ends. On the original 52 two-column joints, 47 qualify and five exceed a seismic threshold. The report records each end and R14 distinguishes exempt joints from actual moment-ratio satisfaction.",
+      "blocker": "The five joints outside the low-axial exception need direction-compatible governing Nd and moment capacities. The original full story-direction shear allocation and alpha feedback remain unqualified.",
       "closure_criteria": "Prove alpha-to-demand-to-cage-to-PMM/shear/joint feedback at the same story/cut with all neighbors in an independent complete example, including correct nonconvergence states.",
       "owner_paths": [
+        "src/tbdy_next/engineering/column_r10_live.py",
+        "src/tbdy_next/engineering/scwb_axial.py",
         "src/tbdy_next/engineering/alpha_iteration.py",
         "src/tbdy_next/column_engine/story_alpha.py",
         "src/tbdy_next/engineering/design_dependencies.py"
@@ -313,7 +315,8 @@
         "EV-LOCAL-MODAL-PARAMETERS",
         "EV-RECIPE18-INTAKE",
         "EV-RECIPE18-ARITHMETIC",
-        "EV-C29-INTERIOR-LOW-AXIAL-20261120"
+        "EV-C29-INTERIOR-LOW-AXIAL-20261120",
+        "EV-R10-LOW-AXIAL-20261120"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,

@@ -419,7 +419,7 @@ def _story_summary(qualification):
 
 
 def run_alpha_design_iteration(*, source, geometry, axial, pmm, extra, scope, dependencies,
-                               r10, r08, cages, beam, global_pdelta, input_sha):
+                               r10, r08, cages, beam, global_pdelta, input_sha, mixed_components=None):
     """Existing pipeline's bounded substage; rebuild only dirty member/joint owners."""
     from .column_r10_live import project_column_r10_live
     from .column_r08_local_live import project_column_r08_local_live
@@ -448,6 +448,7 @@ def run_alpha_design_iteration(*, source, geometry, axial, pmm, extra, scope, de
         new_cages = {}
         next_r10 = project_column_r10_live(
             source, geometry, axial, pmm, extra, beam_live=beam, dependency_plan=plan,
+            pmm_scope=scope, mixed_components=mixed_components, input_sha=input_sha,
             selected_cages_out=new_cages, demand_revision=revision,
             previous_result=state["r10"], previous_cages=state["cages"], reselect_member_ids=changed,
             additional_demands=more_m, additional_shears=more_v)

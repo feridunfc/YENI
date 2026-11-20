@@ -7,15 +7,20 @@ in a GitHub checkout. Follow the [November 18 full recipe](engineering/reference
 and its [six-step calculation sequence](engineering/reference/recipe_20261118/delivery/PRIORITY_CHAIN.json).
 The active delivery is the [original interior joint through one full story and direction](engineering/AUDIT_FIXES_20261119.md#next-bounded-delivery-in-order).
 
-At C29's interior joint the original ETABS run supplies both configured column-end
-axial intervals for all eight assigned earthquake combinations. An independent
-read of the native forces reproduced all 32 bounds. Both columns meet the
-low-axial threshold at the checked cuts. The local worked calculation is indexed
-by `EV-C29-INTERIOR-LOW-AXIAL-20261120`. The next production step is to apply
-TBDY 7.3.5.3(a) in the existing R10 joint calculation for qualified ends. Where
-the exception does not apply, use direction-compatible axial demand that minimizes
-column moment strength. Story allocation and alpha feedback require the complete
-story-direction population and compatible member shears.
+R10 now decides the TBDY 7.3.5.3(a) low-axial exception at two connected column
+ends. It compares each end's largest compression under the assigned combined
+gravity and earthquake cases with that column's 0.10 Ac fck. The normal report
+shows the governing seismic combination and the maximum over all assignments.
+[TBDY 2018, chapter 7 notation and §7.3.5](https://webdosya.csb.gov.tr/db/yapiisleri/icerikler/tbdy_2018-20210506174126.pdf)
+The original C29 worked result is indexed by `EV-C29-INTERIOR-LOW-AXIAL-20261120`.
+
+Of the original model's 52 two-column joints with framing beams, 47 qualify for
+the exception and five exceed a column limit under combined seismic demand.
+Seven of the 47 exceed a limit only under gravity combinations. The production
+replay is indexed by `EV-R10-LOW-AXIAL-20261120`. For the five remaining joints,
+evaluate the column moment capacities at direction-compatible axial demands
+under 7.3.5.2 for both sway signs. Then bind the full story-direction shear
+population and apply the existing alpha iteration.
 
 ## GAP-016 report comparisons
 

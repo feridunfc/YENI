@@ -16,6 +16,15 @@ FACTOR=1.20
 SOURCE="https://github.com/feridunfc/TBDY/blob/1440df1b9300f75b1e604204438f5cada9ebd247/tbdy_engine/design/core/capacity_design.py"
 
 
+def low_axial_limit_kn(gross_area_mm2, fck_mpa):
+    """TBDY 7.3.5.3(a), inclusive compression-positive limit for one column."""
+    area = finite(gross_area_mm2, "gross_area_mm2")
+    strength = finite(fck_mpa, "fck_mpa")
+    if area <= 0 or strength <= 0:
+        raise BankError("SCWB_COLUMN_AREA_OR_STRENGTH_INVALID")
+    return finite(0.10 * area * strength / 1000, "low_axial_limit_kn")
+
+
 @dataclass(frozen=True)
 class JointCase:
     source_run_id: str

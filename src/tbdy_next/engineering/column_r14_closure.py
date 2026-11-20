@@ -192,7 +192,15 @@ def _evaluate_single_r14_column(
     scwb_ratios: list[float] = []
     scwb_unsat = False
     scwb_unbound = not scwb_joints
+    low_axial_joints = set()
+    unresolved_seismic_nd = False
     for j in scwb_joints:
+        exception = j.get("low_axial_exception") or {}
+        if exception.get("exempt") is True:
+            low_axial_joints.add(j["joint_id"])
+            continue
+        if exception.get("status") in ("LOW_AXIAL_LIMIT_EXCEEDED", "UNRESOLVED"):
+            unresolved_seismic_nd = True
         blk = j.get("engineer_selected_scwb") or j
         sat = blk.get("reference_satisfied" if "engineer_selected_scwb" in j else "scenario_reference_satisfied")
         rat = blk.get("sampled_minimum_normalized_ratio")
@@ -206,6 +214,11 @@ def _evaluate_single_r14_column(
         # 7.3.6 permits an explicitly qualified alternative; low joint ratio
         # alone is not proof that the complete code branch has failed.
         open_gates.append("SCWB_JOINT_RATIO_REQUIRES_7_3_6_BRANCH_REVIEW")
+    if unresolved_seismic_nd:
+        open_gates.append("SCWB_SEISMIC_GOVERNING_ND_UNQUALIFIED")
+    scwb_satisfied = (not scwb_unsat and not scwb_unbound) if scwb_joints else None
+    if (low_axial_joints or unresolved_seismic_nd) and not scwb_unsat:
+        scwb_satisfied = None
     if scwb_unbound and any(any(f is not None for f in (e.get("faces") or {}).values()) for e in det.get("member_joint_ends") or ()):
         open_gates.append("SCWB_JOINT_CAPACITIES_UNBOUND")
 
@@ -431,7 +444,8 @@ def _evaluate_single_r14_column(
             },
             "scwb_and_story_alpha": {
                 "min_scwb_ratio": min(scwb_ratios) if scwb_ratios else None,
-                "scwb_satisfied": (not scwb_unsat and not scwb_unbound) if scwb_joints else None,
+                "scwb_satisfied": scwb_satisfied,
+                "low_axial_exempt_joint_ids": sorted(low_axial_joints),
                 "story_alpha_rows": [
                     {
                         "direction": s.get("direction"),

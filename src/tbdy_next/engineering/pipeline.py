@@ -124,8 +124,9 @@ STAGES: tuple[StageSpec, ...] = (
               "(computed by pipeline; persisted in engine-results)", "COLUMN_REQUEST"),
     StageSpec("column-r10", LIVE, "tbdy_next.engineering.column_r10_live", (),
               ("JOINT_TOPOLOGY_CHECK", "JOINT_SHEAR", "SCWB", "COLUMN_SHEAR", "COLUMN_SHEAR_REBAR"),
-              "TBDY 7.3.6 SCWB, 7.5 joint shear & 7.3.4.1/TS500 8.1 confinement/shear projection "
-              "(computed by pipeline; persisted in engine-results)", "COLUMN_REQUEST", produces=(_R10_RESULT,)),
+              "TBDY 7.3.5 joint applicability, 7.3.6 SCWB, 7.5 joint shear and column confinement/shear "
+              "(computed by pipeline; persisted in engine-results)", "COLUMN_REQUEST", produces=(_R10_RESULT,),
+              method_version="column-r10-low-axial.v1"),
     StageSpec("second-order", LIVE, "tbdy_next.story_second_order", ("r08-second-order",),
               ("GLOBAL_SECOND_ORDER",), "TBDY 4.33 story second-order precheck", "R08_SOURCE"),
     StageSpec("column-r08-local", LIVE, "tbdy_next.engineering.column_r08_local_live", (),
@@ -663,7 +664,7 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
             beam_r10 = project_beam_r10_live(payload, geometry, column_axial, column_pmm, extra)
             r10_live = project_column_r10_live(
                 payload, geometry, column_axial, column_pmm, extra, beam_live=beam_r10,
-                selected_cages_out=selected_cages,
+                selected_cages_out=selected_cages, pmm_scope=pmm_scope, mixed_components=mixed_components, input_sha=input_sha,
                 **({"dependency_plan": design_dependencies} if scenario else {}),
             )
             if scenario and r10_live is not None:
@@ -732,7 +733,7 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
             source=payload, geometry=geometry, axial=column_axial, pmm=column_pmm, extra=extra,
             scope=pmm_scope or {}, dependencies=design_dependencies, r10=r10_live,
             r08=r08_local_slenderness, cages=selected_cages, beam=beam_r10,
-            global_pdelta=r08_second_order, input_sha=input_sha)
+            global_pdelta=r08_second_order, input_sha=input_sha, mixed_components=mixed_components)
         if not _ALPHA_ITERATION.accepts(alpha_iteration):
             raise ValueError("INVALID_STAGE_OUTPUT:alpha-feedback")
         r10_live, r08_local_slenderness = alpha_state["r10"], alpha_state["r08"]

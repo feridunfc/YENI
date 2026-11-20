@@ -12,26 +12,27 @@
     "integration_base_branch": "baseline/local_import",
     "integration_base_role": "LOGICAL_MAIN",
     "work_branch_pattern": "work/<scope>",
-    "active_local_branch": "work/gap-018-spectrum-evidence",
+    "active_local_branch": "baseline/local_import",
     "integration_policy": "Keep baseline/local_import current at each completed, reviewed and verified milestone. New scoped work starts from current baseline; unfinished work remains separate.",
     "publication_policy": "USER_STANDING_REQUEST_TO_KEEP_BASELINE_CURRENT; NORMAL_PUSH_ONLY; VERIFY_REMOTE_HEAD; REPORT_PENDING_PUBLICATION",
     "standing_instruction_date": "2026-11-19",
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "ORIGINAL_SELECTED_COLUMN_AND_JOINT_CALCULATED",
-    "work_branch": "work/gap-018-spectrum-evidence",
+    "status": "R10_LOW_AXIAL_JOINT_DECISIONS_CALCULATED",
+    "work_branch": "work/r10-low-axial",
     "integration_base_branch": "baseline/local_import",
-    "implementation_commit": "79f534a8dee005afaafab5a907c594c99d153eff",
-    "source_run_id": "RUN-44c5816bcb5447eb97e9653177880244",
+    "inspected_base_commit": "56750c34ddc31db65dbb03c291c0fef5ef36a107",
+    "source_run_id": "RUN-17fbcff4be754227acb61dd1151b94cf",
+    "production_run_id": "RUN-5b45f6a03d5c477cb01ce3d6c721f0a1",
     "source_sha256": "e56eafa3c36f7f0cf5cfc797e418d69207e608c35f153c2e2c7b087f5747f393",
-    "results_sha256": "1f9c82f2bb68fb444387eaf2974bc68ebc7d44766bce64d23c9413b576bbd3ed",
+    "results_sha256": "1f7875191aac583d047952fa94880afa3906574d4086b51c33edd437f49a8795",
     "evidence_refs": [
-      "EV-GAP018-MANUAL-PAIR-20261119",
-      "EV-COLUMN-JOINT-SLICE-20261119"
+      "EV-C29-INTERIOR-LOW-AXIAL-20261120",
+      "EV-R10-LOW-AXIAL-20261120"
     ],
     "engineering_release": "NOT_READY",
-    "next_action": "Use the controlling interior joint of the same column to bind compatible upper and lower seismic end shears. Compute both sway demands with their deduction, then carry the direction to the story SCWB and alpha owners."
+    "next_action": "Evaluate direction-compatible axial demand and minimum column moment capacity at the five joints that exceed the combined seismic limit. Then complete one full story-direction shear allocation and run the existing alpha iteration."
   },
   "last_observed_remote_implementation": {
     "branch": "audit/pipeline-pmm-v6-20261117",
@@ -3988,6 +3989,58 @@
       "private_check_sha256": "174cfa252a99c30d2b691a19596fb21252b53a9c90ce92d9ff9d468bdc9c8747",
       "limits": "Local calculation on the saved original input. The capture lacks independent analysis-generation proof. Production seismic joint classification, story shear, alpha and redesign remain open.",
       "engineering_release_granted": false
+    },
+    {
+      "id": "EV-R10-LOW-AXIAL-20261120",
+      "observed_at_utc": "2026-11-20T05:43:55Z",
+      "inspected_base_commit": "56750c34ddc31db65dbb03c291c0fef5ef36a107",
+      "source_run_id": "RUN-17fbcff4be754227acb61dd1151b94cf",
+      "production_run_id": "RUN-5b45f6a03d5c477cb01ce3d6c721f0a1",
+      "source_sha256": "e56eafa3c36f7f0cf5cfc797e418d69207e608c35f153c2e2c7b087f5747f393",
+      "results_sha256": "1f7875191aac583d047952fa94880afa3906574d4086b51c33edd437f49a8795",
+      "method": {
+        "configuration_file_count": 9,
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 127,
+        "package_sha256": "703e2055b2218535221b9939d6eae4772146c2f1b7ffee70ca933423b78a40ea",
+        "python_implementation": "CPython",
+        "python_version": "3.12.10"
+      },
+      "scope": "The existing R10 pipeline applies TBDY 7.3.5.3(a) at the two connected column ends of a joint with framing beams. Each column uses its largest compression under the assigned factored gravity-plus-earthquake combinations. The report also records the maximum over all assignments.",
+      "reference": "TBDY 2018, Chapter 7 notation for Nd and 7.3.5.3(a)",
+      "result": "Of 52 two-column joints, 47 qualify and five require the directional moment check. Seven of the 47 exceed a threshold under gravity-only combinations. All 1,144 end-by-combination maxima (104 physical ends, eight seismic and three gravity combinations) agreed with independent ETABS FrameForce arithmetic. The sealed R10 results, downstream closure and printable report reproduced the original C29 decision.",
+      "comparison_run_dir": ".receipts/verification/r10-low-axial-20261120/final/runs/RUN-5b45f6a03d5c477cb01ce3d6c721f0a1",
+      "comparison_sha256": "f54dd63a39f9411cb18ebe9801bf921bceab4167f25add772b80d882bb058fea",
+      "private_check_sha256": "a1fbdd7d213c22c89ef56bf4200a10a8cb6a2c00c9add437a370d68004e252c7",
+      "tested_file_manifest_path": ".receipts/verification/r10-low-axial-20261120/final/tested-files.json",
+      "tested_file_manifest_sha256": "387aa65f4ea2ca9da8b25a43a78d4b6c78c351b2577ea8967cc47e5eacfb9022",
+      "commands": [
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --case Modal --source .receipts/RUN-17fbcff4be754227acb61dd1151b94cf/input.source --out .receipts/verification/r10-low-axial-20261120/final/runs",
+        "python -X utf8 -B .receipts/verification/r10-low-axial-20261120/verify_original_r10.py .receipts/verification/r10-low-axial-20261120/final/runs/RUN-5b45f6a03d5c477cb01ce3d6c721f0a1 --html <private-output-directory>/R10_dugum_hesabi.html",
+        "python -B tools/test_installed_wheel.py <built-wheel-directory>",
+        "python -B tools/test_offline.py"
+      ],
+      "installed_wheel": {
+        "python_tests": 302,
+        "log_path": ".receipts/verification/r10-low-axial-20261120/final/installed-wheel.log",
+        "log_sha256": "66edc071b5ba4fcbd0e3a71a8b479228c604c4064e3c6ccb91b1ae6e6c90fa6d",
+        "wheel_sha256": "6fb3041c050e9816043e8d68affe1220717cc6c87f37eec250aa1893e2ad3a73"
+      },
+      "printable_html_sha256": "0f86d707c72263e2a1fbb90d8b7c333f4d735e4f592c933d668b0afa30b8f57c",
+      "offline_regression": {
+        "python_tests": 1475,
+        "skipped": 1,
+        "javascript_test_files": 11,
+        "log_path": ".receipts/verification/r10-low-axial-20261120/final/offline-retry.log",
+        "log_sha256": "8d27d8f09f8fe55299e6b53931dd990193872e191171500a4a623960398fd898",
+        "skip_reason": "The Windows environment disallowed creating symlinks.",
+        "retry_note": "One local HTTP test exceeded its socket timeout on the first final suite. It passed in isolation and in the full rerun with a workspace temporary directory and the original timeout.",
+        "first_log_sha256": "a85c68ff3c530aa76e9ff1644078c963b1021874f4650021978be9dcc3ffe917",
+        "isolated_log_sha256": "7a0509d5979d270c5a91647d405d985513f32762d5c66250cd3b4185477779be"
+      },
+      "supersession": "An exploratory comparison that included gravity-only combinations yielded 40 exempt joints. Chapter 7 defines Nd for combined gravity and earthquake action. The production decision uses that definition.",
+      "limits": "Saved original model inputs. Source-generation identity, the five directional seismic capacity checks, full story shear allocation and alpha feedback remain open. The replay returned BLOCKED_INPUTS with zero alpha iterations.",
+      "engineering_release_granted": false
     }
   ],
   "new_record_template": {
@@ -4012,7 +4065,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-20T02:26:41Z",
+  "updated_at_utc": "2026-11-20T05:43:55Z",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -4522,6 +4575,21 @@
       "tested_file_manifest_sha256": "8d7f2f11a3f7f02079c6d2e4978793e0121a8e9450dc786455d01e4567dff7e2",
       "engineering_release": "NOT_READY",
       "next_action": "Resolve the 138 original-generation control exceptions using generation-bound native evidence. Keep the current tolerance. Preserve the private static-effect proof and conditional CQC check. Original story allocation, physical concurrency and design feedback remain open."
+    },
+    {
+      "status": "ORIGINAL_SELECTED_COLUMN_AND_JOINT_CALCULATED",
+      "work_branch": "work/gap-018-spectrum-evidence",
+      "integration_base_branch": "baseline/local_import",
+      "implementation_commit": "79f534a8dee005afaafab5a907c594c99d153eff",
+      "source_run_id": "RUN-44c5816bcb5447eb97e9653177880244",
+      "source_sha256": "e56eafa3c36f7f0cf5cfc797e418d69207e608c35f153c2e2c7b087f5747f393",
+      "results_sha256": "1f9c82f2bb68fb444387eaf2974bc68ebc7d44766bce64d23c9413b576bbd3ed",
+      "evidence_refs": [
+        "EV-GAP018-MANUAL-PAIR-20261119",
+        "EV-COLUMN-JOINT-SLICE-20261119"
+      ],
+      "engineering_release": "NOT_READY",
+      "next_action": "Use the controlling interior joint of the same column to bind compatible upper and lower seismic end shears. Compute both sway demands with their deduction, then carry the direction to the story SCWB and alpha owners."
     }
   ],
   "remote_audit_correction_checkpoint": {

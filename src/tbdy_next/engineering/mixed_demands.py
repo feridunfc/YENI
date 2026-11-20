@@ -137,7 +137,7 @@ def native_load_patterns(tables):
     return patterns
 
 
-def _static_roles(tables, required, cases):
+def _static_pattern_loads(tables, required, cases):
     key = "Load Case Definitions - Linear Static"
     table = tables.get(key) or {}
     fields = set(table.get("fields") or ())
@@ -147,28 +147,43 @@ def _static_roles(tables, required, cases):
         raise ValueError("STATIC_LOAD_FACTOR_FIELD_UNAVAILABLE")
     rows = _source_table(tables, key, {"Name", "LoadType", "LoadName", *factor_fields}, require_key=True)
     by_pattern = native_load_patterns(tables)
-    roles = {}
+    case_loads = {}
     for case in sorted(required):
         loads = [r for r in rows if r["Name"] == case]
         if cases[case]["type"] != "Linear Static" or not loads:
             raise ValueError("COMPONENT_SIGNED_STATIC_CASE_REQUIRED:" + case)
-        kinds = set()
+        case_loads[case] = []
         for load in loads:
             coefficients = {_number(load[k]) for k in factor_fields}
             if len(coefficients) != 1:
                 raise ValueError("STATIC_LOAD_FACTOR_FIELDS_CONFLICT:" + case)
-            if not next(iter(coefficients)):
+            scale = next(iter(coefficients))
+            if not scale:
                 continue
             pattern = by_pattern.get(load["LoadName"])
             if load["LoadType"] != "Load" or pattern is None:
                 raise ValueError("COMPONENT_PATTERN_BINDING_UNAVAILABLE:" + case)
+            case_loads[case].append((load["LoadName"], scale))
+    return by_pattern, case_loads
+
+
+_GRAVITY_ROLES = {"Dead", "Super Dead", "SuperDead", "Live", "Reducible Live", "Roof Live", "Snow"}
+
+
+def _static_roles(tables, required, cases):
+    by_pattern, case_loads = _static_pattern_loads(tables, required, cases)
+    roles = {}
+    for case, loads in case_loads.items():
+        kinds = set()
+        for name, _ in loads:
+            pattern = by_pattern[name]
             role = pattern["role"]
             weight = _number(pattern["self_weight_multiplier"])
             if role in ("Quake", "Seismic"):
                 if weight:
                     raise ValueError("EARTHQUAKE_ONLY_SHEAR_NOT_SEPARATED:SELF_WEIGHT:" + case)
                 kinds.add("EARTHQUAKE")
-            elif role in ("Dead", "Super Dead", "SuperDead", "Live", "Reducible Live", "Roof Live", "Snow", "Temperature"):
+            elif role in _GRAVITY_ROLES or role == "Temperature":
                 kinds.add("NON_EARTHQUAKE")
             else:
                 raise ValueError("COMPONENT_PATTERN_ROLE_UNSUPPORTED:" + case + ":" + role)
@@ -176,6 +191,29 @@ def _static_roles(tables, required, cases):
             raise ValueError("STATIC_CASE_MIXES_ACTION_ROLES_OR_HAS_NO_LOAD:" + case)
         roles[case] = next(iter(kinds))
     return roles
+
+
+def verify_combined_seismic_axial_cases(source, names, semantics):
+    """TBDY chapter 7 Nd includes factored gravity and earthquake effects in the same assigned combination."""
+    tables, cases, graph = native_graph(source)
+    definitions = {name: linear_coefficients(name, graph, cases) for name in names}
+    static = {case for terms in definitions.values() for case in terms if cases[case]["type"] == "Linear Static"}
+    patterns, loads = _static_pattern_loads(tables, static, cases)
+    for name, terms in definitions.items():
+        factors = defaultdict(Fraction)
+        spectrum = False
+        for case, coefficient in terms.items():
+            if case in loads:
+                for pattern, scale in loads[case]:
+                    factors[pattern] += coefficient * scale
+            elif cases[case]["type"] == "Response Spectrum" and semantics[name] == "SCALAR_COMPONENT_ENVELOPE":
+                spectrum = True
+            else:
+                raise ValueError("SCWB_AXIAL_CASE_TYPE_UNSUPPORTED:" + name)
+        roles = {patterns[pattern]["role"] for pattern, factor in factors.items() if factor}
+        self_weight = sum(factor * _number(patterns[p]["self_weight_multiplier"]) for p, factor in factors.items())
+        if not (roles & _GRAVITY_ROLES or self_weight) or not (spectrum or roles & {"Seismic", "Quake"}):
+            raise ValueError("SCWB_COMBINED_GRAVITY_AND_EARTHQUAKE_REQUIRED:" + name)
 
 
 def earthquake_partition(source, names, plan):
