@@ -84,6 +84,7 @@ before editing; extend them rather than introducing ad hoc scripts or entry poin
 | Mixed components / shared spectral arithmetic | `engineering/mixed_demands.py`, `column_engine/spectral_envelope.py::replay_component_envelope` |
 | PMM / local second order | `column_engine/section_capacity.py`, `column_engine/ts500_column.py` |
 | Global P-delta / alpha | `engineering/story_pdelta.py`, `column_engine/story_alpha.py`, `engineering/alpha_iteration.py` |
+| Directional joint applicability / supplementary signed static story forces | `engineering/scwb_axial.py`, `engineering/story_static_reference.py` (called by the alpha stage) |
 | Scenario and dependencies | `engineering/design_scenario.py`, `engineering/design_dependencies.py` |
 | Immutable source/results and report | `history.py`, `receipts.py`, `engineering/pipeline_snapshot.py`, `reporting.py` |
 

@@ -42,6 +42,8 @@ def column_strength_plan(snapshot: dict, request: dict, *, setup: dict | None = 
         if sorted({name for group in assignment["groups"].values() for name in group}) != names:
             raise ValueError("COLUMN_AXIAL_ASSIGNMENTS_UNBOUND")
         plan["design_assignment"] = assignment
+    if "reference_static_cases" in request:
+        plan["reference_static_cases"] = request["reference_static_cases"]
     filename = snapshot["capture_metadata"]["model_filename"]
     if normcase(filename) != normcase(request["model_filename"]):
         plan["blockers"].append("ACTIVE_MODEL_DIFFERS_FROM_SELECTED_RUN")

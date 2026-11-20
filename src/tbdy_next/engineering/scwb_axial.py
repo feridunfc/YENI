@@ -13,6 +13,143 @@ from .design_scenario import _digest
 from .mixed_demands import SCHEMA as MIXED_SCHEMA, SPECTRAL_METHOD, verify_combined_seismic_axial_cases
 
 
+def qualified_interval_ratio(joint):
+    """Verify all recorded family/sway outcomes before projecting the minimum."""
+    decision = joint.get("low_axial_exception") or {}
+    interval = joint.get("seismic_axial_interval_check") or {}
+    names = decision.get("seismic_combinations") or []
+    cases = interval.get("cases") or []
+    if (decision.get("status") != "LOW_AXIAL_LIMIT_EXCEEDED" or decision.get("exempt") is not False
+            or not decision.get("input_sha256") or interval.get("input_sha256") != decision["input_sha256"]
+            or interval.get("status") != "SCWB_EQ_7_3_INTERVAL_SUFFICIENT" or interval.get("sufficient") is not True
+            or not names or len(set(names)) != len(names) or len(cases) != len(names)
+            or {c.get("combination") for c in cases} != set(names)
+            or interval.get("evaluated_checks") != 2*len(names) or interval.get("expected_checks") != 2*len(names)):
+        return None
+    ratios = []
+    for case in cases:
+        sways = case.get("sways") or []
+        if len(sways) != 2 or {w.get("rotation_sign") for w in sways} != {-1, 1}:
+            return None
+        for sway in sways:
+            ratio = sway.get("ratio_lower")
+            if sway.get("sufficient") is not True or type(ratio) not in (float, int) or not isfinite(ratio) or ratio <= 1:
+                return None
+            ratios.append(ratio)
+    minimum = min(ratios)
+    return minimum if minimum == interval.get("minimum_ratio_lower") else None
+
+
+def _assigned_end_disposition(frame, end, direction, frames, points, plan, summaries, names):
+    """Classify one expected frame end from its frozen connectivity and R10 results."""
+    from .column_r10_live import _parallel
+    uid = frame["frame_id"]
+    jid = frame["point_i" if end == "I" else "point_j"]
+    other_end = frame["point_j" if end == "I" else "point_i"]
+    physical_column_side_at_joint(points.get(jid), points.get(other_end))
+    joint = plan["joints"][jid]
+    if (not joint.get("execution_allowed") or uid not in joint["column_ids"]
+            or plan["members"][uid]["joint_ids"] != [frame["point_i"], frame["point_j"]]):
+        raise ValueError("STORY_JOINT_DEPENDENCIES_UNRESOLVED")
+    beams = joint["beam_ends"]
+    x, y = [1., 0., 0.], [0., 1., 0.]
+    vec = x if direction == "X" else y
+    aligned = []
+    for beam in beams:
+        b = frames[beam["member_id"]]
+        if (b["type"] != "Beam" or not b.get("axes_global")
+                or b["point_i" if beam["end"] == "I" else "point_j"] != jid
+                or not any(_parallel(b["axes_global"][0], v) for v in (x, y))):
+            raise ValueError("STORY_BEAM_AXIS_OR_END_UNVERIFIED")
+        if _parallel(b["axes_global"][0], vec):
+            aligned.append(b["frame_id"])
+    if not aligned:
+        return "NO_FRAME_BEAM_AT_NODE" if not beams else "NO_FRAME_BEAM_IN_DIRECTION"
+    columns = set(joint["column_ids"])
+    sides = []
+    for cid in columns:
+        col = frames[cid]
+        if col["type"] != "Column" or jid not in (col["point_i"], col["point_j"]):
+            raise ValueError("STORY_COLUMN_END_NOT_BOUND")
+        other = col["point_j"] if col["point_i"] == jid else col["point_i"]
+        sides.append(physical_column_side_at_joint(points[jid], points[other]))
+    if sides == ["LOWER"]:
+        return "COLUMN_DOES_NOT_CONTINUE_ABOVE_7_3_5_3_B"
+    matches = [j for j in summaries if j.get("target_member_id") == uid and j.get("joint_id") == jid
+               and j.get("target_end") == end and j.get("direction") == direction]
+    if sorted(sides) != ["LOWER", "UPPER"] or len(matches) != 1:
+        raise ValueError("ASSIGNED_DIRECTIONAL_JOINT_RESULT_UNBOUND")
+    j = matches[0]
+    decision = j.get("low_axial_exception") or {}
+    if (decision.get("input_sha256") != plan["input_sha256"] or decision.get("seismic_combinations") != names
+            or decision.get("reasons") or set(j.get("column_ids", ())) != columns
+            or set(j.get("beam_ids", ())) != set(aligned)
+            or {e.get("member_id") for e in decision.get("column_ends", ())} != columns):
+        raise ValueError("ASSIGNED_DIRECTIONAL_JOINT_SOURCE_CONFLICT")
+    if decision.get("status") == "EXEMPT_LOW_AXIAL" and decision.get("exempt") is True:
+        for item in decision["column_ends"]:
+            limit = low_axial_limit_kn(item["gross_area_mm2"], item["fck_mpa"])
+            nd = item["seismic_nd_intervals_kn"]
+            if (set(nd) != set(names) or item["limit_kn"] != limit or
+                    any(len(pair) != 2 or not all(isfinite(v) for v in pair)
+                        or not pair[0] <= pair[1] <= limit for pair in nd.values())):
+                raise ValueError("STORY_LOW_AXIAL_BOUND_CONFLICT")
+        return "EXEMPT_LOW_AXIAL"
+    if qualified_interval_ratio(j) is not None:
+        return "EQ_7_3_INTERVAL_SUFFICIENT"
+    raise ValueError("ASSIGNED_EQ_7_3_REQUIRES_FURTHER_EVALUATION")
+
+
+def assigned_story_applicability(source, scope, plan, r10, names):
+    """Check whether a story needs the 7.3.6 alternative before requesting signed shears."""
+    from .column_r10_live import _build_frame_catalog
+    from .design_dependencies import story_blockers
+    request = (source.get("column_axial") or {}).get("request") or {}
+    if (request.get("pmm_member") != "ALL" or not plan or not r10 or not scope or not names or not scope.get("input_sha256")
+            or scope["input_sha256"] != plan.get("input_sha256") or plan.get("source_payload_sha256") != _digest(source)
+            or plan.get("global_blockers") or plan.get("topology_blockers") or not plan.get("all_member_inputs_bound")
+            or r10.get("member_dependencies") != plan):
+        return []
+    frames, points, graph = _build_frame_catalog(source)
+    expected = defaultdict(list)
+    for uid, frame in frames.items():
+        if frame["type"] == "Column":
+            expected[frame["story"]].append(uid)
+    roster = {story: sorted(ids) for story, ids in expected.items()}
+    if (not roster or roster != plan.get("story_columns") or set(plan["members"]) != {u for ids in roster.values() for u in ids}
+            or any(m.get("selected_candidate_bound") is not True for m in plan["members"].values())):
+        return []
+    for jid, incident in graph["adjacency"].items():
+        columns = sorted(r["frame_id"] for r in incident if r["type"] == "Column")
+        if columns:
+            joint = plan["joints"].get(jid) or {}
+            beams = sorted((r["frame_id"], r["end"]) for r in incident if r["type"] == "Beam")
+            if (joint.get("column_ids") != columns or
+                    [(b["member_id"], b["end"]) for b in joint.get("beam_ends", ())] != beams):
+                return []
+    rows = []
+    for story, ids in sorted(roster.items()):
+        for direction in ("X", "Y"):
+            reasons = list(story_blockers(plan, story))
+            ends = []
+            for uid in ids:
+                frame = frames[uid]
+                for end, jid in (("I", frame["point_i"]), ("J", frame["point_j"])):
+                    try:
+                        summaries = r10["per_member"][uid]["scwb_joints"]
+                        status = _assigned_end_disposition(frame, end, direction, frames, points, plan, summaries, names)
+                    except (KeyError, ValueError, TypeError, ArithmeticError) as exc:
+                        status = "UNRESOLVED"
+                        reasons.append(f"{uid}:{end}:{exc}")
+                    ends.append({"member_id": uid, "end": end, "joint_id": jid, "disposition": status})
+            rows.append({"story": story, "direction": direction, "expected_member_ids": ids, "ends": ends,
+                         "input_sha256": plan["input_sha256"], "assigned_seismic_combinations": names,
+                         "status": "UNRESOLVED" if reasons else "ALTERNATIVE_NOT_REQUIRED",
+                         "reason_codes": sorted(set(reasons)), "alpha": None, "vis_kn": None, "vik_kn": None,
+                         "applied_demand_factor": None if reasons else 1.0})
+    return rows
+
+
 def _configured_end(scope, frame, end):
     uid = frame["frame_id"]
     mesh = scope["analysis_mesh"]["members"].get(uid, {})

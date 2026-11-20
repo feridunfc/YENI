@@ -199,8 +199,12 @@ def _column_axial_request(query: dict, output_root: Path) -> dict:
     checks = query.get("check", [])
     pmm = checks == ["column-pmm"]
     members = query.get("member", [])
-    if (set(query) - {"case", "check", "base_run_id", "combination_source", "combination", "assignments", "member"}
+    reference_cases = query.get("reference_static_case", [])
+    if (set(query) - {"case", "check", "base_run_id", "combination_source", "combination", "assignments", "member", "reference_static_case"}
             or checks not in (["column-axial"], ["column-pmm"])
+            or (reference_cases and (not pmm or members != ["ALL"] or modes != [ASSIGNED_DESIGN]))
+            or len(reference_cases) > MAX_RESPONSE_COMBINATIONS or len(set(reference_cases)) != len(reference_cases)
+            or any(not n or n != n.strip() or len(n) > 160 for n in reference_cases)
             or len(members) != int(pmm)
             or any(not uid or uid != uid.strip() or len(uid) > 160 for uid in members)
             or len(base_runs) != 1 or _RUN_ID_PATTERN.fullmatch(base_runs[0]) is None
@@ -241,6 +245,7 @@ def _column_axial_request(query: dict, output_root: Path) -> dict:
         "combinations": sorted(names), "combination_graph_sha256": setup["typed_graph_source_sha256"],
         "base_input_sha256": report["source_provenance"]["input_sha256"],
         **({"design_assignment": assignment} if assignment is not None else {}),
+        **({"reference_static_cases": sorted(reference_cases)} if reference_cases else {}),
         **({"pmm_member": members[0]} if pmm else {}),
     }
 

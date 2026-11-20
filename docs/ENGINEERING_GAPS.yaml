@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-20T11:16:11.512176Z",
+  "updated_at_utc": "2026-11-20T14:32:43.204447Z",
   "repository": "feridunfc/YENI",
-  "baseline_implementation_commit": "79f534a8dee005afaafab5a907c594c99d153eff",
+  "baseline_implementation_commit": "64c03641206d6b51f4834369bb3394e40b62b402",
   "local_reconciled": true,
-  "scope_note": "18 stable GAPs. The private original-building replay and repeat acquisition are indexed by EV-R10-LIVE-INTERVAL-20261120. The original selected-cage strong-column calculation now accounts for 52 physical joints under the assigned earthquake families. GAP-013 and GAP-018 retain their remaining story-force, feedback and source-generation limits.",
+  "scope_note": "18 stable GAPs. The selected original-building census includes all 52 two-column beam joints and all 348 directional column ends. The original and supplementary static scopes and independent results are indexed by EV-STORY-STATIC-APPLICABILITY-20261120.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -27,7 +27,7 @@
     "GAP-013",
     "GAP-016"
   ],
-  "active_task": "Determine section 7.3.6 applicability at both ends of every column on one original story-direction. If required, bind compatible signed shears at the same physical cut and source generation and carry alpha through demand, cage, PMM, shear and joint rechecks.",
+  "active_task": "Complete the original C29 capacity-shear calculation under TBDY 7.3.7. Use the captured ductile and capacity combination rows. Bind governing end moments, physical clear length, assigned seismic demand and the transverse cage in both directions. Establish the applicable seismic load factor and force bounds before changing the R14 spectral shear gate.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -299,8 +299,8 @@
       "title": "SCWB and alpha demand feedback",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Bounded signed-reference iteration, mixed signed E partition and scalar spectral replay exist. R10 applies the two-column low-axial exception at qualified ends. On the original 52 two-column joints, 47 qualify and five exceed a seismic threshold. The report records each end and R14 distinguishes exempt joints from actual moment-ratio satisfaction. The supported signed alpha consumer now admits qualified per-column low-N numerator credit, using the existing all-cut axial maxima and both configured-end records. Credit to Vis and eligibility for demand amplification are recorded separately. The independent 60/20/20 consumer example gives alpha=0.8 and amplifies only the actual two-end SCWB column; its SCWB flags are explicit contract fixtures, not a completed actual-owner building slice. The original fresh selected scenario now resolves both global directions for all five non-exempt joints through continuous principal-plane resistance lower bounds over all assigned axial intervals. Both rotations in eight combinations give 160/160 sufficient comparisons. The minimum lower ratio is 2.7298857767624676. The low-axial exemption accounts for the other 47 physical joints. Terminal feasibility preserves a proven joint failure beside an exhausted cage.",
-      "blocker": "The complete original story-direction signed shear population, same-state numerator and denominator, and demand-to-cage-to-PMM/shear/joint feedback remain open. The fresh run returns BLOCKED_INPUTS and zero alpha iterations for the eight combined seismic envelopes. Selected cages and N=0 beam capacities are calculation assumptions.",
+      "achieved_scope": "Bounded signed-reference iteration, mixed signed E partition and scalar spectral replay exist. R10 applies the two-column low-axial exception at qualified ends. On the original 52 two-column joints, 47 qualify and five exceed a seismic threshold. The report records each end and R14 distinguishes exempt joints from actual moment-ratio satisfaction. The supported signed alpha consumer now admits qualified per-column low-N numerator credit, using the existing all-cut axial maxima and both configured-end records. Credit to Vis and eligibility for demand amplification are recorded separately. The independent 60/20/20 consumer example gives alpha=0.8 and amplifies only the actual two-end SCWB column; its SCWB flags are explicit contract fixtures, not a completed actual-owner building slice. The original fresh selected scenario now resolves both global directions for all five non-exempt joints through continuous principal-plane resistance lower bounds over all assigned axial intervals. Both rotations in eight combinations give 160/160 sufficient comparisons. The minimum lower ratio is 2.7298857767624676. The low-axial exemption accounts for the other 47 physical joints. Terminal feasibility preserves a proven joint failure beside an exhausted cage. All 348 directional column ends in the assigned scenario are resolved. The top-level alternative is not required. R14 projects the actual continuous interval ratio for each of the five non-exempt joints. On the full +4.50/X supplemental static reference 32/32 columns qualify for low-axial credit. Vis and Vik both equal 2361.123671142073 kN and the unit factor reproduces all 32 signed shears.",
+      "blocker": "The selected original scenario requires zero design iterations. A full independent physical example that actually calls for amplification below alpha=1 and changes downstream design is still needed for the broader feedback gap. Selected cages and the beam N=0 scenario bound the result.",
       "closure_criteria": "Prove alpha-to-demand-to-cage-to-PMM/shear/joint feedback at the same story/cut with all neighbors in an independent complete example, including correct nonconvergence states.",
       "owner_paths": [
         "src/tbdy_next/engineering/column_r10_live.py",
@@ -308,7 +308,8 @@
         "src/tbdy_next/engineering/alpha_iteration.py",
         "src/tbdy_next/column_engine/story_alpha.py",
         "src/tbdy_next/engineering/design_dependencies.py",
-        "src/tbdy_next/column_engine/scwb_kernel.py"
+        "src/tbdy_next/column_engine/scwb_kernel.py",
+        "src/tbdy_next/engineering/story_static_reference.py"
       ],
       "evidence_refs": [
         "EV-D2",
@@ -321,7 +322,8 @@
         "EV-C29-INTERIOR-LOW-AXIAL-20261120",
         "EV-R10-LOW-AXIAL-20261120",
         "EV-AUDIT-FIXES-20261120",
-        "EV-R10-LIVE-INTERVAL-20261120"
+        "EV-R10-LIVE-INTERVAL-20261120",
+        "EV-STORY-STATIC-APPLICABILITY-20261120"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -461,8 +463,8 @@
       "title": "Spectral design demands and simultaneity",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Same-session live v6 source binds 100/100 native modal numeric modes and 2/2 eccentricity definitions. Independent Decimal(80) checks all 500 native numeric relationships with zero outside the unchanged tolerance. Existing 200/200 displayed spectrum mode rows, 1131/1131 supporting member-case pairs and 3216 scalar spectral cuts remain recorded. Repeat receipts are 16/16 IDENTICAL; report projection invokes zero calculators. No physical concurrency or alpha authority is granted. The v7 archived selected scenario independently matches 200 signed amplitude relationships at printed resolution across 100 modes and two directions. All 16 repeat receipt payloads match. The new same-session source readers have synthetic contract coverage. Live v8 binds 26 native function points, two case damping definitions, eight material getter returns and the two area-spring assignments behind 5,579 generated link elements. The independent reference checks 1,000 numbers for 200 case-modes. Conditional dynamic CQC was evaluated for all six force components at 804 case-cuts. Raw and same-policy selected replays each reproduce 16 sealed stage payloads. The private manual analysis yielded 804 signed static eccentricity effects from paired internal static cases. All 4,824 absolute component increments agree with the native spectrum envelope change. Independent conditional CQC on that same analysis reproduces all 4,824 zero-eccentricity maxima. The fresh-acquisition/original-archive comparison matched all 45,828 native scalar components over 7,638 assigned force rows. Original-model componentwise axial intervals now feed the conditional selected-cage R10 check at the five non-exempt physical joints.",
-      "blocker": "The original scenario still lacks full-precision applied amplitudes, effective modal ratios and transferable static eccentricity vectors. The private study reproduces 4,686/4,824 original force controls within the fixed tolerance. Two dedicated torsion cases yielded zero native frame rows. Selected principal-plane column resistance is now bounded across the original model's assigned Nd intervals. Directional design policy, signed story shear allocation and dynamic simultaneity remain open.",
+      "achieved_scope": "Same-session live v6 source binds 100/100 native modal numeric modes and 2/2 eccentricity definitions. Independent Decimal(80) checks all 500 native numeric relationships with zero outside the unchanged tolerance. Existing 200/200 displayed spectrum mode rows, 1131/1131 supporting member-case pairs and 3216 scalar spectral cuts remain recorded. Repeat receipts are 16/16 IDENTICAL; report projection invokes zero calculators. No physical concurrency or alpha authority is granted. The v7 archived selected scenario independently matches 200 signed amplitude relationships at printed resolution across 100 modes and two directions. All 16 repeat receipt payloads match. The new same-session source readers have synthetic contract coverage. Live v8 binds 26 native function points, two case damping definitions, eight material getter returns and the two area-spring assignments behind 5,579 generated link elements. The independent reference checks 1,000 numbers for 200 case-modes. Conditional dynamic CQC was evaluated for all six force components at 804 case-cuts. Raw and same-policy selected replays each reproduce 16 sealed stage payloads. The private manual analysis yielded 804 signed static eccentricity effects from paired internal static cases. All 4,824 absolute component increments agree with the native spectrum envelope change. Independent conditional CQC on that same analysis reproduces all 4,824 zero-eccentricity maxima. The fresh-acquisition/original-archive comparison matched all 45,828 native scalar components over 7,638 assigned force rows. Original-model componentwise axial intervals now feed the conditional selected-cage R10 check at the five non-exempt physical joints. A fresh original capture adds 402 signed rows per supplementary pure static earthquake case across all 87 columns. Their case identities, selection and signed forces bind to the same source as the assigned gravity rows. The +4.50 principal-direction static references are reproducible at the same cuts.",
+      "blocker": "The original scenario still lacks full-precision applied amplitudes, effective modal ratios and transferable static eccentricity vectors. The private study reproduces 4,686/4,824 original force controls within the fixed tolerance. Two dedicated torsion cases yielded zero native frame rows. Selected principal-plane column resistance is now bounded across the original model's assigned Nd intervals. Directional design policy, signed response-spectrum shear allocation and dynamic simultaneity remain open. The supplementary linear static references carry their own case identities.",
       "closure_criteria": "Preserve the existing bound modal sources; qualify precision and accidental-torsion contributions through existing owners, then independently verify aggregation before SCWB/alpha consumption and a complete example. Never call scalar intervals simultaneous vectors.",
       "owner_paths": [
         "src/tbdy_next/engineering/demand_sources.py",
@@ -473,7 +475,8 @@
         "src/tbdy_next/etabs_source_gateway_windows.py",
         "src/tbdy_next/frame_force_capture.py",
         "src/tbdy_next/diaphragm_probe.py",
-        "src/tbdy_next/spectrum_reconstruction.py"
+        "src/tbdy_next/spectrum_reconstruction.py",
+        "src/tbdy_next/engineering/story_static_reference.py"
       ],
       "evidence_refs": [
         "EV-D3B",
@@ -499,7 +502,8 @@
         "EV-GAP018-LIVE-SPECTRUM-20261119",
         "EV-GAP018-PAIR-CONTROL-20261119",
         "EV-GAP018-MANUAL-PAIR-20261119",
-        "EV-R10-LIVE-INTERVAL-20261120"
+        "EV-R10-LIVE-INTERVAL-20261120",
+        "EV-STORY-STATIC-APPLICABILITY-20261120"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -521,7 +525,8 @@
         "evidence_refs": [
           "EV-GAP018-MANUAL-PAIR-20261119",
           "EV-GAP018-PAIR-CONTROL-20261119",
-          "EV-R10-LIVE-INTERVAL-20261120"
+          "EV-R10-LIVE-INTERVAL-20261120",
+          "EV-STORY-STATIC-APPLICABILITY-20261120"
         ],
         "private_same_analysis": {
           "finished_requested_cases": [
@@ -555,10 +560,10 @@
             0,
             87
           ],
-          "shared_open_gates": 17,
-          "numerical_gates": 14,
+          "shared_open_gates": 13,
+          "numerical_gates": 10,
           "other_engineering_gates": 3,
-          "open_work": "One full story-direction signed shear population, source generation, physical faces, effective length and creep. Independent scalar bounds remain valid only for the selected scope.",
+          "open_work": "Assigned seismic capacity shear, source generation, independent cuts, physical faces, clear/effective length and creep.",
           "original_selected_R10": {
             "physical_beam_joints_with_upper_and_lower_columns": 52,
             "low_axial_exempt": 47,
@@ -572,10 +577,51 @@
             "beam_axial_scenario_kn": 0
           },
           "story_alpha": {
-            "status": "BLOCKED_INPUTS",
+            "evidence_ref": "EV-STORY-STATIC-APPLICABILITY-20261120",
+            "assigned_scenario_status": "ALTERNATIVE_NOT_REQUIRED",
+            "assigned_families": 8,
+            "story_direction_count": 6,
+            "expected_directional_ends": 348,
             "iterations": 0,
-            "families_missing_signed_seismic_demand": 8
-          }
+            "applied_demand_factor": 1.0,
+            "assigned_alpha": null,
+            "supplementary_reference": {
+              "story": "+4.50",
+              "direction": "X",
+              "bound_columns": [
+                32,
+                32
+              ],
+              "native_supplementary_rows": [
+                402,
+                402
+              ],
+              "vis_kn": 2361.123671142073,
+              "vik_kn": 2361.123671142073,
+              "alpha": 1.0,
+              "factor": 1.0,
+              "independent_residual_kn": 2.76e-13
+            }
+          },
+          "native_capacity_shear_controls": {
+            "evidence_ref": "EV-STORY-STATIC-APPLICABILITY-20261120",
+            "capacity_combinations": 8,
+            "capacity_rows": 6432,
+            "assigned_control_rows": 7638,
+            "model_wide_max_abs_kn": {
+              "all Duct_Seis V2": 326.7014876089798,
+              "all Duct_Seis V3": 327.04740913626597,
+              "all Cap_Seis V2": 483.6381572518991,
+              "all Cap_Seis V3": 740.2267572289629
+            },
+            "scope": "Native model-defined combination envelopes; design assignment and governing capacity-shear demand require separate verification."
+          },
+          "resolved_alpha_gates": [
+            "D2:ALPHA_ITERATION:BLOCKED_INPUTS",
+            "D2:DESIGN_ALPHA_FEEDBACK_NOT_RESOLVED_OR_NOT_CONSUMED",
+            "STORY_ALPHA_BOTH_DIRECTIONS_REQUIRED",
+            "STORY_ALPHA_I_NOT_EVALUATED"
+          ]
         }
       }
     }
@@ -590,5 +636,7 @@
     "unseen_windows_working_tree": "NOT_INSPECTED",
     "original_87_column_replay": "NOT_RUN",
     "live_ETABS": "NOT_RUN"
-  }
+  },
+  "previous_gap_inventory_base_commit": "79f534a8dee005afaafab5a907c594c99d153eff",
+  "baseline_identity": "Inspected parent of this milestone. Git identifies the commit containing the current evidence record."
 }

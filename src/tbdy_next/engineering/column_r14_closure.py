@@ -18,6 +18,7 @@ import math
 from typing import Any, Mapping
 
 from .column_r08_local_live import global_pdelta_precheck_within_limit
+from .scwb_axial import qualified_interval_ratio
 
 
 SCHEMA = "tbdy.next.column-r14-r15-closure.v2"
@@ -94,6 +95,7 @@ def _evaluate_single_r14_column(
     if (r10_det or {}).get("alpha_joint_recheck_open_gate"):
         open_gates.append(r10_det["alpha_joint_recheck_open_gate"])
     alpha_consumed = bool(dependency_row and dependency_row.get("alpha_feedback_consumed") is True)
+    alpha_not_required = bool(dependency_row and dependency_row.get("alpha_feedback_not_required") is True)
     # 1. Combination approval gate
     combo_approved_source = plan.get("source") == "ASSIGNED_DESIGN" and not plan.get("blockers")
     if not combo_approved_source:
@@ -193,21 +195,17 @@ def _evaluate_single_r14_column(
     scwb_unsat = False
     scwb_unbound = not scwb_joints
     low_axial_joints = set()
-    interval_directions = set()
+    interval_directions = {}
     unresolved_seismic_nd = False
     for j in scwb_joints:
         exception = j.get("low_axial_exception") or {}
         if exception.get("exempt") is True:
             low_axial_joints.add(j["joint_id"])
             continue
-        interval = j.get("seismic_axial_interval_check") or {}
-        if (exception.get("status") == "LOW_AXIAL_LIMIT_EXCEEDED"
-                and interval.get("status") == "SCWB_EQ_7_3_INTERVAL_SUFFICIENT" and interval.get("sufficient") is True
-                and exception.get("input_sha256") and interval.get("input_sha256") == exception["input_sha256"]
-                and exception.get("seismic_combinations")
-                and interval.get("evaluated_checks") == interval.get("expected_checks") == 2 * len(exception["seismic_combinations"])
-                and (_finite_number(interval.get("minimum_ratio_lower")) or 0) > 1):
-            interval_directions.add((j["joint_id"], j["direction"]))
+        ratio = qualified_interval_ratio(j)
+        if ratio is not None:
+            interval_directions[j["joint_id"], j["direction"]] = ratio
+            scwb_ratios.append(ratio)
             continue
         elif exception.get("status") in ("LOW_AXIAL_LIMIT_EXCEEDED", "UNRESOLVED"):
             unresolved_seismic_nd = True
@@ -237,7 +235,7 @@ def _evaluate_single_r14_column(
         s for s in (story_alpha or {}).get("stories", ())
         if str(s.get("story")) == col_story
     ]
-    if not story_alpha_rows:
+    if not story_alpha_rows and not alpha_not_required:
         open_gates.append("STORY_ALPHA_I_NOT_EVALUATED")
     else:
         if any(s.get("denominator_status") != "FULL_STORY_COLUMN_DENOMINATOR" for s in story_alpha_rows):
@@ -375,7 +373,7 @@ def _evaluate_single_r14_column(
         conf = (b.get("engineer_stirrups") or {}).get("confinement") or (b.get("engineer_stirrups") or {}).get("confinement_2h") or {}
         if conf.get("spacing_ok") is None or not finite_number(conf.get("utilization_conservative"), nonnegative=True):
             open_gates.append("CONNECTED_BEAM_STIRRUP_RESULT_UNRESOLVED:" + str(b.get("member_id")))
-    if {str(r.get("direction")) for r in story_alpha_rows} != {"X", "Y"}:
+    if not alpha_not_required and {str(r.get("direction")) for r in story_alpha_rows} != {"X", "Y"}:
         open_gates.append("STORY_ALPHA_BOTH_DIRECTIONS_REQUIRED")
     for row in story_alpha_rows:
         if not finite_number(row.get("governing_alpha_i"), nonnegative=True):
@@ -454,10 +452,13 @@ def _evaluate_single_r14_column(
             },
             "scwb_and_story_alpha": {
                 "min_scwb_ratio": min(scwb_ratios) if scwb_ratios else None,
+                "min_seismic_interval_ratio_lower": min(interval_directions.values(), default=None),
+                "alternative_not_required_for_selected_scenario": alpha_not_required,
                 "scwb_satisfied": scwb_satisfied,
                 "low_axial_exempt_joint_ids": sorted(low_axial_joints),
                 "seismic_interval_qualified_joint_directions": [
-                    {"joint": point, "direction": direction} for point, direction in sorted(interval_directions)],
+                    {"joint": point, "direction": direction, "minimum_ratio_lower": value}
+                    for (point, direction), value in sorted(interval_directions.items())],
                 "story_alpha_rows": [
                     {
                         "direction": s.get("direction"),

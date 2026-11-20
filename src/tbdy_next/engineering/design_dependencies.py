@@ -245,6 +245,34 @@ def blocked_member_result(uid: str, codes: list[str], *, schema: str) -> dict[st
             "formal_compliance": "NOT_PROVEN", "engineering_release": "NOT_READY"}
 
 
+def _stories_without_alpha(feedback, plan):
+    qualification = feedback.get("final_qualification") or {}
+    feasibility = feedback.get("final_feasibility") or {}
+    if (feedback.get("status") != "ALTERNATIVE_NOT_REQUIRED" or qualification.get("status") != feedback["status"]
+            or qualification.get("reason_codes") != [] or qualification.get("cases") != []
+            or feasibility.get("status") != "FEASIBLE_REFERENCE" or feasibility.get("reselect_member_ids") != []
+            or feedback.get("source_payload_sha256") != plan.get("source_payload_sha256")):
+        return set()
+    allowed = {"NO_FRAME_BEAM_AT_NODE", "NO_FRAME_BEAM_IN_DIRECTION", "COLUMN_DOES_NOT_CONTINUE_ABOVE_7_3_5_3_B",
+               "EXEMPT_LOW_AXIAL", "EQ_7_3_INTERVAL_SUFFICIENT"}
+    rows = qualification.get("story_applicability", [])
+    expected = {(s, d) for s in plan["story_columns"] for d in ("X", "Y")}
+    if len(rows) != len(expected) or {(r["story"], r["direction"]) for r in rows} != expected:
+        return set()
+    for row in rows:
+        uids = plan["story_columns"][row["story"]]
+        ends = {(u, end, jid) for u in uids for end, jid in zip(("I", "J"), plan["members"][u]["joint_ids"])}
+        observed = row["ends"]
+        if (row["status"] != "ALTERNATIVE_NOT_REQUIRED" or row.get("reason_codes") != []
+                or row["input_sha256"] != plan["input_sha256"] or row["expected_member_ids"] != uids
+                or row.get("applied_demand_factor") != 1 or any(row.get(k) is not None for k in ("alpha","vis_kn","vik_kn"))
+                or len(ends) != len(observed) or len(ends) != 2 * len(uids)
+                or {(e["member_id"], e["end"], e["joint_id"]) for e in observed} != ends
+                or any(e.get("disposition") not in allowed for e in observed)):
+            return set()
+    return set(plan["story_columns"])
+
+
 def build_revision_evidence(plan: Mapping[str, Any], candidate_ledger: Mapping[str, Any] | None,
                             r10: Mapping[str, Any] | None, r08: Mapping[str, Any] | None,
                             *, input_sha: str) -> dict[str, Any]:
@@ -273,6 +301,7 @@ an explicit open dependency rather than pretending the original Ve is revised.
     candidate_rows = {r["member_id"]: r for r in (candidate_ledger or {}).get("rows", ())}
     feedback = r10.get("alpha_iteration")
     feedback_consumed = False
+    no_alpha_stories = set()
     if feedback is not None:
         from .alpha_iteration import validate_record, SCHEMA as ALPHA_SCHEMA
         validate_record(feedback, ALPHA_SCHEMA)
@@ -282,6 +311,7 @@ an explicit open dependency rather than pretending the original Ve is revised.
             raise ValueError("ALPHA_FINAL_CANDIDATE_OR_SCOPE_MISMATCH")
         feedback_consumed = (feedback.get("status") == "FIXED_POINT_REFERENCE"
                              and feedback.get("feedback_consumed") is True)
+        no_alpha_stories = _stories_without_alpha(feedback, plan)
     columns = {}
     for uid, member in plan["members"].items():
         demand = add("demand:" + uid, member["demand_revision_sha256"], [])
@@ -318,10 +348,11 @@ an explicit open dependency rather than pretending the original Ve is revised.
             reasons.append("SELECTED_CAGE_REVISION_CHANGED_AFTER_R10")
         story = member.get("story")
         alpha = alpha_by_story.get(story, [])
-        if not feedback_consumed and (len(alpha) != 2 or {r.get("direction") for r in alpha} != {"X", "Y"}
+        alpha_not_required = story in no_alpha_stories
+        if not feedback_consumed and not alpha_not_required and (len(alpha) != 2 or {r.get("direction") for r in alpha} != {"X", "Y"}
                 or any(r.get("demand_feedback_action") != "NONE" for r in alpha)):
             reasons.append("DESIGN_ALPHA_FEEDBACK_NOT_RESOLVED_OR_NOT_CONSUMED")
-        if feedback is not None and not feedback_consumed:
+        if feedback is not None and not feedback_consumed and not alpha_not_required:
             reasons.append("ALPHA_ITERATION:" + feedback["status"])
         reasons.extend("STORY:" + c for c in story_blockers(plan, story))
         deps = ["candidate:" + uid, "demand:" + uid]
@@ -338,7 +369,8 @@ an explicit open dependency rather than pretending the original Ve is revised.
         columns[uid] = {"member_id": uid, "open_gates": sorted(set(reasons)),
                         "artifact_id": closure_key, "input_revision_sha256": artifacts[closure_key]["revision_sha256"],
                         "reference_ve_is_revised_design_demand": False,
-                        "alpha_feedback_consumed": feedback_consumed}
+                        "alpha_feedback_consumed": feedback_consumed,
+                        "alpha_feedback_not_required": alpha_not_required}
     result = {"schema": REVISION_SCHEMA, "method_revision": METHOD, "input_sha256": input_sha,
               "artifacts": artifacts, "columns": columns, "cache_reuse_performed": False,
               "alpha_demand_iteration_implemented": feedback is not None,

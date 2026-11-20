@@ -19,25 +19,26 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "ORIGINAL_R10_STRONG_COLUMN_ASSIGNED_AXIAL_INTERVALS_CALCULATED",
-    "work_branch": "work/r10-seismic-intervals",
+    "status": "ORIGINAL_ASSIGNED_STORY_APPLICABILITY_AND_SIGNED_STATIC_REFERENCE",
+    "work_branch": "work/story-alpha-applicability",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "cc98df6f9f6e768ba34a7f20a5c01725b2d30914",
-    "source_run_id": "RUN-abf87f29c688483c8c79f609e8400cce",
-    "production_run_id": "RUN-30933934b3f04c09a8035e292416b867",
-    "source_sha256": "f5bd9c9b78caf6fd9737ddf724e39197f64a111370aa14bf116e005ed3f8bdc5",
-    "results_sha256": "98c60691acc91db0fa98609ca62f95b3f1ce464286695f3f8880b8edf9c25ff2",
+    "inspected_base_commit": "64c03641206d6b51f4834369bb3394e40b62b402",
+    "source_run_id": "RUN-163007b8f3ad44b691048c800a71ab4d",
+    "production_run_id": "RUN-8ecd564f0e4f4c49a53d7984b551dfb9",
+    "source_sha256": "5ab25239f5f01f4c72df143876a8582cf7b52d91eddeb4e0674ff5d9a7fef5f2",
+    "results_sha256": "6dd0b469a86c98f0af97990707fac954eeeb5d7591eee0188e66ac605e42a7a6",
     "evidence_refs": [
-      "EV-R10-LIVE-INTERVAL-20261120"
+      "EV-STORY-STATIC-APPLICABILITY-20261120"
     ],
     "engineering_release": "NOT_READY",
-    "next_action": "Determine section 7.3.6 applicability for one entire original story-direction from both ends of every column. Where required, bind compatible signed shears at one cut, compute Vis, Vik and alpha, and carry any demand revision through cage, PMM, Ve and joint rechecks."
+    "next_action": "Complete the original C29 capacity-shear calculation under TBDY 7.3.7. Use the captured ductile and capacity combination rows. Bind governing end moments, physical clear length, assigned seismic demand and the transverse cage in both directions. Establish the applicable seismic load factor and force bounds before changing the R14 spectral shear gate."
   },
   "last_observed_remote_implementation": {
-    "branch": "audit/pipeline-pmm-v6-20261117",
-    "commit_sha": "85e720d18683a71737c1919d32e393c9d903737b",
-    "git_tree_sha": "069342dfd21b828bbaeba73d601db5f49aafb6e3",
-    "observed_on": "2026-11-17"
+    "branch": "baseline/local_import",
+    "commit_sha": "64c03641206d6b51f4834369bb3394e40b62b402",
+    "git_tree_sha": "4170660762d12031f4ef7b4a18c9c6dda3bca221",
+    "observed_on": "2026-11-20",
+    "scope": "Verified integration base before publication of this milestone. Resolve the current ref with git ls-remote."
   },
   "record_policy": {
     "append_new_ids": true,
@@ -4241,6 +4242,242 @@
       "engineering_release_granted": false,
       "engineering_release": "NOT_READY",
       "next_action": "Determine section 7.3.6 applicability for one entire original story-direction from both ends of every column. Where required, bind compatible signed shears at one cut, compute Vis, Vik and alpha, and carry any demand revision through cage, PMM, Ve and joint rechecks."
+    },
+    {
+      "id": "EV-STORY-STATIC-APPLICABILITY-20261120",
+      "observed_at_utc": "2026-11-20T14:32:43.204447Z",
+      "inspected_base_commit": "64c03641206d6b51f4834369bb3394e40b62b402",
+      "work_branch": "work/story-alpha-applicability",
+      "environment": "Windows; CPython 3.12.10, ETABS API units 6, locked original model, existing same-session gateway",
+      "scope": "Full physical end census for the selected original-building scenario, signed supplementary static story calculation and R14 interval ratio projection",
+      "private_receipt_root": ".receipts/verification/story-audit-20261120T134428Z",
+      "tested_file_manifest_path": ".receipts/verification/story-audit-20261120T134428Z/tested-files.json",
+      "tested_file_manifest_sha256": "832a7f53d55f901ec6b693e3602a86cedf1e5a3729f4687c478f642af79b9ef2",
+      "tested_code_and_tests_git_patch_sha256": "611b2d529446b4aaa747abebe295ce05f25dd35d9c5cad0d42b19cf314a45b48",
+      "method_versions": {
+        "alpha": "alpha-feedback.mixed-signed-same-cut.v5",
+        "scwb": "column-r10-low-axial.v3",
+        "revision_evidence": "offline-member-dependencies.d2.v1",
+        "signed_reference": "STATIC_SIGNED_VECTOR, same-study pure earthquake partition, ALL native gravity cuts checked against linear primitives"
+      },
+      "live_source": {
+        "source": ".receipts/RUN-163007b8f3ad44b691048c800a71ab4d/input.source",
+        "input_sha256": "5ab25239f5f01f4c72df143876a8582cf7b52d91eddeb4e0674ff5d9a7fef5f2",
+        "assigned_seismic_combinations": 8,
+        "assigned_gravity_combinations": 3,
+        "policies": 2,
+        "expected_columns": 87,
+        "supplementary_linear_static_case_rows": {
+          "LC_EQX": 402,
+          "LC_EQY": 402
+        },
+        "unchanged_original_assigned_force_rows": 7638,
+        "unchanged_original_scalar_values": 45828,
+        "selections_restored": true
+      },
+      "current_replay": {
+        "reference": ".receipts/verification/story-audit-20261120T134428Z/runs/RUN-8ecd564f0e4f4c49a53d7984b551dfb9",
+        "repeat": ".receipts/verification/story-audit-20261120T134428Z/repeat/RUN-0557855bbc444aa5adc5ee70e8c9fd15",
+        "snapshot_sha256": "8a06a194fedac7fe843e1cf4ee5d1b6aa5563cab366b76d18010c827feee5c46",
+        "results_sha256": "6dd0b469a86c98f0af97990707fac954eeeb5d7591eee0188e66ac605e42a7a6",
+        "compare": {
+          "reference_stages": 16,
+          "current_stages": 16,
+          "mismatched_stages": [],
+          "missing_stages": [],
+          "extra_stages": [],
+          "source_identical": true,
+          "sealed_stage_coverage": true,
+          "comparison_scope": "PIPELINE_RESULTS_REPORT_EVIDENCE_AND_ALL_RECORDED_RECEIPTS",
+          "status": "IDENTICAL"
+        }
+      },
+      "assigned_design": {
+        "end_status": "ALTERNATIVE_NOT_REQUIRED",
+        "total_directional_column_ends": 348,
+        "story_direction_count": 6,
+        "design_iterations": 0,
+        "demand_factor": 1.0,
+        "vis_vik_alpha": null,
+        "selected_cage_and_beam_N0_assumption": true,
+        "target_story_x_ends": {
+          "I": {
+            "NO_FRAME_BEAM_AT_NODE": 3,
+            "NO_FRAME_BEAM_IN_DIRECTION": 4,
+            "EXEMPT_LOW_AXIAL": 20,
+            "EQ_7_3_INTERVAL_SUFFICIENT": 5
+          },
+          "J": {
+            "COLUMN_DOES_NOT_CONTINUE_ABOVE_7_3_5_3_B": 9,
+            "EXEMPT_LOW_AXIAL": 23
+          }
+        },
+        "r14_minimum_interval_ratio": 2.7298857767624676,
+        "low_axial_physical_joints": 47,
+        "sufficient_nonexempt_physical_joints": 5,
+        "qualified_moment_checks": 160,
+        "original_partial_columns": 87,
+        "resolved_shared_gates": [
+          "D2:ALPHA_ITERATION:BLOCKED_INPUTS",
+          "D2:DESIGN_ALPHA_FEEDBACK_NOT_RESOLVED_OR_NOT_CONSUMED",
+          "STORY_ALPHA_BOTH_DIRECTIONS_REQUIRED",
+          "STORY_ALPHA_I_NOT_EVALUATED"
+        ],
+        "shared_open_gates": [
+          "EFFECTIVE_LENGTH_K_AND_SWAY_CLASSIFICATION_NOT_APPROVED",
+          "INDEPENDENT_ANALYSIS_CUT_CENSUS_NOT_PROVEN",
+          "PHYSICAL_JOINT_FACES_OFFSETS_AND_ANCHORAGE_NOT_PROVEN",
+          "R03:ANALYSIS_GENERATION_NOT_PROVEN",
+          "R03:APPROVED_MODEL_PROFILE_MISSING",
+          "R03:LOAD_CASE_ROLES_AND_REMAINING_DESIGN_FAMILIES_UNAPPROVED",
+          "R08_LOCAL:ACTUAL_ANALYSIS_ORDER_UNVERIFIED",
+          "R08_LOCAL:CREEP_RATIO_RM_AND_SECTION_CRACKING_NOT_APPROVED",
+          "R08_LOCAL:END_RESTRAINTS_K_AND_SWAY_CLASSIFICATION_NOT_APPROVED",
+          "R08_LOCAL:EQ729_LENGTH_AMBIGUITY_NOT_RESOLVED",
+          "R08_LOCAL:PHYSICAL_SUPPORT_FACES_AND_CLEAR_LENGTH_NOT_PROVEN",
+          "SCWB_AND_CAPACITY_SHEAR_SPECTRAL_DEMAND_POLICY_NOT_PROVEN",
+          "TS500_CREEP_RATIO_RM_NOT_APPROVED"
+        ]
+      },
+      "supplementary_reference": {
+        "gravity_combinations": [
+          "Grav_TempNeg",
+          "Grav_TempPos",
+          "Grav_Ult"
+        ],
+        "earthquake_coefficients": [
+          -1,
+          1
+        ],
+        "design_assignment": false,
+        "target_story": "+4.50",
+        "results": {
+          "LC_EQX": {
+            "principal_direction": "X",
+            "number_eligible": 32,
+            "expected": 32,
+            "vis_decimal_kn": "2361.123671142072724",
+            "vik_decimal_kn": "2361.123671142072724",
+            "max_residual_kn": "2.76E-13",
+            "max_nd_kn": "2164.3662793505712315",
+            "limit_kn": "2240.000",
+            "rotated_count": 1
+          },
+          "LC_EQY": {
+            "principal_direction": "Y",
+            "number_eligible": 32,
+            "expected": 32,
+            "vis_decimal_kn": "2339.746697989232200",
+            "vik_decimal_kn": "2339.746697989232200",
+            "max_residual_kn": "2.00E-13",
+            "max_nd_kn": "2234.37179779455249",
+            "limit_kn": "2240.000",
+            "rotated_count": 1
+          }
+        },
+        "unit_factor_evaluations_at_target": 1,
+        "maximum_shear_change_kn": 0.0,
+        "independent_method": "Raw ETABS column arrays, connectivity, local rotation, native section and material fields, Decimal precision 50; three signed gravity combinations and each unit-sign quake at identical cuts"
+      },
+      "regression": {
+        "python_run": 1539,
+        "python_passed": 1538,
+        "windows_symlink_skipped": 1,
+        "javascript_files_passed": 11,
+        "wheel_tests_passed": 387,
+        "wheel": {
+          "runtime_python_files": 128,
+          "wheel_sha256": "7b8f995c64c7efed01eb77b1aec11cdf99b219fd17c121686c2f0266a4f20c90"
+        },
+        "printable_report": {
+          "file": "R10_arti450_X_kat_hesabi.html",
+          "bytes": 4330756,
+          "sha256": "016be15b502a3cfd706744f47bd5202fc4e957a36bcbf94addd345b37af4db34",
+          "run": "RUN-8ecd564f0e4f4c49a53d7984b551dfb9",
+          "html_verified": true,
+          "populated_signed_story_member_tables": 4
+        }
+      },
+      "verification_commands": [
+        "POST /api/live-vs04 (column-pmm, member=ALL, ASSIGNED_DESIGN, repeat reference_static_case for LC_EQX and LC_EQY, preserved original design assignment and selection policies)",
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --source .receipts/RUN-163007b8f3ad44b691048c800a71ab4d/input.source --case Modal --out .receipts/verification/story-audit-20261120T134428Z/runs",
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --source .receipts/RUN-163007b8f3ad44b691048c800a71ab4d/input.source --case Modal --out .receipts/verification/story-audit-20261120T134428Z/repeat --compare-run .receipts/verification/story-audit-20261120T134428Z/runs/RUN-8ecd564f0e4f4c49a53d7984b551dfb9",
+        "python -X utf8 -B .receipts/verification/story-audit-20261120T134428Z/verify_story.py .receipts/verification/story-audit-20261120T134428Z/runs/RUN-8ecd564f0e4f4c49a53d7984b551dfb9",
+        "python -X utf8 -B .receipts/verification/story-audit-20261120T134428Z/export_report.py",
+        "python -X utf8 -B tools/test_offline.py",
+        "python -X utf8 -B .receipts/verification/story-audit-20261120T134428Z/wheel_check.py",
+        "python -X utf8 -B .receipts/verification/story-audit-20261120T134428Z/read_capacity_controls.py",
+        "python -X utf8 -B .receipts/verification/story-audit-20261120T134428Z/check_full_audit.py",
+        "python -X utf8 -B .receipts/verification/story-audit-20261120T134428Z/export_audit_corrections.py"
+      ],
+      "private_sha256": {
+        "capture-status.json": "a6834776e4437366d7eb7b335e497a275cc6b18056befe07943c75f4cc4c22c4",
+        "session-before.json": "711084b3c3b1e654f39c682a7489c0425c675edfa9763dafafbfc925aadecad6",
+        "session-after.json": "711084b3c3b1e654f39c682a7489c0425c675edfa9763dafafbfc925aadecad6",
+        "runs-cli.json": "474af859c6d729560ce650f778ae6f167b4199adc11aec09f1240a1df0e847d3",
+        "repeat-cli.json": "0363671376ce72a6bcdaf27d182c03be5cdb2ebbe39a656a4c62c700af7e0959",
+        "verify_story.py": "4297de749f5c2937fb01ff92c4f3ae083f6b86d3905a853babba38d225ccb28c",
+        "independent-result.json": "d6c2e060af334a3c860487b62755f2f575d320766025f81b9870f101ee34e1e3",
+        "wheel-tests.log": "96f146351272517ff66012f0ffa029a7a0c4803f6f481f3c324f6334fdc964c7",
+        "offline-tests.log": "e11063fc621a3c6117783dc2b73d70a2952b9e0d92179375375554dc21a14a16",
+        "tested-files.json": "832a7f53d55f901ec6b693e3602a86cedf1e5a3729f4687c478f642af79b9ef2",
+        "report-check.json": "50d3ab9cf4f1ae8f95c07f014568489efa97c6598d728a11af831793f0404d58",
+        "read_capacity_controls.py": "d5938769b0ddb7bf195147011d5da34e4a12a8edf3cd9a0bc9299cb1f26d4fd9",
+        "capacity-crosscheck.json": "39b4a7844ba0731378c235aaf292d3c581f2693177739e7cd6060a9f647dc8c7",
+        "check_full_audit.py": "1a0bf0a648bd6ec08576b2170f7dab01300d1affdf4c4efb668be5021c78246f",
+        "full-audit-comparison.json": "e6d43c96813444dcaadf4f9053de8f68bf2938f46586bbcec6618cde2fad8341",
+        "export_audit_corrections.py": "54b3ba9e676597619a62482f73121852a4f29dc3b2aa6f0111087b80a3ded9d4"
+      },
+      "limits": [
+        "Supplementary static combinations are explicit calculation scenarios outside the eight assigned spectral families.",
+        "Per-column low-N numerator credit covers every reported cut in the stated signed scenario. Cross-direction counteracting shears and unresolved high-N ends do not produce a ratio.",
+        "With all relevant ends resolved, the selected assigned scenario does not exercise design feedback at alpha below one.",
+        "Selected cages and beam axial force N=0 define the scope; physical faces, clear length, generation, restraint and spectral shear policy still bound R14."
+      ],
+      "engineering_release_granted": false,
+      "engineering_release": "NOT_READY",
+      "next_action": "Complete the original C29 capacity-shear calculation under TBDY 7.3.7. Use the captured ductile and capacity combination rows. Bind governing end moments, physical clear length, assigned seismic demand and the transverse cage in both directions. Establish the applicable seismic load factor and force bounds before changing the R14 spectral shear gate.",
+      "full_audit_review": {
+        "text_sha256": "670ada73d8e7fa85837bf59787a4737c1391e2c4778ef4483ddfb8dfe06da08a",
+        "utf8_file_count": 2,
+        "bytes_per_file": 62745,
+        "lines_per_file": 520,
+        "named_seal_results_sha256": "98c60691acc91db0fa98609ca62f95b3f1ce464286695f3f8880b8edf9c25ff2",
+        "printed_numeric_comparison": {
+          "axial_total": 160,
+          "axial_equal": 10,
+          "moment_total": 120,
+          "moment_equal": 1,
+          "ratios_total": 160,
+          "ratios_equal": 1
+        },
+        "comparison_scope": "All 40 rows keyed by physical joint, assigned seismic family, direction and sway. Half of the final printed decimal as tolerance.",
+        "printed_element_ids_different": 10,
+        "printed_cage_revisions_different": 10,
+        "printed_directional_beam_sets_different": 10,
+        "sealed_sufficient_moment_comparisons": 160,
+        "independent_section_maximum_delta_knm": 1.5916157281026244e-12,
+        "private_corrected_matrix": ".receipts/verification/story-audit-20261120T134428Z/full-audit-comparison.json"
+      },
+      "capacity_shear_control_read": {
+        "source": ".receipts/RUN-36026224ac7e49c591b1981dff639e21/input.source",
+        "input_sha256": "51e98804e199294d66f3ca317c034641098c964e783351f03c483b70b839e6db",
+        "source_status": "NATIVE_READ_CONFIRMED",
+        "scope": "Native component envelopes for eight model-defined capacity combinations. The original design assignment contains eight ductile seismic and three gravity combinations.",
+        "native_capacity_rows": 6432,
+        "capacity_family_count": 8,
+        "same_original_assigned_rows": 7638,
+        "same_original_force_components": 45828,
+        "unchanged_locked_session_units": 6,
+        "selection_restored": true,
+        "model_wide_absolute_maxima_kn": {
+          "all Duct_Seis V2": 326.7014876089798,
+          "all Duct_Seis V3": 327.04740913626597,
+          "all Cap_Seis V2": 483.6381572518991,
+          "all Cap_Seis V3": 740.2267572289629
+        },
+        "private_member_controls": ".receipts/verification/story-audit-20261120T134428Z/full-audit-comparison.json#c29_native_controls"
+      }
     }
   ],
   "new_record_template": {
@@ -4265,7 +4502,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-20T11:21:58.803861Z",
+  "updated_at_utc": "2026-11-20T14:32:43.204447Z",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -4806,6 +5043,21 @@
       ],
       "engineering_release": "NOT_READY",
       "next_action": "Evaluate direction-compatible axial demand and minimum column moment capacity at the five joints that exceed the combined seismic limit. Then complete one full story-direction shear allocation and run the existing alpha iteration."
+    },
+    {
+      "status": "ORIGINAL_R10_STRONG_COLUMN_ASSIGNED_AXIAL_INTERVALS_CALCULATED",
+      "work_branch": "work/r10-seismic-intervals",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "cc98df6f9f6e768ba34a7f20a5c01725b2d30914",
+      "source_run_id": "RUN-abf87f29c688483c8c79f609e8400cce",
+      "production_run_id": "RUN-30933934b3f04c09a8035e292416b867",
+      "source_sha256": "f5bd9c9b78caf6fd9737ddf724e39197f64a111370aa14bf116e005ed3f8bdc5",
+      "results_sha256": "98c60691acc91db0fa98609ca62f95b3f1ce464286695f3f8880b8edf9c25ff2",
+      "evidence_refs": [
+        "EV-R10-LIVE-INTERVAL-20261120"
+      ],
+      "engineering_release": "NOT_READY",
+      "next_action": "Determine section 7.3.6 applicability for one entire original story-direction from both ends of every column. Where required, bind compatible signed shears at one cut, compute Vis, Vik and alpha, and carry any demand revision through cage, PMM, Ve and joint rechecks."
     }
   ],
   "remote_audit_correction_checkpoint": {
@@ -4830,5 +5082,11 @@
     "status": "OFFLINE_CORRECTIONS_VERIFIED_LIVE_VALIDATION_PENDING",
     "engineering_release": "NOT_READY",
     "next_action": "Integrate this verified milestone normally; repeat exact selected source on Windows, then complete the five non-exempt seismic joint branches and one full story-direction through existing owners."
+  },
+  "previous_observed_remote_implementation": {
+    "branch": "audit/pipeline-pmm-v6-20261117",
+    "commit_sha": "85e720d18683a71737c1919d32e393c9d903737b",
+    "git_tree_sha": "069342dfd21b828bbaeba73d601db5f49aafb6e3",
+    "observed_on": "2026-11-17"
   }
 }

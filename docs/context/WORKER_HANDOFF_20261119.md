@@ -33,6 +33,24 @@ Replay the specified fresh `input.source` with `--case Modal` and
 directory. Keep the adjacent parent source. Reconstruct the physical joint
 population from native connectivity before counting the results.
 
+For the current story calculation, use `EV-STORY-STATIC-APPLICABILITY-20261120`.
+Trace the +4.50/X result across the 32 common bottom cuts. Recompute the signed
+global force from each column's recorded axis angle and both local shears.
+Reconstruct maximum compression from each assigned gravity combination plus
+and minus one supplementary static case, over all native cuts. Check both
+the numerator population and the source load definitions. Then inspect the
+separate applicability result for the eight assigned spectral families and
+the R14 column ratios. Reproduce the 16 stage comparison before extending C29.
+
+For C29 the same ledger entry identifies a separate native read for all
+eight model-defined capacity combinations, together with eleven original
+control combinations. Use its existing rows and cuts for both members.
+Determine how each combination participates in the governing §7.3.7 branch.
+The full November 20 audit reproduces one of 160 transcribed moment ratios
+at six decimal places. Use the sealed numerical rows for the remaining 159
+and the already factored beam sum for each sway. Local resources point to
+the corrected 40-row table and the two original audit files.
+
 Starting from a governing non-exempt joint, reconstruct column-end component
 extrema, selected cages, section equilibrium, beam-end signs and the required
 1.20 moment sum. Check both sways and both directions across every assigned

@@ -5,7 +5,58 @@ Start each assignment at [AGENTS.md](../AGENTS.md). The
 [project charter and source guide](context/PROJECT_CHARTER.md) are available
 in a GitHub checkout. Follow the [November 18 full recipe](engineering/reference/recipe_20261118/delivery/RECIPE.md)
 and its [six-step calculation sequence](engineering/reference/recipe_20261118/delivery/PRIORITY_CHAIN.json).
-## Current original-model result
+
+## Current story calculation and R14 projection
+
+The existing Windows gateway read two supplementary linear static earthquake
+cases on the locked original model. Each returned 402 signed frame-force rows
+for 87 columns. All 7,638 native rows in the eleven assigned combinations
+match the preceding capture. Output selection was restored. The exact input,
+two CLI replays and independent arithmetic are indexed under
+`EV-STORY-STATIC-APPLICABILITY-20261120` in [the ledger](VERIFICATION_LEDGER.json).
+
+At story +4.50, the X-direction reference uses all 32 physical columns at
+the common I-end cut. Global X is local V2 for 31 columns and negative V3 for
+one column rotated 90 degrees. Each of the three assigned gravity combinations
+is paired with both signs of the supplementary static earthquake case at a
+unit coefficient. The maximum compression across the X reference is
+2,164.366 kN against a 2,240 kN section limit. All 32 columns qualify for
+optional low-axial numerator credit under §7.3.6.1. Vis and Vik are each
+2,361.123671142073 kN, α is 1.000000 and the unit-factor check gives zero
+shear change in one evaluation. The corresponding Y case gives 2,339.746698 kN.
+Neither static case appears in the eight assigned response-spectrum families.
+
+For those eight assigned families, all 348 directional column ends across
+three stories are accounted for by connectivity, §7.3.5.3, or a sufficient
+Eq. (7.3) moment bound. The selected-cage scenario requires zero design
+amplification iterations. The R14 summary now carries the normalized moment
+bound for the five non-exempt joints. The governing bound is **2.729886**.
+All 87 columns still have 13 shared open gates, down from 17.
+GAP-016 remains 20 numerical matches, 20 insufficient-source comparisons and
+four engineering interpretation differences. Engineering release is `NOT_READY`.
+
+The two copies of the 520-line November 20 audit have the same SHA-256.
+Only one of its 160 printed Eq. (7.3) ratios reproduces to six decimal
+places against the report's own reference run. All 160 checks in that run
+are sufficient. Use the sealed case and sway rows for individual values.
+A separate read of the locked model returned 6,432 native rows for eight
+model-defined capacity combinations and reproduced all 7,638 assigned
+control rows. Model-wide absolute V2/V3 maxima are 326.701488/327.047409 kN
+for the ductile combinations and 483.638157/740.226757 kN for the capacity
+combinations. The ledger indexes both sources and the full audit cross-check.
+Two CLI runs match at all 16 stages. The offline suite passed 1,538 Python
+tests with one skip and 11 JavaScript test files. The installed wheel passed
+387 tests.
+
+**Next vertical slice.** Carry the original C29 column from the governing
+end moments and clear length into the §7.3.7 capacity shear calculation.
+Reconcile it with the assigned seismic shear demand and selected transverse
+reinforcement in both directions. Use the captured ductile and capacity
+combination rows. Establish the applicable seismic load factor and bounds
+from the governing design rule before changing that R14 gate. See the
+[worker handoff](context/WORKER_HANDOFF_20261119.md#local-auditor-brief).
+
+## Previous original-model joint calculation
 
 The normal R10 pipeline now accounts for all **52 physical joints with a beam
 and a column above and below** in the assigned model. Of these, 47 qualify
@@ -46,17 +97,9 @@ tests passed. The ledger retains two earlier host-aborted loopback attempts.
 GAP-016 currently has 20 numerical matches, 20 insufficient-source records
 and four engineering interpretation differences across its 44 comparisons.
 
-For the **next calculation**, take one complete story and direction and identify
-the actual status of every expected column at both ends. Establish whether the
-alternative in §7.3.6 applies. Where it applies, bind compatible signed
-earthquake shears at the specified cut and run the existing α numerator,
-denominator, demand revision and dependent PMM, shear and joint checks.
+That checkpoint left the story alternative unresolved with 17 shared R14 gates.
+The current story calculation above supersedes its applicability result.
 See [TBDY 2018 §§7.3.5–7.3.7](https://www.afad.gov.tr/kurumlar/afad.gov.tr/2309/files/TBDY_2018.pdf).
-The eight scalar seismic envelopes
-currently leave α at zero iterations with `BLOCKED_INPUTS`. R14 has 87 partial
-columns and 17 shared open gates. Engineering release remains `NOT_READY`.
-The [local auditor brief](context/WORKER_HANDOFF_20261119.md#local-auditor-brief)
-starts from the same receipt and calculation owners.
 
 ## Historical remote correction before the live run
 

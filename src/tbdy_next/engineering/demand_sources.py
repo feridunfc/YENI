@@ -210,8 +210,17 @@ def demand_capture_plan(source, combination_plan):
             if expected != list(range(1, max(expected) + 1)):
                 raise ValueError("DEMAND_MODAL_PERIOD_INVENTORY_INCOMPLETE:" + name)
             modes[name] = expected
-    cases = sorted(set(leaves) | set(modes))
+    extra = combination_plan.get("reference_static_cases", [])
+    if "reference_static_cases" in combination_plan:
+        from .mixed_demands import _static_roles
+        if (not isinstance(extra, list) or not extra or any(not isinstance(n, str) or n not in catalog for n in extra)
+                or len(extra) != len(set(extra)) or set(extra) & set(leaves)
+                or any(catalog[n]["type"] != "Linear Static" for n in extra)
+                or any(role != "EARTHQUAKE" for role in _static_roles(tables, extra, catalog).values())):
+            raise ValueError("REFERENCE_STATIC_EARTHQUAKE_CASE_SCOPE_INVALID")
+    cases = sorted(set(leaves) | set(modes) | set(extra))
     return {"cases": cases, "case_definitions": {n: catalog[n] for n in cases},
+            **({"reference_static_cases": sorted(extra)} if extra else {}),
             "primitive_cases": leaves, "spectrum_modal_bindings": modal_bindings,
             "modal_modes": modes, "mode_inventory_basis": "SAME_CAPTURE_MODAL_PERIODS_TABLE"}
 
@@ -270,7 +279,7 @@ def component_force_rows(source, uid, combination_plan):
     for row in native_frame_force_rows(force["rowsets"][uid], uid):
         if row[4] not in plan["case_definitions"]:
             raise ValueError("NATIVE_DEMAND_UNREQUESTED_CASE")
-        if plan["case_definitions"][row[4]]["type"] == "Linear Static":
+        if plan["case_definitions"][row[4]]["type"] == "Linear Static" and row[4] in plan["primitive_cases"]:
             if row[5] not in ("Single Value", "") or row[6] != 0:
                 raise ValueError("NATIVE_DEMAND_STATIC_STEP_UNVERIFIED")
             rows.append(row)

@@ -20,7 +20,7 @@ from .design_scenario import _digest
 
 SCHEMA = "tbdy.next.alpha-design-iteration.v1"
 DEMAND_SCHEMA = "tbdy.next.alpha-demand-revision.v1"
-METHOD = "alpha-feedback.mixed-signed-same-cut.v4"
+METHOD = "alpha-feedback.mixed-signed-same-cut.v5"
 MAX_ITERATIONS = 8
 
 
@@ -60,7 +60,7 @@ SCWB is still a selected-candidate reference, not engineering approval.
     from .design_dependencies import story_blockers
     from .mixed_demands import earthquake_row
     from .demand_sources import component_force_rows
-    from .scwb_axial import alpha_low_axial_credit
+    from .scwb_axial import alpha_low_axial_credit, assigned_story_applicability
 
     plan = (axial or {}).get("combination_plan") or {}
     groups = (plan.get("design_assignment") or {}).get("groups") or {}
@@ -75,7 +75,16 @@ SCWB is still a selected-candidate reference, not engineering approval.
     if not dependencies or dependencies.get("global_blockers") or dependencies.get("topology_blockers"):
         reasons.append("ALPHA_PHYSICAL_DEPENDENCIES_UNAVAILABLE")
     if reasons:
-        return {"status": "BLOCKED_INPUTS", "reason_codes": sorted(set(reasons)), "cases": []}
+        applicability = []
+        if (names and all(semantics.get(n) == "SCALAR_COMPONENT_ENVELOPE" for n in names)
+                and all(reason.startswith("ALPHA_SIGNED_SEISMIC_DEMAND_REQUIRED:") for reason in reasons)):
+            applicability = assigned_story_applicability(source, scope, dependencies, r10, names)
+            if applicability and all(row["status"] == "ALTERNATIVE_NOT_REQUIRED" for row in applicability):
+                return {"status": "ALTERNATIVE_NOT_REQUIRED", "reason_codes": [], "cases": [],
+                        "basis": "ASSIGNED_EQ_7_3_AND_7_3_5_3_AT_ALL_DIRECTIONAL_ENDS",
+                        "story_applicability": applicability}
+        return {"status": "BLOCKED_INPUTS", "reason_codes": sorted(set(reasons)), "cases": [],
+                **({"story_applicability": applicability} if applicability else {})}
     try:
         seismic_basis = _earthquake_shear_provenance(source, names, plan)
     except (KeyError, ValueError, TypeError, ArithmeticError, RecursionError) as exc:
@@ -280,6 +289,10 @@ def run_bounded_feedback(*, initial, qualify, demand, rebuild, signature, feasib
         if check["status"] in ("NO_FEASIBLE_CANDIDATE", "JOINT_DESIGN_FAILURE"):
             status = check["status"]; break
         qualification = qualify(state)
+        if qualification["status"] == "ALTERNATIVE_NOT_REQUIRED":
+            status = check["status"] if check["status"] != "FEASIBLE_REFERENCE" else (
+                "RESELECTION_REQUIRED" if check.get("reselect_member_ids") else "ALTERNATIVE_NOT_REQUIRED")
+            break
         if qualification["status"] != "QUALIFIED_REFERENCE":
             status = qualification["status"]
             break
@@ -597,6 +610,7 @@ def run_alpha_design_iteration(*, source, geometry, axial, pmm, extra, scope, de
     from .column_r10_live import project_column_r10_live
     from .column_r08_local_live import project_column_r08_local_live
     from .design_scenario import selected_candidate_ledger
+    from .story_static_reference import supplementary_story_reference
 
     groups = ((axial or {}).get("combination_plan", {}).get("design_assignment") or {}).get("groups") or {}
     initial = {"r10": r10, "r08": r08, "cages": cages, "dependencies": dependencies,
@@ -645,7 +659,9 @@ def run_alpha_design_iteration(*, source, geometry, axial, pmm, extra, scope, de
         demand=lambda cases: build_demand_revision(source, cases, input_sha=input_sha),
         rebuild=rebuild, signature=_candidate_signature, feasible=_feasibility)
     final_candidates = selected_candidate_ledger(scope, state["cages"], state["r10"], input_sha=input_sha)
+    static_reference = supplementary_story_reference(source, axial, scope, state["dependencies"])
     record = _sealed({**{k: v for k, v in record.items() if k != "sha256"},
+        **({"supplementary_static_reference": static_reference} if static_reference else {}),
         "input_sha256": input_sha, "source_payload_sha256": _digest(source),
         "expected_member_ids": sorted(dependencies["members"]),
         "final_candidate_signature": _candidate_signature(state),

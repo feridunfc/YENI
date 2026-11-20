@@ -2516,14 +2516,46 @@ def _alpha_feedback_html(record: Mapping[str, Any]) -> str:
               "demand_sha": step["demand_revision_sha256"],
               "joint_consumers": ", ".join((step.get("actions") or {}).get("joint_consumer_member_ids", ()))}
              for step in record.get("trace", ())]
+    applicability = [{**row, "member_count": len(row["expected_member_ids"]), "end_count": len(row["ends"])}
+                     for row in qualification.get("story_applicability", ())]
+    static = record.get("supplementary_static_reference") or {}
+    reference_rows = [{**r, "reasons": ", ".join(r["reason_codes"])} for r in static.get("cases", ())]
+    static_html = ""
+    if static:
+        static_html = ('<h3>Supplementary signed static earthquake reference</h3>'
+            '<p>Each assigned gravity combination is paired with both signs of one supplementary '
+            'earthquake case at unit factor. Compression is checked at every captured cut. The signed '
+            'earthquake shear is projected onto the global direction at the common column bottom. '
+            'These reference combinations have no design assignment.</p>'
+            + _table((("case", "Earthquake"), ("story", "Story"), ("direction", "Global direction"),
+                      ("bound_count", "Bound"), ("expected_count", "Expected"), ("credited_count", "Low-N credit"),
+                      ("vis_kn", "Vis (kN)"), ("vik_kn", "Vik (kN)"), ("alpha", "Alpha"), ("factor", "1/alpha"),
+                      ("status", "Result"), ("reasons", "Open reasons")), reference_rows))
+        if static.get("reason_codes"):
+            static_html += '<p>' + escape(", ".join(static["reason_codes"])) + '</p>'
+        for row in reference_rows:
+            if row["status"] != "SIGNED_STATIC_REFERENCE":
+                continue
+            members = [{**t, "elm": t["source_cut"][2], "obj": t["source_cut"][1], "station": t["source_cut"][3],
+                        "max_nd": t["governing_axial"]["max_nd_kn"]} for t in row["terms"]]
+            label = escape(" / ".join((row["case"], row["story"], row["direction"])))
+            static_html += ('<details><summary>' + label + ' · signed column shears</summary>'
+                + _table((("member_id", "Column"), ("elm", "Element"), ("obj", "ObjSta (m)"), ("station", "ElmSta (m)"),
+                          ("v2_kn", "V2 (kN)"), ("v3_kn", "V3 (kN)"), ("signed_shear_kn", "Global V (kN)"),
+                          ("max_nd", "Maximum Nd (kN)"), ("limit_kn", "0.10 Ac fck (kN)")), members)
+                + '</details>')
     return ('<section class="percheck"><h2>D3 · Recorded alpha demand feedback</h2>'
-        '<p>Bounded conditional reference iteration; not engineering acceptance. '
-        'Moments and shears are revised from the original signed source, not multiplied cumulatively. '
-        'Unsupported spectral or mixed-load shear provenance remains blocked.</p>'
+        '<p>The selected-cage calculation checks each physical column end in both directions. '
+        'A required revision uses the original signed source.</p>'
         + _table((("status", "Terminal state"), ("iteration_count", "Iterations"),
                   ("max_iterations", "Limit"), ("feedback_consumed", "Reference feedback consumed"),
                   ("sha256", "Recorded revision")), [record])
         + ('<p>' + escape(", ".join(reasons)) + '</p>' if reasons else '')
+        + (('<h3>Assigned seismic combinations · applicability of §7.3.6</h3>'
+            + _table((("story", "Story"), ("direction", "Direction"), ("member_count", "Columns"),
+                      ("end_count", "Ends"), ("status", "Alternative"), ("applied_demand_factor", "Demand factor")),
+                     applicability)) if applicability else '')
+        + static_html
         + _table((("story", "Story"), ("direction", "Direction"), ("combination", "Combination"),
                   ("alpha", "Alpha"), ("factor", "Factor"), ("eligible", "Vis columns"),
                   ("amplified", "1/alpha columns"), ("low_n_credit", "Optional low-N credit"),
@@ -2624,7 +2656,7 @@ def _column_r14_r15_html(r14: Mapping[str, Any]) -> str:
                if sa_rows else '')
             + _table((("member_id", "Column"), ("story", "Story"), ("section", "Section"),
                       ("status", "R14 Status"), ("pmm_util", "2nd-Order PMM"),
-                      ("ve_util", "Ve/Vr"), ("scwb_ratio", "SCWB"), ("vj_util", "Vj util"),
+                      ("ve_util", "Ve/Vr"), ("scwb_ratio", "Min normalized SCWB ratio"), ("vj_util", "Vj util"),
                       ("failures", "Normative failures")), cols_tbl)
             + _recorded_static_pmm_html(r14.get("columns") or [])
             + '</section>'
@@ -2643,7 +2675,7 @@ def _column_r14_r15_html(r14: Mapping[str, Any]) -> str:
     return (
         '<section class="percheck"><h2>R14 · Single-column end-to-end closure</h2>'
         + _table((("member_id", "Column"), ("story", "Story"), ("status", "R14 Status"),
-                  ("pmm_util", "2nd-Order PMM"), ("ve_util", "Ve/Vr"), ("scwb_ratio", "SCWB"),
+                  ("pmm_util", "2nd-Order PMM"), ("ve_util", "Ve/Vr"), ("scwb_ratio", "Min normalized SCWB ratio"),
                   ("vj_util", "Vj util"), ("failures", "Normative failures")), row)
         + _recorded_static_pmm_html([r14])
         + '</section>'
