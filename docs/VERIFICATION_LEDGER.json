@@ -1,7 +1,7 @@
 {
   "schema": "yeni.project-memory.verification-ledger.v2",
   "repository": "feridunfc/YENI",
-  "updated_on": "2026-11-19",
+  "updated_on": "2026-11-20",
   "purpose": "Durable evidence index. It is not a source receipt or formal engineering acceptance.",
   "workflow": {
     "primary_workspace": "LOCAL_CODEX",
@@ -3973,6 +3973,21 @@
       },
       "limits": "The limits and paired spectral ordinate ratio are scalar comparisons. Member demand acceptance, spectrum period qualification, full drift and the independent building example remain open.",
       "engineering_release_granted": false
+    },
+    {
+      "id": "EV-C29-INTERIOR-LOW-AXIAL-20261120",
+      "observed_at_utc": "2026-11-20T02:26:41Z",
+      "inspected_base_commit": "6227d68a8b30343f6901bd504d6b04d5516d66af",
+      "source_run_id": "RUN-fb8d7de678384790a748b45095fc7b0f",
+      "source_sha256": "e56eafa3c36f7f0cf5cfc797e418d69207e608c35f153c2e2c7b087f5747f393",
+      "results_sha256": "16c18478c2125e714769cd71e9e9096840f0c9fd729273d5f25f9c04a8acf36d",
+      "scope": "TBDY 7.3.5.3(a) at both configured column-end cuts of one original interior joint. Topology, mesh ends, cut assignments, design groups and section properties came from the same input.",
+      "method": "Read native axial extrema with compression positive. Compare earthquake bounds with the existing primitive-load replay. Check each column against 0.10 Ac fck, including the three assigned static combinations.",
+      "result": "Both columns are below the threshold. All 32 earthquake bounds matched across eight combinations, with a maximum absolute difference of 4.55e-13 kN.",
+      "commands": ["python -X utf8 -B .receipts/verification/review-ee2ecca-c29/check_joint6_axial.py"],
+      "private_check_sha256": "174cfa252a99c30d2b691a19596fb21252b53a9c90ce92d9ff9d468bdc9c8747",
+      "limits": "Local calculation on the saved original input. The capture lacks independent analysis-generation proof. Production seismic joint classification, story shear, alpha and redesign remain open.",
+      "engineering_release_granted": false
     }
   ],
   "new_record_template": {
@@ -3997,7 +4012,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-19T18:42:53Z",
+  "updated_at_utc": "2026-11-20T02:26:41Z",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",

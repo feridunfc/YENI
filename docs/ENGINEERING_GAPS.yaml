@@ -297,7 +297,7 @@
       "title": "SCWB and alpha demand feedback",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Bounded signed-reference iteration and mixed signed E partition exist. Scalar spectral replay is now independently matched.",
+      "achieved_scope": "Bounded signed-reference iteration and mixed signed E partition exist. Scalar spectral replay is independently matched. One original interior joint meets the two-column low-axial threshold for its assigned combinations at the configured ends in a private worked calculation.",
       "blocker": "Governing Nd and story-shear allocation are not qualified. Prior real spectral scenario is BLOCKED_INPUTS / 0 iterations; latest plain replay executes no alpha iteration.",
       "closure_criteria": "Prove alpha-to-demand-to-cage-to-PMM/shear/joint feedback at the same story/cut with all neighbors in an independent complete example, including correct nonconvergence states.",
       "owner_paths": [
@@ -312,7 +312,8 @@
         "EV-LOCAL-SPECTRAL",
         "EV-LOCAL-MODAL-PARAMETERS",
         "EV-RECIPE18-INTAKE",
-        "EV-RECIPE18-ARITHMETIC"
+        "EV-RECIPE18-ARITHMETIC",
+        "EV-C29-INTERIOR-LOW-AXIAL-20261120"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,

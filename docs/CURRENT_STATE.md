@@ -1,9 +1,25 @@
-# Agent entry and report comparison handoff
+# Active building calculation on baseline/local_import
 
 Start each assignment at [AGENTS.md](../AGENTS.md). The
 [worker handoff](context/WORKER_HANDOFF_20261119.md) and
 [project charter and source guide](context/PROJECT_CHARTER.md) are available
-in a GitHub checkout. The 44 GAP-016 records contain 18 production matches,
+in a GitHub checkout. Follow the [November 18 full recipe](engineering/reference/recipe_20261118/delivery/RECIPE.md)
+and its [six-step calculation sequence](engineering/reference/recipe_20261118/delivery/PRIORITY_CHAIN.json).
+The active delivery is the [original interior joint through one full story and direction](engineering/AUDIT_FIXES_20261119.md#next-bounded-delivery-in-order).
+
+At C29's interior joint the original ETABS run supplies both configured column-end
+axial intervals for all eight assigned earthquake combinations. An independent
+read of the native forces reproduced all 32 bounds. Both columns meet the
+low-axial threshold at the checked cuts. The local worked calculation is indexed
+by `EV-C29-INTERIOR-LOW-AXIAL-20261120`. The next production step is to apply
+TBDY 7.3.5.3(a) in the existing R10 joint calculation for qualified ends. Where
+the exception does not apply, use direction-compatible axial demand that minimizes
+column moment strength. Story allocation and alpha feedback require the complete
+story-direction population and compatible member shears.
+
+## GAP-016 report comparisons
+
+The 44 GAP-016 records contain 18 production matches,
 22 insufficient-source labels and four adopted-factor interpretation differences.
 The normal report comparison now runs both GOLDEN-01 section axial limits and
 the drift ratio through their production owners. The next report example is the
