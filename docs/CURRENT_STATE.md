@@ -6,7 +6,47 @@ Start each assignment at [AGENTS.md](../AGENTS.md). The
 in a GitHub checkout. Follow the [November 18 full recipe](engineering/reference/recipe_20261118/delivery/RECIPE.md)
 and its [six-step calculation sequence](engineering/reference/recipe_20261118/delivery/PRIORITY_CHAIN.json).
 
-## Current column shear calculation
+## Column support faces, local slenderness and shear
+
+The existing Windows gateway captured the frame and area insertion points,
+slab properties, floor object connectivity and analysis area connectivity on
+the original locked model. The capture reproduced all 7,638 assigned force
+rows. The normal R10 and R08 stages now use one model clear length whenever
+the lower support top and upper soffit also match their own native force cuts.
+The projection accounts for ordered floor polygons spanning multiple records.
+For C29 the model text provides a separate geometry check. See
+`EV-C29-PHYSICAL-CLEAR-LENGTH-20261120` in the [verification ledger](VERIFICATION_LEDGER.json).
+
+| C29 segment | Lower support top (m) | Upper support soffit (m) | Clear length (m) |
+| --- | ---: | ---: | ---: |
+| 225 | −5.15 | −0.70 | 4.45 |
+| 142 | 0.00 | +3.80 | 3.80 |
+
+Four analysis shell elements of the 0.90 m mat share the bottom column
+node. Each of the other two C29 nodes has four 0.70 m beams assigned
+Top Center. The three slabs connected to the shared column node are
+F13, F15 and F30 at +0.00. The audited F29 assignment belongs to +9.00.
+All 32 C29 case/axis shear values agree with the previous calculation.
+The reference slenderness scenarios use the same physical lengths.
+
+R08 resolves the model clear-length gate for 59 of 87 columns. Fourteen
+columns have intermediate wall contacts and fourteen have unsupported wall
+contacts at an end. R14 records 11 open conditions for 59 columns and 12 for
+28. Anchorage, approved effective length and sway, stiffness and creep, and
+analysis-generation checks are still open. The engineering release is
+`NOT_READY`.
+
+The offline suite passed 1,552 Python tests and 11 JavaScript test files
+with one Windows skip. The clean installed wheel passed 401 tests.
+
+**Next calculation.** Establish the C29 end rotational restraints by axis
+using the connected beams, columns and the elastic foundation model. Evaluate
+the TS 500 story sway criteria separately in both directions. Derive the
+effective length factors, then bind the effective lengths and Eq. (7.29) in
+the existing local R08 calculation. GAP-009 owns the second-order check.
+GAP-006 still tracks the 28 wall-connected columns.
+
+## Previous assigned seismic column shear calculation
 
 The R10 selected-cage result now evaluates the eight assigned seismic combinations
 for both local axes of all 87 columns. All 1,392 checks meet the resistance and
@@ -25,21 +65,13 @@ column and 1,053.485642 kN on the upper column. The maximum case-matched Ve/Vr
 ratios are 0.520544 and 0.654872. The upper column's governing ratio occurs in
 a different combination from its maximum shear. Its axial interval can cross
 the low-compression threshold, so the conservative check uses the selected ties
-alone. The original building's shared R14 open gates fall from 13 to 12.
-All 87 columns remain partial. GAP-016 has 20 numerical matches, 20
+alone. That checkpoint reduced the original building's shared R14 open gates
+from 13 to 12. GAP-016 has 20 numerical matches, 20
 insufficient-source comparisons and four interpretation differences.
 The offline suite passed 1,545 Python tests with one Windows skip and
 11 JavaScript test files. The isolated installed wheel passed 394 tests.
 
-**Next calculation.** Reconcile the physical clear height of the two C29
-segments with actual support and beam faces at the lower, shared and upper
-joints. The two beam-framed joints each have four rectangular beam ends, all
-0.70 m deep. No beam frames into the lower support. The missing inputs are
-the beam insertion/vertical offsets and the actual lower support face elevation.
-Compare those faces against the native frame lengths and end offsets, then propagate the verified
-length through the same shear calculation. Index the result in GAP-006 and
-GAP-014. The approved restraint and TS 500 effective length remain separate
-design inputs. The reference provisions are in [TBDY 2018, pp. 118–120](https://fakulte.adu.edu.tr/muhendislik/personel/uploads/eakin/deprem-yonetmeligi-2018-1576678666.pdf#page=140).
+The reference provisions are in [TBDY 2018, pp. 118–120](https://fakulte.adu.edu.tr/muhendislik/personel/uploads/eakin/deprem-yonetmeligi-2018-1576678666.pdf#page=140).
 
 ## Previous story calculation and R14 projection
 

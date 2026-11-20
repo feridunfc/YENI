@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-20T16:01:42.870841Z",
+  "updated_at_utc": "2026-11-20T18:31:37.251958Z",
   "repository": "feridunfc/YENI",
-  "baseline_implementation_commit": "a359cd8f20c208df69c1524eafe2be179c65cd0b",
+  "baseline_implementation_commit": "7b13877d5ceb823fda4236b8d6df39df678d3229",
   "local_reconciled": true,
-  "scope_note": "18 stable GAPs. The assigned original scenario now includes 1,392 selected-cage spectral shear checks. The separate native capacity control, correction of the subsequent auditor report and independent verification are indexed by EV-C29-SPECTRAL-SHEAR-20261120.",
+  "scope_note": "18 stable GAPs. The original assigned R10/R08 calculation uses model clear lengths at 59 aligned columns. Wall contacts leave 28 open. The source, independent audit and repeat are indexed by EV-C29-PHYSICAL-CLEAR-LENGTH-20261120.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -23,11 +23,13 @@
     "preserve_verified_subscopes": true
   },
   "priority_focus": [
+    "GAP-006",
+    "GAP-009",
     "GAP-018",
     "GAP-013",
     "GAP-016"
   ],
-  "active_task": "Reconstruct the two C29 physical clear heights from support and beam face elevations at the lower, shared and upper joints. Reconcile cuts and offsets, then rerun both axes with verified physical lengths. GAP-006 and GAP-014.",
+  "active_task": "Calculate C29 axis-specific end rotational restraints and TS 500 story sway classification. Establish effective length k and the Eq. (7.29) length basis in local R08. GAP-009. Resolve wall-interrupted clear spans in GAP-006.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -153,17 +155,19 @@
       "title": "Same-cut mesh, offsets and physical faces",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Supported MinStations=3 / zero-I-offset subset: 4422/4422 required cuts, including both sides in 14 meshed columns.",
-      "blocker": "Full cut census, other station/offset branches, physical faces and TS500 clear/effective lengths remain separate gaps.",
+      "achieved_scope": "Supported MinStations=3 / zero-I-offset subset: 4422/4422 required cuts, including both sides in 14 meshed columns. Model support elevations and individual native cuts agree for both C29 segments and 59 of 87 columns. The five native face/connectivity tables include polygon continuation rows and the radye foundation mesh contact.",
+      "blocker": "Fourteen intermediate wall contacts and fourteen wall-connected end geometries remain unbound. The independent full cut census and effective length are still open.",
       "closure_criteria": "Establish all supported cut/face/mesh identities independently of force results; reject missing or ambiguous side matches.",
       "owner_paths": [
         "src/tbdy_next/engineering/column_pmm.py",
-        "src/tbdy_next/column_engine/csi_geometry.py"
+        "src/tbdy_next/column_engine/csi_geometry.py",
+        "src/tbdy_next/engineering/column_clear_length.py"
       ],
       "evidence_refs": [
         "EV-PMM6",
         "EV-LOCAL-NATIVE",
-        "EV-LOCAL-SPECTRAL"
+        "EV-LOCAL-SPECTRAL",
+        "EV-C29-PHYSICAL-CLEAR-LENGTH-20261120"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false
@@ -214,13 +218,14 @@
       "title": "Global and local second-order effects",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Selected candidates can bind same-run R08 inputs; EI/Nk and second-order reference calculations exist. Same-run selected sections now carry both first-order and magnified design moments with the local/global factors and fixed-N radial reserve. R08 applies the existing minimum-eccentricity owner before local/global magnification for static and spectral-box references. Raw, floored and final moments are recorded and projected in the normal report. The two GOLDEN-01 theta scalars now call the existing global P-delta owner.",
-      "blocker": "k/sway/Rm/free length, creep and second-order components already included in native analysis are not approved.",
+      "achieved_scope": "Selected candidates can bind same-run R08 inputs; EI/Nk and second-order reference calculations exist. Same-run selected sections now carry both first-order and magnified design moments with the local/global factors and fixed-N radial reserve. R08 applies the existing minimum-eccentricity owner before local/global magnification for static and spectral-box references. Raw, floored and final moments are recorded and projected in the normal report. The two GOLDEN-01 theta scalars now call the existing global P-delta owner. R08 consumes the verified 4.45 m and 3.80 m C29 model clear lengths and the corresponding verified clear lengths of 57 more columns.",
+      "blocker": "Bind axis-specific end rotational stiffness, TS 500 sway classification, k and the Eq. (7.29) length basis. Effective cracked stiffness, creep and actual analysis order remain open.",
       "closure_criteria": "Independently verify both-axis clear/effective lengths and EI, prevent double counting, and prove consumption of the qualified demands.",
       "owner_paths": [
         "src/tbdy_next/column_engine/ts500_column.py",
         "src/tbdy_next/engineering/column_r08_local_live.py",
-        "src/tbdy_next/engineering/story_pdelta.py"
+        "src/tbdy_next/engineering/story_pdelta.py",
+        "src/tbdy_next/engineering/column_clear_length.py"
       ],
       "evidence_refs": [
         "EV-D1",
@@ -228,7 +233,8 @@
         "EV-D3",
         "EV-COLUMN-CAGE-TIE10",
         "EV-COLUMN-JOINT-SLICE-20261119",
-        "EV-AUDIT-FIXES-20261120"
+        "EV-AUDIT-FIXES-20261120",
+        "EV-C29-PHYSICAL-CLEAR-LENGTH-20261120"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false
@@ -340,14 +346,15 @@
       "title": "Capacity shear, ties and joint panel",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Existing Ve owner can reevaluate revised Vd and retain revision lineage. The worked roof joint sizes its tie pitch from the lower-column Ash/s and actual proposed legs; 252/272 returned joint axes have sizing inputs. The adjacent interior joint also has a conservative demand upper bound. Joint deductions retain expected cases including zero/small shears; missing endpoints/cases use an explicit conditional zero bound. Lower confinement maps by physical axis and coordinate-based topology. R14 distinguishes an exceeded unresolved bound from a proven demand failure. Initial and revised Ve now both retain the original/revised Vd lower bound and its native governing-cut witness. The signed alpha terminal check consumes expected joint-panel and physically mapped tie outcomes. A qualified passing zero bound remains admissible as a reference; exceeded unresolved bounds require refinement, while bound panel/tie failures return JOINT_DESIGN_FAILURE. Both selected C29 segments now complete the 32 assigned spectral member/case/axis checks. All 1,392 building checks pass the full moment bound, ordinary lower floor, applicable conservative resistance and Eq. (7.7) brittle limit. Native D controls corroborate every scalar shear extremum.",
-      "blocker": "Independent physical clear faces, anchorage and full detailing acceptance remain open. Any use of D-bounded demand requires its design basis. The assigned calculation uses full end moments.",
+      "achieved_scope": "Existing Ve owner can reevaluate revised Vd and retain revision lineage. The worked roof joint sizes its tie pitch from the lower-column Ash/s and actual proposed legs; 252/272 returned joint axes have sizing inputs. The adjacent interior joint also has a conservative demand upper bound. Joint deductions retain expected cases including zero/small shears; missing endpoints/cases use an explicit conditional zero bound. Lower confinement maps by physical axis and coordinate-based topology. R14 distinguishes an exceeded unresolved bound from a proven demand failure. Initial and revised Ve now both retain the original/revised Vd lower bound and its native governing-cut witness. The signed alpha terminal check consumes expected joint-panel and physically mapped tie outcomes. A qualified passing zero bound remains admissible as a reference; exceeded unresolved bounds require refinement, while bound panel/tie failures return JOINT_DESIGN_FAILURE. Both selected C29 segments now complete the 32 assigned spectral member/case/axis checks. All 1,392 building checks pass the full moment bound, ordinary lower floor, applicable conservative resistance and Eq. (7.7) brittle limit. Native D controls corroborate every scalar shear extremum. C29 uses model support faces in the 32 assigned shear rows, and the computed Ve and Ve/Vr agree with the preceding run. Fifty-nine columns use individual matched faces and cuts.",
+      "blocker": "Wall-interrupted clear spans, anchorage geometry and full detailing acceptance remain open. The assigned capacity shear uses full end moments.",
       "closure_criteria": "Independently accept capacity shear, brittle limits, transverse reinforcement and panel/anchorage for every face/sign/cage.",
       "owner_paths": [
         "src/tbdy_next/engineering/column_r10_live.py",
         "src/tbdy_next/column_engine/joint_kernel.py",
         "src/tbdy_next/column_engine/transverse_kernel.py",
-        "src/tbdy_next/engineering/column_spectral_shear.py"
+        "src/tbdy_next/engineering/column_spectral_shear.py",
+        "src/tbdy_next/engineering/column_clear_length.py"
       ],
       "evidence_refs": [
         "EV-D3",
@@ -355,7 +362,8 @@
         "EV-COLUMN-JOINT-SLICE-20261119",
         "EV-AUDIT-ADAPTER-FIXES-20261119",
         "EV-AUDIT-FIXES-20261120",
-        "EV-C29-SPECTRAL-SHEAR-20261120"
+        "EV-C29-SPECTRAL-SHEAR-20261120",
+        "EV-C29-PHYSICAL-CLEAR-LENGTH-20261120"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -507,7 +515,8 @@
         "EV-GAP018-MANUAL-PAIR-20261119",
         "EV-R10-LIVE-INTERVAL-20261120",
         "EV-STORY-STATIC-APPLICABILITY-20261120",
-        "EV-C29-SPECTRAL-SHEAR-20261120"
+        "EV-C29-SPECTRAL-SHEAR-20261120",
+        "EV-C29-PHYSICAL-CLEAR-LENGTH-20261120"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -531,7 +540,8 @@
           "EV-GAP018-PAIR-CONTROL-20261119",
           "EV-R10-LIVE-INTERVAL-20261120",
           "EV-STORY-STATIC-APPLICABILITY-20261120",
-          "EV-C29-SPECTRAL-SHEAR-20261120"
+          "EV-C29-SPECTRAL-SHEAR-20261120",
+          "EV-C29-PHYSICAL-CLEAR-LENGTH-20261120"
         ],
         "private_same_analysis": {
           "finished_requested_cases": [
@@ -565,10 +575,10 @@
             0,
             87
           ],
-          "shared_open_gates": 12,
-          "numerical_gates": 9,
+          "shared_open_gates": 11,
+          "numerical_gates": 8,
           "other_engineering_gates": 3,
-          "open_work": "Physical faces and clear/effective length, independent cuts, generation, role approval, restraint and creep.",
+          "open_work": "Wall-interrupted lengths, physical joint anchorage, independent cuts, generation, role approval, effective restraints and creep.",
           "original_selected_R10": {
             "physical_beam_joints_with_upper_and_lower_columns": 52,
             "low_axial_exempt": 47,
@@ -640,6 +650,26 @@
             ],
             "shared_gate_resolved": "SCWB_AND_CAPACITY_SHEAR_SPECTRAL_DEMAND_POLICY_NOT_PROVEN",
             "d_reduction_applied": false
+          },
+          "r14_open_gate_histogram": {
+            "12": 28,
+            "11": 59
+          },
+          "physical_model_clear_length": {
+            "evidence_ref": "EV-C29-PHYSICAL-CLEAR-LENGTH-20261120",
+            "matched_columns": [
+              59,
+              87
+            ],
+            "unbound_wall_contacts": {
+              "END": 14,
+              "INTERMEDIATE": 14
+            },
+            "scope_gate": "R08_LOCAL:PHYSICAL_SUPPORT_FACES_AND_CLEAR_LENGTH_NOT_PROVEN",
+            "assigned_shear_scope": [
+              1392,
+              1392
+            ]
           }
         }
       }
@@ -656,6 +686,6 @@
     "original_87_column_replay": "NOT_RUN",
     "live_ETABS": "NOT_RUN"
   },
-  "previous_gap_inventory_base_commit": "64c03641206d6b51f4834369bb3394e40b62b402",
+  "previous_gap_inventory_base_commit": "a359cd8f20c208df69c1524eafe2be179c65cd0b",
   "baseline_identity": "Inspected parent of this milestone. Git identifies the commit containing the current evidence record."
 }

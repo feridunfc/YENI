@@ -28,13 +28,15 @@ from ..column_engine.ts500_column import (
     moment_magnification_factors,
     rectangle_properties,
 )
+from .column_clear_length import FACE_BASIS, proven_clear_length_m
 from .column_r10_live import SelectedColumnCage
 from .live_column import project_column_slenderness_evidence
 
 SCHEMA = "tbdy.next.column-r08-local-live.v1"
 
+PHYSICAL_CLEAR_LENGTH_GATE = "PHYSICAL_SUPPORT_FACES_AND_CLEAR_LENGTH_NOT_PROVEN"
 OPEN_GATES = (
-    "PHYSICAL_SUPPORT_FACES_AND_CLEAR_LENGTH_NOT_PROVEN",
+    PHYSICAL_CLEAR_LENGTH_GATE,
     "END_RESTRAINTS_K_AND_SWAY_CLASSIFICATION_NOT_APPROVED",
     "CREEP_RATIO_RM_AND_SECTION_CRACKING_NOT_APPROVED",
     "ACTUAL_ANALYSIS_ORDER_UNVERIFIED",
@@ -140,6 +142,7 @@ def _project_single_r08_local(
     global_pdelta: Mapping[str, Any] | None = None,
     eng_col_res: Mapping[str, Any] | None = None,
     eng_col_section: Any = None,
+    physical_length: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Project TS 500 local slenderness, magnification and selected-cage 2nd-order PMM for one column."""
     evidence = project_column_slenderness_evidence(source, pmm, global_pdelta)
@@ -165,6 +168,13 @@ def _project_single_r08_local(
         if frame_length_mm is not None
         else "SPAN_UNAVAILABLE"
     )
+    ln = proven_clear_length_m(physical_length, uid)
+    open_gates = list(OPEN_GATES)
+    if ln is not None:
+        candidate_span_mm = ln * 1000.0
+        span_basis = FACE_BASIS
+        open_gates.remove(PHYSICAL_CLEAR_LENGTH_GATE)
+        evidence["unverified_inputs"].remove("Physical support faces and clear length")
 
     out: dict[str, Any] = {
         "schema": SCHEMA,
@@ -176,12 +186,13 @@ def _project_single_r08_local(
         "observed_reduced_span_mm": observed_reduced_span_mm,
         "candidate_span_mm": candidate_span_mm,
         "span_basis": span_basis,
+        **({"physical_clear_length": physical_length} if physical_length is not None else {}),
         "ec_reference_mpa": None,
         "ec_basis": "NOT_AVAILABLE",
         "stiffness_and_euler": None,
         "combination_scenarios": [],
         "max_reference_beta_sway_prevented": None,
-        "open_gates": list(OPEN_GATES),
+        "open_gates": open_gates,
         "status": "OBSERVED_EVIDENCE_ONLY",
         "formal_compliance": "NOT_PROVEN",
         "engineering_release": "NOT_READY",
@@ -667,6 +678,7 @@ def project_column_r08_local_live(
             raise ValueError("ALPHA_DEMAND_SOURCE_MISMATCH")
     if previous_result is not None and recompute_member_ids is None:
         raise ValueError("ALPHA_R08_REUSE_SCOPE_REQUIRED")
+    physical_lengths = ((r10_live or {}).get("physical_clear_lengths") or {}).get("per_member", {})
 
     def _reported_selection(uid: str) -> Mapping[str, Any] | None:
         if not r10_live:
@@ -707,6 +719,7 @@ def project_column_r08_local_live(
 
     def _project_member(member: Mapping[str, Any]) -> dict[str, Any]:
         uid = member.get("member_id")
+        physical_length = physical_lengths.get(uid)
         if dependency_plan is not None:
             from .design_dependencies import blocked_member_result
             dep = dependency_plan["members"].get(uid) or {}
@@ -722,6 +735,7 @@ def project_column_r08_local_live(
                 "pmm_member": member, "candidate": selected_cages[uid].candidate_sha256
                     if selected_cages and uid in selected_cages else None,
                 "global_second_order": global_pdelta,
+                **({"physical_clear_length": physical_length} if physical_length is not None else {}),
                 "absolute_alpha_factors": (demand_revision or {}).get("factors", {}).get(uid, {})})
         if previous_result is not None and uid not in recompute_member_ids:
             prior = (previous_result.get("per_member") or {}).get(uid)
@@ -734,7 +748,7 @@ def project_column_r08_local_live(
         revised_member = revised_pmm_member(member, source, demand_revision)
         result = _project_single_r08_local(
             source, geometry, axial, revised_member, global_pdelta,
-            eng_col_res=e_res, eng_col_section=e_sec,
+            eng_col_res=e_res, eng_col_section=e_sec, physical_length=physical_length,
         )
         if binding is not None:
             result["input_binding_sha256"] = binding
@@ -752,6 +766,8 @@ def project_column_r08_local_live(
                 continue
             per_member[muid] = _project_member(m_pmm)
         open_gates = list(OPEN_GATES)
+        if per_member and all(r.get("span_basis") == FACE_BASIS for r in per_member.values()):
+            open_gates.remove(PHYSICAL_CLEAR_LENGTH_GATE)
         if any(_SELECTED_CAGE_UNAVAILABLE in member["open_gates"] for member in per_member.values()):
             open_gates.append(_SELECTED_CAGE_UNAVAILABLE)
         return {

@@ -34,6 +34,7 @@ from ..column_engine.source_bank import native_frame_force_rows
 from ..column_engine.story_alpha import evaluate_story_alpha_reference
 from ..column_engine.transverse_kernel import confinement_reference, shear_reference
 from ..column_engine.ts500_column import apply_minimum_eccentricity
+from ..etabs_geometry import PHYSICAL_FACE_TABLES
 from ..etabs_source_gateway_windows import field_schema, read_table, return_code
 from ..frame_force_capture import ForceSelectionRestoreError, capture_frame_forces
 
@@ -129,7 +130,8 @@ def capture_r10_sources(
             raise ValueError("R10_CAPTURE_REQUIRES_LOCKED_KN_M_C")
         db = sap.DatabaseTables
         for table_key in (BEAM_REINFORCING, END_OFFSETS, RELEASES, BEAM_DESIGN_SUMMARY,
-                          ANALYSIS_FRAME_ELEMENTS, ANALYSIS_JOINT_ELEMENTS, FRAME_OUTPUT_STATIONS):
+                          ANALYSIS_FRAME_ELEMENTS, ANALYSIS_JOINT_ELEMENTS, FRAME_OUTPUT_STATIONS,
+                          *PHYSICAL_FACE_TABLES):
             try:
                 record = read_table(db, table_key)
                 record["field_metadata"] = field_schema(db, table_key)
@@ -1412,11 +1414,17 @@ def _column_capacity_shear_ve(
     demand_revision: Mapping[str, Any] | None = None,
     spectral_context: Mapping[str, Any] | None = None,
     candidate_revision: str | None = None,
+    physical_length: Mapping[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     """TBDY 2018 §7.3.7 (CHK-126) conditional column capacity shear Ve = (Ma + Mü) / ln."""
     if not col_frame or not transverse_shear or not col_frame.get("axes_global"):
         return None
-    ln_m, ln_basis = _column_clear_length_m(source, uid)
+    from .column_clear_length import FACE_BASIS, proven_clear_length_m
+
+    ln_m = proven_clear_length_m(physical_length, uid)
+    ln_basis = FACE_BASIS
+    if ln_m is None:
+        ln_m, ln_basis = _column_clear_length_m(source, uid)
     if ln_m is None or ln_m <= 0:
         return None
     from .column_axial import _columns
@@ -2145,6 +2153,7 @@ def _evaluate_single_member_r10_details(
     demand_revision: Mapping[str, Any] | None = None,
     low_axial_by_joint: Mapping[str, Any] | None = None,
     spectral_context: Mapping[str, Any] | None = None,
+    physical_length: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     angle_deg = member_local_axis_angle_deg(source, uid)
     scwb_joints = _evaluate_scwb_at_joint_ends(
@@ -2162,7 +2171,8 @@ def _evaluate_single_member_r10_details(
     capacity_ve = (
         _column_capacity_shear_ve(
             uid=uid, col_frame=frames.get(uid), scwb_joints=scwb_joints,
-            transverse_shear=transverse_shear, source=source, geometry=geometry, axial=axial, demand_revision=demand_revision,
+            transverse_shear=transverse_shear, source=source, geometry=geometry, axial=axial,
+            demand_revision=demand_revision, physical_length=physical_length,
         )
         if transverse_shear and not dependency_blockers
         else None
@@ -2175,7 +2185,7 @@ def _evaluate_single_member_r10_details(
             engineer_col_section=eng_col_sections.get(uid),
             engineer_column_selection=eng_col_res,
             use_engineer_selection=True,
-            spectral_context=spectral_context,
+            spectral_context=spectral_context, physical_length=physical_length,
             candidate_revision=((dependency_plan or {}).get("members", {}).get(uid) or {}).get("candidate_revision_sha256"),
         )
     if transverse_shear is not None:
@@ -2324,7 +2334,10 @@ def project_column_r10_live(
         from .design_dependencies import bind_joint_candidates
         dependency_plan = bind_joint_candidates(dependency_plan, eng_col_sections, eng_col_selections, beam_live)
     from .column_spectral_shear import shear_context
+    from .column_clear_length import project_column_clear_lengths
     spectral_context = shear_context(source, axial, pmm_scope, mixed_components, dependency_plan, input_sha)
+    physical_lengths = project_column_clear_lengths(source, frames, adjacency, eval_uids, pmm_scope)
+    by_member_length = (physical_lengths or {}).get("per_member", {})
     beam_by_id = {b["member_id"]: b for b in (beam_live or {}).get("beams") or ()}
     beam_sel_active = bool((beam_live or {}).get("beam_selection_policy"))
     col_sel_active = source.get("column_selection") is not None
@@ -2361,7 +2374,7 @@ def project_column_r10_live(
             col_sections_cache=col_sections_cache, beam_sel_active=beam_sel_active,
             pmm_single=pmm_members_map.get(uid), dependency_plan=dependency_plan, demand_revision=demand_revision,
             low_axial_by_joint=low_axial_by_joint,
-            spectral_context=spectral_context,
+            spectral_context=spectral_context, physical_length=by_member_length.get(uid),
         )
         per_member[uid] = det
         all_scwb_joints.extend(det["scwb_joints"])
@@ -2450,6 +2463,7 @@ def project_column_r10_live(
         "column_transverse_and_shear": transverse_shear,
         **({"engineer_column_selection": eng_col_res} if eng_col_res is not None else {}),
         **({"story_alpha": story_alpha} if story_alpha is not None else {}),
+        **({"physical_clear_lengths": physical_lengths} if physical_lengths is not None else {}),
         **({"per_member": per_member} if is_all_mode else {}),
         "open_basis": [
             "ACTUAL_OR_SELECTED_BEAM_END_REINFORCEMENT_NOT_BOUND",

@@ -19,27 +19,26 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "ORIGINAL_ASSIGNED_SPECTRAL_COLUMN_SHEAR_AND_C29_CONTROLS",
-    "work_branch": "work/c29-seismic-capacity-shear",
+    "status": "ORIGINAL_PHYSICAL_COLUMN_CLEAR_LENGTH_BOUND",
+    "work_branch": "work/c29-physical-faces",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "a359cd8f20c208df69c1524eafe2be179c65cd0b",
-    "source_run_id": "RUN-163007b8f3ad44b691048c800a71ab4d",
-    "control_run_id": "RUN-36026224ac7e49c591b1981dff639e21",
-    "production_run_id": "RUN-a445e64620a9403cbf3d18b013c71fe5",
-    "source_sha256": "5ab25239f5f01f4c72df143876a8582cf7b52d91eddeb4e0674ff5d9a7fef5f2",
-    "results_sha256": "94c0ac679fb41c46432a055042eb5f309b2d02710f3b879f53a46a191efa4fb0",
+    "inspected_base_commit": "7b13877d5ceb823fda4236b8d6df39df678d3229",
+    "source_run_id": "RUN-7b6c79ccc46c47c0a8e8d15344a22e2e",
+    "production_run_id": "RUN-173475b04c9a42c5bf2f303ba1f695f6",
+    "source_sha256": "28fbbe15aeb94e42a989c7b3a13545c86919b482ef377a5a46112907edd8ecfb",
+    "results_sha256": "db8f6b54843239267e25a6e501cd81df7a52eefcd1abba470e9275d8c47a761e",
     "evidence_refs": [
-      "EV-C29-SPECTRAL-SHEAR-20261120"
+      "EV-C29-PHYSICAL-CLEAR-LENGTH-20261120"
     ],
     "engineering_release": "NOT_READY",
-    "next_action": "Reconstruct the two C29 physical clear heights from support and beam face elevations at the lower, shared and upper joints. Reconcile cuts and offsets, then rerun both axes with verified physical lengths. GAP-006 and GAP-014."
+    "next_action": "Calculate C29 axis-specific end rotational restraints and TS 500 story sway classification. Establish effective length k and the Eq. (7.29) length basis in local R08. GAP-009. Resolve wall-interrupted clear spans in GAP-006."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
-    "commit_sha": "a359cd8f20c208df69c1524eafe2be179c65cd0b",
-    "git_tree_sha": "0051bc2fa75028f9dd1ed0df3d6f30394589dd7a",
+    "commit_sha": "7b13877d5ceb823fda4236b8d6df39df678d3229",
+    "git_tree_sha": "ee353bd0867f62fb00a5eeea581c954cc8019c23",
     "observed_on": "2026-11-20",
-    "scope": "Remote integration base verified before publishing these changes. Resolve the current ref with git ls-remote."
+    "scope": "Verified base when this record was produced. Resolve the current published ref with git ls-remote."
   },
   "record_policy": {
     "append_new_ids": true,
@@ -4685,6 +4684,171 @@
       "engineering_release": "NOT_READY",
       "engineering_release_granted": false,
       "next_action": "Reconstruct the two C29 physical clear heights from support and beam face elevations at the lower, shared and upper joints. Reconcile cuts and offsets, then rerun both axes with verified physical lengths. GAP-006 and GAP-014."
+    },
+    {
+      "id": "EV-C29-PHYSICAL-CLEAR-LENGTH-20261120",
+      "observed_at_utc": "2026-11-20T18:31:37.251958Z",
+      "inspected_base_commit": "7b13877d5ceb823fda4236b8d6df39df678d3229",
+      "work_branch": "work/c29-physical-faces",
+      "prior_evidence": [
+        "EV-C29-SPECTRAL-SHEAR-20261120"
+      ],
+      "scope": "Model support faces and their native end cuts for R10 capacity shear and TS 500 R08 local slenderness.",
+      "environment": "Windows, CPython 3.12.10, native units code 6.",
+      "software_owner": "capture_r10_sources, engineering/column_clear_length.py, column_r10_live and column_r08_local_live",
+      "method_version": "column-model-clear-length.v1 / column-r10-spectral-shear.v5 / column-r08-local.v7",
+      "private_receipt_root": ".receipts/verification/c29-physical-faces-20261120",
+      "tested_file_manifest": ".receipts/verification/c29-physical-faces-20261120/tested-files.json",
+      "tested_patch_sha256": "8b22cf13fecd43b04dd836ffc093f54416b18f96196eced41f5f1ff8aaf6c91e",
+      "source": ".receipts/RUN-7b6c79ccc46c47c0a8e8d15344a22e2e/input.source",
+      "source_sha256": "28fbbe15aeb94e42a989c7b3a13545c86919b482ef377a5a46112907edd8ecfb",
+      "parent_sha256": "483eb8d95da4f728784b5efffcafb641b9c776fc018feac1ffcc7dec77d6f631",
+      "captured_geometry": {
+        "Frame Assignments - Insertion Point": 294,
+        "Area Assignments - Insertion Point": 121,
+        "Slab Property Definitions": 4,
+        "Floor Object Connectivity": 97,
+        "Objects and Elements - Areas": 6498
+      },
+      "native_assigned_control_rows_identical": 7638,
+      "audit": {
+        "report_copies": 5,
+        "report_rows": 275,
+        "report_bytes": 48698,
+        "report_sha256": "5f9635ef0595daa9272b7a347db48a703dd645929e35d13025f677f3a28ba604",
+        "reported_prior_run_verified": {
+          "reference_stages": 16,
+          "current_stages": 16,
+          "mismatched_stages": [],
+          "missing_stages": [],
+          "extra_stages": [],
+          "source_identical": true,
+          "sealed_stage_coverage": true,
+          "comparison_scope": "PIPELINE_RESULTS_REPORT_EVIDENCE_AND_ALL_RECORDED_RECEIPTS",
+          "status": "IDENTICAL"
+        },
+        "compared_c29_fields": 512,
+        "printed_rows_agree": 32,
+        "model_text_sha256": "3ca524d6a951c5490ea28793ddbc349b271801fd7ec1ed1452d191c22911b02b",
+        "corrections": {
+          "ve_kn": [
+            853.197375418066,
+            1053.4856424440452
+          ],
+          "vd_floor_kn": [
+            23.67520347102641,
+            167.04308387253155
+          ],
+          "reference_static_combinations_per_member": 3,
+          "reference_sway_prevented_criterion_per_member": [
+            6,
+            6
+          ],
+          "clipped_floor_labels_c29_shared_joint": [
+            "F13",
+            "F15",
+            "F30"
+          ],
+          "model_F29_story": "+9.00",
+          "normal_cli_command": "run-pipeline --source INPUT --case Modal --out RECEIPTS",
+          "equilibrium_comparison_error_quantity": "Moment difference in kN m"
+        }
+      },
+      "c29": {
+        "142": {
+          "physical_length_m": 3.8,
+          "i_support_top_z_m": 0.0,
+          "j_support_soffit_z_m": 3.8,
+          "assigned_max_ve_kn": 1053.4856424440452,
+          "assigned_max_ve_vr": 0.6548724125070842,
+          "ts500_reference_k1_lk_over_i": 16.454482671904334
+        },
+        "225": {
+          "physical_length_m": 4.45,
+          "i_support_top_z_m": -5.15,
+          "j_support_soffit_z_m": -0.7,
+          "assigned_max_ve_kn": 1007.7945670938702,
+          "assigned_max_ve_vr": 0.5205438716273136,
+          "ts500_reference_k1_lk_over_i": 19.269065234203758
+        }
+      },
+      "projection": {
+        "columns_physically_bound": [
+          59,
+          87
+        ],
+        "wall_unbound_count_by_contact": {
+          "END": 14,
+          "INTERMEDIATE": 14
+        },
+        "resolved_per_member_gate": "R08_LOCAL:PHYSICAL_SUPPORT_FACES_AND_CLEAR_LENGTH_NOT_PROVEN",
+        "still_open_joint_anchorage_gate": "PHYSICAL_JOINT_FACES_OFFSETS_AND_ANCHORAGE_NOT_PROVEN",
+        "r14_open_gate_histogram": {
+          "12": 28,
+          "11": 59
+        },
+        "assigned_shear_within_limits": [
+          1392,
+          1392
+        ],
+        "max_assigned_ve_delta_kn": 2.2737367544323206e-13,
+        "numerically_closed_columns": 0
+      },
+      "scope_limits": [
+        "The insertion table omits the unused translation-column group on the native display. The source preserves its full schema and the displayed field roster.",
+        "A separate model-text read corroborates C29 geometry. Recognized floor polygons require shared same-story analysis joints and clear native I/J cut agreement.",
+        "Effective restraint and sway, creep, joint anchorage and approved construction geometry remain open."
+      ],
+      "cli": {
+        "reference": ".receipts/verification/c29-physical-faces-20261120/final/RUN-173475b04c9a42c5bf2f303ba1f695f6",
+        "repeat": ".receipts/verification/c29-physical-faces-20261120/repeat/RUN-5e5c7139c55446dfbf6e56eeb3634978",
+        "compare": {
+          "reference_stages": 16,
+          "current_stages": 16,
+          "mismatched_stages": [],
+          "missing_stages": [],
+          "extra_stages": [],
+          "source_identical": true,
+          "sealed_stage_coverage": true,
+          "comparison_scope": "PIPELINE_RESULTS_REPORT_EVIDENCE_AND_ALL_RECORDED_RECEIPTS",
+          "status": "IDENTICAL"
+        },
+        "results_sha256": "db8f6b54843239267e25a6e501cd81df7a52eefcd1abba470e9275d8c47a761e",
+        "stage15_file_sha256": "75ea9793e66d124e0b3ce5b1f45cdda3e161d9c6a669a2f50475fe63ff3f4ce9"
+      },
+      "regressions": {
+        "python_passed": 1552,
+        "windows_skipped": 1,
+        "javascript_files_passed": 11,
+        "isolated_wheel_passed": 401,
+        "runtime_python_files": 130,
+        "wheel_sha256": "68367e064469fd45ec8f6fed1ca909cfa329b14273dc2c679c9f2d9fd49d336c"
+      },
+      "report_projection_sha256": "41ea3dcbb16d508e164e5dc9cf6b143cf837c605c2b41c6ec503374065804fcd",
+      "commands": [
+        "POST /api/live-vs04 (Modal, All Columns, assigned combinations and LC_EQX / LC_EQY, captured by .receipts/verification/c29-physical-faces-20261120/capture.py)",
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --source .receipts/RUN-7b6c79ccc46c47c0a8e8d15344a22e2e/input.source --case Modal --out .receipts/verification/c29-physical-faces-20261120/final",
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --source .receipts/RUN-7b6c79ccc46c47c0a8e8d15344a22e2e/input.source --case Modal --out .receipts/verification/c29-physical-faces-20261120/repeat",
+        "python -X utf8 -B .receipts/verification/c29-physical-faces-20261120/audit.py",
+        "python -X utf8 -B .receipts/verification/c29-physical-faces-20261120/verify_pipeline.py",
+        "python -X utf8 -B tools/test_offline.py",
+        "python -X utf8 -B .receipts/verification/c29-physical-faces-20261120/wheel.py"
+      ],
+      "private_file_sha256": {
+        "capture.json": "03079e55e11cd423ff28b39ae86c3154391bc107b9ef0a2ef73bab5f3f61c3ea",
+        "capture.py": "27da06ac2d0231f0da08088b57ac1259227bf62ee5f764afb3eeb161ac77869c",
+        "audit.json": "c72b83e275e68bb1805c462763292a405f6d6aaeae4a1a8f73a9e52e4a792455",
+        "audit.py": "02f8d5c47c5a4d00cfe9f5a9fa9583c4aae12060eb6a8666f2741e4879f6f346",
+        "verify_pipeline.py": "d8cc8c88e2cf1e4244644c8f749b088891a2b039b4f83a25fb6eaf83f44913d7",
+        "verification.json": "2e12b51c40ae94fd17316f37937bfc1dadb1d930ee5f5c8fba0e5dd0d802217d",
+        "tested-files.json": "310ca72824d781ab2d4b51b18510af51eb6cf969a2af382cb8699baf441cd4ed",
+        "offline-tests.log": "8f556ea323df2aeefafdef4510c7c49881b37fb92e61b053c4bda562e524dc53",
+        "wheel-tests.log": "ea47ff46584a0c59059d931ade3ec127652366899a85be25738bd533c32d148d",
+        "wheel-content.json": "a1486c688708b8e0a3633894566030c56a45064f3fe6ffa6fd9099d9cfb961eb"
+      },
+      "engineering_release": "NOT_READY",
+      "engineering_release_granted": false,
+      "next_action": "Calculate C29 axis-specific end rotational restraints and TS 500 story sway classification. Establish effective length k and the Eq. (7.29) length basis in local R08. GAP-009. Resolve wall-interrupted clear spans in GAP-006."
     }
   ],
   "new_record_template": {
@@ -4709,7 +4873,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-20T16:01:42.870841Z",
+  "updated_at_utc": "2026-11-20T18:31:37.251958Z",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -5280,6 +5444,22 @@
       ],
       "engineering_release": "NOT_READY",
       "next_action": "Complete the original C29 capacity-shear calculation under TBDY 7.3.7. Use the captured ductile and capacity combination rows. Bind governing end moments, physical clear length, assigned seismic demand and the transverse cage in both directions. Establish the applicable seismic load factor and force bounds before changing the R14 spectral shear gate."
+    },
+    {
+      "status": "ORIGINAL_ASSIGNED_SPECTRAL_COLUMN_SHEAR_AND_C29_CONTROLS",
+      "work_branch": "work/c29-seismic-capacity-shear",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "a359cd8f20c208df69c1524eafe2be179c65cd0b",
+      "source_run_id": "RUN-163007b8f3ad44b691048c800a71ab4d",
+      "control_run_id": "RUN-36026224ac7e49c591b1981dff639e21",
+      "production_run_id": "RUN-a445e64620a9403cbf3d18b013c71fe5",
+      "source_sha256": "5ab25239f5f01f4c72df143876a8582cf7b52d91eddeb4e0674ff5d9a7fef5f2",
+      "results_sha256": "94c0ac679fb41c46432a055042eb5f309b2d02710f3b879f53a46a191efa4fb0",
+      "evidence_refs": [
+        "EV-C29-SPECTRAL-SHEAR-20261120"
+      ],
+      "engineering_release": "NOT_READY",
+      "next_action": "Reconstruct the two C29 physical clear heights from support and beam face elevations at the lower, shared and upper joints. Reconcile cuts and offsets, then rerun both axes with verified physical lengths. GAP-006 and GAP-014."
     }
   ],
   "remote_audit_correction_checkpoint": {
@@ -5307,9 +5487,9 @@
   },
   "previous_observed_remote_implementation": {
     "branch": "baseline/local_import",
-    "commit_sha": "64c03641206d6b51f4834369bb3394e40b62b402",
-    "git_tree_sha": "4170660762d12031f4ef7b4a18c9c6dda3bca221",
+    "commit_sha": "a359cd8f20c208df69c1524eafe2be179c65cd0b",
+    "git_tree_sha": "0051bc2fa75028f9dd1ed0df3d6f30394589dd7a",
     "observed_on": "2026-11-20",
-    "scope": "Verified integration base before publication of this milestone. Resolve the current ref with git ls-remote."
+    "scope": "Remote integration base verified before publishing these changes. Resolve the current ref with git ls-remote."
   }
 }

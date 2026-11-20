@@ -15,6 +15,12 @@ TABLES = {
     "BEAM_CONNECTIVITY": "Beam Object Connectivity",
     "SECTION_SUMMARY": "Frame Section Property Definitions - Summary",
 }
+FRAME_INSERTION = "Frame Assignments - Insertion Point"
+AREA_INSERTION = "Area Assignments - Insertion Point"
+SLAB_PROPERTIES = "Slab Property Definitions"
+FLOOR_CONNECTIVITY = "Floor Object Connectivity"
+AREA_ELEMENTS = "Objects and Elements - Areas"
+PHYSICAL_FACE_TABLES = (FRAME_INSERTION, AREA_INSERTION, SLAB_PROPERTIES, FLOOR_CONNECTIVITY, AREA_ELEMENTS)
 
 
 def _metadata(db: Any, key: str) -> dict:

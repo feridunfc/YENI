@@ -11,6 +11,7 @@ from ..vs05_d4_source_authority import _source_table
 from .design_scenario import _digest
 from .mixed_demands import SCHEMA as MIXED_SCHEMA, SPECTRAL_METHOD, _number, linear_coefficients, native_graph
 from .scwb_axial import _configured_end
+from .column_clear_length import FACE_BASIS
 
 
 def _model_controls(source, names):
@@ -186,7 +187,7 @@ def selected_spectral_shear(context, frame, rowset, section, selection, evidence
     try:
         if context["error"]:
             raise ValueError(context["error"])
-        if (demand_revision is not None or length_basis != "END_OFFSETS_SUBTRACTED" or not candidate_revision
+        if (demand_revision is not None or length_basis not in {FACE_BASIS, "END_OFFSETS_SUBTRACTED"} or not candidate_revision
                 or section is None or not selection or not fywk or set(directions) != {"V2", "V3"}):
             raise ValueError("SPECTRAL_SHEAR_SELECTED_SECTION_LENGTH_OR_DEMAND_UNBOUND")
         grid = context["scope"]["configured_output_cuts"][uid]

@@ -32,6 +32,7 @@ WHEEL_TESTS = (
     "test_scwb_axial_interval",
     "test_story_alpha_applicability",
     "test_column_spectral_shear",
+    "test_column_clear_length",
     "test_rebar_selection",
     "test_recorded_column_calculation_report",
 )

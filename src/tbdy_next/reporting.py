@@ -2360,6 +2360,13 @@ def _column_r10_html(r10: Mapping[str, Any]) -> str:
     if any(row["low_axial"] for row in scwb_rows):
         scwb_cols += (("low_axial", "7.3.5.3(a) low-axial exception"),)
     scwb_cols = scwb_cols + (("status", "SCWB status"),)
+    lengths = r10.get("physical_clear_lengths") or {}
+    length_rows = []
+    for row in (lengths.get("per_member") or {}).values():
+        faces = row.get("faces") or {}
+        i_face, j_face = faces.get("I") or {}, faces.get("J") or {}
+        length_rows.append({**row, "i_point": i_face.get("joint_id"), "j_point": j_face.get("joint_id"),
+                            "i_top": i_face.get("top_z_m"), "j_soffit": j_face.get("soffit_z_m")})
     return (
         '<section class="percheck"><h2>Column R10 · Joints, SCWB and shear/confinement</h2>'
         '<p>Recorded joint, SCWB and transverse results from the saved pipeline run. '
@@ -2368,6 +2375,13 @@ def _column_r10_html(r10: Mapping[str, Any]) -> str:
         + _table((("member_id", "Target column"), ("angle", "AxisAngle (deg)"), ("joint_ends", "Column ends checked"),
                   ("enclosure", "Enclosure counts"), ("narrow", "Narrow-beam ends"),
                   ("scwb_joints", "SCWB joint checks"), ("formal", "Formal compliance")), summary)
+        + ('<h3>ETABS model support faces and column clear length</h3>' +
+           _table((("member_id", "Column"), ("i_point", "Joint I"), ("i_top", "Lower support top Z (m)"),
+                   ("j_point", "Joint J"), ("j_soffit", "Upper support soffit Z (m)"),
+                   ("physical_length_m", "Physical clear length (m)"), ("offset_length_m", "Native cut span (m)"),
+                   ("status", "Geometry status"), ("reason", "Open reason")), length_rows)
+           if length_rows else '')
+        + (f'<p>Support face source: {_val(lengths["source_error"])}</p>' if lengths.get("source_error") else '')
         + (_table((("end", "End"), ("point_id", "Point"), ("enclosure_scenario", "Enclosure"),
                    ("missing_faces", "Missing faces"), ("narrow_faces", "Narrow faces"),
                    ("limits", "Centered 7.5 limits"), ("status", "Status")), end_rows) if end_rows else '')
@@ -2505,11 +2519,13 @@ def _column_slenderness_html(evidence: Mapping[str, Any], local: Mapping[str, An
                 })
     stations = ", ".join(str(station) for station in evidence["observed_object_stations_m"]) or None
     inputs = "".join(f"<li>{_val(item)}</li>" for item in evidence["unverified_inputs"])
+    span = (f'<p>Slenderness length {_val(local.get("candidate_span_mm"))} mm · '
+            f'{_val(local.get("span_basis"))}</p>' if local else '')
     return (
         '<section class="percheck"><h2>4.5 · Slenderness and moment magnification</h2>'
         f'<p>ETABS Unique ID {_val(evidence["member_id"])} · {_val(evidence["story"])} · '
         f'{_val(evidence["section"])} · {_val(evidence["status"])}</p>'
-        '<p>Verify the clear length from physical support faces. Frame length and object stations are ETABS observations.</p>'
+        + span
         + _table((("frame_length_m", "Frame length I–J (m)"), ("i_joint_id", "Joint I"),
                   ("j_joint_id", "Joint J"), ("stations", "Observed object stations (m)"),
                   ("analysis_order", "Analysis order"), ("global_pdelta_status", "R08 story precheck")),

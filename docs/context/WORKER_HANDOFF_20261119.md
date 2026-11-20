@@ -25,24 +25,31 @@ For the building calculation, the GAP-018 coverage matrix and the
 > Önce `feridunfc/YENI` reposunun `baseline/local_import` dalındaki kök `AGENTS.md` dosyasını oku. Çalıştığın dalda belirtilen başlangıç sırasını izle, ardından aşağıdaki görevi yap.
 
 Audit the current original-model vertical slice through its normal entry point.
-Read [CURRENT_STATE](../CURRENT_STATE.md), GAP-006, GAP-014 and GAP-018 and the current
-ledger entry. Use the private receipt directory and full input and result
+Read [CURRENT_STATE](../CURRENT_STATE.md), GAP-006, GAP-009, GAP-014, GAP-018 and
+the current ledger entry. Use the private receipt directory and full input and result
 hashes in that entry. Verify Git HEAD, local changes and the published ref.
 Replay the specified fresh `input.source` with `--case Modal` and
 `--compare-run` against the stated sealed reference in a separate receipt
 directory. Keep the adjacent parent source. Reconstruct the physical joint
 population from native connectivity before counting the results.
 
-For current C29 shear use `EV-C29-SPECTRAL-SHEAR-20261120`. Both C29 segments
+Use `EV-C29-PHYSICAL-CLEAR-LENGTH-20261120` for the 4.45 m and 3.80 m physical
+lengths. Verify each support face against the corresponding I or J force
+station. The lower foundation shares its analysis joint with C29. Join
+beam and floor objects by their native unique IDs and ordered point identities.
+Read the shared length in R08 and R10 and the open R14 gates. Fifty-nine
+columns use physical model faces. Twenty-eight have unbound wall contacts.
+For the next calculation derive C29 rotational restraint, sway classification
+and effective length by axis and trace the resulting TS 500 local checks.
+
+For assigned C29 shear use `EV-C29-SPECTRAL-SHEAR-20261120`. Both C29 segments
 have eight assigned cases for V2 and V3 inside the selected R10 capacity shear
 result at `assigned_spectral.axes`. Verify the two end cuts, the continuous
 upper moment bound, ordinary shear floor, full-moment demand, and resistance at
 the lowest compression within each case. The independently captured model-D
 controls are indexed in the same ledger entry. Compare all Min/Max values
-at the same native cut. The next physical calculation binds the support and
-beam faces to the C29 end elevations and compares the resulting clear height
-with each ETABS offset-based length. Local resources index the exact two
-segments, their shared joint, the private audit and the available source files.
+at the same native cut. Local resources index the two segments, their
+shared joint, the private audit and the source files.
 
 For the earlier story calculation, use `EV-STORY-STATIC-APPLICABILITY-20261120`.
 Trace the +4.50/X result across the 32 common bottom cuts. Recompute the signed
