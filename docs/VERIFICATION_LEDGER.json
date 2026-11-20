@@ -19,20 +19,19 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "R10_LOW_AXIAL_JOINT_DECISIONS_CALCULATED",
-    "work_branch": "work/r10-low-axial",
+    "status": "ORIGINAL_R10_STRONG_COLUMN_ASSIGNED_AXIAL_INTERVALS_CALCULATED",
+    "work_branch": "work/r10-seismic-intervals",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "56750c34ddc31db65dbb03c291c0fef5ef36a107",
-    "source_run_id": "RUN-17fbcff4be754227acb61dd1151b94cf",
-    "production_run_id": "RUN-5b45f6a03d5c477cb01ce3d6c721f0a1",
-    "source_sha256": "e56eafa3c36f7f0cf5cfc797e418d69207e608c35f153c2e2c7b087f5747f393",
-    "results_sha256": "1f7875191aac583d047952fa94880afa3906574d4086b51c33edd437f49a8795",
+    "inspected_base_commit": "cc98df6f9f6e768ba34a7f20a5c01725b2d30914",
+    "source_run_id": "RUN-abf87f29c688483c8c79f609e8400cce",
+    "production_run_id": "RUN-30933934b3f04c09a8035e292416b867",
+    "source_sha256": "f5bd9c9b78caf6fd9737ddf724e39197f64a111370aa14bf116e005ed3f8bdc5",
+    "results_sha256": "98c60691acc91db0fa98609ca62f95b3f1ce464286695f3f8880b8edf9c25ff2",
     "evidence_refs": [
-      "EV-C29-INTERIOR-LOW-AXIAL-20261120",
-      "EV-R10-LOW-AXIAL-20261120"
+      "EV-R10-LIVE-INTERVAL-20261120"
     ],
     "engineering_release": "NOT_READY",
-    "next_action": "Evaluate direction-compatible axial demand and minimum column moment capacity at the five joints that exceed the combined seismic limit. Then complete one full story-direction shear allocation and run the existing alpha iteration."
+    "next_action": "Determine section 7.3.6 applicability for one entire original story-direction from both ends of every column. Where required, bind compatible signed shears at one cut, compute Vis, Vik and alpha, and carry any demand revision through cage, PMM, Ve and joint rechecks."
   },
   "last_observed_remote_implementation": {
     "branch": "audit/pipeline-pmm-v6-20261117",
@@ -4132,6 +4131,116 @@
       "live_ETABS": "NOT_RUN",
       "windows_working_tree": "NOT_INSPECTED",
       "limits": "Reference calculations and synthetic source integrations. Original non-exempt seismic joint demand, complete original story direction and spectral alpha remain open."
+    },
+    {
+      "id": "EV-R10-LIVE-INTERVAL-20261120",
+      "observed_at_utc": "2026-11-20T11:21:58.803861Z",
+      "inspected_base_commit": "cc98df6f9f6e768ba34a7f20a5c01725b2d30914",
+      "work_branch": "work/r10-seismic-intervals",
+      "scope": "Original-model two-column beam joints under selected reinforcement and eight assigned combined seismic families. The normal Windows gateway acquired the source on the inspected base. The updated shared pipeline processed the frozen source twice.",
+      "environment": "Windows, CPython 3.12.10, ETABS native kN/m/C (code 6). Locked original model during acquisition; native temporary output selections restored.",
+      "private_receipt_root": ".receipts/verification/audit-cc98df6-20261120T103958Z",
+      "tested_file_manifest_path": ".receipts/verification/audit-cc98df6-20261120T103958Z/final-tested-files.json",
+      "tested_file_manifest_sha256": "408fe4ca618c65983d6facfd2f5b78584d66a8da8452e7d448ed9d9bd48a21a7",
+      "tested_code_and_tests_git_patch_sha256": "edcd970100c9af1eadc2e54849debee513bdee74deaf6ffa80356b664b3a5710",
+      "method_versions": {
+        "column-r10": "column-r10-low-axial.v3",
+        "column-r08-local": "column-r08-local.v6",
+        "alpha-feedback": "alpha-feedback.mixed-signed-same-cut.v4"
+      },
+      "method": {
+        "configuration_file_count": 9,
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 127,
+        "package_sha256": "2297792c2f00d4f92dee1ffdde2eab44de8d94a8849943b2def26637a61f6832",
+        "python_implementation": "CPython",
+        "python_version": "3.12.10"
+      },
+      "archived_replay_on_parent": {
+        "source_run_id": "RUN-17fbcff4be754227acb61dd1151b94cf",
+        "input_sha256": "e56eafa3c36f7f0cf5cfc797e418d69207e608c35f153c2e2c7b087f5747f393",
+        "first_run": "RUN-5fd612e9b28541e5a2dfd0a267eef291",
+        "repeat_run": "RUN-7480589e81e742f8b3c312a6d1681ffb",
+        "results_sha256": "24fe4eb6e1f8b9188f50ea2e3d2bf6e9e9cbbe99932583691cecc789ed6ea3aa",
+        "identical_stages": 16
+      },
+      "fresh_original_capture_on_parent": {
+        "source_run_id": "RUN-abf87f29c688483c8c79f609e8400cce",
+        "input_sha256": "f5bd9c9b78caf6fd9737ddf724e39197f64a111370aa14bf116e005ed3f8bdc5",
+        "results_sha256": "1ce1084921d3f28654aff0aaf5f5dead1f22af1c25aea4dea74ec0f825533b58",
+        "columns": 87,
+        "assigned_seismic": 8,
+        "assigned_gravity": 3,
+        "bound_pairs": 957,
+        "same_two_selection_policies": true,
+        "exact_native_force_rows": 7638,
+        "exact_components": 45828
+      },
+      "current_replay": {
+        "reference": ".receipts/verification/audit-cc98df6-20261120T103958Z/interval-runs/RUN-30933934b3f04c09a8035e292416b867",
+        "repeat": ".receipts/verification/audit-cc98df6-20261120T103958Z/interval-repeat/RUN-aae93c4fd190430e95149d651faf5686",
+        "schema": "tbdy.next.pipeline-stage-snapshot.v2",
+        "snapshot_sha256": "7d39a400d5a0d287fb3f11109f02fcf296a3f2a4c55523d03b089e3a76d187ba",
+        "results_sha256": "98c60691acc91db0fa98609ca62f95b3f1ce464286695f3f8880b8edf9c25ff2",
+        "identical_stages": 16
+      },
+      "engineering_result": {
+        "physical_joint_census": 52,
+        "low_axial_exempt": 47,
+        "remaining_joints_meeting_assigned_moment_bound": 5,
+        "joint_direction_case_sway_checks": 160,
+        "minimum_ratio_lower": 2.7298857767624676,
+        "governing_column_sum_lower_knm": 2425.4432477493465,
+        "governing_required_sum_upper_knm": 888.4779240198916,
+        "independent_column_anchor_checks": 800,
+        "maximum_anchor_error_knm": 9.063091169991822e-05,
+        "independent_interior_points": 640,
+        "verified_selected_column_section_revisions": 10,
+        "checked_R08_static_rows": 1206,
+        "checked_R10_Vd_witnesses": 522,
+        "analysis_shear_governs_rows": 0,
+        "alpha_status": "BLOCKED_INPUTS",
+        "alpha_iterations": 0,
+        "alpha_open_seismic_families": 8,
+        "R14_partial_columns": 87,
+        "shared_open_gates": 17
+      },
+      "regression": {
+        "offline_discovered": 1531,
+        "offline_passed": 1530,
+        "platform_skipped": 1,
+        "javascript_test_files": 11,
+        "isolated_wheel_passed": 379,
+        "packaged_runtime_files_identical_to_tested_worktree": 142,
+        "wheel_sha256": "6010306839a57ae88d5ced575190e32492d53a427a123459980552f9ce43a2c0",
+        "golden_44": {
+          "INSUFFICIENT_SOURCE": 20,
+          "NUMERICAL_MATCH": 20,
+          "ENGINEERING_INTERPRETATION_DIFFERENCE": 4
+        },
+        "initial_attempts": "Two full Windows runs overlapped pipeline replays and each had a host-aborted loopback connection in test_body_upload_is_not_allowed_for_live_endpoint. Its 18-test module passed separately. A full run after completion of the replays passed on the same code. The pip wheel wrapper failed to locate its output path; the setuptools PEP 517 backend built the wheel and its packaged runtime files were compared byte for byte."
+      },
+      "verification_commands": [
+        "git diff --check HEAD",
+        "python -B tools/test_offline.py",
+        "python -B tools/test_installed_wheel.py <final-wheel-directory>",
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --source .receipts/RUN-abf87f29c688483c8c79f609e8400cce/input.source --case Modal --out <new-receipt-root> --compare-run .receipts/verification/audit-cc98df6-20261120T103958Z/interval-runs/RUN-30933934b3f04c09a8035e292416b867",
+        "python -X utf8 -B .receipts/verification/audit-cc98df6-20261120T103958Z/verify_five.py .receipts/verification/audit-cc98df6-20261120T103958Z"
+      ],
+      "private_record_sha256": {
+        "final-model-check.json": "21e55f86d3f6a70cbf62ff0706b74193384ab4948a1523d3ef840184a0f1ee5f",
+        "final-five-comparison.json": "1eb2cd10992cf2550a14d00701420f2d701713809268b9dd28681b49eca7443f",
+        "live-original-force-diff.json": "3f8669866b149bfbd0484ee11e36f15b6876a15a009ee8fbcb57dec2ac46aecc",
+        "final-offline-quiet.log": "8665e47eee3efe98183cea431e420b512060691f13254e708863c8b688f6a4f5",
+        "final-wheel-tests.log": "e098a0b8fae0cbba089c6f5ded11a7814248103ef2c46d9710945e8880f10dcd"
+      },
+      "limits": [
+        "Selected cage and beam N=0 scenario; principal-plane symmetric columns. Exact minimizing Nd and time-coincident force vectors are not claimed.",
+        "Formal physical joint faces, anchorage, model generation, shear policy and story-level feedback remain open. ETABS analysis and model writes were outside the capture scope."
+      ],
+      "engineering_release_granted": false,
+      "engineering_release": "NOT_READY",
+      "next_action": "Determine section 7.3.6 applicability for one entire original story-direction from both ends of every column. Where required, bind compatible signed shears at one cut, compute Vis, Vik and alpha, and carry any demand revision through cage, PMM, Ve and joint rechecks."
     }
   ],
   "new_record_template": {
@@ -4156,7 +4265,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-20T07:28:01.488749+00:00",
+  "updated_at_utc": "2026-11-20T11:21:58.803861Z",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -4681,6 +4790,22 @@
       ],
       "engineering_release": "NOT_READY",
       "next_action": "Use the controlling interior joint of the same column to bind compatible upper and lower seismic end shears. Compute both sway demands with their deduction, then carry the direction to the story SCWB and alpha owners."
+    },
+    {
+      "status": "R10_LOW_AXIAL_JOINT_DECISIONS_CALCULATED",
+      "work_branch": "work/r10-low-axial",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "56750c34ddc31db65dbb03c291c0fef5ef36a107",
+      "source_run_id": "RUN-17fbcff4be754227acb61dd1151b94cf",
+      "production_run_id": "RUN-5b45f6a03d5c477cb01ce3d6c721f0a1",
+      "source_sha256": "e56eafa3c36f7f0cf5cfc797e418d69207e608c35f153c2e2c7b087f5747f393",
+      "results_sha256": "1f7875191aac583d047952fa94880afa3906574d4086b51c33edd437f49a8795",
+      "evidence_refs": [
+        "EV-C29-INTERIOR-LOW-AXIAL-20261120",
+        "EV-R10-LOW-AXIAL-20261120"
+      ],
+      "engineering_release": "NOT_READY",
+      "next_action": "Evaluate direction-compatible axial demand and minimum column moment capacity at the five joints that exceed the combined seismic limit. Then complete one full story-direction shear allocation and run the existing alpha iteration."
     }
   ],
   "remote_audit_correction_checkpoint": {

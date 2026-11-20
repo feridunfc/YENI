@@ -1,11 +1,66 @@
-# Audit corrections and next live calculation — 2026-11-20
+# Original building calculation and local auditor handoff — 2026-11-20
 
 Start each assignment at [AGENTS.md](../AGENTS.md). The
 [worker handoff](context/WORKER_HANDOFF_20261119.md) and
 [project charter and source guide](context/PROJECT_CHARTER.md) are available
 in a GitHub checkout. Follow the [November 18 full recipe](engineering/reference/recipe_20261118/delivery/RECIPE.md)
 and its [six-step calculation sequence](engineering/reference/recipe_20261118/delivery/PRIORITY_CHAIN.json).
-The current milestone is described in [audit corrections and live handoff](engineering/AUDIT_FIXES_20261120.md).
+## Current original-model result
+
+The normal R10 pipeline now accounts for all **52 physical joints with a beam
+and a column above and below** in the assigned model. Of these, 47 qualify
+for the low-axial exception under TBDY 7.3.5.3(a). Each of the other five
+meets the conditional strong-column moment check over the recorded axial
+intervals for the selected reinforcement. Five joints, two horizontal
+directions, eight assigned seismic combinations and both sway signs give
+**160 of 160 sufficient comparisons**. The smallest lower ratio is **2.729886**.
+The two column resistances total at least 2,425.443 kN·m. The required
+beam-side sum, including the 1.20 factor and numerical tolerance, is at most
+888.478 kN·m for that comparison. See `EV-R10-LIVE-INTERVAL-20261120` in
+[the ledger](VERIFICATION_LEDGER.json).
+
+For each principal axis of a symmetric selected column, the existing section
+solver evaluates five equilibria bracketing the entire compression interval.
+Steel forces increase along that strain path and the compressed net concrete
+area expands. Its force increments and those of the bars act within half the
+section depth of the centroid, giving |ΔM| ≤ (h/2) ΔN. Deducting the numerical
+tolerances and the maximum distance to the nearer equilibrium bounds every
+intermediate resistance. R10 adds the two column lower bounds and compares
+them with the signed selected beam-end resistances at N=0 for each sway.
+An inconclusive bound carries an unresolved result. An independent strip
+integration matched 800 anchor moments within 0.000091 kN·m and checked 640
+interior points. The selected cages and the beam N=0 assumption define the scope.
+
+The Windows gateway at `cc98df6` acquired the original locked model with the
+same 87 columns, eight seismic and three gravity assignments, and two selection
+policies. All 45,828 raw force components at 7,638 native rows exactly matched
+the earlier archive. The updated shared pipeline used that fresh frozen input.
+The printable report includes the recorded signed analysis shear and governing
+cut. Terminal alpha feasibility retains a proven panel failure when another
+member has exhausted its cage choices.
+
+Both replays of the fresh input matched across all 16 stages. The final
+Windows offline run passed 1,530 Python tests and 11 JavaScript test files.
+Windows skipped one symbolic-link test. All 379 overlapping installed-wheel
+tests passed. The ledger retains two earlier host-aborted loopback attempts.
+GAP-016 currently has 20 numerical matches, 20 insufficient-source records
+and four engineering interpretation differences across its 44 comparisons.
+
+For the **next calculation**, take one complete story and direction and identify
+the actual status of every expected column at both ends. Establish whether the
+alternative in §7.3.6 applies. Where it applies, bind compatible signed
+earthquake shears at the specified cut and run the existing α numerator,
+denominator, demand revision and dependent PMM, shear and joint checks.
+See [TBDY 2018 §§7.3.5–7.3.7](https://www.afad.gov.tr/kurumlar/afad.gov.tr/2309/files/TBDY_2018.pdf).
+The eight scalar seismic envelopes
+currently leave α at zero iterations with `BLOCKED_INPUTS`. R14 has 87 partial
+columns and 17 shared open gates. Engineering release remains `NOT_READY`.
+The [local auditor brief](context/WORKER_HANDOFF_20261119.md#local-auditor-brief)
+starts from the same receipt and calculation owners.
+
+## Historical remote correction before the live run
+
+The previous milestone is described in [audit corrections and live handoff](engineering/AUDIT_FIXES_20261120.md).
 It starts at `f57e6194155b2f9cfc30e3beecf75e0c83a39c16` on
 `work/engine-audit-fixes-20261120`. The execution record is
 `EV-AUDIT-FIXES-20261120`; commit ancestry and its tested-file hashes identify

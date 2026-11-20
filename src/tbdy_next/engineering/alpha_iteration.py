@@ -20,7 +20,7 @@ from .design_scenario import _digest
 
 SCHEMA = "tbdy.next.alpha-design-iteration.v1"
 DEMAND_SCHEMA = "tbdy.next.alpha-demand-revision.v1"
-METHOD = "alpha-feedback.mixed-signed-same-cut.v3"
+METHOD = "alpha-feedback.mixed-signed-same-cut.v4"
 MAX_ITERATIONS = 8
 
 
@@ -455,11 +455,12 @@ def _feasibility(state):
     reselect = []
     blocked = []
     failed = []
+    no_cage = []
     for uid in state["dependencies"]["members"]:
         selected = (details.get(uid) or {}).get("engineer_column_selection") or {}
         if selected.get("status") == "ENGINEER_COLUMN_SELECTION_NO_PASSING_CAGE":
-            return {"status": "NO_FEASIBLE_CANDIDATE", "member_id": uid,
-                    "scope": "SUPPORTED_CANDIDATE_FAMILY_AND_CURRENT_DEMAND_CONSTRAINTS"}
+            no_cage.append(uid)
+            continue
         if not selected.get("selected"):
             blocked.append(uid + ":SELECTED_CAGE_UNAVAILABLE"); continue
         joint_blocked, joint_failed = _joint_feasibility(uid, details[uid], state)
@@ -506,10 +507,19 @@ def _feasibility(state):
                 blocked.append(uid + ":SELECTED_SHEAR_NONFINITE")
             elif value > 1.0 + 1e-6:
                 reselect.append(uid)
-    return {"status": "JOINT_DESIGN_FAILURE" if failed else
-                      "NUMERIC_OR_DEPENDENCY_UNRESOLVED" if blocked else "FEASIBLE_REFERENCE",
-            "reselect_member_ids": [] if failed else sorted(set(reselect)),
-            "reason_codes": sorted(set(blocked)), "failure_codes": sorted(set(failed))}
+    status = "NUMERIC_OR_DEPENDENCY_UNRESOLVED" if blocked else "FEASIBLE_REFERENCE"
+    candidate_scope = {}
+    if no_cage:
+        no_cage.sort()
+        status = "NO_FEASIBLE_CANDIDATE"
+        candidate_scope = {"member_id": no_cage[0], "no_feasible_candidate_member_ids": no_cage,
+                           "scope": "SUPPORTED_CANDIDATE_FAMILY_AND_CURRENT_DEMAND_CONSTRAINTS"}
+    if failed:
+        status = "JOINT_DESIGN_FAILURE"
+    return {"status": status, **candidate_scope,
+            "reselect_member_ids": [] if failed or no_cage else sorted(set(reselect)),
+            "reason_codes": sorted(set(blocked)),
+            "failure_codes": sorted(set(failed) | {uid + ":NO_FEASIBLE_CANDIDATE" for uid in no_cage})}
 
 
 def _selection_constraints(state, pmm, changed):

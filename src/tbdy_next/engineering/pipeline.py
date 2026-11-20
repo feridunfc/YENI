@@ -126,7 +126,7 @@ STAGES: tuple[StageSpec, ...] = (
               ("JOINT_TOPOLOGY_CHECK", "JOINT_SHEAR", "SCWB", "COLUMN_SHEAR", "COLUMN_SHEAR_REBAR"),
               "TBDY 7.3.5 joint applicability, 7.3.6 SCWB, 7.5 joint shear and column confinement/shear "
               "(computed by pipeline; persisted in engine-results)", "COLUMN_REQUEST", produces=(_R10_RESULT,),
-              method_version="column-r10-low-axial.v2"),
+              method_version="column-r10-low-axial.v3"),
     StageSpec("second-order", LIVE, "tbdy_next.story_second_order", ("r08-second-order",),
               ("GLOBAL_SECOND_ORDER",), "TBDY 4.33 story second-order precheck", "R08_SOURCE"),
     StageSpec("column-r08-local", LIVE, "tbdy_next.engineering.column_r08_local_live", (),
@@ -137,7 +137,7 @@ STAGES: tuple[StageSpec, ...] = (
     StageSpec("alpha-feedback", LIVE, "tbdy_next.engineering.alpha_iteration", (), (),
               "Bounded qualified signed alpha demand revision and dirty-member rechecks", "EXPLICIT_DESIGN_SCENARIO",
               consumes=(_DESIGN_SCOPE, _PMM_SCOPE, _PMM_RESULT, _R10_RESULT, _R08_LOCAL_RESULT),
-              produces=(_ALPHA_ITERATION,), method_version="alpha-feedback.mixed-signed-same-cut.v3"),
+              produces=(_ALPHA_ITERATION,), method_version="alpha-feedback.mixed-signed-same-cut.v4"),
     StageSpec("design-revisions", LIVE, "tbdy_next.engineering.design_dependencies", (), (),
               "Recorded candidate/demand to joint/story/Ve/R14 dependency revisions and consumed alpha feedback; no persistent cache",
               "DESIGN_SCENARIO", consumes=(_DESIGN_SCOPE,), produces=(_DESIGN_REVISIONS,),

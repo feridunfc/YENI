@@ -34,7 +34,7 @@ def _configured_end(scope, frame, end):
     return (uid, cut["object_station_m"], elm, cut["element_station_m"]), length
 
 
-def _spectral_upper(rows, pairs, limit):
+def _spectral_bounds(rows, pairs, limit):
     if len(rows) != 2 or {r[5] for r in rows} != {"Max", "Min"} or rows[0][:4] != rows[1][:4]:
         raise BankError("SCWB_TWO_SPECTRAL_EXTREMA_REQUIRED")
     if len(pairs) != 1 or pairs[0]["status"] != "SAME_SOURCE_COMPONENT_REPLAY_MATCH":
@@ -51,7 +51,7 @@ def _spectral_upper(rows, pairs, limit):
             raise BankError("SCWB_COLUMN_END_AXIAL_BOUNDS_CONFLICT")
         if (bounds[1] <= limit) != (nd[1] <= limit):
             raise BankError("SCWB_AXIAL_THRESHOLD_STRADDLED_BY_REPLAY")
-    return nd[1]
+    return nd
 
 
 def _column_end_axial(joint, frame, end, points, scope, section, rowset, semantics, seismic, pairs):
@@ -67,7 +67,7 @@ def _column_end_axial(joint, frame, end, points, scope, section, rowset, semanti
         if (row[2] == key[2] and abs(row[1] - key[1]) <= station_budget(row[1], key[1], length)
                 and abs(row[3] - key[3]) <= station_budget(row[3], key[3], length)):
             grouped[row[4]].append(row)
-    maxima = {}
+    intervals = {}
     other_unresolved = {}
     for name, role in semantics.items():
         sample = grouped[name]
@@ -75,20 +75,22 @@ def _column_end_axial(joint, frame, end, points, scope, section, rowset, semanti
             if not sample or any(r[6] != 0 for r in sample):
                 raise BankError("SCWB_ASSIGNED_ZERO_STEP_END_MISSING")
             if role == "SCALAR_COMPONENT_ENVELOPE":
-                maxima[name] = _spectral_upper(sample, pairs[uid, name], limit)
+                intervals[name] = _spectral_bounds(sample, pairs[uid, name], limit)
             elif role == "STATIC_SIGNED_VECTOR" and len(sample) == 1 and sample[0][5] in ("", "Single Value"):
-                maxima[name] = -sample[0][7]
+                intervals[name] = [-sample[0][7], -sample[0][7]]
             else:
                 raise BankError("SCWB_ASSIGNED_END_FORCE_UNSUPPORTED_OR_AMBIGUOUS")
         except BankError as exc:
             if name in seismic:
                 raise BankError(f"{exc}:{name}") from exc
             other_unresolved[name] = str(exc)
+    maxima = {name: bounds[1] for name, bounds in intervals.items()}
     governing = None if other_unresolved else max(maxima, key=maxima.get)
     governing_seismic = max(seismic, key=maxima.get)
     return {"member_id": uid, "physical_side": side, "end": end, "configured_cut": list(key),
             "gross_area_mm2": section["gross_area_mm2"], "fck_mpa": section["fck_mpa"], "limit_kn": limit,
-            "nd_max_by_combination_kn": maxima, "other_unresolved_combinations": other_unresolved,
+            "nd_max_by_combination_kn": maxima, "seismic_nd_intervals_kn": {n: intervals[n] for n in sorted(seismic)},
+            "other_unresolved_combinations": other_unresolved,
             "governing_combination": governing, "max_nd_kn": maxima.get(governing),
             "governing_seismic_combination": governing_seismic, "max_seismic_nd_kn": maxima[governing_seismic]}
 

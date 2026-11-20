@@ -29,6 +29,7 @@ WHEEL_TESTS = (
     "test_same_source_spectral_replay",
     "test_r13_joint_adapters",
     "test_r10_low_axial",
+    "test_scwb_axial_interval",
     "test_rebar_selection",
     "test_recorded_column_calculation_report",
 )

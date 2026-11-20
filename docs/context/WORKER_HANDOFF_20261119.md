@@ -20,6 +20,32 @@ For the building calculation, the GAP-018 coverage matrix and the
    be accessed. Missing local commits, captures or Drive access are not evidence
    that the corresponding local work is absent or incorrect.
 
+## Local auditor brief
+
+> Önce `feridunfc/YENI` reposunun `baseline/local_import` dalındaki kök `AGENTS.md` dosyasını oku. Çalıştığın dalda belirtilen başlangıç sırasını izle, ardından aşağıdaki görevi yap.
+
+Audit the current original-model vertical slice through its normal entry point.
+Read [CURRENT_STATE](../CURRENT_STATE.md), GAP-013 and GAP-018 and the current
+ledger entry. Use the private receipt directory and full input and result
+hashes in that entry. Verify Git HEAD, local changes and the published ref.
+Replay the specified fresh `input.source` with `--case Modal` and
+`--compare-run` against the stated sealed reference in a separate receipt
+directory. Keep the adjacent parent source. Reconstruct the physical joint
+population from native connectivity before counting the results.
+
+Starting from a governing non-exempt joint, reconstruct column-end component
+extrema, selected cages, section equilibrium, beam-end signs and the required
+1.20 moment sum. Check both sways and both directions across every assigned
+seismic family. Cross-check the report with the sealed numerical witness and
+trace the result into R14. Test a missing end or case, an insufficient interval,
+and a proven panel failure beside an exhausted cage. Establish §7.3.6
+applicability for a full story-direction from both ends of every column.
+When the alternative is needed, inspect the original story shear population
+and identify the first missing compatible quantity for alpha.
+A review finding should name the source line, a reproducer, the
+observed numerical effect and the smallest correction. Record commands, tested
+revision and input hash for each result. Keep any private captures local.
+
 ## Baseline and local ownership
 
 `baseline/local_import` is the logical main. The user wants it kept current.

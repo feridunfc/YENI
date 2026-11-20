@@ -2074,6 +2074,42 @@ def _column_gates_html(gates: Mapping[str, Any]) -> str:
         + '</section>')
 
 
+def _recorded_capacity_shear_html(uid, member: Mapping[str, Any]) -> str:
+    shear = member.get("column_transverse_and_shear") or {}
+    parts = []
+    dependency = shear.get("capacity_shear_dependency") or {}
+    if dependency:
+        parts.append(f'<p>Column {_val(uid)} · capacity shear · {_val(dependency.get("status"))} · '
+                     f'{_val(", ".join(dependency.get("reason_codes") or ()))}</p>')
+    for key, label in (("capacity_shear_ve", "model reinforcement"),
+                       ("engineer_capacity_shear_ve", "reinforcement selection")):
+        result = shear.get(key) or {}
+        rows = []
+        for axis, values in (result.get("axes") or {}).items():
+            for case in values.get("cases") or ():
+                cut = case.get("vd_governing_cut") or {}
+                rows.append({**case, "axis": axis, "element": cut.get("analysis_element_id"),
+                             "object_station_m": cut.get("object_station_m"), "element_station_m": cut.get("element_station_m"),
+                             "signed_shear_kn": cut.get("signed_shear_kn"), "step_type": cut.get("step_type"),
+                             "step_number": cut.get("step_number"),
+                             "reasons": ", ".join(case.get("reason_codes") or ()) or None})
+        if rows:
+            parts.append(f'<h4>Column {_val(uid)} · capacity shear · {label}</h4>')
+            parts.append(_table((
+                ("axis", "Local axis"), ("combination", "Combination"), ("ve_unreduced_kn", "Unreduced capacity term (kN)"),
+                ("vd_floor_kn", "Analysis shear floor Vd (kN)"), ("ve_scwb_scenario_kn", "Final Ve (kN)"),
+                ("status", "Case status"), ("reasons", "Open reasons")), rows))
+            if any("vd_floor_kn" in row for row in rows):
+                cols = (("axis", "Local axis"), ("combination", "Combination"), ("element", "Governing analysis element"),
+                        ("object_station_m", "ObjSta (m)"), ("element_station_m", "ElmSta (m)"),
+                        ("step_type", "Step type"), ("step_number", "Step number"), ("signed_shear_kn", "Signed shear (kN)"),
+                        ("vd_expected_cut_count", "Expected cuts"), ("vd_observed_cut_count", "Observed cuts"))
+                if any(row.get("alpha_demand_revision_sha256") for row in rows):
+                    cols += (("alpha_demand_revision_sha256", "Alpha demand revision"),)
+                parts.append(_table(cols, rows))
+    return "".join(parts)
+
+
 def _recorded_joint_calculations_html(r10: Mapping[str, Any]) -> str:
     """Display recorded member/end/axis results, including all-column captures."""
     members = r10.get("per_member")
@@ -2085,6 +2121,7 @@ def _recorded_joint_calculations_html(r10: Mapping[str, Any]) -> str:
     for uid, member in member_rows:
         if not isinstance(member, Mapping):
             continue
+        parts.append(_recorded_capacity_shear_html(uid, member))
         ends = member.get("member_joint_ends") or ()
         selection = (member.get("engineer_column_selection") or {}).get("selected") or {}
         if not ends:
@@ -2220,9 +2257,15 @@ def _column_r10_html(r10: Mapping[str, Any]) -> str:
     has_eng_scwb = any(isinstance(j.get("engineer_selected_scwb"), Mapping) for j in r10.get("scwb_joints") or ())
     scwb_rows = []
     axial_ends = {}
+    interval_checks = {}
     for j in r10.get("scwb_joints") or ():
         eng_s = j.get("engineer_selected_scwb") if isinstance(j.get("engineer_selected_scwb"), Mapping) else {}
         exception = j.get("low_axial_exception") or {}
+        checked = j.get("seismic_axial_interval_check")
+        if checked:
+            identity = (j["joint_id"], j["direction"])
+            interval_checks[identity] = {**checked, "joint": identity[0], "direction": identity[1],
+                                         "reasons": ", ".join(checked.get("reasons") or ()) or None}
         for end in exception.get("column_ends", ()):
             axial_ends[j.get("joint_id"), end["member_id"]] = {
                 "joint": j.get("joint_id"), "member": end["member_id"], "side": end["physical_side"],
@@ -2312,6 +2355,14 @@ def _column_r10_html(r10: Mapping[str, Any]) -> str:
                    ("seismic", "Max seismic Nd (kN)"), ("case", "Governing over all assignments"), ("nd", "Max assigned Nd (kN)"),
                    ("limit", "0.10 Ac fck (kN)"), ("decision", "Joint decision")), list(axial_ends.values()))
            if axial_ends else '')
+        + ('<h3>Strong-column check over assigned seismic axial-force intervals · TBDY 7.3.5.2</h3>'
+           '<p>Selected column cages and selected beam end capacities at N = 0. Both sway signs use the full '
+           'axial-force interval at each connected column end. A ratio lower bound above 1 satisfies this reference.</p>'
+           + _table((("joint", "Joint"), ("direction", "Direction"), ("governing_combination", "Governing combination"),
+                     ("governing_sway", "Sway sign"), ("column_sum_lower_knm", "Lower ΣMr column (kN·m)"),
+                     ("required_sum_upper_knm", "Upper 1.2 ΣMr beam (kN·m)"), ("minimum_ratio_lower", "Ratio lower bound"),
+                     ("evaluated_checks", "Evaluated"), ("expected_checks", "Expected"), ("status", "Result"),
+                     ("reasons", "Open reasons")), list(interval_checks.values())) if interval_checks else '')
         + (_table((("role", "Choice"), ("diam", "Φ (mm)"), ("cage", "Bar grid"), ("rho", "Rho (%)"),
                    ("pmm", "PMM (max util)"), ("stirrups", "Stirrups (conf/span)"),
                    ("legs", "Legs V2/V3"), ("alerts", "TBDY/TS500 checks")), eng_col_rows)

@@ -193,13 +193,23 @@ def _evaluate_single_r14_column(
     scwb_unsat = False
     scwb_unbound = not scwb_joints
     low_axial_joints = set()
+    interval_directions = set()
     unresolved_seismic_nd = False
     for j in scwb_joints:
         exception = j.get("low_axial_exception") or {}
         if exception.get("exempt") is True:
             low_axial_joints.add(j["joint_id"])
             continue
-        if exception.get("status") in ("LOW_AXIAL_LIMIT_EXCEEDED", "UNRESOLVED"):
+        interval = j.get("seismic_axial_interval_check") or {}
+        if (exception.get("status") == "LOW_AXIAL_LIMIT_EXCEEDED"
+                and interval.get("status") == "SCWB_EQ_7_3_INTERVAL_SUFFICIENT" and interval.get("sufficient") is True
+                and exception.get("input_sha256") and interval.get("input_sha256") == exception["input_sha256"]
+                and exception.get("seismic_combinations")
+                and interval.get("evaluated_checks") == interval.get("expected_checks") == 2 * len(exception["seismic_combinations"])
+                and (_finite_number(interval.get("minimum_ratio_lower")) or 0) > 1):
+            interval_directions.add((j["joint_id"], j["direction"]))
+            continue
+        elif exception.get("status") in ("LOW_AXIAL_LIMIT_EXCEEDED", "UNRESOLVED"):
             unresolved_seismic_nd = True
         blk = j.get("engineer_selected_scwb") or j
         sat = blk.get("reference_satisfied" if "engineer_selected_scwb" in j else "scenario_reference_satisfied")
@@ -446,6 +456,8 @@ def _evaluate_single_r14_column(
                 "min_scwb_ratio": min(scwb_ratios) if scwb_ratios else None,
                 "scwb_satisfied": scwb_satisfied,
                 "low_axial_exempt_joint_ids": sorted(low_axial_joints),
+                "seismic_interval_qualified_joint_directions": [
+                    {"joint": point, "direction": direction} for point, direction in sorted(interval_directions)],
                 "story_alpha_rows": [
                     {
                         "direction": s.get("direction"),

@@ -90,6 +90,37 @@ def framed_axis(state, uid="U"):
 
 
 class JointFinalFeasibilityContracts(unittest.TestCase):
+    def test_no_candidate_preserves_other_joint_failures_and_missing_dependencies_in_either_order(self):
+        state = state_with_actual_joint(shear_e2=0.)
+        members = state["dependencies"]["members"]
+        members["MISSING"] = {}
+        state["r10"]["per_member"]["U"]["engineer_column_selection"] = {
+            "status": "ENGINEER_COLUMN_SELECTION_NO_PASSING_CAGE", "selected": None}
+        for order in (list(members), list(reversed(members))):
+            with self.subTest(order=order):
+                state["dependencies"]["members"] = {uid: members[uid] for uid in order}
+                result = _feasibility(state)
+                self.assertEqual(result["status"], "JOINT_DESIGN_FAILURE")
+                self.assertEqual(result["no_feasible_candidate_member_ids"], ["U"])
+                self.assertEqual(result["reselect_member_ids"], [])
+                self.assertIn("U:NO_FEASIBLE_CANDIDATE", result["failure_codes"])
+                self.assertIn("L:J:V2:JOINT_SHEAR_LIMIT_EXCEEDED", result["failure_codes"])
+                self.assertIn("MISSING:SELECTED_CAGE_UNAVAILABLE", result["reason_codes"])
+                html = _alpha_feedback_html({"status": result["status"], "final_feasibility": result})
+                for reason in result["failure_codes"] + result["reason_codes"]:
+                    self.assertIn(reason, html)
+
+    def test_each_exhausted_candidate_family_remains_in_the_terminal_outcome(self):
+        state = state_with_actual_joint()
+        for member in state["r10"]["per_member"].values():
+            member["engineer_column_selection"] = {"status": "ENGINEER_COLUMN_SELECTION_NO_PASSING_CAGE"}
+        result = _feasibility(state)
+        expected = sorted(state["dependencies"]["members"])
+        self.assertEqual(result["status"], "NO_FEASIBLE_CANDIDATE")
+        self.assertEqual(result["member_id"], expected[0])
+        self.assertEqual(result["no_feasible_candidate_member_ids"], expected)
+        self.assertEqual(result["failure_codes"], [uid + ":NO_FEASIBLE_CANDIDATE" for uid in expected])
+
     def test_actual_joint_and_tie_success_can_complete_reference_feasibility(self):
         state = state_with_actual_joint()
         before = deepcopy(state)

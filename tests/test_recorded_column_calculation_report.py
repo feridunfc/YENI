@@ -98,6 +98,43 @@ def all_joints(members):
 
 
 class RecordedColumnCalculationReportTests(unittest.TestCase):
+    def test_selected_capacity_shear_cut_and_open_cases_are_visible_in_both_scopes(self):
+        column = recorded_joint("C29")
+        case = {"combination": "G<1>", "ve_unreduced_kn": 280.125, "vd_floor_kn": 500.25,
+                "ve_scwb_scenario_kn": 500.25, "status": "CALCULATED", "vd_expected_cut_count": 3,
+                "vd_observed_cut_count": 3, "vd_governing_cut": {"analysis_element_id": "E<2>",
+                    "object_station_m": 2.625, "element_station_m": 1.375, "step_type": "Single Value",
+                    "step_number": 0, "signed_shear_kn": -500.25}}
+        missing = {"combination": "GAP", "ve_unreduced_kn": 280.125, "vd_floor_kn": None,
+                   "ve_scwb_scenario_kn": None, "reason_codes": ["VD_REQUIRED_NATIVE_CUT_MISSING"],
+                   "vd_expected_cut_count": 3, "vd_observed_cut_count": 2, "status": "UNRESOLVED"}
+        column["column_transverse_and_shear"] = {
+            "engineer_capacity_shear_ve": {"axes": {"V2": {"cases": [case, missing]}}}}
+        for result in (column, all_joints([column])):
+            html = _column_r10_html(result)
+            for text in ("capacity shear · reinforcement selection", "Analysis shear floor Vd (kN)", "Final Ve (kN)",
+                         "G&lt;1&gt;", "280.125", "-500.25", "E&lt;2&gt;", "2.625", "1.375", "Single Value",
+                         "VD_REQUIRED_NATIVE_CUT_MISSING", "Expected cuts", "Observed cuts"):
+                self.assertIn(text, html)
+            self.assertNotIn("Alpha demand revision", html)
+        case["alpha_demand_revision_sha256"] = "saved-revision"
+        self.assertIn("saved-revision", _column_r10_html(column))
+
+    def test_capacity_shear_keeps_legacy_and_blocked_records_explicit(self):
+        column = recorded_joint("C30")
+        column["column_transverse_and_shear"] = {
+            "capacity_shear_ve": {"axes": {"V3": {"cases": [{"combination": "LEGACY",
+                "ve_unreduced_kn": 282., "ve_scwb_scenario_kn": 283.}]}}}}
+        html = _column_r10_html(column)
+        self.assertIn("capacity shear · model reinforcement", html)
+        self.assertNotIn("Governing analysis element", html)
+        self.assertNotIn("capacity shear · reinforcement selection", html)
+        column["column_transverse_and_shear"] = {"capacity_shear_dependency": {
+            "status": "BLOCKED_DEPENDENCY", "reason_codes": ["SOURCE_CUT_MISSING"]}}
+        html = _column_r10_html(all_joints([column]))
+        self.assertIn("SOURCE_CUT_MISSING", html)
+        self.assertNotIn("Final Ve (kN)", html)
+
     def test_static_cut_force_and_capacity_are_visible_in_both_scopes(self):
         for record in (recorded_column(), all_columns([recorded_column(), recorded_column("C30", "Other_G")])):
             with self.subTest(scope=record.get("scope", "SINGLE_COLUMN")):

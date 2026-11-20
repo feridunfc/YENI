@@ -26,6 +26,7 @@ from ..column_engine.scwb_kernel import (
     JointCase,
     MemberMomentCapacity,
     column_axis_capacity,
+    column_axis_interval_bound,
     compute_scwb_joint_result,
 )
 from ..column_engine.section_capacity import Section, perimeter
@@ -540,6 +541,105 @@ def _scwb_sign_evaluation(
     }
 
 
+def _selected_scwb_interval(joint_id, direction, decision, plan, columns, beams, beam_ends,
+                            directional_beams, beam_results, selected_sections, run_id):
+    """Sufficient Eq. 7.3 check over complete assigned Nd intervals, for each sway sign."""
+    names = decision["seismic_combinations"]
+    result = {"method": "SELECTED_PRINCIPAL_SECTION_CONTINUOUS_ND_BOUND_V1",
+              "input_sha256": decision["input_sha256"], "expected_checks": 2 * len(names),
+              "status": "AXIAL_INTERVAL_UNRESOLVED", "sufficient": None, "cases": [], "reasons": [],
+              "beam_basis": "SELECTED_BEAM_END_RESISTANCE_AT_N0", "formal_compliance": "NOT_PROVEN"}
+    joint = (plan or {}).get("joints", {}).get(joint_id) or {}
+    roster = joint.get("beam_ends") or []
+    expected_beams = {(row["member_id"], row["end"]) for row in roster}
+    ends = {end["member_id"]: end for end in decision["column_ends"]}
+    ids = {col["frame_id"] for col in columns}
+    if (not plan or not names or len(names) != len(set(names)) or not decision["input_sha256"]
+            or plan.get("input_sha256") != decision["input_sha256"] or direction not in ("X", "Y")
+            or joint.get("execution_allowed") is not True or len(ids) != 2 or ids != set(ends)
+            or {end["physical_side"] for end in ends.values()} != {"UPPER", "LOWER"}
+            or any(set(end.get("seismic_nd_intervals_kn", ())) != set(names) for end in ends.values())
+            or len(expected_beams) != len(roster) or len(expected_beams) != len(beams)
+            or ids != set(joint.get("column_ids", ())) or not ids <= selected_sections.keys()
+            or expected_beams != {(b["frame_id"], beam_ends[b["frame_id"]]["end"]) for b in beams}):
+        result["reasons"].append("SCWB_SELECTED_SECTION_OR_JOINT_SCOPE_UNBOUND")
+        return result
+    x, y = [1., 0., 0.], [0., 1., 0.]
+    rot_axis = y if direction == "X" else [-1., 0., 0.]
+    shear_axis = x if direction == "X" else y
+    axes = {}
+    try:
+        for b in beams:
+            base = b.get("axes_global")
+            if not base or not any(_parallel(base[0], axis) for axis in (x, y)):
+                raise BankError("SCWB_SKEW_OR_UNBOUND_BEAM_AXIS")
+        for col in columns:
+            uid = col["frame_id"]
+            base = col.get("axes_global")
+            mapped = [i for i in (1, 2) if base and _parallel(base[i], rot_axis)]
+            if len(mapped) != 1 or not any(_parallel(base[i], shear_axis) for i in (1, 2)):
+                raise BankError("SCWB_COLUMN_GLOBAL_AXIS_NOT_PRINCIPAL")
+            axis = "M" + str(mapped[0] + 1)
+            for sign in (-1, 1):
+                moment_sign_mapping(base, ends[uid]["end"], direction, sign, axis)
+            axes[uid] = axis
+        for b, end in directional_beams:
+            recorded = (beam_results[b["frame_id"]]["ends"] or {})[end]
+            capacity = (recorded.get("engineer_selection") or {}).get("capacity") or {}
+            points = capacity.get("points") or []
+            if (recorded.get("released_for_bending") is not False or capacity.get("axial_force_scenario_n") != 0
+                    or len(points) != 2 or {pt["rotation_sign"] for pt in points} != {-1, 1}
+                    or any(finite(pt["tolerance_knm"], "beam_moment_tolerance") <= 0 for pt in points)):
+                raise BankError("SCWB_SELECTED_SIGNED_BEAM_RESISTANCES_UNBOUND")
+    except (ValueError, KeyError, ArithmeticError, TypeError) as exc:
+        result["reasons"].append(str(exc))
+        return result
+    col_ids = sorted((uid, ends[uid]["end"]) for uid in ids)
+    beam_ids = [(b["frame_id"], end) for b, end in directional_beams]
+    for name in names:
+        bounds = {}
+        case = {"combination": name, "columns": bounds, "sways": []}
+        result["cases"].append(case)
+        try:
+            for uid, end in col_ids:
+                interval = ends[uid]["seismic_nd_intervals_kn"][name]
+                bound = column_axis_interval_bound(selected_sections[uid], axes[uid], *interval)
+                bounds[uid] = {**bound, "end": end, "configured_cut": ends[uid]["configured_cut"]}
+                if bound["mr_lower_bound_knm"] <= 0:
+                    raise BankError("SCWB_POSITIVE_RESISTANCE_BOUND_UNAVAILABLE")
+            for sign in (-1, 1):
+                ctx = JointCase(run_id, decision["input_sha256"], joint_id, direction, sign, name,
+                                "SELECTED_CAGE_AXIAL_INTERVAL", "Axial interval", None)
+                caps = [MemberMomentCapacity(ctx, uid, end, "COLUMN", bounds[uid]["mr_lower_bound_knm"],
+                                             "SELECTED_SECTION_ND_INTERVAL") for uid, end in col_ids]
+                caps.extend(_beam_moment_capacity_for_sign(b["frame_id"], beam_results[b["frame_id"]], end,
+                            b["axes_global"], direction, sign, ctx, diameter_mm="ENGINEER_SELECTED")
+                            for b, end in directional_beams)
+                check = compute_scwb_joint_result(ctx, col_ids, beam_ids, caps)
+                if check["missing_capacities"] or check["comparison_tolerance_knm"] is None:
+                    raise BankError("SCWB_SELECTED_CAPACITY_SUM_UNBOUND")
+                required = check["required_mrc_reference_knm"] + check["comparison_tolerance_knm"]
+                lower = check["sum_mrc_reference_knm"]
+                case["sways"].append({"rotation_sign": sign, "column_sum_lower_knm": lower,
+                                      "required_sum_upper_knm": required, "ratio_lower": lower / required,
+                                      "beam_ids": [uid for uid, _ in beam_ids],
+                                      "sufficient": True if check["reference_satisfied"] is True else None})
+        except (ValueError, KeyError, ArithmeticError, TypeError) as exc:
+            result["reasons"].append(name + ":" + str(exc))
+    checks = [(case["combination"], row) for case in result["cases"] for row in case["sways"]]
+    result["evaluated_checks"] = len(checks)
+    if not result["reasons"] and len(checks) == result["expected_checks"]:
+        name, governing = min(checks, key=lambda item: item[1]["ratio_lower"])
+        result.update(minimum_ratio_lower=governing["ratio_lower"], governing_combination=name,
+                      governing_sway=governing["rotation_sign"], column_sum_lower_knm=governing["column_sum_lower_knm"],
+                      required_sum_upper_knm=governing["required_sum_upper_knm"])
+        if all(row["sufficient"] is True for _, row in checks):
+            result.update(status="SCWB_EQ_7_3_INTERVAL_SUFFICIENT", sufficient=True)
+        else:
+            result.update(status="SCWB_AXIAL_INTERVAL_BOUND_INCONCLUSIVE")
+    return result
+
+
 def _evaluate_scwb_at_joint_ends(
     uid: str,
     frames: dict[str, dict[str, Any]],
@@ -643,6 +743,11 @@ def _evaluate_scwb_at_joint_ends(
                     dir_beams.append((beam, inc_items_by_id[beam["frame_id"]]["end"]))
             if not dir_beams:
                 continue
+
+            interval_result = None
+            if applicability and applicability.get("status") == "LOW_AXIAL_LIMIT_EXCEEDED":
+                interval_result = _selected_scwb_interval(pt_id, direction, applicability, dependency_plan,
+                    inc_cols, inc_beams, inc_items_by_id, dir_beams, beam_by_id, eng_secs, run_id)
 
             # Column participation along this global bending direction
             case_results = []
@@ -883,7 +988,9 @@ def _evaluate_scwb_at_joint_ends(
                 **({"engineer_selected_scwb": eng_scwb_block} if eng_scwb_block is not None else {}),
                 "static_case_count": len(static_combos),
                 "cases": case_results,
-                "status": "SCWB_EQ_7_3_EXEMPT_LOW_AXIAL" if applicability and applicability["exempt"] is True else joint_status,
+                "status": ("SCWB_EQ_7_3_EXEMPT_LOW_AXIAL" if applicability and applicability["exempt"] is True
+                           else interval_result["status"] if interval_result and interval_result["sufficient"] else joint_status),
+                **({"seismic_axial_interval_check": interval_result} if interval_result else {}),
                 **applicability_field,
                 "scwb_ratio": None,
                 "formal_compliance": "NOT_PROVEN",

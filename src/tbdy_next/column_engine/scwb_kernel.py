@@ -10,7 +10,7 @@ from functools import lru_cache
 import math
 
 from .native_archive import BankError, finite, identity
-from .section_capacity import _Curve, FORCE_TOL_N, MOMENT_ABS_TOL_NMM, MOMENT_REL_TOL
+from .section_capacity import _Curve, FORCE_TOL_N, MOMENT_ABS_TOL_NMM, MOMENT_REL_TOL, Section
 
 FACTOR=1.20
 SOURCE="https://github.com/feridunfc/TBDY/blob/1440df1b9300f75b1e604204438f5cada9ebd247/tbdy_engine/design/core/capacity_design.py"
@@ -35,13 +35,16 @@ class JointCase:
     output_case: str
     scenario: str
     step_type: str="Single Value"
-    step_number: float=0.0
+    step_number: float | None=0.0
 
     def __post_init__(self):
         for value in (self.source_run_id,self.source_archive_sha256,self.joint_id,self.output_case,self.scenario):
             identity(value,"SCWB_context")
+        interval = self.scenario == "SELECTED_CAGE_AXIAL_INTERVAL"
+        valid_step = (self.step_type == "Axial interval" and self.step_number is None if interval else
+                      self.step_type == "Single Value" and type(self.step_number) in (int,float) and self.step_number == 0)
         if (self.direction not in ("X","Y") or type(self.rotation_sign) is not int or self.rotation_sign not in (-1,1)
-                or self.step_type!="Single Value" or type(self.step_number) not in (int,float) or self.step_number!=0):
+                or not valid_step):
             raise BankError("SCWB_CONTEXT_UNSUPPORTED")
 
 
@@ -153,3 +156,41 @@ def _column_axis_capacity(section,n_n,axis):
 def column_axis_capacity(section,n_n,axis):
     """No reuse of a demand-vector PMM ratio; solve the requested pure axis."""
     return deepcopy(_column_axis_capacity(section,n_n,axis))
+
+
+def column_axis_interval_bound(section, axis, nd_min_kn, nd_max_kn):
+    """Lower bound on the symmetric section's principal-plane Mr over an entire Nd interval.
+
+    Along _Curve's fixed-axis strain path each bar force increases with neutral-axis depth.
+    The constant compressive concrete stress acts on an expanding region excluding the bar
+    disks. All force increments are nonnegative and lie within half the bending depth of
+    the centroid. Hence |delta M| <= (depth/2) delta N, including across yield and bar entry.
+    Every N between two equilibrated anchors lies within half their gap of one anchor.
+    The anchor tolerance and that distance are deducted before comparing with beam resistance.
+    """
+    lo = finite(nd_min_kn, "nd_min_kn")
+    hi = finite(nd_max_kn, "nd_max_kn")
+    if lo > hi or axis not in ("M2", "M3") or not isinstance(section, Section) or not section.symmetric:
+        raise BankError("SCWB_PRINCIPAL_AXIAL_INTERVAL_UNSUPPORTED")
+    lever_m = (section.t3 if axis == "M2" else section.t2) / 2000
+    guard_kn = 2 * FORCE_TOL_N / 1000
+    left, right = lo - guard_kn, hi + guard_kn
+    anchors = []
+    for index in range(5):
+        target = left + (right - left) * index / 4
+        calc = _column_axis_capacity(section, target * 1000, axis)
+        if calc["status"] != "COLUMN_CAPACITY_REFERENCE":
+            raise BankError(calc["reason"] or "SCWB_AXIAL_INTERVAL_DOMAIN_UNRESOLVED")
+        anchors.append({"nd_kn": calc["point"]["n_n"] / 1000, "mr_knm": calc["capacity_knm"],
+                        "tolerance_knm": calc["tolerance_knm"]})
+    if anchors[0]["nd_kn"] > lo or anchors[-1]["nd_kn"] < hi:
+        raise BankError("SCWB_EQUILIBRIUM_ANCHORS_DO_NOT_BRACKET_ND")
+    bounds = []
+    for a, b in zip(anchors, anchors[1:]):
+        gap = b["nd_kn"] - a["nd_kn"]
+        if gap < 0:
+            raise BankError("SCWB_AXIAL_INTERVAL_ANCHORS_UNORDERED")
+        resistance = min(a["mr_knm"] - a["tolerance_knm"], b["mr_knm"] - b["tolerance_knm"])
+        bounds.append(resistance - lever_m * gap / 2)
+    return {"axis": axis, "nd_interval_kn": [lo, hi], "lever_bound_m": lever_m, "anchors": anchors,
+            "mr_lower_bound_knm": max(0., min(bounds))}
