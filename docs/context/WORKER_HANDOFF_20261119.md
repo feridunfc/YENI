@@ -22,10 +22,12 @@ The next Windows run bound six C29 project roles separately from its two force
 request roles. R03 reconciles the configured EDZ preset and actual zero-state
 solver stiffness. R08 balances the native gravity cut changes against LC_DL
 self-weight for both members. See `EV-C29-R03-ORDER-AXIAL-BALANCE-20261121`.
-Continue with an applicable variable-axial second-order calculation and the
-complete story compressive/critical-load population. The previous first/second
-order pair has no exact load set for the three assigned gravity combinations.
-Carry the result through R10 and R14, retaining joint 40. For C104, obtain
+The subsequent private ETABS run solves the three exact gravity combinations
+at both orders and compares the 18 C29 cuts through R08 and the same selected
+cages. R14 projects that comparison and retains the variable-axial method
+gate. Continue with matched effective stiffness, local P–delta convergence
+and the TS 500 story compression and critical-load basis. Retain joint 40.
+See `EV-C29-PAIRED-GRAVITY-20261121`. For C104, obtain
 C104/W21/W22 reinforcement and connection details at the wall transition before
 qualifying the coupled section. The actual-owner alpha-below-one example is open.
 

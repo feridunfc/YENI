@@ -1,5 +1,43 @@
 # Original building calculation and local handoff — 2026-11-21
 
+## C29 matched ETABS gravity solutions
+
+The selected calculation remains the existing TS 500 magnification path.
+The ETABS pair is a signed comparison input to R08 under the same selected
+cage and physical cut identities. R14 records its comparison outcome beside
+the selected calculation. The variable-axial gate uses observed signed PMM
+cut forces independently of the self-weight breakdown and archived-order log.
+
+The private copy ran `Grav_Ult`, `Grav_TempNeg` and `Grav_TempPos` as six
+full-vector static solutions. For each combination the two nonlinear-static
+case definitions differ only in geometric nonlinearity, from none to P–Delta.
+At all 18 C29 cuts the control reproduced the original six force components.
+R08 compares the P–Delta vector on the same cage using minimum eccentricity
+and unit amplification, alongside the selected TS 500 design moments.
+
+ETABS used the original stiffness and one analysis frame element per C29
+member. The paired scope establishes the effect of changing analysis order
+under that setting. ETABS EI was 8.123733e14 N·mm² in both local axes.
+Selected TS 500 EI was 2.268314e14 N·mm². The native first-order control
+residual was below 7.2e-8 kN and 3.9e-8 kN·m in all six components.
+
+| C29 member | ETABS P–Delta governing cut | ETABS PMM | Selected TS 500 PMM |
+| --- | --- | ---: | ---: |
+| 225 | Grav_Ult at 2.225 m | 0.130354 | 0.213469 |
+| 142 | Grav_Ult at 0.000 m | 0.272729 | 0.295470 |
+
+The largest native moment changes were 1.250076 kN·m in M2 and 0.288289
+kN·m in M3, both at the 225 base under Grav_Ult. Local P–delta mesh
+convergence and the variable-axial method stay open in R14. The spectral
+scope and joint 40 SCWB remain as recorded in the prior calculation. See
+`EV-C29-PAIRED-GRAVITY-20261121`.
+
+Use a matched stiffness basis and a converged representation of local
+P–delta for any subsequent numerical qualification. The selected TS 500
+story method still requires concurrent column and wall compression and the
+qualified critical-load population. C104 retains its separate wall
+reinforcement and connection dependency.
+
 ## C29 project roles, archived solution order and gravity equilibrium
 
 The C29 force request still carries the exact assigned gravity and ductile
@@ -29,14 +67,9 @@ SCWB intervals. It calculated 18 signed PMM cuts, 48 spectral case-cuts and
 32 direction-combination shear results for C29. R14 remains partial for all 87
 columns. Both C29 members retain the variable-axial method qualification gate.
 
-Run the next C29 calculation with the exact original gravity coefficients
-and the physical cuts for an applicable variable-axial second-order
-method or a matched ETABS first/second-order run. The previous private P–Delta
-pair has different coefficients. For the TS 500 story calculation, obtain
-same-cut wall-shell and column compression and the critical-load contribution
-for the coupled members. Keep the R08 method gate until these inputs are
-qualified. Keep the joint 40 interval SCWB result and the nonconcurrent
-spectral-corner scope in the report.
+The newer comparison above ran the exact three gravity coefficient vectors.
+Keep joint 40's interval SCWB result and the nonconcurrent spectral-corner
+scope during the subsequent method qualification.
 
 ## Windows replay: C29 second-order sensitivity through the normal pipeline
 
