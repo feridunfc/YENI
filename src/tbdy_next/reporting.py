@@ -2614,6 +2614,7 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
     basis_rows, factor_rows, balance_rows, pair_rows, pair_basis_rows = [], [], [], [], []
     refined_rows, refined_levels, mesh_changes = [], [], []
     deformation_rows, method_rows = [], []
+    revised_factors, full_span_rows = [], []
     idealization_rows, idealization_cases, idealization_cuts = [], [], []
     for member in members:
         basis = member.get("adopted_second_order_basis") or {}
@@ -2680,6 +2681,11 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
             for name, case in common.get("cases", {}).items():
                 deformation_rows.extend({"member": uid, "combination": name,
                     "before": change["before"], "after": change["after"], **row} for row in case["samples"])
+            span = change.get("full_span_deformation_comparison") or {}
+            if span:
+                full_span_rows.extend({"member": uid, "before": change["before"], "after": change["after"],
+                    "combination": name, "method": span.get("method"), "clear_length_m": span.get("clear_length_m"),
+                    "status": span.get("status"), **case} for name, case in (span.get("cases") or {}).items())
         comparison = refinement.get("method_comparison") or {}
         for row in comparison.get("rows", ()):
             for cut in row["refined_cuts"] or [{}]:
@@ -2690,6 +2696,9 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
                                    **level, **(level.get("cut_counts") or {})})
             refined_rows.extend({"member": member.get("member_id"), "divisions": level["divisions"], **row}
                                 for row in level.get("rows", ()))
+            revised_factors.extend({"member": uid, "divisions": level["divisions"],
+                                    "model": level["model_sha256"], "generation": level.get("analysis_generation"), **row}
+                                   for row in level.get("revised_axis_factors", ()))
     if not basis_rows:
         return ""
     return ('<section class="percheck"><h2>Second order · Adopted calculation basis</h2>'
@@ -2748,6 +2757,26 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
                      ("second_pmm_reason", "P–Delta cut reason"), ("ts500_utilization", "TS 500 PMM")), pair_rows)
            if pair_basis_rows else '')
         + ('<h3>Matched-stiffness gravity mesh comparison</h3>'
+           + ('<h4>Revised TS 500 coefficients</h4>'
+              + _table((("member", "Column"), ("divisions", "Partitions"), ("combination", "Combination"),
+                        ("axis", "Axis"), ("ei_nmm2", "EI (N·mm²)"), ("k", "K"), ("ln_mm", "Clear length (mm)"),
+                        ("lk_mm", "Effective length (mm)"), ("nk_kn", "Member Nk (kN)"),
+                        ("coefficient_nd_kn", "Coefficient Nmax (kN)"), ("story_nd_kn", "Story Nd (kN)"),
+                        ("story_nk_kn", "Story Nk (kN)"), ("member_denominator", "Member denominator"),
+                        ("story_denominator", "Story denominator"), ("story_load_ratio_limit", "Story load ratio limit"),
+                        ("final_factor", "Beta used"), ("eq729_selected_branch", "Eq. 7.29 branch"),
+                        ("status", "Status"), ("reason", "Reason"),
+                        ("generation", "Analysis generation"), ("model", "Model revision")), revised_factors)
+              if revised_factors else '')
+           + ('<h4>Full-span deformation</h4>'
+              + _table((("member", "Column"), ("combination", "Combination"), ("before", "Coarser mesh"),
+                        ("after", "Finer mesh"), ("method", "Recovery"), ("clear_length_m", "Compared length (m)"),
+                        ("before_peak", "Coarser peak"), ("after_peak", "Finer peak"),
+                        ("max_component_differences", "Signed component differences"),
+                        ("max_vector_difference", "Vector difference"),
+                        ("withheld_joint_max", "Residual at additional fine joints"),
+                        ("error_budget", "Error budget (mm)"), ("status", "Outcome")), full_span_rows)
+              if full_span_rows else '')
            + _table((("member", "Column"), ("divisions", "Partitions"), ("status", "PMM status"),
                      ("expected", "Expected"), ("evaluated", "Evaluated"), ("failed", "Failed"), ("unresolved", "Unresolved"),
                      ("common_original_physical_cuts", "Common cuts"), ("additional_physical_cuts", "Additional cuts"),
@@ -2781,11 +2810,14 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
                         ("first_m2_m3_knm", "Revised first order M2/M3 (kN·m)"),
                         ("second_nd_kn", "Direct second order N (kN)"),
                         ("second_m2_m3_knm", "Direct second order M2/M3 (kN·m)"),
+                        ("second_minus_first_signed_knm", "Signed change (kN·m)"),
+                        ("second_minus_first_abs_knm", "Magnitude change (kN·m)"),
                         ("direct_design_m2_m3_knm", "Direct design M2/M3 (kN·m)"),
                         ("original_ts500_design_m2_m3_knm", "Original TS 500 design M2/M3 (kN·m)"),
                         ("revised_ts500_m2_m3_knm", "Revised TS 500 design M2/M3 (kN·m)"),
                         ("original_ts500_pmm", "Original TS 500 PMM"), ("direct_pmm", "Direct second order PMM"),
                         ("revised_ts500_pmm", "Revised TS 500 PMM"),
+                        ("revised_ts500_pmm_status", "Revised PMM status"),
                         ("direct_minus_original_design_knm", "Direct minus original design M2/M3 (kN·m)"),
                         ("revised_ts500_minus_direct_design_knm", "Revised TS 500 minus direct M2/M3 (kN·m)"),
                         ("governing_comparison", "Governing method"), ("revised_ts500_status", "Revised TS 500 status")),

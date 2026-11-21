@@ -16,6 +16,7 @@ from .csi_geometry import LocalSectionDims, NativeSectionDims, local_dimensions,
 TS500_REFERENCE = "https://staff.emu.edu.tr/cemalgenes/Documents/courses/INSA471_2019_20_Bahar/TS500.pdf"
 SWAY_PREVENTED = "SWAY_PREVENTED"
 SWAY_PERMITTED = "SWAY_PERMITTED"
+STORY_LOAD_RATIO_LIMIT = Decimal(".45")
 
 
 def positive(value, label):
@@ -265,6 +266,10 @@ def euler_load_kn(*, effective_ei_nmm2, effective_length_lk_mm):
     return positive(math.pi**2 * ei / lk**2 / 1000, "Nk_kN")
 
 
+def _magnification_denominator(nd_kn, nk_kn):
+    return Decimal(1) - Decimal("1.3") * Decimal(str(nd_kn)) / Decimal(str(nk_kn))
+
+
 def member_magnification_coefficient(*, nd_kn, nk_kn, cm, allow_noncompression=False):
     """TS500 Eq.7.24 scalar; callers establish the supplied Cm's applicability.
 
@@ -275,7 +280,7 @@ def member_magnification_coefficient(*, nd_kn, nk_kn, cm, allow_noncompression=F
     nk, cm = positive(nk_kn, "Nk"), finite(cm, "Cm")
     if not .4 <= cm <= 1:
         raise BankError("CM_OUTSIDE_POINT_FOUR_ONE")
-    denominator = Decimal(1) - Decimal("1.3") * Decimal(str(nd)) / Decimal(str(nk))
+    denominator = _magnification_denominator(nd, nk)
     if denominator <= 0:
         return None
     return float(max(Decimal(1), Decimal(str(cm)) / denominator))
@@ -299,10 +304,10 @@ def moment_magnification_factors(*, nd_kn, nk_kn, sway, signed_end_moment_ratio=
     else:
         cm = 1
         sn, sk = positive(story_nd_kn, "story_Nd"), positive(story_nk_kn, "story_Nk")
-        if Decimal(str(sn)) > Decimal(".45") * Decimal(str(sk)):
+        if Decimal(str(sn)) > STORY_LOAD_RATIO_LIMIT * Decimal(str(sk)):
             output.update(status="BLOCKED", reason="TS500_7_28_STORY_LIMIT_EXCEEDED")
             return output
-        story_denominator = Decimal(1) - Decimal("1.3") * Decimal(str(sn)) / Decimal(str(sk))
+        story_denominator = _magnification_denominator(sn, sk)
         output["beta_story"] = float(max(Decimal(1), Decimal(1) / story_denominator))
     output["cm"] = cm
     beta = member_magnification_coefficient(nd_kn=nd, nk_kn=nk, cm=cm,
@@ -338,6 +343,17 @@ def eq729_length_comparison(*, free_length_ln_mm, effective_length_lk_mm, radius
         "printed_symbol_reading_requires_product": effective["requires_product"],
         "status": "NORMATIVE_LENGTH_SYMBOL_CONFLICT", "product_authorized": False,
         "code_ref": "TS500 7.29: prose=free length; printed symbol=lk", "formal_compliance": "NOT_PROVEN"}
+
+
+def select_sway_magnification_factor(*, beta, beta_story, requires_product):
+    """Apply the branch selected by an explicit Eq. 7.29 length reading."""
+    if type(requires_product) is not bool:
+        raise BankError("ADOPTED_EQ729_BRANCH_REQUIRED")
+    member = positive(beta, "beta")
+    story = positive(beta_story, "beta_story")
+    if requires_product:
+        return "PRODUCT", positive(member * story, "adopted_final_factor")
+    return "MAXIMUM", max(member, story)
 
 
 def adopted_magnification_factors(*, nd_kn, nk_kn, free_length_ln_mm, k, radius_mm, fck_mpa, area_mm2,
@@ -383,9 +399,8 @@ def adopted_magnification_factors(*, nd_kn, nk_kn, free_length_ln_mm, k, radius_
         else:
             product = False
             result["eq729_comparison"] = {"status": "NONCOMPRESSION_NO_LOCAL_BUCKLING_PRODUCT"}
-        branch = "PRODUCT" if product else "MAXIMUM"
-        result["final_factor"] = (result["beta"] * result["beta_story"] if product
-                                  else max(result["beta"], result["beta_story"]))
+        branch, result["final_factor"] = select_sway_magnification_factor(
+            beta=result["beta"], beta_story=result["beta_story"], requires_product=product)
     positive(result["final_factor"], "adopted_final_factor")
     result.update(status="ADOPTED_COEFFICIENTS_CALCULATED_NOT_PROVEN", reason=None, eq729_selected_branch=branch)
     return result

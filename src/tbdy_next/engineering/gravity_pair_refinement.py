@@ -6,11 +6,12 @@ from math import hypot, isclose
 import re
 
 from ..column_engine.source_bank import native_frame_force_rows
-from ..column_engine.ts500_column import euler_load_kn
+from ..column_engine.ts500_column import STORY_LOAD_RATIO_LIMIT, _magnification_denominator, euler_load_kn
 from .column_clear_length import proven_clear_length_m
 from .column_r08_local_live import _adopted_axis_factor, _magnified_moment_demand
 from .gravity_order_pair import (
-    FORCE_FIELDS, _finite, _native_ei, _station_pmm, _summarize_pmm, _utilization, normalize_gravity_order_pair,
+    FORCE_FIELDS, QUALIFIED_SCHEMA, SCHEMA, _finite, _native_ei, _station_pmm, _summarize_pmm, _utilization,
+    normalize_gravity_order_pair,
 )
 
 DIVISIONS = (2, 4, 8)
@@ -32,9 +33,14 @@ def normalize_levels(levels, base):
         raise ValueError("GRAVITY_REFINEMENT_LEVELS_INVALID")
     members = base["force_source"]["rowsets"].keys()
     revisions = set()
+    required = {"divisions", "model_sha256", "mesh", "frame_object_modifiers", "force_source",
+                "joint_displacements", "story_inputs"}
+    qualified = base["schema"] == QUALIFIED_SCHEMA
+    if qualified:
+        required.add("analysis_generation")
+    optional = {"kinematics", "story_basis_source"} if qualified else set()
     for level in levels:
-        if (set(level) != {"divisions", "model_sha256", "mesh", "frame_object_modifiers", "force_source",
-                           "joint_displacements", "story_inputs"}
+        if (set(level) - optional != required
                 or not isinstance(level["model_sha256"], str)
                 or re.fullmatch(r"[a-f0-9]{64}", level["model_sha256"]) is None
                 or level["model_sha256"] in revisions
@@ -44,6 +50,14 @@ def normalize_levels(levels, base):
                 or not isinstance(level["story_inputs"], Mapping) or not level["story_inputs"].keys() <= members):
             raise ValueError("GRAVITY_REFINEMENT_SOURCE_OR_MESH_SCOPE_INVALID")
         revisions.add(level["model_sha256"])
+        if qualified:
+            generation = level["analysis_generation"]
+            force = level["force_source"]
+            if (not isinstance(generation, str) or re.fullmatch(r"[a-f0-9]{64}", generation) is None
+                    or not isinstance(force, Mapping) or force.get("analysis_generation") != generation
+                    or force.get("model_sha256") != level["model_sha256"] or level["story_inputs"]
+                    or any(not isinstance(level[key], Mapping) for key in optional & level.keys())):
+                raise ValueError("GRAVITY_REFINEMENT_GENERATION_OR_PRODUCER_SCOPE_INVALID")
         for mesh in level["mesh"].values():
             if not isinstance(mesh, list) or len(mesh) != level["divisions"]:
                 raise ValueError("GRAVITY_REFINEMENT_ELEMENT_COUNT_MISMATCH")
@@ -55,7 +69,7 @@ def normalize_levels(levels, base):
                                or not all(_finite(x) for x in element[key]) for key in ("i_xyz", "j_xyz"))):
                     raise ValueError("GRAVITY_REFINEMENT_ELEMENT_GEOMETRY_INVALID")
         normalize_gravity_order_pair({
-            **base, "mesh": {uid: [row["element"] for row in mesh] for uid, mesh in level["mesh"].items()},
+            **base, "schema": SCHEMA, "mesh": {uid: [row["element"] for row in mesh] for uid, mesh in level["mesh"].items()},
             "frame_object_modifiers": level["frame_object_modifiers"], "force_source": level["force_source"],
         }, source_data_sha256=base["source_data_sha256"])
     return levels
@@ -121,30 +135,39 @@ def _paired_cuts(uid, level, cases, elements, original_z, low, high):
     return cuts
 
 
-def _refined_ts500(local, dims, capacity, cuts, level, uid, cases):
+def _refined_ts500(local, dims, capacity, cuts, story, cases):
     # The revised first-order vectors and level-specific story inputs drive the
     # same factor owner. The original selected demand stays on its own branch.
     basis = local["adopted_second_order_basis"]
     if basis["global_factor_policy"] != "TS500_SWAY_WITH_TBDY_UNITY":
-        return None, "REVISED_TS500_FACTOR_POLICY_UNSUPPORTED"
-    story = level["story_inputs"].get(uid)
-    if not story:
-        return None, "REVISED_TS500_STORY_BASIS_UNAVAILABLE"
-    if not isinstance(story, Mapping) or set(story) != {"M2", "M3"}:
+        return {}, "REVISED_TS500_FACTOR_POLICY_UNSUPPORTED", []
+    if not isinstance(story, Mapping) or not story.keys() <= {"M2", "M3"}:
         raise ValueError("GRAVITY_REFINEMENT_AXIS_BASIS_INVALID")
     for item in story.values():
         if (not isinstance(item, Mapping) or set(item) != {"k", "story_aggregates"}
                 or not _finite(item["k"]) or item["k"] <= 0 or not isinstance(item["story_aggregates"], Mapping)
-                or set(item["story_aggregates"]) != set(cases)):
+                or not item["story_aggregates"].keys() <= cases.keys()):
             raise ValueError("GRAVITY_REFINEMENT_AXIS_BASIS_INVALID")
     factors = {}
-    peaks = {}
+    diagnostics = []
+    peaks = {name: max(-value["first"][0] for key, value in cuts.items() if key[0] == name)
+             for name in cases}
     for name in cases:
-        peak = max(-value["first"][0] for key, value in cuts.items() if key[0] == name)
-        peaks[name] = peak
         for axis, stiffness in local["stiffness_and_euler"].items():
-            revised_axis = story[axis]
-            totals = revised_axis["story_aggregates"][name]
+            revised_axis = story.get(axis, {})
+            totals = revised_axis.get("story_aggregates", {}).get(name)
+            trace = {"combination": name, "axis": axis, "ei_nmm2": stiffness["selected_ei_nmm2"],
+                     "ln_mm": stiffness["free_length_ln_mm"], "coefficient_nd_kn": peaks[name],
+                     "status": "REVISED_TS500_STORY_BASIS_UNAVAILABLE"}
+            diagnostics.append(trace)
+            if revised_axis:
+                k = revised_axis["k"]
+                lk = k * trace["ln_mm"]
+                nk = euler_load_kn(effective_ei_nmm2=trace["ei_nmm2"], effective_length_lk_mm=lk)
+                trace.update(k=k, lk_mm=lk, nk_kn=nk,
+                             member_denominator=float(_magnification_denominator(peaks[name], nk)))
+            if totals is None:
+                continue
             if (not isinstance(totals, Mapping) or set(totals) != {"nd_kn", "nk_kn"}
                     or not all(_finite(v) and v > 0 for v in totals.values())):
                 raise ValueError("GRAVITY_REFINEMENT_STORY_TOTALS_INVALID")
@@ -152,16 +175,18 @@ def _refined_ts500(local, dims, capacity, cuts, level, uid, cases):
                 **basis["member"]["axes"], axis: {**basis["member"]["axes"][axis],
                                                 "story_aggregates": {name: totals}},
             }}}
-            revised_stiffness = {**stiffness, "effective_length_factor_k": revised_axis["k"]}
-            nk = euler_load_kn(effective_ei_nmm2=stiffness["selected_ei_nmm2"],
-                              effective_length_lk_mm=revised_axis["k"] * stiffness["free_length_ln_mm"])
-            result = _adopted_axis_factor(revised, axis, name, peak, nk, revised_stiffness, end_ratio=None)
-            if result.get("final_factor") is None:
-                return None, "REVISED_TS500_FACTOR_UNRESOLVED"
-            factors[name, axis] = result["final_factor"]
+            revised_stiffness = {**stiffness, "effective_length_factor_k": k}
+            result = _adopted_axis_factor(revised, axis, name, peaks[name], nk, revised_stiffness, end_ratio=None)
+            trace.update(story_nd_kn=totals["nd_kn"], story_nk_kn=totals["nk_kn"],
+                         story_denominator=float(_magnification_denominator(totals["nd_kn"], totals["nk_kn"])),
+                         story_load_ratio_limit=float(STORY_LOAD_RATIO_LIMIT), **result)
+            if result.get("final_factor") is not None:
+                factors[name, axis] = result["final_factor"]
     results = {}
     for key, cut in cuts.items():
         name = key[0]
+        if any((name, axis) not in factors for axis in ("M2", "M3")):
+            continue
         nd, m2, m3 = -cut["first"][0], cut["first"][4], cut["first"][5]
         demand = _magnified_moment_demand(nd_kn=nd, m2_knm=m2, m3_knm=m3, dims=dims,
             beta_m2=factors[name, "M2"], beta_m3=factors[name, "M3"], global_factor=1.0)
@@ -171,7 +196,13 @@ def _refined_ts500(local, dims, capacity, cuts, level, uid, cases):
             "ts500_beta_m2": factors[name, "M2"], "ts500_beta_m3": factors[name, "M3"],
             "ts500_pmm": capacity.assess(nd * 1000.0, m2 * 1e6, m3 * 1e6),
         }
-    return results, "REVISED_FIRST_ORDER_VECTORS_AND_STORY_INPUTS_CONSUMED"
+    if any(trace["status"] == "BLOCKED" for trace in diagnostics):
+        status = "REVISED_TS500_STABILITY_FAILURE"
+    elif len(results) == len(cuts):
+        status = "REVISED_FIRST_ORDER_VECTORS_AND_STORY_INPUTS_CONSUMED"
+    else:
+        status = "REVISED_TS500_STORY_BASIS_UNAVAILABLE"
+    return results, status, diagnostics
 
 
 def _node_chord_profiles(elements, record, cases, low):
@@ -213,10 +244,19 @@ def compare_level(source, pmm, local, base, level, dims, capacity):
         out["cut_counts"].update(expected=len(cuts), unresolved=len(cuts))
         out["first_order_nmax_kn"] = {name: max(-value["first"][0] for key, value in cuts.items() if key[0] == name)
                                      for name in cases}
+        revised = {}
         try:
-            revised, out["ts500_status"] = _refined_ts500(local, dims, capacity, cuts, level, uid, cases)
+            story = level["story_inputs"].get(uid, {})
+            if base["schema"] == QUALIFIED_SCHEMA:
+                out["analysis_generation"] = level["analysis_generation"]
+                from .gravity_story_basis import produce_story_basis
+
+                story_basis = produce_story_basis(source, local, level, uid, cases)
+                out["revised_story_basis"] = story_basis
+                story = story_basis["story_inputs"]
+            revised, out["ts500_status"], out["revised_axis_factors"] = _refined_ts500(
+                local, dims, capacity, cuts, story, cases)
         except (ArithmeticError, KeyError, TypeError, ValueError) as exc:
-            revised = None
             out.update(ts500_status="REVISED_TS500_BASIS_INVALID", ts500_reason=str(exc))
         original_z = local["physical_clear_length"]["end_cuts"]["I"][1]
         original_stations = {(row["combination"], round(row["object_station_m"] - original_z, 6))
@@ -230,7 +270,7 @@ def compare_level(source, pmm, local, base, level, dims, capacity):
                    "element_station_m": elm_station, "physical_station_m": cut["physical_station_m"], "side": cut["side"],
                    "control": dict(zip(FORCE_FIELDS, cut["first"])), "second": dict(zip(FORCE_FIELDS, cut["second"])),
                    **_station_pmm(cut["second"], dims, capacity)}
-            if revised is not None:
+            if key in revised:
                 assessment = revised[key]["ts500_pmm"]
                 row.update({field: value for field, value in revised[key].items() if field != "ts500_pmm"})
                 row.update(ts500_utilization=_utilization(assessment),
@@ -247,6 +287,12 @@ def compare_level(source, pmm, local, base, level, dims, capacity):
         out["second_order_node_chord_bow_mm"] = {name: row["norm_mm"] for name, row in peaks.items()}
         out["clear_length_m"] = round(high - low, 6)
         out["full_span_peak_status"] = "UNVERIFIED_BETWEEN_NATIVE_JOINTS"
+        if base["schema"] == QUALIFIED_SCHEMA:
+            from .gravity_deformation import recover_level
+
+            span = recover_level(level, uid, elements, cases, low, high, stiffness)
+            out["full_span_deformation"] = span
+            out["full_span_peak_status"] = span["status"]
     except (ArithmeticError, KeyError, TypeError, ValueError) as exc:
         out.update(reason=str(exc))
     return out
@@ -298,15 +344,23 @@ def _mesh_change(before, after):
                        for name in names) if bow_available else None)
     force_deltas = {f: max((abs(a[key]["second"][f] - b[key]["second"][f]) for key in shared), default=None)
                     for f in fields}
+    span = {}
+    bow_for_mesh = bow_matches
+    if "analysis_generation" in before and "analysis_generation" in after:
+        from .gravity_deformation import compare_recovered
+
+        span = compare_recovered(before.get("full_span_deformation"), after.get("full_span_deformation"), BOW_TOL_MM)
+        bow_for_mesh = span["within_tolerance"]
     return {"before": before["divisions"], "after": after["divisions"], "shared_signed_cuts": len(shared),
             "max_common_absolute_difference": force_deltas,
             "sufficient_common_locations": covers_common,
             "common_node_deformation": _common_node_deformation(before, after, names),
-            "full_span_peak_status": "UNVERIFIED_BETWEEN_NATIVE_JOINTS",
+            "full_span_peak_status": span.get("status", "UNVERIFIED_BETWEEN_NATIVE_JOINTS"),
+            **({"full_span_deformation_comparison": span} if span else {}),
             "forces_within_tolerance": forces_match and covers_common, "full_mesh_extrema_within_tolerance": peaks_match,
             "full_mesh_pmm_within_tolerance": pmms_match, "node_chord_bow_within_tolerance": bow_matches,
-            "within_tolerance": (forces_match and peaks_match and pmms_match and bow_matches
-                                 if covers_common and bow_available else None)}
+            "within_tolerance": (forces_match and peaks_match and pmms_match and bow_for_mesh
+                                 if covers_common and bow_for_mesh is not None else None)}
 
 
 def _method_comparison(original, finest, local):
@@ -336,14 +390,19 @@ def _method_comparison(original, finest, local):
             ratios = [("ORIGINAL_TS500", row["ts500_utilization"]), ("DIRECT_P_DELTA", cut["second_pmm_utilization"]),
                       ("REVISED_TS500", cut.get("ts500_utilization"))]
             complete = all(_finite(value) for _, value in ratios)
+            first_moments, second_moments = moments(cut["control"]), moments(cut["second"])
             choices.append({"element": cut["analysis_element_id"], "side": cut["side"],
                             "first_nd_kn": -cut["control"]["p_kn"], "second_nd_kn": -cut["second"]["p_kn"],
-                            "first_m2_m3_knm": moments(cut["control"]), "second_m2_m3_knm": moments(cut["second"]),
+                            "first_m2_m3_knm": first_moments, "second_m2_m3_knm": second_moments,
+                            "second_minus_first_signed_knm": delta(second_moments, first_moments),
+                            "second_minus_first_abs_knm": delta([abs(v) for v in second_moments],
+                                                                [abs(v) for v in first_moments]),
                             "direct_design_m2_m3_knm": direct, "direct_pmm": cut["second_pmm_utilization"],
                             "revised_nmax_kn": finest["first_order_nmax_kn"][name],
                             "revised_ts500_coefficient_nd_kn": cut.get("ts500_coefficient_nd_kn"),
                             "revised_ts500_beta": [cut["ts500_beta_m2"], cut["ts500_beta_m3"]] if ts else None,
                             "revised_ts500_m2_m3_knm": ts, "revised_ts500_pmm": cut.get("ts500_utilization"),
+                            "revised_ts500_pmm_status": cut.get("ts500_pmm_status"),
                             "revised_ts500_minus_direct_design_knm": delta(ts, direct),
                             "direct_minus_original_design_knm": (delta(direct, design)
                                                                  if all(_finite(v) for v in (*direct, *design)) else None),

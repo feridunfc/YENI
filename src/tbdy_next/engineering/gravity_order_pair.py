@@ -9,6 +9,7 @@ from .column_pmm_section import MECHANICAL, _named_row, _positive, _rows
 from .mixed_demands import _static_pattern_loads, linear_coefficients, native_graph
 
 SCHEMA = "tbdy.next.gravity-order-pair.v1"
+QUALIFIED_SCHEMA = "tbdy.next.gravity-order-pair.v2"
 METHOD = "ETABS_MATCHED_GRAVITY_COMPARISON_ONLY"
 FORCE_FIELDS = ("p_kn", "v2_kn", "v3_kn", "t_knm", "m2_knm", "m3_knm")
 CONTROL_ATOL = 0.001
@@ -79,7 +80,9 @@ def _summarize_pmm(out, expected, *, controls_matched):
 def normalize_gravity_order_pair(raw, *, source_data_sha256):
     keys = {"schema", "source_data_sha256", "cases", "force_source", "section_name",
             "frame_section_modifiers", "frame_object_modifiers", "mesh"}
-    if (not isinstance(raw, Mapping) or set(raw) - {"refined_levels"} != keys or raw["schema"] != SCHEMA
+    if (not isinstance(raw, Mapping) or set(raw) - {"refined_levels"} != keys
+            or raw["schema"] not in (SCHEMA, QUALIFIED_SCHEMA)
+            or (raw["schema"] == QUALIFIED_SCHEMA and "refined_levels" not in raw)
             or raw["source_data_sha256"] != source_data_sha256
             or not isinstance(raw["section_name"], str) or not raw["section_name"]):
         raise ValueError("GRAVITY_PAIR_SOURCE_BINDING_INVALID")

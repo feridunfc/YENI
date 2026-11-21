@@ -7,6 +7,7 @@ live ETABS verification, TS500 applicability or engineering acceptance.
 from argparse import Namespace
 from contextlib import ExitStack, redirect_stdout
 from copy import deepcopy
+from hashlib import sha256
 from http.server import ThreadingHTTPServer
 import io
 import json
@@ -19,16 +20,107 @@ from unittest.mock import patch
 from urllib.request import Request, urlopen
 
 from tbdy_next.engineering.cli_adapter import run_cli
+from tbdy_next.column_engine.column_kinematics import COMPONENTS, COORDINATE_CONTRACT
+from tbdy_next.engineering.column_pmm_section import MECHANICAL
+from tbdy_next.engineering.design_scenario import _digest, _source_data
+from tbdy_next.engineering.gravity_order_pair import QUALIFIED_SCHEMA
+from tbdy_next.engineering.second_order_basis import SWAY_POLICY
 from tbdy_next.engineering.pipeline_snapshot import compare_runs, read_snapshot
 from tbdy_next.reporting import build_complete_report, build_printable_html
 from tbdy_next.web import make_handler
+from vertical_slice_fixture import digest, table
 from variable_axial_slice_fixture import (
     COMBINATIONS, CUTS, TOP_COMPRESSION_KN, bind_source, source_and_request,
 )
+from test_r10_live import _rowset
 
 
 APPLIED = "ADOPTED_AXIAL_IDEALIZATION_APPLIED_NOT_PROVEN"
 PENDING = "ADOPTED_AXIAL_IDEALIZATION_ENGINEERING_ACCEPTANCE_PENDING"
+
+
+def completion_fixture(*, spring_scale=1.):
+    """Build signed demands, source geometry, and an analytical parabolic bow."""
+    from test_gravity_story_basis import add_bound_story_basis
+
+    raw, request = source_and_request()
+    source = json.loads(raw)
+    source["column_axial"]["pmm_section_source"]["table_reads"][MECHANICAL] = table(
+        MECHANICAL, "Material E1 UnitWeight", [("B420C", "200000000", "78.5"), ("C35/45", "34000000", "25")],
+        {"E1": "kN/m2", "UnitWeight": "kN/m3"})
+    uid, name, length = "C1", "G", 2.5
+    first, second = "SYN_GRAV_F", "SYN_GRAV_P"
+    cases = {name: {"first": first, "second": second, "patterns": {"LC_DL": 1.}}}
+    before = {"cases": {first: False, second: False}, "combos": {name: True}}
+    force = {"schema": "tbdy.next.etabs-frame-force-source.v1", "api": "Results.FrameForce",
+             "item_type": "ObjectElm", "units_code": 6, "errors": {}, "output_selection_before": before,
+             "output_selection_after": before, "output_selection_during": {
+                 "cases": {first: True, second: True}, "combos": {name: False}}}
+    sec_mods = [1., 1., 1., 1., .7, .7, 1., 1.]
+    inertia = 800. ** 4 / 12.
+    steel = math.pi * 16. ** 2 / 4 * (18 * 340. ** 2 + 2 * sum((-340. + j * 85.) ** 2 for j in range(1, 8)))
+    ei = .2 * (3250. * math.sqrt(35.) + 14000.) * inertia + 200000. * steel
+    modifier = ei / (34000. * inertia * .7)
+    levels = []
+    for divisions in (2, 4, 8):
+        positions = [*(length * j / divisions for j in range(divisions)), 3.]
+        joints = ["P0", *(f"M{divisions}_{i}" for i in range(1, divisions)), "P1"]
+        elements, rows = [], []
+        for index, (a, b) in enumerate(zip(positions, positions[1:])):
+            element = f"M{divisions}_E{index}"
+            elements.append({"element": element, "i_joint": joints[index], "j_joint": joints[index + 1],
+                             "i_xyz": [0., 0., a], "j_xyz": [0., 0., b]})
+            face = min(b, length)
+            for cut in (a, (a + face) / 2, face):
+                rows.extend((uid, cut, element, cut - a, case, "Step", 1., p, 0., 0., 0., m2, m3)
+                            for case, p, m2, m3 in ((first, -2780. + 16. * cut, -150., 170.), (second, -2810. + 16. * cut, -153., 174.)))
+        model = sha256(f"manufactured model {divisions} spring {spring_scale}".encode()).hexdigest()
+        generation = sha256(f"manufactured solve {divisions} spring {spring_scale}".encode()).hexdigest()
+        scaling = .0004
+        motion = {node: dict(zip(COMPONENTS, (scaling * z * (3. - z), 0., 0., 0., scaling * (3. - 2. * z), 0.)))
+                  for node, z in zip(joints, positions)}
+        sections = {r["element"]: {"axes_global": [[0., 0., 1.], [1., 0., 0.], [0., 1., 0.]],
+                     "offsets_m": [0., .5 if i == divisions - 1 else 0.], "rigid_end_factor": 0.,
+                     "kinematics_basis": "PRISMATIC_CENTROIDAL_UNRELEASED_GLOBAL_JOINTS",
+                     "ei_knm2": [ei / 1e9, ei / 1e9], "ga_kn": [100000., 100000.]}
+                    for i, r in enumerate(elements)}
+        level = {"divisions": divisions, "model_sha256": model, "analysis_generation": generation,
+                 "mesh": {uid: elements}, "frame_object_modifiers": {uid: [1., 1., 1., 1., modifier, modifier, 1., 1.]},
+                 "force_source": {**force, "rowsets": {uid: _rowset(rows)},
+                                  "model_sha256": model, "analysis_generation": generation},
+                 "joint_displacements": {uid: {second: {node: [item[k] for k in COMPONENTS[:3]]
+                                                       for node, item in motion.items()}}},
+                 "story_inputs": {}, "kinematics": {
+                     "schema": "tbdy.next.gravity-frame-kinematics.v1", "model_sha256": model,
+                     "analysis_generation": generation, "case_step": ["Step", 1.],
+                     "coordinate_contract": COORDINATE_CONTRACT,
+                     "units": {"translational": "m", "rotational": "rad", "stiffness": "kN,m"},
+                     "translation_error_m": 0., "rotation_error_rad": 0.,
+                     "members": {uid: {"joints": {second: motion}, "elements": sections}}}}
+        story = add_bound_story_basis(source, level, uid, cases, ln_mm=2500., ei_nmm2=ei, story_id="S1")
+        for axis in story["columns"][uid]["axes"].values():
+            for side in ("i", "j"):
+                axis["restraint"][side]["k_knm_per_rad"] *= spring_scale
+        levels.append(level)
+    geom = source["vs06_b1_geometry_source"]
+    geom["payload_sha256"] = digest({key: value for key, value in geom.items() if key != "payload_sha256"})
+    basis = request["second_order_basis"]
+    basis["global_factor_policy"] = SWAY_POLICY
+    basis["global_factor_reference"] = "Manufactured source with non-overlapping global policy"
+    for axis in (axis for member in basis["members"].values() for axis in member["axes"].values()):
+        axis.update(sway="SWAY_PERMITTED", eq729_length_reading="EFFECTIVE_LENGTH",
+                    story_aggregates={combo: {"nd_kn": 500., "nk_kn": 100000., "reference": "Analytical fixture"}
+                                      for combo in COMBINATIONS})
+    raw, request = bind_source(source, request)
+    base_rows = [(uid, z, "C1-elm", z, case, "Step", 1., -(TOP_COMPRESSION_KN[uid] + 16. * (length - z)), 0., 0., 0., m2, m3)
+                 for z in CUTS for case, m2, m3 in ((first, 30., 30.), (second, 33., 33.))]
+    request["scenario_id"] = "qualified-refined-gravity-contract"
+    request["gravity_order_pair"] = {
+        "schema": QUALIFIED_SCHEMA, "source_data_sha256": _digest(_source_data(source)), "section_name": "C80",
+        "cases": cases, "force_source": {**force, "rowsets": {uid: _rowset(base_rows)}},
+        "frame_section_modifiers": sec_mods, "frame_object_modifiers": {uid: [1.] * 8},
+        "mesh": {uid: ["C1-elm"]}, "refined_levels": levels}
+    return raw, request
 
 
 class VariableAxialVerticalSliceTests(unittest.TestCase):
@@ -106,6 +198,55 @@ class VariableAxialVerticalSliceTests(unittest.TestCase):
         for stage in (default, self.stages):
             self.assertEqual(stage["r14_closure"]["engineering_release"], "NOT_READY")
         self.assertNotEqual(compare_runs(Path(self.default_summary["run_dir"]), self.directory)["status"], "IDENTICAL")
+
+    def test_qualified_revised_model_consumes_story_and_six_dof_in_sealed_pipeline(self):
+        raw, request = completion_fixture()
+        summary, snapshot = self.calculate(raw, request, "qualified-refined")
+        run = Path(summary["run_dir"])
+        r08 = snapshot["results"]["r08_local_slenderness"]["per_member"]["C1"]["gravity_order_pair"]["refinement"]
+        r14 = next(row for row in snapshot["results"]["r14_closure"]["columns"] if row["member_id"] == "C1")
+        closure = r14["pillars"]["second_order_selected_pmm"]["gravity_refinement"]
+        finest = r08["levels"][-1]
+        self.assertEqual(finest["ts500_status"], "REVISED_FIRST_ORDER_VECTORS_AND_STORY_INPUTS_CONSUMED", finest)
+        self.assertEqual(len(finest["revised_axis_factors"]), 2)
+        self.assertTrue(all(factor["final_factor"] > 1 for factor in finest["revised_axis_factors"]))
+        self.assertEqual(closure["method_comparison"]["matched_physical_cuts"], 3)
+        choices = [c for row in r08["method_comparison"]["rows"] for c in row["refined_cuts"]]
+        self.assertEqual(len(choices), 4)
+        self.assertTrue(all(c["revised_ts500_pmm"] is not None for c in choices))
+        span = r08["changes"][-1]["full_span_deformation_comparison"]
+        self.assertTrue(span["within_tolerance"], span)
+        self.assertAlmostEqual(span["cases"]["G"]["after_peak"]["value_mm"], .9, delta=.001)
+        self.assertAlmostEqual(span["cases"]["G"]["after_peak"]["station_m"], 1.5, delta=.025)
+        self.assertEqual(snapshot["results"]["r14_closure"]["engineering_release"], "NOT_READY")
+        with patch("tbdy_next.engineering.gravity_deformation.recover_level", side_effect=AssertionError("recompute")), \
+             patch("tbdy_next.engineering.gravity_pair_refinement._refined_ts500", side_effect=AssertionError("recompute")):
+            report = build_complete_report(self.root, run.name)
+            html = build_printable_html(report)
+            self.assertEqual(report["run_id"], run.name)
+            self.assertIn("Revised TS 500 coefficients", html)
+            self.assertIn("Full-span deformation", html)
+
+    def test_revised_restraint_changes_design_and_a_real_limit_failure_is_retained(self):
+        finest_levels = {}
+        for scale in (1., 2., .01):
+            raw, request = completion_fixture(spring_scale=scale)
+            _, snapshot = self.calculate(raw, request, f"revised-springs-{scale}")
+            local = snapshot["results"]["r08_local_slenderness"]["per_member"]["C1"]
+            finest_levels[scale] = local["gravity_order_pair"]["refinement"]["levels"][-1]
+        original, stiffer, failed = (finest_levels[scale] for scale in (1., 2., .01))
+        self.assertLess(stiffer["revised_axis_factors"][0]["k"], original["revised_axis_factors"][0]["k"])
+        self.assertLess(stiffer["revised_axis_factors"][0]["final_factor"],
+                        original["revised_axis_factors"][0]["final_factor"])
+        self.assertLess(abs(stiffer["rows"][0]["ts500_m2_knm"]), abs(original["rows"][0]["ts500_m2_knm"]))
+        self.assertEqual(stiffer["rows"][0]["second"], original["rows"][0]["second"])
+        self.assertEqual(failed["ts500_status"], "REVISED_TS500_STABILITY_FAILURE")
+        self.assertEqual(len(failed["rows"]), len(original["rows"]))
+        for axis in failed["revised_axis_factors"]:
+            self.assertEqual(axis["reason"], "TS500_APPROXIMATE_METHOD_SLENDERNESS_LIMIT_EXCEEDED")
+            self.assertLess(axis["member_denominator"], 0.)
+            self.assertIsNone(axis["final_factor"])
+        self.assertTrue(all("ts500_m2_knm" not in row for row in failed["rows"]))
 
     def test_independent_stiffness_beta_and_cut_local_demand_are_numerically_consumed(self):
         # Independent 9-by9 perimeter cage:32Phi16, cover40/tie12/bar radius8.
