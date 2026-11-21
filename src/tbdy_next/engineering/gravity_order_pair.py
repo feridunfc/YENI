@@ -13,16 +13,73 @@ METHOD = "ETABS_MATCHED_GRAVITY_COMPARISON_ONLY"
 FORCE_FIELDS = ("p_kn", "v2_kn", "v3_kn", "t_knm", "m2_knm", "m3_knm")
 CONTROL_ATOL = 0.001
 CONTROL_RTOL = 1e-6
+_PMM_FAILURES = {"OUTSIDE_SCENARIO_AXIAL_RANGE", "EXCEEDS_SCENARIO_SURFACE"}
+_PMM_RESOLVED = _PMM_FAILURES | {"WITHIN_SCENARIO_SURFACE", "AXIAL_ONLY_SCENARIO"}
 
 
 def _finite(value):
     return type(value) in (int, float) and isfinite(value)
 
 
+def _utilization(assessment):
+    value = assessment.get("axial_utilization" if assessment.get("status") == "AXIAL_ONLY_SCENARIO" else "utilization")
+    return value if _finite(value) and value >= 0 else None
+
+
+def _station_pmm(vector, dims, capacity):
+    try:
+        demand = apply_minimum_eccentricity(nd_kn=-vector[0], m2_knm=vector[4], m3_knm=vector[5], dims=dims)
+        m2, m3 = demand["m2_design_knm"], demand["m3_design_knm"]
+        return {"second_design_m2_knm": m2, "second_design_m3_knm": m3,
+                "second_order_pmm": capacity.assess(-vector[0] * 1000.0, m2 * 1e6, m3 * 1e6)}
+    except (ArithmeticError, ValueError) as exc:
+        return {"second_order_pmm": {"status": "NUMERIC_UNRESOLVED", "reason": str(exc), "utilization": None}}
+
+
+def _summarize_pmm(out, expected, *, controls_matched):
+    out["control_status"] = "MATCHED" if controls_matched else "MISMATCH"
+    evaluated = failed = unresolved = 0
+    candidates = []
+    for row in out["rows"]:
+        assessment = row.get("second_order_pmm") or {}
+        status = assessment.get("status", "NOT_EVALUATED")
+        utilization = _utilization(assessment)
+        row.update(second_pmm_status=status, second_pmm_reason=assessment.get("reason"),
+                   second_pmm_utilization=utilization)
+        if status in _PMM_RESOLVED and (utilization is not None or status == "OUTSIDE_SCENARIO_AXIAL_RANGE"):
+            evaluated += 1
+            if status in _PMM_FAILURES:
+                failed += 1
+            elif utilization is not None:
+                candidates.append(row)
+        else:
+            unresolved += 1
+    out["cut_counts"] = {"expected": expected, "evaluated": evaluated, "failed": failed,
+                         "unresolved": unresolved + max(0, expected - len(out["rows"]))}
+    if not controls_matched:
+        out["status"] = "GRAVITY_PAIR_CONTROL_MISMATCH"
+    elif failed:
+        out["status"] = "GRAVITY_PAIR_PMM_FAILURE"
+    elif unresolved or evaluated != expected or not candidates:
+        out["status"] = "GRAVITY_PAIR_PMM_UNRESOLVED"
+    else:
+        out["status"] = "GRAVITY_PAIR_COMPARED"
+        governing = max(candidates, key=lambda row: row["second_pmm_utilization"])
+        keys = ("combination", "object_station_m", "analysis_element_id")
+        out["governing"] = {key: governing[key] for key in keys}
+        out["governing"]["utilization"] = governing["second_pmm_utilization"]
+        axes = {"M2": ("second_design_m2_knm", "ts500_m2_knm"),
+                "M3": ("second_design_m3_knm", "ts500_m3_knm")}
+        differences = {axis: abs(governing[actual] - governing[reference]) for axis, (actual, reference) in axes.items()
+                       if _finite(governing.get(reference))}
+        if differences:
+            out["governing"]["largest_design_moment_difference_axis"] = max(differences, key=differences.__getitem__)
+
+
 def normalize_gravity_order_pair(raw, *, source_data_sha256):
     keys = {"schema", "source_data_sha256", "cases", "force_source", "section_name",
             "frame_section_modifiers", "frame_object_modifiers", "mesh"}
-    if (not isinstance(raw, Mapping) or set(raw) != keys or raw["schema"] != SCHEMA
+    if (not isinstance(raw, Mapping) or set(raw) - {"refined_levels"} != keys or raw["schema"] != SCHEMA
             or raw["source_data_sha256"] != source_data_sha256
             or not isinstance(raw["section_name"], str) or not raw["section_name"]):
         raise ValueError("GRAVITY_PAIR_SOURCE_BINDING_INVALID")
@@ -58,6 +115,10 @@ def normalize_gravity_order_pair(raw, *, source_data_sha256):
             or any(not isinstance(values, list) or len(values) != 8 or not all(_finite(v) for v in values)
                    for values in [raw["frame_section_modifiers"], *modifiers.values()])):
         raise ValueError("GRAVITY_PAIR_MEMBER_OR_STIFFNESS_SCOPE_UNVERIFIED")
+    if "refined_levels" in raw:
+        from .gravity_pair_refinement import normalize_levels
+
+        normalize_levels(raw["refined_levels"], {key: raw[key] for key in keys})
     return dict(raw)
 
 
@@ -100,7 +161,9 @@ def compare_gravity_order_pair(source, pmm, local, dims, capacity):
     uid = pmm["member_id"]
     if not record or uid not in record["force_source"]["rowsets"]:
         return None
+    expected = sum(row.get("combination") in record["cases"] for row in pmm.get("rows", ()))
     out = {"method": METHOD, "status": "GRAVITY_PAIR_UNBOUND", "rows": [],
+           "cut_counts": {"expected": expected, "evaluated": 0, "failed": 0, "unresolved": expected},
            "control_abs_tolerance": CONTROL_ATOL, "control_rel_tolerance": CONTROL_RTOL}
     try:
         cases = record["cases"]
@@ -155,24 +218,13 @@ def compare_gravity_order_pair(source, pmm, local, dims, capacity):
                 "ts500_utilization": magnified[original_key]["utilization"],
             }
             if all_matched:
-                demand = apply_minimum_eccentricity(nd_kn=-second[0], m2_knm=second[4], m3_knm=second[5], dims=dims)
-                row["second_design_m2_knm"] = demand["m2_design_knm"]
-                row["second_design_m3_knm"] = demand["m3_design_knm"]
-                row["second_order_pmm"] = capacity.assess(-second[0] * 1000.0, demand["m2_design_knm"] * 1e6,
-                                                           demand["m3_design_knm"] * 1e6)
+                row.update(_station_pmm(second, dims, capacity))
             out["rows"].append(row)
-        out["status"] = "GRAVITY_PAIR_COMPARED" if all_matched else "GRAVITY_PAIR_CONTROL_MISMATCH"
-        assessed = [row for row in out["rows"] if (row.get("second_order_pmm") or {}).get("utilization") is not None]
-        if assessed and out["status"] == "GRAVITY_PAIR_COMPARED":
-            governing = max(assessed, key=lambda row: row["second_order_pmm"]["utilization"])
-            out["governing"] = {key: governing[key] for key in ("combination", "object_station_m", "analysis_element_id")}
-            out["governing"]["utilization"] = governing["second_order_pmm"]["utilization"]
-            comparison_axes = {"M2": ("second_design_m2_knm", "ts500_m2_knm"),
-                               "M3": ("second_design_m3_knm", "ts500_m3_knm")}
-            differences = {axis: abs(governing[etabs] - governing[ts500]) for axis, (etabs, ts500) in comparison_axes.items()
-                           if governing[ts500] is not None}
-            if differences:
-                out["governing"]["largest_design_moment_difference_axis"] = max(differences, key=differences.__getitem__)
+        _summarize_pmm(out, len(vectors), controls_matched=all_matched)
+        if all_matched and "refined_levels" in record:
+            from .gravity_pair_refinement import compare_levels
+
+            out["refinement"] = compare_levels(source, pmm, local, record, dims, capacity)
         return out
     except (ArithmeticError, KeyError, TypeError, ValueError) as exc:
         out.update(reason=str(exc))

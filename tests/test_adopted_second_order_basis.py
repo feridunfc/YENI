@@ -97,7 +97,41 @@ class AdoptedSecondOrderCalculationTests(unittest.TestCase):
         self.assertIn("VARIABLE_AXIAL_SECOND_ORDER_METHOD_UNQUALIFIED", result["open_gates"])
 
     def test_matched_gravity_pair_uses_same_section_at_unmagnified_second_order_vector(self):
-        args = adopted_fixture()
+        args, raw = self._gravity_pair_fixture()
+        source = args["source"]
+        result = project_column_r08_local_live(**args)
+        compared = result["gravity_order_pair"]
+        self.assertEqual(compared["status"], "GRAVITY_PAIR_COMPARED")
+        self.assertEqual(compared["cut_counts"], {"expected": 2, "evaluated": 2, "failed": 0, "unresolved": 0})
+        self.assertFalse(compared["elastic_stiffness_matches_ts500"])
+        self.assertEqual(compared["local_p_delta_mesh_convergence"], "UNVERIFIED")
+        expected = solver(args["selected_cages"]["127"].section).assess(5000e3, -300e6, 350e6)["utilization"]
+        self.assertAlmostEqual(compared["governing"]["utilization"], expected)
+        self.assertEqual(result["magnified_selected_pmm"], project_column_r08_local_live(
+            **{**args, "source": {key: value for key, value in source.items() if key != "gravity_order_pair"}}
+        )["magnified_selected_pmm"])
+
+        raw["force_source"]["rowsets"]["127"]["M2"][0] += 1.0
+        mismatch = project_column_r08_local_live(**args)["gravity_order_pair"]
+        self.assertEqual(mismatch["status"], "GRAVITY_PAIR_CONTROL_MISMATCH")
+        self.assertNotIn("second_order_pmm", mismatch["rows"][0])
+
+    def test_gravity_pair_axial_failure_remains_visible_alongside_healthy_cut(self):
+        args, raw = self._gravity_pair_fixture()
+        rowset = raw["force_source"]["rowsets"]["127"]
+        rowset["P"][1] = -1e6  # The first P–Delta cut exceeds the section axial domain.
+        compared = project_column_r08_local_live(**args)["gravity_order_pair"]
+        self.assertEqual(compared["control_status"], "MATCHED")
+        self.assertEqual(compared["status"], "GRAVITY_PAIR_PMM_FAILURE")
+        self.assertEqual(compared["cut_counts"], {"expected": 2, "evaluated": 2, "failed": 1, "unresolved": 0})
+        self.assertEqual(compared["rows"][0]["second_pmm_status"], "OUTSIDE_SCENARIO_AXIAL_RANGE")
+        self.assertEqual(compared["rows"][0]["second_pmm_reason"], "SECTION_MODEL_AXIAL_LIMIT")
+        self.assertIsNotNone(compared["rows"][1]["second_pmm_utilization"])
+        self.assertNotIn("governing", compared)
+
+    @staticmethod
+    def _gravity_pair_fixture(*, sway=False):
+        args = adopted_fixture(sway=sway)
         source = args["source"]
         patterns, static = "Load Pattern Definitions", "Load Case Definitions - Linear Static"
         source["vs04_basis_probe"] = {"table_reads": {
@@ -131,22 +165,60 @@ class AdoptedSecondOrderCalculationTests(unittest.TestCase):
             "frame_object_modifiers": {"127": [1.] * 8}, "mesh": {"127": ["127-1"]},
         }
         source["gravity_order_pair"] = normalize_gravity_order_pair(raw, source_data_sha256=native_sha)
-        result = project_column_r08_local_live(**args)
-        compared = result["gravity_order_pair"]
-        self.assertEqual(compared["status"], "GRAVITY_PAIR_COMPARED")
-        self.assertEqual(len(compared["rows"]), 2)
-        self.assertFalse(compared["elastic_stiffness_matches_ts500"])
-        self.assertEqual(compared["local_p_delta_mesh_convergence"], "UNVERIFIED")
-        expected = solver(args["selected_cages"]["127"].section).assess(5000e3, -300e6, 350e6)["utilization"]
-        self.assertAlmostEqual(compared["governing"]["utilization"], expected)
-        self.assertEqual(result["magnified_selected_pmm"], project_column_r08_local_live(
-            **{**args, "source": {key: value for key, value in source.items() if key != "gravity_order_pair"}}
-        )["magnified_selected_pmm"])
+        return args, raw
 
-        raw["force_source"]["rowsets"]["127"]["M2"][0] += 1.0
-        mismatch = project_column_r08_local_live(**args)["gravity_order_pair"]
-        self.assertEqual(mismatch["status"], "GRAVITY_PAIR_CONTROL_MISMATCH")
-        self.assertNotIn("second_order_pmm", mismatch["rows"][0])
+    def test_refined_mesh_preserves_new_identities_and_uses_its_first_order_vectors(self):
+        args, raw = self._gravity_pair_fixture(sway=True)
+        uid, name = "127", "G_STATIC"
+        source = args["source"]
+        physical = args["r10_live"]["physical_clear_lengths"]["per_member"][uid]
+        physical.update(faces={"I": {"joint_id": "1044", "top_z_m": 0.0},
+                               "J": {"joint_id": "412", "soffit_z_m": 3.8}},
+                        end_cuts={"I": [uid, 0., "127-1", 0.], "J": [uid, 3.8, "127-1", 3.8]})
+        source["vs06_b1_geometry_source"] = {"table_reads": {"Point Object Connectivity": {"rows": [
+            {"UniqueName": "1044", "X": 0, "Y": 0, "Z": 0}, {"UniqueName": "412", "X": 0, "Y": 0, "Z": 4.5},
+        ]}}}
+        native_sha = _digest(_source_data(source))
+        source["second_order_basis"]["source_data_sha256"] = raw["source_data_sha256"] = native_sha
+        target_ei = independent_euler(k=2., rm=1.) * 1000 * (7600 ** 2) / math.pi ** 2
+        factor = target_ei / (34000 * (800 ** 4 / 12) * .7)
+        levels = []
+        for divisions in (2, 4, 8):
+            nodes = ["1044", *(f"J{divisions}-{j}" for j in range(1, divisions)), "412"]
+            z = [*(3.8 * j / divisions for j in range(divisions)), 4.5]
+            mesh, forces = [], []
+            for i in range(divisions):
+                element, a, b = f"E{divisions}-{i}", z[i], z[i + 1]
+                mesh.append({"element": element, "i_joint": nodes[i], "j_joint": nodes[i + 1],
+                             "i_xyz": [0., 0., a], "j_xyz": [0., 0., b]})
+                last = min(b, 3.8)
+                for station in (a, (a + last) / 2, last):
+                    for case, n, m2 in (("F", -950., -140.), ("P", -1100., -160.)):
+                        forces.append((uid, station, element, station - a, case, "Step", 1., n, 0., 0., 0., m2, 100.))
+            levels.append({"divisions": divisions, "model_sha256": str(divisions) * 64, "mesh": {uid: mesh},
+                "frame_object_modifiers": {uid: [1., 1., 1., 1., factor, factor, 1., 1.]},
+                "force_source": {**raw["force_source"], "rowsets": {uid: _rowset(forces)}},
+                "joint_displacements": {uid: {"P": {node: [0., 0., 0.] for node in nodes}}},
+                "story_inputs": {uid: {axis: {"k": 2., "story_aggregates": {name: {"nd_kn": 20000., "nk_kn": 100000.}}}
+                                       for axis in ("M2", "M3")}},
+            })
+        raw["refined_levels"] = levels
+        source["gravity_order_pair"] = normalize_gravity_order_pair(raw, source_data_sha256=native_sha)
+        compared = project_column_r08_local_live(**args)["gravity_order_pair"]
+        self.assertEqual(compared["status"], "GRAVITY_PAIR_COMPARED")
+        refined = compared["refinement"]
+        self.assertEqual(refined["status"], "WITHIN_NUMERICAL_TOLERANCE")
+        last = refined["levels"][-1]
+        self.assertEqual(last["ts500_status"], "REVISED_FIRST_ORDER_VECTORS_AND_STORY_INPUTS_CONSUMED")
+        self.assertEqual(last["cut_counts"]["evaluated"], 24)
+        self.assertGreater(last["additional_physical_cuts"], 0)
+        self.assertEqual({row["analysis_element_id"] for row in last["rows"]}, {f"E8-{i}" for i in range(8)})
+        self.assertEqual(last["rows"][0]["control"]["p_kn"], -950.)
+        self.assertNotEqual(last["rows"][0]["ts500_m2_knm"], compared["rows"][0]["ts500_m2_knm"])
+        levels[-1]["force_source"]["rowsets"][uid]["ElmSta"][0] = 0.1
+        failed = project_column_r08_local_live(**args)["gravity_order_pair"]["refinement"]
+        self.assertEqual(failed["status"], "UNVERIFIED")
+        self.assertEqual(failed["levels"][-1]["reason"], "GRAVITY_REFINEMENT_PHYSICAL_STATION_MISMATCH")
 
     def test_selected_static_demand_consumes_k_and_rm_before_euler_and_floor_before_beta(self):
         args = adopted_fixture()

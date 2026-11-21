@@ -2595,6 +2595,7 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
     """Project recorded adopted inputs and results; never rerun a calculation."""
     members = (local.get("per_member") or {"single": local}).values()
     basis_rows, factor_rows, balance_rows, pair_rows, pair_basis_rows = [], [], [], [], []
+    refined_rows, refined_levels, mesh_changes = [], [], []
     for member in members:
         basis = member.get("adopted_second_order_basis") or {}
         if not basis:
@@ -2628,10 +2629,20 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
         if paired:
             pair_basis_rows.append({"member": member.get("member_id"), "status": paired["status"],
                                     "mesh": paired.get("analysis_elements"), "reason": paired.get("reason"),
-                                    "ei": paired.get("stiffness_comparison"), "governing": paired.get("governing")})
+                                    "ei": paired.get("stiffness_comparison"), "governing": paired.get("governing"),
+                                    "control_status": paired.get("control_status"), **(paired.get("cut_counts") or {})})
         for row in paired.get("rows", ()):
             pair_rows.append({"member": member.get("member_id"), **row,
-                              "etabs_utilization": (row.get("second_order_pmm") or {}).get("utilization")})
+                "etabs_utilization": row.get("second_pmm_utilization", (row.get("second_order_pmm") or {}).get("utilization")),
+                "second_pmm_status": row.get("second_pmm_status", (row.get("second_order_pmm") or {}).get("status")),
+                "second_pmm_reason": row.get("second_pmm_reason", (row.get("second_order_pmm") or {}).get("reason"))})
+        refinement = paired.get("refinement") or {}
+        mesh_changes.extend({"member": member.get("member_id"), **row} for row in refinement.get("changes", ()))
+        for level in refinement.get("levels", ()):
+            refined_levels.append({"member": member.get("member_id"), "convergence": refinement["status"],
+                                   **level, **(level.get("cut_counts") or {})})
+            refined_rows.extend({"member": member.get("member_id"), "divisions": level["divisions"], **row}
+                                for row in level.get("rows", ()))
     if not basis_rows:
         return ""
     return ('<section class="percheck"><h2>Second order · Adopted calculation basis</h2>'
@@ -2656,15 +2667,43 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
         + ('<h3>Matched ETABS gravity cases and TS 500</h3>'
            '<p>The ETABS pair is a comparison input. The TS 500 magnification remains the selected demand calculation. '
            'Native P uses tension-positive sign. Local P–δ mesh convergence requires a separate check.</p>'
-           + _table((("member", "Column"), ("status", "Status"), ("mesh", "Analysis elements"),
+           + _table((("member", "Column"), ("control_status", "First-order control"), ("status", "PMM status"),
+                     ("expected", "Expected"), ("evaluated", "Evaluated"), ("failed", "Failed"), ("unresolved", "Unresolved"),
+                     ("mesh", "Analysis elements"),
                      ("ei", "ETABS and TS 500 EI (N·mm²)"), ("governing", "Governing P–Delta PMM"),
                      ("reason", "Source issue")), pair_basis_rows)
            + _table((("member", "Column"), ("combination", "Combination"), ("object_station_m", "Station (m)"),
                      ("original", "Original force vector"), ("control", "Control force vector"),
                      ("control_difference", "Control minus original"), ("second", "P–Delta force vector"),
                      ("ts500_m2_knm", "TS 500 M2 (kN·m)"), ("ts500_m3_knm", "TS 500 M3 (kN·m)"),
-                     ("etabs_utilization", "P–Delta PMM"), ("ts500_utilization", "TS 500 PMM")), pair_rows)
-           if pair_basis_rows else '') + '</section>')
+                     ("etabs_utilization", "P–Delta PMM"), ("second_pmm_status", "P–Delta cut status"),
+                     ("second_pmm_reason", "P–Delta cut reason"), ("ts500_utilization", "TS 500 PMM")), pair_rows)
+           if pair_basis_rows else '')
+        + ('<h3>Matched-stiffness gravity mesh comparison</h3>'
+           + _table((("member", "Column"), ("divisions", "Partitions"), ("status", "PMM status"),
+                     ("expected", "Expected"), ("evaluated", "Evaluated"), ("failed", "Failed"), ("unresolved", "Unresolved"),
+                     ("common_original_physical_cuts", "Common cuts"), ("additional_physical_cuts", "Additional cuts"),
+                     ("stiffness_comparison", "ETABS and TS 500 EI"), ("convergence", "Mesh convergence"),
+                     ("governing", "Governing P–Delta cut"),
+                     ("second_order_node_chord_bow_mm", "Node-chord bow (mm)"),
+                     ("ts500_status", "Revised TS 500 scope"), ("ts500_reason", "Revised TS 500 issue"),
+                     ("reason", "Source issue")), refined_levels)
+           + (_table((("member", "Column"), ("before", "Coarser mesh"), ("after", "Finer mesh"),
+                      ("shared_signed_cuts", "Shared signed cuts"),
+                      ("max_common_absolute_difference", "Maximum common difference (kN or kN·m)"),
+                      ("forces_within_tolerance", "Signed forces within tolerance"),
+                      ("full_mesh_extrema_within_tolerance", "Full-mesh extrema within tolerance"),
+                      ("full_mesh_pmm_within_tolerance", "Full-mesh PMM within tolerance"),
+                      ("node_chord_bow_within_tolerance", "Bow within tolerance")), mesh_changes)
+              if mesh_changes else '')
+           + _table((("member", "Column"), ("divisions", "Partitions"), ("combination", "Combination"),
+                     ("physical_station_m", "Physical station (m)"), ("analysis_element_id", "ETABS element"),
+                     ("side", "Cut side"), ("control", "Revised first order"), ("second", "Revised P–Delta"),
+                     ("second_pmm_utilization", "P–Delta PMM"), ("second_pmm_status", "P–Delta cut status"),
+                     ("second_pmm_reason", "P–Delta cut reason"), ("ts500_utilization", "Revised TS 500 PMM"),
+                     ("ts500_pmm_status", "Revised TS 500 cut status"),
+                     ("ts500_pmm_reason", "Revised TS 500 cut reason")), refined_rows)
+           if refined_levels else '') + '</section>')
 
 
 def _alpha_feedback_html(record: Mapping[str, Any]) -> str:
