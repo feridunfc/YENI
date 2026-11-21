@@ -1,20 +1,20 @@
 # Local development and GitHub worker handoff
 
-## Assigned implementation: finish the C29 calculation
+## C29 method implemented in R08 and R14
 
-Execute [C29 calculation completion](../engineering/C29_CALCULATION_COMPLETION_TASK_20261121.md)
-from the actual current baseline, preserving newer local work. The task was
-prepared against `d85c6e8670b65ba2236cc5a0960e7e59720a8dd0`. Complete the existing
-displacement consumer with six DOFs and the revised-story input producer, then feed R08/R14.
-Deliver 12 finest-mesh axis factors, revised TS 500 moments/PMM at all 24 native
-sides of the 18 physical case-cuts, and qualified full-span deformation outcomes
-for both C29 members and all three gravity combinations. Keep the original 2/87
-conditional result separate. Use the two named existing source examples to test
-the actual owners. Another unchanged replay or hash audit is not this milestone.
+Start with the [numerical checkpoint](../engineering/C29_QUALIFIED_GRAVITY_COMPARISON_20261121.md) and
+`EV-C29-QUALIFIED-GRAVITY-COMPARISON-20261121`. The six-DOF recovery, story producer,
+revised TS 500 factors, selected-section PMM and sealed report are exercised
+through the normal runner on a manufactured source. The two recipe examples
+have been evaluated with the production owners.
 
-The task includes corrections to the private result-recovery proposal and a
-finite source/consumer/test/publication sequence. Its publication is a
-documentation change; no new C29 execution or engineering closure is claimed.
+Continue the original-building calculation from
+[the assigned task](../engineering/C29_CALCULATION_COMPLETION_TASK_20261121.md).
+The 8-part private METHOD solve finished 6/6 cases. Resume the active locked
+session if available and bind the readbacks on the 2/4/8 meshes. The remaining
+story inputs are same-generation column and wall cut force resultants,
+gravity equilibrium and per-direction contributors to the critical-load sum.
+The original C29 2/87 conditional result remains the design reference.
 
 ## Current calculation: original-source C29 with explicit axial idealization
 

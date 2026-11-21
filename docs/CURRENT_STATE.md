@@ -1,16 +1,23 @@
 # Original building calculation and local handoff — 2026-11-21
 
-## Next implementation deliverable
+## Revised C29 calculation and next original-model inputs
 
-Execute [the C29 calculation completion task](engineering/C29_CALCULATION_COMPLETION_TASK_20261121.md):
-extend the existing displacement consumer to six DOFs and complete the source-bound
-revised story producer; calculate the 12 finest-mesh axis factors, all 24 common-side
-revised TS 500 moment/PMM rows and the full-span deformation outcomes through
-R08/R14. Use the named reference examples with the actual production owners.
-The task was inspected against full commit
-`d85c6e8670b65ba2236cc5a0960e7e59720a8dd0`; preserve newer local work.
-This assignment does not change the original-source 2/87 conditional result or
-close GAP-009. No engineering tests or live analyses were rerun for this brief.
+The existing R08 owner now calculates revised story factors and full-span
+deformation on source-bound inputs. The normal runner sealed the manufactured
+example through selected-cage PMM, R14 and the report. It calculates beta
+1.0288216815 on each axis, compares three physical cuts and four native sides,
+and finds a 0.8999996 mm interior peak. The explicit replay matches all 12
+fixture stages. See [numerical results](engineering/C29_QUALIFIED_GRAVITY_COMPARISON_20261121.md) and
+`EV-C29-QUALIFIED-GRAVITY-COMPARISON-20261121`.
+
+The original revised-model replay remains **NOT_RUN**. The 8-part METHOD
+clone solved 6/6 cases. Recover its in-session six-component results and
+complete the remaining native readbacks. Bind same-generation column and wall
+cut resultants, upper free-body equilibrium, and per-axis contributor K/EI/Nk
+before consuming the revised story totals. The supported wall or coupled
+wall–frame critical-load method remains open. Keep the original C29 2/87
+conditional result and its beam and joint inputs. The [calculation task](engineering/C29_CALCULATION_COMPLETION_TASK_20261121.md)
+sets the completion criteria.
 
 ## C29 common physical cuts and deformation comparison
 
@@ -20,9 +27,10 @@ its 18 physical case-cuts as the reference for the finest matched-EI
 model. Interface cuts keep both refined element sides. The report places
 each model's local axial force, the first-order axial maximum, both
 orders' moments, design moments and selected-cage PMM at the same location.
-Within the eight-part model, the largest direct second-order M2 increments
-at the 18 reference cuts are 2.0011 kN·m at the 225 I face and 0.7465 kN·m
-on the upper side of the 142 midpoint, each under Grav_Ult.
+Within the eight-part model under Grav_Ult, the largest direct signed M2
+change for 225 is +2.0011 kN·m at the I face, while its magnitude drops by
+2.0011 kN·m. For 142 the upper side of the midpoint changes by +0.7465 kN·m,
+with its magnitude increasing by 0.7465 kN·m.
 
 At the shared 4/8-part nodes, the maximum transverse chord-relative
 vector difference is 4.7224e-6 mm (225) and 8.0358e-7 mm (142). The

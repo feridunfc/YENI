@@ -6334,6 +6334,115 @@
       "scope": "Project native joint displacement comparisons and measure signed moments and axial forces in both orders at the finest mesh's cuts against the original scenario. Retain both native element sides at shared interfaces and the original selected-section results.",
       "limit": "Common-node displacement agreement does not establish the full-span deformation peak. The existing revised TS 500 calculation can consume same-level inputs, which have not been qualified for this building.",
       "next_action": "Independently qualify the between-joint deformation peak and provide the revised per-case story compression, supported critical loads and axis-specific effective lengths."
+    },
+    {
+      "id": "EV-C29-QUALIFIED-GRAVITY-COMPARISON-20261121",
+      "observed_at": "2026-11-21",
+      "status": "NORMAL_RUNNER_VERIFIED_ORIGINAL_QUALIFIED_COMPARISON_PENDING",
+      "gap_ids": [
+        "GAP-009"
+      ],
+      "baseline": "8bc836d15a771d6ac8e459e14ab1b707a645290f",
+      "tested_implementation_commit": "8f5353aceba937d276a07f80111f944089338e3c",
+      "published_implementation_commit": "77bcb901aa00d99e18781c858478e518e3e5761d",
+      "verified_implementation_tree_sha": "be162bd09fcb6e2173cdd0820195fac5a2dc5721",
+      "tested_file_manifest": {
+        "src/tbdy_next/column_engine/ts500_column.py": "513c79a7d8512314f65aa621efb8076105ff272e776d989256ef1090259e1062",
+        "src/tbdy_next/engineering/gravity_deformation.py": "f58f4c7b95161a73df00a9d80e22fa641e9040aaf74003bf3ed9da036f83a875",
+        "src/tbdy_next/engineering/gravity_order_pair.py": "01f4ba5450f17c982b57d132e67b0cfb1b0c965d7a04ce0f7e0f2e462aac43ac",
+        "src/tbdy_next/engineering/gravity_pair_refinement.py": "cd49981bb85a9c0ab26430c420455b036dab7257a0f3ee4489222e5f76d486cc",
+        "src/tbdy_next/engineering/gravity_story_basis.py": "a31a13e67cc81510e393a6306010f20fa55c862d5c52afc671fb5aca8fcdb9e0",
+        "src/tbdy_next/engineering/pipeline.py": "e55668c60ff545a2b7eaf92e470b5132f812b254701539bd3e58505ff7b08fe3",
+        "src/tbdy_next/reporting.py": "5a8fae48259532a033b12e0eee91bd19dc32fda013b39b34798d5e777e7c3be2",
+        "tests/test_gravity_deformation.py": "aae85343ba4c5ba8e6e4d91e8856d6f814521d90a62a3e57c7beca8c986811f4",
+        "tests/test_gravity_story_basis.py": "87da665f1eab3c0888d0eba6580c81969e4f0b251bc749a359b9c243a38ed66c",
+        "tests/test_variable_axial_vertical_slice.py": "252d35469c43879f202d55c6686abde3f857852e6850fe1123565498aeb3c5fa"
+      },
+      "tested_file_manifest_sha256": "723d8d9fb6f90195e4a6f3ad9f3e2bd061d1c4b787fce5606aaf0aaa11a05c4d",
+      "references": [
+        "EV-C29-COMMON-CUT-COMPARISON-20261121",
+        "EV-C29-SELF-WEIGHT-NMAX-LOCAL-20261121"
+      ],
+      "source_classification": "CONTRACT_FIXTURE",
+      "normal_runner": {
+        "run_id": "RUN-dcdc674f0f9143f7b7ff7c5f94c4d4cd",
+        "compared_run_id": "RUN-b0b091abbd6a44b69fe6bab479d3ca31",
+        "input_sha256": "8110ac5f0296e3474091d3603c1df72a99345264800c461a460ae344066e8b0a",
+        "sealed_results_sha256": "ada65e20f024566862ff3aaa99811f2c3ce9693735702d41a79d96485600e910",
+        "sealed_stages_matched": 12,
+        "replay_status": "IDENTICAL",
+        "report_sha256": "a0f7d637cda1d15a7ebd378ecd7d8e8c89bea92c5cdc7da7dd52fdccfc552175",
+        "report_path_private": ".receipts/c29-completion-20261121/fixture/qualified-method-report.html",
+        "physical_case_cuts": 3,
+        "common_native_sides": 4,
+        "all_paired_finest_sides": 24,
+        "final_factor_m2_m3": [
+          1.0288216814643838,
+          1.0288216814643838
+        ],
+        "four_to_eight_peak_mm": 0.8999996185302734,
+        "peak_station_from_i_face_m": 1.4990234375,
+        "combined_displacement_error_mm": 2.5431315674451227e-06,
+        "displacement_tolerance_mm": 0.01,
+        "r14_conditionally_closed_columns": 2,
+        "r14_expected_columns": 2
+      },
+      "owner_examples": {
+        "GE-CHK-117": {
+          "k": 0.8975,
+          "lk_mm": 2288.625,
+          "zero_ratio_k": 0.7
+        },
+        "GE-CHK-119": {
+          "selected_branch": "MAXIMUM",
+          "selected_m2_knm": -82.3170513,
+          "product_m2_knm": -98.1848953,
+          "classification": "ENGINEERING_INTERPRETATION_DIFFERENCE"
+        },
+        "verification_sha256": "351ef6beb8416091bc78dfdb6f0351f5391bb0e7950043b89d4c9282694dca9c"
+      },
+      "native_solve": {
+        "mesh_parts": 8,
+        "first_open_locked": false,
+        "finished_cases": {
+          "C29G_TN_F": 4,
+          "C29G_TN_P": 4,
+          "C29G_TP_F": 4,
+          "C29G_TP_P": 4,
+          "C29G_U_F": 4,
+          "C29G_U_P": 4
+        },
+        "after_restore_locked": true,
+        "readback_capture_status": "STOPPED_BEFORE_MOTION_AND_STORY_PACKET",
+        "operation_trace_sha256": "0ee6cecf095c3458f165c8857c4eea76c6f6e859b48741c2bad7702e167fcfc4"
+      },
+      "original_revised_model_replay": "NOT_RUN",
+      "original_conditional_result": {
+        "closed_columns": 2,
+        "expected_columns": 87,
+        "connected_beams": 8,
+        "joint": "40"
+      },
+      "tests": {
+        "environment": "Windows x64, Python 3.12.10, Node.js v24.22.1",
+        "command": "python -X utf8 -B tools/test_offline.py",
+        "python_tests": 1683,
+        "python_passed": 1682,
+        "python_skipped": 1,
+        "javascript_test_files_passed": 11,
+        "golden_production_comparisons": [
+          33,
+          7,
+          4
+        ],
+        "status": "PASS",
+        "log_sha256": "9819c01a1e7eb7650966446ac9a1451823499e90a880b9d828c62865eb02b7ba"
+      },
+      "engineering_acceptance": "NOT_GRANTED",
+      "public_reference_paths": [
+        "docs/engineering/C29_QUALIFIED_GRAVITY_COMPARISON_20261121.md"
+      ],
+      "next_action": "Read solved six-DOF results and directional stiffness from the 2/4/8 METHOD clones. Bind simultaneous column and wall cut resultants, upper-body load equilibrium and a supported wall or coupled wall-frame critical-load basis. Consume the revised totals at all C29 common cuts."
     }
   ],
   "new_record_template": {
