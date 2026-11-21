@@ -1,5 +1,52 @@
 # Original building calculation and local handoff — 2026-11-21
 
+## Remote implementation: adopted inputs consumed by the normal design path
+
+Feature branch: `work/vertical-slice-adopted-basis-20261121`, based on the inspected
+`baseline/local_import` commit `0f1a809299ed0dbb6e0ecfde77be0642e1771ce3`.
+This remote task did not inspect unpublished Windows changes or replay the latest
+private original-building source. Preserve the original-model checkpoints below.
+
+The existing runner now consumes explicit source-bound K/Rm/EI/sway decisions in
+the selected R08 calculation. R03 admits declared calculation assumptions with
+complete native definitions and design groups while retaining engineering
+acceptance. R14 qualifies that exact source/cage/result context for conditional
+numerical completion. Native failures and missing cut populations still block.
+No second solver, runner or ETABS connection was introduced.
+
+Public synthetic examples run all actual owners from source to sealed report:
+one column/two roof beams and two columns/four beams with an interior joint.
+The latter has 30 signed cut rows and 16 actual interior SCWB comparisons.
+An explicit Phi10/90 trial remains partial; Phi12/70 completes the two-column
+numerical slice. These are `CONTRACT_FIXTURE` examples, not original-building or
+live-ETABS verification. Engineering release remains `NOT_READY`.
+
+Other implemented corrections preserve scoped alpha applicability beside an
+unresolved member, permit existing bounded cage reselection when alpha is not
+required, propagate a proven native brittle-shear exceedance, and withhold the
+isolated-column method for possible nonmatching interior wall contacts.
+An actual-owner numerical stress test also triggers one native-demand cage retry
+from 32Phi16 to 34Phi16, with final PMM utilization 0.9886972. It is a declared
+K=5/Rm=1 fixture, not a physically approved restraint model or alpha-below-one test.
+The fresh golden result is 33 numerical matches, seven insufficient-source/method
+records and four interpretation differences among the same 44 IDs. Exact full
+test results, hashes and commands are in [the implementation verification](engineering/vertical_slice_20261121/VERIFICATION_RESULTS.json).
+The 73-control recipe map, 44 report comparisons and historical 333 arithmetic
+assertions remain separate populations.
+
+**Next product calculation:** locally integrate the feature branch after checking
+newer work, then consume the actual adopted basis for C29 members 225 and 142 and
+their common joint through the normal pipeline. Use the current private source,
+its physical cuts and locally verified order/creep/restraint decisions; do not
+copy the public fixture assumptions. Retain all required columns in global sums.
+Continue the C104 coupled-section investigation in parallel. A complete actual-
+owner alpha-below-one example is still open. Do not infer 87-column completion
+from the public example.
+
+Read [the implementation report and runnable commands](engineering/VERTICAL_SLICE_20261121.md).
+Ledger entry: `EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121`. The report identifies
+what was directly executed and what remains `NOT_RUN`.
+
 Start each assignment at [AGENTS.md](../AGENTS.md). The
 [worker handoff](context/WORKER_HANDOFF_20261119.md) and
 [project charter and source guide](context/PROJECT_CHARTER.md) are available

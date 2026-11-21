@@ -12,6 +12,28 @@ from .native_archive import BankError, finite
 from .ts500_column import positive
 
 
+def bar_area_mm2(diameter_mm):
+    """Area of one circular reinforcement bar in mm2."""
+    diameter = positive(diameter_mm, "diameter_mm")
+    return positive(math.pi * diameter ** 2 / 4.0, "bar_area_mm2")
+
+
+def provided_transverse_steel(*, leg_count, diameter_mm, spacing_mm):
+    """Provided Ash and Ash/s; physical leg effectiveness is a caller decision."""
+    if type(leg_count) is not int or leg_count < 1:
+        raise BankError("POSITIVE_INTEGER_TRANSVERSE_LEG_COUNT_REQUIRED")
+    spacing = positive(spacing_mm, "spacing_mm")
+    area = positive(leg_count * bar_area_mm2(diameter_mm), "provided_ash_mm2")
+    return {"provided_ash_mm2": area, "ash_per_s_mm2_per_mm": area / spacing}
+
+
+def confinement_axial_threshold(*, area_mm2, fck_mpa):
+    """TBDY 7.3.4.1 axial branch threshold; does not select the demand branch."""
+    area, strength = positive(area_mm2, "Ac"), positive(fck_mpa, "fck")
+    limit = positive(0.2 * area * strength, "confinement_axial_threshold_n")
+    return {"axial_limit_n": limit, "axial_limit_kn": limit / 1000.0}
+
+
 def zero_concrete_gate(*, in_confinement, earthquake_only_kn, seismic_total_kn,
                        n_compression_kn, area_mm2, fck_mpa):
     """TBDY 7.3.7.6: strict E share, inclusive signed axial threshold.

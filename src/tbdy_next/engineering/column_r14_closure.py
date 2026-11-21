@@ -62,6 +62,108 @@ def _beam_ids_connected_to_member(
     return sorted(beam_ids)
 
 
+def _adopted_calculation_context(uid, plan, local, reconciliation, evidence):
+    """Qualify conditional numerical completion, never engineering acceptance.
+
+    A gate label alone is insufficient. The exact R08 result, selected cage,
+    source payload, native parent and both normalized adopted documents must
+    agree with the existing dependency ledger and the calculated axis inputs.
+    """
+    from .analysis_setup import normalize_analysis_basis, ADOPTED_ANALYSIS_PENDING
+    from .design_scenario import _digest
+    from .second_order_basis import normalize_second_order_basis, ACCEPTANCE_GATE
+
+    applied = "ADOPTED_CALCULATION_BASIS_APPLIED_NOT_PROVEN"
+    try:
+        local, reconciliation, evidence = local or {}, reconciliation or {}, evidence or {}
+        basis = local.get("adopted_second_order_basis") or {}
+        application = local.get("second_order_basis_application") or {}
+        analysis = reconciliation.get("calculation_basis") or {}
+        row = (evidence.get("columns") or {}).get(uid) or {}
+        native_sha = basis.get("source_data_sha256")
+        if (local.get("second_order_basis_status") != applied or application.get("status") != applied
+                or local.get("status") != "ADOPTED_SECOND_ORDER_CALCULATED_NOT_PROVEN"
+                or local.get("execution_status") == "NOT_RUN"
+                or reconciliation.get("calculation_basis_status") != applied
+                or reconciliation.get("engineering_approval") != "NOT_GRANTED"
+                or reconciliation.get("analysis_generation_independently_verified") is not False
+                or application.get("engineering_approval") != "NOT_GRANTED"
+                or basis.get("member_id") != uid or application.get("member_id") != uid
+                or application.get("source_data_sha256") != native_sha or analysis.get("source_data_sha256") != native_sha
+                or not evidence.get("source_payload_sha256")
+                or application.get("input_payload_sha256") != evidence["source_payload_sha256"]
+                or not row.get("candidate_revision_sha256")
+                or application.get("selected_cage_sha256") != row["candidate_revision_sha256"]
+                or ACCEPTANCE_GATE not in local.get("open_gates", ())
+                or ADOPTED_ANALYSIS_PENDING not in reconciliation.get("reconciled_blocker_codes", ())):
+            return None
+        artifact = (evidence.get("artifacts") or {}).get("r08:" + uid) or {}
+        if artifact.get("payload_sha256") != _digest(local):
+            return None
+        resolved_keys = {"member_id", "member", "basis_sha256", "member_basis_sha256"}
+        single_document = {**{k: v for k, v in basis.items() if k not in resolved_keys},
+                           "members": {uid: basis["member"]}}
+        normalized = normalize_second_order_basis(single_document, source_data_sha256=native_sha)
+        if normalized != single_document or normalize_analysis_basis(analysis, source_data_sha256=native_sha) != analysis:
+            return None
+        if (reconciliation.get("calculation_basis_sha256") != _digest(analysis)
+                or not basis.get("basis_sha256")
+                or local.get("second_order_basis_sha256") != basis["basis_sha256"]
+                or application.get("basis_sha256") != basis["basis_sha256"]
+                or basis.get("member_basis_sha256") != _digest(basis["member"])
+                or application.get("member_basis_sha256") != basis["member_basis_sha256"]
+                or analysis["generation"]["source_analysis_order"] != basis["source_analysis_order"]):
+            return None
+        names = {c["name"] for c in plan.get("combinations", ())}
+        groups = {k: sorted(v) for k, v in ((plan.get("design_assignment") or {}).get("groups") or {}).items() if v}
+        if (not names or set(basis["member"]["combinations"]) != names or analysis["design_groups"] != groups):
+            return None
+        stiffness = local.get("stiffness_and_euler") or {}
+        if set(stiffness) != {"M2", "M3"}:
+            return None
+        for axis, values in stiffness.items():
+            adopted = basis["member"]["axes"][axis]
+            used_k = _finite_number(values.get("effective_length_factor_k"))
+            selection, resolution = adopted.get("k_source"), values.get("k_source_resolution")
+            k_matches = used_k == adopted["k"]
+            if selection is not None:
+                resolution = resolution or {}
+                ends = resolution.get("ends") or {}
+                k_matches = (used_k is not None
+                    and abs(used_k - adopted["k"]) <= 8 * max(math.ulp(used_k), math.ulp(adopted["k"]))
+                    and resolution.get("status") == "CURRENT_FRAME_REFERENCE_CONSUMED"
+                    and resolution.get("engineering_approval") == "NOT_GRANTED"
+                    and resolution.get("method") == selection["method"] and resolution.get("section") == selection["section"]
+                    and resolution.get("sway") == adopted["sway"] and resolution.get("computed_k") == used_k
+                    and set(ends) == {"I", "J"}
+                    and all(ends[e].get("basis") == "FRAME_SECTION_REFERENCE" for e in ("I", "J"))
+                    and all(_finite_number(resolution.get(a)) is not None and resolution[a] >= 0
+                            and resolution[a] == ends[e].get(selection["section"])
+                            for a, e in (("alpha_i", "I"), ("alpha_j", "J"))))
+            elif resolution is not None:
+                k_matches = False
+            if (values.get("adopted_axis_basis") != adopted
+                    or not k_matches
+                    or values.get("reference_creep_ratio_rm") != adopted["creep_ratio_rm"]
+                    or values.get("ei_method_basis") != adopted["ei_method"] + "_ADOPTED_CALCULATION_ASSUMPTIONS"
+                    or any((_finite_number(values.get(key)) or 0) <= 0
+                           for key in ("free_length_ln_mm", "effective_length_lk_mm", "selected_nk_kn", "selected_ei_nmm2"))):
+                return None
+        magnified = local.get("magnified_selected_pmm") or {}
+        if (not magnified.get("rows") or any(r.get("second_order_basis_sha256") != basis["basis_sha256"]
+                for r in magnified["rows"])):
+            return None
+        spectral = local.get("spectral_envelope_pmm_scenario")
+        if spectral is not None and spectral.get("second_order_basis_sha256") != basis["basis_sha256"]:
+            return None
+        return {"status": applied, "second_order_basis_sha256": basis["basis_sha256"],
+                "analysis_basis_sha256": reconciliation["calculation_basis_sha256"],
+                "source_data_sha256": native_sha, "selected_cage_sha256": row["candidate_revision_sha256"],
+                "engineering_approval": "NOT_GRANTED", "analysis_generation_independently_verified": False}
+    except (KeyError, TypeError, ValueError, ArithmeticError):
+        return None
+
+
 def _evaluate_single_r14_column(
     *,
     uid: str,
@@ -156,6 +258,7 @@ def _evaluate_single_r14_column(
     ts_block = det.get("column_transverse_and_shear") or {}
     ve_block = ts_block.get("engineer_capacity_shear_ve")
     spectral_shear = (ve_block or {}).get("assigned_spectral") or {}
+    spectral_native_failures: list[dict[str, Any]] = []
     max_ve_ts500_util = None
     max_ve_zero_util = None
     if ve_block and ve_block.get("axes"):
@@ -238,7 +341,7 @@ def _evaluate_single_r14_column(
     ]
     if not story_alpha_rows and not alpha_not_required:
         open_gates.append("STORY_ALPHA_I_NOT_EVALUATED")
-    else:
+    elif not alpha_not_required:
         if any(s.get("denominator_status") != "FULL_STORY_COLUMN_DENOMINATOR" for s in story_alpha_rows):
             open_gates.append("STORY_ALPHA_I_PARTIAL_COLUMN_DENOMINATOR")
         if any(s.get("demand_feedback_action") == "STORY_SCWB_BELOW_0_70_SYSTEM_R_AND_DUCTILITY_REVIEW_REQUIRED" for s in story_alpha_rows):
@@ -300,6 +403,10 @@ def _evaluate_single_r14_column(
         open_gates.extend("R03:" + str(code) for code in
                           analysis_setup_reconciliation.get("reconciled_blocker_codes", ()))
     open_gates.extend("R08_LOCAL:" + str(code) for code in (r08_local_col or {}).get("open_gates", ()))
+    adopted_context = _adopted_calculation_context(uid, plan, r08_local_col, analysis_setup_reconciliation, dependency_evidence)
+    if (adopted_context is None and ((r08_local_col or {}).get("adopted_second_order_basis") is not None
+                                   or (analysis_setup_reconciliation or {}).get("calculation_basis") is not None)):
+        open_gates.append("ADOPTED_CALCULATION_BASIS_BINDING_UNVERIFIED")
     if pmm_cut_census_proven is False:
         open_gates.append("INDEPENDENT_ANALYSIS_CUT_CENSUS_NOT_PROVEN")
     pmm_result = pmm_col or {}
@@ -349,7 +456,14 @@ def _evaluate_single_r14_column(
                 and spectral_required <= set(spec_pmm.get("combinations_evaluated", ()))
                 and finite_number(spec_pmm.get("max_bounding_utilization"), nonnegative=True)):
             open_gates.append("SPECTRAL_PMM_REQUIRED_POPULATION_NOT_PROVEN")
-        from .column_spectral_shear import complete_spectral_shear
+        from .column_spectral_shear import complete_spectral_shear, spectral_native_brittle_violations
+        spectral_native_failures = spectral_native_brittle_violations(
+            spectral_shear, seismic_names & spectral_required, uid,
+            (dependency_evidence or {}).get("input_sha256"),
+            (dependency_row or {}).get("spectral_shear_sha256"))
+        normative_failures.extend("COLUMN_NATIVE_SPECTRAL_SHEAR_EXCEEDS_TBDY_EQ_7_7:"
+                                  + case["combination"] + ":" + case["axis"]
+                                  for case in spectral_native_failures)
         if seismic_names & spectral_required and not (alpha_not_required and complete_spectral_shear(
                 spectral_shear, seismic_names & spectral_required, uid, dependency_evidence.get("input_sha256"),
                 dependency_row.get("spectral_shear_sha256"))):
@@ -378,7 +492,7 @@ def _evaluate_single_r14_column(
             open_gates.append("CONNECTED_BEAM_STIRRUP_RESULT_UNRESOLVED:" + str(b.get("member_id")))
     if not alpha_not_required and {str(r.get("direction")) for r in story_alpha_rows} != {"X", "Y"}:
         open_gates.append("STORY_ALPHA_BOTH_DIRECTIONS_REQUIRED")
-    for row in story_alpha_rows:
+    for row in (() if alpha_not_required else story_alpha_rows):
         if not finite_number(row.get("governing_alpha_i"), nonnegative=True):
             open_gates.append("STORY_ALPHA_VALUE_MISSING_OR_INVALID")
         if row.get("demand_feedback_action") not in ("NONE", "AMPLIFY_COLUMN_DEMANDS_BY_1_OVER_ALPHA",
@@ -400,7 +514,17 @@ def _evaluate_single_r14_column(
 
     dedup_failures = sorted(set(normative_failures))
     dedup_open = sorted(set(open_gates))
-    binding_gaps = [g for g in dedup_open if g not in _ALLOWED_STANDARD_OPEN_GATES]
+    conditional_acceptance_gates = set()
+    if adopted_context is not None:
+        conditional_acceptance_gates = {
+            "R03:ADOPTED_ANALYSIS_BASIS_ENGINEERING_ACCEPTANCE_PENDING",
+            "R08_LOCAL:ADOPTED_SECOND_ORDER_BASIS_ENGINEERING_ACCEPTANCE_PENDING",
+            "R08_LOCAL:END_RESTRAINTS_K_AND_SWAY_CLASSIFICATION_NOT_APPROVED",
+            "R08_LOCAL:CREEP_RATIO_RM_AND_SECTION_CRACKING_NOT_APPROVED",
+            "R08_LOCAL:ACTUAL_ANALYSIS_ORDER_UNVERIFIED",
+            "R08_LOCAL:EQ729_LENGTH_AMBIGUITY_NOT_RESOLVED",
+        }
+    binding_gaps = [g for g in dedup_open if g not in _ALLOWED_STANDARD_OPEN_GATES | conditional_acceptance_gates]
 
     if dedup_failures:
         closure_status = "R14_FAILED_NORMATIVE_CHECK"
@@ -445,12 +569,15 @@ def _evaluate_single_r14_column(
                 "cracked_stiffness_tbdy_4_2_verified": cracked_verified,
                 "spectral_envelope_pmm_status": spec_pmm.get("status"),
                 "spectral_envelope_max_utilization": spec_pmm.get("max_bounding_utilization"),
+                **({"adopted_calculation_context": adopted_context} if adopted_context is not None else {}),
             },
             "column_shear_ve": {
                 **({"assigned_spectral_status": spectral_shear.get("status"),
                     "spectral_case_axis_count": spectral_shear.get("calculated_axis_case_count", 0),
                     "max_spectral_resistance_utilization": spectral_shear.get("max_resistance_utilization"),
-                    "max_spectral_brittle_utilization": spectral_shear.get("max_brittle_utilization")}
+                    "max_spectral_brittle_utilization": spectral_shear.get("max_brittle_utilization"),
+                    "max_native_spectral_brittle_utilization": spectral_shear.get("max_native_brittle_utilization"),
+                    "qualified_native_brittle_failures": spectral_native_failures}
                    if spectral_shear else {}),
                 "max_ve_ts500_utilization": max_ve_ts500_util,
                 "max_ve_zero_concrete_utilization": max_ve_zero_util,

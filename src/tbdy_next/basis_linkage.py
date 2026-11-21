@@ -89,6 +89,15 @@ def _number(value: Any, *, positive: bool = False) -> Decimal:
     return n
 
 
+def spectral_design_coefficients(*, ss: Decimal, fs: Decimal,
+                                 s1: Decimal, f1: Decimal) -> dict[str, Decimal]:
+    """TBDY design spectral coefficients; source and system checks stay at the caller."""
+    if any(not isinstance(v, Decimal) or not v.is_finite() or v <= 0
+           for v in (ss, fs, s1, f1)):
+        raise ValueError("POSITIVE_DECIMAL_SPECTRAL_INPUTS_REQUIRED")
+    return {"sds": ss * fs, "sd1": s1 * f1}
+
+
 def _rounding_bound(*literals: Any) -> Decimal:
     """Round-to-nearest half-quanta sum for reported decimal masses."""
     bounds = []
@@ -290,8 +299,9 @@ def _cases(probe: Mapping[str, Any], roles: LoadRoleBook | None = None) -> dict:
         R,D,I=(_number(first[k],positive=True) for k in ("R","D","I"))
         Ss,S1,Fs,F1,SDS,SD1=(_number(first[k],positive=True) for k in
                              ("Ss","S1","Fs","F1","SDS","SD1"))
-        if not (_close_display(Ss*Fs,SDS,first["SDS"]) and
-                _close_display(S1*F1,SD1,first["SD1"])):
+        coefficients = spectral_design_coefficients(ss=Ss, fs=Fs, s1=S1, f1=F1)
+        if not (_close_display(coefficients["sds"],SDS,first["SDS"]) and
+                _close_display(coefficients["sd1"],SD1,first["SD1"])):
             raise ValueError("SDS_SD1_SOURCE_MULTIPLICATION_CONFLICT")
         factors={}
         valid_ms_refs = {f"Previous  ({target_ms})", target_ms}

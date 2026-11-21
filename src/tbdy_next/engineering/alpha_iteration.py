@@ -20,7 +20,7 @@ from .design_scenario import _digest
 
 SCHEMA = "tbdy.next.alpha-design-iteration.v1"
 DEMAND_SCHEMA = "tbdy.next.alpha-demand-revision.v1"
-METHOD = "alpha-feedback.mixed-signed-same-cut.v5"
+METHOD = "alpha-feedback.mixed-signed-same-cut.v6"
 MAX_ITERATIONS = 8
 
 
@@ -74,15 +74,18 @@ SCWB is still a selected-candidate reference, not engineering approval.
             reasons.append("ALPHA_SIGNED_SEISMIC_DEMAND_REQUIRED:" + name)
     if not dependencies or dependencies.get("global_blockers") or dependencies.get("topology_blockers"):
         reasons.append("ALPHA_PHYSICAL_DEPENDENCIES_UNAVAILABLE")
+    applicability = []
+    if (names and all(semantics.get(n) in {"STATIC_SIGNED_VECTOR", "SCALAR_COMPONENT_ENVELOPE"} for n in names)
+            and all(reason.startswith("ALPHA_SIGNED_SEISMIC_DEMAND_REQUIRED:") for reason in reasons)):
+        # Physical roof/beamless/qualified-end applicability does not depend on
+        # whether a required combination is signed or a scalar envelope. It
+        # precedes a demand for SCWB cases at ends where Eq. 7.3 does not apply.
+        applicability = assigned_story_applicability(source, scope, dependencies, r10, names)
+        if applicability and all(row["status"] == "ALTERNATIVE_NOT_REQUIRED" for row in applicability):
+            return {"status": "ALTERNATIVE_NOT_REQUIRED", "reason_codes": [], "cases": [],
+                    "basis": "ASSIGNED_EQ_7_3_AND_7_3_5_3_AT_ALL_DIRECTIONAL_ENDS",
+                    "story_applicability": applicability}
     if reasons:
-        applicability = []
-        if (names and all(semantics.get(n) == "SCALAR_COMPONENT_ENVELOPE" for n in names)
-                and all(reason.startswith("ALPHA_SIGNED_SEISMIC_DEMAND_REQUIRED:") for reason in reasons)):
-            applicability = assigned_story_applicability(source, scope, dependencies, r10, names)
-            if applicability and all(row["status"] == "ALTERNATIVE_NOT_REQUIRED" for row in applicability):
-                return {"status": "ALTERNATIVE_NOT_REQUIRED", "reason_codes": [], "cases": [],
-                        "basis": "ASSIGNED_EQ_7_3_AND_7_3_5_3_AT_ALL_DIRECTIONAL_ENDS",
-                        "story_applicability": applicability}
         return {"status": "BLOCKED_INPUTS", "reason_codes": sorted(set(reasons)), "cases": [],
                 **({"story_applicability": applicability} if applicability else {})}
     try:
@@ -289,14 +292,21 @@ def run_bounded_feedback(*, initial, qualify, demand, rebuild, signature, feasib
         if check["status"] in ("NO_FEASIBLE_CANDIDATE", "JOINT_DESIGN_FAILURE"):
             status = check["status"]; break
         qualification = qualify(state)
-        if qualification["status"] == "ALTERNATIVE_NOT_REQUIRED":
-            status = check["status"] if check["status"] != "FEASIBLE_REFERENCE" else (
-                "RESELECTION_REQUIRED" if check.get("reselect_member_ids") else "ALTERNATIVE_NOT_REQUIRED")
-            break
-        if qualification["status"] != "QUALIFIED_REFERENCE":
+        alternative_not_required = qualification["status"] == "ALTERNATIVE_NOT_REQUIRED"
+        if alternative_not_required:
+            if check["status"] != "FEASIBLE_REFERENCE":
+                status = check["status"]; break
+            if not check.get("reselect_member_ids") and not current_factors:
+                status = "ALTERNATIVE_NOT_REQUIRED"; break
+            if any(port is None for port in (demand, rebuild, signature)):
+                status = "RESELECTION_REQUIRED"; break
+        elif qualification["status"] != "QUALIFIED_REFERENCE":
             status = qualification["status"]
             break
-        revision = demand(qualification["cases"])
+        # A larger selected cage may still be required by local magnified PMM
+        # or capacity shear when no alpha alternative applies. Empty absolute
+        # factors preserve native forces and use the same bounded owner path.
+        revision = demand([] if alternative_not_required else qualification["cases"])
         target = revision["factors"]
         changed = sorted(u for u in set(target) | set(current_factors) if target.get(u) != current_factors.get(u))
         if check["status"] != "FEASIBLE_REFERENCE":
@@ -304,7 +314,7 @@ def run_bounded_feedback(*, initial, qualify, demand, rebuild, signature, feasib
         recheck = check.get("reselect_member_ids", [])
         changed = sorted(set(changed) | set(recheck))
         if not changed:
-            status = "FIXED_POINT_REFERENCE" if check["status"] == "FEASIBLE_REFERENCE" else check["status"]
+            status = "ALTERNATIVE_NOT_REQUIRED" if alternative_not_required else "FIXED_POINT_REFERENCE"
             break
         if index == max_iterations:
             status = "NO_CONVERGENCE"; break
@@ -316,6 +326,7 @@ def run_bounded_feedback(*, initial, qualify, demand, rebuild, signature, feasib
         affected.update(changed)
         trace.append({"iteration": index + 1, "demand_revision_sha256": revision["sha256"],
                       "changed_member_ids": changed, "actions": actions,
+                      "mode": "NATIVE_DEMAND_DESIGN_RESELECTION" if alternative_not_required else "ALPHA_DEMAND_FEEDBACK",
                       "case_evidence": qualification["cases"], "candidate_signature": signature(state)})
         current_factors = deepcopy(target)
     record = _sealed({"schema": SCHEMA, "method": METHOD, "status": status,
@@ -635,16 +646,20 @@ def run_alpha_design_iteration(*, source, geometry, axial, pmm, extra, scope, de
             more_m[uid] = list({_digest(v): v for v in more_m.get(uid, []) + extra_m.get(uid, [])}.values())
             more_v[uid] = list({_digest(v): v for v in more_v.get(uid, []) + extra_v.get(uid, [])}.values())
         new_cages = {}
+        # No scaling means no revised force vector and no post-alpha joint
+        # equilibrium assertion. The sealed identity revision remains in the
+        # iteration trace while the existing owners consume the native rows.
+        owner_revision = revision if revision["factors"] else None
         next_r10 = project_column_r10_live(
             source, geometry, axial, pmm, extra, beam_live=beam, dependency_plan=plan,
             pmm_scope=scope, mixed_components=mixed_components, input_sha=input_sha,
-            selected_cages_out=new_cages, demand_revision=revision,
+            selected_cages_out=new_cages, demand_revision=owner_revision,
             previous_result=state["r10"], previous_cages=state["cages"], reselect_member_ids=changed,
             additional_demands=more_m, additional_shears=more_v)
         plan = next_r10["member_dependencies"]
         next_r08 = project_column_r08_local_live(
             source, geometry, axial, pmm, global_pdelta, r10_live=next_r10, selected_cages=new_cages,
-            dependency_plan=plan, demand_revision=revision, previous_result=state["r08"], recompute_member_ids=changed)
+            dependency_plan=plan, demand_revision=owner_revision, previous_result=state["r08"], recompute_member_ids=changed)
         actions = {**next_r10.get("alpha_recalculation", {}), "r08_member_ids": changed,
                    "beam_owner_reexecuted": False,
                    "second_order_constraint_count": sum(map(len, more_m.values())),
@@ -660,8 +675,21 @@ def run_alpha_design_iteration(*, source, geometry, axial, pmm, extra, scope, de
         rebuild=rebuild, signature=_candidate_signature, feasible=_feasibility)
     final_candidates = selected_candidate_ledger(scope, state["cages"], state["r10"], input_sha=input_sha)
     static_reference = supplementary_story_reference(source, axial, scope, state["dependencies"])
+    # Scope qualification is distinct from the global feasibility terminal.
+    # Preserve it even when a different member's PMM or joint design is open.
+    applicability = (record.get("final_qualification") or {}).get("story_applicability")
+    required = state["required_seismic_combinations"]
+    combo_plan = (axial or {}).get("combination_plan") or {}
+    semantics = {c["name"]: c.get("force_semantics") for c in combo_plan.get("combinations", ())}
+    if (applicability is None and required and combo_plan.get("source") == "ASSIGNED_DESIGN"
+            and not combo_plan.get("blockers")
+            and all(semantics.get(n) in {"STATIC_SIGNED_VECTOR", "SCALAR_COMPONENT_ENVELOPE"} for n in required)):
+        from .scwb_axial import assigned_story_applicability
+        applicability = assigned_story_applicability(source, scope, state["dependencies"], state["r10"], required)
     record = _sealed({**{k: v for k, v in record.items() if k != "sha256"},
         **({"supplementary_static_reference": static_reference} if static_reference else {}),
+        **({"assigned_story_applicability": applicability} if applicability is not None else {}),
+        "required_seismic_combinations": required,
         "input_sha256": input_sha, "source_payload_sha256": _digest(source),
         "expected_member_ids": sorted(dependencies["members"]),
         "final_candidate_signature": _candidate_signature(state),

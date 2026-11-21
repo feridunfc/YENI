@@ -97,7 +97,8 @@ STAGES: tuple[StageSpec, ...] = (
               ("STORY_DRIFT", "STORY_CUT_GATE"), "Story drift source binding", "DELTA_SOURCE"),
     StageSpec("analysis-setup", LIVE, "tbdy_next.engineering.analysis_setup", ("r03-analysis-setup",),
               ("COMBINATION_DEFINITION_GATE", "LOAD_PATTERN_GATE", "ANALYSIS_GENERATION_GATE"),
-              "ETABS load-case and combination graph", "BASIS_PROBE", produces=(_AXIAL_SETUP,)),
+              "ETABS definitions and explicit source-bound calculation assumptions", "BASIS_PROBE", produces=(_AXIAL_SETUP,),
+              method_version="analysis-setup.adopted-basis.v1"),
     StageSpec("column-axial", LIVE, "tbdy_next.engineering.column_axial", ("column-axial",),
               ("COLUMN_AXIAL", "COLUMN_DEMAND"), "TS500 Eq. 7.7 axial compression over selected combinations",
               "COLUMN_REQUEST", consumes=(_AXIAL_GEOMETRY, _AXIAL_MATERIAL, _AXIAL_SETUP, _AXIAL_FORCES),
@@ -126,18 +127,18 @@ STAGES: tuple[StageSpec, ...] = (
               ("JOINT_TOPOLOGY_CHECK", "JOINT_SHEAR", "SCWB", "COLUMN_SHEAR", "COLUMN_SHEAR_REBAR"),
               "TBDY 7.3.5 joint applicability, 7.3.6 SCWB, 7.5 joint shear and column confinement/shear "
               "(computed by pipeline; persisted in engine-results)", "COLUMN_REQUEST", produces=(_R10_RESULT,),
-              method_version="column-r10-spectral-shear.v7"),
+              method_version="column-r10-spectral-shear.v8"),
     StageSpec("second-order", LIVE, "tbdy_next.story_second_order", ("r08-second-order",),
               ("GLOBAL_SECOND_ORDER",), "TBDY 4.33 story second-order precheck", "R08_SOURCE"),
     StageSpec("column-r08-local", LIVE, "tbdy_next.engineering.column_r08_local_live", (),
               ("COLUMN_SLENDERNESS", "COLUMN_PMM"),
-              "TS500 local slenderness, EI, Nk and beta reference scenarios (computed by pipeline; persisted in engine-results)",
+              "TS500 local slenderness, reference or explicitly adopted EI/K/Rm and magnified selected-section PMM",
               "COLUMN_PMM_MEMBER", consumes=(_AXIAL_GEOMETRY, _AXIAL_RESULT, _PMM_RESULT, _PMM_SCOPE),
-              produces=(_R08_LOCAL_RESULT,), method_version="column-r08-local.v10"),
+              produces=(_R08_LOCAL_RESULT,), method_version="column-r08-local.adopted-basis.v11"),
     StageSpec("alpha-feedback", LIVE, "tbdy_next.engineering.alpha_iteration", (), (),
               "Bounded qualified signed alpha demand revision and dirty-member rechecks", "EXPLICIT_DESIGN_SCENARIO",
               consumes=(_DESIGN_SCOPE, _PMM_SCOPE, _PMM_RESULT, _R10_RESULT, _R08_LOCAL_RESULT),
-              produces=(_ALPHA_ITERATION,), method_version="alpha-feedback.mixed-signed-same-cut.v5"),
+              produces=(_ALPHA_ITERATION,), method_version="alpha-feedback.mixed-signed-same-cut.v6"),
     StageSpec("design-revisions", LIVE, "tbdy_next.engineering.design_dependencies", (), (),
               "Recorded candidate/demand to joint/story/Ve/R14 dependency revisions and consumed alpha feedback; no persistent cache",
               "DESIGN_SCENARIO", consumes=(_DESIGN_SCOPE,), produces=(_DESIGN_REVISIONS,),
@@ -583,13 +584,15 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
     """Execute the live-source stage sequence once; receipts are written in registry order."""
     from .pipeline_snapshot import SCHEMA, record_snapshot
 
-    from .design_scenario import POLICIES, selected_candidate_ledger, verify_archived_scenario
+    from .design_scenario import CALCULATION_BASES, POLICIES, selected_candidate_ledger, verify_archived_scenario
     from .design_dependencies import build_member_dependency_plan, build_revision_evidence, bind_joint_candidates
 
     _validate_dependency_contracts()
     scenario = verify_archived_scenario(run.root, payload)
     if scenario is None and any(payload.get(key) is not None for key in POLICIES):
         raise ValueError("DESIGN_SELECTION_REQUIRES_PREPARED_SCENARIO")
+    if scenario is None and any(payload.get(key) is not None for key in CALCULATION_BASES):
+        raise ValueError("CALCULATION_BASIS_REQUIRES_PREPARED_SCENARIO")
     out: dict[str, Any] = {
         "result": calculate_modal(payload, case=case, run=run, input_sha=input_sha, receipt_schema=SCHEMA),
     }

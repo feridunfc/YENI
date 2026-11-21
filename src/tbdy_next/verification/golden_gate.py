@@ -5,6 +5,7 @@ the report's own result never becomes normative authority. Original audit ZIPs
 and their independent arithmetic are retained, not relabeled as engine tests.
 """
 from collections import Counter
+from decimal import Decimal
 from hashlib import sha256
 from html import escape
 import io
@@ -13,14 +14,16 @@ import math
 from pathlib import Path
 from zipfile import ZipFile
 
-from .. import normative_basis
+from .. import basis_linkage, normative_basis, spectrum_reconstruction
 from ..column_engine.native_archive import digest
-from ..column_engine import ts500_column, section_capacity, scwb_kernel, joint_kernel, story_alpha
+from ..column_engine import ts500_column, section_capacity, scwb_kernel, joint_kernel, story_alpha, transverse_kernel
 from ..engineering import story_pdelta
 from . import report_oracles
 
 SCHEMA = "tbdy.next.golden-regression-gate.v1"
 MANIFEST_SHA256 = "59dedec19a7e6c3d5f496e8d616b8c708af3c99701e271bd872644e39361bec7"
+MATERIAL_BINDING_FILE = "data/golden02_material_binding.json"
+MATERIAL_BINDING_SHA256 = "69ce38622d51869d0cf6c09385adc73edd5b54c7e4fe50fe7799f64259d90bda"
 ROOT = Path(__file__).parent
 CLASSES = ("NUMERICAL_MATCH", "ENGINEERING_INTERPRETATION_DIFFERENCE", "INSUFFICIENT_SOURCE")
 REQUIRED_DOMAINS = ("SECOND_ORDER", "PMM", "SCWB", "CAPACITY_SHEAR", "STORY_ALPHA")
@@ -28,6 +31,18 @@ REQUIRED_DOMAINS = ("SECOND_ORDER", "PMM", "SCWB", "CAPACITY_SHEAR", "STORY_ALPH
 
 class GoldenRegressionError(ValueError):
     pass
+
+
+def _material_binding(manifest, root=None):
+    root = Path(root) if root is not None else ROOT
+    raw = (root / MATERIAL_BINDING_FILE).read_bytes()
+    if sha256(raw).hexdigest() != MATERIAL_BINDING_SHA256:
+        raise GoldenRegressionError("GOLDEN_ADAPTER_MATERIAL_BINDING_CHANGED")
+    binding = json.loads(raw)
+    source = next(r for r in manifest["reports"] if r["id"] == "GOLDEN-02")
+    if binding["report_id"] != source["id"] or binding["source_pdf_sha256"] != source["sha256"]:
+        raise GoldenRegressionError("GOLDEN_ADAPTER_MATERIAL_SOURCE_CONFLICT")
+    return {**binding, "binding_sha256": MATERIAL_BINDING_SHA256}
 
 
 def load_bank(*, root=None, source_dir=None):
@@ -81,6 +96,7 @@ def load_bank(*, root=None, source_dir=None):
             or first["model"]["source"]["sha256"] != reports["GOLDEN-01"]["sha256"]
             or second["sources_sha256"]["2.pdf"] != reports["GOLDEN-02"]["sha256"]):
         raise GoldenRegressionError("GOLDEN_FIXTURE_IDENTITY_CONFLICT")
+    _material_binding(manifest, root)
     return manifest, first, second, excerpts
 
 
@@ -158,6 +174,43 @@ def _first_adapters(first, manifest):
     drift_ratio = normative_basis.eq_4_9_lambda(
         sae_dd3_m_s2=drift["Sae_DD3"], sae_dd2_m_s2=drift["Sae_DD2"],
     )
+    # Reuse scalar operations called by the captured-source owners. Report
+    # quantities do not acquire fabricated ETABS metadata or system authority.
+    coefficient_inputs = (inputs["SDS"], inputs["SD1"])
+    coefficients = basis_linkage.spectral_design_coefficients(
+        ss=Decimal(str(coefficient_inputs[0]["Ss"])),
+        fs=Decimal(str(coefficient_inputs[0]["Fs"])),
+        s1=Decimal(str(coefficient_inputs[1]["S1"])),
+        f1=Decimal(str(coefficient_inputs[1]["F1"])),
+    )
+    scalar = {"SDS": float(coefficients["sds"]), "SD1": float(coefficients["sd1"])}
+    for key, index in (("TA", 0), ("TB", 1)):
+        values = inputs[key]
+        scalar[key] = float(spectrum_reconstruction.spectral_corner_periods(
+            sds=Decimal(str(values["SDS"])), sd1=Decimal(str(values["SD1"])),
+        )[index])
+    ties = inputs["CONFINEMENT_ASW_OVER_S"]
+    provided = transverse_kernel.provided_transverse_steel(
+        leg_count=ties["legs"], diameter_mm=ties["tie_diameter_mm"], spacing_mm=ties["s_mm"],
+    )
+    # The report uses cm2/m; the owner uses mm2/mm (conversion factor 10).
+    scalar["CONFINEMENT_ASW_OVER_S"] = provided["ash_per_s_mm2_per_mm"] * 10
+    threshold = inputs["CONFINEMENT_AXIAL_BRANCH_THRESHOLD"]
+    scalar["CONFINEMENT_AXIAL_BRANCH_THRESHOLD"] = transverse_kernel.confinement_axial_threshold(
+        area_mm2=threshold["Ac_cm2"] * 100, fck_mpa=threshold["fck_MPa"],
+    )["axial_limit_kn"]
+    printed_beta = inputs["LOCAL_BETA_NON_DIAGNOSTIC"]
+    scalar["LOCAL_BETA_NON_DIAGNOSTIC"] = ts500_column.member_magnification_coefficient(
+        nd_kn=printed_beta["Nd_kN"], nk_kn=printed_beta["Nk_kN"], cm=printed_beta["Cm"],
+    )
+    for key in ("JOINT_VE_ONE_BEAM_APPROX", "JOINT_VE_TWO_BEAM_APPROX"):
+        values = inputs[key]
+        tension = sum(joint_kernel.beam_steel_tension_kn(
+            fyk_mpa=values["fyk_MPa"], area_mm2=values[name] * 100,
+        ) for name in ("As1_cm2", "As2_cm2") if name in values)
+        scalar[key] = joint_kernel.joint_shear_equilibrium_kn(
+            beam_tension_kn=tension, column_shear_deduction_kn=values["Vcol_kN"],
+        )
     # Page 28 supplies cumulative weights, not individual story weights.
     # Compare only theta: no invented ETABS case or mass-source metadata and
     # no conclusion about the report's limit, beta or system applicability.
@@ -189,7 +242,7 @@ def _first_adapters(first, manifest):
         "AXIAL_TBDY_LIMIT": axial_limits["tbdy_7_3_1_2_max_ndm_kn"],
         "AXIAL_TS500_LIMIT": axial_limits["ts500_eq_7_7_max_nd_kn"],
         "DRIFT_LAMBDA": float(drift_ratio),
-        **theta, **joint, "SCWB_COLUMN_SUM": scwb["sum_mrc_reference_knm"],
+        **scalar, **theta, **joint, "SCWB_COLUMN_SUM": scwb["sum_mrc_reference_knm"],
         "SCWB_BEAM_1P2_SUM": scwb["required_mrc_reference_knm"],
         "SCWB_NUMERIC_INEQUALITY": scwb["reference_satisfied"]}
 
@@ -199,8 +252,10 @@ def _beta(case, story):
         sway=ts500_column.SWAY_PERMITTED, story_nd_kn=story["Nd"], story_nk_kn=story["Nk"])
 
 
-def _second_comparisons(second, manifest):
+def _second_comparisons(second, manifest, material):
     data = second["revised"]
+    side_mm = data["section_cm"] * 10
+    section = ts500_column.rectangle_properties(side_mm, side_mm)
     rows = []
     for case in data["member_cases"]:
         story = data["sum_N"][case["story"]]
@@ -224,10 +279,22 @@ def _second_comparisons(second, manifest):
             "explanation": "The reported adopted value matches β×βs. The final multiplier requires verified clear length, Eq. 7.29 policy and transfer to PMM. Individual and adopted β are distinct quantities.",
             "normative_disagreement_resolved": False, "engineering_acceptance": False})
         probe = report_oracles.printed_eq729(case["lk"],case["Nd"])
+        printed = ts500_column.eq729_single_reading(
+            length_mm=case["lk"] * 1000, radius_mm=section["r22_exact_mm"],
+            nd_kn=case["Nd"], fck_mpa=material["fck_mpa"], area_mm2=section["area_mm2"],
+        )
+        intermediates = {
+            name: {**compare_values(printed[name], probe[reference], probe[reference], 0),
+                   "target_provenance": "INDEPENDENT_DERIVED_NOT_PRINTED"}
+            for name, reference in (("length_over_i", "lk_over_i"), ("threshold", "threshold"))
+        }
         rows.append({"id":"G02_EQ729_"+case["id"],"domain":"SECOND_ORDER", "legacy_group":"test_ts500_729_requires_separate_branch_proof",
             **_source(manifest,"GOLDEN-02",[186]),"inputs":case,
-            **compare_values(None,probe["product_branch_from_printed_symbol"],False,0),
-            "independent_details":probe,"explanation":"The historical audit preserves the lk/i sensitivity. Applying YENI Eq. 7.29 requires physical clear length, support and k evidence, and an approved policy."})
+            **compare_values(printed["requires_product"],probe["product_branch_from_printed_symbol"],False,0),
+            "yeni_kernel":"ts500_column.eq729_single_reading", "quantity_unit":"boolean",
+            "yeni_details":printed, "independent_details":probe, "intermediate_comparisons":intermediates,
+            "material_binding":material,
+            "explanation":"The existing owner compares the printed lk reading using the report's 30 cm square and page-7 C30 material. The derived Boolean and intermediate ratios match the independent audit. Physical free length, support classification and adopted final factor remain separate; no Ln is invented."})
     for name, story in data["sum_N"].items():
         case = next(c for c in data["member_cases"] if c["story"] == name)
         result = _beta(case,story)
@@ -250,12 +317,56 @@ def _second_comparisons(second, manifest):
     changed = second["reference"]["ground_phi"] < .05 < data["phi"]["ground"]
     rows.append({"id":"G02_SWAY_BRANCH_CHANGED","domain":"SECOND_ORDER", "legacy_group":"test_sway_branch_changed",
         **_source(manifest,"GOLDEN-02",[185]),"inputs":{"old_phi":second["reference"]["ground_phi"],"new_phi":data["phi"]["ground"]},
-        **compare_values(None,changed,True,0),"explanation":"The historical audit verifies the changing φ branch. Reproducing the reported φ values from the full physical story remains open."})
+        **compare_values(None,changed,True,0),
+        "unresolved_kind":"METHOD_AND_SOURCE_BINDING_PENDING",
+        "source_inputs_available":"PRINTED_OLD_AND_NEW_PHI_ONLY",
+        "explanation":"The historical audit verifies the printed phi values crossing 0.05. The production TS 500 sway classifier uses first- and second-order displacement comparison, not this reported scalar phi. Reproducing both phi values requires their story populations and an explicit supported method binding; comparing the printed booleans alone does not qualify the physical branch."})
     return rows
+
+
+def _required_comparison_ids(first, second):
+    """Freeze the population from the pinned fixtures, before inspecting outcomes."""
+    expected = ["G01_" + case["id"] for case in first["arithmetic_cases"]]
+    data = second["revised"]
+    for case in data["member_cases"]:
+        expected.extend(prefix + case["id"] for prefix in ("G02_BETA_", "G02_USED_FACTOR_", "G02_EQ729_"))
+    expected.extend("G02_STORY_BETA_" + name for name in data["sum_N"])
+    expected.extend("G02_ALPHA_" + name for name in data["alpha"])
+    expected.extend(("G02_SWAY_BRANCH_CHANGED", "PMM_REPORT_GATE", "CAPACITY_SHEAR_REPORT_GATE",
+                     "GOLDEN03_REPORT_GATE", "GOLDEN04_REPORT_GATE"))
+    if len(expected) != 44 or len(set(expected)) != 44:
+        raise GoldenRegressionError("GOLDEN_REQUIRED_COMPARISON_POPULATION_CHANGED")
+    return tuple(sorted(expected))
+
+
+def reference_comparison_coverage(rows, expected_ids):
+    """Finite reference-comparison coverage, never physical engineering approval."""
+    expected = set(expected_ids)
+    counts = Counter(row["id"] for row in rows)
+    if len(expected) != len(expected_ids) or any(count != 1 for count in counts.values()) or set(counts) - expected:
+        raise GoldenRegressionError("GOLDEN_COMPARISON_POPULATION_CONFLICT")
+    matched = []
+    for row in rows:
+        if row.get("classification") != "NUMERICAL_MATCH":
+            continue
+        if any(row.get(key) is None for key in ("yeni", "independent", "report")):
+            raise GoldenRegressionError("GOLDEN_MATCH_WITHOUT_COMPARISON_VALUES")
+        compare_values(row["yeni"], row["independent"], row["report"], row["report_rounding_tolerance"])
+        matched.append(row["id"])
+    missing = sorted(expected - set(counts))
+    unresolved = sorted(expected - set(matched))
+    return {"scope": "REGISTERED_COMPARISON_QUANTITIES_ONLY", "expected_ids": sorted(expected),
+            "expected_count": len(expected), "observed_count": len(rows),
+            "matched_ids": sorted(matched), "matched_count": len(matched),
+            "missing_ids": missing, "unresolved_ids": unresolved,
+            "complete": bool(expected) and not unresolved,
+            "engineering_acceptance_granted": False}
 
 
 def build_golden_gate(*, source_dir=None):
     manifest, first, second, excerpts = load_bank(source_dir=source_dir)
+    material = _material_binding(manifest)
+    expected_ids = _required_comparison_ids(first, second)
     adapters = _first_adapters(first,manifest)
     rows = []
     for case in first["arithmetic_cases"]:
@@ -266,6 +377,27 @@ def build_golden_gate(*, source_dir=None):
         production = {}
         if key not in adapters:
             explanation += " The historical independent report calculation is preserved. A link to the production YENI calculation remains pending."
+            if key in ("SWAY_PHI_GROUND", "SWAY_PHI_UPPER"):
+                production.update(unresolved_kind="METHOD_BINDING_PENDING", source_inputs_available=True)
+                explanation += " All printed scalar inputs are available. The report uses 1.5 times drift times sum(N/L) divided by story shear; the current TS 500 owner instead classifies sway using first- and second-order displacement change. This quantity must not be silently substituted for the separate TBDY theta calculation."
+        elif key in ("SDS", "SD1"):
+            production.update(yeni_kernel="basis_linkage.spectral_design_coefficients", quantity_unit="dimensionless")
+            explanation += " This compares the supplied coefficient multiplication only. Site-class selection and system applicability remain separate."
+        elif key in ("TA", "TB"):
+            production.update(yeni_kernel="spectrum_reconstruction.spectral_corner_periods", quantity_unit="s")
+            explanation += " This compares the corner period from the stated coefficients. Full curve, load-case and system qualification remain separate."
+        elif key == "CONFINEMENT_ASW_OVER_S":
+            production.update(yeni_kernel="transverse_kernel.provided_transverse_steel", quantity_unit="cm2/m")
+            explanation += " The owner returns mm2/mm and the adapter converts once to cm2/m. Physical leg effectiveness and detailing remain separate."
+        elif key == "CONFINEMENT_AXIAL_BRANCH_THRESHOLD":
+            production.update(yeni_kernel="transverse_kernel.confinement_axial_threshold", quantity_unit="kN")
+            explanation += " This compares the section threshold. Qualified axial demand and branch selection remain separate."
+        elif key == "LOCAL_BETA_NON_DIAGNOSTIC":
+            production.update(yeni_kernel="ts500_column.member_magnification_coefficient", quantity_unit="dimensionless")
+            explanation += " The existing production scalar consumes the printed Cm directly; no signed end-moment ratio is invented. This clamp-to-one example does not discriminate the historical denominator bug or establish Cm, stiffness or sway applicability."
+        elif key in ("JOINT_VE_ONE_BEAM_APPROX", "JOINT_VE_TWO_BEAM_APPROX"):
+            production.update(yeni_kernel="joint_kernel.beam_steel_tension_kn + joint_kernel.joint_shear_equilibrium_kn", quantity_unit="kN")
+            explanation += " This compares scalar equilibrium from the reported steel and deduction. Physical joint qualification and simultaneous column shears remain separate."
         elif key in ("AXIAL_TBDY_LIMIT", "AXIAL_TS500_LIMIT"):
             production["yeni_kernel"] = "ts500_column.section_axial_limits_kn"
             explanation += " This compares the section limit in kN. Member demand and combination checks have their own scope."
@@ -290,7 +422,7 @@ def build_golden_gate(*, source_dir=None):
             "inputs":case["inputs"],"formula":case["formula"], **production,
             **compare_values(adapters.get(key),report_oracles.calculate(case),case["expected"],case["absolute_tolerance"]),
             "explanation":explanation.strip()})
-    rows.extend(_second_comparisons(second,manifest))
+    rows.extend(_second_comparisons(second,manifest,material))
     for name, report, domain, pages, reason in (
         ("PMM_REPORT_GATE","GOLDEN-01","PMM",[183,196,197],"The 3D PMM reference requires full bar coordinates, material and axis policies, concurrent demand and independent fixed-N, fixed-direction results. The two axis references cover uniaxial capacity."),
         ("CAPACITY_SHEAR_REPORT_GATE","GOLDEN-01","CAPACITY_SHEAR",[188,189],"Linking YENI column capacity shear Ve to the report requires verified Ma/Mu, physical ln, the D branch and the Vd lower bound. The source V and joint Ve checks cover separate quantities."),
@@ -299,20 +431,26 @@ def build_golden_gate(*, source_dir=None):
         rows.append({"id":name,"domain":domain, **_source(manifest,report,pages),"classification":"INSUFFICIENT_SOURCE",
             "yeni":None,"independent":None,"report":None,"explanation":reason})
     classes = dict(Counter(r["classification"] for r in rows))
+    coverage = reference_comparison_coverage(rows, expected_ids)
     domains = []
     for name in REQUIRED_DOMAINS:
         related = [r for r in rows if r["domain"]==name]
         domains.append({"domain":name,"classification_counts":dict(Counter(r["classification"] for r in related)),
+            "registered_reference_comparisons_complete": bool(related) and all(r["id"] in coverage["matched_ids"] for r in related),
             "report_golden_complete":False,"acceptance_eligible":False,
             "reason":"The arithmetic checks cover the listed comparisons. Overall algorithm and scope acceptance require further evidence."})
     modules = {"ts500_column":ts500_column,"section_capacity":section_capacity,"scwb_kernel":scwb_kernel,
         "joint_kernel":joint_kernel,"story_alpha":story_alpha,"report_oracles":report_oracles,
-        "normative_basis":normative_basis,"story_pdelta":story_pdelta}
+        "normative_basis":normative_basis,"story_pdelta":story_pdelta,
+        "basis_linkage":basis_linkage,"spectrum_reconstruction":spectrum_reconstruction,
+        "transverse_kernel":transverse_kernel}
     code_hashes = {name:sha256(Path(module.__file__).read_bytes()).hexdigest() for name,module in modules.items()}
     code_hashes["golden_gate"] = sha256(Path(__file__).read_bytes()).hexdigest()
     result = {"schema":SCHEMA,"source_manifest_sha256":MANIFEST_SHA256,"source_repositories":manifest["source_repositories"],
         "source_verification":"COMPLETE_PDF_AND_AUDIT_BYTES_REHASHED" if source_dir is not None else "PINNED_REVIEWED_EXCERPTS_AND_AUDIT_BYTES",
         "reports":manifest["reports"],"source_pdf_bytes_bundled":False,"record_count":len(rows),"classification_counts":classes,
+        "adapter_source_bindings":[material],
+        "reference_comparison_coverage":coverage,"reference_comparisons_complete":coverage["complete"],
         "legacy_reference_bank":{"golden01_comparisons":23,"golden01_reference_arithmetic_matches":23,
             "golden02_original_test_methods":7,"golden02_replayed_test_groups":sorted({r["legacy_group"] for r in rows if "legacy_group" in r}),
             "legacy_success_is_not_yeni_engine_acceptance":True},
@@ -336,13 +474,21 @@ def golden_gate_summary(result=None):
     result = build_golden_gate() if result is None else result
     if result.get("result_sha256") != digest({k:v for k,v in result.items() if k!="result_sha256"}):
         raise GoldenRegressionError("GOLDEN_DERIVATION_CHANGED")
-    return {key:result[key] for key in ("schema","result_sha256","source_manifest_sha256","source_verification",
+    summary = {key:result[key] for key in ("schema","result_sha256","source_manifest_sha256","source_verification",
         "record_count","classification_counts","legacy_reference_bank","required_domains","gate_status",
         "acceptance_eligible","normative_qualification","engineering_release")}
+    for key in ("reference_comparison_coverage", "reference_comparisons_complete", "adapter_source_bindings"):
+        if key in result:
+            summary[key] = result[key]
+    return summary
 
 
 def build_golden_html(result):
     summary = golden_gate_summary(result)
+    coverage = summary.get("reference_comparison_coverage")
+    progress = (f"Registered reference comparisons: {coverage['matched_count']} / {coverage['expected_count']} matched. "
+                f"Unresolved records: {len(coverage['unresolved_ids'])}." if coverage else
+                "Registered reference coverage was not recorded in this legacy result.")
     def cell(value):
         if value is None:return "—"
         if type(value) is float:return format(value,".9g")
@@ -355,6 +501,8 @@ def build_golden_html(result):
     return ("<!doctype html><html lang='en'><meta charset='utf-8'><title>YENI · Golden regression gate</title>"
         "<style>body{font:15px system-ui;margin:2rem;color:#183047}table{border-collapse:collapse;width:100%;font-size:12px}td,th{padding:8px;border-bottom:1px solid #ccd4dd;text-align:left}th{background:#edf2f7}pre{white-space:pre-wrap;overflow-wrap:anywhere}</style>"
         "<h1>Golden regression gate</h1><p><strong>Acceptance incomplete · NOT_READY.</strong> This report compares YENI and independent arithmetic against published values and explains differences. Code approval of the reports and models requires separate evidence.</p>"
+        +"<p>"+escape(progress)+" Reference comparison completion does not approve the physical model or engineering design.</p>"
+        +
         "<p>The gate preserves 23 GOLDEN-01 comparisons and seven historical GOLDEN-02 test groups. Paths awaiting production linkage are INSUFFICIENT_SOURCE. The 87-column ETABS bank verifies source integration separately.</p>"
         "<table><tr><th>Check</th><th>PDF page</th><th>YENI</th><th>Independent</th><th>Reported</th><th>Class</th><th>Explanation</th></tr>"
         +"".join(rows)+"</table><details><summary>Source and acceptance identity</summary><pre>"

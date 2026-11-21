@@ -246,31 +246,53 @@ def blocked_member_result(uid: str, codes: list[str], *, schema: str) -> dict[st
 
 
 def _stories_without_alpha(feedback, plan):
+    """Read scoped applicability, independently of global design feasibility.
+
+    An unresolved PMM or shear calculation does not make Eq. 7.3 become
+    inapplicable at an otherwise qualified joint. Its own dependency remains
+    open. Each story still needs both directions and every physical column end.
+    """
     qualification = feedback.get("final_qualification") or {}
-    feasibility = feedback.get("final_feasibility") or {}
-    if (feedback.get("status") != "ALTERNATIVE_NOT_REQUIRED" or qualification.get("status") != feedback["status"]
-            or qualification.get("reason_codes") != [] or qualification.get("cases") != []
-            or feasibility.get("status") != "FEASIBLE_REFERENCE" or feasibility.get("reselect_member_ids") != []
-            or feedback.get("source_payload_sha256") != plan.get("source_payload_sha256")):
+    if (not plan.get("source_payload_sha256")
+            or feedback.get("source_payload_sha256") != plan["source_payload_sha256"]):
         return set()
     allowed = {"NO_FRAME_BEAM_AT_NODE", "NO_FRAME_BEAM_IN_DIRECTION", "COLUMN_DOES_NOT_CONTINUE_ABOVE_7_3_5_3_B",
                "EXEMPT_LOW_AXIAL", "EQ_7_3_INTERVAL_SUFFICIENT"}
-    rows = qualification.get("story_applicability", [])
+    rows = feedback.get("assigned_story_applicability", qualification.get("story_applicability", []))
     expected = {(s, d) for s in plan["story_columns"] for d in ("X", "Y")}
-    if len(rows) != len(expected) or {(r["story"], r["direction"]) for r in rows} != expected:
+    if not isinstance(rows, list) or any(not isinstance(r, dict) or
+            (r.get("story"), r.get("direction")) not in expected for r in rows):
         return set()
-    for row in rows:
-        uids = plan["story_columns"][row["story"]]
-        ends = {(u, end, jid) for u in uids for end, jid in zip(("I", "J"), plan["members"][u]["joint_ids"])}
-        observed = row["ends"]
-        if (row["status"] != "ALTERNATIVE_NOT_REQUIRED" or row.get("reason_codes") != []
-                or row["input_sha256"] != plan["input_sha256"] or row["expected_member_ids"] != uids
-                or row.get("applied_demand_factor") != 1 or any(row.get(k) is not None for k in ("alpha","vis_kn","vik_kn"))
-                or len(ends) != len(observed) or len(ends) != 2 * len(uids)
-                or {(e["member_id"], e["end"], e["joint_id"]) for e in observed} != ends
-                or any(e.get("disposition") not in allowed for e in observed)):
-            return set()
-    return set(plan["story_columns"])
+    required = feedback.get("required_seismic_combinations")
+    accepted = set()
+    for story, uids in plan["story_columns"].items():
+        story_rows = [r for r in rows if r["story"] == story]
+        members = [plan["members"].get(u) or {} for u in uids]
+        if (not uids or len(story_rows) != 2 or {r["direction"] for r in story_rows} != {"X", "Y"}
+                or any(m.get("source_execution_allowed") is not True or
+                       m.get("selected_candidate_bound") is not True or len(m.get("joint_ids", ())) != 2
+                       for m in members)):
+            continue
+        ends = {(u, end, jid) for u, member in zip(uids, members)
+                for end, jid in zip(("I", "J"), member["joint_ids"])}
+        names = required if required is not None else story_rows[0].get("assigned_seismic_combinations")
+        if not names or len(names) != len(set(names)):
+            continue
+        valid = True
+        for row in story_rows:
+            observed = row.get("ends") or []
+            if (row.get("status") != "ALTERNATIVE_NOT_REQUIRED" or row.get("reason_codes") != []
+                    or row.get("input_sha256") != plan["input_sha256"] or row.get("expected_member_ids") != uids
+                    or row.get("assigned_seismic_combinations") != names
+                    or row.get("applied_demand_factor") != 1 or any(row.get(k) is not None for k in ("alpha","vis_kn","vik_kn"))
+                    or len(ends) != len(observed) or len(ends) != 2 * len(uids)
+                    or {(e.get("member_id"), e.get("end"), e.get("joint_id")) for e in observed} != ends
+                    or any(e.get("disposition") not in allowed for e in observed)):
+                valid = False
+                break
+        if valid:
+            accepted.add(story)
+    return accepted
 
 
 def build_revision_evidence(plan: Mapping[str, Any], candidate_ledger: Mapping[str, Any] | None,
@@ -369,13 +391,19 @@ an explicit open dependency rather than pretending the original Ve is revised.
         closure_key = add("r14-input:" + uid, {"blockers": sorted(set(reasons))}, [ve, "r08:" + uid])
         columns[uid] = {"member_id": uid, "open_gates": sorted(set(reasons)),
                         "artifact_id": closure_key, "input_revision_sha256": artifacts[closure_key]["revision_sha256"],
+                        "candidate_revision_sha256": (selected.get("candidate_sha256")
+                            if selected.get("status") == "SAME_RUN_CANDIDATE_BOUND"
+                            and member.get("candidate_revision_sha256") == selected.get("candidate_sha256") else None),
                         "reference_ve_is_revised_design_demand": False,
                         "alpha_feedback_consumed": feedback_consumed,
                         "alpha_feedback_not_required": alpha_not_required}
-        if (shear and not reasons and shear.get("candidate_revision_sha256") == selected.get("candidate_sha256")
+        if (shear and selected.get("status") == "SAME_RUN_CANDIDATE_BOUND"
+                and member.get("candidate_revision_sha256") == selected.get("candidate_sha256")
+                and shear.get("candidate_revision_sha256") == selected.get("candidate_sha256")
                 and shear.get("input_sha256") == input_sha):
             columns[uid]["spectral_shear_sha256"] = _digest(shear)
     result = {"schema": REVISION_SCHEMA, "method_revision": METHOD, "input_sha256": input_sha,
+              "source_payload_sha256": plan.get("source_payload_sha256"),
               "artifacts": artifacts, "columns": columns, "cache_reuse_performed": False,
               "alpha_demand_iteration_implemented": feedback is not None,
               "alpha_iteration_status": feedback.get("status") if feedback else None,

@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
+from copy import deepcopy
 from hashlib import sha256
+import re
 from typing import Any, Mapping
 
 from ..compiled_dag import canonical_json
@@ -12,6 +14,109 @@ DESIGN_COMBOS = "Concrete Frame Design Load Combination Data"
 STATIC_CASES = "Load Case Definitions - Linear Static"
 GATE = "ANALYSIS_BASIS_GATE"
 STAGE = "r03-analysis-setup"
+ADOPTED_ANALYSIS_SCHEMA = "tbdy.next.adopted-analysis-basis.v1"
+ADOPTED_ANALYSIS_PENDING = "ADOPTED_ANALYSIS_BASIS_ENGINEERING_ACCEPTANCE_PENDING"
+_ADMISSION_CODES = frozenset({"APPROVED_MODEL_PROFILE_MISSING",
+    "APPROVED_LOAD_ROLES_AND_DESIGN_FAMILIES_MISSING", "LOAD_CASE_ROLES_UNAPPROVED",
+    "ANALYSIS_GENERATION_NOT_PROVEN"})
+
+
+def normalize_analysis_basis(raw: Any, *, source_data_sha256: str) -> dict[str, Any]:
+    """Validate explicit calculation assumptions, never infer engineering approval.
+
+    This is an input contract for a source-bound scenario. A supplied review
+    reference is an attribution, not an independently verified solver log.
+    Native source validation and formal acceptance remain separate outcomes.
+    """
+    keys = {"schema", "basis_id", "basis_role", "engineering_approval", "source_data_sha256",
+            "decision_reference", "model_profile", "case_roles", "design_groups", "generation"}
+    if (not isinstance(raw, Mapping) or set(raw) != keys or raw["schema"] != ADOPTED_ANALYSIS_SCHEMA
+            or raw["basis_role"] != "ADOPTED_CALCULATION_ASSUMPTIONS"
+            or raw["engineering_approval"] != "NOT_GRANTED"):
+        raise ValueError("ANALYSIS_BASIS_SCHEMA_INVALID")
+    if (not isinstance(source_data_sha256, str) or re.fullmatch(r"[0-9a-f]{64}", source_data_sha256) is None
+            or raw["source_data_sha256"] != source_data_sha256):
+        raise ValueError("ANALYSIS_BASIS_NATIVE_SOURCE_MISMATCH")
+
+    def label(value):
+        return isinstance(value, str) and bool(value.strip()) and value == value.strip() and len(value) <= 2048
+
+    def names(value):
+        return (isinstance(value, list) and bool(value) and all(label(x) for x in value)
+                and len(value) == len(set(value)))
+
+    if not all(label(raw[key]) for key in ("basis_id", "decision_reference")):
+        raise ValueError("ANALYSIS_BASIS_DECISION_REFERENCE_REQUIRED")
+    profile = raw["model_profile"]
+    if (not isinstance(profile, Mapping)
+            or set(profile) != {"profile_id", "structural_system", "ductility_level", "decision_reference"}
+            or not all(label(value) for value in profile.values())):
+        raise ValueError("ANALYSIS_BASIS_MODEL_PROFILE_INVALID")
+    roles, groups, generation = raw["case_roles"], raw["design_groups"], raw["generation"]
+    allowed_roles = {"GRAVITY", "STATIC_SEISMIC", "RESPONSE_SPECTRUM", "MODAL", "WIND", "OTHER_STATIC"}
+    if (not isinstance(roles, Mapping) or not roles or not all(label(k) for k in roles)
+            or any(not isinstance(value, str) or value not in allowed_roles for value in roles.values())):
+        raise ValueError("ANALYSIS_BASIS_CASE_ROLES_INVALID")
+    if (not isinstance(groups, Mapping) or not groups or not all(label(k) for k in groups)
+            or not all(names(value) for value in groups.values())):
+        raise ValueError("ANALYSIS_BASIS_DESIGN_GROUPS_INVALID")
+    if (not isinstance(generation, Mapping)
+            or set(generation) != {"analysis_run_id", "source_analysis_order", "completed_case_names", "decision_reference"}
+            or not all(label(generation[key]) for key in ("analysis_run_id", "decision_reference"))
+            or generation["source_analysis_order"] != "FIRST_ORDER"
+            or not names(generation["completed_case_names"])):
+        raise ValueError("ANALYSIS_BASIS_GENERATION_INVALID_OR_UNSUPPORTED")
+    result = deepcopy(dict(raw))
+    result["generation"]["completed_case_names"] = sorted(generation["completed_case_names"])
+    result["design_groups"] = {key: sorted(values) for key, values in sorted(groups.items())}
+    result["case_roles"] = dict(sorted(roles.items()))
+    return result
+
+
+def _adopt_calculation_basis(snapshot, analysis_setup, assigned):
+    """Require complete native definitions and exact assigned scope before use."""
+    from .design_scenario import _digest, _source_data, validate_design_scenario
+    lineage = validate_design_scenario(snapshot)
+    if lineage is None:
+        raise ValueError("ANALYSIS_BASIS_REQUIRES_PREPARED_SCENARIO")
+    basis = normalize_analysis_basis(snapshot["analysis_basis"], source_data_sha256=_digest(_source_data(snapshot)))
+    if (not analysis_setup.get("definition_coverage_known")
+            or analysis_setup.get("source_capture_scope") != "SAME_CAPTURE"):
+        raise ValueError("ANALYSIS_BASIS_NATIVE_DEFINITIONS_UNRESOLVED")
+    combo_source = snapshot.get("vs04_basis_probe") or {}
+    cases = _case_summary(combo_source.get("table_reads") or {}, require_key=True)
+    if (set(basis["case_roles"]) != set(cases)
+            or set(basis["generation"]["completed_case_names"]) != set(cases)):
+        raise ValueError("ANALYSIS_BASIS_CASE_POPULATION_MISMATCH")
+    for name, case in cases.items():
+        kind, role = case["type"], basis["case_roles"][name]
+        modal_kinds = {"Modal", "Modal - Ritz", "Modal - Eigen"}
+        if ((kind == "Response Spectrum" and role != "RESPONSE_SPECTRUM")
+                or (kind in modal_kinds and role != "MODAL")
+                or (kind == "Linear Static" and role not in {"GRAVITY", "STATIC_SEISMIC", "WIND", "OTHER_STATIC"})
+                or kind not in {"Response Spectrum", "Linear Static"} | modal_kinds):
+            raise ValueError("ANALYSIS_BASIS_CASE_ROLE_OR_TYPE_UNSUPPORTED:" + name)
+    groups = {k: sorted(v) for k, v in ((assigned or {}).get("assigned_groups") or {}).items() if v}
+    if (not assigned or assigned.get("remaining_unassigned_families")
+            or groups != basis["design_groups"]
+            or not {name for values in groups.values() for name in values}
+                   <= set(analysis_setup.get("defined_combination_names") or ())):
+        raise ValueError("ANALYSIS_BASIS_ASSIGNED_GROUP_POPULATION_MISMATCH")
+    # A named nonlinear stiffness predecessor contradicts this supported route.
+    # NonlinCase=None, in contrast, is never treated as proof of first order.
+    if any(row.get("nonlinear_case") not in (None, "", "None")
+           for row in analysis_setup.get("linear_static_settings") or ()):
+        raise ValueError("ANALYSIS_BASIS_FIRST_ORDER_CONFLICTS_WITH_NATIVE_PREDECESSOR")
+    # An explicit P-Delta stiffness record cannot be relabelled first order.
+    # A Nonlinear Case / None entry is an unresolved initial condition, so it
+    # may only accompany the explicit adopted assumption, never source proof.
+    if any(row.get("stiffness_setting") not in {"Unstressed", "Zero Initial Conditions", "Nonlinear Case"}
+           for row in analysis_setup.get("linear_static_settings") or ()):
+        raise ValueError("ANALYSIS_BASIS_FIRST_ORDER_STIFFNESS_SETTING_CONFLICT_OR_UNSUPPORTED")
+    second = snapshot.get("second_order_basis")
+    if second is not None and second.get("source_analysis_order") != basis["generation"]["source_analysis_order"]:
+        raise ValueError("ANALYSIS_BASIS_SECOND_ORDER_INPUT_CONFLICT")
+    return basis
 
 
 def audit_model_analysis_setup(
@@ -324,10 +429,24 @@ def project_analysis_setup_reconciliation(
             else "LOAD_CASE_ROLES_UNAPPROVED"
         )
         blockers[idx] = replacement
+    adopted = {}
+    if snapshot.get("analysis_basis") is not None:
+        try:
+            basis = _adopt_calculation_basis(snapshot, analysis_setup, assigned)
+            from .design_scenario import _digest
+            blockers = [code for code in blockers if code not in _ADMISSION_CODES]
+            blockers.append(ADOPTED_ANALYSIS_PENDING)
+            adopted = {"calculation_basis_status": "ADOPTED_CALCULATION_BASIS_APPLIED_NOT_PROVEN",
+                       "calculation_basis": basis, "calculation_basis_sha256": _digest(basis),
+                       "analysis_generation_independently_verified": False,
+                       "engineering_approval": "NOT_GRANTED"}
+        except (KeyError, TypeError, ValueError) as exc:
+            blockers.append("ADOPTED_ANALYSIS_BASIS_INVALID:" + str(exc))
     return {
         "schema": "tbdy.next.r03-reconciliation.v1",
         "design_families_assigned": bool(assigned),
         "assigned_design_families": assigned,
         "cracked_section_stiffness_audit": stiffness,
         "reconciled_blocker_codes": blockers,
+        **adopted,
     }

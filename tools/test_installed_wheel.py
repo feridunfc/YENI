@@ -37,6 +37,13 @@ WHEEL_TESTS = (
     "test_column_mat_support",
     "test_rebar_selection",
     "test_recorded_column_calculation_report",
+    "test_adopted_analysis_basis",
+    "test_adopted_second_order_basis",
+    "test_golden_scalar_adapters",
+    "test_scoped_alpha_applicability",
+    "test_spectral_shear_failure_propagation",
+    "test_r14_adopted_basis",
+    "test_vertical_slice_pipeline",
 )
 
 

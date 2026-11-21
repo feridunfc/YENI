@@ -19,7 +19,10 @@ from typing import Any, Mapping, MutableMapping, Sequence
 from ..column_engine.csi_geometry import (
     NativeSectionDims, physical_column_side_at_joint, physical_shear_axis, to_local_dimensions,
 )
-from ..column_engine.joint_kernel import centered_joint_limit, joint_transverse_reference, width_reference
+from ..column_engine.joint_kernel import (
+    beam_steel_tension_kn, centered_joint_limit, joint_shear_equilibrium_kn,
+    joint_transverse_reference, width_reference,
+)
 from ..column_engine.joint_moment_signs import moment_sign_mapping
 from ..column_engine.native_archive import BankError, finite
 from ..column_engine.scwb_kernel import (
@@ -32,7 +35,7 @@ from ..column_engine.scwb_kernel import (
 from ..column_engine.section_capacity import Section, perimeter
 from ..column_engine.source_bank import native_frame_force_rows
 from ..column_engine.story_alpha import evaluate_story_alpha_reference
-from ..column_engine.transverse_kernel import confinement_reference, shear_reference
+from ..column_engine.transverse_kernel import confinement_axial_threshold, confinement_reference, shear_reference
 from ..column_engine.ts500_column import apply_minimum_eccentricity
 from ..etabs_geometry import PHYSICAL_FACE_TABLES, capture_point_restraints
 from ..etabs_source_gateway_windows import field_schema, read_table, return_code
@@ -1809,8 +1812,8 @@ def _attach_r13_joint_shear_and_transverse(
                         "fyk_mpa": float(fyk_b),
                         "as_top_mm2": as_t,
                         "as_bot_mm2": as_b,
-                        "t_top_kn": 1.25 * float(fyk_b) * as_t / 1000.0,
-                        "t_bot_kn": 1.25 * float(fyk_b) * as_b / 1000.0,
+                        "t_top_kn": beam_steel_tension_kn(fyk_mpa=fyk_b, area_mm2=as_t),
+                        "t_bot_kn": beam_steel_tension_kn(fyk_mpa=fyk_b, area_mm2=as_b),
                     }
                 if missing_reason is None:
                     sway_a_t = face_terms[face_pos]["t_top_kn"] + face_terms[face_neg]["t_bot_kn"]
@@ -1871,8 +1874,8 @@ def _attach_r13_joint_shear_and_transverse(
                         v_kol_kn = min(c["deduction_kn"] for c in column_shear_cases)
                         v_kol_basis = "MIN_UPPER_LOWER_COLUMN_SHEAR"
 
-                    ve_a = max(0.0, sway_a_t - v_kol_kn)
-                    ve_b = max(0.0, sway_b_t - v_kol_kn)
+                    ve_a = joint_shear_equilibrium_kn(beam_tension_kn=sway_a_t, column_shear_deduction_kn=v_kol_kn)
+                    ve_b = joint_shear_equilibrium_kn(beam_tension_kn=sway_b_t, column_shear_deduction_kn=v_kol_kn)
                     ve_gov = max(ve_a, ve_b)
                     lim_kn = float(calc["geometric_limit_kn"])
                     axis_entry["joint_shear_ve"] = {
@@ -1945,7 +1948,9 @@ def _attach_r13_joint_shear_and_transverse(
                     axial_branch = "CONSERVATIVE_HIGH_AXIAL_REFERENCE_INPUTS_UNBOUND"
                     lower_req = conf_lower["high_axial_required_ash_mm2"]
                     if dims_l is not None and fck_l is not None and fck_l > 0 and n_max_l is not None:
-                        threshold_kn = 0.2 * dims_l.local2_extent_mm * dims_l.local3_extent_mm * fck_l / 1000.0
+                        threshold_kn = confinement_axial_threshold(
+                            area_mm2=dims_l.local2_extent_mm * dims_l.local3_extent_mm, fck_mpa=fck_l,
+                        )["axial_limit_kn"]
                         axial_branch = "HIGH_AXIAL_GT_0_2_AC_FCK"
                         if n_max_l <= threshold_kn:
                             axial_branch = "LOW_AXIAL_LE_0_2_AC_FCK"

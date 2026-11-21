@@ -5892,6 +5892,49 @@
       "engineering_release": "NOT_READY",
       "software_tests": "NOT_RUN_GEOMETRY_CALCULATION_AND_DOCUMENTATION_ONLY",
       "next_action": "Bind the C104/W21/W22 construction reinforcement and connection detail across elevation -1.50 m. Check the component-specific cut actions and use the accepted coupled stiffness and second-order demand."
+    },
+    {
+      "id": "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
+      "status": "ACTUAL_OWNER_SYNTHETIC_SLICES_AND_SOFTWARE_FIXES_VERIFIED",
+      "base_commit": "0f1a809299ed0dbb6e0ecfde77be0642e1771ce3",
+      "work_branch": "work/vertical-slice-adopted-basis-20261121",
+      "tested_manifest": "docs/engineering/vertical_slice_20261121/TESTED_FILES.json",
+      "tested_manifest_sha256": "15ba275f4aa30e6fc64ed7d6a13a7766166ff0e90d1e846781af126e055aa4db",
+      "verification": "docs/engineering/vertical_slice_20261121/VERIFICATION_RESULTS.json",
+      "verification_sha256": "40cc4ff184c1b95c0abc368ce3de01b2f4cfde96dd6d64974e11a0e25fae9859",
+      "report": "docs/engineering/VERTICAL_SLICE_20261121.md",
+      "result": {
+        "full_offline_python_tests": 1640,
+        "javascript_test_files": 11,
+        "isolated_wheel_tests": 488,
+        "actual_pipeline_regressions": 6,
+        "golden_counts": {
+          "NUMERICAL_MATCH": 33,
+          "INSUFFICIENT_SOURCE": 7,
+          "ENGINEERING_INTERPRETATION_DIFFERENCE": 4
+        },
+        "one_story_numeric_columns": [
+          1,
+          1
+        ],
+        "two_story_numeric_columns": [
+          2,
+          2
+        ],
+        "native_demand_cage_retry": "32Phi16 ->34Phi16; one retry; alpha not applied"
+      },
+      "limits": [
+        "Original87/C29/C104 private result populations not replayed here.",
+        "Adopted inputs are assumptions with decision references, not independent source proof or engineering approval.",
+        "The complete actual-owner alpha-below-one building example remains open.",
+        "The native-demand retry exercises no alpha amplification.",
+        "Two global/local policies are supported; nonunit overlapping sway treatments remain unsupported.",
+        "Wall-coupled source, combined-section stiffness and reinforcement/anchorage remain engineering work.",
+        "No raw private EDB/PDF/SQLite/source receipts are published."
+      ],
+      "engineering_release": "NOT_READY",
+      "original_building_replay": "NOT_RUN",
+      "live_ETABS": "NOT_RUN"
     }
   ],
   "new_record_template": {
@@ -6549,5 +6592,13 @@
     "git_tree_sha": "ee353bd0867f62fb00a5eeea581c954cc8019c23",
     "observed_on": "2026-11-20",
     "scope": "Verified base when this record was produced. Resolve the current published ref with git ls-remote."
+  },
+  "remote_implementation_checkpoint": {
+    "base_commit": "0f1a809299ed0dbb6e0ecfde77be0642e1771ce3",
+    "work_branch": "work/vertical-slice-adopted-basis-20261121",
+    "evidence_ref": "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
+    "local_private_checkpoint_preserved": true,
+    "unpublished_local_changes": "NOT_INSPECTED",
+    "next_action": "Integrate reviewed branch without replacing newer local work; run current original C29 members225/142 and common joint with the actual adopted inputs. Continue C104 coupled work in parallel."
   }
 }

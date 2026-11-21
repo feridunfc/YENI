@@ -125,7 +125,57 @@ def wall_below_fixture(*, wall_top_z="-4.5"):
     return source, scope
 
 
+def nonmatching_wall_fixture(*, meshed=False, x=0.):
+    """A physical interior wall with no shared frame/shell analysis corner IDs."""
+    source, tables, scope = fixture()
+    b1 = source["vs06_b1_geometry_source"]
+    points = [("W0", "L1", str(x), "0", "-3.25"), ("W1", "L1", str(x + 2), "0", "-3.25"),
+              ("W2", "L1", str(x + 2), "0", "-.75"), ("W3", "L1", str(x), "0", "-.75")]
+
+    def append(record, values):
+        record["rows"].extend(dict(zip(record["fields"], row, strict=True)) for row in values)
+        record["row_count"] = len(record["rows"])
+
+    append(b1["table_reads"]["Point Object Connectivity"], points)
+    b1["table_reads"][WALL_CONNECTIVITY] = table("UniqueName Story WallBay UniquePt1 UniquePt2 UniquePt3 UniquePt4",
+        [("W", "L1", "W", "W0", "W1", "W2", "W3")])
+    b1["table_reads"][WALL_PROPERTIES] = table("Name ModelType Thickness", [("PW", "Shell-Thick", ".4")],
+                                            units={"Thickness": "m"})
+    append(b1["table_reads"]["Area Assignments - Section Properties"], [("W", "L1", "W", "Wall", "PW")])
+    append(tables[AREA_INSERTION], [("W", "L1", "W", "Middle")])
+    append(tables[AREA_ELEMENTS], [("L1", "W-1", "Wall", "W", "W", "W0", "W1", "W2")])
+    append(tables["Objects and Elements - Joints"], [(uid, uid, "Joint", story, a, b, z)
+           for uid, story, a, b, z in points])
+    if meshed:
+        append(tables["Objects and Elements - Joints"], [(n, "C", "Frame", "L1", "0", "0", z)
+               for n, z in (("G0", "-3"), ("G1", "-1"))])
+        scope["analysis_mesh"]["members"]["C"].update(expected_analysis_element_ids=["C-1", "C-2", "C-3"],
+            analysis_element_end_joints={"C-1": ["P0", "G0"], "C-2": ["G0", "G1"], "C-3": ["G1", "P1"]})
+        scope["configured_output_cuts"]["C"]["cuts"] = [
+            {"analysis_element_id": "C-1", "object_station_m": 0., "element_station_m": 0.},
+            {"analysis_element_id": "C-3", "object_station_m": 3.8, "element_station_m": .3}]
+    b1["payload_sha256"] = digest({k: v for k, v in b1.items() if k != "payload_sha256"})
+    return source, scope
+
+
 class ColumnClearLengthTests(TestCase):
+    def test_nonmatching_wall_overlap_cannot_silently_become_an_isolated_column(self):
+        for meshed in (False, True):
+            source, scope = nonmatching_wall_fixture(meshed=meshed)
+            row = project(source, scope)["per_member"]["C"]
+            with self.subTest(meshed=meshed):
+                self.assertEqual(row["status"], "MODEL_CLEAR_LENGTH_UNRESOLVED")
+                self.assertEqual(row["reason"], "NONMATCHING_WALL_CONTACT_REQUIRES_CONNECTION_BASIS")
+                self.assertEqual(row["potential_interior_wall_contacts"][0]["wall_id"], "W")
+                self.assertEqual(row["potential_interior_wall_contacts"][0]["connection_status"],
+                                 "NOT_ESTABLISHED_BY_GEOMETRY")
+
+    def test_a_wall_away_from_the_column_axis_does_not_remove_the_bound_span(self):
+        source, scope = nonmatching_wall_fixture(x=3.)
+        row = project(source, scope)["per_member"]["C"]
+        self.assertEqual(row["status"], FACE_BASIS)
+        self.assertEqual(row["physical_length_m"], 3.8)
+
     def test_top_mat_and_beam_soffit_bind_both_native_end_cuts(self):
         source, _, scope = fixture()
         row = project(source, scope)["per_member"]["C"]

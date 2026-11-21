@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-21T06:25:15.490888Z",
+  "updated_at_utc": "2026-11-21T09:13:09.435959+00:00",
   "repository": "feridunfc/YENI",
-  "baseline_implementation_commit": "77db25a9eeda52ce801f98c1deb42a6e16fb5022",
-  "local_reconciled": true,
-  "scope_note": "18 stable GAPs. The original R08/R10 calculation uses model clear lengths at 59 aligned columns. R08 verifies the native horizontal boundary at all 32 mat-supported columns. Paired TS 500 static references exceed the 5% shortcut threshold in all six occupied story directions.",
+  "baseline_implementation_commit": "0f1a809299ed0dbb6e0ecfde77be0642e1771ce3",
+  "local_reconciled": false,
+  "scope_note": "18 stable GAPs. Remote source inspection at the full baseline SHA; unpublished local work and current private original captures were not inspected. Original cut/length counts remain attributed to the existing local ledger. The new public actual-owner examples are synthetic contract fixtures, not an original-building replay or engineering acceptance.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -23,13 +23,14 @@
     "preserve_verified_subscopes": true
   },
   "priority_focus": [
-    "GAP-006",
     "GAP-009",
-    "GAP-018",
+    "GAP-014",
     "GAP-013",
-    "GAP-016"
+    "GAP-016",
+    "GAP-018",
+    "GAP-006"
   ],
-  "active_task": "Qualify local wall-frame force transfer at C104 and the coupled stiffness and compression basis. Adopt the applicable creep convention and assigned design demand before using the R08 factors in design.",
+  "active_task": "Integrate the adopted-input consumer into the current local baseline, then run C29 members 225/142 and the common joint through the existing pipeline using the actual adopted source/order/stiffness/creep basis. Continue C104 coupled-section development in parallel; retain all required members in global sums.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -44,10 +45,17 @@
         "src/tbdy_next/engineering/analysis_setup.py"
       ],
       "evidence_refs": [
-        "EV-D3B"
+        "EV-D3B",
+        "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121"
       ],
       "closure_evidence_refs": [],
-      "local_update_needed": false
+      "local_update_needed": false,
+      "implementation_checkpoint_20261121": {
+        "evidence_ref": "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
+        "scope": "An explicit source-bound adopted model profile now enables conditional calculation without granting engineering approval.",
+        "engineering_acceptance": "NOT_GRANTED",
+        "original_building_replay": "NOT_RUN"
+      }
     },
     {
       "id": "GAP-002",
@@ -63,10 +71,17 @@
       ],
       "evidence_refs": [
         "EV-D3B",
-        "EV-LOCAL-SPECTRAL"
+        "EV-LOCAL-SPECTRAL",
+        "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121"
       ],
       "closure_evidence_refs": [],
-      "local_update_needed": false
+      "local_update_needed": false,
+      "implementation_checkpoint_20261121": {
+        "evidence_ref": "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
+        "scope": "The adopted analysis input requires exact native case roles and assigned design-group scope; it does not assert a complete code-combination book.",
+        "engineering_acceptance": "NOT_GRANTED",
+        "original_building_replay": "NOT_RUN"
+      }
     },
     {
       "id": "GAP-003",
@@ -81,10 +96,17 @@
       ],
       "evidence_refs": [
         "EV-D3B-REPLAY",
-        "EV-LOCAL-NATIVE"
+        "EV-LOCAL-NATIVE",
+        "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121"
       ],
       "closure_evidence_refs": [],
-      "local_update_needed": false
+      "local_update_needed": false,
+      "implementation_checkpoint_20261121": {
+        "evidence_ref": "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
+        "scope": "The conditional first-order route rejects named nonlinear predecessors, explicit P-Delta stiffness and unsupported case types. Native Ritz/Eigen names bind correctly. Source generation remains independently unverified by this route.",
+        "engineering_acceptance": "NOT_GRANTED",
+        "original_building_replay": "NOT_RUN"
+      }
     },
     {
       "id": "GAP-004",
@@ -173,10 +195,17 @@
         "EV-GAP006-C104-MATCHED-MESH-20261121",
         "EV-GAP006-C104-REFINEMENT-20261121",
         "EV-R10-WALL-COUPLED-CAPACITY-SPAN-20261121",
-        "EV-GAP006-C104-SECTION-PROFILE-20261121"
+        "EV-GAP006-C104-SECTION-PROFILE-20261121",
+        "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121"
       ],
       "closure_evidence_refs": [],
-      "local_update_needed": false
+      "local_update_needed": false,
+      "implementation_checkpoint_20261121": {
+        "evidence_ref": "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
+        "scope": "The clear-length owner now withholds isolated-column calculation for possible nonmatching interior wall contacts, without treating geometric overlap as proof of an analysis constraint.",
+        "engineering_acceptance": "NOT_GRANTED",
+        "original_building_replay": "NOT_RUN"
+      }
     },
     {
       "id": "GAP-007",
@@ -253,10 +282,17 @@
         "EV-R08-WALL-COUPLED-ISOLATED-GUARD-20261121",
         "EV-GAP009-ORIGINAL-FIRST-ORDER-20261121",
         "EV-GAP006-C104-REFINEMENT-20261121",
-        "EV-GAP006-C104-SECTION-PROFILE-20261121"
+        "EV-GAP006-C104-SECTION-PROFILE-20261121",
+        "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121"
       ],
       "closure_evidence_refs": [],
-      "local_update_needed": false
+      "local_update_needed": false,
+      "implementation_checkpoint_20261121": {
+        "evidence_ref": "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
+        "scope": "R08 now consumes source-bound adopted per-axis K/Rm/EI/sway/Cm and Eq.7.29 decisions before selected EI, Nk and magnified signed/spectral PMM. Two explicit global/local policies reject unsupported factor overlap. Public normal-pipeline signed examples exercise actual inputs; adopted story sums and private original-member acceptance remain separate.",
+        "engineering_acceptance": "NOT_GRANTED",
+        "original_building_replay": "NOT_RUN"
+      }
     },
     {
       "id": "GAP-010",
@@ -348,7 +384,8 @@
         "EV-R10-LOW-AXIAL-20261120",
         "EV-AUDIT-FIXES-20261120",
         "EV-R10-LIVE-INTERVAL-20261120",
-        "EV-STORY-STATIC-APPLICABILITY-20261120"
+        "EV-STORY-STATIC-APPLICABILITY-20261120",
+        "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -358,7 +395,13 @@
           "source_sha256": "6f46177e64a5d0ee8e9b6fc7d7b5ba74e252e2cb547fb3655ad97d6aaf490b1f",
           "acceptance": "REFERENCE_ONLY_NO_ENGINEERING_CLOSURE"
         }
-      ]
+      ],
+      "implementation_checkpoint_20261121": {
+        "evidence_ref": "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
+        "scope": "Scoped physical applicability survives unrelated design infeasibility. The same physical owner now qualifies signed roof/beamless ends before requiring interior SCWB cases. The existing bounded driver supports native-demand cage reselection with no alpha scaling. A public two-story actual-owner example evaluates 16 unique interior SCWB comparisons; it does not require alpha below one.",
+        "engineering_acceptance": "NOT_GRANTED",
+        "original_building_replay": "NOT_RUN"
+      }
     },
     {
       "id": "GAP-014",
@@ -383,7 +426,8 @@
         "EV-AUDIT-FIXES-20261120",
         "EV-C29-SPECTRAL-SHEAR-20261120",
         "EV-C29-PHYSICAL-CLEAR-LENGTH-20261120",
-        "EV-R10-WALL-COUPLED-CAPACITY-SPAN-20261121"
+        "EV-R10-WALL-COUPLED-CAPACITY-SPAN-20261121",
+        "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -393,7 +437,13 @@
           "source_sha256": "6f46177e64a5d0ee8e9b6fc7d7b5ba74e252e2cb547fb3655ad97d6aaf490b1f",
           "acceptance": "REFERENCE_ONLY_NO_ENGINEERING_CLOSURE"
         }
-      ]
+      ],
+      "implementation_checkpoint_20261121": {
+        "evidence_ref": "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
+        "scope": "A native spectral Vd exceeding the brittle geometric limit is propagated as a calculated failure even beside missing sibling cases. Public source-to-report examples execute actual joint, confinement and capacity-shear owners; an explicit tie-policy trial changes the two-column numerical disposition.",
+        "engineering_acceptance": "NOT_GRANTED",
+        "original_building_replay": "NOT_RUN"
+      }
     },
     {
       "id": "GAP-015",
@@ -424,8 +474,8 @@
       "title": "Golden coverage and complete independent example",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Historical 467-fixture bank, 10 alpha targets and 115776 separate-bank scalar comparisons are retained; new same-source oracle matches 38592 native comparisons and 45024 derived values. A separate source-binding audit matches 1600 native modal fields and 200 periods; this is not a new building arithmetic oracle. Separate recipe intake reproduced 333 frozen assertions, 1294 assertions in one proportional-modal synthetic chain, and three current-owner primitive values. Of 44 registered comparison and coverage records, 20 have production numerical matches, 20 carry insufficient-source labels and four carry interpretation differences. The two newest matches are the GOLDEN-01 ground and upper storey theta scalars through the existing global P-delta owner; the preceding section axial-limit and drift-ratio matches are retained.",
-      "blocker": "Of the 20 insufficient-source labels, 16 already have agreeing independent/reference values, including five derived Boolean expectations; adapter or method work remains. The matched theta scalars do not establish source-population qualification or the global factor policy. Four adopted second-order factors still need a justified selection rule. The full independent building example is open.",
+      "achieved_scope": "Historical 467-fixture bank, 10 alpha targets and 115776 separate-bank scalar comparisons are retained; new same-source oracle matches 38592 native comparisons and 45024 derived values. A separate source-binding audit matches 1600 native modal fields and 200 periods; this is not a new building arithmetic oracle. Separate recipe intake reproduced 333 frozen assertions, 1294 assertions in one proportional-modal synthetic chain, and three current-owner primitive values. Fresh production-owner report comparison now has 33 numerical matches, seven insufficient-source/method classifications and four engineering-interpretation differences across the same 44 IDs. The new 13 matches preserve source IDs, expected values and tolerances. Public normal-pipeline one- and two-story synthetic fixtures execute actual selection, second order, PMM, shear and joint owners through sealed R14/report results.",
+      "blocker": "Three of the seven insufficient-source/method rows concern historical sway-phi method/population binding; the other four are the PMM, capacity-shear, GOLDEN-03 and GOLDEN-04 report gates. Four adopted second-order factors retain their length/maximum-product interpretation differences. A complete independently validated actual-owner alpha-below-one building example remains open. The public examples are CONTRACT_FIXTURE, not source-reported ETABS calculations.",
       "closure_criteria": "Run the production owner on a complete independent example with inputs, intermediate values, tolerances, identities and a sealed result chain.",
       "owner_paths": [
         "src/tbdy_next/verification/golden_gate.py",
@@ -444,7 +494,8 @@
         "EV-RECIPE18-LOCAL-OWNERS",
         "EV-HANDOFF-RESOURCES-20261119",
         "EV-GOLDEN01-OWNER-BINDINGS-20261119",
-        "EV-AUDIT-FIXES-20261120"
+        "EV-AUDIT-FIXES-20261120",
+        "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -454,7 +505,18 @@
           "source_sha256": "6f46177e64a5d0ee8e9b6fc7d7b5ba74e252e2cb547fb3655ad97d6aaf490b1f",
           "acceptance": "REFERENCE_ONLY_NO_ENGINEERING_CLOSURE"
         }
-      ]
+      ],
+      "implementation_checkpoint_20261121": {
+        "evidence_ref": "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
+        "scope": "The current public source-to-report examples use actual production stages without prepared success outputs. New scalar adapters call shared production owners and preserve independent arithmetic. The authoritative fresh 44-record classification is in docs/engineering/vertical_slice_20261121/golden_comparisons.json; historical 73/333 scopes remain separate.",
+        "engineering_acceptance": "NOT_GRANTED",
+        "original_building_replay": "NOT_RUN"
+      },
+      "previous_comparison_checkpoint": {
+        "base_commit": "0f1a809299ed0dbb6e0ecfde77be0642e1771ce3",
+        "achieved_scope": "Historical 467-fixture bank, 10 alpha targets and 115776 separate-bank scalar comparisons are retained; new same-source oracle matches 38592 native comparisons and 45024 derived values. A separate source-binding audit matches 1600 native modal fields and 200 periods; this is not a new building arithmetic oracle. Separate recipe intake reproduced 333 frozen assertions, 1294 assertions in one proportional-modal synthetic chain, and three current-owner primitive values. Of 44 registered comparison and coverage records, 20 have production numerical matches, 20 carry insufficient-source labels and four carry interpretation differences. The two newest matches are the GOLDEN-01 ground and upper storey theta scalars through the existing global P-delta owner; the preceding section axial-limit and drift-ratio matches are retained.",
+        "blocker": "Of the 20 insufficient-source labels, 16 already have agreeing independent/reference values, including five derived Boolean expectations; adapter or method work remains. The matched theta scalars do not establish source-population qualification or the global factor policy. Four adopted second-order factors still need a justified selection rule. The full independent building example is open."
+      }
     },
     {
       "id": "GAP-017",
@@ -691,6 +753,16 @@
               1392
             ]
           }
+        },
+        "scope_note": "Historical original/private results from the explicitly named November19-20 ledger entries. These are not the result of the remote November21 implementation and were not replayed here.",
+        "latest_reported_cut_checkpoint": {
+          "evidence_ref": "EV-GAP006-WALL-MESH-AND-CUTS-20261121",
+          "independent_cuts": 402,
+          "member_combination_inventories": 957,
+          "force_rows": 7638,
+          "standalone_columns": 73,
+          "coupled_columns": 14,
+          "remote_replay_status": "NOT_RUN"
         }
       }
     }

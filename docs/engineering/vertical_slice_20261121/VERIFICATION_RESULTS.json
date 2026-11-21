@@ -1,0 +1,222 @@
+{
+  "schema": "yeni.vertical-slice.verification.v1",
+  "recorded_at_utc": "2026-11-21T09:23:58.293850+00:00",
+  "repository": "feridunfc/YENI",
+  "branch": "work/vertical-slice-adopted-basis-20261121",
+  "inspected_baseline": {
+    "branch": "baseline/local_import",
+    "commit_sha": "0f1a809299ed0dbb6e0ecfde77be0642e1771ce3",
+    "tree_sha": "541b457b6814586e15dde3e334799239edb080e3"
+  },
+  "implementation_identity": {
+    "base_commit": "0f1a809299ed0dbb6e0ecfde77be0642e1771ce3",
+    "working_tree_at_test": true,
+    "tested_file_manifest": "TESTED_FILES.json",
+    "tested_file_manifest_sha256": "15ba275f4aa30e6fc64ed7d6a13a7766166ff0e90d1e846781af126e055aa4db",
+    "tested_file_count": 342,
+    "tested_inventory_sha256": "261ed2b25c6f8a9b8ce84aaf9f4333b884e7da9e674f7f353094fac42b975b94",
+    "tested_bytes_unchanged_after_tests": true,
+    "containing_commit_note": "The containing Git commit publishes these exact tested executable bytes. Base HEAD alone does not identify this tested dirty tree."
+  },
+  "inspection_boundary": {
+    "published_code": "INSPECTED",
+    "unpublished_local_windows_code": "NOT_INSPECTED",
+    "current_original_87_column_private_source": "NOT_INSPECTED",
+    "original_model_replay": "NOT_RUN",
+    "live_ETABS": "NOT_RUN",
+    "engineering_acceptance": "NOT_GRANTED"
+  },
+  "environment": {
+    "os": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "python": "3.12.14",
+    "interpreter": "/workspace/scratch/675b0dc139de/implementation_verification_20261121/env/bin/python",
+    "node": "v24.22.3",
+    "package_import": "/workspace/scratch/675b0dc139de/implementation_20261121/src/tbdy_next/__init__.py"
+  },
+  "full_offline": {
+    "command": "/workspace/scratch/675b0dc139de/implementation_verification_20261121/env/bin/python -B tools/test_offline.py",
+    "cwd": "/workspace/scratch/675b0dc139de/implementation_20261121",
+    "result": "PASS",
+    "exit_code": 0,
+    "tests": 1640,
+    "seconds": 189.489,
+    "log_sha256": "48a726b162a0e369d9d56e0f042bb6f558ba7b5af3bff067ff0ddbf1127a0910",
+    "log_in_delivery_zip": "verification/full_offline.log",
+    "scope": "Final complete offline software suite, after the sixth actual-owner integration regression was added.",
+    "javascript_test_files": 11,
+    "compilation": "PASS",
+    "javascript_syntax": "PASS",
+    "skipped": 0
+  },
+  "installed_wheel": {
+    "command": "/workspace/scratch/675b0dc139de/implementation_verification_20261121/env/bin/python -B tools/test_installed_wheel.py /workspace/scratch/675b0dc139de/implementation_verification_20261121/wheels",
+    "cwd": "/workspace/scratch/675b0dc139de/implementation_20261121",
+    "result": "PASS",
+    "exit_code": 0,
+    "tests": 488,
+    "seconds": 57.151,
+    "log_sha256": "9e2f511d5dc668cd34f42fe2573efe92e3727e042420bb4f3e522c002a043db1",
+    "log_in_delivery_zip": "verification/installed_wheel.log",
+    "scope": "Isolated installed-wheel test subset, including all six actual-owner vertical-slice integration tests. This subset overlaps the full suite.",
+    "wheel_file": "tbdy_next_engine-0.1.0-py3-none-any.whl",
+    "wheel_sha256": "f2a4e4176b3d855279897dee177f7a3d5f2fe6c372ca83c11a0347ccd40127e4",
+    "runtime_bytes_match_tested_source": true
+  },
+  "normal_pipeline_examples": {
+    "one_story": {
+      "result_file": "one_story_result.json",
+      "result_file_sha256": "49a873463f44c8fe44046e4483d0f17bcfabb990d2786d7c2b442cca9936681f",
+      "input_sha256": "ac5a8d877ffc61d11a09085d97320ed45648417b6828580796ea8baf77610451",
+      "run_id": "RUN-2bf5dfa5b7b54adf940a993aa5e00075",
+      "snapshot": {
+        "schema": "tbdy.next.pipeline-stage-snapshot.v2",
+        "snapshot_sha256": "d1d03fb3a536816539253e7e12039579e4c793c51edb56f41cbaa67230e211fe",
+        "results_sha256": "b5cb4c72ba9cd8f2004e61f2c48bf4c28138c8248494ee12daf11c832ec3d780"
+      },
+      "r14_closure": {
+        "status": "R15_ALL_COLUMNS_CLOSED_NOT_PROVEN",
+        "expected_column_count": 1,
+        "numerically_closed_count": 1,
+        "partial_or_unbound_count": 0,
+        "normative_fail_count": 0
+      },
+      "classification": "CONTRACT_FIXTURE",
+      "origin": "GENERATED_OFFLINE_NOT_ETABS"
+    },
+    "two_story": {
+      "result_file": "two_story_result.json",
+      "result_file_sha256": "3788cab5538bf13ce3d7f39d4d539e35860ac1932cf6bfb1d2927122e3f8949f",
+      "input_sha256": "1203bfd151c6e22c783d28d257d45799ae5dc5db20605521aef848535921c6da",
+      "run_id": "RUN-982934d9ac974a7a825971da25882d61",
+      "snapshot": {
+        "schema": "tbdy.next.pipeline-stage-snapshot.v2",
+        "snapshot_sha256": "285f5422477d7afc623cf5fee02e317dcebdadaf5f8e44bd1a8726aefca5d625",
+        "results_sha256": "f8d446b2ed619c75de0853135ab93f7d190bd6b105a8e45cacac8c02e35f31b8"
+      },
+      "r14_closure": {
+        "status": "R15_ALL_COLUMNS_CLOSED_NOT_PROVEN",
+        "expected_column_count": 2,
+        "numerically_closed_count": 2,
+        "partial_or_unbound_count": 0,
+        "normative_fail_count": 0
+      },
+      "classification": "CONTRACT_FIXTURE",
+      "origin": "GENERATED_OFFLINE_NOT_ETABS"
+    }
+  },
+  "normal_cli_repeat": {
+    "command": [
+      "/workspace/scratch/675b0dc139de/implementation_verification_20261121/env/bin/python",
+      "-B",
+      "-m",
+      "tbdy_next.cli",
+      "run-pipeline",
+      "--source",
+      "/workspace/scratch/675b0dc139de/implementation_verification_20261121/public_two/input.source",
+      "--design-scenario",
+      "/workspace/scratch/675b0dc139de/implementation_verification_20261121/public_two/design-scenario.json",
+      "--case",
+      "Modal",
+      "--out",
+      "/workspace/scratch/675b0dc139de/implementation_verification_20261121/public_two_repeat_runs",
+      "--compare-run",
+      "/workspace/scratch/675b0dc139de/implementation_verification_20261121/public_two_runs/RUN-982934d9ac974a7a825971da25882d61"
+    ],
+    "exit_code": 0,
+    "comparison": {
+      "reference_stages": 12,
+      "current_stages": 12,
+      "mismatched_stages": [],
+      "missing_stages": [],
+      "extra_stages": [],
+      "source_identical": true,
+      "sealed_stage_coverage": true,
+      "comparison_scope": "PIPELINE_RESULTS_REPORT_EVIDENCE_AND_ALL_RECORDED_RECEIPTS",
+      "status": "IDENTICAL"
+    },
+    "scope": "Public synthetic two-story native-shaped source and explicit adopted scenario; current private building source NOT_RUN"
+  },
+  "integration_regressions": {
+    "module": "tests/test_vertical_slice_pipeline.py",
+    "test_count": 6,
+    "positive_stage_outputs_mocked": false,
+    "scenarios": [
+      "Actual one-column/roof-joint calculation",
+      "Changed K/Rm consumed in actual selected PMM and sealed result",
+      "Normal web equals CLI; zero report-time calculation calls",
+      "Missing native cut remains in denominator and prevents closure",
+      "Actual two-story interior SCWB and Phi10/90 partial to Phi12/70 complete trial",
+      "Actual 32Phi16 to34Phi16 native-demand reselection with one retry"
+    ],
+    "stress_case": {
+      "classification": "CONTRACT_FIXTURE",
+      "K": 5,
+      "Rm": 1,
+      "additional_m3_knm": 870,
+      "selected_before": "32Phi16",
+      "selected_after": "34Phi16",
+      "iterations": 1,
+      "actual_second_order_constraints": 15,
+      "final_max_utilization": 0.9886971878334216,
+      "native_force_bytes_unchanged": true,
+      "alpha_feedback_consumed": false,
+      "engineering_release": "NOT_READY"
+    }
+  },
+  "golden": {
+    "command": "/workspace/scratch/675b0dc139de/implementation_verification_20261121/env/bin/python -B -m tbdy_next.cli inspect-golden-regression --json docs/engineering/vertical_slice_20261121/golden_comparisons.json",
+    "record_count": 44,
+    "classification_counts": {
+      "NUMERICAL_MATCH": 33,
+      "INSUFFICIENT_SOURCE": 7,
+      "ENGINEERING_INTERPRETATION_DIFFERENCE": 4
+    },
+    "baseline_classification_counts": {
+      "INSUFFICIENT_SOURCE": 20,
+      "NUMERICAL_MATCH": 20,
+      "ENGINEERING_INTERPRETATION_DIFFERENCE": 4
+    },
+    "same_44_ids": true,
+    "reported_values_rounding_tolerances_hashes_and_pages_preserved": true,
+    "source_manifest_sha256": "59dedec19a7e6c3d5f496e8d616b8c708af3c99701e271bd872644e39361bec7",
+    "source_manifest_identity_preserved": true,
+    "new_matches": 13,
+    "report": "golden_comparisons.json",
+    "report_sha256": "503df9a35924f7b28379c1677ef9a0c36650f86a250adfccc65e2486a876b6b6",
+    "acceptance_eligible": false
+  },
+  "separate_populations": {
+    "recipe_map": {
+      "checks": 73,
+      "path": "docs/engineering/reference/recipe_20261118/delivery/CHECK_MAPPING.json",
+      "sha256": "da278870060cc6e35d3df4127bae7095d0686b6d63cb7c262c1c723e759d464c",
+      "byte_identical_to_baseline": true
+    },
+    "production_report_comparisons": 44,
+    "historical_333_arithmetic_bank": "NOT_RUN_THIS_TASK",
+    "DAG_nodes": "UNCHANGED_CATALOG_NOT_A_COMPLIANCE_PERCENTAGE",
+    "original_building_members": {
+      "reported_count": 87,
+      "replay_here": "NOT_RUN"
+    },
+    "software_tests": "Full1640 and wheel488 overlap; they are not additional engineering CHECKs."
+  },
+  "verification_levels": {
+    "document_schema_and_identity": "PASS_FOR_DELIVERED_SCOPE",
+    "independent_arithmetic": "PASS_SELECTED_SCALAR_ORACLES_NOT_WHOLE_BUILDING",
+    "actual_production_owner_comparison": "33_MATCH_7_SOURCE_OR_METHOD_4_INTERPRETATION",
+    "recorded_pipeline_replay": "PASS_PUBLIC_SYNTHETIC_SOURCE",
+    "live_ETABS_source_verification": "NOT_RUN",
+    "engineering_acceptance": "NOT_GRANTED"
+  },
+  "limits": [
+    "Original87/C29/C104 private result populations not replayed here.",
+    "Adopted inputs are assumptions with decision references, not independent source proof or engineering approval.",
+    "The complete actual-owner alpha-below-one building example remains open.",
+    "The native-demand retry exercises no alpha amplification.",
+    "Two global/local policies are supported; nonunit overlapping sway treatments remain unsupported.",
+    "Wall-coupled source, combined-section stiffness and reinforcement/anchorage remain engineering work.",
+    "No raw private EDB/PDF/SQLite/source receipts are published."
+  ],
+  "readable_appendix_markdown": "The final executable inventory contains 342 files. SHA-256 inventory:\n`261ed2b25c6f8a9b8ce84aaf9f4333b884e7da9e674f7f353094fac42b975b94`.\n\n| Verification | Fresh result | Scope |\n| --- | --- | --- |\n| Full offline suite | 1640 Python tests; 11 JavaScript files passed | Python 3.12.14, Node v24.22.3; no skipped test |\n| Isolated installed wheel | 488 tests passed | Overlapping subset; actual installed package |\n| Actual pipeline regressions | 6 passed | Actual owners; source fixtures, not ETABS analysis |\n| Two-story repeat | IDENTICAL | 12/12 recorded stages and sealed results/report evidence |\n| Golden comparisons | 33 / 7 / 4 | Match / unresolved source or method / interpretation difference; 44 unchanged IDs |\n| Original building and live ETABS | NOT_RUN | Private current captures unavailable here |\n\nThe tested wheel SHA-256 is `f2a4e4176b3d855279897dee177f7a3d5f2fe6c372ca83c11a0347ccd40127e4`.\n\nExact commands, inputs, methods, source/result identities and limitations are retained in VERIFICATION_RESULTS.json. The complete logs accompany the delivery ZIP. The 73-control map is byte-identical to the inspected baseline; the historical 333 arithmetic assertions were not rerun. Engineering release remains NOT_READY.\n"
+}

@@ -265,10 +265,28 @@ def euler_load_kn(*, effective_ei_nmm2, effective_length_lk_mm):
     return positive(math.pi**2 * ei / lk**2 / 1000, "Nk_kN")
 
 
+def member_magnification_coefficient(*, nd_kn, nk_kn, cm, allow_noncompression=False):
+    """TS500 Eq.7.24 scalar; callers establish the supplied Cm's applicability.
+
+    A printed Cm can be compared without inventing a signed end-moment ratio.
+    None denotes the existing nonpositive-denominator boundary, not beta=1.
+    """
+    nd = finite(nd_kn, "Nd") if allow_noncompression is True else positive(nd_kn, "Nd")
+    nk, cm = positive(nk_kn, "Nk"), finite(cm, "Cm")
+    if not .4 <= cm <= 1:
+        raise BankError("CM_OUTSIDE_POINT_FOUR_ONE")
+    denominator = Decimal(1) - Decimal("1.3") * Decimal(str(nd)) / Decimal(str(nk))
+    if denominator <= 0:
+        return None
+    return float(max(Decimal(1), Decimal(str(cm)) / denominator))
+
+
 def moment_magnification_factors(*, nd_kn, nk_kn, sway, signed_end_moment_ratio=None,
-                                  horizontal_load_between_ends=None, story_nd_kn=None, story_nk_kn=None):
+                                  horizontal_load_between_ends=None, story_nd_kn=None, story_nk_kn=None,
+                                  allow_noncompression=False):
     """Coefficients only; does not mutate or authorize a concurrent demand vector."""
-    nd, nk = positive(nd_kn, "Nd"), positive(nk_kn, "Nk")
+    nd = finite(nd_kn, "Nd") if allow_noncompression is True else positive(nd_kn, "Nd")
+    nk = positive(nk_kn, "Nk")
     _sway(sway)
     output = {"status": "COEFFICIENTS_ONLY", "cm": None, "beta": None, "beta_story": None,
         "final_factor": None, "reason": None, "formal_compliance": "NOT_PROVEN"}
@@ -287,11 +305,12 @@ def moment_magnification_factors(*, nd_kn, nk_kn, sway, signed_end_moment_ratio=
         story_denominator = Decimal(1) - Decimal("1.3") * Decimal(str(sn)) / Decimal(str(sk))
         output["beta_story"] = float(max(Decimal(1), Decimal(1) / story_denominator))
     output["cm"] = cm
-    denominator = Decimal(1) - Decimal("1.3") * Decimal(str(nd)) / Decimal(str(nk))
-    if denominator <= 0:
+    beta = member_magnification_coefficient(nd_kn=nd, nk_kn=nk, cm=cm,
+                                          allow_noncompression=allow_noncompression)
+    if beta is None:
         output.update(status="BLOCKED", reason="TS500_7_24_NONPOSITIVE_DENOMINATOR")
         return output
-    output["beta"] = float(max(Decimal(1), Decimal(str(cm)) / denominator))
+    output["beta"] = beta
     if sway == SWAY_PREVENTED:
         output["final_factor"] = output["beta"]
     else:
@@ -299,14 +318,74 @@ def moment_magnification_factors(*, nd_kn, nk_kn, sway, signed_end_moment_ratio=
     return output
 
 
+def eq729_single_reading(*, length_mm, radius_mm, nd_kn, fck_mpa, area_mm2):
+    """Compare one explicitly identified length; missing alternate length is not invented."""
+    length, radius, nd, fck, area = (positive(v, label) for v, label in
+        ((length_mm, "length"), (radius_mm, "radius"), (nd_kn, "Nd"), (fck_mpa, "fck"), (area_mm2, "Ac")))
+    threshold = 35 / math.sqrt(nd * 1000 / (fck * area))
+    return {"length_over_i": length / radius, "threshold": threshold, "requires_product": length / radius > threshold}
+
+
 def eq729_length_comparison(*, free_length_ln_mm, effective_length_lk_mm, radius_mm, nd_kn, fck_mpa, area_mm2):
     """Show both readings of Eq.7.29; neither gains automatic design authority."""
     ln, lk, radius, nd, fck, area = (positive(v, label) for v, label in
         ((free_length_ln_mm, "ln"), (effective_length_lk_mm, "lk"), (radius_mm, "radius"),
          (nd_kn, "Nd"), (fck_mpa, "fck"), (area_mm2, "Ac")))
-    threshold = 35 / math.sqrt(nd * 1000 / (fck * area))
-    return {"ln_over_i": ln / radius, "lk_over_i": lk / radius, "threshold": threshold,
-        "free_length_reading_requires_product": ln / radius > threshold,
-        "printed_symbol_reading_requires_product": lk / radius > threshold,
+    free = eq729_single_reading(length_mm=ln, radius_mm=radius, nd_kn=nd, fck_mpa=fck, area_mm2=area)
+    effective = eq729_single_reading(length_mm=lk, radius_mm=radius, nd_kn=nd, fck_mpa=fck, area_mm2=area)
+    return {"ln_over_i": free["length_over_i"], "lk_over_i": effective["length_over_i"], "threshold": free["threshold"],
+        "free_length_reading_requires_product": free["requires_product"],
+        "printed_symbol_reading_requires_product": effective["requires_product"],
         "status": "NORMATIVE_LENGTH_SYMBOL_CONFLICT", "product_authorized": False,
         "code_ref": "TS500 7.29: prose=free length; printed symbol=lk", "formal_compliance": "NOT_PROVEN"}
+
+
+def adopted_magnification_factors(*, nd_kn, nk_kn, free_length_ln_mm, k, radius_mm, fck_mpa, area_mm2,
+                                  sway, cm_policy, eq729_length_reading, signed_end_moment_ratio=None,
+                                  story_nd_kn=None, story_nk_kn=None):
+    """Consume explicitly adopted assumptions with the existing coefficient owner.
+
+    This selects the declared Eq.7.29 reading for a calculation scenario. It
+    does not resolve the normative prose/symbol difference or grant approval.
+    Noncompression uses no local buckling increase (beta >= 1); a supplied sway
+    factor still acts on the structure's moments. The approximate-method
+    slenderness limit remains enforced.
+    """
+    nd = finite(nd_kn, "Nd")
+    _sway(sway)
+    if cm_policy not in {"UNITY", "SIGNED_END_RATIO"} or (sway == SWAY_PERMITTED and cm_policy != "UNITY"):
+        raise BankError("ADOPTED_CM_POLICY_UNSUPPORTED")
+    valid_readings = {"FREE_LENGTH", "EFFECTIVE_LENGTH"} if sway == SWAY_PERMITTED else {"NOT_APPLICABLE"}
+    if eq729_length_reading not in valid_readings:
+        raise BankError("ADOPTED_EQ729_READING_REQUIRED")
+    slenderness = evaluate_slenderness(free_length_ln_mm=free_length_ln_mm, k=k, radius_mm=radius_mm,
+        sway=sway, signed_end_moment_ratio=signed_end_moment_ratio if cm_policy == "SIGNED_END_RATIO" else None)
+    if slenderness["status"] == "GENERAL_SECOND_ORDER_ANALYSIS_REQUIRED":
+        return {"status": "BLOCKED", "reason": "TS500_APPROXIMATE_METHOD_SLENDERNESS_LIMIT_EXCEEDED",
+                "beta": None, "beta_story": None, "final_factor": None, "slenderness": slenderness,
+                "formal_compliance": "NOT_PROVEN"}
+    result = moment_magnification_factors(nd_kn=nd, nk_kn=nk_kn, sway=sway,
+        signed_end_moment_ratio=signed_end_moment_ratio, horizontal_load_between_ends=cm_policy == "UNITY",
+        story_nd_kn=story_nd_kn, story_nk_kn=story_nk_kn, allow_noncompression=True)
+    result.update(slenderness=slenderness, cm_policy=cm_policy, eq729_length_reading=eq729_length_reading,
+                  engineering_approval="NOT_GRANTED")
+    if result["status"] == "BLOCKED":
+        return result
+    branch = "LOCAL_NONSWAY"
+    if sway == SWAY_PERMITTED:
+        if nd > 0:
+            comparison = eq729_length_comparison(free_length_ln_mm=slenderness["ln_mm"],
+                effective_length_lk_mm=slenderness["lk_mm"], radius_mm=radius_mm, nd_kn=nd,
+                fck_mpa=fck_mpa, area_mm2=area_mm2)
+            result["eq729_comparison"] = comparison
+            product = comparison["free_length_reading_requires_product" if eq729_length_reading == "FREE_LENGTH"
+                                 else "printed_symbol_reading_requires_product"]
+        else:
+            product = False
+            result["eq729_comparison"] = {"status": "NONCOMPRESSION_NO_LOCAL_BUCKLING_PRODUCT"}
+        branch = "PRODUCT" if product else "MAXIMUM"
+        result["final_factor"] = (result["beta"] * result["beta_story"] if product
+                                  else max(result["beta"], result["beta_story"]))
+    positive(result["final_factor"], "adopted_final_factor")
+    result.update(status="ADOPTED_COEFFICIENTS_CALCULATED_NOT_PROVEN", reason=None, eq729_selected_branch=branch)
+    return result

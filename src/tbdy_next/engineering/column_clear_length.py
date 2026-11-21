@@ -129,7 +129,7 @@ def project_column_clear_lengths(source, frames, adjacency, members, pmm_scope):
         return None
 
     results: dict[str, dict[str, Any]] = {}
-    plan = {"method": "column-model-clear-length.v2", "per_member": results}
+    plan = {"method": "column-model-clear-length.v3", "per_member": results}
     try:
         capture = source["capture_metadata"]
         geometry = source["geometry_capture"]
@@ -326,6 +326,41 @@ def project_column_clear_lengths(source, frames, adjacency, members, pmm_scope):
                 "segments_with_common_shell_edge": sum(bool(s["coincident_wall_edges"]) for s in segments),
                 "element_count": len(segments), "joint_ids": {"I": pi, "J": pj}}
 
+    def nonmatching_wall_contacts(xyz_i, xyz_j):
+        """Find physical wall-axis overlap independently of shared shell IDs.
+
+        Geometric overlap does not prove an ETABS constraint. It prevents an
+        unsupported *isolated* member assumption when constraint data is absent.
+        A wall terminating at the lower support is outside this interior test.
+        """
+        if wall_roster is None:
+            if any(row.get("PropType") == "Wall" for row in assignments.values()):
+                raise ValueError("Wall contact geometry is unavailable for standalone-span exclusion")
+            return []
+        overlaps = []
+        for uid, wall in sorted(wall_roster.items()):
+            corners = [_xyz(points[wall[f"UniquePt{i}"]], "XYZ") for i in range(1, 5)]
+            lo, hi = min(p[2] for p in corners), max(p[2] for p in corners)
+            if min(hi, xyz_j[2]) - max(lo, xyz_i[2]) <= _TOL_M:
+                continue
+            plan_points = sorted({p[:2] for p in corners})
+            if len(plan_points) != 2:
+                # Only a possible plan overlap needs a connection decision.
+                if all(min(p[a] for p in corners) - _TOL_M <= xyz_i[a]
+                       <= max(p[a] for p in corners) + _TOL_M for a in (0, 1)):
+                    raise ValueError("Unsupported wall geometry overlaps the column's interior span:" + uid)
+                continue
+            a, b = plan_points
+            length = hypot(b[0] - a[0], b[1] - a[1])
+            if (length <= _TOL_M or abs(_turn(a, b, xyz_i)) > _TOL_M * length
+                    or not all(min(a[i], b[i]) - _TOL_M <= xyz_i[i]
+                               <= max(a[i], b[i]) + _TOL_M for i in (0, 1))):
+                continue
+            overlaps.append({"wall_id": uid, "z_min_m": max(lo, xyz_i[2]),
+                             "z_max_m": min(hi, xyz_j[2]),
+                             "connection_status": "NOT_ESTABLISHED_BY_GEOMETRY"})
+        return overlaps
+
     for uid in members:
         row = results[uid] = {"member_id": uid, "status": "MODEL_CLEAR_LENGTH_UNRESOLVED"}
         if "point_restraints" in r10 and uid in frames:
@@ -366,6 +401,10 @@ def project_column_clear_lengths(source, frames, adjacency, members, pmm_scope):
             if inside.intersection(points):
                 raise ValueError("Column has intermediate physical joints with unbound support")
             face_i, face_j = support_at(pi, lower=True), support_at(pj)
+            overlaps = nonmatching_wall_contacts(xyz_i, xyz_j)
+            if overlaps:
+                row["potential_interior_wall_contacts"] = overlaps
+                raise ValueError("NONMATCHING_WALL_CONTACT_REQUIRES_CONNECTION_BASIS")
             if not face_j["beams"]:
                 raise ValueError("Upper support requires a beam soffit")
             ln = face_j["soffit_z_m"] - face_i["top_z_m"]

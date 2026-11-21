@@ -1,5 +1,5 @@
 """Conditional TS 500 frame restraint references from verified model geometry."""
-from math import fsum, isclose
+from math import fsum, isclose, ulp
 
 from ..column_engine.ts500_column import (
     SWAY_PERMITTED, SWAY_PREVENTED, effective_length_factor, eq729_length_comparison,
@@ -42,7 +42,7 @@ def reference_end_ratios(source, physical_members):
         if proven_clear_length_m(proof, uid) is None or uid not in frames:
             continue
         target = frames[uid]
-        if target["axes_global"] is None:
+        if target["axes_global"] is None or not target["material_name"]:
             continue
         ratio_axes = {}
         for axis, i_axis, transverse in (("M2", 1, 2), ("M3", 2, 1)):
@@ -95,6 +95,31 @@ def reference_end_ratios(source, physical_members):
         if ratio_axes:
             result[uid] = ratio_axes
     return result
+
+
+def resolve_adopted_frame_k(axis_basis, ends):
+    """Recompute an explicitly selected, fully bound two-frame-end reference.
+
+    A mat/wall rotation is never substituted with a guessed fixed or hinged
+    end. Those conditional external restraint decisions use explicit adopted
+    K and a decision reference instead of this narrow source selection.
+    """
+    selection = axis_basis.get("k_source")
+    if selection is None:
+        return axis_basis["k"], None
+    if (set(ends or {}) != {"I", "J"}
+            or any(ends[side].get("basis") != "FRAME_SECTION_REFERENCE" for side in ("I", "J"))):
+        raise ValueError("ADOPTED_K_REQUIRES_TWO_BOUND_FRAME_END_RATIOS")
+    field = selection["section"]
+    if any(field not in ends[side] for side in ("I", "J")):
+        raise ValueError("ADOPTED_K_FRAME_SECTION_REFERENCE_MISSING")
+    alpha_i, alpha_j = (ends[side][field] for side in ("I", "J"))
+    k = effective_length_factor(alpha_i=alpha_i, alpha_j=alpha_j, sway=axis_basis["sway"])
+    if abs(k - axis_basis["k"]) > 8 * max(ulp(k), ulp(axis_basis["k"])):
+        raise ValueError("ADOPTED_K_VALUE_CONFLICTS_WITH_CURRENT_FRAME_REFERENCE")
+    return k, {"status": "CURRENT_FRAME_REFERENCE_CONSUMED", "method": selection["method"], "section": field,
+               "sway": axis_basis["sway"], "alpha_i": alpha_i, "alpha_j": alpha_j, "computed_k": k,
+               "ends": ends, "engineering_approval": "NOT_GRANTED"}
 
 
 def effective_length_reference(axes, local, section_evidence):

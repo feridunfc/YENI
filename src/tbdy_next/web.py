@@ -63,6 +63,7 @@ def _execute_and_reply_live_payload(
     source_raw: bytes | None = None,
     source_directory: Path | None = None,
     selection_overrides: Mapping[str, Any] | None = None,
+    scenario_request: Mapping[str, Any] | None = None,
 ) -> None:
     from .engineering.design_scenario import prepare_pipeline_source
 
@@ -73,7 +74,7 @@ def _execute_and_reply_live_payload(
         return
     try:
         prepared = prepare_pipeline_source(raw, source_directory=source_directory,
-                                           selection_overrides=selection_overrides)
+                                           selection_overrides=selection_overrides, request=scenario_request)
     except (OSError, ValueError, TypeError, KeyError) as exc:
         handler.reply(422, {"status": "REJECTED", "reason": str(exc), "engineering_release": "NOT_READY"})
         return
@@ -624,7 +625,7 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                 except ValueError:
                     self.reply(400, {"status": "REJECTED", "reason": "INVALID_CONTENT_LENGTH"})
                     return
-                if not 0 <= length <= 65_536 or self.headers.get("Transfer-Encoding"):
+                if not 0 <= length <= 1_048_576 or self.headers.get("Transfer-Encoding"):
                     self.reply(400, {"status": "REJECTED", "reason": "INVALID_BODY_LENGTH"})
                     return
                 try:
@@ -654,6 +655,13 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                             if len(q[key]) != 1:
                                 raise ValueError(f"Multiple {key} parameters are not allowed.")
                             selection_overrides[key] = _parse_rebar_selection_spec(q[key][0], kind)
+                    scenario_request = body.get("design_scenario")
+                    if scenario_request is not None:
+                        if not isinstance(scenario_request, dict):
+                            raise ValueError("SCENARIO_REQUEST_OBJECT_REQUIRED")
+                        if selection_overrides:
+                            raise ValueError("SCENARIO_AND_SELECTION_FLAGS_ARE_EXCLUSIVE")
+                        selection_overrides = None
                     case = base_report["modal_case"]
                 except ReportUnavailable as exc:
                     self.reply(404, {"status": "REJECTED", "reason": str(exc)})
@@ -665,6 +673,7 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                     self, output_root, base_report["source_snapshot"], case, suite=True,
                     source_raw=source_raw, source_directory=source_directory,
                     selection_overrides=selection_overrides,
+                    scenario_request=scenario_request,
                 )
                 return
             if url.path in ("/api/live-modal", "/api/live-suite", "/api/live-vs04", "/api/etabs-session"):

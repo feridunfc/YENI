@@ -1,5 +1,23 @@
 # Local development and GitHub worker handoff
 
+## November 21 consuming-design milestone
+
+The remote feature branch `work/vertical-slice-adopted-basis-20261121` starts at
+`0f1a809299ed0dbb6e0ecfde77be0642e1771ce3`. Its adopted-basis inputs are consumed by
+the existing selected R08 and R14 path. See the
+[implementation report](../engineering/VERTICAL_SLICE_20261121.md) and
+[fresh verification](../engineering/vertical_slice_20261121/VERIFICATION_RESULTS.json).
+The public examples are executable synthetic contract fixtures, not the current
+original building or a new live capture. Preserve the local/private history below.
+
+The next ordinary-member product task is the source-to-report C29 calculation
+using locally inspected adopted decisions, while C104 coupled-section development
+continues in parallel. Integrate this requested feature branch only after
+comparing the current local baseline and unpublished changes. Do not replace newer
+work with the remote snapshot. Every source study must identify its consuming
+calculation and finish with that owner using or explicitly rejecting its result.
+No milestone is complete solely because a reference or hash was added.
+
 Begin each assignment at [AGENTS.md](../../AGENTS.md) on the current
 `baseline/local_import`. The [project charter and source guide](PROJECT_CHARTER.md)
 links the design contract, reference banks and the next report comparison.

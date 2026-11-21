@@ -13,7 +13,10 @@ from typing import Any, Mapping, Sequence
 from ..column_engine.beam_capacity import SELECTED_LONG_DIAMETERS, build_selected_beam_cage
 from ..column_engine.csi_geometry import LocalSectionDims
 from ..column_engine.section_capacity import Bar, Material, Section, perimeter, solver
-from ..column_engine.transverse_kernel import confinement_reference, max_shear_web_kn, shear_reference
+from ..column_engine.transverse_kernel import (
+    bar_area_mm2, confinement_axial_threshold, confinement_reference,
+    max_shear_web_kn, provided_transverse_steel, shear_reference,
+)
 from ..column_engine.ts500_column import positive
 from .column_gates import apply_minimum_eccentricity
 
@@ -165,7 +168,7 @@ def normalize_column_selection_policy(raw: Mapping[str, Any] | str | None) -> di
 
 
 def _bar_area(diameter_mm: int) -> float:
-    return math.pi * (diameter_mm ** 2) / 4.0
+    return bar_area_mm2(diameter_mm)
 
 
 def _needed_additional_count(*, required_area_mm2: float, continuous_area_mm2: float, add_diam_mm: int, strict: bool) -> int:
@@ -473,7 +476,6 @@ def _evaluate_column_transverse_choice(
     shear_demands: Sequence[Mapping[str, float]],
 ) -> dict[str, Any]:
     """Evaluate TBDY 7.3.4 / 7.3.7 confinement and shear for a column tie diameter + spacing choice."""
-    tie_area = _bar_area(tie_d)
     ts500_tie_min = max(8.0, long_d / 3.0)
     tie_size_ok = tie_d >= ts500_tie_min - 1e-6
 
@@ -496,8 +498,12 @@ def _evaluate_column_transverse_choice(
     conf_s_ok = 50.0 <= s_conf_mm <= conf_s_limit + 1e-6
     span_s_ok = s_span_mm <= span_s_limit + 1e-6
 
-    asw2 = legs_2 * tie_area
-    asw3 = legs_3 * tie_area
+    asw2 = provided_transverse_steel(
+        leg_count=legs_2, diameter_mm=tie_d, spacing_mm=s_conf_mm,
+    )["provided_ash_mm2"]
+    asw3 = provided_transverse_steel(
+        leg_count=legs_3, diameter_mm=tie_d, spacing_mm=s_conf_mm,
+    )["provided_ash_mm2"]
     conf_v2 = confinement_reference(
         area_mm2=ac, core_area_mm2=ack, bk_mm=bk2, spacing_mm=s_conf_mm,
         fck_mpa=fck_mpa, fywk_mpa=fywk_mpa, ash_mm2=asw2,
@@ -506,7 +512,8 @@ def _evaluate_column_transverse_choice(
         area_mm2=ac, core_area_mm2=ack, bk_mm=bk3, spacing_mm=s_conf_mm,
         fck_mpa=fck_mpa, fywk_mpa=fywk_mpa, ash_mm2=asw3,
     )
-    high_axial = (not shear_demands) or any(st["nd_kn"] * 1000.0 > 0.2 * ac * fck_mpa for st in shear_demands)
+    threshold_n = confinement_axial_threshold(area_mm2=ac, fck_mpa=fck_mpa)["axial_limit_n"]
+    high_axial = (not shear_demands) or any(st["nd_kn"] * 1000.0 > threshold_n for st in shear_demands)
     ash_key = "high_axial_reference_met" if high_axial else "low_axial_reference_met"
     ash_ok = bool(conf_v2[ash_key] and conf_v3[ash_key])
 

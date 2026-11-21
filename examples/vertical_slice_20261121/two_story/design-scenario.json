@@ -1,0 +1,184 @@
+{
+  "schema": "tbdy.next.offline-design-scenario.v1",
+  "scenario_id": "public-vertical-slice",
+  "parent_input_sha256": "d0a455ba4d48d31d8d6e208f5d465016ace5b5404ab1cc49686a33acd11c9dd9",
+  "beam_selection": {
+    "stirrup_confinement": {
+      "diameter_mm": 10,
+      "legs": 4,
+      "spacing_mm": 90
+    },
+    "stirrup_span": {
+      "diameter_mm": 10,
+      "legs": 4,
+      "spacing_mm": 90
+    }
+  },
+  "column_selection": {
+    "tie_diameter_preference_mm": [
+      12
+    ],
+    "stirrup_confinement_spacing_mm": 70,
+    "stirrup_span_spacing_mm": 70
+  },
+  "analysis_basis": {
+    "schema": "tbdy.next.adopted-analysis-basis.v1",
+    "basis_id": "public-synthetic-first-order",
+    "basis_role": "ADOPTED_CALCULATION_ASSUMPTIONS",
+    "engineering_approval": "NOT_GRANTED",
+    "source_data_sha256": "d0a455ba4d48d31d8d6e208f5d465016ace5b5404ab1cc49686a33acd11c9dd9",
+    "decision_reference": "Synthetic fixture input, no solver execution",
+    "model_profile": {
+      "profile_id": "public-two-story-frame",
+      "structural_system": "FRAME",
+      "ductility_level": "HIGH",
+      "decision_reference": "Synthetic two-story frame with interior and roof joints"
+    },
+    "case_roles": {
+      "LC_DL": "GRAVITY",
+      "LC_SDL": "GRAVITY",
+      "LC_WDL": "GRAVITY",
+      "LC_DDL": "GRAVITY",
+      "LC_LL": "GRAVITY",
+      "EX": "STATIC_SEISMIC",
+      "EY": "STATIC_SEISMIC",
+      "RSX": "RESPONSE_SPECTRUM",
+      "RSY": "RESPONSE_SPECTRUM",
+      "Modal": "MODAL"
+    },
+    "design_groups": {
+      "gravity": [
+        "G"
+      ],
+      "ductile": [
+        "G+EX",
+        "G-EX",
+        "G+EY",
+        "G-EY"
+      ],
+      "capacity": [
+        "G+EX",
+        "G-EX",
+        "G+EY",
+        "G-EY"
+      ],
+      "joint": [
+        "G+EX",
+        "G-EX",
+        "G+EY",
+        "G-EY"
+      ],
+      "wall": [
+        "G+EX",
+        "G-EX",
+        "G+EY",
+        "G-EY"
+      ],
+      "drift": [
+        "G+EX",
+        "G-EX",
+        "G+EY",
+        "G-EY"
+      ],
+      "weight": [
+        "G"
+      ]
+    },
+    "generation": {
+      "analysis_run_id": "SYNTHETIC-NOT-ETABS",
+      "source_analysis_order": "FIRST_ORDER",
+      "completed_case_names": [
+        "EX",
+        "EY",
+        "LC_DDL",
+        "LC_DL",
+        "LC_LL",
+        "LC_SDL",
+        "LC_WDL",
+        "Modal",
+        "RSX",
+        "RSY"
+      ],
+      "decision_reference": "Adopted first-order scenario"
+    }
+  },
+  "second_order_basis": {
+    "schema": "tbdy.next.second-order-basis.v1",
+    "basis_id": "public-synthetic-local-basis",
+    "basis_role": "ADOPTED_CALCULATION_ASSUMPTIONS",
+    "engineering_approval": "NOT_GRANTED",
+    "source_data_sha256": "d0a455ba4d48d31d8d6e208f5d465016ace5b5404ab1cc49686a33acd11c9dd9",
+    "source_analysis_order": "FIRST_ORDER",
+    "source_order_reference": "Synthetic first-order source vectors",
+    "global_factor_policy": "PIPELINE_TBDY_PLUS_LOCAL_NONSWAY",
+    "global_factor_reference": "Real global owner evaluates synthetic drift, weight and shear source tables",
+    "members": {
+      "C1": {
+        "combinations": [
+          "G",
+          "G+EX",
+          "G+EY",
+          "G-EX",
+          "G-EY"
+        ],
+        "applicability": "TS500_7_6_2_CONSTANT_SECTION_AND_AXIAL_FORCE",
+        "decision_reference": "Prismatic synthetic member with constant compression along its own height",
+        "axes": {
+          "M2": {
+            "k": 1.0,
+            "creep_ratio_rm": 0.0,
+            "ei_method": "TS500_7_20",
+            "sway": "SWAY_PREVENTED",
+            "cm_policy": "UNITY",
+            "eq729_length_reading": "NOT_APPLICABLE",
+            "decision_reference": "Adopted fixture sensitivity; not approval",
+            "story_aggregates": {}
+          },
+          "M3": {
+            "k": 1.0,
+            "creep_ratio_rm": 0.0,
+            "ei_method": "TS500_7_20",
+            "sway": "SWAY_PREVENTED",
+            "cm_policy": "UNITY",
+            "eq729_length_reading": "NOT_APPLICABLE",
+            "decision_reference": "Adopted fixture sensitivity; not approval",
+            "story_aggregates": {}
+          }
+        }
+      },
+      "C2": {
+        "combinations": [
+          "G",
+          "G+EX",
+          "G+EY",
+          "G-EX",
+          "G-EY"
+        ],
+        "applicability": "TS500_7_6_2_CONSTANT_SECTION_AND_AXIAL_FORCE",
+        "decision_reference": "Prismatic synthetic member with constant compression along its own height",
+        "axes": {
+          "M2": {
+            "k": 1.0,
+            "creep_ratio_rm": 0.0,
+            "ei_method": "TS500_7_20",
+            "sway": "SWAY_PREVENTED",
+            "cm_policy": "UNITY",
+            "eq729_length_reading": "NOT_APPLICABLE",
+            "decision_reference": "Adopted fixture sensitivity; not approval",
+            "story_aggregates": {}
+          },
+          "M3": {
+            "k": 1.0,
+            "creep_ratio_rm": 0.0,
+            "ei_method": "TS500_7_20",
+            "sway": "SWAY_PREVENTED",
+            "cm_policy": "UNITY",
+            "eq729_length_reading": "NOT_APPLICABLE",
+            "decision_reference": "Adopted fixture sensitivity; not approval",
+            "story_aggregates": {}
+          }
+        }
+      }
+    }
+  }
+}

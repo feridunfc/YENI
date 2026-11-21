@@ -95,6 +95,16 @@ Finalized v2 reports project sealed results; replay is an explicit separate acti
 Keep legacy compatibility separate. Preserve source, model, case/step, physical-cut,
 cage and method revisions; changed upstream inputs invalidate dependent results.
 
+An implementation milestone must run a named calculation through these existing
+owners to its governing numerical outcome and sealed report. A new reference,
+hash or source study does not finish that milestone unless its required consumer
+also uses the result. Positive integration tests must not replace engineering
+stage outputs or capacities with prepared success dictionaries. Keep a supported
+standalone-member slice moving while coupled wall-frame method work proceeds;
+retain every required member in full-building force and stability accounting.
+Explicit adopted calculation assumptions are not independently verified source
+facts or engineering approvals. Report their use and remaining acceptance openly.
+
 Use terminal/API operations without taking over the mouse. Do not invent a new COM
 attachment route when the terminal cannot see ETABS; the user-launched server may
 have access in another session. Rediscover the PID; never turn a recorded PID into

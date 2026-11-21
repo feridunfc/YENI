@@ -1332,6 +1332,9 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
         vs04_sections.append(_column_slenderness_html(report["column_slenderness_evidence"],
                                                       report.get("r08_local_slenderness")))
     local_order = report.get("r08_local_slenderness") or {}
+    adopted_order_html = _adopted_second_order_html(local_order)
+    if adopted_order_html:
+        vs04_sections.append(adopted_order_html)
     local_members = (local_order.get("per_member") or {"single": local_order}).values()
     mat_rows = []
     for member in local_members:
@@ -2551,6 +2554,8 @@ def _column_slenderness_html(evidence: Mapping[str, Any], local: Mapping[str, An
         for row in local.get("combination_scenarios") or ():
             for axis in ("M2", "M3"):
                 ax = (row.get("axes") or {}).get(axis) or {}
+                if ax.get("adopted_magnification") is not None:
+                    continue  # The adopted calculation is displayed with its actual K/Rm below.
                 slen_ns = ax.get("slenderness_sway_prevented_k1") or {}
                 mag_ns = ax.get("magnification_sway_prevented_k1") or {}
                 scenario_rows.append({
@@ -2584,6 +2589,49 @@ def _column_slenderness_html(evidence: Mapping[str, Any], local: Mapping[str, An
                   scenario_rows) if scenario_rows else '')
         + '<h3>Inputs requiring verification</h3><ul>' + inputs + '</ul></section>'
     )
+
+
+def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
+    """Project recorded adopted inputs and results; never rerun a calculation."""
+    members = (local.get("per_member") or {"single": local}).values()
+    basis_rows, factor_rows = [], []
+    for member in members:
+        basis = member.get("adopted_second_order_basis") or {}
+        if not basis:
+            continue
+        member_basis = basis.get("member") or {}
+        stiffness = member.get("stiffness_and_euler") or {}
+        for axis, inputs in (member_basis.get("axes") or {}).items():
+            actual = stiffness.get(axis) or {}
+            basis_rows.append({"member": member.get("member_id"), "axis": axis,
+                "basis_id": basis.get("basis_id"), "k": actual.get("effective_length_factor_k"),
+                "rm": actual.get("reference_creep_ratio_rm"), "ei_method": inputs.get("ei_method"),
+                "ln": actual.get("free_length_ln_mm"), "lk": actual.get("effective_length_lk_mm"),
+                "ei": actual.get("selected_ei_nmm2"), "nk": actual.get("selected_nk_kn"),
+                "sway": inputs.get("sway"), "global_policy": basis.get("global_factor_policy"),
+                "status": member.get("second_order_basis_status"),
+                "source_reference": inputs.get("decision_reference")})
+        for combo in member.get("combination_scenarios") or ():
+            for axis, row in (combo.get("axes") or {}).items():
+                factors = row.get("adopted_magnification") or {}
+                if factors:
+                    factor_rows.append({"member": member.get("member_id"), "axis": axis,
+                        "combination": combo.get("combination"), **factors})
+    if not basis_rows:
+        return ""
+    return ('<section class="percheck"><h2>Second order · Adopted calculation basis</h2>'
+        '<p>These inputs were supplied for the recorded calculation. Their use does not grant engineering approval. '
+        'The selected section, effective stiffness, length and amplification below belong to the same recorded run.</p>'
+        + _table((("member", "Column"), ("axis", "Axis"), ("basis_id", "Basis"),
+                  ("k", "K used"), ("rm", "Rm used"), ("ln", "Clear length (mm)"),
+                  ("lk", "Effective length (mm)"), ("ei_method", "EI method"),
+                  ("ei", "Selected EI (N·mm²)"), ("nk", "Selected Nk (kN)"),
+                  ("sway", "Sway assumption"), ("global_policy", "Global treatment"),
+                  ("status", "Calculation status"), ("source_reference", "Decision reference")), basis_rows)
+        + (_table((("member", "Column"), ("combination", "Combination"), ("axis", "Axis"),
+                   ("beta", "Member factor"), ("beta_story", "Story factor"),
+                   ("final_factor", "TS 500 factor used"), ("status", "Factor status")), factor_rows)
+           if factor_rows else '') + '</section>')
 
 
 def _alpha_feedback_html(record: Mapping[str, Any]) -> str:

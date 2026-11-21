@@ -1,6 +1,7 @@
 """TBDY 7.5 references for explicit centered, orthogonal joint scenarios.
 
-No routine supplies joint Ve, SCWB capacities, actual reinforcement, offsets
+Joint shear arithmetic requires supplied steel and a qualified column-shear
+deduction. No routine supplies SCWB capacities, actual reinforcement, offsets
 or physical connection authority. Units: mm, mm2, MPa and explicitly kN.
 """
 from decimal import Decimal
@@ -21,6 +22,24 @@ def width_reference(beam_width_mm, column_width_mm):
     """7.5.1 prose includes equality; no tolerance expands this inequality."""
     bw, b = positive(beam_width_mm, "beam_width"), positive(column_width_mm, "column_width")
     return Decimal(str(bw)) >= Decimal(".75") * Decimal(str(b))
+
+
+def beam_steel_tension_kn(*, fyk_mpa, area_mm2):
+    """TBDY 7.11 tension term for one supplied beam steel face."""
+    strength = positive(fyk_mpa, "fyk")
+    area = finite(area_mm2, "beam_steel_area")
+    if area < 0:
+        raise BankError("JOINT_BEAM_STEEL_AREA_NEGATIVE")
+    return finite(1.25 * strength * area / 1000.0, "beam_steel_tension_kn")
+
+
+def joint_shear_equilibrium_kn(*, beam_tension_kn, column_shear_deduction_kn):
+    """TBDY 7.11 scalar equilibrium; the caller qualifies the deduction."""
+    tension = finite(beam_tension_kn, "beam_tension_kn")
+    deduction = finite(column_shear_deduction_kn, "column_shear_deduction_kn")
+    if min(tension, deduction) < 0:
+        raise BankError("JOINT_NONNEGATIVE_TENSION_AND_DEDUCTION_REQUIRED")
+    return max(0.0, tension - deduction)
 
 
 def centered_joint_limit(*, column_width_mm, column_depth_mm, beam_widths_mm, fck_mpa, enclosure):

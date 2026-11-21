@@ -1,0 +1,12 @@
+{
+  "schema": "tbdy.next.golden-adapter-material.v1",
+  "report_id": "GOLDEN-02",
+  "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+  "pdf_page_1_based": 7,
+  "printed_page": 5,
+  "source_section": "Material information: columns and characteristic cylinder compression strength",
+  "concrete_grade": "C30",
+  "fck_mpa": 30,
+  "verification": "Visually confirmed on the hash-matched original PDF page",
+  "scope": "Material scalar for the existing four printed-symbol Eq. 7.29 comparisons; no free length or factor-selection authority"
+}

@@ -60,12 +60,18 @@ def _capture_rows(rec: Any, key: str, fields: tuple[str, ...],
     return rows
 
 
+def spectral_corner_periods(*, sds: Decimal, sd1: Decimal) -> tuple[Decimal, Decimal]:
+    """TBDY corner periods in seconds; no spectrum or system applicability decision."""
+    if any(not isinstance(v, Decimal) or not v.is_finite() or v <= 0 for v in (sds, sd1)):
+        raise ValueError("POSITIVE_DECIMAL_SPECTRAL_COEFFICIENTS_REQUIRED")
+    return Decimal("0.2") * sd1 / sds, sd1 / sds
+
+
 def _spectrum(T: Decimal, *, sds: Decimal, sd1: Decimal,
               R: Decimal, D: Decimal, I: Decimal, TL: Decimal) -> Decimal:
     if T < 0:
         raise ValueError("NEGATIVE_PERIOD")
-    ta = Decimal("0.2") * sd1 / sds
-    tb = sd1 / sds
+    ta, tb = spectral_corner_periods(sds=sds, sd1=sd1)
     if not (0 < ta < tb < TL) or R / I < D:
         raise ValueError("INVALID_SPECTRUM_PARAMETERS")
     if T <= ta:
@@ -236,8 +242,7 @@ def review_spectrum_reconstruction(
         h = spectrum[0]
         params = {k: _d(h[k], k, positive=True)
                   for k in ("SDS", "SD1", "R", "D", "I", "TL")}
-        ta = Decimal("0.2") * params["SD1"] / params["SDS"]
-        tb = params["SD1"] / params["SDS"]
+        ta, tb = spectral_corner_periods(sds=params["SDS"], sd1=params["SD1"])
         sds = params["SDS"]
         sd1 = params["SD1"]
         ta_range = (Decimal("0.2") * (sd1 - _half(h["SD1"], "SD1"))

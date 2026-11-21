@@ -1,6 +1,6 @@
 """Offline design requests and dependency evidence; no engineering formulas.
 
-A scenario changes only the two existing selection policies. The original
+A scenario changes selection policies and explicit calculation assumptions. The original
 capture is retained byte-for-byte as parent.source, never edited in place.
 These are algorithm-selected reference candidates, not engineer approvals.
 """
@@ -23,8 +23,10 @@ from .rebar_selection import (
 
 SCHEMA = "tbdy.next.offline-design-scenario.v1"
 LINEAGE = "tbdy.next.design-scenario-lineage.v1"
+LINEAGE_WITH_BASIS = "tbdy.next.design-scenario-lineage.v2"
 PARENT_FILE = "parent.source"
 POLICIES = ("beam_selection", "column_selection")
+CALCULATION_BASES = ("second_order_basis", "analysis_basis")
 
 
 @dataclass(frozen=True)
@@ -51,7 +53,17 @@ def _digest(value: Any) -> str:
 
 
 def _source_data(payload: Mapping[str, Any]) -> dict[str, Any]:
-    return {k: v for k, v in payload.items() if k not in (*POLICIES, "design_scenario")}
+    return {k: v for k, v in payload.items() if k not in (*POLICIES, *CALCULATION_BASES, "design_scenario")}
+
+
+def _calculation_basis(key: str, value: Any, source_data_sha256: str) -> dict[str, Any] | None:
+    if value is None:
+        return None
+    if key == "second_order_basis":
+        from .second_order_basis import normalize_second_order_basis
+        return normalize_second_order_basis(value, source_data_sha256=source_data_sha256)
+    from .analysis_setup import normalize_analysis_basis
+    return normalize_analysis_basis(value, source_data_sha256=source_data_sha256)
 
 
 def _policy(raw: Any, kind: str) -> dict[str, Any] | None:
@@ -83,8 +95,9 @@ def normalize_selection_overrides(overrides: Mapping[str, Any]) -> dict[str, Any
 
 def create_design_scenario(parent_raw: bytes, request: Mapping[str, Any]) -> bytes:
     """Derive a new input without altering any native source or request scope."""
-    if (not isinstance(request, Mapping) or set(request) !=
-            {"schema", "scenario_id", "parent_input_sha256", *POLICIES} or request["schema"] != SCHEMA):
+    required = {"schema", "scenario_id", "parent_input_sha256", *POLICIES}
+    if (not isinstance(request, Mapping) or not required <= set(request)
+            or set(request) - required - set(CALCULATION_BASES) or request["schema"] != SCHEMA):
         raise ValueError("SCENARIO_REQUEST_SCHEMA_INVALID")
     name = request["scenario_id"]
     if not isinstance(name, str) or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,95}", name) is None:
@@ -97,6 +110,8 @@ def create_design_scenario(parent_raw: bytes, request: Mapping[str, Any]) -> byt
         raise ValueError("SCENARIO_ARCHIVED_LIVE_SOURCE_REQUIRED")
     if "design_scenario" in parent:
         raise ValueError("SCENARIO_NESTING_NOT_SUPPORTED_USE_ORIGINAL_CAPTURE")
+    if any(parent.get(key) is not None for key in CALCULATION_BASES):
+        raise ValueError("SCENARIO_NATIVE_PARENT_CONTAINS_UNBOUND_CALCULATION_BASIS")
     feature = parent.get("column_axial")
     column_request = feature.get("request") if isinstance(feature, Mapping) else None
     if not isinstance(column_request, Mapping) or not column_request.get("pmm_member"):
@@ -104,16 +119,21 @@ def create_design_scenario(parent_raw: bytes, request: Mapping[str, Any]) -> byt
     policies = {key: _policy(request[key], key) for key in POLICIES}
     if all(value is None for value in policies.values()):
         raise ValueError("SCENARIO_SELECTION_REQUIRED")
+    native_sha = _digest(_source_data(parent))
+    bases = {key: _calculation_basis(key, request[key], native_sha)
+             for key in CALCULATION_BASES if key in request and request[key] is not None}
     result = deepcopy(parent)
     for key, value in policies.items():
         if value is None:
             result.pop(key, None)
         else:
             result[key] = value
+    result.update(bases)
     lineage = {
-        "schema": LINEAGE, "scenario_id": name, "parent_input_sha256": parent_sha,
-        "source_data_sha256": _digest(_source_data(parent)), "policies": policies,
+        "schema": LINEAGE_WITH_BASIS if bases else LINEAGE, "scenario_id": name, "parent_input_sha256": parent_sha,
+        "source_data_sha256": native_sha, "policies": policies,
         "selection_role": "ALGORITHM_SELECTED_CANDIDATE", "engineering_approval": "NOT_GRANTED",
+        **({"calculation_bases": bases} if bases else {}),
     }
     result["design_scenario"] = {**lineage, "scenario_sha256": _digest(lineage)}
     return _bytes(result)
@@ -126,7 +146,9 @@ def validate_design_scenario(payload: Mapping[str, Any]) -> dict[str, Any] | Non
     item = payload["design_scenario"]
     keys = {"schema", "scenario_id", "parent_input_sha256", "source_data_sha256",
             "policies", "selection_role", "engineering_approval", "scenario_sha256"}
-    if (not isinstance(item, Mapping) or set(item) != keys or item["schema"] != LINEAGE
+    if isinstance(item, Mapping) and item.get("schema") == LINEAGE_WITH_BASIS:
+        keys.add("calculation_bases")
+    if (not isinstance(item, Mapping) or set(item) != keys or item["schema"] not in {LINEAGE, LINEAGE_WITH_BASIS}
             or item["selection_role"] != "ALGORITHM_SELECTED_CANDIDATE"
             or item["engineering_approval"] != "NOT_GRANTED"):
         raise ValueError("SCENARIO_LINEAGE_INVALID")
@@ -137,6 +159,14 @@ def validate_design_scenario(payload: Mapping[str, Any]) -> dict[str, Any] | Non
         raise ValueError("SCENARIO_ID_OR_HASH_INVALID")
     if not isinstance(item["policies"], Mapping) or set(item["policies"]) != set(POLICIES):
         raise ValueError("SCENARIO_POLICIES_INVALID")
+    bases = item.get("calculation_bases", {})
+    if (not isinstance(bases, Mapping) or set(bases) - set(CALCULATION_BASES)
+            or (item["schema"] == LINEAGE_WITH_BASIS and not bases)
+            or bases != {key: payload[key] for key in CALCULATION_BASES if payload.get(key) is not None}):
+        raise ValueError("SCENARIO_CALCULATION_BASIS_CHANGED")
+    for key, value in bases.items():
+        if _calculation_basis(key, value, item["source_data_sha256"]) != value:
+            raise ValueError("SCENARIO_CALCULATION_BASIS_NOT_NORMALIZED")
     if (item["scenario_sha256"] != _digest({k: v for k, v in item.items() if k != "scenario_sha256"})
             or item["source_data_sha256"] != _digest(_source_data(payload))
             or item["policies"] != {k: payload.get(k) for k in POLICIES}):
@@ -155,6 +185,7 @@ def verify_parent(payload: Mapping[str, Any], parent_raw: bytes) -> None:
         raise ValueError("SCENARIO_PARENT_HASH_MISMATCH")
     parent = decode(parent_raw)
     if (not isinstance(parent, dict) or parent.get("source_mode") != "LIVE_ETABS" or "design_scenario" in parent
+            or any(parent.get(key) is not None for key in CALCULATION_BASES)
             or _digest(_source_data(parent)) != item["source_data_sha256"]):
         raise ValueError("SCENARIO_NATIVE_SOURCE_CHANGED")
 
@@ -200,6 +231,8 @@ def prepare_pipeline_source(
     if not isinstance(payload, dict) or payload.get("source_mode") != "LIVE_ETABS":
         raise ValueError("LIVE_ETABS_ARCHIVED_SOURCE_REQUIRED")
     scenario = validate_design_scenario(payload)
+    if scenario is None and any(payload.get(key) is not None for key in CALCULATION_BASES):
+        raise ValueError("CALCULATION_BASIS_REQUIRES_PREPARED_SCENARIO")
     parent_raw = _read_verified_parent(source_directory, payload) if scenario is not None else None
     if (scenario is None and request is None and selection_overrides is None
             and any(payload.get(key) is not None for key in POLICIES)):
@@ -214,6 +247,7 @@ def prepare_pipeline_source(
             "scenario_id": scenario["scenario_id"] if scenario is not None else "selection",
             "parent_input_sha256": sha256(parent).hexdigest(),
             **{key: overrides[key] if key in overrides else payload.get(key) for key in POLICIES},
+            **{key: payload[key] for key in CALCULATION_BASES if payload.get(key) is not None},
         }
     raw = source_raw
     if request is not None:

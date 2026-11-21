@@ -1,0 +1,34 @@
+{
+  "schema": "tbdy.next.public-vertical-slice-inputs.v1",
+  "classification": "CONTRACT_FIXTURE",
+  "origin": "GENERATED_OFFLINE_NOT_ETABS",
+  "description": "Explicit synthetic signed forces, native-shaped tables and adopted calculation assumptions; no solver execution or project approval.",
+  "expected_columns": 1,
+  "expected_beams": 2,
+  "expected_member_combination_pairs": 5,
+  "expected_force_cut_rows": 15,
+  "design_combinations": [
+    "G",
+    "G+EX",
+    "G-EX",
+    "G+EY",
+    "G-EY"
+  ],
+  "files": {
+    "design-scenario.json": {
+      "sha256": "e0cb73c449de69ffee705f7ac8a1433eb874f43257157a40fe6a27df1b0b1ff9",
+      "bytes": 4143
+    },
+    "synthetic_input.json": {
+      "sha256": "856b2be4103e8d23e18f182b678d7711e5285c2ab106c6a19f20299dba4956c9",
+      "bytes": 37089
+    }
+  },
+  "generator_files": {
+    "tools/write_vertical_slice_example.py": "6afd6e2f70c79b6bf303f07122cc3d13d4613782acedd0aa06c6d7efc53998a9",
+    "tests/vertical_slice_fixture.py": "f1b7ad3a4dad81fe66fe606e73b92ddb49a972b6ccbba8cc840596d8a9d9e68a"
+  },
+  "live_ETABS_validation": "NOT_RUN",
+  "engineering_approval": "NOT_GRANTED",
+  "packaging_note": "The generator input.source is renamed synthetic_input.json byte-for-byte for public distribution. LIVE_ETABS describes the adapter schema; example_context explicitly marks generated synthetic data, not an ETABS execution."
+}

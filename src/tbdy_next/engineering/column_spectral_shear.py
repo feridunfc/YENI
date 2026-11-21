@@ -13,6 +13,9 @@ from .mixed_demands import SCHEMA as MIXED_SCHEMA, SPECTRAL_METHOD, _number, lin
 from .scwb_axial import _configured_end
 from .column_clear_length import FACE_BASIS
 
+METHOD = "assigned-column-spectral-shear.v2"
+NATIVE_BRITTLE_FAILURE = "SPECTRAL_NATIVE_SHEAR_EXCEEDS_BRITTLE_LIMIT"
+
 
 def _model_controls(source, names):
     """Identify a unique model combination by its coefficients and case-bound horizontal D."""
@@ -172,6 +175,8 @@ def _axis_case(name, axis, bend, cuts, native, end_keys, section, length, contro
             "concrete_basis": "ZERO_CONCRETE_CONSERVATIVE" if low_possible else "AXIAL_THRESHOLD_EXCLUDED_AT_ALL_CUTS",
             "earthquake_share_and_confinement_required_proven": False, "vr_ts500_min_kn": ts,
             "vr_zero_concrete_kn": zero, "vr_used_kn": selected_vr, "tbdy_eq7_7_limit_kn": ref["tbdy_brittle_reference_kn"],
+            "native_brittle_utilization": floor / ref["tbdy_brittle_reference_kn"],
+            "native_brittle_limit_exceeded": floor > ref["tbdy_brittle_reference_kn"],
             "ts500_web_reference_kn": ref["ts500_web_reference_kn"], "resistance_utilization": ve / selected_vr,
             "brittle_utilization": ve / ref["tbdy_brittle_reference_kn"], "cap_control": cap}
 
@@ -180,7 +185,7 @@ def selected_spectral_shear(context, frame, rowset, section, selection, evidence
                             directions, candidate_revision, demand_revision):
     uid = frame["frame_id"]
     names = context["names"]
-    result = {"method": "assigned-column-spectral-shear.v1", "member_id": uid, "input_sha256": context["input_sha256"],
+    result = {"method": METHOD, "member_id": uid, "input_sha256": context["input_sha256"],
               "candidate_revision_sha256": candidate_revision, "clear_length_m": length, "length_basis": length_basis,
               "assigned_combinations": names, "expected_axis_case_count": 2*len(names), "axes": {},
               "status": "SPECTRAL_SHEAR_UNRESOLVED", "reasons": [], "d_reduction_applied": False}
@@ -229,15 +234,86 @@ def selected_spectral_shear(context, frame, rowset, section, selection, evidence
             result["axes"][axis] = {"cases": cases, "direction": directions[axis]["direction"]}
         resolved = [c for axis in result["axes"].values() for c in axis["cases"] if c["status"] == "SPECTRAL_SHEAR_CALCULATED"]
         result["calculated_axis_case_count"] = len(resolved)
+        failures = [c for c in resolved if c["native_brittle_limit_exceeded"]]
+        result["native_brittle_failure_count"] = len(failures)
+        result["max_native_brittle_utilization"] = max((c["native_brittle_utilization"] for c in resolved), default=None)
         if len(resolved) == result["expected_axis_case_count"]:
             result["max_resistance_utilization"] = max(c["resistance_utilization"] for c in resolved)
             result["max_brittle_utilization"] = max(c["brittle_utilization"] for c in resolved)
             result["status"] = ("CONSERVATIVE_SPECTRAL_SHEAR_WITHIN_LIMITS" if
                                 max(result["max_resistance_utilization"], result["max_brittle_utilization"]) <= 1
                                 else "CONSERVATIVE_BOUND_EXCEEDS_LIMIT_REVIEW_REQUIRED")
+        if failures:
+            # Ve cannot be below the native assigned shear. Unlike an exceeded
+            # Mr upper bound, this is a calculated violation of Eq. 7.7 even
+            # when another expected case remains unresolved. No concurrent
+            # N-M-V vector or favourable model-D cap is needed for this proof.
+            result["status"] = NATIVE_BRITTLE_FAILURE
     except (KeyError, ValueError, TypeError, ArithmeticError) as exc:
         result["reasons"].append(str(exc))
     return result
+
+
+def spectral_native_brittle_violations(result, names, uid, input_sha, revision):
+    """Read qualified native lower-bound failures without hiding missing cases.
+
+    The caller supplies the same-source, same-candidate revision recorded by
+    the dependency owner. An incomplete sibling case cannot erase a proved
+    failure, and an unqualified conservative resistance/upper-bound exceedance
+    is never promoted to a definite physical violation by this reader.
+    """
+    if (not result or result.get("method") != METHOD or not revision or revision != _digest(result)
+            or result.get("member_id") != uid or result.get("input_sha256") != input_sha
+            or not input_sha or not result.get("candidate_revision_sha256")
+            or result.get("status") != NATIVE_BRITTLE_FAILURE or result.get("reasons")
+            or result.get("d_reduction_applied") is not False or not names
+            or len(result.get("assigned_combinations", ())) != len(names)
+            or set(result.get("assigned_combinations", ())) != set(names)
+            or result.get("expected_axis_case_count") != 2 * len(names)
+            or set(result.get("axes", {})) != {"V2", "V3"}):
+        return []
+    violations = []
+    resolved_count = 0
+    try:
+        for axis, rows in result["axes"].items():
+            cases = rows["cases"]
+            if len(cases) != len(names) or {c["combination"] for c in cases} != set(names):
+                return []
+            for case in cases:
+                if case.get("axis") != axis:
+                    return []
+                if case.get("status") == "SPECTRAL_SHEAR_UNRESOLVED":
+                    continue
+                if case.get("status") != "SPECTRAL_SHEAR_CALCULATED":
+                    return []
+                resolved_count += 1
+                floor = finite(case["vd_floor_kn"], "native_shear_floor")
+                upper = finite(case["ve_upper_kn"], "capacity_shear_upper")
+                limit = finite(case["tbdy_eq7_7_limit_kn"], "geometric_shear_limit")
+                utilization = finite(case["native_brittle_utilization"], "native_brittle_utilization")
+                governing = case["vd_governing"]
+                cut = governing["cut"]
+                signed = finite(governing["signed_kn"], "native_governing_shear")
+                count = case["expected_cut_count"]
+                if (type(count) is not int or count <= 0 or case["extrema_count"] != 2 * count
+                        or floor < 0 or upper < floor or limit <= 0
+                        or len(cut) != 4 or cut[0] != uid or not cut[2]
+                        or any(finite(cut[k], "native_cut_station") < 0 for k in (1, 3))
+                        or governing["step"] not in ("Min", "Max")
+                        or not isclose(abs(signed), floor, abs_tol=1e-9, rel_tol=1e-12)
+                        or not isclose(utilization, floor / limit, abs_tol=1e-12, rel_tol=1e-12)
+                        or case.get("native_brittle_limit_exceeded") is not (floor > limit)):
+                    return []
+                if floor > limit:
+                    violations.append({"combination": case["combination"], "axis": axis,
+                                       "vd_floor_kn": floor, "tbdy_eq7_7_limit_kn": limit,
+                                       "native_brittle_utilization": utilization, "vd_governing": governing})
+        if (result.get("calculated_axis_case_count") != resolved_count
+                or result.get("native_brittle_failure_count") != len(violations)):
+            return []
+    except (KeyError, TypeError, ValueError, ArithmeticError):
+        return []
+    return violations
 
 
 def complete_spectral_shear(result, names, uid, input_sha, revision):

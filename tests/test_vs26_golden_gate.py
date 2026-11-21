@@ -52,7 +52,7 @@ class GoldenReportGateTests(unittest.TestCase):
     def test_three_classifications_and_missing_coverage_stay_visible(self):
         r=gate.build_golden_gate()
         self.assertEqual(r['record_count'],44)
-        self.assertEqual(r['classification_counts'],{'NUMERICAL_MATCH':20,'ENGINEERING_INTERPRETATION_DIFFERENCE':4,'INSUFFICIENT_SOURCE':20})
+        self.assertEqual(r['classification_counts'],{'NUMERICAL_MATCH':33,'ENGINEERING_INTERPRETATION_DIFFERENCE':4,'INSUFFICIENT_SOURCE':7})
         self.assertEqual(len(r['legacy_reference_bank']['golden02_replayed_test_groups']),7)
         self.assertFalse(r['acceptance_eligible']);self.assertEqual(r['engineering_release'],'NOT_READY')
         self.assertEqual({d['domain'] for d in r['required_domains']},set(gate.REQUIRED_DOMAINS))
@@ -157,7 +157,7 @@ class GoldenReportGateTests(unittest.TestCase):
         self.assertEqual(used['classification'],'ENGINEERING_INTERPRETATION_DIFFERENCE')
         self.assertFalse(used['normative_disagreement_resolved'])
         self.assertFalse(used['printed_symbol_probe']['product_branch_from_printed_symbol'])
-        self.assertEqual(rows['G02_EQ729_SZ01_ground']['classification'],'INSUFFICIENT_SOURCE')
+        self.assertEqual(rows['G02_EQ729_SZ01_ground']['classification'],'NUMERICAL_MATCH')
 
     def test_required_as_cannot_replace_provided_area(self):
         rows={v['id']:v for v in gate.build_golden_gate()['comparisons']}
