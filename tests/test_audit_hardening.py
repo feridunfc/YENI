@@ -349,7 +349,11 @@ class PmmAnalysisMeshContracts(unittest.TestCase):
         self.assertEqual([cut["object_station_m"] for cut in grid["cuts"]], [0.0, 1.9, 3.8])
         original = [("127", x, "127", x) for x in (0.0, 1.9, 3.8, 2.2)]
         shifted = [("127", x, "127", x) for x in (0.0, 2.0, 3.8, 2.2)]
-        self.assertEqual(_required_cut_coverage(original, grid)["matched_count"], 3)
+        extra = _required_cut_coverage(original, grid)
+        self.assertEqual(extra["matched_count"], 3)
+        self.assertEqual(extra["unmatched_native_cut_count"], 1)
+        self.assertFalse(extra["exact_cut_census"])
+        self.assertTrue(_required_cut_coverage(original[:3], grid)["exact_cut_census"])
         missing = _required_cut_coverage(shifted, grid)["missing_cuts"]
         self.assertEqual([cut["object_station_m"] for cut in missing], [1.9])
 

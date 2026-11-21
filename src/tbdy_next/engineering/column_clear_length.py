@@ -12,6 +12,9 @@ from .live_column import _gateway_ready, text_number
 from .scwb_axial import _configured_end
 
 FACE_BASIS = "ETABS_MODEL_PHYSICAL_FACES_AND_CUTS"
+WALL_COUPLED = "ETABS_WALL_COUPLED_COLUMN_MESH"
+WALL_CONNECTIVITY = "Wall Object Connectivity"
+WALL_PROPERTIES = "Wall Property Definitions - Specified"
 _TOL_M = 1e-8
 _FRAME_TRANSLATION = ("XI", "YI", "ZI", "XJ", "YJ", "ZJ")
 _SHELL_TRANSLATION = ("Offset1", "Offset2", "Offset3")
@@ -126,7 +129,7 @@ def project_column_clear_lengths(source, frames, adjacency, members, pmm_scope):
         return None
 
     results: dict[str, dict[str, Any]] = {}
-    plan = {"method": "column-model-clear-length.v1", "per_member": results}
+    plan = {"method": "column-model-clear-length.v2", "per_member": results}
     try:
         capture = source["capture_metadata"]
         geometry = source["geometry_capture"]
@@ -163,12 +166,16 @@ def project_column_clear_lengths(source, frames, adjacency, members, pmm_scope):
         assignments = _index(_records(b1["table_reads"], "Area Assignments - Section Properties",
                                       "UniqueName Story Label PropType SectProp"), "UniqueName")
         floor_mesh = defaultdict(lambda: defaultdict(list))
+        wall_edges = defaultdict(list)
         area_elements = _records(tables, AREA_ELEMENTS, "Story ElmName ObjType ObjName ObjLabel ElmJt1 ElmJt2 ElmJt3")
         for row in area_elements:
             obj = (row["ObjType"], row["ObjName"], row["Story"], row["ObjLabel"])
-            for key in ("ElmJt1", "ElmJt2", "ElmJt3", "ElmJt4"):
-                if row.get(key) not in (None, "", "None"):
-                    floor_mesh[row[key]][obj].append(row["ElmName"])
+            nodes = [row[k] for k in ("ElmJt1", "ElmJt2", "ElmJt3", "ElmJt4") if row.get(k) not in (None, "", "None")]
+            for node in nodes:
+                floor_mesh[node][obj].append(row["ElmName"])
+            if obj[0] == "Wall" and len(nodes) in (3, 4) and len(set(nodes)) == len(nodes):
+                for a, b in zip(nodes, nodes[1:] + nodes[:1]):
+                    wall_edges[frozenset((a, b))].append((obj, row["ElmName"]))
     except (KeyError, TypeError, ValueError) as exc:
         return {**plan, "source_error": str(exc)}
 
@@ -198,12 +205,56 @@ def project_column_clear_lengths(source, frames, adjacency, members, pmm_scope):
             return {"base_joint_id": pi, "upper_joint_id": pj, "mat_analysis_elements": mats}
         return None
 
-    def support_at(joint_id):
+    wall_tables = b1["table_reads"]
+    wall_roster = wall_sections = None
+    if any(table in wall_tables for table in (WALL_CONNECTIVITY, WALL_PROPERTIES)):
+        try:
+            wall_roster = _index(_records(wall_tables, WALL_CONNECTIVITY,
+                "UniqueName Story WallBay UniquePt1 UniquePt2 UniquePt3 UniquePt4"), "UniqueName")
+            wall_sections = _index(_records(wall_tables, WALL_PROPERTIES,
+                "Name ModelType Thickness", ("Thickness",)), "Name")
+        except (KeyError, TypeError, ValueError):
+            wall_roster = wall_sections = None
+
+    def wall_contact(obj, elements):
+        _, uid, story, label = obj
+        if wall_roster is None:
+            raise ValueError(f"Unverified Wall contact ({uid})")
+        row, assign = wall_roster[uid], assignments[uid]
+        insert, = slab_insertions[uid]
+        if (row["Story"] != story or row["WallBay"] != label
+                or assign["PropType"] != "Wall"
+                or any(r["Story"] != story or r["Label"] != label for r in (assign, insert))
+                or insert["CardinalPt"] != "Middle" or not _no_translation(insert, slab_fields)):
+            raise ValueError(f"Wall {uid} lacks a matching centered structural assignment")
+        prop = wall_sections[assign["SectProp"]]
+        corners = [_xyz(points[row[f"UniquePt{i}"]], "XYZ") for i in range(1, 5)]
+        if (prop["ModelType"] not in {"Shell-Thin", "Shell-Thick"} or len(set(corners)) != 4
+                or len({p[:2] for p in corners}) != 2):
+            raise ValueError(f"Wall {uid} does not define a vertical structural shell")
+        lo, hi = min(p[2] for p in corners), max(p[2] for p in corners)
+        thickness = text_number(prop["Thickness"], "Thickness")
+        if hi <= lo or thickness <= 0:
+            raise ValueError(f"Invalid Wall contact ({uid})")
+        return {"wall_id": uid, "label": label, "section": prop["Name"], "base_z_m": lo, "top_z_m": hi,
+                "thickness_m": thickness, "analysis_element_ids": sorted(set(elements))}, corners
+
+    def support_at(joint_id, *, lower=False):
         point, xyz = matching_model_joint(joint_id)
         beams = [_beam_face(end, frames[end["frame_id"]], point, xyz, points, insertions, frame_fields)
                  for end in adjacency.get(joint_id, ()) if end["type"] == "Beam"]
-        slab_faces = []
+        slab_faces, walls_below = [], []
         for (kind, uid, story, label), elements in sorted(floor_mesh[joint_id].items()):
+            if kind == "Wall" and lower and story == point["Story"]:
+                wall, corners = wall_contact((kind, uid, story, label), elements)
+                edge = [p for p in corners if _close(p[2], xyz[2])]
+                if (not _close(wall["top_z_m"], xyz[2]) or len(edge) != 2
+                        or not _close(_turn(*edge, xyz), 0)
+                        or any(x < min(a, b) - _TOL_M or x > max(a, b) + _TOL_M
+                               for x, a, b in zip(xyz[:2], edge[0], edge[1]))):
+                    raise ValueError(f"Wall {uid} does not end below lower joint {joint_id}")
+                walls_below.append(wall)
+                continue
             if kind != "Floor" or story != point["Story"]:
                 raise ValueError(f"Joint {joint_id} has an unsupported {kind} contact ({uid})")
             polygons, assign = floors[uid], assignments[uid]
@@ -229,12 +280,51 @@ def project_column_clear_lengths(source, frames, adjacency, members, pmm_scope):
             if (not all(_close(b["soffit_z_m"], soffit) for b in beams)
                     or any(s["type"] != "Slab" or s["soffit_z_m"] < soffit - _TOL_M for s in slab_faces)):
                 raise ValueError(f"Joint {joint_id} has different support soffits")
+        elif walls_below and slab_faces and all(s["type"] == "Slab" for s in slab_faces):
+            soffit = min(s["soffit_z_m"] for s in slab_faces)
         elif len(slab_faces) == 1 and slab_faces[0]["type"] == "Mat":
             soffit = slab_faces[0]["soffit_z_m"]
         else:
             raise ValueError(f"Joint {joint_id} has no supported beam panel or mat")
         return {"joint_id": joint_id, "joint_z_m": xyz[2], "top_z_m": xyz[2], "soffit_z_m": soffit,
-                "beams": beams, "slabs": slab_faces}
+                "beams": beams, "slabs": slab_faces, **({"walls_below": walls_below} if walls_below else {})}
+
+    def coupled_wall_mesh(mesh, inside, pi, pj, xyz_i, xyz_j):
+        """Join the ordered column elements to shell edges by exact analysis joint IDs."""
+        contacts = defaultdict(list)
+        for node in inside | {pi, pj}:
+            for obj, elements in floor_mesh.get(node, {}).items():
+                if obj[0] == "Wall":
+                    contacts[obj].extend(elements)
+        witnesses = {obj: wall_contact(obj, elements) for obj, elements in sorted(contacts.items())}
+        segments = []
+        for element, nodes in mesh["analysis_element_end_joints"].items():
+            xyz = sorted((_xyz(native_joints[n], ("GlobalX", "GlobalY", "GlobalZ")) for n in nodes), key=lambda p: p[2])
+            a, b = xyz
+            if (any(not all(_close(x, y) for x, y in zip(p[:2], xyz_i[:2])) for p in xyz)
+                    or not xyz_i[2] <= a[2] < b[2] <= xyz_j[2]):
+                raise ValueError("Wall-coupled frame analysis chain leaves its native column axis")
+            matches = []
+            for obj, shell in wall_edges.get(frozenset(nodes), ()):
+                wall, corners = witnesses[obj]
+                start, end = sorted({p[:2] for p in corners})
+                if (any(not _close(_turn(start, end, p), 0) for p in xyz)
+                        or any(x < min(l, h) - _TOL_M or x > max(l, h) + _TOL_M
+                               for x, l, h in zip(a[:2], start, end))
+                        or a[2] < wall["base_z_m"] - _TOL_M or b[2] > wall["top_z_m"] + _TOL_M):
+                    raise ValueError(f"Wall {obj[1]} analysis edge leaves its physical shell")
+                matches.append({"wall_id": obj[1], "shell_element_id": shell})
+            segments.append({"analysis_element_id": element, "analysis_joint_ids": list(nodes),
+                             "z_min_m": a[2], "z_max_m": b[2], "coincident_wall_edges": matches})
+        segments.sort(key=lambda record: record["z_min_m"])
+        if (not segments or not _close(segments[0]["z_min_m"], xyz_i[2])
+                or not _close(segments[-1]["z_max_m"], xyz_j[2])
+                or any(not _close(a["z_max_m"], b["z_min_m"]) for a, b in zip(segments, segments[1:]))
+                or not any(s["coincident_wall_edges"] for s in segments)):
+            raise ValueError("No continuous frame chain with verified wall shell edges")
+        return {"analysis_segments": segments, "walls": [wall for wall, _ in witnesses.values()],
+                "segments_with_common_shell_edge": sum(bool(s["coincident_wall_edges"]) for s in segments),
+                "element_count": len(segments), "joint_ids": {"I": pi, "J": pj}}
 
     for uid in members:
         row = results[uid] = {"member_id": uid, "status": "MODEL_CLEAR_LENGTH_UNRESOLVED"}
@@ -259,11 +349,23 @@ def project_column_clear_lengths(source, frames, adjacency, members, pmm_scope):
                 raise ValueError("Upright, centered column required")
             inside = {node for ends in mesh["analysis_element_end_joints"].values() for node in ends} - {pi, pj}
             shell_kinds = sorted({obj[0] for node in inside for obj in floor_mesh.get(node, ())})
+            if shell_kinds == ["Wall"]:
+                matching_model_joint(pi)
+                matching_model_joint(pj)
+                cut_i, length = _configured_end(pmm_scope, frame, "I")
+                cut_j, _ = _configured_end(pmm_scope, frame, "J")
+                if not _close(length, xyz_j[2] - xyz_i[2]):
+                    raise ValueError("Wall-coupled frame object length differs from its analysis chain")
+                wall_mesh = coupled_wall_mesh(mesh, inside, pi, pj, xyz_i, xyz_j)
+                row.update(status=WALL_COUPLED, wall_mesh=wall_mesh, offset_length_m=cut_j[1] - cut_i[1],
+                           end_cuts={"I": list(cut_i), "J": list(cut_j)},
+                           reason="A standalone clear length requires a coupled wall-frame restraint model")
+                continue
             if shell_kinds:
                 raise ValueError(f"Column has intermediate shell contacts ({', '.join(shell_kinds)})")
             if inside.intersection(points):
                 raise ValueError("Column has intermediate physical joints with unbound support")
-            face_i, face_j = support_at(pi), support_at(pj)
+            face_i, face_j = support_at(pi, lower=True), support_at(pj)
             if not face_j["beams"]:
                 raise ValueError("Upper support requires a beam soffit")
             ln = face_j["soffit_z_m"] - face_i["top_z_m"]

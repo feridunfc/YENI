@@ -19,26 +19,26 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "C29_MAT_ROTATION_AND_CALIBRATED_LENGTH_REFERENCE",
-    "work_branch": "work/r08-c29-mat-rotation",
+    "status": "WALL_MESH_INDEPENDENT_CENSUS_AND_SIGNED_STORY_REFERENCE",
+    "work_branch": "work/gap006-wall-geometry",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "a43bd56fff191e6c0137a59e05b61a62a86da773",
+    "inspected_base_commit": "bca6e6151e16682314cba653c29594f9fc077689",
     "source_run_id": "RUN-ec213e8622d2404ca2cd39ca5b392d7a",
     "source_sha256": "dcaa231263607e6ea71d1282b597542480dbc2f90f845889e27ad9c2000e059d",
-    "production_run_id": "RUN-8ff05dc6b0814df59654e5b8e0bfbe2c",
-    "results_sha256": "e8097f03d14812d3de906fed4515141df605ec7b029ccaa83b8a0d5553aaed84",
+    "production_run_id": "RUN-ad31d3a7be684247a622444aa06475c4",
+    "results_sha256": "e0770352d18bda5a2ab2e3dd6d36688110fff5e82513e077984a2b28dc685c7a",
     "evidence_refs": [
-      "EV-C29-MAT-ROTATION-CALIBRATED-LENGTH-20261121",
-      "EV-R08-TS500-PAIRED-STATIC-20261121",
-      "EV-R08-MAT-HORIZONTAL-BOUNDARY-20261121"
+      "EV-GAP006-WALL-MESH-AND-CUTS-20261121",
+      "EV-GAP009-SIGNED-STORY-MAGNIFICATION-20261121",
+      "EV-C29-MAT-ROTATION-CALIBRATED-LENGTH-20261121"
     ],
     "engineering_release": "NOT_READY",
-    "next_action": "Adopt a supported story creep convention for opposed shear contributions and qualify the governing stiffness and signed demands. Resolve missing story column spans under GAP-006, then calculate the complete Eq. (7.27)–(7.28) story sums and apply the chosen R08 factors."
+    "next_action": "Verify the shell-edge interpolation or native constraint connection for member 211. Qualify the wall-frame analysis, adopted creep convention and assigned design demand before using the reference story magnification in the production design checks."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
-    "commit_sha": "a43bd56fff191e6c0137a59e05b61a62a86da773",
-    "git_tree_sha": "029df34bf117b09e07daab0cb15a667a24a7962d",
+    "commit_sha": "bca6e6151e16682314cba653c29594f9fc077689",
+    "git_tree_sha": "e32577e180d30621f9c71d682fb7f26c84391c05",
     "observed_on": "2026-11-21",
     "scope": "Verified parent of this checkpoint. Resolve the current published ref with git ls-remote."
   },
@@ -5378,6 +5378,152 @@
       "limit": "Isolated zero-preload mat, selected full-span beam strip reference, and eight signed reference load sets. Reported k values remain conditional on that elastic model and the beam-end idealization.",
       "engineering_release": "NOT_READY",
       "next_action": "Adopt a supported story creep convention for opposed shear contributions and qualify the governing stiffness and signed demands. Resolve missing story column spans under GAP-006, then calculate the complete Eq. (7.27)–(7.28) story sums and apply the chosen R08 factors."
+    },
+    {
+      "id": "EV-GAP006-WALL-MESH-AND-CUTS-20261121",
+      "date": "2026-11-21",
+      "gaps": [
+        "GAP-006"
+      ],
+      "base_commit": "bca6e6151e16682314cba653c29594f9fc077689",
+      "classification": "ORIGINAL_MODEL_COMPLETE_CUT_CENSUS_AND_WALL_GEOMETRY",
+      "source_run": "RUN-ec213e8622d2404ca2cd39ca5b392d7a",
+      "input_sha256": "dcaa231263607e6ea71d1282b597542480dbc2f90f845889e27ad9c2000e059d",
+      "normal_result_run": "RUN-ad31d3a7be684247a622444aa06475c4",
+      "result_sha256": "e0770352d18bda5a2ab2e3dd6d36688110fff5e82513e077984a2b28dc685c7a",
+      "snapshot_sha256": "10e818823fe0b08c5e20d1a73b8f415ff2fe5fe8eeb18416017318d25cffcdaf",
+      "method": "Predict the configured independent station and element-side census from native geometry, analyzed joints and end offsets. Require a bijection for each captured case. Check existing verified static or Min/Max step coverage. Use original wall shell geometry and exact common joint and segment identities to distinguish walls terminating below the column from wall-coupled columns.",
+      "observed": {
+        "native_force_rows": 7638,
+        "independent_cuts": 402,
+        "member_cases": 957,
+        "maximum_cut_difference_m": 3.3306690738754696e-16,
+        "run": "RUN-ad31d3a7be684247a622444aa06475c4",
+        "results_sha256": "e0770352d18bda5a2ab2e3dd6d36688110fff5e82513e077984a2b28dc685c7a",
+        "report_sha256": "f42e8d7304a52ca2e9cbb2e36e2d2ad2e4459f88863866139e44f8b9bd84ec22",
+        "proven_free_lengths": 73,
+        "new_free_lengths": 14,
+        "wall_coupled": 14,
+        "fully_coincident_wall_chains": 13,
+        "partial_mesh_211": "5/8",
+        "same_assigned_shear_cases": 1392,
+        "r14_gate_counts": {
+          "11": 14,
+          "10": 73
+        },
+        "r14_open_census_count": 0
+      },
+      "verification": {
+        "offline_python_passed": 1563,
+        "offline_python_skipped": 1,
+        "offline_js_files_passed": 11,
+        "wheel_python_passed": 412,
+        "offline_log_sha256": "f21a54c9936a318f6f679845431b6a08a1cfc75f245cbb6c3cb6aaec4efe24b8",
+        "wheel_log_sha256": "22d7f4ccbe6959b2e4c902f7c5f7c11909f7b3bb2e0df03b8f44a9146eb21d78",
+        "wheel_sha256": "d9e0f93291044c5d74047647cac5c1da5599bc5feaf65395783f393eadaf65e2",
+        "tested_files": ".receipts/verification/gap006-wall-geometry-20261121/tested-files.json"
+      },
+      "commands": [
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --source .receipts/RUN-ec213e8622d2404ca2cd39ca5b392d7a/input.source --case Modal --out .receipts/verification/gap006-wall-geometry-20261121/verified",
+        "python -X utf8 -B .receipts/verification/gap006-wall-geometry-20261121/verify_geometry.py",
+        "python -X utf8 -B tools/test_offline.py",
+        "python -X utf8 -B tools/test_installed_wheel.py .receipts/verification/gap006-wall-geometry-20261121/wheel-final"
+      ],
+      "private_receipt": ".receipts/verification/gap006-wall-geometry-20261121",
+      "limit": "The independent census is for the captured ETABS MinStations=3, zero-I-offset scope. The wall mesh record preserves modeling connectivity and native force cuts. It is not a coupled wall-capacity result or an independent scalar clear length.",
+      "engineering_release": "NOT_READY"
+    },
+    {
+      "id": "EV-GAP009-SIGNED-STORY-MAGNIFICATION-20261121",
+      "date": "2026-11-21",
+      "gaps": [
+        "GAP-009"
+      ],
+      "base_commit": "bca6e6151e16682314cba653c29594f9fc077689",
+      "classification": "BOUNDED_SIGNED_STORY_AND_C29_PMM_REFERENCE",
+      "method": "Apply TS 500 Eq. (7.19), (7.21), and (7.27)–(7.29) in the existing engine. Use Rm=1 as the sensitivity endpoint, bare web stiffness and the largest tested k support cases for the story. Include all column compression in the numerator and credit only the standalone critical-load references. Use the prior calibrated local C29 k and floor the signed concurrent moments before applying the governing member or story factor.",
+      "input_sha256": "dcaa231263607e6ea71d1282b597542480dbc2f90f845889e27ad9c2000e059d",
+      "result_sha256": "fb54330e133fd1057436b15d2835eb73457ffb6de4e4ae8448978efe3601e184",
+      "signed_reference_sha256": "03e6e5bd0f915f79acc83a3c084d725d087d6fc9fc2f8c43cdcbccf2d2e222db",
+      "story_maxima": {
+        "+0.00/X": {
+          "story": "+0.00",
+          "case": "T5_UYP_L",
+          "lateral_axis": "X",
+          "counted_column_compression": 32,
+          "critical_load_credit_count": 18,
+          "sum_nd_kn": 47488.92463327819,
+          "sum_nk_kn": 178892.51701532252,
+          "ratio": 0.265460654395123,
+          "beta_s": 1.5269479998465747
+        },
+        "+0.00/Y": {
+          "story": "+0.00",
+          "case": "T5_UYP_L",
+          "lateral_axis": "Y",
+          "counted_column_compression": 32,
+          "critical_load_credit_count": 18,
+          "sum_nd_kn": 47488.92463327819,
+          "sum_nk_kn": 162096.45494176762,
+          "ratio": 0.2929670772278047,
+          "beta_s": 1.6151362830026124
+        },
+        "+4.50/X": {
+          "story": "+4.50",
+          "case": "T5_UXP_L",
+          "lateral_axis": "X",
+          "counted_column_compression": 32,
+          "critical_load_credit_count": 32,
+          "sum_nd_kn": 36569.81349242311,
+          "sum_nk_kn": 777505.5611556391,
+          "ratio": 0.047034793472175124,
+          "beta_s": 1.065127465467763
+        },
+        "+4.50/Y": {
+          "story": "+4.50",
+          "case": "T5_UXP_L",
+          "lateral_axis": "Y",
+          "counted_column_compression": 32,
+          "critical_load_credit_count": 32,
+          "sum_nd_kn": 36569.81349242311,
+          "sum_nk_kn": 799874.570631549,
+          "ratio": 0.04571943506536162,
+          "beta_s": 1.0631910419455977
+        },
+        "+9.00/X": {
+          "story": "+9.00",
+          "case": "T5_UXP_L",
+          "lateral_axis": "X",
+          "counted_column_compression": 23,
+          "critical_load_credit_count": 23,
+          "sum_nd_kn": 17664.614913382447,
+          "sum_nk_kn": 775726.9491156978,
+          "ratio": 0.022771691680325796,
+          "beta_s": 1.030506282749019
+        },
+        "+9.00/Y": {
+          "story": "+9.00",
+          "case": "T5_UXP_L",
+          "lateral_axis": "Y",
+          "counted_column_compression": 23,
+          "critical_load_credit_count": 23,
+          "sum_nd_kn": 17664.614913382447,
+          "sum_nk_kn": 787291.2160563074,
+          "ratio": 0.022437205640205016,
+          "beta_s": 1.0300447228445937
+        }
+      },
+      "signed_story_axis_checks": 48,
+      "signed_c29_pmm_cuts": 48,
+      "c29_max_utilization": {
+        "225": 0.3999961909818455,
+        "142": 0.3961611386569498
+      },
+      "command": "python -X utf8 -B .receipts/verification/gap006-wall-geometry-20261121/story_magnification.py",
+      "private_receipt": ".receipts/verification/gap006-wall-geometry-20261121",
+      "limit": "Column-only signed reference checks, with conditional stiffness and restraint. The tested Rm endpoint does not determine the adopted convention for opposed shears. This result does not transfer to the assigned spectral demand.",
+      "engineering_release": "NOT_READY",
+      "next_action": "Verify the shell-edge interpolation or native constraint connection for member 211. Qualify the wall-frame analysis, adopted creep convention and assigned design demand before using the reference story magnification in the production design checks."
     }
   ],
   "new_record_template": {

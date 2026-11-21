@@ -1,9 +1,9 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-21T05:59:53.875903Z",
+  "updated_at_utc": "2026-11-21T06:19:34.568961Z",
   "repository": "feridunfc/YENI",
-  "baseline_implementation_commit": "a43bd56fff191e6c0137a59e05b61a62a86da773",
+  "baseline_implementation_commit": "bca6e6151e16682314cba653c29594f9fc077689",
   "local_reconciled": true,
   "scope_note": "18 stable GAPs. The original R08/R10 calculation uses model clear lengths at 59 aligned columns. R08 verifies the native horizontal boundary at all 32 mat-supported columns. Paired TS 500 static references exceed the 5% shortcut threshold in all six occupied story directions.",
   "status_policy": {
@@ -29,7 +29,7 @@
     "GAP-013",
     "GAP-016"
   ],
-  "active_task": "Adopt a supported story creep convention for opposed shear contributions and qualify the governing stiffness and signed demands. Resolve missing story column spans under GAP-006, then calculate the complete Eq. (7.27)–(7.28) story sums and apply the chosen R08 factors.",
+  "active_task": "Verify the shell-edge interpolation or native constraint connection for member 211. Qualify the wall-frame analysis, adopted creep convention and assigned design demand before using the reference story magnification in the production design checks.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -155,8 +155,8 @@
       "title": "Same-cut mesh, offsets and physical faces",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Supported MinStations=3 / zero-I-offset subset: 4422/4422 required cuts, including both sides in 14 meshed columns. Model support elevations and individual native cuts agree for both C29 segments and 59 of 87 columns. The five native face/connectivity tables include polygon continuation rows and the radye foundation mesh contact.",
-      "blocker": "Fourteen intermediate wall contacts and fourteen wall-connected end geometries remain unbound. The independent full cut census and effective length are still open.",
+      "achieved_scope": "Supported MinStations=3 / zero-I-offset subset: 4422/4422 required cuts, including both sides in 14 meshed columns. Model support elevations and individual native cuts agree for both C29 segments and 59 of 87 columns. The five native face/connectivity tables include polygon continuation rows and the radye foundation mesh contact. Independently derived 402 distinct configured cuts match all 957 member/combination inventories and 7,638 force rows with native steps. Standalone physical lengths and cuts agree for 73 columns. Fourteen basement frame objects have identified wall shell contacts, including one partially coincident shell edge chain.",
+      "blocker": "Member 211 shares five of eight analysis edges with the wall shells. Establish the remaining mesh transitions and preserve the coupled wall-frame treatment for the 14 basement members.",
       "closure_criteria": "Establish all supported cut/face/mesh identities independently of force results; reject missing or ambiguous side matches.",
       "owner_paths": [
         "src/tbdy_next/engineering/column_pmm.py",
@@ -167,7 +167,8 @@
         "EV-PMM6",
         "EV-LOCAL-NATIVE",
         "EV-LOCAL-SPECTRAL",
-        "EV-C29-PHYSICAL-CLEAR-LENGTH-20261120"
+        "EV-C29-PHYSICAL-CLEAR-LENGTH-20261120",
+        "EV-GAP006-WALL-MESH-AND-CUTS-20261121"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false
@@ -218,8 +219,8 @@
       "title": "Global and local second-order effects",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Selected candidates can bind same-run R08 inputs; EI/Nk and second-order reference calculations exist. Same-run selected sections now carry both first-order and magnified design moments with the local/global factors and fixed-N radial reserve. R08 applies the existing minimum-eccentricity owner before local/global magnification for static and spectral-box references. Raw, floored and final moments are recorded and projected in the normal report. The two GOLDEN-01 theta scalars now call the existing global P-delta owner. R08 consumes the verified 4.45 m and 3.80 m C29 model clear lengths and the corresponding verified clear lengths of 57 more columns. R08 evaluates conditional TS 500 effective lengths and Euler loads at 59 columns using native directional framing. C29 has 36 aligned Eq. (7.29) comparisons across the stated scenarios. The accepted C29 base boundary at joint 934 restrains UX and UY, consistent with 14 sealed displacement rows. R08 and R14 now bind all 32 mat-connected column boundary conditions from 119 native point reads and R08 computes 64 same-case spectral endpoint differentials. The private ETABS copy supplied 2,784 paired signed end-moment comparisons across all 87 columns. 105 exceed the 5% TS 500 threshold across the six occupied story directions. The isolated ETABS mat gives finite two-axis rotational stiffness at joint 934. Actual floor strips and the mat probe support the two-axis C29 effective-length reference. Signed Eq. (7.23) inputs and column compression subtotals were verified for 24 story references. The 16 C29 Eq. (7.29) signed reference instances give the same branch for both length readings.",
-      "blocker": "Qualify the adopted effective stiffness and creep sign convention before assembling the full Eq. (7.27)–(7.28) story sums and applying the design demands. +0.00 and +4.50 each still have 14 unbound column spans. The measured mat and checked beam geometry are reference inputs.",
+      "achieved_scope": "Selected candidates can bind same-run R08 inputs; EI/Nk and second-order reference calculations exist. Same-run selected sections now carry both first-order and magnified design moments with the local/global factors and fixed-N radial reserve. R08 applies the existing minimum-eccentricity owner before local/global magnification for static and spectral-box references. Raw, floored and final moments are recorded and projected in the normal report. The two GOLDEN-01 theta scalars now call the existing global P-delta owner. R08 consumes the verified 4.45 m and 3.80 m C29 model clear lengths and the corresponding verified clear lengths of 57 more columns. R08 evaluates conditional TS 500 effective lengths and Euler loads at 59 columns using native directional framing. C29 has 36 aligned Eq. (7.29) comparisons across the stated scenarios. The accepted C29 base boundary at joint 934 restrains UX and UY, consistent with 14 sealed displacement rows. R08 and R14 now bind all 32 mat-connected column boundary conditions from 119 native point reads and R08 computes 64 same-case spectral endpoint differentials. The private ETABS copy supplied 2,784 paired signed end-moment comparisons across all 87 columns. 105 exceed the 5% TS 500 threshold across the six occupied story directions. The isolated ETABS mat gives finite two-axis rotational stiffness at joint 934. Actual floor strips and the mat probe support the two-axis C29 effective-length reference. Signed Eq. (7.23) inputs and column compression subtotals were verified for 24 story references. The 16 C29 Eq. (7.29) signed reference instances give the same branch for both length readings. The 48 signed story/axis references include all frame-column compression. The Rm=1 sensitivity calculation includes complete frame-column critical-load credit at +4.50 and +9.00 and 18 verified-span columns at +0.00. The selected-cage signed C29 PMM reference is evaluated at 48 native cuts.",
+      "blocker": "Qualify the full wall-frame critical-load and compression basis, adopted stiffness and creep convention, and correct analysis order and assigned design demands before applying story and member factors to design.",
       "closure_criteria": "Independently verify both-axis clear/effective lengths and EI, prevent double counting, and prove consumption of the qualified demands.",
       "owner_paths": [
         "src/tbdy_next/column_engine/ts500_column.py",
@@ -241,7 +242,8 @@
         "EV-C29-MAT-HORIZONTAL-SUPPORT-20261121",
         "EV-R08-MAT-HORIZONTAL-BOUNDARY-20261121",
         "EV-R08-TS500-PAIRED-STATIC-20261121",
-        "EV-C29-MAT-ROTATION-CALIBRATED-LENGTH-20261121"
+        "EV-C29-MAT-ROTATION-CALIBRATED-LENGTH-20261121",
+        "EV-GAP009-SIGNED-STORY-MAGNIFICATION-20261121"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false

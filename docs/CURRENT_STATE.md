@@ -6,6 +6,48 @@ Start each assignment at [AGENTS.md](../AGENTS.md). The
 in a GitHub checkout. Follow the [November 18 full recipe](engineering/reference/recipe_20261118/delivery/RECIPE.md)
 and its [six-step calculation sequence](engineering/reference/recipe_20261118/delivery/PRIORITY_CHAIN.json).
 
+## Wall contacts, complete cut census and C29 story magnification reference
+
+The original mesh, output assignments and offsets independently define
+402 column cuts. All 957 member/combination cut inventories and their
+7,638 native force rows match, including the element sides at shared
+stations and the expected signed or Min/Max step population. This
+resolves the independent cut census for the archived original model.
+
+At +4.50, the 14 previously unbound columns now have 3.80 m clear length.
+Their basement walls end at the lower slab joint and the upper beam
+soffit matches the native J cut. The model now supplies standalone
+clear lengths for 73 columns. The other 14, all at +0.00, have wall
+mesh contacts inside the column height. Thirteen share an edge with
+the wall shells on every frame segment. Member 211 (C104) shares five
+of eight edges. Its other three segments require a mesh compatibility
+check. These 14 members retain their native cuts. Their independent
+column effective-length model requires a coupled wall-frame assessment.
+
+The eight signed static load sets give 48 story/axis comparisons using
+TS 500 Eq. (7.27)–(7.28) as a reference. Each numerator includes all
+frame-column compression. At +0.00 only the 18 columns with independently
+verified spans contribute critical-load credit. The assumed stiffness
+uses the `Rm = 1` sensitivity endpoint, bare beam webs, and the largest
+of the checked effective-length scenarios for each member. The
+largest story factor in each direction is:
+
+| Story | X | Y |
+| --- | ---: | ---: |
+| +0.00 | 1.526948 | 1.615136 |
+| +4.50 | 1.065127 | 1.063191 |
+| +9.00 | 1.030506 | 1.030045 |
+
+Using the measured mat reference at C29 and the same signed vectors
+and factors, the selected-cage PMM calculation stays within the reference
+surface at all 48 cuts across both segments. The governing utilization
+is 0.399996 for 225 and 0.396161 for 142. The assigned spectral design
+scope still requires a qualified analysis basis, an adopted creep
+convention and qualified wall-frame stiffness. See
+`EV-GAP006-WALL-MESH-AND-CUTS-20261121` and
+`EV-GAP009-SIGNED-STORY-MAGNIFICATION-20261121` in the
+[verification ledger](VERIFICATION_LEDGER.json).
+
 ## C29 mat rotation and calibrated effective-length reference
 
 The approved second Save As ran four signed 1 kN·m cases at node 934.
@@ -39,7 +81,7 @@ them to stiffness. The adopted member stiffness and complete story
 Eq. (7.27)–(7.28) sums are required for final moment magnification.
 The maximum checked column compression subtotals at the common I cuts
 are 47,489 kN at +0.00, 36,570 kN at +4.50 and 17,665 kN at +9.00.
-The two lower stories each have 14 columns with unbound clear length.
+At this checkpoint, both lower stories had 14 unbound column clear lengths.
 See `EV-C29-MAT-ROTATION-CALIBRATED-LENGTH-20261121` in the
 [verification ledger](VERIFICATION_LEDGER.json).
 
@@ -130,17 +172,14 @@ F13, F15 and F30 at +0.00. The audited F29 assignment belongs to +9.00.
 All 32 C29 case/axis shear values agree with the previous calculation.
 The reference slenderness scenarios use the same physical lengths.
 
-R08 resolves the model clear-length gate for 59 of 87 columns. Fourteen
-columns have intermediate wall contacts and fourteen have unsupported wall
-contacts at an end. R14 records 11 open conditions for 59 columns and 12 for
-28. Anchorage, approved effective length and sway, stiffness and creep, and
-analysis-generation checks are still open. The engineering release is
-`NOT_READY`.
+This earlier R08 run resolved the model clear-length gate for 59 of 87
+columns and identified the two wall contact groups subsequently
+reconciled above. The engineering release is `NOT_READY`.
 
 The offline suite passed 1,552 Python tests and 11 JavaScript test files
 with one Windows skip. The clean installed wheel passed 401 tests.
 
-GAP-006 still tracks the 28 wall-connected columns.
+GAP-006 records the later disposition of those wall-connected columns.
 
 ## Previous assigned seismic column shear calculation
 

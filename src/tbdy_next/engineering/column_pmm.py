@@ -334,6 +334,7 @@ def bind_configured_output_cuts(snapshot: Mapping, mesh_members: Mapping[str, Ma
 def _required_cut_coverage(rows, grid):
     observed = {row[:4] for row in rows}
     missing, ambiguous = [], []
+    matched = set()
     length = grid["length_m"]
     for cut in grid["cuts"]:
         elm = cut["analysis_element_id"]
@@ -343,10 +344,15 @@ def _required_cut_coverage(rows, grid):
                       and abs(row[3] - elm_sta) <= station_budget(row[3], elm_sta, length)]
         if not candidates:
             missing.append(cut)
-        elif len(candidates) != 1:
+        elif len(candidates) != 1 or candidates[0] in matched:
             ambiguous.append(cut)
-    return {"required_count": len(grid["cuts"]), "matched_count": len(grid["cuts"]) - len(missing) - len(ambiguous),
-            "missing_cuts": missing, "ambiguous_cuts": ambiguous}
+        else:
+            matched.add(candidates[0])
+    extra = observed - matched
+    return {"required_count": len(grid["cuts"]), "matched_count": len(matched),
+            "missing_cuts": missing, "ambiguous_cuts": ambiguous,
+            "unmatched_native_cut_count": len(extra),
+            "exact_cut_census": bool(matched and not missing and not ambiguous and not extra)}
 
 
 def _object_station_count(rows) -> int:

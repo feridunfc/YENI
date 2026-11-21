@@ -2401,8 +2401,15 @@ def _column_r10_html(r10: Mapping[str, Any]) -> str:
     for row in (lengths.get("per_member") or {}).values():
         faces = row.get("faces") or {}
         i_face, j_face = faces.get("I") or {}, faces.get("J") or {}
-        length_rows.append({**row, "i_point": i_face.get("joint_id"), "j_point": j_face.get("joint_id"),
-                            "i_top": i_face.get("top_z_m"), "j_soffit": j_face.get("soffit_z_m")})
+        mesh = row.get("wall_mesh") or {}
+        joints = mesh.get("joint_ids") or {}
+        walls = mesh.get("walls") or i_face.get("walls_below") or []
+        length_rows.append({**row, "i_point": i_face.get("joint_id") or joints.get("I"),
+                            "j_point": j_face.get("joint_id") or joints.get("J"),
+                            "i_top": i_face.get("top_z_m"), "j_soffit": j_face.get("soffit_z_m"),
+                            "wall_ids": ", ".join(wall["wall_id"] for wall in walls),
+                            "wall_segments": (f'{mesh["segments_with_common_shell_edge"]}/{mesh["element_count"]}'
+                                              if mesh else None)})
     return (
         '<section class="percheck"><h2>Column R10 · Joints, SCWB and shear/confinement</h2>'
         '<p>Recorded joint, SCWB and transverse results from the saved pipeline run. '
@@ -2415,6 +2422,7 @@ def _column_r10_html(r10: Mapping[str, Any]) -> str:
            _table((("member_id", "Column"), ("i_point", "Joint I"), ("i_top", "Lower support top Z (m)"),
                    ("j_point", "Joint J"), ("j_soffit", "Upper support soffit Z (m)"),
                    ("physical_length_m", "Physical clear length (m)"), ("offset_length_m", "Native cut span (m)"),
+                   ("wall_ids", "Wall objects"), ("wall_segments", "Segments sharing shell edges"),
                    ("status", "Geometry status"), ("reason", "Open reason")), length_rows)
            if length_rows else '')
         + (f'<p>Support face source: {_val(lengths["source_error"])}</p>' if lengths.get("source_error") else '')

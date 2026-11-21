@@ -105,7 +105,7 @@ STAGES: tuple[StageSpec, ...] = (
     StageSpec("column-pmm", LIVE, "tbdy_next.engineering.column_pmm", ("column-pmm",),
               ("COLUMN_PMM", "COLUMN_SECTION_CAPACITY"), "Signed-station P-M2-M3 with TS500 6.16 minimum eccentricity",
               "COLUMN_PMM_MEMBER", consumes=(_AXIAL_GEOMETRY, _AXIAL_FORCES, _AXIAL_RESULT, _PMM_SECTION),
-              produces=(_PMM_RESULT, _PMM_SCOPE), method_version="column-pmm.v6"),
+              produces=(_PMM_RESULT, _PMM_SCOPE), method_version="column-pmm.v7"),
     StageSpec("design-dependencies", LIVE, "tbdy_next.engineering.design_dependencies", (), (),
               "Offline member/joint scope and fail-closed source dependencies; not a new code check",
               "DESIGN_SCENARIO", consumes=(_AXIAL_GEOMETRY, _PMM_SCOPE), produces=(_DESIGN_SCOPE,),
@@ -126,14 +126,14 @@ STAGES: tuple[StageSpec, ...] = (
               ("JOINT_TOPOLOGY_CHECK", "JOINT_SHEAR", "SCWB", "COLUMN_SHEAR", "COLUMN_SHEAR_REBAR"),
               "TBDY 7.3.5 joint applicability, 7.3.6 SCWB, 7.5 joint shear and column confinement/shear "
               "(computed by pipeline; persisted in engine-results)", "COLUMN_REQUEST", produces=(_R10_RESULT,),
-              method_version="column-r10-spectral-shear.v6"),
+              method_version="column-r10-spectral-shear.v7"),
     StageSpec("second-order", LIVE, "tbdy_next.story_second_order", ("r08-second-order",),
               ("GLOBAL_SECOND_ORDER",), "TBDY 4.33 story second-order precheck", "R08_SOURCE"),
     StageSpec("column-r08-local", LIVE, "tbdy_next.engineering.column_r08_local_live", (),
               ("COLUMN_SLENDERNESS", "COLUMN_PMM"),
               "TS500 local slenderness, EI, Nk and beta reference scenarios (computed by pipeline; persisted in engine-results)",
               "COLUMN_PMM_MEMBER", consumes=(_AXIAL_GEOMETRY, _AXIAL_RESULT, _PMM_RESULT, _PMM_SCOPE),
-              produces=(_R08_LOCAL_RESULT,), method_version="column-r08-local.v9"),
+              produces=(_R08_LOCAL_RESULT,), method_version="column-r08-local.v10"),
     StageSpec("alpha-feedback", LIVE, "tbdy_next.engineering.alpha_iteration", (), (),
               "Bounded qualified signed alpha demand revision and dirty-member rechecks", "EXPLICIT_DESIGN_SCENARIO",
               consumes=(_DESIGN_SCOPE, _PMM_SCOPE, _PMM_RESULT, _R10_RESULT, _R08_LOCAL_RESULT),
@@ -541,10 +541,17 @@ def _run_column_pmm(source: Mapping[str, Any], geometry: Mapping[str, Any] | Non
         raise ValueError("INVALID_STAGE_OUTPUT:column-pmm")
     recorded_members = ((pmm or {}).get("members") or ()) if target == "ALL" else ([pmm] if pmm else [])
     recorded_by_id = {item["member_id"]: {c["name"]: c for c in item["combinations"]} for item in recorded_members}
+    verified_steps = {(entry["element_id"], entry["combination"]) for entry in axial_ledger["instances"]
+                      if entry["status"] in {"WITHIN_LIMIT", "OUTSIDE_LIMIT"}}
+    known_scope = axial_ledger["scope_complete"] and target_known and bool(plan)
     instances = []
     for uid in member_ids:
         for combo in plan:
             observed = recorded_by_id.get(uid, {}).get(combo["name"], {})
+            configured = observed.get("configured_cut_coverage") or {}
+            elements = observed.get("analysis_element_coverage") or {}
+            census = ((uid, combo["name"]) in verified_steps and configured.get("exact_cut_census") is True
+                      and elements.get("roster_bound") is True and elements.get("reason") is None)
             instances.append({
                 "element_id": uid, "combination": combo["name"], "force_semantics": combo.get("force_semantics"),
                 "execution_status": observed.get("status", "BLOCKED"), "formal_compliance": "NOT_PROVEN",
@@ -552,17 +559,21 @@ def _run_column_pmm(source: Mapping[str, Any], geometry: Mapping[str, Any] | Non
                 "observed_object_station_count": observed.get("observed_object_station_count"),
                 "analysis_element_coverage": observed.get("analysis_element_coverage"),
                 "configured_cut_coverage": observed.get("configured_cut_coverage"),
+                "independent_cut_census_proven": census,
                 "section_rows_evaluated": observed.get("evaluated_station_count", 0),
-                "reason": observed.get("reason") or (blockers[0] if blockers else "INDEPENDENT_ANALYSIS_CUT_CENSUS_NOT_PROVEN"),
+                "reason": observed.get("reason") or (blockers[0] if blockers else
+                    None if census else "INDEPENDENT_ANALYSIS_CUT_CENSUS_NOT_PROVEN"),
             })
     return pmm, {
         "schema": _PMM_SCOPE.value, "method_version": stage.method_version, "input_sha256": input_sha,
         "target_member_id": target, "expected_member_combination_count": len(instances),
         "numerically_complete_signed_pair_count": sum(i["execution_status"] == "NUMERICAL_COMPLETE" for i in instances),
-        "known_member_combination_scope": axial_ledger["scope_complete"] and target_known and bool(plan),
+        "known_member_combination_scope": known_scope,
         "analysis_mesh": mesh,
         "configured_output_cuts": configured_cuts,
-        "independent_cut_census_proven": False, "dependency_blockers": blockers, "instances": instances,
+        "independent_cut_census_proven": bool(known_scope and not blockers and instances
+                                             and all(x["independent_cut_census_proven"] for x in instances)),
+        "dependency_blockers": blockers, "instances": instances,
         "formal_compliance": "NOT_PROVEN",
     }
 

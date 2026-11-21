@@ -37,8 +37,11 @@ Use `EV-C29-PHYSICAL-CLEAR-LENGTH-20261120` for the 4.45 m and 3.80 m physical
 lengths. Verify each support face against the corresponding I or J force
 station. The lower foundation shares its analysis joint with C29. Join
 beam and floor objects by their native unique IDs and ordered point identities.
-Read the shared length in R08 and R10 and the open R14 gates. Fifty-nine
-columns use physical model faces. Twenty-eight have unbound wall contacts.
+Read the shared length in R08 and R10 and the open R14 gates.
+`EV-GAP006-WALL-MESH-AND-CUTS-20261121` records the independent 402-cut
+census, 73 standalone clear lengths and 14 wall-coupled mesh records.
+Compare the distinct element sides and all load steps. Member 211
+has three segments without an exact shared shell edge.
 For C29 effective lengths use `EV-C29-TS500-EFFECTIVE-LENGTH-20261121`.
 Trace the axis-length frame terms and the two clear spans into R08. Use
 `EV-R08-MAT-HORIZONTAL-BOUNDARY-20261121` for the production mat restraint
@@ -52,9 +55,12 @@ reference loads. Use `EV-C29-MAT-ROTATION-CALIBRATED-LENGTH-20261121`
 for the four mat-only perturbations and the resulting two-axis C29
 effective-length reference. Match the beam strips against the actual
 floor polygons. Check equilibrium, reciprocity and the opposed
-permanent and total shears in the signed reference scope. Continue with
-the adopted effective stiffness, creep convention and the complete
-story Eq. (7.27)–(7.28) sums. The physical scope accounts for six
+permanent and total shears in the signed reference scope.
+`EV-GAP009-SIGNED-STORY-MAGNIFICATION-20261121` records the 48 signed
+story/axis checks and 48 C29 signed PMM checks under the specified
+`Rm = 1` sensitivity model. Qualify the wall-frame stiffness, adopted
+creep convention and assigned design demand before applying the
+factors to design. The physical scope accounts for six
 occupied story directions and the empty +14.5 story.
 
 For assigned C29 shear use `EV-C29-SPECTRAL-SHEAR-20261120`. Both C29 segments

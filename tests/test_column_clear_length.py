@@ -2,7 +2,9 @@
 from unittest import TestCase
 
 from tbdy_next.column_engine.native_archive import digest
-from tbdy_next.engineering.column_clear_length import FACE_BASIS, project_column_clear_lengths
+from tbdy_next.engineering.column_clear_length import (
+    FACE_BASIS, WALL_CONNECTIVITY, WALL_PROPERTIES, project_column_clear_lengths,
+)
 from tbdy_next.engineering.column_r08_local_live import PHYSICAL_CLEAR_LENGTH_GATE, project_column_r08_local_live
 from tbdy_next.engineering.column_r10_live import _build_frame_catalog
 from tbdy_next.etabs_geometry import AREA_ELEMENTS, AREA_INSERTION, FLOOR_CONNECTIVITY, FRAME_INSERTION, SLAB_PROPERTIES
@@ -90,6 +92,36 @@ def project(source, scope):
     return project_column_clear_lengths(source, frames, meta["adjacency"], ["C"], scope)
 
 
+def wall_below_fixture(*, wall_top_z="-4.5"):
+    source, tables, scope = fixture()
+    b1 = source["vs06_b1_geometry_source"]
+    b1_tables = b1["table_reads"]
+    point_table = b1_tables["Point Object Connectivity"]
+    more = [("W1", "Below", "0", "0", "-6.5"), ("W2", "Below", "2", "0", "-6.5"),
+            ("W3", "Base", "2", "0", wall_top_z)]
+    if wall_top_z != "-4.5":
+        more.append(("W4", "Base", "0", "0", wall_top_z))
+    point_table["rows"].extend(dict(zip(point_table["fields"], row)) for row in more)
+    point_table["row_count"] = len(point_table["rows"])
+    b1_tables[WALL_CONNECTIVITY] = table(
+        "UniqueName Story WallBay UniquePt1 UniquePt2 UniquePt3 UniquePt4",
+        [("W", "Base", "W", "W1", "W2", "W3", "P0" if len(more) == 3 else "W4")])
+    b1_tables[WALL_PROPERTIES] = table("Name ModelType Thickness", [("PW", "Shell-Thick", ".4")],
+                                       units={"Thickness": "m"})
+    assignments = b1_tables["Area Assignments - Section Properties"]
+    assignments["rows"].append(dict(zip(assignments["fields"], ("W", "Base", "W", "Wall", "PW"))))
+    assignments["row_count"] = 2
+    b1["payload_sha256"] = digest({k: v for k, v in b1.items() if k != "payload_sha256"})
+    insert = tables[AREA_INSERTION]
+    insert["rows"].append(dict(zip(insert["fields"], ("W", "Base", "W", "Middle"))))
+    insert["row_count"] = 2
+    elems = tables[AREA_ELEMENTS]
+    elems["rows"].append(dict(zip(elems["fields"], ("Base", "W-1", "Wall", "W", "W", "P0", "W1", "W2"))))
+    elems["row_count"] = 2
+    tables[SLAB_PROPERTIES]["rows"][0]["PropType"] = "Slab"
+    return source, scope
+
+
 class ColumnClearLengthTests(TestCase):
     def test_top_mat_and_beam_soffit_bind_both_native_end_cuts(self):
         source, _, scope = fixture()
@@ -136,6 +168,20 @@ class ColumnClearLengthTests(TestCase):
         record["rows"].append({**record["rows"][0], "ObjType": "Wall", "ElmName": "W-1", "ObjName": "W"})
         record["row_count"] += 1
         self.assertIn("Wall contact", project(source, scope)["per_member"]["C"]["reason"])
+
+    def test_slab_and_terminating_wall_prove_the_lower_face_without_a_beam(self):
+        source, scope = wall_below_fixture()
+        row = project(source, scope)["per_member"]["C"]
+        self.assertEqual(row["status"], FACE_BASIS)
+        self.assertEqual(row["physical_length_m"], 3.8)
+        self.assertEqual(row["faces"]["I"]["walls_below"][0]["analysis_element_ids"], ["W-1"])
+        self.assertFalse(row["faces"]["I"]["beams"])
+
+    def test_wall_continuing_above_lower_joint_does_not_prove_that_face(self):
+        source, scope = wall_below_fixture(wall_top_z="-4")
+        row = project(source, scope)["per_member"]["C"]
+        self.assertEqual(row["status"], "MODEL_CLEAR_LENGTH_UNRESOLVED")
+        self.assertIn("does not end below lower joint", row["reason"])
 
     def test_old_capture_has_no_physical_face_projection(self):
         source, records, scope = fixture()

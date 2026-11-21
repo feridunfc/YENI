@@ -48,6 +48,10 @@ def reference_end_ratios(source, physical_members):
         for axis, i_axis, transverse in (("M2", 1, 2), ("M3", 2, 1)):
             ends = {}
             for side, face in proof.get("faces", {}).items():
+                if face.get("walls_below"):
+                    ends[side] = {"basis": "WALL_BELOW_ROTATIONAL_STIFFNESS_UNBOUND",
+                                  "joint_id": face["joint_id"]}
+                    continue
                 if not face["beams"]:
                     if any(s["type"] == "Mat" for s in face["slabs"]):
                         ends[side] = {"basis": "MAT_ROTATIONAL_STIFFNESS_UNBOUND", "joint_id": face["joint_id"]}
@@ -108,8 +112,10 @@ def effective_length_reference(axes, local, section_evidence):
             i, j = (ends[side].get(section) for side in ("I", "J"))
             hypotheses = [("FRAME_JOINTS", i, j)]
             if i is None or j is None:
-                hypotheses = [("MAT_FIXED", 0.0 if i is None else i, 0.0 if j is None else j),
-                              ("MAT_HINGED", i, j)]
+                unresolved = ends["I" if i is None else "J"].get("basis")
+                label = "WALL" if unresolved == "WALL_BELOW_ROTATIONAL_STIFFNESS_UNBOUND" else "MAT"
+                hypotheses = [(label + "_FIXED", 0.0 if i is None else i, 0.0 if j is None else j),
+                              (label + "_HINGED", i, j)]
             for support, a, b in hypotheses:
                 for sway in (SWAY_PREVENTED, SWAY_PERMITTED):
                     k = effective_length_factor(alpha_i=a, alpha_j=b, sway=sway)
@@ -131,5 +137,5 @@ def effective_length_reference(axes, local, section_evidence):
             "assumptions": ["Common concrete modulus, uncracked columns, and 0.5 gross beam inertia.",
                             "Beam continuity and flange transfer are scenario assumptions.",
                             "The flange comparison uses the largest slab thickness at the joint and two maximum overhangs.",
-                            "Euler results use Rm=0. The sway class and mat rotational stiffness remain unresolved."],
+                            "Euler results use Rm=0. The sway class and unbound support rotation remain conditional."],
             "axes": out}

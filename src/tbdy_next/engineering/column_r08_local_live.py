@@ -28,7 +28,7 @@ from ..column_engine.ts500_column import (
     moment_magnification_factors,
     rectangle_properties,
 )
-from .column_clear_length import FACE_BASIS, proven_clear_length_m
+from .column_clear_length import FACE_BASIS, WALL_COUPLED, proven_clear_length_m
 from .column_effective_length import effective_length_reference, reference_end_ratios
 from .column_mat_support import project_mat_horizontal_supports
 from .column_r10_live import SelectedColumnCage
@@ -37,6 +37,7 @@ from .live_column import project_column_slenderness_evidence
 SCHEMA = "tbdy.next.column-r08-local-live.v1"
 
 PHYSICAL_CLEAR_LENGTH_GATE = "PHYSICAL_SUPPORT_FACES_AND_CLEAR_LENGTH_NOT_PROVEN"
+WALL_COUPLED_LENGTH_GATE = "WALL_FRAME_EFFECTIVE_LENGTH_REQUIRES_COUPLED_MODEL"
 OPEN_GATES = (
     PHYSICAL_CLEAR_LENGTH_GATE,
     "END_RESTRAINTS_K_AND_SWAY_CLASSIFICATION_NOT_APPROVED",
@@ -177,6 +178,8 @@ def _project_single_r08_local(
         span_basis = FACE_BASIS
         open_gates.remove(PHYSICAL_CLEAR_LENGTH_GATE)
         evidence["unverified_inputs"].remove("Physical support faces and clear length")
+    elif (physical_length or {}).get("status") == WALL_COUPLED:
+        open_gates[open_gates.index(PHYSICAL_CLEAR_LENGTH_GATE)] = WALL_COUPLED_LENGTH_GATE
 
     out: dict[str, Any] = {
         "schema": SCHEMA,
@@ -778,8 +781,11 @@ def project_column_r08_local_live(
                 continue
             per_member[muid] = _project_member(m_pmm)
         open_gates = list(OPEN_GATES)
-        if per_member and all(r.get("span_basis") == FACE_BASIS for r in per_member.values()):
+        span_issues = [r for r in per_member.values() if r.get("span_basis") != FACE_BASIS]
+        if per_member and all(WALL_COUPLED_LENGTH_GATE in r.get("open_gates", ()) for r in span_issues):
             open_gates.remove(PHYSICAL_CLEAR_LENGTH_GATE)
+        if any(WALL_COUPLED_LENGTH_GATE in r.get("open_gates", ()) for r in span_issues):
+            open_gates.append(WALL_COUPLED_LENGTH_GATE)
         if any(_SELECTED_CAGE_UNAVAILABLE in member["open_gates"] for member in per_member.values()):
             open_gates.append(_SELECTED_CAGE_UNAVAILABLE)
         return {
