@@ -6671,6 +6671,612 @@
         "engineering_acceptance": "NOT_GRANTED",
         "whole_building_gap_closure": "NOT_GRANTED"
       }
+    },
+    {
+      "id": "EV-C29-NATIVE-EIGHT-SPAN-20261121",
+      "observed_at": "2026-11-21",
+      "gap_ids": [
+        "GAP-009"
+      ],
+      "status": "ACTUAL_EIGHT_PART_FULL_SPAN_RECOVERED_FOUR_TO_EIGHT_AND_REVISED_PMM_PENDING",
+      "base_commit": "a0110b89a1e3ad03e1e751f5b49e07f39ea7eda4",
+      "tested_implementation_commit": "028493a0c582c38c48c56afc1f4f13ccbf77db25",
+      "published_implementation_commit": "b5b9a7aacbbc54d006601bad749f55adcebe3322",
+      "tested_implementation_tree": "a1799edcd9197f0c7263872c1e71f9cbf3c48ce8",
+      "method_revision": "column-r08-local.adopted-basis.v15",
+      "tested_file_manifest": {
+        "src/tbdy_next/engineering/column_r08_local_live.py": "5b9cd44ddbafb8eb303df4aadef215f5fca4fcb9e9217212007397a494916b72",
+        "src/tbdy_next/engineering/gravity_order_pair.py": "b8185e6756c47da328dcdce62426c4524b4532dafa21ac42f8b21b195d79cc44",
+        "src/tbdy_next/engineering/gravity_pair_refinement.py": "3dda073cc5e04f2600794e6151600fafee788cb8a39c4020896920b72174d7d3",
+        "src/tbdy_next/engineering/gravity_story_basis.py": "13b89297c9c676152f79da8fc8bafd2ba13c9292d30a10109aedd61ad5038e08",
+        "src/tbdy_next/engineering/pipeline.py": "90463943a7d03ad62ae7c3292c3aee3ac73b786f80d3b12c2a0715d0669c65be",
+        "src/tbdy_next/reporting.py": "2663693a4e5852924f0264a5674b686a3d5644a1786c6d519d0a68270c9274e7"
+      },
+      "tested_file_manifest_sha256": "edf430d1c66a01feadaa4fed19708acbd75216e6e1ad9f72e5f140f0cc676b91",
+      "original_edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+      "etabs": {
+        "source": "Locked real 8-part METHOD clone, Windows ETABS",
+        "model_sha256": "685f5f45e7448c8c471a2c041c65c681447cc02175846bbf82ae172139a8c283",
+        "analysis_generation": "b207f87b19b6a7b4887102926dbd775907477175a82ef4559714e421d036c11e",
+        "case_status": {
+          "C29G_TN_F": 4,
+          "C29G_TN_P": 4,
+          "C29G_TP_F": 4,
+          "C29G_TP_P": 4,
+          "C29G_U_F": 4,
+          "C29G_U_P": 4
+        },
+        "matched_force_records": 480,
+        "all_native_translation_controls_matched": true,
+        "motion_packet_sha256": "68debb88354dc8a5e70a692319b7ca2f2dc3337d5dbe50bc7a27099ddd41c43b",
+        "motion_properties_sha256": "0905cf5fbf0482737d6979744b40e0b7821c039ac5367bc0067e87418d16d5a5",
+        "story_read_status": "TEMPORARY_CASE_SELECTION_NOT_CONFIRMED",
+        "read_error_sha256": "9522c4356803794ce3f763d4cfc941df20dc0cd6cb15678c885e9f931ed4454c"
+      },
+      "recovered_peak_mm_and_distance_from_i_face_m": {
+        "142": {
+          "Grav_TempNeg": [
+            0.41209652347933734,
+            1.2765624999999998
+          ],
+          "Grav_TempPos": [
+            0.4204605645756766,
+            1.2839843749999997
+          ],
+          "Grav_Ult": [
+            0.5746181341230888,
+            1.2839843749999997
+          ]
+        },
+        "225": {
+          "Grav_TempNeg": [
+            0.746521766779828,
+            2.955078125
+          ],
+          "Grav_TempPos": [
+            0.7320372856342161,
+            2.8681640625
+          ],
+          "Grav_Ult": [
+            1.0231662015081284,
+            2.91162109375
+          ]
+        }
+      },
+      "sealed_normal_runner_reference": {
+        "run_id": "RUN-ecd708d6ada84a489b0c8ddf91d5fb1e",
+        "input_sha256": "cab87ba0fac3d7d3b7fc438a691f44e97e63857b3436bb7bcbf19c7976768b77",
+        "results_sha256": "b831221ba34817478cf3453ff84944a3df5e0770d8519d20694939f865799410",
+        "report_sha256": "0dfff8ab32501564bfdb8659a30a959e621dc843cb27022cc3b311d5acf9982b",
+        "stages": 16,
+        "coverage": {
+          "physical_case_cuts": 18,
+          "native_sides": 24,
+          "revised_factors": 0,
+          "revised_pmm_sides": 0,
+          "members_with_four_to_eight_recovered_fields": 0
+        },
+        "report_path_private": ".receipts/c29-method-native-20261121/eight-reference/c29-method-report.html",
+        "scope": "Actual 8-part six DOFs with recorded 2/4-part translations and paired forces. Only the 8-part continuous fields are recovered."
+      },
+      "conditional_frame_scope": {
+        "case_compression_columns_per_story": 32,
+        "isolated_critical_load_counts": [
+          18,
+          32
+        ],
+        "wall_counts": [
+          21,
+          4
+        ],
+        "full_story_equilibrium": "UNRESOLVED",
+        "wall_critical_load": "STORY_WALL_CRITICAL_LOAD_METHOD_UNSUPPORTED"
+      },
+      "offline_tests": {
+        "command": "python -X utf8 -B tools/test_offline.py",
+        "python_total": 1686,
+        "python_passed": 1685,
+        "python_skipped": 1,
+        "javascript_files_passed": 11,
+        "status": "PASS",
+        "log_sha256": "298e3398b2ee4447f84e5f02cde9448acf9c16d6195ed0dc6229bc9b0d1f82cd"
+      },
+      "r14_original": {
+        "conditional_closed": 2,
+        "expected": 87
+      },
+      "engineering_acceptance": "NOT_GRANTED",
+      "next_action": "Resume the corrected native reader in the ETABS desktop session. Bind contemporaneous frame forces and 87 modifiers, finish 4/2 kinematics, and seal all available original C29 conditional method outputs."
+    },
+    {
+      "id": "EV-C29-NATIVE-CONDITIONAL-TS500-20261121",
+      "observed_at": "2026-11-21",
+      "gap_ids": [
+        "GAP-009"
+      ],
+      "status": "REAL_C29_CONDITIONAL_COMPARISON_COMPLETE_FULL_STORY_OPEN",
+      "method_commit": "b5b9a7aacbbc54d006601bad749f55adcebe3322",
+      "method_revision": "column-r08-local.adopted-basis.v15",
+      "run_id": "RUN-56f3f5ea4a8947dab3c25676c448a81e",
+      "input_sha256": "456b35770d54ad7418ea6f8302cfa5dcd4e8653558788496aa97124b2c452760",
+      "results_sha256": "f592c85aa3451801c6f491e9aa1c1e85dab82fe14f4dec1304e59d1ad6cdc8e3",
+      "report_sha256": "dc1148ae3ddff5c87527a49b6ffe5f4d237487129356afecacc1ef981106f0c2",
+      "sealed_stages": 16,
+      "coverage": {
+        "physical_case_cuts": 18,
+        "native_sides": 24,
+        "revised_factors": 12,
+        "revised_pmm_sides": 24,
+        "members_with_four_to_eight_recovered_fields": 2
+      },
+      "conditional_story_scope": "ADOPTED_CONDITIONAL_FRAME_COLUMNS_ONLY",
+      "original_edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+      "native_acquisition": {
+        "2": {
+          "analysis_generation": "f3f2a5aef73267046bc6be66a064744202134c9b473df1f4e95b9a3fbdf75394",
+          "model_sha256": "f6888b263ef5efa3f39faf2246c45cc7ffcdcccb2722a5675eaf097720f084e3",
+          "completed_cases": {
+            "C29G_TN_F": 4,
+            "C29G_TN_P": 4,
+            "C29G_TP_F": 4,
+            "C29G_TP_P": 4,
+            "C29G_U_F": 4,
+            "C29G_U_P": 4
+          },
+          "column_modifier_count": 87,
+          "matched_c29_force_records": 120,
+          "native_column_case_cuts": 192,
+          "shell_joint_force_native_rows": 154770,
+          "shell_joint_force_step_types": [
+            "Max",
+            "Min"
+          ],
+          "sha256": {
+            "motion-2.json": "dc2bd07051cc49253f0bb2255f4208809d873296d56d84b53e67ff13200e1f3a",
+            "motion-properties-2.json": "23fa32fd227294519ae3f523cee0f6c56adb0cf18427c440055bfa7f437c5927",
+            "story-2.json": "2e05ada9b9412a1b7ae2380755597fc3f40bb5d35d6c13a6021d5eb82868840f",
+            "operations-2.json": "5eeec58e6ff2fbef75be583d1ef6ac9086a705995f85d699e4d47b3d8d2d9f1a"
+          }
+        },
+        "4": {
+          "analysis_generation": "00a9a88af51ddeed1ebbd695b4c5f36ccbc6a78a6dcd4ad89c71ccb769327fcc",
+          "model_sha256": "6f10ab94740a083def3a93ecf0e3e5f2d6af19eb23bd21e2b5ef1950522c1794",
+          "completed_cases": {
+            "C29G_TN_F": 4,
+            "C29G_TN_P": 4,
+            "C29G_TP_F": 4,
+            "C29G_TP_P": 4,
+            "C29G_U_F": 4,
+            "C29G_U_P": 4
+          },
+          "column_modifier_count": 87,
+          "matched_c29_force_records": 240,
+          "native_column_case_cuts": 192,
+          "shell_joint_force_native_rows": 154770,
+          "shell_joint_force_step_types": [
+            "Max",
+            "Min"
+          ],
+          "sha256": {
+            "motion-4.json": "a8c9ebc8ec2b3dcad60e5c771558b0517d25c128ecc37f0b65bce350e4d028eb",
+            "motion-properties-4.json": "39887c51ca7964e24d605729ac0c931738c6b958ef6c9652983db5c1bd85e001",
+            "story-4.json": "b6972697372a25e0d24f775e9c95ef9667eba4f943ba4fb2666ae12593b24a3a",
+            "operations-4.json": "771f0d8766924674b113d61ec0ee175ff3e058d012f45da89268467060132bfd"
+          }
+        },
+        "8": {
+          "analysis_generation": "b207f87b19b6a7b4887102926dbd775907477175a82ef4559714e421d036c11e",
+          "model_sha256": "685f5f45e7448c8c471a2c041c65c681447cc02175846bbf82ae172139a8c283",
+          "completed_cases": {
+            "C29G_TN_F": 4,
+            "C29G_TN_P": 4,
+            "C29G_TP_F": 4,
+            "C29G_TP_P": 4,
+            "C29G_U_F": 4,
+            "C29G_U_P": 4
+          },
+          "column_modifier_count": 87,
+          "matched_c29_force_records": 480,
+          "native_column_case_cuts": 192,
+          "shell_joint_force_native_rows": 154770,
+          "shell_joint_force_step_types": [
+            "Max",
+            "Min"
+          ],
+          "sha256": {
+            "motion-8.json": "68debb88354dc8a5e70a692319b7ca2f2dc3337d5dbe50bc7a27099ddd41c43b",
+            "motion-properties-8.json": "0905cf5fbf0482737d6979744b40e0b7821c039ac5367bc0067e87418d16d5a5",
+            "story-8.json": "36deeb282ee158d2585dffac03d802191ced6035e75c1f45f36ea6ff926cc929",
+            "operations-8.json": "7ecf0f79785aebb3c7bbd4688d8fe5b466dcc7b57e0d40ee6d8a9f62e6e9eb56"
+          }
+        }
+      },
+      "members": {
+        "225": {
+          "case_results": {
+            "Grav_Ult": {
+              "axis_factors": [
+                {
+                  "axis": "M2",
+                  "ei_nmm2": 226831423454370.16,
+                  "ln_mm": 4450.0,
+                  "lk_mm": 5159.4405138087295,
+                  "k": 1.1594248345637594,
+                  "nk_kn": 84100.33860793558,
+                  "coefficient_nd_kn": 3260.3491023672977,
+                  "story_nd_kn": 46716.800486811335,
+                  "story_nk_kn": 782704.6868601111,
+                  "member_denominator": 0.9496024165510607,
+                  "story_denominator": 0.9224077207503563,
+                  "final_factor": 1.0841192864111375,
+                  "eq729_selected_branch": "MAXIMUM"
+                },
+                {
+                  "axis": "M3",
+                  "ei_nmm2": 226831423454370.16,
+                  "ln_mm": 4450.0,
+                  "lk_mm": 5209.952810998552,
+                  "k": 1.1707759125839443,
+                  "nk_kn": 82477.48018902252,
+                  "coefficient_nd_kn": 3260.3491023672977,
+                  "story_nd_kn": 46716.800486811335,
+                  "story_nk_kn": 856613.6243810243,
+                  "member_denominator": 0.9486107744397165,
+                  "story_denominator": 0.9291024110470592,
+                  "final_factor": 1.0763076148656663,
+                  "eq729_selected_branch": "MAXIMUM"
+                }
+              ],
+              "governing_revised_pmm": 0.1279484077040787,
+              "governing_physical_station_m": 0.0,
+              "governing_element_side": "UPPER",
+              "governing_design_m2_m3_knm": [
+                -137.84968635007547,
+                136.85640407393612
+              ],
+              "coarse_peak_mm": 1.0231387001814494,
+              "coarse_peak_station_m": 2.91162109375,
+              "fine_peak_mm": 1.0231662015081284,
+              "fine_peak_station_m": 2.91162109375,
+              "withheld_joint_difference_mm": 0.00018926654344575663,
+              "error_budget": {
+                "extremum_search_mm": 7.842656700185994e-06,
+                "mesh_vector_difference_mm": 0.00020417321372666046,
+                "source_precision_mm": 1.7063086435635048e-14,
+                "tolerance_mm": 0.01,
+                "total_mm": 0.0004012824138896662,
+                "withheld_joint_recovery_discretization_mm": 0.00018926654344575663
+              }
+            },
+            "Grav_TempNeg": {
+              "axis_factors": [
+                {
+                  "axis": "M2",
+                  "ei_nmm2": 226831423454370.16,
+                  "ln_mm": 4450.0,
+                  "lk_mm": 5159.4405138087295,
+                  "k": 1.1594248345637594,
+                  "nk_kn": 84100.33860793558,
+                  "coefficient_nd_kn": 2377.358196865098,
+                  "story_nd_kn": 35214.68936177995,
+                  "story_nk_kn": 782704.6868601111,
+                  "member_denominator": 0.9632514481263574,
+                  "story_denominator": 0.9415116621391897,
+                  "final_factor": 1.0621217348789076,
+                  "eq729_selected_branch": "MAXIMUM"
+                },
+                {
+                  "axis": "M3",
+                  "ei_nmm2": 226831423454370.16,
+                  "ln_mm": 4450.0,
+                  "lk_mm": 5209.952810998552,
+                  "k": 1.1707759125839443,
+                  "nk_kn": 82477.48018902252,
+                  "coefficient_nd_kn": 2377.358196865098,
+                  "story_nd_kn": 35214.68936177995,
+                  "story_nk_kn": 856613.6243810243,
+                  "member_denominator": 0.9625283695762571,
+                  "story_denominator": 0.9465580573699219,
+                  "final_factor": 1.0564592337617096,
+                  "eq729_selected_branch": "MAXIMUM"
+                }
+              ],
+              "governing_revised_pmm": 0.09734879794884332,
+              "governing_physical_station_m": 0.0,
+              "governing_element_side": "UPPER",
+              "governing_design_m2_m3_knm": [
+                -98.47670868683502,
+                -97.95169874245161
+              ],
+              "coarse_peak_mm": 0.7465088023592968,
+              "coarse_peak_station_m": 2.955078125,
+              "fine_peak_mm": 0.746521766779828,
+              "fine_peak_station_m": 2.955078125,
+              "withheld_joint_difference_mm": 0.0001061089940978473,
+              "error_budget": {
+                "extremum_search_mm": 1.0278434167121375e-05,
+                "mesh_vector_difference_mm": 0.0001145006087432564,
+                "source_precision_mm": 1.7063086435635048e-14,
+                "tolerance_mm": 0.01,
+                "total_mm": 0.00023088803702528817,
+                "withheld_joint_recovery_discretization_mm": 0.0001061089940978473
+              }
+            },
+            "Grav_TempPos": {
+              "axis_factors": [
+                {
+                  "axis": "M2",
+                  "ei_nmm2": 226831423454370.16,
+                  "ln_mm": 4450.0,
+                  "lk_mm": 5159.4405138087295,
+                  "k": 1.1594248345637594,
+                  "nk_kn": 84100.33860793558,
+                  "coefficient_nd_kn": 2346.7244747644,
+                  "story_nd_kn": 32469.76835273242,
+                  "story_nk_kn": 782704.6868601111,
+                  "member_denominator": 0.9637249758123345,
+                  "story_denominator": 0.9460707217330152,
+                  "final_factor": 1.0570034322256554,
+                  "eq729_selected_branch": "MAXIMUM"
+                },
+                {
+                  "axis": "M3",
+                  "ei_nmm2": 226831423454370.16,
+                  "ln_mm": 4450.0,
+                  "lk_mm": 5209.952810998552,
+                  "k": 1.1707759125839443,
+                  "nk_kn": 82477.48018902252,
+                  "coefficient_nd_kn": 2346.7244747644,
+                  "story_nd_kn": 32469.76835273242,
+                  "story_nk_kn": 856613.6243810243,
+                  "member_denominator": 0.9630112145739418,
+                  "story_denominator": 0.9507237596307753,
+                  "final_factor": 1.0518302397200652,
+                  "eq729_selected_branch": "MAXIMUM"
+                }
+              ],
+              "governing_revised_pmm": 0.09590253853681928,
+              "governing_physical_station_m": 0.0,
+              "governing_element_side": "UPPER",
+              "governing_design_m2_m3_knm": [
+                -96.73933714824285,
+                96.26587490708692
+              ],
+              "coarse_peak_mm": 0.7320215599804804,
+              "coarse_peak_station_m": 2.8681640625,
+              "fine_peak_mm": 0.7320372856342161,
+              "fine_peak_station_m": 2.8681640625,
+              "withheld_joint_difference_mm": 9.411229394518041e-05,
+              "error_budget": {
+                "extremum_search_mm": 3.905356426262051e-06,
+                "mesh_vector_difference_mm": 0.00010149495682580817,
+                "source_precision_mm": 1.7063086435635048e-14,
+                "tolerance_mm": 0.01,
+                "total_mm": 0.0001995126072143137,
+                "withheld_joint_recovery_discretization_mm": 9.411229394518041e-05
+              }
+            }
+          },
+          "clear_length_m": 4.45,
+          "designation": {
+            "longitudinal_label": "32Φ16",
+            "transverse_label": "Φ10/90",
+            "joint_40_interval_checks": {
+              "X": 16,
+              "Y": 16
+            }
+          },
+          "full_story_status": "REVISED_STORY_BASIS_INCOMPLETE",
+          "wall_critical_load_unsupported_count": 21,
+          "conditional_credited_column_count": 18,
+          "conditional_compression_column_count": 32,
+          "full_span_status_by_mesh": {
+            "2": "FULL_SPAN_RECOVERED",
+            "4": "FULL_SPAN_RECOVERED",
+            "8": "FULL_SPAN_RECOVERED"
+          }
+        },
+        "142": {
+          "case_results": {
+            "Grav_Ult": {
+              "axis_factors": [
+                {
+                  "axis": "M2",
+                  "ei_nmm2": 226831423454370.16,
+                  "ln_mm": 3800.0,
+                  "lk_mm": 5477.515472727281,
+                  "k": 1.4414514401913898,
+                  "nk_kn": 74616.6483704522,
+                  "coefficient_nd_kn": 2159.888730635459,
+                  "story_nd_kn": 36255.50291266637,
+                  "story_nk_kn": 3567991.041289107,
+                  "member_denominator": 0.9623695862632984,
+                  "story_denominator": 0.9867902824751944,
+                  "final_factor": 1.0391018318469658,
+                  "eq729_selected_branch": "MAXIMUM"
+                },
+                {
+                  "axis": "M3",
+                  "ei_nmm2": 226831423454370.16,
+                  "ln_mm": 3800.0,
+                  "lk_mm": 5583.381962704394,
+                  "k": 1.4693110428169458,
+                  "nk_kn": 71813.86237690189,
+                  "coefficient_nd_kn": 2159.888730635459,
+                  "story_nd_kn": 36255.50291266637,
+                  "story_nk_kn": 3518319.813652792,
+                  "member_denominator": 0.9609009283599094,
+                  "story_denominator": 0.9866037892281507,
+                  "final_factor": 1.0406900133886081,
+                  "eq729_selected_branch": "MAXIMUM"
+                }
+              ],
+              "governing_revised_pmm": 0.17647302708815113,
+              "governing_physical_station_m": 0.0,
+              "governing_element_side": "UPPER",
+              "governing_design_m2_m3_knm": [
+                240.56604162576903,
+                87.66321064811387
+              ],
+              "coarse_peak_mm": 0.574599921125641,
+              "coarse_peak_station_m": 1.2839843749999997,
+              "fine_peak_mm": 0.5746181341230888,
+              "fine_peak_station_m": 1.2839843749999997,
+              "withheld_joint_difference_mm": 7.259176831231264e-05,
+              "error_budget": {
+                "extremum_search_mm": 7.736700085358983e-06,
+                "mesh_vector_difference_mm": 8.14786860110771e-05,
+                "source_precision_mm": 1.7409696275211194e-14,
+                "tolerance_mm": 0.01,
+                "total_mm": 0.00016180715442615842,
+                "withheld_joint_recovery_discretization_mm": 7.259176831231264e-05
+              }
+            },
+            "Grav_TempNeg": {
+              "axis_factors": [
+                {
+                  "axis": "M2",
+                  "ei_nmm2": 226831423454370.16,
+                  "ln_mm": 3800.0,
+                  "lk_mm": 5477.515472727281,
+                  "k": 1.4414514401913898,
+                  "nk_kn": 74616.6483704522,
+                  "coefficient_nd_kn": 1571.3533183509135,
+                  "story_nd_kn": 26251.78717218259,
+                  "story_nk_kn": 3567991.041289107,
+                  "member_denominator": 0.9726232769969188,
+                  "story_denominator": 0.9904351432139507,
+                  "final_factor": 1.0281473039465083,
+                  "eq729_selected_branch": "MAXIMUM"
+                },
+                {
+                  "axis": "M3",
+                  "ei_nmm2": 226831423454370.16,
+                  "ln_mm": 3800.0,
+                  "lk_mm": 5583.381962704394,
+                  "k": 1.4693110428169458,
+                  "nk_kn": 71813.86237690189,
+                  "coefficient_nd_kn": 1571.3533183509135,
+                  "story_nd_kn": 26251.78717218259,
+                  "story_nk_kn": 3518319.813652792,
+                  "member_denominator": 0.9715548050718239,
+                  "story_denominator": 0.990300107684524,
+                  "final_factor": 1.0292780137360067,
+                  "eq729_selected_branch": "MAXIMUM"
+                }
+              ],
+              "governing_revised_pmm": 0.1362141608173413,
+              "governing_physical_station_m": 0.0,
+              "governing_element_side": "UPPER",
+              "governing_design_m2_m3_knm": [
+                171.9539797882576,
+                63.07701747319874
+              ],
+              "coarse_peak_mm": 0.41208716027286196,
+              "coarse_peak_station_m": 1.2765624999999998,
+              "fine_peak_mm": 0.41209652347933734,
+              "fine_peak_station_m": 1.2765624999999998,
+              "withheld_joint_difference_mm": 3.843178373567822e-05,
+              "error_budget": {
+                "extremum_search_mm": 8.639115605950326e-06,
+                "mesh_vector_difference_mm": 3.843178373567822e-05,
+                "source_precision_mm": 1.7409696275211194e-14,
+                "tolerance_mm": 0.01,
+                "total_mm": 8.550268309471646e-05,
+                "withheld_joint_recovery_discretization_mm": 3.843178373567822e-05
+              }
+            },
+            "Grav_TempPos": {
+              "axis_factors": [
+                {
+                  "axis": "M2",
+                  "ei_nmm2": 226831423454370.16,
+                  "ln_mm": 3800.0,
+                  "lk_mm": 5477.515472727281,
+                  "k": 1.4414514401913898,
+                  "nk_kn": 74616.6483704522,
+                  "coefficient_nd_kn": 1558.2096854626725,
+                  "story_nd_kn": 26159.95570659246,
+                  "story_nk_kn": 3567991.041289107,
+                  "member_denominator": 0.9728522704337437,
+                  "story_denominator": 0.9904686020718586,
+                  "final_factor": 1.0279052949675007,
+                  "eq729_selected_branch": "MAXIMUM"
+                },
+                {
+                  "axis": "M3",
+                  "ei_nmm2": 226831423454370.16,
+                  "ln_mm": 3800.0,
+                  "lk_mm": 5583.381962704394,
+                  "k": 1.4693110428169458,
+                  "nk_kn": 71813.86237690189,
+                  "coefficient_nd_kn": 1558.2096854626725,
+                  "story_nd_kn": 26159.95570659246,
+                  "story_nk_kn": 3518319.813652792,
+                  "member_denominator": 0.9717927357747436,
+                  "story_denominator": 0.9903340389106747,
+                  "final_factor": 1.0290260085168972,
+                  "eq729_selected_branch": "MAXIMUM"
+                }
+              ],
+              "governing_revised_pmm": 0.1374623447390793,
+              "governing_physical_station_m": 0.0,
+              "governing_element_side": "UPPER",
+              "governing_design_m2_m3_knm": [
+                173.63502604464475,
+                62.53409342949693
+              ],
+              "coarse_peak_mm": 0.42045099350940124,
+              "coarse_peak_station_m": 1.2839843749999997,
+              "fine_peak_mm": 0.4204605645756766,
+              "fine_peak_station_m": 1.2839843749999997,
+              "withheld_joint_difference_mm": 3.8029566537548345e-05,
+              "error_budget": {
+                "extremum_search_mm": 8.546918945146177e-06,
+                "mesh_vector_difference_mm": 3.8029566537548345e-05,
+                "source_precision_mm": 1.7409696275211194e-14,
+                "tolerance_mm": 0.01,
+                "total_mm": 8.460605203765256e-05,
+                "withheld_joint_recovery_discretization_mm": 3.8029566537548345e-05
+              }
+            }
+          },
+          "clear_length_m": 3.8,
+          "designation": {
+            "longitudinal_label": "32Φ16",
+            "transverse_label": "Φ10/90",
+            "joint_40_interval_checks": {
+              "X": 16,
+              "Y": 16
+            }
+          },
+          "full_story_status": "REVISED_STORY_BASIS_INCOMPLETE",
+          "wall_critical_load_unsupported_count": 4,
+          "conditional_credited_column_count": 32,
+          "conditional_compression_column_count": 32,
+          "full_span_status_by_mesh": {
+            "2": "FULL_SPAN_RECOVERED",
+            "4": "FULL_SPAN_RECOVERED",
+            "8": "FULL_SPAN_RECOVERED"
+          }
+        }
+      },
+      "r14_original": {
+        "conditionally_closed": 2,
+        "expected": 87,
+        "connected_beams": 8,
+        "joint_40_x_y_checks": [
+          16,
+          16
+        ]
+      },
+      "full_story_equilibrium": "UNRESOLVED",
+      "wall_benchmark_limit": "The ETABS Shell Joint Forces and Story Forces display tables provide Max/Min rows. They retain native local shell-joint force components. The paired FrameForce first-order terms have exact Step 1 identity. Full wall resultants require transformed, concurrent upper-side boundary forces and an independent external-load and self-weight balance.",
+      "engineering_acceptance": "NOT_GRANTED",
+      "report_path_private": ".receipts/c29-method-native-20261121/final/c29-method-report.html",
+      "numeric_tables_private": ".receipts/c29-method-native-20261121/final/method-verification.json",
+      "software_regression_evidence": "EV-C29-NATIVE-EIGHT-SPAN-20261121",
+      "previous_native_checkpoint": "EV-C29-NATIVE-EIGHT-SPAN-20261121"
     }
   ],
   "new_record_template": {

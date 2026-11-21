@@ -1,35 +1,20 @@
 # Local development and GitHub worker handoff
 
-## Apply the story-input fixes before the native continuation
+## Verified native C29 conditional method result
 
-Read [C29 story-input execution fixes](../engineering/C29_STORY_INPUT_FIX_20261121.md).
-Use each refined level's optional `story_basis_source.contributor_modifiers`
-for all required story columns. Keep `frame_object_modifiers`, paired force
-rowsets and paired mesh IDs exact. Native mesh projection now requires ObjType
-and ignores Shell rows before joining Frame IDs. Reuse the existing getter and
-normal runner; no additional ETABS connection is required.
+Start with [the native C29 results](../CURRENT_STATE.md#completed-c29-conditional-comparison-on-native-method-meshes)
+and `EV-C29-NATIVE-CONDITIONAL-TS500-20261121`. The private 2/4/8 ETABS meshes supplied all 18 gravity
+case results. R08 v15 sealed 12 conditional TS 500 axes and 24 revised
+PMM sides across 18 physical case-cuts. Both C29 members meet the
+4-to-8 full-span error limit in all three combinations.
 
-Capture the solved C29 kinematics and run full-span recovery without waiting
-for story Nk. For the interrupted private read, identify the actual failing call
-and exception. The software fixes do not claim to diagnose that unavailable
-private trace. Wall critical-load support remains an explicit method issue,
-separate from the fixed contributor-data contradiction. Preserve newer local work.
-
-## C29 method implemented in R08 and R14
-
-Start with the [numerical checkpoint](../engineering/C29_QUALIFIED_GRAVITY_COMPARISON_20261121.md) and
-`EV-C29-QUALIFIED-GRAVITY-COMPARISON-20261121`. The six-DOF recovery, story producer,
-revised TS 500 factors, selected-section PMM and sealed report are exercised
-through the normal runner on a manufactured source. The two recipe examples
-have been evaluated with the production owners.
-
-Continue the original-building calculation from
-[the assigned task](../engineering/C29_CALCULATION_COMPLETION_TASK_20261121.md).
-The 8-part private METHOD solve finished 6/6 cases. Resume the active locked
-session if available and bind the readbacks on the 2/4/8 meshes. The remaining
-story inputs are same-generation column and wall cut force resultants,
-gravity equilibrium and per-direction contributors to the critical-load sum.
-The original C29 2/87 conditional result remains the design reference.
+The active GAP-009 work is the full column–wall free body and directional
+wall-frame critical-load method. Bind concurrent upper-side wall forces
+and independently reconcile external gravity and self weight. Preserve
+the existing 2/87 original conditional result, eight beams and joint 40.
+Use each refined level's independent same-generation modifier census and
+the existing [acquisition contracts](../engineering/C29_STORY_INPUT_FIX_20261121.md).
+The private resource index locates the sealed report and native packets.
 
 ## Current calculation: original-source C29 with explicit axial idealization
 
@@ -45,11 +30,10 @@ acceptance gates. See [current results](../CURRENT_STATE.md) and
 The independent local audit of the original run repeated 16/16 stages with
 identical results. Use the existing 18-cut common physical comparison and
 the matched-joint deformation table from
-`EV-C29-COMMON-CUT-COMPARISON-20261121`. The common native node criterion
-passes at both C29 members. Qualify the inter-node peak independently,
-then bind revised same-run column/wall compression, supported critical
-loads and axis-specific effective lengths. Read the C104 and alpha work
-below for their scopes.
+`EV-C29-COMMON-CUT-COMPARISON-20261121`. That run's common native-node criterion passed for both members. The
+later METHOD checkpoint above completes the full-span and conditional
+same-run frame comparison. Read the C104 and alpha work below for their
+scopes.
 
 ## Earlier branches
 

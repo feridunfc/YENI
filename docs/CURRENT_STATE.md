@@ -1,5 +1,50 @@
 # Original building calculation and local handoff — 2026-11-21
 
+## Completed C29 conditional comparison on native METHOD meshes
+
+Windows ETABS supplied 18/18 finished gravity cases across the private 2/4/8
+meshes, six displacement components, exact first-order story column forces
+and 87 modifier vectors per mesh. The original EDB hash matches its frozen
+identity. The normal runner sealed **RUN-56f3f5ea4a8947dab3c25676c448a81e** with all 16 stages.
+R08 calculated **12 revised factors and 24 revised design-moment/PMM rows**
+at 18 common physical case-cuts. The original R14 result is 2/87 conditional,
+with eight connected beams and 16 X plus 16 Y checks at joint 40.
+
+The adopted frame scenario uses all 32 frame-column compressions per story
+and proven isolated-column critical-load sums. Those sums use 18 columns
+at +0.00 and 32 at +4.50. The revised comparisons use 32Phi16 and Phi10/90.
+
+| Column | Combination | Frame Nd (kN) | Beta M2 | Beta M3 | Governing revised PMM |
+| --- | --- | ---: | ---: | ---: | ---: |
+| 225 | Grav_Ult | 46716.80 | 1.08411929 | 1.07630761 | 12.795% |
+| 225 | Grav_TempNeg | 35214.69 | 1.06212173 | 1.05645923 | 9.735% |
+| 225 | Grav_TempPos | 32469.77 | 1.05700343 | 1.05183024 | 9.590% |
+| 142 | Grav_Ult | 36255.50 | 1.03910183 | 1.04069001 | 17.647% |
+| 142 | Grav_TempNeg | 26251.79 | 1.02814730 | 1.02927801 | 13.621% |
+| 142 | Grav_TempPos | 26159.96 | 1.02790529 | 1.02902601 | 13.746% |
+
+Both members recover the full span on all three meshes. The table gives
+mm @ m from the I face and the 4-to-8 comparison budget in mm.
+
+| Column | Combination | 4-part peak @ station | 8-part peak @ station | Withheld joint difference | Total bound |
+| --- | --- | ---: | ---: | ---: | ---: |
+| 225 | Grav_Ult | 1.023139 @ 2.911621 | 1.023166 @ 2.911621 | 0.00018927 | 0.00040128 |
+| 225 | Grav_TempNeg | 0.746509 @ 2.955078 | 0.746522 @ 2.955078 | 0.00010611 | 0.00023089 |
+| 225 | Grav_TempPos | 0.732022 @ 2.868164 | 0.732037 @ 2.868164 | 0.00009411 | 0.00019951 |
+| 142 | Grav_Ult | 0.574600 @ 1.283984 | 0.574618 @ 1.283984 | 0.00007259 | 0.00016181 |
+| 142 | Grav_TempNeg | 0.412087 @ 1.276562 | 0.412097 @ 1.276562 | 0.00003843 | 0.00008550 |
+| 142 | Grav_TempPos | 0.420451 @ 1.283984 | 0.420461 @ 1.283984 | 0.00003803 | 0.00008461 |
+
+All six 4-to-8 comparisons meet the 0.01 mm limit. The original, direct
+P-Delta and revised signed moment/PMM columns are in the sealed report.
+
+The full column–wall free body remains unresolved at +0.00 (32 columns,
+21 wall objects) and +4.50 (32 columns, four wall objects). The live
+display retains shell nodal Max/Min forces. Complete the signed wall
+resultant and upper-body balance and resolve the wall-frame critical-load
+basis. `STORY_WALL_CRITICAL_LOAD_METHOD_UNSUPPORTED` stays open.
+See `EV-C29-NATIVE-CONDITIONAL-TS500-20261121` for the same-generation numerical scope and tests.
+
 ## Fixed story-source execution defects
 
 The [story-input patch](engineering/C29_STORY_INPUT_FIX_20261121.md) separates
@@ -33,7 +78,7 @@ wall–frame critical-load method remains open. Keep the original C29 2/87
 conditional result and its beam and joint inputs. The [calculation task](engineering/C29_CALCULATION_COMPLETION_TASK_20261121.md)
 sets the completion criteria.
 
-## C29 common physical cuts and deformation comparison
+## Archived C29 common cuts and native-node samples
 
 The independent audit reproduced the archived original-source Nmax run
 across all 16 sealed stages. The separate R08 method comparison now uses
