@@ -66,7 +66,11 @@ read attempt and restoration of run flags. The first read attempt stopped before
 sealing the displacement and story inputs. Use the saved session state and
 resume the active 8-part clone before reopening it. The historical 2/4/8 meshes
 supply signed forces and three translations. The original selected result
-remains 2/87 conditional, with eight connected beams and joint 40.
+remains 2/87 conditional. A fresh 16-stage replay of the frozen original
+source on the current code preserves the original TS 500 and signed direct
+P-Delta moment/PMM results across 18 physical case-cuts and 24 native sides.
+It retains eight connected beams and the 16 X and 16 Y interval checks at
+joint 40. See `EV-C29-R08-ORIGINAL-REFERENCE-REPLAY-20261121`.
 
 The geometry census at the lower face of column 225 (`+0.00`) contains
 32 columns and 21 wall area objects. At the lower face of 142 (`+4.50`) it

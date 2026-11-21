@@ -6443,6 +6443,56 @@
         "docs/engineering/C29_QUALIFIED_GRAVITY_COMPARISON_20261121.md"
       ],
       "next_action": "Read solved six-DOF results and directional stiffness from the 2/4/8 METHOD clones. Bind simultaneous column and wall cut resultants, upper-body load equilibrium and a supported wall or coupled wall-frame critical-load basis. Consume the revised totals at all C29 common cuts."
+    },
+    {
+      "id": "EV-C29-R08-ORIGINAL-REFERENCE-REPLAY-20261121",
+      "run_id": "RUN-5bd23b7a004942fdbdb9482fa48f632f",
+      "archived_reference": "RUN-0e263530db30483f95f1013894bc01db",
+      "source_sha256": "0c722cc8925b8cecbfd13334396f3b8886404b293d6fcdeda029c16fff9d8c62",
+      "sealed_stages": 16,
+      "results_sha256": "7a958ce77f0c03fed6bffec6d46ed39e69a80f518b1e140c57a5a9d4fec1e4a6",
+      "html_sha256": "d404cd58cd0945f8550caf67ba12d83a3363a31b3a10be2288d8f98ad0cc1856",
+      "physical_case_cuts": 18,
+      "compare_sides": 24,
+      "beams": 8,
+      "joint_40": {
+        "225": {
+          "X": 16,
+          "Y": 16
+        },
+        "142": {
+          "X": 16,
+          "Y": 16
+        }
+      },
+      "members": {
+        "225": {
+          "static_pmm": 0.21346890100317067,
+          "revised_ts500_status": "REVISED_TS500_STORY_BASIS_UNAVAILABLE"
+        },
+        "142": {
+          "static_pmm": 0.2954701269355598,
+          "revised_ts500_status": "REVISED_TS500_STORY_BASIS_UNAVAILABLE"
+        }
+      },
+      "r14": {
+        "status": "R15_ALL_COLUMNS_EVALUATED_PARTIAL_GATES",
+        "expected_column_count": 87,
+        "numerically_closed_count": 2,
+        "partial_or_unbound_count": 85,
+        "normative_fail_count": 0
+      },
+      "original_revised_model_replay": "NOT_RUN",
+      "observed_at": "2026-11-21",
+      "gap_ids": [
+        "GAP-009"
+      ],
+      "implementation_commit": "77bcb901aa00d99e18781c858478e518e3e5761d",
+      "status": "PRIOR_DESIGN_AND_DIRECT_GRAVITY_RESULTS_REPRODUCED",
+      "source_classification": "RECORDED_ORIGINAL_MODEL_AND_PAIRED_FORCE_ARCHIVE",
+      "report_path_private": ".receipts/c29-completion-20261121/original-reference/original-reference-report.html",
+      "comparison_scope": "Selected static PMM, axial idealization, original TS500 and direct P-Delta at common sides, and joint 40 match the earlier archived run.",
+      "engineering_acceptance": "NOT_GRANTED"
     }
   ],
   "new_record_template": {
