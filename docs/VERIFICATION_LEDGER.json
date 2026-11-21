@@ -6493,6 +6493,184 @@
       "report_path_private": ".receipts/c29-completion-20261121/original-reference/original-reference-report.html",
       "comparison_scope": "Selected static PMM, axial idealization, original TS500 and direct P-Delta at common sides, and joint 40 match the earlier archived run.",
       "engineering_acceptance": "NOT_GRANTED"
+    },
+    {
+      "id": "EV-C29-STORY-CONTRIBUTOR-FIX-20261121",
+      "observed_at": "2026-11-21T16:01:12.494074+00:00",
+      "gap_ids": [
+        "GAP-009"
+      ],
+      "status": "SOURCE_CONTRACT_DEFECTS_FIXED_AND_CONSUMED_BY_EXISTING_RUNNER",
+      "inspected_baseline_commit": "896d0add4340b613d85099a61da44e09fe2ff205",
+      "work_branch": "work/c29-native-continuation-20261121",
+      "tested_tree": "Base commit plus the following tested runtime/test file hashes; documentation finalized after the run.",
+      "tested_file_manifest": {
+        "src/tbdy_next/engineering/gravity_story_basis.py": "9ba5112e1975c8e482288bf6fa3e207369717b5861f00b01ca6756df6e601c54",
+        "src/tbdy_next/engineering/pipeline.py": "f9a43eef826f5f53aaa602838e5bcabd1e53d96241a37ccdbe34c84cad0f76c9",
+        "tests/test_gravity_story_basis.py": "bbe36bd945d99dc8a5ff153e1640837ea6fa26af95664d296861af6f79edc4bc",
+        "tests/test_variable_axial_vertical_slice.py": "48caf79fe35a9f5fc1bf797d1665ebe83354f68b27f91df58a83183ec637fd8c"
+      },
+      "report": "docs/engineering/C29_STORY_INPUT_FIX_20261121.md",
+      "method_version": "column-r08-local.adopted-basis.v14",
+      "source_classification": "CONTRACT_FIXTURE / GENERATED_OFFLINE_NOT_ETABS",
+      "fixes": [
+        "Independent same-generation story contributor modifiers can reach non-paired column EI/Nk without changing the paired force/mesh/modifier inventory.",
+        "Native story frame projection filters the observed Frame namespace before joining object and element IDs."
+      ],
+      "environment": {
+        "os": "Linux",
+        "python": "Python 3.12.14",
+        "node": "v24.22.3",
+        "package_import": "/workspace/scratch/675b0dc139de/c29_native_continuation/src/tbdy_next",
+        "windows": "NOT_RUN",
+        "live_ETABS": "NOT_RUN"
+      },
+      "verification": {
+        "baseline_regression": {
+          "baseline_commit": "896d0add4340b613d85099a61da44e09fe2ff205",
+          "test_count": 2,
+          "expected_assertion_failures": 2,
+          "seconds": 6.099,
+          "test_subprocess_exit": 1,
+          "status": "EXPECTED_RED",
+          "provenance": "Observed tool output; exact targets and archive setup in the private observation note. Raw log and exact orchestration wrapper not retained.",
+          "test_targets": [
+            "test_gravity_story_basis.RevisedStoryBasisTests.test_native_frame_conversion_uses_the_upper_element_once",
+            "test_variable_axial_vertical_slice.VariableAxialVerticalSliceTests.test_nonpaired_story_column_modifiers_are_consumed_without_expanding_paired_mesh"
+          ],
+          "setup": [
+            "Exported the exact baseline src tree with git archive 896d0add4340b613d85099a61da44e09fe2ff205:src.",
+            "Extracted the archive under a temporary directory with tarfile.extractall(filter=\"data\").",
+            "Used PYTHONPATH=<temporary-directory>/src:<current-worktree>/tests and the worktree .venv/bin/python.",
+            "Printed and checked tbdy_next.__file__ to confirm import from the temporary baseline src, not the editable fixed runtime.",
+            "Ran the two newly written test targets against that baseline runtime. The test schema literal permits old-runtime import.",
+            "The orchestration asserted the expected failing subprocess result."
+          ]
+        },
+        "focused": {
+          "command": "PYTHONPATH=src:tests .venv/bin/python -B -m unittest tests.test_gravity_story_basis tests.test_variable_axial_vertical_slice tests.test_adopted_second_order_basis -q",
+          "passed": 44,
+          "seconds": 31.223,
+          "exit_code": 0,
+          "provenance": "Observed tool output; raw log not retained."
+        },
+        "full_offline": {
+          "command": ".venv/bin/python -B tools/test_offline.py",
+          "python_tests_run": 1686,
+          "python_passed": 1686,
+          "python_skipped": 0,
+          "python_seconds": 188.653,
+          "javascript_test_files_passed": 11,
+          "compilation": "PASS",
+          "status": "OFFLINE_SOFTWARE_REGRESSIONS=PASS",
+          "exit_code": 0,
+          "log": ".receipts/c29-native-input-fix-20261121/full-offline.log"
+        },
+        "existing_golden_cli": {
+          "record_count": 44,
+          "NUMERICAL_MATCH": 33,
+          "INSUFFICIENT_SOURCE": 7,
+          "ENGINEERING_INTERPRETATION_DIFFERENCE": 4,
+          "engineering_release": "NOT_READY",
+          "scope_note": "Existing production-comparison inventory; separate from new fixture and regression-test counts."
+        },
+        "normal_cli": {
+          "command": ".venv/bin/python -B .receipts/c29-native-input-fix-20261121/run_fixture.py",
+          "run_id": "RUN-39d1a15ca5114c4f94b235f7bc6b375e",
+          "replay_run_id": "RUN-2671c17a263a49bf90bfa787b8af7a09",
+          "comparison": {
+            "reference_stages": 12,
+            "current_stages": 12,
+            "mismatched_stages": [],
+            "missing_stages": [],
+            "extra_stages": [],
+            "source_identical": true,
+            "sealed_stage_coverage": true,
+            "comparison_scope": "PIPELINE_RESULTS_REPORT_EVIDENCE_AND_ALL_RECORDED_RECEIPTS",
+            "status": "IDENTICAL"
+          },
+          "input_sha256": "eded751a0f9804b88661fa4748fb299ec9f2f69cdf342320f48e4e7301a79faf",
+          "engine_snapshot": {
+            "schema": "tbdy.next.pipeline-stage-snapshot.v2",
+            "snapshot_sha256": "122dc4fbe51708654b74d4fe68b68f50a19895647f8a75a6260803b487ffcee1",
+            "results_sha256": "f63c90dc51a995af8ed181e14054ac45586e0213a713bb8b9c65b41a2d52caa1"
+          },
+          "html_sha256": "615d9109ae418d8fff5af224b9476ac81897187bf48f183a6d8619445ae22fa0",
+          "exit_code": 0
+        }
+      },
+      "numerical_result": {
+        "paired_member_ids": [
+          "C1"
+        ],
+        "expected_story_columns": [
+          "C1",
+          "C3"
+        ],
+        "expected_model_columns": 3,
+        "common_physical_case_cuts": 3,
+        "common_element_sides": 4,
+        "finest_paired_sides": 24,
+        "C3_ei_nmm2": 163387643767070.34,
+        "C3_nk_kn": 64502.856320283914,
+        "story_nk_kn": 193508.56896085176,
+        "story_nd_kn": 7780.0,
+        "local_factor_both_axes": 1.0288216814643838,
+        "final_factor_both_axes": 1.0551488523204795,
+        "first_refined_side": {
+          "ts500_m2_knm": -158.27232784807194,
+          "ts500_m3_knm": 179.3753048944815,
+          "ts500_utilization": 0.16967855031804033
+        },
+        "ts500_status": "REVISED_FIRST_ORDER_VECTORS_AND_STORY_INPUTS_CONSUMED",
+        "deformation_without_story": {
+          "run_id": "RUN-83e85ddb54a54281bc391130ed3bfc0b",
+          "full_span_status": "FULL_SPAN_RECOVERED",
+          "ts500_status": "REVISED_TS500_STORY_BASIS_UNAVAILABLE"
+        }
+      },
+      "private_artifacts": {
+        ".receipts/c29-native-input-fix-20261121/full-offline.log": {
+          "sha256": "9740ac563cb49a82d9511546f040bd83c66475d1788cf63b949af532fa52b9a5",
+          "in_public_repository": false
+        },
+        ".receipts/c29-native-input-fix-20261121/run_fixture.py": {
+          "sha256": "fac51e6579fe5fc67f6e8fc1108281137a7cb3cf055fd2a0b6f45b8575b1a70f",
+          "in_public_repository": false
+        },
+        ".receipts/c29-native-input-fix-20261121/fixture.source": {
+          "sha256": "642b510c847c6b2727ae27b1a99fc8f012fd30b46183b580fc4b2a6cd134022d",
+          "in_public_repository": false
+        },
+        ".receipts/c29-native-input-fix-20261121/fixture-scenario.json": {
+          "sha256": "4d1453eedf01fed1a00c79f028baa74a738f65fbcbb5c0b08ae5909fb4a19382",
+          "in_public_repository": false
+        },
+        ".receipts/c29-native-input-fix-20261121/fixture-run.log": {
+          "sha256": "1fd8b2b60010310c009617d572968902f5363d763ba80d9ffefcc76446073462",
+          "in_public_repository": false
+        },
+        ".receipts/c29-native-input-fix-20261121/fixture-verification.json": {
+          "sha256": "5737970716b9dee93ffdd465710639eff534df6c6165d043121d7f34238a1ed6",
+          "in_public_repository": false
+        },
+        ".receipts/c29-native-input-fix-20261121/fixture-report.html": {
+          "sha256": "615d9109ae418d8fff5af224b9476ac81897187bf48f183a6d8619445ae22fa0",
+          "in_public_repository": false
+        },
+        ".receipts/c29-native-input-fix-20261121/agent_observed_verification.json": {
+          "sha256": "ce48d98f66bc2f059e32cf7563500fd2d00c30010193defd80ee37390e981e2f",
+          "in_public_repository": false
+        }
+      },
+      "limits": {
+        "private_windows_read_exception": "NOT_INSPECTED",
+        "original_C29_revised_model_replay": "NOT_RUN",
+        "original_C29_reference": "Prior recorded 2/87 conditional result preserved; not rerun here.",
+        "wall_critical_load_method": "Unsupported branch unchanged; more getters alone cannot resolve its method/population decision.",
+        "engineering_acceptance": "NOT_GRANTED",
+        "whole_building_gap_closure": "NOT_GRANTED"
+      }
     }
   ],
   "new_record_template": {
@@ -6517,7 +6695,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-21T07:35:53+00:00",
+  "updated_at_utc": "2026-11-21T16:01:12.494074+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",

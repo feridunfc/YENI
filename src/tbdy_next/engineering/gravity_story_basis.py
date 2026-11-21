@@ -15,6 +15,7 @@ from .column_pmm_section import MECHANICAL
 from .column_r10_live import _build_frame_catalog
 
 STORY_BASIS_SCHEMA = "tbdy.next.gravity-story-basis.v1"
+CONTRIBUTOR_MODIFIER_SCHEMA = "tbdy.next.gravity-story-contributor-modifiers.v1"
 FRAME_FORCE = "NATIVE_FRAME_LOCAL_P_V2_V3"
 WALL_FORCE = "INTEGRATED_WALL_GLOBAL_UPPER_FREE_BODY"
 AXES = ("M2", "M3")
@@ -176,7 +177,11 @@ def project_native_story_frame_forces(source, level, uid, cut_z_m, cases, captur
                               units={f"Global{x}": "m" for x in "XYZ"}), "ElmName")
         mesh = defaultdict(list)
         used = set()
-        for row in _rows(tables, "Objects and Elements - Frames", {"ObjName", "ElmName", "ElmJtI", "ElmJtJ"}):
+        for row in _rows(tables, "Objects and Elements - Frames", {"ObjType", "ObjName", "ElmName", "ElmJtI", "ElmJtJ"}):
+            # ETABS also returns generated Shell rows in this table. Their
+            # object/element names can overlap the native Frame namespace.
+            if row["ObjType"] != "Frame":
+                continue
             if ("COLUMN", row["ObjName"]) not in population:
                 continue
             name = row["ElmName"]
@@ -402,6 +407,42 @@ def _reported_column_details(source):
     return offsets, materials, sections
 
 
+def _contributor_modifiers(block, level, population, frames):
+    """Keep the story stiffness census separate from the paired-refinement mesh."""
+    capture = block.get("contributor_modifiers")
+    if capture is None:
+        # Legacy records retain their original paired-member scope. Missing
+        # non-paired contributors remain explicitly unresolved downstream.
+        return level["frame_object_modifiers"], None
+    _keys(capture, {"schema", "model_sha256", "analysis_generation", "modifiers"},
+          "STORY_CONTRIBUTOR_MODIFIER_SOURCE_INVALID")
+    _checked(capture["schema"] == CONTRIBUTOR_MODIFIER_SCHEMA and
+             capture["model_sha256"] == level["model_sha256"] and
+             capture["analysis_generation"] == level["analysis_generation"],
+             "STORY_CONTRIBUTOR_MODIFIER_MODEL_GENERATION_MISMATCH")
+    values = capture["modifiers"]
+    expected = {uid for kind, uid in population if kind == "COLUMN"}
+    allowed = {uid for uid, frame in frames.items() if frame["type"] == "Column"}
+    _checked(isinstance(values, Mapping) and set(values) <= allowed,
+             "STORY_CONTRIBUTOR_MODIFIER_POPULATION_CONFLICT")
+    _checked(expected <= values.keys(), "STORY_CONTRIBUTOR_MODIFIER_SCOPE_INCOMPLETE:" +
+             ",".join(sorted(expected - values.keys())))
+    normalized = {}
+    for uid, row in values.items():
+        _checked(isinstance(row, list) and len(row) == 8,
+                 "STORY_CONTRIBUTOR_MODIFIER_VECTOR_INVALID:" + uid)
+        normalized[uid] = [_number(value) for value in row]
+        paired = level["frame_object_modifiers"].get(uid)
+        _checked(paired is None or normalized[uid] == paired,
+                 "STORY_CONTRIBUTOR_MODIFIER_PAIRED_MEMBER_CONFLICT:" + uid)
+    from .design_scenario import _digest
+
+    return normalized, {"schema": CONTRIBUTOR_MODIFIER_SCHEMA,
+        "model_sha256": capture["model_sha256"], "analysis_generation": capture["analysis_generation"],
+        "source_sha256": _digest(capture), "expected_column_ids": sorted(expected),
+        "captured_column_ids": sorted(normalized)}
+
+
 def produce_story_basis(source, local, level, uid, cases):
     """Compute a story basis from one mesh's force and stiffness source.
 
@@ -414,7 +455,8 @@ def produce_story_basis(source, local, level, uid, cases):
     if block is None:
         return result
     try:
-        _keys(block, {"schema", "model_sha256", "analysis_generation", "units_code", "story_cuts", "columns"},
+        _keys(block, {"schema", "model_sha256", "analysis_generation", "units_code", "story_cuts", "columns"} |
+              ({"contributor_modifiers"} if "contributor_modifiers" in block else set()),
               "STORY_BASIS_SCHEMA_INVALID")
         generation = level.get("analysis_generation")
         _checked(block["schema"] == STORY_BASIS_SCHEMA and block["model_sha256"] == level["model_sha256"] and
@@ -455,6 +497,13 @@ def produce_story_basis(source, local, level, uid, cases):
     except (ArithmeticError, AttributeError, KeyError, TypeError, ValueError) as exc:
         offsets = materials = sections = {}
         result["reasons"].append(str(exc))
+    try:
+        modifier_rows, modifier_evidence = _contributor_modifiers(block, level, population, frames)
+        if modifier_evidence is not None:
+            result["contributor_modifier_source"] = modifier_evidence
+    except (ArithmeticError, AttributeError, KeyError, TypeError, ValueError) as exc:
+        modifier_rows = {}
+        result["reasons"].append(str(exc))
     supported = {}
     for axis, i in zip(AXES, (1, 2)):
         rows, gaps = [], []
@@ -472,7 +521,7 @@ def produce_story_basis(source, local, level, uid, cases):
                 _checked(len(aligned) == 1, "STORY_COUPLED_COLUMN_AXIS_UNSUPPORTED")
                 chosen = aligned[0]
                 known_ei = local["stiffness_and_euler"][axis]["selected_ei_nmm2"] if element == uid else None
-                modifiers = level["frame_object_modifiers"].get(element)
+                modifiers = modifier_rows.get(element)
                 clear_mm = ln * 1000 if element == uid else None
                 if element != uid:
                     _checked(modifiers is not None, "STORY_COLUMN_REVISED_OBJECT_MODIFIER_UNAVAILABLE")

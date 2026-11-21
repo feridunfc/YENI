@@ -1,5 +1,20 @@
 # Local development and GitHub worker handoff
 
+## Apply the story-input fixes before the native continuation
+
+Read [C29 story-input execution fixes](../engineering/C29_STORY_INPUT_FIX_20261121.md).
+Use each refined level's optional `story_basis_source.contributor_modifiers`
+for all required story columns. Keep `frame_object_modifiers`, paired force
+rowsets and paired mesh IDs exact. Native mesh projection now requires ObjType
+and ignores Shell rows before joining Frame IDs. Reuse the existing getter and
+normal runner; no additional ETABS connection is required.
+
+Capture the solved C29 kinematics and run full-span recovery without waiting
+for story Nk. For the interrupted private read, identify the actual failing call
+and exception. The software fixes do not claim to diagnose that unavailable
+private trace. Wall critical-load support remains an explicit method issue,
+separate from the fixed contributor-data contradiction. Preserve newer local work.
+
 ## C29 method implemented in R08 and R14
 
 Start with the [numerical checkpoint](../engineering/C29_QUALIFIED_GRAVITY_COMPARISON_20261121.md) and

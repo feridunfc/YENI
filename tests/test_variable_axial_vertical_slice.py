@@ -23,7 +23,8 @@ from tbdy_next.engineering.cli_adapter import run_cli
 from tbdy_next.column_engine.column_kinematics import COMPONENTS, COORDINATE_CONTRACT
 from tbdy_next.engineering.column_pmm_section import MECHANICAL
 from tbdy_next.engineering.design_scenario import _digest, _source_data
-from tbdy_next.engineering.gravity_order_pair import QUALIFIED_SCHEMA
+from tbdy_next.engineering.gravity_order_pair import QUALIFIED_SCHEMA, normalize_gravity_order_pair
+from tbdy_next.engineering.gravity_story_basis import FRAME_FORCE
 from tbdy_next.engineering.second_order_basis import SWAY_POLICY
 from tbdy_next.engineering.pipeline_snapshot import compare_runs, read_snapshot
 from tbdy_next.reporting import build_complete_report, build_printable_html
@@ -37,6 +38,7 @@ from test_r10_live import _rowset
 
 APPLIED = "ADOPTED_AXIAL_IDEALIZATION_APPLIED_NOT_PROVEN"
 PENDING = "ADOPTED_AXIAL_IDEALIZATION_ENGINEERING_ACCEPTANCE_PENDING"
+CONTRIBUTOR_MODIFIER_SCHEMA = "tbdy.next.gravity-story-contributor-modifiers.v1"
 
 
 def completion_fixture(*, spring_scale=1.):
@@ -120,6 +122,84 @@ def completion_fixture(*, spring_scale=1.):
         "cases": cases, "force_source": {**force, "rowsets": {uid: _rowset(base_rows)}},
         "frame_section_modifiers": sec_mods, "frame_object_modifiers": {uid: [1.] * 8},
         "mesh": {uid: ["C1-elm"]}, "refined_levels": levels}
+    return raw, request
+
+
+def completion_with_story_contributor(*, modifier_scale=.5):
+    """Add a native-shaped parallel column outside the paired C1 mesh scope."""
+    raw, request = completion_fixture()
+    source = json.loads(raw)
+    renames = {"C1": "C3", "C1-elm": "C3-elm", "P0": "CP0", "P1": "CP1"}
+
+    def copy_rows(record, field, wanted):
+        for row in deepcopy(record["rows"]):
+            if row[field] in wanted:
+                record["rows"].append({key: renames.get(value, value) for key, value in row.items()})
+        record["row_count"] = len(record["rows"])
+
+    geometry = source["geometry_capture"]["tables"]
+    for name in ("FRAME_ASSIGNMENTS", "SECTION_ASSIGNMENTS", "COLUMN_CONNECTIVITY"):
+        copy_rows(geometry[name], "UniqueName", {"C1"})
+    for branch in ("vs05_delta_source", "vs06_b1_geometry_source"):
+        table = source[branch]["table_reads"]["Point Object Connectivity"]
+        copy_rows(table, "UniqueName", {"P0", "P1"})
+        for row in table["rows"]:
+            if row["UniqueName"] in ("CP0", "CP1"):
+                row["X"] = "10"
+    axial = source["column_axial"]
+    native = axial["r10_source"]["table_reads"]
+    for name, field in (
+        ("Objects and Elements - Frames", "ObjName"),
+        ("Frame Assignments - Output Stations", "UniqueName"),
+        ("Frame Assignments - End Length Offsets", "UniqueName"),
+        ("Frame Assignments - Insertion Point", "UniqueName"),
+    ):
+        copy_rows(native[name], field, {"C1"})
+    joints = native["Objects and Elements - Joints"]
+    copy_rows(joints, "ElmName", {"P0", "P1"})
+    for row in joints["rows"]:
+        if row["ElmName"] in ("CP0", "CP1"):
+            row["GlobalX"] = "10"
+    for force in (axial["force_source"], axial["demand_support"]["force_source"]):
+        rowset = force["rowsets"]["C3"] = deepcopy(force["rowsets"]["C1"])
+        rowset["Obj"] = ["C3"] * rowset["NumberResults"]
+        rowset["Elm"] = ["C3-elm"] * rowset["NumberResults"]
+    request["second_order_basis"]["members"]["C3"] = deepcopy(request["second_order_basis"]["members"]["C1"])
+
+    pair = request["gravity_order_pair"]
+    for level in pair["refined_levels"]:
+        model = sha256((level["model_sha256"] + f"|C3|{modifier_scale}").encode()).hexdigest()
+        generation = sha256((model + "|manufactured solve").encode()).hexdigest()
+        for record in (level, level["force_source"], level["kinematics"], level["story_basis_source"]):
+            record.update(model_sha256=model, analysis_generation=generation)
+        block = level["story_basis_source"]
+        target = level["frame_object_modifiers"]["C1"]
+        contributor = list(target)
+        contributor[4] *= modifier_scale
+        contributor[5] *= modifier_scale
+        block["contributor_modifiers"] = {
+            "schema": CONTRIBUTOR_MODIFIER_SCHEMA, "model_sha256": model, "analysis_generation": generation,
+            "modifiers": {"C1": list(target), "C3": contributor},
+        }
+        column = block["columns"]["C3"] = deepcopy(block["columns"]["C1"])
+        for axis, index in (("M2", 4), ("M3", 5)):
+            info = column["axes"][axis]
+            info.update(section_modifier=.7, object_modifier=contributor[index])
+            ei = info["ec_mpa"] * info["i_mm4"] * .7 * contributor[index]
+            spring = math.pi / 2 * (ei / 1e9) / (column["ln_mm"] / 1000)
+            for side, joint in (("i", "CP0"), ("j", "CP1")):
+                info["restraint"][side].update(joint_id=joint, k_knm_per_rad=spring)
+        section = block["story_cuts"]["S1"]
+        first = pair["cases"]["G"]["first"]
+        section["forces"].append({"kind": "COLUMN", "object_id": "C3", "element_id": "C3-elm",
+            "case": first, "step_type": "Step", "step_number": 1., "z_m": section["z_m"],
+            "representation": FRAME_FORCE, "vector_kn": [-5000., 0., 0.]})
+        section["equilibrium"][first]["upper_external_applied_kn"] += 5000.
+    for branch in ("vs05_delta_source", "vs06_b1_geometry_source"):
+        record = source[branch]
+        record["payload_sha256"] = digest({key: value for key, value in record.items() if key != "payload_sha256"})
+    raw, request = bind_source(source, request)
+    request["gravity_order_pair"]["source_data_sha256"] = _digest(_source_data(source))
     return raw, request
 
 
@@ -247,6 +327,75 @@ class VariableAxialVerticalSliceTests(unittest.TestCase):
             self.assertLess(axis["member_denominator"], 0.)
             self.assertIsNone(axis["final_factor"])
         self.assertTrue(all("ts500_m2_knm" not in row for row in failed["rows"]))
+
+    def test_nonpaired_story_column_modifiers_are_consumed_without_expanding_paired_mesh(self):
+        results = {}
+        for scale in (.5, 1.):
+            raw, request = completion_with_story_contributor(modifier_scale=scale)
+            pair = request["gravity_order_pair"]
+            self.assertEqual(set(pair["force_source"]["rowsets"]), {"C1"})
+            for level in pair["refined_levels"]:
+                self.assertEqual(set(level["mesh"]), {"C1"})
+                self.assertEqual(set(level["frame_object_modifiers"]), {"C1"})
+            _, snapshot = self.calculate(raw, request, f"separate-story-modifiers-{scale}")
+            self.assertEqual(snapshot["results"]["r14_closure"]["expected_column_count"], 3)
+            local = snapshot["results"]["r08_local_slenderness"]["per_member"]["C1"]
+            finest = local["gravity_order_pair"]["refinement"]["levels"][-1]
+            results[scale] = finest
+            self.assertEqual(finest["ts500_status"], "REVISED_FIRST_ORDER_VECTORS_AND_STORY_INPUTS_CONSUMED")
+            basis = finest["revised_story_basis"]
+            self.assertEqual(basis["status"], "REVISED_STORY_BASIS_CALCULATED")
+            self.assertEqual(basis["contributor_modifier_source"]["expected_column_ids"], ["C1", "C3"])
+            self.assertEqual(basis["cases"]["G"]["supported_compression_kn"], 7780.)
+            for factor in finest["revised_axis_factors"]:
+                axis = factor["axis"]
+                columns = {row["member_id"]: row for row in basis["axes"][axis]["contributors"]}
+                self.assertEqual(set(columns), {"C1", "C3"})
+                info = pair["refined_levels"][-1]["story_basis_source"]["columns"]["C3"]["axes"][axis]
+                expected_ei = info["ec_mpa"] * (800.**4 / 12) * .7 * info["object_modifier"]
+                # Independent symmetric-spring fixture gives K=2 and ln=2500 mm.
+                expected_nk = math.pi**2 * expected_ei / 5000.**2 / 1000
+                self.assertAlmostEqual(columns["C3"]["effective_ei_nmm2"] / expected_ei, 1., places=12)
+                self.assertAlmostEqual(columns["C3"]["member_nk_kn"], expected_nk, places=8)
+                story_nk = columns["C1"]["member_nk_kn"] + expected_nk
+                expected_beta = 1. / (1. - 1.3 * 7780. / story_nk)
+                self.assertAlmostEqual(factor["story_nk_kn"], story_nk, places=8)
+                self.assertAlmostEqual(factor["final_factor"], expected_beta, places=12)
+                field = "ts500_" + axis.lower() + "_knm"
+                self.assertAlmostEqual(finest["rows"][0][field], (-150. if axis == "M2" else 170.) * expected_beta)
+            self.assertTrue(all(row.get("ts500_utilization") is not None for row in finest["rows"]))
+        self.assertLess(results[1.]["revised_axis_factors"][0]["final_factor"],
+                        results[.5]["revised_axis_factors"][0]["final_factor"])
+        self.assertLess(abs(results[1.]["rows"][0]["ts500_m2_knm"]),
+                        abs(results[.5]["rows"][0]["ts500_m2_knm"]))
+        invalid = deepcopy(pair)
+        invalid["refined_levels"][-1]["frame_object_modifiers"]["C3"] = [1.] * 8
+        with self.assertRaisesRegex(ValueError, "GRAVITY_PAIR_MEMBER_OR_STIFFNESS_SCOPE_UNVERIFIED"):
+            normalize_gravity_order_pair(invalid, source_data_sha256=invalid["source_data_sha256"])
+
+    def test_missing_or_stale_nonpaired_modifier_source_cannot_produce_story_factor(self):
+        for defect, reason in (
+            ("missing", "STORY_CONTRIBUTOR_MODIFIER_SCOPE_INCOMPLETE:C3"),
+            ("stale", "STORY_CONTRIBUTOR_MODIFIER_MODEL_GENERATION_MISMATCH"),
+        ):
+            with self.subTest(defect=defect):
+                raw, request = completion_with_story_contributor()
+                capture = request["gravity_order_pair"]["refined_levels"][-1]["story_basis_source"]["contributor_modifiers"]
+                if defect == "missing":
+                    capture["modifiers"].pop("C3")
+                else:
+                    capture["analysis_generation"] = "f" * 64
+                _, snapshot = self.calculate(raw, request, "invalid-story-modifiers-" + defect)
+                local = snapshot["results"]["r08_local_slenderness"]["per_member"]["C1"]
+                finest = local["gravity_order_pair"]["refinement"]["levels"][-1]
+                basis = finest["revised_story_basis"]
+                self.assertIn(reason, basis["reasons"])
+                self.assertEqual(basis["story_inputs"], {})
+                self.assertEqual(basis["cases"]["G"]["expected_count"], 2)
+                self.assertEqual(len(finest["rows"]), 24)
+                self.assertTrue(all(factor.get("final_factor") is None for factor in finest["revised_axis_factors"]))
+                self.assertTrue(all("ts500_m2_knm" not in row for row in finest["rows"]))
+                self.assertEqual(snapshot["results"]["r14_closure"]["engineering_release"], "NOT_READY")
 
     def test_independent_stiffness_beta_and_cut_local_demand_are_numerically_consumed(self):
         # Independent 9-by9 perimeter cage:32Phi16, cover40/tie12/bar radius8.

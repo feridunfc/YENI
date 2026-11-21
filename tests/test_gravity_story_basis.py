@@ -7,10 +7,14 @@ import unittest
 from tbdy_next.column_engine.source_bank import native_frame_force_rows
 from tbdy_next.engineering.column_clear_length import FACE_BASIS, WALL_CONNECTIVITY
 from tbdy_next.engineering.gravity_story_basis import (
-    AXES, FRAME_FORCE, STORY_BASIS_SCHEMA, WALL_FORCE, produce_story_basis, project_native_story_frame_forces,
+    AXES, FRAME_FORCE, STORY_BASIS_SCHEMA, WALL_FORCE,
+    produce_story_basis, project_native_story_frame_forces,
 )
 from test_r03_analysis_setup import capture_table
 from test_r10_live import _rowset
+
+
+CONTRIBUTOR_MODIFIER_SCHEMA = "tbdy.next.gravity-story-contributor-modifiers.v1"
 
 
 def _register_table(tables, key, fields, rows, units=None):
@@ -114,8 +118,8 @@ class RevisedStoryBasisTests(unittest.TestCase):
         _register_table(tables, "Objects and Elements - Joints", headers,
                         [dict(zip(headers, (n, 0., 0., z))) for n, z in (("I", 0.), ("M", 2.), ("J", 4.))],
                         dict.fromkeys(headers[1:], "m"))
-        _register_table(tables, "Objects and Elements - Frames", ("ObjName", "ElmName", "ElmJtI", "ElmJtJ"),
-                        [{"ObjName": uid, "ElmName": eid, "ElmJtI": a, "ElmJtJ": b}
+        _register_table(tables, "Objects and Elements - Frames", ("ObjType", "ObjName", "ElmName", "ElmJtI", "ElmJtJ"),
+                        [{"ObjType": "Frame", "ObjName": uid, "ElmName": eid, "ElmJtI": a, "ElmJtJ": b}
                          for eid, a, b in (("A", "I", "M"), ("B", "M", "J"))])
         selection = {"cases": {"F": False}, "combos": {"G": True}}
         sidecar = {
@@ -133,6 +137,51 @@ class RevisedStoryBasisTests(unittest.TestCase):
         projected = project_native_story_frame_forces(source, level, uid, 2., cases, sidecar)
         self.assertEqual(projected["status"], "STORY_NATIVE_FRAME_SOURCE_CALCULATED", projected)
         self.assertEqual([(r["element_id"], r["vector_kn"][0]) for r in projected["forces"]], [("B", -920.)])
+        frame_table = tables["Objects and Elements - Frames"]
+        frame_table["rows"].append({"ObjType": "Shell", "ObjName": uid, "ElmName": "B",
+                                    "ElmJtI": "SHELL_I", "ElmJtJ": "SHELL_J"})
+        frame_table["row_count"] += 1
+        shell_overlap = project_native_story_frame_forces(source, level, uid, 2., cases, sidecar)
+        self.assertEqual(shell_overlap, projected)
+        missing_type = deepcopy(sidecar)
+        table = missing_type["tables"]["table_reads"]["Objects and Elements - Frames"]
+        table["fields"].remove("ObjType")
+        for row in table["rows"]:
+            row.pop("ObjType")
+        rejected = project_native_story_frame_forces(source, level, uid, 2., cases, missing_type)
+        self.assertEqual(rejected["status"], "STORY_NATIVE_FRAME_SOURCE_UNBOUND")
+        self.assertIn("STORY_GEOMETRY_TABLE_UNBOUND:Objects and Elements - Frames", rejected["reasons"])
+
+    def test_separate_contributor_modifiers_bind_generation_and_agree_with_paired_member(self):
+        source, local, level, uid, cases = _example()
+        level["story_basis_source"]["contributor_modifiers"] = {
+            "schema": CONTRIBUTOR_MODIFIER_SCHEMA, "model_sha256": level["model_sha256"],
+            "analysis_generation": level["analysis_generation"],
+            "modifiers": deepcopy(level["frame_object_modifiers"]),
+        }
+        result = produce_story_basis(source, local, level, uid, cases)
+        self.assertEqual(result["status"], "REVISED_STORY_BASIS_CALCULATED", result)
+        self.assertEqual(result["contributor_modifier_source"]["expected_column_ids"], [uid])
+        for defect, code in (
+            ("generation", "STORY_CONTRIBUTOR_MODIFIER_MODEL_GENERATION_MISMATCH"),
+            ("model", "STORY_CONTRIBUTOR_MODIFIER_MODEL_GENERATION_MISMATCH"),
+            ("missing", "STORY_CONTRIBUTOR_MODIFIER_SCOPE_INCOMPLETE:" + uid),
+            ("conflict", "STORY_CONTRIBUTOR_MODIFIER_PAIRED_MEMBER_CONFLICT:" + uid),
+        ):
+            with self.subTest(defect=defect):
+                changed = deepcopy(level)
+                capture = changed["story_basis_source"]["contributor_modifiers"]
+                if defect == "generation":
+                    capture["analysis_generation"] = "b" * 64
+                elif defect == "model":
+                    capture["model_sha256"] = "b" * 64
+                elif defect == "missing":
+                    capture["modifiers"].pop(uid)
+                else:
+                    capture["modifiers"][uid][4] *= .5
+                actual = produce_story_basis(source, local, changed, uid, cases)
+                self.assertEqual(actual["story_inputs"], {})
+                self.assertIn(code, actual["reasons"])
 
     def test_symmetric_springs_and_free_body_use_existing_owners(self):
         source, local, level, uid, cases = _example()

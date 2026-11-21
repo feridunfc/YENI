@@ -1,5 +1,19 @@
 # Original building calculation and local handoff — 2026-11-21
 
+## Fixed story-source execution defects
+
+The [story-input patch](engineering/C29_STORY_INPUT_FIX_20261121.md) separates
+same-generation story-contributor modifiers from the exact paired-member map
+and filters native Frame rows before matching mesh IDs. The former contract
+could not admit modifiers for non-paired story columns; the latter could confuse
+generated Shell identifiers with Frame identifiers. R08's method is v14.
+The normal-runner regression consumes the additional column's actual EI/Nk
+through the revised factor and PMM owners. See `EV-C29-STORY-CONTRIBUTOR-FIX-20261121`.
+
+Continue native deformation recovery independently of the unresolved story
+critical-load method. Preserve the original C29 2/87 conditional checkpoint;
+the original revised-model replay has not been run in this Linux environment.
+
 ## Revised C29 calculation and next original-model inputs
 
 The existing R08 owner now calculates revised story factors and full-span
