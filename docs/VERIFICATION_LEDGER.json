@@ -7401,6 +7401,71 @@
       "engineering_acceptance": "NOT_GRANTED",
       "whole_building_gap_closure": "NOT_GRANTED",
       "documentation_scope": "Superseded C29 NOT_RUN and sampled-peak claims are labeled as historical; native conditional completion remains current. Report reconstruction does not alter the sealed native C29 result."
+    },
+    {
+      "id": "EV-WINDOWS-OFFLINE-31A8B08-20261121",
+      "observed_at": "2026-11-21",
+      "recorded_at_utc": "2026-11-21T19:01:58Z",
+      "status": "USER_REPORTED_WINDOWS_OFFLINE_SOFTWARE_REGRESSIONS_PASS",
+      "gap_ids": [
+        "GAP-009",
+        "GAP-016"
+      ],
+      "reported_tested_commit": "31a8b08c0553156cd612585513d9ac3a22e25573",
+      "reported_tracked_worktree_clean": true,
+      "verified_github_ref_before_documentation_update": {
+        "branch": "baseline/local_import",
+        "commit_sha": "31a8b08c0553156cd612585513d9ac3a22e25573",
+        "git_tree_sha": "641b94513a8b228b46a2016e1b37de02ca666a4a",
+        "verification": "GitHub ref API and local checkout identity; not direct inspection of the user's Windows checkout."
+      },
+      "source_provenance": {
+        "kind": "USER_SUPPLIED_POWERSHELL_OUTPUT_EXCERPT_AND_COMMIT_STATEMENT",
+        "executed_by_recording_agent": false,
+        "complete_log_available_to_recording_agent": false,
+        "log_path_private": null,
+        "log_sha256": null,
+        "exact_command": null,
+        "entrypoint": "tools/test_offline.py",
+        "command_note": "The completed output identifies the offline runner stages; the supplied final excerpt omits invocation arguments and any explicit --node executable path."
+      },
+      "offline_tests": {
+        "python_total": 1690,
+        "python_passed": 1689,
+        "python_skipped": 1,
+        "python_failures": 0,
+        "python_errors": 0,
+        "elapsed_python_seconds": 304.503,
+        "python_summary": "OK (skipped=1)",
+        "skipped_test_identity": null,
+        "skipped_test_reason": null,
+        "python_compilation": "PASS",
+        "javascript_syntax": "PASS",
+        "javascript_files_passed": 11,
+        "final_marker": "OFFLINE_SOFTWARE_REGRESSIONS=PASS",
+        "environment": {
+          "platform": "Windows",
+          "shell": "PowerShell",
+          "python_version": null,
+          "node_version": "v26.13.1"
+        }
+      },
+      "golden_reference": {
+        "record_count": 44,
+        "NUMERICAL_MATCH": 36,
+        "ENGINEERING_INTERPRETATION_DIFFERENCE": 4,
+        "INSUFFICIENT_SOURCE": 4,
+        "acceptance_eligible": false,
+        "engineering_release": "NOT_READY"
+      },
+      "related_evidence": [
+        "EV-REPORT-SWAY-RECONSTRUCTION-20261121",
+        "EV-C29-NATIVE-CONDITIONAL-TS500-20261121"
+      ],
+      "engineering_acceptance": "NOT_GRANTED",
+      "whole_building_gap_closure": "NOT_GRANTED",
+      "new_live_etabs_calculation": "NOT_RUN",
+      "next_action": "Use the solved eight-part METHOD source to qualify concurrent first-order column-wall cut forces and an independent upper-body external-load/self-weight balance at +0.00 and +4.50. The wall-frame critical-load method and broader GAP-009 qualifications remain separate."
     }
   ],
   "new_record_template": {

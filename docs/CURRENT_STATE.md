@@ -1,5 +1,26 @@
 # Original building calculation and local handoff — 2026-11-21
 
+## Windows offline verification of the published implementation
+
+The user supplied the completed Windows `tools/test_offline.py` output for
+clean tracked implementation `31a8b08c0553156cd612585513d9ac3a22e25573`:
+**1,690 Python tests total, 1,689 passed, one skipped**, no failures or
+errors, in 304.503 seconds; Python compilation and all 11 JavaScript test
+files passed with reported Node.js `v26.13.1`. The final marker is
+`OFFLINE_SOFTWARE_REGRESSIONS=PASS`. The fixed 44-record golden population
+remains 36 numerical matches, four interpretation differences and four
+insufficient-source records, with `acceptance_eligible=false` and
+`engineering_release=NOT_READY`.
+
+See `EV-WINDOWS-OFFLINE-31A8B08-20261121`. This is user-supplied Windows
+execution evidence, recorded separately from the independently run Linux
+suite below. The supplied excerpt omits the skipped test's name, full
+command arguments, Python version and complete log hash; those fields
+remain unknown. GitHub's branch was independently observed at the stated
+commit before this documentation update. The next calculation is the
+concurrent column-wall cut balance described in the
+[worker handoff](context/WORKER_HANDOFF_20261119.md#next-gap-009-calculation).
+
 ## Completed C29 conditional comparison on native METHOD meshes
 
 Windows ETABS supplied 18/18 finished gravity cases across the private 2/4/8

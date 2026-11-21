@@ -1,5 +1,52 @@
 # Local development and GitHub worker handoff
 
+## Windows regression checkpoint
+
+`EV-WINDOWS-OFFLINE-31A8B08-20261121` records the user's completed Windows
+offline suite against reported clean tracked commit
+`31a8b08c0553156cd612585513d9ac3a22e25573`: 1,690 Python tests total,
+1,689 passed, one skipped, no failures or errors, 304.503 seconds,
+11 JavaScript files passed, Node.js `v26.13.1`, and
+`OFFLINE_SOFTWARE_REGRESSIONS=PASS`. Golden counts remain 36/4/4 across
+44 records and engineering release remains `NOT_READY`. The full log,
+skipped-test identity, exact command arguments and Python version were
+not supplied. Keep this user-reported evidence separate from the recorded
+Linux run; neither test count substitutes for original-building evidence.
+
+## Next GAP-009 calculation
+
+Start with the already solved eight-part METHOD source and first-order
+case `C29G_U_F`. Freeze each physical cut's expected population before
+assembling forces: +0.00 has 32 columns and 21 wall objects (53 contributors),
+and +4.50 has 32 columns and four wall objects (36 contributors). Read the
+private source using the existing acquisition owner and preserve the
+model, analysis generation, case, step, cut plane, side, units and axes.
+
+The native ledger records 154,770 shell-joint rows per mesh with `Max`/`Min`
+step types, while the first-order frame force inputs carry exact `Step 1`
+identity. Establish a compatible concurrent wall state before integrating
+the upper-side wall forces in global coordinates. If the existing private
+rows cannot establish that state, acquire only the missing exact-step
+boundary forces. Count each physical contributor once; shell and pier
+representations must not duplicate each other or their frame contribution.
+
+Produce one table per cut with signed column and wall vertical resultants,
+independently derived upper-body external gravity and self weight, the
+signed equilibrium residual, and the acceptance result. Use
+`gravity_story_basis._force_results` through the existing runner; its
+current balance comparison is `isclose` with `abs_tol=0.01 kN` and
+`rel_tol=1e-6`. Extend a successful source binding to `C29G_TN_F` and
+`C29G_TP_F`. This first task qualifies the force balance only.
+
+Full `story_inputs` still require a supported per-axis wall-frame
+critical-load method. `produce_story_basis` deliberately retains
+`STORY_WALL_CRITICAL_LOAD_METHOD_UNSUPPORTED` even when wall forces balance.
+Bind the justified system stiffness, supports, coupling, creep and method
+provenance through the current owners before consuming revised factors.
+The broader GAP also retains coupled second-order demands for 14 columns
+and varying-axial method qualification. The completed C29 full-span and
+conditional frame comparison is the preserved starting result.
+
 ## Verified native C29 conditional method result
 
 Start with [the native C29 results](../CURRENT_STATE.md#completed-c29-conditional-comparison-on-native-method-meshes)
