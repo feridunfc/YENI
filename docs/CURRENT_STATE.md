@@ -26,11 +26,18 @@ Eq. (7.29) length readings give the ordinary branch. The reference scenarios
 leave the adopted sway, restraint and creep inputs open.
 
 The existing physical story scope accounts for all six occupied story
-directions. +14.5 is a verified empty story. The archived model defines a
-vertical area spring under the mat. The next inputs are the condensed
-rotational response at joint 934 and the same-model analyses for the TS 500
-sway decision. GAP-009 tracks both inputs. The paired analysis route and
-the uncracked Eq. (7.13) route have their own load and stiffness prerequisites.
+directions. +14.5 is a verified empty story. Use `UX = UY = 0` at C29 base
+joint 934. The archived restraint and the sealed RSX and RSY joint
+translations agree. The upper end at joint 40 moves 1.956 mm in RSX/X
+and 1.931 mm in RSY/Y in these spectral results. See
+`EV-C29-MAT-HORIZONTAL-SUPPORT-20261121` in the verification ledger.
+
+GAP-009 first qualifies TS 500 story sway in each direction. If sway is
+prevented, §7.6.2.2 permits `k = 1.0`, giving 19.269065 and 16.454483
+for C29's two slenderness ratios. If the sway-permitted branch requires an
+explicit foundation restraint model, establish the relevant rotational
+response at 934. The paired analysis route and the uncracked Eq. (7.13)
+route have their own load and stiffness prerequisites.
 
 ## Column support faces, local slenderness and shear
 

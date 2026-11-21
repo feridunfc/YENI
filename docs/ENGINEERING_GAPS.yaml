@@ -1,7 +1,7 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-21T04:46:48.548908Z",
+  "updated_at_utc": "2026-11-21T05:08:34.205885Z",
   "repository": "feridunfc/YENI",
   "baseline_implementation_commit": "c1f2eda2e282298bb39c5f57437b619260695530",
   "local_reconciled": true,
@@ -29,7 +29,7 @@
     "GAP-013",
     "GAP-016"
   ],
-  "active_task": "Acquire the qualified TS 500 story sway analysis and foundation-only condensed rotational restraint for C29 node 934. Finalize the adopted k and update R08 local and story magnification under GAP-009.",
+  "active_task": "Use UX=UY=0 at C29 base joint 934 and qualify the applicable TS 500 story sway classifications first. Use the k=1.0 provision where sway is prevented. For a sway-permitted branch, qualify the effective-length model and obtain the rotational response at 934 if needed. Bind the resulting R08 effects under GAP-009.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -218,8 +218,8 @@
       "title": "Global and local second-order effects",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Selected candidates can bind same-run R08 inputs; EI/Nk and second-order reference calculations exist. Same-run selected sections now carry both first-order and magnified design moments with the local/global factors and fixed-N radial reserve. R08 applies the existing minimum-eccentricity owner before local/global magnification for static and spectral-box references. Raw, floored and final moments are recorded and projected in the normal report. The two GOLDEN-01 theta scalars now call the existing global P-delta owner. R08 consumes the verified 4.45 m and 3.80 m C29 model clear lengths and the corresponding verified clear lengths of 57 more columns. R08 evaluates conditional TS 500 effective lengths and Euler loads at 59 columns using native directional framing. C29 has 36 aligned Eq. (7.29) comparisons across the stated scenarios.",
-      "blocker": "Qualify the TS 500 sway class using either paired first/second-order analysis or an uncracked Eq. (7.13) run. Bind condensed mat rotational restraint at C29 node 934, end continuity, effective flange, creep and actual analysis order.",
+      "achieved_scope": "Selected candidates can bind same-run R08 inputs; EI/Nk and second-order reference calculations exist. Same-run selected sections now carry both first-order and magnified design moments with the local/global factors and fixed-N radial reserve. R08 applies the existing minimum-eccentricity owner before local/global magnification for static and spectral-box references. Raw, floored and final moments are recorded and projected in the normal report. The two GOLDEN-01 theta scalars now call the existing global P-delta owner. R08 consumes the verified 4.45 m and 3.80 m C29 model clear lengths and the corresponding verified clear lengths of 57 more columns. R08 evaluates conditional TS 500 effective lengths and Euler loads at 59 columns using native directional framing. C29 has 36 aligned Eq. (7.29) comparisons across the stated scenarios. The accepted C29 base boundary at joint 934 restrains UX and UY, consistent with 14 sealed displacement rows.",
+      "blocker": "Qualify each TS 500 story sway class using an applicable §7.6.2.1 method. If an explicit sway-permitted effective-length model relies on foundation rotation, bind its rotational response at 934. The applicable magnification inputs include end continuity, flange, creep and actual analysis order.",
       "closure_criteria": "Independently verify both-axis clear/effective lengths and EI, prevent double counting, and prove consumption of the qualified demands.",
       "owner_paths": [
         "src/tbdy_next/column_engine/ts500_column.py",
@@ -236,7 +236,8 @@
         "EV-COLUMN-JOINT-SLICE-20261119",
         "EV-AUDIT-FIXES-20261120",
         "EV-C29-PHYSICAL-CLEAR-LENGTH-20261120",
-        "EV-C29-TS500-EFFECTIVE-LENGTH-20261121"
+        "EV-C29-TS500-EFFECTIVE-LENGTH-20261121",
+        "EV-C29-MAT-HORIZONTAL-SUPPORT-20261121"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false

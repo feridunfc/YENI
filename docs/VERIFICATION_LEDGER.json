@@ -28,10 +28,11 @@
     "production_run_id": "RUN-d3178de6fc6c495c9c2e93b3289c870c",
     "results_sha256": "883786aeae5c75963a344f61b7e52813a18858ff0a644c5c0c26ccf8b71b30cd",
     "evidence_refs": [
-      "EV-C29-TS500-EFFECTIVE-LENGTH-20261121"
+      "EV-C29-TS500-EFFECTIVE-LENGTH-20261121",
+      "EV-C29-MAT-HORIZONTAL-SUPPORT-20261121"
     ],
     "engineering_release": "NOT_READY",
-    "next_action": "Acquire the qualified TS 500 story sway analysis and foundation-only condensed rotational restraint for C29 node 934. Finalize the adopted k and update R08 local and story magnification under GAP-009."
+    "next_action": "Use UX=UY=0 at C29 base joint 934 and qualify the applicable TS 500 story sway classifications first. Use the k=1.0 provision where sway is prevented. For a sway-permitted branch, qualify the effective-length model and obtain the rotational response at 934 if needed. Bind the resulting R08 effects under GAP-009."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
@@ -5133,6 +5134,55 @@
       ],
       "engineering_release": "NOT_READY",
       "next_action": "Acquire the qualified TS 500 story sway analysis and foundation-only condensed rotational restraint for C29 node 934. Finalize the adopted k and update R08 local and story magnification under GAP-009."
+    },
+    {
+      "id": "EV-C29-MAT-HORIZONTAL-SUPPORT-20261121",
+      "observed_at_utc": "2026-11-21T05:08:34.205885Z",
+      "inspected_base_commit": "e5813842243b93544a728b61b7bef32e8da524f0",
+      "prior_evidence": [
+        "EV-C29-TS500-EFFECTIVE-LENGTH-20261121"
+      ],
+      "scope": "C29 base horizontal restraint and the order of TS 500 effective-length decisions.",
+      "source": ".receipts/RUN-7b6c79ccc46c47c0a8e8d15344a22e2e/input.source",
+      "source_sha256": "28fbbe15aeb94e42a989c7b3a13545c86919b482ef377a5a46112907edd8ecfb",
+      "archived_model_text_sha256": "3ca524d6a951c5490ea28793ddbc349b271801fd7ec1ed1452d191c22911b02b",
+      "model_assignment_line": 902,
+      "node_id": "934",
+      "point_bay": "91",
+      "story": "Base",
+      "column": "225",
+      "upper_node": "40",
+      "horizontal_boundary": {
+        "UX": "RESTRAINED",
+        "UY": "RESTRAINED"
+      },
+      "base_rows_checked": 14,
+      "native_display": "vs05_delta_source / Joint Displacements",
+      "spectral_base_to_upper_joint": {
+        "RSX": {
+          "quantity": "Ux",
+          "base_m": 0.0,
+          "upper_m": 0.001956,
+          "relative_mm": 1.956,
+          "base_rotation_axis": "Ry",
+          "base_rotation_rad": 7.8e-05
+        },
+        "RSY": {
+          "quantity": "Uy",
+          "base_m": 0.0,
+          "upper_m": 0.001931,
+          "relative_mm": 1.931,
+          "base_rotation_axis": "Rx",
+          "base_rotation_rad": 1.7e-05
+        }
+      },
+      "basis": "TS 500 §§7.6.2.1–7.6.2.2 require the story classification before applying the sway-prevented k=1.0 provision.",
+      "private_receipt_root": ".receipts/verification/c29-base-horizontal-restraint-20261121",
+      "execution": "CONTEXT_AND_SOURCE_VALIDATION",
+      "regression": "NOT_RUN",
+      "engineering_release": "NOT_READY",
+      "next_action": "Use UX=UY=0 at C29 base joint 934 and qualify the applicable TS 500 story sway classifications first. Use the k=1.0 provision where sway is prevented. For a sway-permitted branch, qualify the effective-length model and obtain the rotational response at 934 if needed. Bind the resulting R08 effects under GAP-009.",
+      "source_check_sha256": "bfd995bfffa6334c215e3cc8232d1a951cd072775138e9587c1e9a318acb4b9d"
     }
   ],
   "new_record_template": {
@@ -5157,7 +5207,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-21T04:46:48.548908Z",
+  "updated_at_utc": "2026-11-21T05:08:34.205885Z",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
