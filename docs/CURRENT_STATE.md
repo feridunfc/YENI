@@ -20,9 +20,13 @@ soffit matches the native J cut. The model now supplies standalone
 clear lengths for 73 columns. The other 14, all at +0.00, have wall
 mesh contacts inside the column height. Thirteen share an edge with
 the wall shells on every frame segment. Member 211 (C104) shares five
-of eight edges. Its other three segments require a mesh compatibility
-check. These 14 members retain their native cuts. Their independent
-column effective-length model requires a coupled wall-frame assessment.
+of eight edges. A read of the unchanged original ETABS model confirmed
+automatic edge constraints on W21 and W22 and placed all three
+nonmatching segments on those shell edges. The three signed control
+cases provide a displacement comparison. The internal constraint
+equations and the local force-transfer basis for the coupled members
+remain open. See `EV-GAP006-C104-AUTO-EDGE-20261121`. These 14 members
+retain their native cuts and require a coupled wall-frame assessment.
 
 The eight signed static load sets give 48 story/axis comparisons using
 TS 500 Eq. (7.27)–(7.28) as a reference. Each numerator includes all

@@ -19,26 +19,26 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "WALL_MESH_INDEPENDENT_CENSUS_AND_SIGNED_STORY_REFERENCE",
-    "work_branch": "work/gap006-wall-geometry",
+    "status": "C104_NATIVE_AUTO_EDGE_ASSIGNMENTS_VERIFIED",
+    "work_branch": "work/gap006-c104-edge-readback",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "bca6e6151e16682314cba653c29594f9fc077689",
+    "inspected_base_commit": "77db25a9eeda52ce801f98c1deb42a6e16fb5022",
     "source_run_id": "RUN-ec213e8622d2404ca2cd39ca5b392d7a",
     "source_sha256": "dcaa231263607e6ea71d1282b597542480dbc2f90f845889e27ad9c2000e059d",
     "production_run_id": "RUN-ad31d3a7be684247a622444aa06475c4",
     "results_sha256": "e0770352d18bda5a2ab2e3dd6d36688110fff5e82513e077984a2b28dc685c7a",
     "evidence_refs": [
+      "EV-GAP006-C104-AUTO-EDGE-20261121",
       "EV-GAP006-WALL-MESH-AND-CUTS-20261121",
-      "EV-GAP009-SIGNED-STORY-MAGNIFICATION-20261121",
-      "EV-C29-MAT-ROTATION-CALIBRATED-LENGTH-20261121"
+      "EV-GAP009-SIGNED-STORY-MAGNIFICATION-20261121"
     ],
     "engineering_release": "NOT_READY",
-    "next_action": "Verify the shell-edge interpolation or native constraint connection for member 211. Qualify the wall-frame analysis, adopted creep convention and assigned design demand before using the reference story magnification in the production design checks."
+    "next_action": "Qualify local wall-frame force transfer at C104 and the coupled stiffness and compression basis. Adopt the applicable creep convention and assigned design demand before using the R08 factors in design."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
-    "commit_sha": "bca6e6151e16682314cba653c29594f9fc077689",
-    "git_tree_sha": "e32577e180d30621f9c71d682fb7f26c84391c05",
+    "commit_sha": "77db25a9eeda52ce801f98c1deb42a6e16fb5022",
+    "git_tree_sha": "b3b18d53a0d526835956602e4540a42be54ae969",
     "observed_on": "2026-11-21",
     "scope": "Verified parent of this checkpoint. Resolve the current published ref with git ls-remote."
   },
@@ -5524,6 +5524,44 @@
       "limit": "Column-only signed reference checks, with conditional stiffness and restraint. The tested Rm endpoint does not determine the adopted convention for opposed shears. This result does not transfer to the assigned spectral demand.",
       "engineering_release": "NOT_READY",
       "next_action": "Verify the shell-edge interpolation or native constraint connection for member 211. Qualify the wall-frame analysis, adopted creep convention and assigned design demand before using the reference story magnification in the production design checks."
+    },
+    {
+      "id": "EV-GAP006-C104-AUTO-EDGE-20261121",
+      "date": "2026-11-21",
+      "gaps": [
+        "GAP-006",
+        "GAP-009"
+      ],
+      "base_commit": "77db25a9eeda52ce801f98c1deb42a6e16fb5022",
+      "classification": "LIVE_AUTO_EDGE_ASSIGNMENT_AND_GEOMETRIC_CONTAINMENT_VERIFIED",
+      "method": "Existing ETABS attach reads the unmodified original analyzed model. Read AreaObj.GetEdgeConstraint and exact PointElm coordinates and compare the three frame segment intervals with the source shell edges. Read three finished static case displacements with restored output selection.",
+      "model_edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+      "input_source_sha256": "dcaa231263607e6ea71d1282b597542480dbc2f90f845889e27ad9c2000e059d",
+      "native_read_sha256": "73a132965b6ea1fd658c61e61a9a0dd918400a83d7d84b7e9c8a0a79bbccf616",
+      "verification_sha256": "a3cf1794849c052526408c97788bc6db4a9f1231dcbcdc3002f2d76a21d83a6a",
+      "private_receipt": ".receipts/verification/gap006-wall-geometry-20261121/c104-live-read-20261121T062224747221Z.json",
+      "observed": {
+        "wall_objects": {
+          "436": true,
+          "437": true
+        },
+        "frame_segments_with_geometric_edge_coverage": [
+          "211-5",
+          "211-6",
+          "211-7"
+        ],
+        "signed_static_control_cases": [
+          "LC_DL",
+          "LC_EQX",
+          "LC_EQY"
+        ],
+        "maximum_straight_line_translation_residual_m": 5.139369875508835e-06
+      },
+      "software_tests": "NOT_RUN_DOCUMENTATION_AND_NEW_LIVE_DATA_ONLY",
+      "verification_command": "python -X utf8 -B .receipts/verification/gap006-wall-geometry-20261121/verify_c104_edge.py",
+      "limit": "The live setting and collinear containing edges are verified. Straight-line translation residuals do not check the solver's internal interpolation equation, and no local joint-force or stress acceptance is implied.",
+      "engineering_release": "NOT_READY",
+      "next_action": "Qualify local wall-frame force transfer at C104 and the coupled stiffness and compression basis. Adopt the applicable creep convention and assigned design demand before using the R08 factors in design."
     }
   ],
   "new_record_template": {

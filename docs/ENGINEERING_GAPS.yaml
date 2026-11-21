@@ -1,9 +1,9 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-21T06:19:34.568961Z",
+  "updated_at_utc": "2026-11-21T06:25:15.490888Z",
   "repository": "feridunfc/YENI",
-  "baseline_implementation_commit": "bca6e6151e16682314cba653c29594f9fc077689",
+  "baseline_implementation_commit": "77db25a9eeda52ce801f98c1deb42a6e16fb5022",
   "local_reconciled": true,
   "scope_note": "18 stable GAPs. The original R08/R10 calculation uses model clear lengths at 59 aligned columns. R08 verifies the native horizontal boundary at all 32 mat-supported columns. Paired TS 500 static references exceed the 5% shortcut threshold in all six occupied story directions.",
   "status_policy": {
@@ -29,7 +29,7 @@
     "GAP-013",
     "GAP-016"
   ],
-  "active_task": "Verify the shell-edge interpolation or native constraint connection for member 211. Qualify the wall-frame analysis, adopted creep convention and assigned design demand before using the reference story magnification in the production design checks.",
+  "active_task": "Qualify local wall-frame force transfer at C104 and the coupled stiffness and compression basis. Adopt the applicable creep convention and assigned design demand before using the R08 factors in design.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -155,8 +155,8 @@
       "title": "Same-cut mesh, offsets and physical faces",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Supported MinStations=3 / zero-I-offset subset: 4422/4422 required cuts, including both sides in 14 meshed columns. Model support elevations and individual native cuts agree for both C29 segments and 59 of 87 columns. The five native face/connectivity tables include polygon continuation rows and the radye foundation mesh contact. Independently derived 402 distinct configured cuts match all 957 member/combination inventories and 7,638 force rows with native steps. Standalone physical lengths and cuts agree for 73 columns. Fourteen basement frame objects have identified wall shell contacts, including one partially coincident shell edge chain.",
-      "blocker": "Member 211 shares five of eight analysis edges with the wall shells. Establish the remaining mesh transitions and preserve the coupled wall-frame treatment for the 14 basement members.",
+      "achieved_scope": "Supported MinStations=3 / zero-I-offset subset: 4422/4422 required cuts, including both sides in 14 meshed columns. Model support elevations and individual native cuts agree for both C29 segments and 59 of 87 columns. The five native face/connectivity tables include polygon continuation rows and the radye foundation mesh contact. Independently derived 402 distinct configured cuts match all 957 member/combination inventories and 7,638 force rows with native steps. Standalone physical lengths and cuts agree for 73 columns. Fourteen basement frame objects have identified wall shell contacts, including one partially coincident shell edge chain. The original ETABS model confirms automatic edge constraints on both C104 walls and geometric shell-edge coverage for all three nonmatching segments.",
+      "blocker": "Automatic edge assignments and geometric coverage are verified. The coupled frame/wall local force-transfer basis and the generated-constraint equivalence needed for that use remain open at 211.",
       "closure_criteria": "Establish all supported cut/face/mesh identities independently of force results; reject missing or ambiguous side matches.",
       "owner_paths": [
         "src/tbdy_next/engineering/column_pmm.py",
@@ -168,7 +168,8 @@
         "EV-LOCAL-NATIVE",
         "EV-LOCAL-SPECTRAL",
         "EV-C29-PHYSICAL-CLEAR-LENGTH-20261120",
-        "EV-GAP006-WALL-MESH-AND-CUTS-20261121"
+        "EV-GAP006-WALL-MESH-AND-CUTS-20261121",
+        "EV-GAP006-C104-AUTO-EDGE-20261121"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false

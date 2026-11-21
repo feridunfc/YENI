@@ -40,8 +40,11 @@ beam and floor objects by their native unique IDs and ordered point identities.
 Read the shared length in R08 and R10 and the open R14 gates.
 `EV-GAP006-WALL-MESH-AND-CUTS-20261121` records the independent 402-cut
 census, 73 standalone clear lengths and 14 wall-coupled mesh records.
-Compare the distinct element sides and all load steps. Member 211
-has three segments without an exact shared shell edge.
+Compare the distinct element sides and all load steps. For member 211,
+`EV-GAP006-C104-AUTO-EDGE-20261121` verifies the original model's
+automatic edge assignments and shell edge coverage at the three
+nonmatching segments. Qualify local force transfer if the coupled
+wall-frame design uses those results.
 For C29 effective lengths use `EV-C29-TS500-EFFECTIVE-LENGTH-20261121`.
 Trace the axis-length frame terms and the two clear spans into R08. Use
 `EV-R08-MAT-HORIZONTAL-BOUNDARY-20261121` for the production mat restraint
