@@ -2166,6 +2166,9 @@ def _recorded_capacity_shear_html(uid, member: Mapping[str, Any]) -> str:
                 if any(row.get("alpha_demand_revision_sha256") for row in rows):
                     cols += (("alpha_demand_revision_sha256", "Alpha demand revision"),)
                 parts.append(_table(cols, rows))
+        elif result.get("execution_status") == "NOT_RUN":
+            parts.append(f'<p>Column {_val(uid)} · capacity shear · {label} · '
+                         f'{_val(result["status"])}</p>')
     return "".join(parts)
 
 

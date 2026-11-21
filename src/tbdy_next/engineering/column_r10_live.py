@@ -1422,7 +1422,19 @@ def _column_capacity_shear_ve(
     """TBDY 2018 §7.3.7 (CHK-126) conditional column capacity shear Ve = (Ma + Mü) / ln."""
     if not col_frame or not transverse_shear or not col_frame.get("axes_global"):
         return None
-    from .column_clear_length import FACE_BASIS, proven_clear_length_m
+    from .column_clear_length import FACE_BASIS, WALL_COUPLED, proven_clear_length_m
+
+    if (physical_length and physical_length.get("member_id") == uid
+            and physical_length.get("status") == WALL_COUPLED):
+        return {
+            "check_id": "CHK-126",
+            "clear_length_m": None,
+            "clear_length_basis": WALL_COUPLED,
+            "axes": {},
+            "status": "WALL_COUPLED_CAPACITY_SHEAR_REQUIRES_PHYSICAL_SPAN",
+            "execution_status": "NOT_RUN",
+            "formal_compliance": "NOT_PROVEN",
+        }
 
     ln_m = proven_clear_length_m(physical_length, uid)
     ln_basis = FACE_BASIS

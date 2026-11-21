@@ -1,5 +1,6 @@
 """Source-bound column faces and force-cut alignment."""
 from unittest import TestCase
+from unittest.mock import patch
 
 from tbdy_next.column_engine.native_archive import digest
 from tbdy_next.engineering.column_clear_length import (
@@ -8,7 +9,7 @@ from tbdy_next.engineering.column_clear_length import (
 from tbdy_next.engineering.column_r08_local_live import (
     PHYSICAL_CLEAR_LENGTH_GATE, WALL_COUPLED_LENGTH_GATE, project_column_r08_local_live,
 )
-from tbdy_next.engineering.column_r10_live import _build_frame_catalog
+from tbdy_next.engineering.column_r10_live import _build_frame_catalog, _column_capacity_shear_ve
 from tbdy_next.etabs_geometry import AREA_ELEMENTS, AREA_INSERTION, FLOOR_CONNECTIVITY, FRAME_INSERTION, SLAB_PROPERTIES
 from test_r08_local_live import _r08_local_fixture
 
@@ -216,3 +217,18 @@ class ColumnClearLengthTests(TestCase):
         self.assertNotIn("magnified_selected_pmm", output)
         self.assertNotIn("spectral_envelope_pmm_scenario", output)
         self.assertIn(WALL_COUPLED_LENGTH_GATE, output["open_gates"])
+
+    def test_r10_does_not_use_offsets_as_capacity_shear_span_for_wall_coupled_column(self):
+        proof = {"member_id": "127", "status": WALL_COUPLED, "offset_length_m": 3.8}
+        with patch("tbdy_next.engineering.column_r10_live._column_clear_length_m") as fallback:
+            result = _column_capacity_shear_ve(
+                uid="127", col_frame={"axes_global": [(0, 0, 1), (1, 0, 0), (0, 1, 0)]},
+                scwb_joints=[], transverse_shear={"shear_stations": []},
+                source={}, geometry={}, axial={}, physical_length=proof, use_engineer_selection=True,
+            )
+        fallback.assert_not_called()
+        self.assertIsNone(result["clear_length_m"])
+        self.assertEqual(result["clear_length_basis"], WALL_COUPLED)
+        self.assertEqual(result["status"], "WALL_COUPLED_CAPACITY_SHEAR_REQUIRES_PHYSICAL_SPAN")
+        self.assertEqual(result["axes"], {})
+        self.assertNotIn("assigned_spectral", result)

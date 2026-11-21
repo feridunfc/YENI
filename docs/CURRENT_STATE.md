@@ -8,17 +8,34 @@ and its [six-step calculation sequence](engineering/reference/recipe_20261118/de
 
 ## C104 common-joint mesh and assigned spectral sway
 
-The authorized C104 Save As solved all 15 original load cases on a 50 mm
-vertical mesh. The two wall assignments use explicit subdivisions and
-share analysis nodes with C104 along all 103 frame segments. The signed
-force and moment balance closes at 55 interior nodes across six loads.
-The largest residual is 1.14 × 10⁻⁹ kN or 2.84 × 10⁻¹¹ kN·m by component.
-The model edits cover W21 and W22 only. At elevation −0.75 m, on the lower
-side of the cut, the Duct_SeisX Min V2 changes from −4.08 kN in the original
-to −256.19 kN in the common-joint model. A separate check of the original
-32Φ16 cage puts the maximum sampled first-order PMM utilization at 0.331
-and 0.327 respectively. Use the matched-mesh checkpoint to qualify local
-demand before selecting a production model.
+The authorized C104 Save As solved all 15 original load cases at both
+50 and 25 mm vertical mesh steps. All 103 and 206 C104 segments share
+exact nodes with W21/W22, respectively. The 25 mm mesh balances all six
+signed loads at 112 generated interior nodes. The largest component
+residuals are 2.87 × 10⁻⁹ kN and 2.34 × 10⁻¹¹ kN·m. At elevation
+−0.75 m on the lower face, Duct_SeisX Min V2 is −4.08 kN in the
+original, −256.19 kN at 50 mm and −276.31 kN at 25 mm. Across the six
+matched cut faces, refinement changes V3 by up to 50.46 kN and torsion
+by up to 32.09 kN·m. The first three modal frequencies change by at most
+0.013% between the two common-joint meshes.
+
+The first-order C104 shear screen covers all 356 reported cut sides
+and eight assigned seismic combinations on the 25 mm mesh. It finds a
+maximum Vd of 292.99 kN and Vd/Vsw of 0.208 for the 32Φ16 cage with
+Φ10/90 ties. Sampled first-order spectral PMM utilization is 0.331,
+0.327 and 0.325 for the three models. These checks use the stated
+candidate reinforcement and cover first-order actions and sampled PMM
+points. R10 withholds capacity shear based on an offset proxy wherever
+the physical record shows interior wall coupling. R14 carries this as
+an unresolved two-axis capacity shear check.
+
+W21 and W22 have the same pier assignment, while C104 is a separate
+frame object at their shared centerline. The partial sectional sum of
+these three objects also changes under refinement. Confirm the physical
+wall boundary and reinforcement detail before choosing a coupled
+section, and compare section actions over identical physical cuts.
+See `EV-GAP006-C104-REFINEMENT-20261121` and
+`EV-R10-WALL-COUPLED-CAPACITY-SPAN-20261121`.
 
 R08 retains the native cut evidence for the 14 wall-coupled columns and
 withholds isolated Euler loads, moment magnification and magnified PMM

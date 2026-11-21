@@ -19,27 +19,29 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "C104_COMMON_JOINT_TRANSFER_AND_ASSIGNED_SPECTRAL_SWAY_VERIFIED",
-    "work_branch": "work/gap009-original-analysis-order",
+    "status": "C104_REFINEMENT_COMPARED_AND_R10_WALL_SPAN_GUARD_VERIFIED",
+    "work_branch": "work/gap006-c104-refinement",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "5d1597ee658a74b9c1bbaba34ffd3c41a0c36ec9",
+    "inspected_base_commit": "2e31a68578c8f1ba664bb1b64ca7afda1ad79705",
     "source_run_id": "RUN-ec213e8622d2404ca2cd39ca5b392d7a",
     "source_sha256": "dcaa231263607e6ea71d1282b597542480dbc2f90f845889e27ad9c2000e059d",
-    "production_run_id": "RUN-b52de9fc8acf4ca5a1f6dbcf10c44f87",
-    "results_sha256": "11727e0f6de402eaaeb5ff0199f27ee96e3f7d239b66bc028bd4b1330518c2bb",
+    "production_run_id": "RUN-4b47bcb573344bac9433e877113722d9",
+    "results_sha256": "4d85b045795e7402bcb520013674157f8b1930273395fd8697c87b2c0317dae5",
     "evidence_refs": [
       "EV-GAP006-C104-MATCHED-MESH-20261121",
       "EV-GAP009-ASSIGNED-SPECTRAL-SWAY-20261121",
       "EV-R08-WALL-COUPLED-ISOLATED-GUARD-20261121",
-      "EV-GAP009-ORIGINAL-FIRST-ORDER-20261121"
+      "EV-GAP009-ORIGINAL-FIRST-ORDER-20261121",
+      "EV-GAP006-C104-REFINEMENT-20261121",
+      "EV-R10-WALL-COUPLED-CAPACITY-SPAN-20261121"
     ],
     "engineering_release": "NOT_READY",
-    "next_action": "Solve the prepared 25 mm private mesh, compare the same physical sides and establish the local demand basis before binding the adopted mesh to R08 and R10. Calculate the coupled second-order demand, then qualify stiffness, creep and analysis-order inputs."
+    "next_action": "Confirm the C104 and W21/W22 physical section and reinforcement assignment, define its qualified coupled cut and stiffness basis, and solve the coupled second-order demand for the 14 members. Bind the accepted model, cuts and demands to R08 and R10."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
-    "commit_sha": "5d1597ee658a74b9c1bbaba34ffd3c41a0c36ec9",
-    "git_tree_sha": "8d446c0967bb296c9136a0393fa52ea96e9daa79",
+    "commit_sha": "2e31a68578c8f1ba664bb1b64ca7afda1ad79705",
+    "git_tree_sha": "9114d26650640e37be30d1a2b6d9d9166161c4f2",
     "observed_on": "2026-11-21",
     "scope": "Verified parent of this checkpoint. Resolve the current published ref with git ls-remote."
   },
@@ -5730,6 +5732,124 @@
       "software_tests": "NOT_RUN_ARCHIVED_SOLVER_OUTPUT_CHECK_ONLY",
       "limit": "Archived physical load-case order. R03 source/design admission and second-order predictions are separate.",
       "engineering_release": "NOT_READY"
+    },
+    {
+      "id": "EV-GAP006-C104-REFINEMENT-20261121",
+      "observed_at_utc": "2026-11-21T07:24:39+00:00",
+      "gaps": [
+        "GAP-006",
+        "GAP-009"
+      ],
+      "base_commit": "2e31a68578c8f1ba664bb1b64ca7afda1ad79705",
+      "supersedes_refinement_status_in": "EV-GAP006-C104-MATCHED-MESH-20261121",
+      "classification": "COMMON_JOINT_REFINEMENT_SOLVED_WITH_MESH_SENSITIVE_LOCAL_DEMAND",
+      "method": "Double the wall subdivisions in the same approved private model. Verify the section properties directly, solve the 15 original cases, and compare values with identical stations, cut sides, cases and steps. Reconcile signed shell joint actions independently. Run same-cage first-order PMM samples and Vd/Vsw screens. Sum the signed C104 and W21/W22 cut forces about the C104 axis at three elevations.",
+      "original_edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+      "final_private_edb_sha256": "5ea223ad5837f3edb26229fb42468b972fd28cf0b355b979a1d989f531e64fd0",
+      "input_source_sha256": "dcaa231263607e6ea71d1282b597542480dbc2f90f845889e27ad9c2000e059d",
+      "private_receipt": ".receipts/R08_C104_MESH/runs/20261121T063930812557Z",
+      "artifact_sha256": {
+        "mesh-comparison": "04c62ba01f141bffa80bc93abb395ccfe1767812188e5ae44abf77f927b91fbe",
+        "capacity-comparison": "7459868247114c0ddf0319137a93f3b1fbbb641434ef6d13428d5cd95289b248",
+        "combined-section-comparison": "39ee5c8318f2712a4e1dd77c50cf45110a4c0f93c0a7bad9580609a5a6f74792",
+        "c104-first-order-shear-screen": "02d086d68e550966c00074b73063088d56ef2017efb3fc47905b04750bdddb85"
+      },
+      "commands": [
+        "python -X utf8 -B .receipts/R08_C104_MESH/solve_mesh.py --resume-refinement --pid <live ETABS PID>",
+        "python -X utf8 -B .receipts/R08_C104_MESH/verify_matched_mesh.py",
+        "python -X utf8 -B .receipts/R08_C104_MESH/compare_combined_sections.py",
+        "python -X utf8 -B .receipts/R08_C104_MESH/c104_cut_capacity.py",
+        "python -X utf8 -B .receipts/R08_C104_MESH/c104_shear_screen.py"
+      ],
+      "observed": {
+        "physical_cases_finished_per_mesh": 15,
+        "common_segments_50mm_25mm": [
+          103,
+          206
+        ],
+        "signed_joint_balances_25mm": 672,
+        "max_force_balance_residual_25mm_kn": 2.8698465825982566e-09,
+        "max_moment_balance_residual_25mm_knm": 2.33946195749013e-11,
+        "refinement_matched_components": 900,
+        "max_absolute_delta_by_component": {
+          "P": 44.30795404488089,
+          "V2": 25.569702167531545,
+          "V3": 50.4589914563355,
+          "T": 32.08523213052118,
+          "M2": 3.9755186181127726,
+          "M3": 6.087602824343804
+        },
+        "selected_v2_same_cut": {
+          "elevation_m": -0.75,
+          "side": "below",
+          "case": "Duct_SeisX",
+          "step": "Min",
+          "original_kn": -4.079141862710353,
+          "50mm_kn": -256.19297413239605,
+          "25mm_kn": -276.31289434112756
+        },
+        "max_first_three_frequency_change_percent": 0.012727218279284802,
+        "max_base_force_component_delta_kn": 2.9842074127373053e-05,
+        "max_base_moment_component_delta_knm": 0.002648326160851866,
+        "sampled_spectral_pmm_max": {
+          "original": 0.3309403533831976,
+          "mesh-1": 0.3274736919510891,
+          "mesh-2": 0.3251307474594997
+        },
+        "refined_vd_vs_vsw_screen": {
+          "cut_count": 356,
+          "cases": 8,
+          "axis_case_cut_count": 5696,
+          "max_vd_kn": 292.9897089608647,
+          "max_vd_over_vsw": 0.20814161540547108
+        },
+        "partial_signed_section_states": 36,
+        "largest_partial_section_moment_change_knm": 151.3197041876964
+      },
+      "scope_limit": "The wall mesh changes both subdivision directions. Positive equilibrium and small global control shifts coexist with material local changes. The combined section is restricted to the stated wall/frame objects and signed load cases. The Vd screen uses zero concrete resistance and covers applied first-order demand. The PMM values cover sampled first-order points. The full capacity shear and second-order load paths remain open.",
+      "engineering_release": "NOT_READY",
+      "next_action": "Confirm the C104 and W21/W22 physical section and reinforcement assignment, define its qualified coupled cut and stiffness basis, and solve the coupled second-order demand for the 14 members. Bind the accepted model, cuts and demands to R08 and R10."
+    },
+    {
+      "id": "EV-R10-WALL-COUPLED-CAPACITY-SPAN-20261121",
+      "observed_at_utc": "2026-11-21T07:24:39+00:00",
+      "gaps": [
+        "GAP-006",
+        "GAP-009",
+        "GAP-014"
+      ],
+      "base_commit": "2e31a68578c8f1ba664bb1b64ca7afda1ad79705",
+      "classification": "PRODUCTION_R10_WALL_COUPLED_CAPACITY_SHEAR_SPAN_GUARD_VERIFIED",
+      "method": "Replay the sealed input through the production pipeline. A physical wall-coupled classification blocks the offset-length fallback for original and selected reinforcement. Confirm R14 incomplete capacity checks and the recorded HTML status. Compare all other R10 member records with the preceding replay.",
+      "input_sha256": "dcaa231263607e6ea71d1282b597542480dbc2f90f845889e27ad9c2000e059d",
+      "results_sha256": "4d85b045795e7402bcb520013674157f8b1930273395fd8697c87b2c0317dae5",
+      "previous_replay": "RUN-b52de9fc8acf4ca5a1f6dbcf10c44f87",
+      "verified_replay": "RUN-4b47bcb573344bac9433e877113722d9",
+      "wall_coupled_capacity_shear_withheld": 14,
+      "other_r10_members_unchanged": 73,
+      "r14_status_counts": {
+        "R14_PARTIAL_OR_UNBOUND": 87
+      },
+      "verification_sha256": "9413f99d9f0799f279a22998926d3bf50834269c1de0e465684420357d75616b",
+      "report_html_sha256": "d25df4f1e694ed58aaf787ddf781160f2914cfd45bba41b97d74c43d6d3ccde0",
+      "tested_file_manifest_sha256": "bde66dd835af4671e21aab473aa2a32f00ee5d2e42f9eb428073dcfb09c7c752",
+      "code_diff_sha256": "576e5b9db8f707c7f17aad4ad8ef5329aa92edc67bc0e9d036719f3c5e2c1fad",
+      "software_tests": [
+        {
+          "command": "python -X utf8 -B -m unittest discover -s tests -q",
+          "count": 1566,
+          "skipped": 1,
+          "status": "PASS",
+          "log_sha256": "6b4a72d4f68d4ed5a6a44d5577b0502370c5a6a8dfb09d11d21bb713e2d8b31d"
+        }
+      ],
+      "commands": [
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --source <sealed input.source> --case Modal --out .receipts/verification/gap006-c104-refinement-20261121/production-replay",
+        "python -X utf8 -B .receipts/verification/gap006-c104-refinement-20261121/verify_r10.py"
+      ],
+      "private_receipt": ".receipts/verification/gap006-c104-refinement-20261121",
+      "code_ref": "TBDY 2018 §7.3.7 and §7.3.8",
+      "engineering_release": "NOT_READY"
     }
   ],
   "new_record_template": {
@@ -5754,7 +5874,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-21T07:06:10+00:00",
+  "updated_at_utc": "2026-11-21T07:24:39+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",

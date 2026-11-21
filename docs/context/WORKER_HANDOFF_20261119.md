@@ -44,11 +44,14 @@ Compare the distinct element sides and all load steps. For member 211,
 `EV-GAP006-C104-AUTO-EDGE-20261121` verifies the original model's
 automatic edge assignments and shell edge coverage at the three
 nonmatching segments. Start the next C104 calculation at
-`EV-GAP006-C104-MATCHED-MESH-20261121`. The original eight-segment result
-and the private common-joint result have materially different V2 at the
-same physical cut. Compare both sides of a cut independently. Finish
-mesh refinement and qualify local demand in the adopted model before
-using it in R08 or C104 shear design.
+`EV-GAP006-C104-REFINEMENT-20261121`. Both common-joint meshes solved
+all 15 cases. Their local cut forces differ materially. Compare each
+cut face and step identity independently. The first-order
+cage screen covers the new cut census. Use the wall-boundary detail
+and coupled section to qualify the next design demand.
+`EV-R10-WALL-COUPLED-CAPACITY-SPAN-20261121` records the R10 guard for
+members with interior wall contact. The R14 design check remains open
+until the physical span or the coupled design section has been established.
 For C29 effective lengths use `EV-C29-TS500-EFFECTIVE-LENGTH-20261121`.
 Trace the axis-length frame terms and the two clear spans into R08. Use
 `EV-R08-MAT-HORIZONTAL-BOUNDARY-20261121` for the production mat restraint
