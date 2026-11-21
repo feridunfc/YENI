@@ -19,10 +19,10 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "C104_REFINEMENT_COMPARED_AND_R10_WALL_SPAN_GUARD_VERIFIED",
-    "work_branch": "work/gap006-c104-refinement",
+    "status": "C104_MATCHED_MESH_AND_GROSS_SECTION_GEOMETRY_VERIFIED",
+    "work_branch": "work/gap006-c104-section",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "2e31a68578c8f1ba664bb1b64ca7afda1ad79705",
+    "inspected_base_commit": "987f4de27e7f3256e7385b2d7952de53d846054b",
     "source_run_id": "RUN-ec213e8622d2404ca2cd39ca5b392d7a",
     "source_sha256": "dcaa231263607e6ea71d1282b597542480dbc2f90f845889e27ad9c2000e059d",
     "production_run_id": "RUN-4b47bcb573344bac9433e877113722d9",
@@ -33,15 +33,16 @@
       "EV-R08-WALL-COUPLED-ISOLATED-GUARD-20261121",
       "EV-GAP009-ORIGINAL-FIRST-ORDER-20261121",
       "EV-GAP006-C104-REFINEMENT-20261121",
-      "EV-R10-WALL-COUPLED-CAPACITY-SPAN-20261121"
+      "EV-R10-WALL-COUPLED-CAPACITY-SPAN-20261121",
+      "EV-GAP006-C104-SECTION-PROFILE-20261121"
     ],
     "engineering_release": "NOT_READY",
-    "next_action": "Confirm the C104 and W21/W22 physical section and reinforcement assignment, define its qualified coupled cut and stiffness basis, and solve the coupled second-order demand for the 14 members. Bind the accepted model, cuts and demands to R08 and R10."
+    "next_action": "Bind the C104/W21/W22 construction reinforcement and connection detail across elevation -1.50 m. Check the component-specific cut actions and use the accepted coupled stiffness and second-order demand."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
-    "commit_sha": "2e31a68578c8f1ba664bb1b64ca7afda1ad79705",
-    "git_tree_sha": "9114d26650640e37be30d1a2b6d9d9166161c4f2",
+    "commit_sha": "987f4de27e7f3256e7385b2d7952de53d846054b",
+    "git_tree_sha": "f3fbe6fcc2db7d3fdc9f40b430f057295b41c0c0",
     "observed_on": "2026-11-21",
     "scope": "Verified parent of this checkpoint. Resolve the current published ref with git ls-remote."
   },
@@ -5850,6 +5851,47 @@
       "private_receipt": ".receipts/verification/gap006-c104-refinement-20261121",
       "code_ref": "TBDY 2018 §7.3.7 and §7.3.8",
       "engineering_release": "NOT_READY"
+    },
+    {
+      "id": "EV-GAP006-C104-SECTION-PROFILE-20261121",
+      "observed_at_utc": "2026-11-21T07:35:53+00:00",
+      "gaps": [
+        "GAP-006",
+        "GAP-009"
+      ],
+      "base_commit": "987f4de27e7f3256e7385b2d7952de53d846054b",
+      "classification": "C104_TWO_STAGE_GROSS_SECTION_GEOMETRY_VERIFIED",
+      "method": "Reconcile the supplied view with archived wall geometry, ETABS centroid and mid-surface insertion assignments, rectangular column dimensions and the full exported pier membership. Compute nonoverlapping rectangle areas and centroidal inertias and cross-check the totals by subtracting intersection properties.",
+      "source_fingerprints": {
+        "sealed_input": "dcaa231263607e6ea71d1282b597542480dbc2f90f845889e27ad9c2000e059d",
+        "original_text_export": "3ca524d6a951c5490ea28793ddbc349b271801fd7ec1ed1452d191c22911b02b",
+        "provided_model_view": "e75186bbedb15d618bda5eb59b76da4f43ee157ef3066fad88ab43f8be2903e0"
+      },
+      "verification_sha256": "8abcabc8dc322cbe3de27a9adbefbc38d1317bf33d81c6a018fc4366bda038bb",
+      "private_receipt": ".receipts/verification/gap006-c104-section-20261121/section-geometry.json",
+      "commands": [
+        "python -X utf8 -B .receipts/verification/gap006-c104-section-20261121/verify_section.py"
+      ],
+      "observed": {
+        "transition_elevation_m": -1.5,
+        "gross_section_area_m2": [
+          3.28,
+          4.48
+        ],
+        "gross_overlap_m2": [
+          0.16,
+          0.32
+        ],
+        "centroidal_iy_m4": [
+          16.669352845528454,
+          38.475276190476194
+        ],
+        "xp2_wall_object_count": 6
+      },
+      "scope_limit": "The image depicts ETABS model geometry. The union uses ideal centered gross concrete footprints. Physical reinforcement, wall-frame bar continuity, effective stiffness and normative acceptance remain open.",
+      "engineering_release": "NOT_READY",
+      "software_tests": "NOT_RUN_GEOMETRY_CALCULATION_AND_DOCUMENTATION_ONLY",
+      "next_action": "Bind the C104/W21/W22 construction reinforcement and connection detail across elevation -1.50 m. Check the component-specific cut actions and use the accepted coupled stiffness and second-order demand."
     }
   ],
   "new_record_template": {
@@ -5874,7 +5916,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-21T07:24:39+00:00",
+  "updated_at_utc": "2026-11-21T07:35:53+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",

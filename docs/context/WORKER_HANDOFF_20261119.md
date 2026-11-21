@@ -49,6 +49,9 @@ all 15 cases. Their local cut forces differ materially. Compare each
 cut face and step identity independently. The first-order
 cage screen covers the new cut census. Use the wall-boundary detail
 and coupled section to qualify the next design demand.
+`EV-GAP006-C104-SECTION-PROFILE-20261121` gives the model-based
+gross geometry on both sides of −1.50 m. Preserve the separate
+W21/W22/C104 scope. The native `xP2` group also includes W23–W26.
 `EV-R10-WALL-COUPLED-CAPACITY-SPAN-20261121` records the R10 guard for
 members with interior wall contact. The R14 design check remains open
 until the physical span or the coupled design section has been established.

@@ -29,12 +29,18 @@ points. R10 withholds capacity shear based on an offset proxy wherever
 the physical record shows interior wall coupling. R14 carries this as
 an unresolved two-axis capacity shear check.
 
-W21 and W22 have the same pier assignment, while C104 is a separate
-frame object at their shared centerline. The partial sectional sum of
-these three objects also changes under refinement. Confirm the physical
-wall boundary and reinforcement detail before choosing a coupled
-section, and compare section actions over identical physical cuts.
-See `EV-GAP006-C104-REFINEMENT-20261121` and
+The supplied model view matches the native parts at C104. W21 runs
+from −5.15 to 0.00 m and W22 joins C104 from −1.50 to 0.00 m. For
+the centered 80 × 80 cm column and 40 cm walls, the geometric union
+counts each overlap once. Its gross area is 3.28 m² below −1.50 m
+and 4.48 m² above. Its corresponding centroidal inertia about Y is
+16.669 and 38.475 m⁴. These are geometry inputs for the conditional
+coupled section. The reinforcement and connection detail are needed
+for section strength and effective stiffness. The `xP2` output includes
+six shell objects (W21–W26). C104 has a separate frame assignment.
+Preserve the specific C104/W21/W22 cut population when comparing actions.
+See `EV-GAP006-C104-REFINEMENT-20261121`,
+`EV-GAP006-C104-SECTION-PROFILE-20261121` and
 `EV-R10-WALL-COUPLED-CAPACITY-SPAN-20261121`.
 
 R08 retains the native cut evidence for the 14 wall-coupled columns and
