@@ -44,6 +44,8 @@ WHEEL_TESTS = (
     "test_spectral_shear_failure_propagation",
     "test_r14_adopted_basis",
     "test_vertical_slice_pipeline",
+    "test_axial_idealization",
+    "test_variable_axial_vertical_slice",
 )
 
 

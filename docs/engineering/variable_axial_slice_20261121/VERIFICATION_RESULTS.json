@@ -1,0 +1,225 @@
+{
+  "schema": "yeni.variable-axial-slice-verification.v1",
+  "observed_at_utc": "2026-11-21T13:13:44.098520+00:00",
+  "inspected_revision": {
+    "integration_branch": "baseline/local_import",
+    "full_commit_sha": "eb6328290a66484c8ddbc8ba37158be270b8fc5d",
+    "work_branch": "work/c29-variable-axial-slice-20261121",
+    "test_state": "MODIFIED_WORKING_TREE",
+    "tested_file_manifest": "TESTED_FILES.json",
+    "tested_file_manifest_sha256": "2f5e2b828bbbe72f22d3a40412889828ec7e48bf2ef89a04d2150aa4debd47c8",
+    "unpublished_windows_work": "NOT_INSPECTED",
+    "private_current_c29_source": "NOT_INSPECTED"
+  },
+  "environment": {
+    "interpreter": "/workspace/scratch/675b0dc139de/variable_axial_verification/env/bin/python",
+    "python": "3.12.14",
+    "python_implementation": "CPython",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "architecture": "x86_64",
+    "distribution": "tbdy-next-engine",
+    "distribution_version": "0.1.0",
+    "node": "v24.22.3",
+    "package_import_path": "/workspace/scratch/675b0dc139de/review_c29_eb63282/src/tbdy_next"
+  },
+  "method": {
+    "python_implementation": "CPython",
+    "python_version": "3.12.14",
+    "package_sha256": "37bd5901f534cfc22e851376edd0bc912f9d2cfc215a6a4a823bd76b570f7fdb",
+    "configuration_sha256": "86a9e04a6db2d928e333912eab0b702ce48ac2d0631d97c4b2a42ab9765f358a",
+    "file_count": 137,
+    "configuration_file_count": 9
+  },
+  "commands": [
+    {
+      "command": "/workspace/scratch/675b0dc139de/variable_axial_verification/env/bin/python -B tools/test_offline.py",
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "offline.log",
+      "log_sha256": "4eb57e7acde80747ea26a7a648902066423979101224131e8691041460415ac0",
+      "python_tests_run": 1671,
+      "python_skipped": 0,
+      "python_seconds": 170.845,
+      "javascript_test_files_passed": 11
+    },
+    {
+      "command": "/workspace/scratch/675b0dc139de/variable_axial_verification/env/bin/python -B -m pip wheel --disable-pip-version-check --no-deps --no-build-isolation . --wheel-dir /workspace/scratch/675b0dc139de/variable_axial_verification/wheels",
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "wheel-build.log",
+      "log_sha256": "973a2cc66ead400b20d94f82913108f84aebe5822765e9517bbb922b6152a81a"
+    },
+    {
+      "command": "/workspace/scratch/675b0dc139de/variable_axial_verification/env/bin/python -B tools/test_installed_wheel.py /workspace/scratch/675b0dc139de/variable_axial_verification/wheels",
+      "exit_code": 0,
+      "status": "PASS",
+      "log": "wheel-tests.log",
+      "log_sha256": "89600c75b25780e6d3a8ffbfff15c70689e5f41c66c1a078e3dc2f65cf086ca0",
+      "python_tests_run": 519,
+      "python_skipped": 0,
+      "python_seconds": 57.695,
+      "scope": "Separate isolated wheel installation; these 519 tests overlap the full suite and are not added to its total."
+    },
+    {
+      "command": "/workspace/scratch/675b0dc139de/variable_axial_verification/env/bin/python -B -m tbdy_next.cli run-pipeline --source examples/variable_axial_slice_20261121/synthetic_input.json --design-scenario examples/variable_axial_slice_20261121/design-scenario.json --case Modal --out /workspace/scratch/675b0dc139de/variable_axial_verification/published_example_runs",
+      "exit_code": 0,
+      "status": "CALCULATED",
+      "run_id": "RUN-99ab321fb6cf429a9771550a919ec270",
+      "input_sha256": "cdbede3eabaa54b290c57478b41ccf9fb1da350b82edbcc01c0d0313356fd154",
+      "snapshot": {
+        "schema": "tbdy.next.pipeline-stage-snapshot.v2",
+        "snapshot_sha256": "052432467d041fe4a2d775d49eb62ce0d41a4383ca3bb0c3c3843db7ea9106be",
+        "results_sha256": "393f9581fb3895997f9961fca5ed67636528b963abd304628563b4eceb503b68"
+      }
+    },
+    {
+      "command": "/workspace/scratch/675b0dc139de/variable_axial_verification/env/bin/python -B -m tbdy_next.cli run-pipeline --source examples/variable_axial_slice_20261121/synthetic_input.json --design-scenario examples/variable_axial_slice_20261121/design-scenario.json --case Modal --out /workspace/scratch/675b0dc139de/variable_axial_verification/published_example_runs --compare-run /workspace/scratch/675b0dc139de/variable_axial_verification/published_example_runs/RUN-99ab321fb6cf429a9771550a919ec270",
+      "exit_code": 0,
+      "status": "IDENTICAL",
+      "run_id": "RUN-cc87211ea0034329866a09cd9895a4b2",
+      "comparison": {
+        "reference_stages": 12,
+        "current_stages": 12,
+        "mismatched_stages": [],
+        "missing_stages": [],
+        "extra_stages": [],
+        "source_identical": true,
+        "sealed_stage_coverage": true,
+        "comparison_scope": "PIPELINE_RESULTS_REPORT_EVIDENCE_AND_ALL_RECORDED_RECEIPTS",
+        "status": "IDENTICAL"
+      }
+    },
+    {
+      "command": "/workspace/scratch/675b0dc139de/variable_axial_verification/env/bin/python -B -m tbdy_next.cli run-pipeline --source examples/variable_axial_slice_20261121/synthetic_input.json --design-scenario examples/variable_axial_slice_20261121/default-scenario.json --case Modal --out /workspace/scratch/675b0dc139de/variable_axial_verification/published_example_runs",
+      "exit_code": 0,
+      "status": "DEFAULT_VARIABLE_AXIAL_GATE_RETAINED",
+      "run_id": "RUN-d91ac600d269487db74b2eb2d27c74db",
+      "r14_closure": {
+        "status": "R15_ALL_COLUMNS_EVALUATED_PARTIAL_GATES",
+        "expected_column_count": 2,
+        "numerically_closed_count": 0,
+        "partial_or_unbound_count": 2,
+        "normative_fail_count": 0
+      }
+    },
+    {
+      "command": "/workspace/scratch/675b0dc139de/variable_axial_verification/env/bin/python -B tools/prepare_axial_idealization_scenario.py --from-run /workspace/scratch/675b0dc139de/variable_axial_verification/published_example_runs/RUN-d91ac600d269487db74b2eb2d27c74db --member C1 --member C2 --combination G --combination G+EX --combination G-EX --combination G+EY --combination G-EY --decision-reference \"Explicit public fixture idealization; engineering acceptance pending\" --scenario-id public-prepared-from-final-receipt --out /workspace/scratch/675b0dc139de/variable_axial_verification/published-prepared-request.json",
+      "exit_code": 0,
+      "status": "PREPARED",
+      "request_sha256": "a5613439e44c9eb3e64a393cc5a3fe5041e199429b334248b5f18b6e9185a5a3"
+    },
+    {
+      "command": "/workspace/scratch/675b0dc139de/variable_axial_verification/env/bin/python -B -m tbdy_next.cli run-pipeline --source /workspace/scratch/675b0dc139de/variable_axial_verification/published_example_runs/RUN-d91ac600d269487db74b2eb2d27c74db/parent.source --design-scenario /workspace/scratch/675b0dc139de/variable_axial_verification/published-prepared-request.json --case Modal --out /workspace/scratch/675b0dc139de/variable_axial_verification/published_prepared_runs",
+      "exit_code": 0,
+      "status": "CALCULATED",
+      "run_id": "RUN-2bdff6a878e74983af2894e77e0005ba",
+      "input_sha256": "85ab6b5d300c3bac5abd35fb38cf8926682d55d30acb42a6bd9ebe707f6e1681",
+      "snapshot": {
+        "schema": "tbdy.next.pipeline-stage-snapshot.v2",
+        "snapshot_sha256": "1ff62731492b22f32a1c04e38feae3e73092703e566a8df624d8c9a3467f8c77",
+        "results_sha256": "50b640162680de546a290c2449b76c243eeaf9c4e5f82e46bb0b92677cc7885d"
+      },
+      "r14_closure": {
+        "status": "R15_ALL_COLUMNS_CLOSED_NOT_PROVEN",
+        "expected_column_count": 2,
+        "numerically_closed_count": 2,
+        "partial_or_unbound_count": 0,
+        "normative_fail_count": 0
+      }
+    }
+  ],
+  "wheel": {
+    "filename": "tbdy_next_engine-0.1.0-py3-none-any.whl",
+    "sha256": "eab363c3bd837ba2e4bc2bb32d0f2301ec6830ce788237d1b367675a530037f8"
+  },
+  "verification_levels": {
+    "document_and_contract_consistency": {
+      "status": "PASS",
+      "scope": "Existing scenario normalization and finalized v2 snapshots; delivery JSON, references and hashes checked."
+    },
+    "independent_example_arithmetic": {
+      "status": "PASS",
+      "scope": "Self-weight gradient, cage steel inertia, EI, Euler load, magnification, local-N eccentricity and final design moments in test_variable_axial_vertical_slice; not an independent full PMM solver."
+    },
+    "production_owner_comparison": {
+      "status": "PASS",
+      "source_classification": "CONTRACT_FIXTURE",
+      "scope": "Existing owners consume the independent scalar inputs through 30 signed cuts, actual cage selection, shear, 4 beams and 16 interior-joint SCWB comparisons."
+    },
+    "recorded_source_pipeline_replay": {
+      "status": "PASS",
+      "source_classification": "CONTRACT_FIXTURE",
+      "comparison": "IDENTICAL",
+      "scope": "Same generated offline source, normal CLI/Web runner, finalized snapshot and all 12 recorded receipts. No original C29 replay."
+    },
+    "live_etabs_source_validation": {
+      "status": "NOT_RUN",
+      "reason": "No live Windows ETABS session or current private C29 capture available here."
+    },
+    "engineering_acceptance": {
+      "status": "NOT_RUN",
+      "engineering_approval": "NOT_GRANTED",
+      "engineering_release": "NOT_READY",
+      "reason": "Explicit axial idealization is not a qualified variable-axial TS 500 method."
+    }
+  },
+  "public_calculation": {
+    "classification": "CONTRACT_FIXTURE",
+    "source_scope": {
+      "columns": 2,
+      "beams": 4,
+      "member_combination_pairs": 10,
+      "signed_combined_force_cuts": 30,
+      "primitive_force_cuts": 18,
+      "unique_interior_joint_scwb_comparisons": 16
+    },
+    "same_source_default_closed": 0,
+    "explicit_conditional_closed": 2,
+    "expected_columns": 2,
+    "engineering_release": "NOT_READY",
+    "conservative_bound_proven": false,
+    "governing_pmm_utilization": {
+      "C1": 0.10234088789962784,
+      "C2": 0.09034587235293041
+    },
+    "report": "../../../examples/variable_axial_slice_20261121/calculation-report.html",
+    "expected_results": "../../../examples/variable_axial_slice_20261121/expected-results.json",
+    "report_sha256": "26dbc3b175cd811b539a937d04fbe8218624b642b95e449712a46bd21a2f6f91"
+  },
+  "negative_and_boundary_scope": [
+    "Missing primitive cut remains blocking without shrinking the expected design scope.",
+    "Source self weight revision changes Nmax, magnification and actual design moments.",
+    "An actual insufficient transverse-design trial remains unclosed.",
+    "A one-ULP configured/native coordinate difference is accepted; material shifts, exact duplicates and ambiguous nearby duplicates remain blocked.",
+    "Changed consumed coefficients, local N, cut populations or final moments cannot pass the R14 idealization context.",
+    "Finalized v2 preparation succeeds; a legacy v1 snapshot is rejected."
+  ],
+  "golden_production_bank": {
+    "fresh_execution": "PASS",
+    "record_count": 44,
+    "NUMERICAL_MATCH": 33,
+    "INSUFFICIENT_SOURCE": 7,
+    "ENGINEERING_INTERPRETATION_DIFFERENCE": 4,
+    "acceptance_eligible": false,
+    "changes_to_bank": false
+  },
+  "population_separation": {
+    "control_example_headings": 73,
+    "production_comparison_records": 44,
+    "historical_arithmetic_matches": 333,
+    "new_example_replaces_existing_bank": false,
+    "note": "These populations, DAG nodes, cut counts and test counts are distinct. The historical 333 matches were not reclassified as this run or as ETABS tests."
+  },
+  "original_building": {
+    "current_private_c29_replay": "NOT_RUN",
+    "live_etabs": "NOT_RUN",
+    "last_reported_private_r14_closed": 0,
+    "last_reported_private_r14_expected": 87,
+    "prior_record": "EV-C29-MATCHED-EI-REFINEMENT-20261121",
+    "prior_counts_are_not_fresh_tests": true
+  },
+  "supersession": {
+    "pre_station_precision_full_suite": "An earlier 1670-test local run was superseded by the final 1671-test run recorded above.",
+    "prior_private_c29_evidence": "Retained without reinterpretation."
+  }
+}

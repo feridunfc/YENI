@@ -62,6 +62,118 @@ def _beam_ids_connected_to_member(
     return sorted(beam_ids)
 
 
+def _axial_idealization_context(uid, plan, local, basis, application):
+    """Verify recorded premise and coefficient consumption, never approve the method."""
+    from .column_pmm import _required_cut_coverage
+    from .design_scenario import _digest
+    from .second_order_basis import (
+        AXIAL_IDEALIZATION_APPLIED, AXIAL_IDEALIZATION_APPLICABILITY,
+        AXIAL_IDEALIZATION_GATE, AXIAL_IDEALIZATION_METHOD,
+    )
+
+    request = basis["member"].get("axial_idealization")
+    record = local.get("axial_idealization_application") or {}
+    evidence = local.get("axial_idealization_evidence") or {}
+    if (not request or basis["member"]["applicability"] != AXIAL_IDEALIZATION_APPLICABILITY
+            or record.get("status") != AXIAL_IDEALIZATION_APPLIED
+            or record.get("method") != AXIAL_IDEALIZATION_METHOD
+            or record.get("decision_reference") != request["decision_reference"]
+            or record.get("requested_combinations") != request["combinations"]
+            or AXIAL_IDEALIZATION_GATE not in local.get("open_gates", ())
+            or "VARIABLE_AXIAL_SECOND_ORDER_METHOD_UNQUALIFIED" in local.get("open_gates", ())
+            or record.get("application_sha256") != _digest({k: v for k, v in record.items() if k != "application_sha256"})
+            or evidence.get("status") != "SELF_WEIGHT_NMAX_INPUTS_ELIGIBLE"
+            or evidence.get("method") != AXIAL_IDEALIZATION_METHOD
+            or evidence.get("requested_combinations") != request["combinations"]
+            or evidence.get("decision_reference") != request["decision_reference"]
+            or evidence.get("evidence_sha256") != _digest({k: v for k, v in evidence.items() if k != "evidence_sha256"})
+            or record.get("eligibility_sha256") != evidence.get("evidence_sha256")):
+        return None
+    for value in (record, evidence):
+        if (value.get("member_id") != uid or value.get("source_data_sha256") != basis["source_data_sha256"]
+                or value.get("input_payload_sha256") != application.get("input_payload_sha256")
+                or value.get("engineering_approval") != "NOT_GRANTED"
+                or value.get("conservative_bound_proven") is not False
+                or value.get("original_constant_axial_clause_satisfied") is not False):
+            return None
+    for key in ("basis_sha256", "member_basis_sha256", "selected_cage_sha256"):
+        if record.get(key) != application.get(key):
+            return None
+    requested = set(request["combinations"])
+    signed = {c["name"] for c in plan.get("combinations", ()) if c.get("force_semantics") == "STATIC_SIGNED_VECTOR"}
+    if (not requested or not requested <= signed or set(evidence.get("combinations", {})) != requested
+            or set(record.get("combinations", {})) != requested):
+        return None
+    rows = (local.get("magnified_selected_pmm") or {}).get("rows") or []
+    key = lambda row: (row["object_station_m"], row["analysis_element_id"], row["element_station_m"])
+    physical = evidence.get("physical_scope") or {}
+    grid = physical.get("configured_grid") or {}
+    expected_cuts = {key(row) for row in grid.get("cuts", ())}
+    if (grid.get("status") != "REQUIRED_SUBSET_BOUND" or len(expected_cuts) != 3
+            or physical.get("section") != local.get("section")
+            or physical.get("physical_length_m") != (local.get("physical_clear_length") or {}).get("physical_length_m")):
+        return None
+    all_variable = sorted(name for name in signed
+        if len({row["object_station_m"] for row in rows if row["combination"] == name}) >= 2
+        and max(row["nd_kn"] for row in rows if row["combination"] == name)
+            - min(row["nd_kn"] for row in rows if row["combination"] == name) > 1e-8)
+    if (not set(all_variable) <= requested or record.get("observed_variable_combinations") != all_variable
+            or evidence.get("observed_variable_combinations") != all_variable):
+        return None
+    observed_variable = []
+    for name in sorted(requested):
+        native = evidence["combinations"][name]
+        consumed = record["combinations"][name]
+        cuts = native["cuts"]
+        stations = [row for row in rows if row["combination"] == name]
+        cut_map, station_map = ({key(row): row for row in group} for group in (cuts, stations))
+        forces = [_finite_number(row.get("nd_kn")) for row in cuts]
+        # Configured coordinates use the PMM owner's machine tolerance; the
+        # native identities recorded by eligibility and consumed by PMM stay exact.
+        coverage = _required_cut_coverage([(uid, *cut) for cut in cut_map], grid)
+        if (len(cuts) != 3 or len(cut_map) != len(cuts) or len(station_map) != len(stations)
+                or set(cut_map) != set(station_map) or not coverage["exact_cut_census"]
+                or native.get("expected_cut_count") != len(cuts) or native.get("evaluated_cut_count") != len(cuts)
+                or any(force is None for force in forces)):
+            return None
+        nmin, nmax = min(forces), max(forces)
+        if (native.get("nmin_kn") != nmin or native.get("nmax_kn") != nmax
+                or consumed.get("nmin_kn") != nmin or consumed.get("nmax_kn") != nmax
+                or consumed.get("coefficient_nd_kn") != nmax
+                or consumed.get("coefficient_nd_kn_by_axis") != {"M2": nmax, "M3": nmax}
+                or consumed.get("expected_cut_count") != len(cuts)
+                or consumed.get("evaluated_cut_count") != len(stations)):
+            return None
+        if nmax - nmin > 1e-8:
+            observed_variable.append(name)
+        for cut_key, row in station_map.items():
+            factors = row.get("adopted_axis_factors") or {}
+            if (row.get("nd_kn") != cut_map[cut_key]["nd_kn"] or row.get("coefficient_nd_kn") != nmax
+                    or row.get("axial_idealization_method") != AXIAL_IDEALIZATION_METHOD
+                    or row.get("axial_idealization_evidence_sha256") != evidence["evidence_sha256"]
+                    or set(factors) != {"M2", "M3"}):
+                return None
+            global_factor = _finite_number(row.get("global_beta_ii_applied"))
+            if global_factor is None or global_factor < 1:
+                return None
+            for axis in ("M2", "M3"):
+                factor = factors[axis]
+                beta = _finite_number(factor.get("final_factor"))
+                first = _finite_number(row.get("first_order_" + axis.lower() + "_design_knm"))
+                final = _finite_number(row.get("magnified_" + axis.lower() + "_design_knm"))
+                if (factor.get("coefficient_nd_kn") != nmax
+                        or factor.get("axial_idealization_method") != AXIAL_IDEALIZATION_METHOD
+                        or beta is None or beta < 1 or first is None or final is None
+                        or row.get("beta_" + axis.lower()) != beta or final != first * beta * global_factor):
+                    return None
+    if record.get("observed_variable_combinations") != observed_variable:
+        return None
+    return {"status": AXIAL_IDEALIZATION_APPLIED, "method": AXIAL_IDEALIZATION_METHOD,
+            "application_sha256": record["application_sha256"], "eligibility_sha256": evidence["evidence_sha256"],
+            "combinations": record["combinations"], "original_constant_axial_clause_satisfied": False,
+            "conservative_bound_proven": False, "engineering_approval": "NOT_GRANTED"}
+
+
 def _adopted_calculation_context(uid, plan, local, reconciliation, evidence):
     """Qualify conditional numerical completion, never engineering acceptance.
 
@@ -162,9 +274,17 @@ def _adopted_calculation_context(uid, plan, local, reconciliation, evidence):
         spectral = local.get("spectral_envelope_pmm_scenario")
         if spectral is not None and spectral.get("second_order_basis_sha256") != basis["basis_sha256"]:
             return None
+        idealization_context = None
+        if basis["member"].get("axial_idealization") is not None:
+            idealization_context = _axial_idealization_context(uid, plan, local, basis, application)
+            if idealization_context is None:
+                return None
+        elif local.get("axial_idealization_application") is not None or local.get("axial_idealization_evidence") is not None:
+            return None
         return {"status": applied, "second_order_basis_sha256": basis["basis_sha256"],
                 "analysis_basis_sha256": reconciliation["calculation_basis_sha256"],
                 "source_data_sha256": native_sha, "selected_cage_sha256": row["candidate_revision_sha256"],
+                **({"axial_idealization": idealization_context} if idealization_context is not None else {}),
                 "engineering_approval": "NOT_GRANTED", "analysis_generation_independently_verified": False}
     except (KeyError, TypeError, ValueError, ArithmeticError):
         return None
@@ -530,6 +650,9 @@ def _evaluate_single_r14_column(
             "R08_LOCAL:ACTUAL_ANALYSIS_ORDER_UNVERIFIED",
             "R08_LOCAL:EQ729_LENGTH_AMBIGUITY_NOT_RESOLVED",
         }
+        if adopted_context.get("axial_idealization") is not None:
+            from .second_order_basis import AXIAL_IDEALIZATION_GATE
+            conditional_acceptance_gates.add("R08_LOCAL:" + AXIAL_IDEALIZATION_GATE)
     binding_gaps = [g for g in dedup_open if g not in _ALLOWED_STANDARD_OPEN_GATES | conditional_acceptance_gates]
 
     if dedup_failures:

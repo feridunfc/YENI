@@ -17,6 +17,10 @@ ROLE = "ADOPTED_CALCULATION_ASSUMPTIONS"
 NONSWAY_POLICY = "PIPELINE_TBDY_PLUS_LOCAL_NONSWAY"
 SWAY_POLICY = "TS500_SWAY_WITH_TBDY_UNITY"
 ACCEPTANCE_GATE = "ADOPTED_SECOND_ORDER_BASIS_ENGINEERING_ACCEPTANCE_PENDING"
+AXIAL_IDEALIZATION_METHOD = "SELF_WEIGHT_NMAX"
+AXIAL_IDEALIZATION_APPLICABILITY = "ADOPTED_PRISMATIC_SELF_WEIGHT_NMAX_IDEALIZATION"
+AXIAL_IDEALIZATION_GATE = "ADOPTED_AXIAL_IDEALIZATION_ENGINEERING_ACCEPTANCE_PENDING"
+AXIAL_IDEALIZATION_APPLIED = "ADOPTED_AXIAL_IDEALIZATION_APPLIED_NOT_PROVEN"
 
 
 def _mapping(value: Any, keys: set[str], label: str) -> Mapping[str, Any]:
@@ -70,13 +74,29 @@ def normalize_second_order_basis(raw: Any, *, source_data_sha256: str) -> dict[s
         uid = _text(raw_uid, "member_id")
         if uid != raw_uid or uid in members:
             raise ValueError("SECOND_ORDER_BASIS_MEMBER_ID_INVALID")
-        member = _mapping(raw_member, {"combinations", "applicability", "decision_reference", "axes"}, uid)
+        member_fields = {"combinations", "applicability", "decision_reference", "axes"}
+        if isinstance(raw_member, Mapping) and "axial_idealization" in raw_member:
+            member_fields.add("axial_idealization")
+        member = _mapping(raw_member, member_fields, uid)
         names = member["combinations"]
         if (not isinstance(names, list) or not names
                 or any(not isinstance(n, str) or not n or n.strip() != n for n in names)
                 or len(set(names)) != len(names)):
             raise ValueError("SECOND_ORDER_BASIS_COMBINATION_SCOPE_INVALID:" + uid)
-        if member["applicability"] != "TS500_7_6_2_CONSTANT_SECTION_AND_AXIAL_FORCE":
+        idealization = None
+        if "axial_idealization" in member:
+            idealization = _mapping(member["axial_idealization"],
+                                   {"method", "combinations", "decision_reference"}, uid + ":axial_idealization")
+            idealized_names = idealization["combinations"]
+            if (member["applicability"] != AXIAL_IDEALIZATION_APPLICABILITY
+                    or idealization["method"] != AXIAL_IDEALIZATION_METHOD
+                    or not isinstance(idealized_names, list) or not idealized_names
+                    or any(not isinstance(name, str) or name not in names for name in idealized_names)
+                    or len(set(idealized_names)) != len(idealized_names)):
+                raise ValueError("SECOND_ORDER_AXIAL_IDEALIZATION_INVALID:" + uid)
+            idealization = {"method": AXIAL_IDEALIZATION_METHOD, "combinations": sorted(idealized_names),
+                            "decision_reference": _text(idealization["decision_reference"], "axial_idealization_reference")}
+        elif member["applicability"] != "TS500_7_6_2_CONSTANT_SECTION_AND_AXIAL_FORCE":
             raise ValueError("SECOND_ORDER_BASIS_APPLICABILITY_UNSUPPORTED:" + uid)
         raw_axes = _mapping(member["axes"], {"M2", "M3"}, uid + ":axes")
         axes = {}
@@ -100,6 +120,8 @@ def normalize_second_order_basis(raw: Any, *, source_data_sha256: str) -> dict[s
             if (not isinstance(a["cm_policy"], str) or a["cm_policy"] not in {"UNITY", "SIGNED_END_RATIO"}
                     or (sway == "SWAY_PERMITTED" and a["cm_policy"] != "UNITY")):
                 raise ValueError("SECOND_ORDER_BASIS_CM_POLICY_UNSUPPORTED")
+            if idealization is not None and a["cm_policy"] != "UNITY":
+                raise ValueError("SECOND_ORDER_AXIAL_IDEALIZATION_UNITY_CM_REQUIRED:" + uid + ":" + axis)
             reading = a["eq729_length_reading"]
             required_readings = {"FREE_LENGTH", "EFFECTIVE_LENGTH"} if sway == "SWAY_PERMITTED" else {"NOT_APPLICABLE"}
             if not isinstance(reading, str) or reading not in required_readings:
@@ -125,6 +147,8 @@ def normalize_second_order_basis(raw: Any, *, source_data_sha256: str) -> dict[s
                 axes[axis]["k_source"] = dict(k_source)
         members[uid] = {"combinations": sorted(names), "applicability": member["applicability"],
                         "decision_reference": _text(member["decision_reference"], "member_decision_reference"), "axes": axes}
+        if idealization is not None:
+            members[uid]["axial_idealization"] = idealization
     return {"schema": SCHEMA, "basis_id": _text(top["basis_id"], "basis_id"), "basis_role": ROLE,
             "engineering_approval": "NOT_GRANTED", "source_data_sha256": source_data_sha256,
             "source_analysis_order": "FIRST_ORDER", "source_order_reference": _text(top["source_order_reference"], "source_order_reference"),

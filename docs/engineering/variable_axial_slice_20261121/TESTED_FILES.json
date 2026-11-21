@@ -1,0 +1,22 @@
+{
+  "base_commit": "eb6328290a66484c8ddbc8ba37158be270b8fc5d",
+  "scope": "Modified runtime, tests, verification/preparation tools and public source/request inputs; all unchanged files belong to the exact base commit.",
+  "files": {
+    "examples/variable_axial_slice_20261121/default-scenario.json": "da9639ba4ef618ba9f1c189540111d932face036adc9f1ea6809db6fa5a04c2c",
+    "examples/variable_axial_slice_20261121/design-scenario.json": "ce2c17c61f4b8559e741f5c753c9fea8a91e92507c30ce0fb045c983d9ec0cff",
+    "examples/variable_axial_slice_20261121/synthetic_input.json": "06bc6b58461194a6be30aaf82bc721d6831af1f86e4273f85c97820e3cc90abf",
+    "src/tbdy_next/engineering/column_axial_balance.py": "c2dac654ec8b5eaca68bbf3676d5ac3f46baaf9347bd2f27ee4f586dda09b3a6",
+    "src/tbdy_next/engineering/column_r08_local_live.py": "5047b017634fd9375d5990ad099ddfa49c4d5d20a305925c890c8a063390c47e",
+    "src/tbdy_next/engineering/column_r14_closure.py": "b1821b8b0014d91a8b80e4f5274ecf3d0969c70f5f831c661e072909a130e4a4",
+    "src/tbdy_next/engineering/pipeline.py": "0f45fd2441211381a2a0eb13085bb673c82f00a70e64afdcd45894f6b7e179d1",
+    "src/tbdy_next/engineering/second_order_basis.py": "cd56bcc1b103324fcfb74d41256cc9152659d347664a47e429ffaf8e5f2e99e7",
+    "src/tbdy_next/reporting.py": "80726056c6551839216fc74c06415cd82c8a50ea4d9dd117bc5ff251bf2b34a9",
+    "tests/test_adopted_second_order_basis.py": "a35dd2f1f4f0c0dabf3b26301e1de0120c6bd84e9749616565ff0c9e1c2d76f5",
+    "tests/test_axial_idealization.py": "a3120ae10dadca5947d087632c58760dc61fd0790331d79e7e03d9826d2bae36",
+    "tests/test_r14_adopted_basis.py": "c5eb28e88ecf019340747ada7a7c221b1f328cf55f03972e2e30ece344d0f68d",
+    "tests/test_variable_axial_vertical_slice.py": "1698009201791d867fb269c47a3a1b74490cf16beab70e9fcf69a05a47aa33a9",
+    "tests/variable_axial_slice_fixture.py": "88c88aca6fa5b6d2564912fb036441e71ab1a9fc9189aa3f987ef500ac95edb1",
+    "tools/prepare_axial_idealization_scenario.py": "b6ab28493b29cae50c19d7a22ccb53f57b7cc1727d4f5de90a3956dc2f5afe65",
+    "tools/test_installed_wheel.py": "63930367c00bb74d6dde5f671b056e476f57fed4776356b106dd361226b7872a"
+  }
+}

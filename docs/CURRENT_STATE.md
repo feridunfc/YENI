@@ -1,5 +1,42 @@
 # Original building calculation and local handoff — 2026-11-21
 
+## Executable variable-axial design slice
+
+The inspected integration base is `eb6328290a66484c8ddbc8ba37158be270b8fc5d`.
+The new `work/c29-variable-axial-slice-20261121` milestone extends the existing
+runner: explicit self-weight Nmax inputs now reach the actual local
+magnification, selected-section PMM and R14 consumers. The original source
+vectors and each section's local N are retained. No new solver or ETABS route
+is introduced.
+
+The public normal-pipeline example calculates two columns, four beams, thirty
+signed case-cuts and sixteen unique interior-joint SCWB comparisons. The same
+source closes zero columns under the default applicability and two conditionally
+under the explicit idealization. Both retain engineering acceptance pending.
+The example is `CONTRACT_FIXTURE / GENERATED_OFFLINE_NOT_ETABS`; it is not an
+original C29 replay. Fresh commands, results and tested-file identities are in
+[the verification record](engineering/variable_axial_slice_20261121/VERIFICATION_RESULTS.json).
+The final Linux run passed 1,671 Python tests and 11 JavaScript test files, with
+zero Python skips. The isolated wheel passed 519 overlapping tests. Normal
+CLI/Web replay is `IDENTICAL`; the existing 44-record golden bank remains
+33 numerical matches, 7 insufficient-source records and 4 interpretation
+differences. These are fresh runs for this milestone, separate from the older
+private Windows results below.
+
+The immediate Windows calculation is to prepare the explicit scenario from the
+latest finalized original-source C29 receipt, then run the existing pipeline.
+Use the [exact continuation commands](engineering/VARIABLE_AXIAL_SLICE_20261121.md#continue-the-actual-c29-from-its-sealed-original-source).
+This continuation reuses the current selected TS 500 inputs; it does not require
+another ETABS solve or replace the matched-EI experiment below. Preserve any
+newer local basis and use its actual receipt. Record C29's own result rather than
+prescribing a closure count. Private current C29 inputs were unavailable in this
+environment, and original-building replay and live ETABS are `NOT_RUN` here.
+
+GAP-009 remains `PARTIAL`: this milestone implements a declared numerical
+idealization, not proof that the constant-axial clause applies or that the
+idealization is conservative. The last private original-building count remains
+0/87. See `EV-VARIABLE-AXIAL-NUMERICAL-SLICE-20261121`.
+
 ## C29 matched effective stiffness and mesh refinement
 
 The private ETABS study finished 18 cases. Each 2, 4 and 8 part mesh used

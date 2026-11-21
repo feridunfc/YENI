@@ -4,7 +4,13 @@ This module does not claim a native whole-pipeline run. The separate vertical
 slice test exercises acquisition-shaped sources through EnginePipelineRunner.
 """
 from copy import deepcopy
+from argparse import Namespace
+from contextlib import redirect_stdout
+import io
+import json
 import math
+from pathlib import Path
+from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import patch
 
@@ -13,8 +19,11 @@ from test_adopted_second_order_basis import adopted_fixture
 from test_audit_hardening import CLOSED, closure_fixture
 from tbdy_next.engineering.analysis_setup import ADOPTED_ANALYSIS_PENDING, normalize_analysis_basis
 from tbdy_next.engineering.column_r08_local_live import project_column_r08_local_live
-from tbdy_next.engineering.column_r14_closure import _evaluate_single_r14_column
+from tbdy_next.engineering.column_r14_closure import _adopted_calculation_context, _evaluate_single_r14_column
+from tbdy_next.engineering.cli_adapter import run_cli
+from tbdy_next.engineering.pipeline_snapshot import read_snapshot
 from tbdy_next.engineering.design_scenario import _digest, _source_data
+from tbdy_next.engineering.second_order_basis import AXIAL_IDEALIZATION_APPLIED, AXIAL_IDEALIZATION_GATE
 
 
 def r14_adopted_consumer_fixture(*, computed_k=False):
@@ -57,6 +66,22 @@ def r14_adopted_consumer_fixture(*, computed_k=False):
 
 
 class R14AdoptedBasisTests(unittest.TestCase):
+    def test_idealization_acceptance_label_cannot_bypass_computed_application(self):
+        for pretend_application in (False, True):
+            with self.subTest(pretend_application=pretend_application):
+                args = r14_adopted_consumer_fixture()
+                local = args["r08_local_col"]
+                local["open_gates"].append(AXIAL_IDEALIZATION_GATE)
+                if pretend_application:
+                    local["axial_idealization_application"] = {
+                        "status": AXIAL_IDEALIZATION_APPLIED, "qualified": True,
+                    }
+                args["dependency_evidence"]["artifacts"]["r08:127"]["payload_sha256"] = _digest(local)
+                result = _evaluate_single_r14_column(**args)
+                self.assertNotEqual(result["status"], CLOSED)
+                self.assertIn("R08_LOCAL:" + AXIAL_IDEALIZATION_GATE, result["open_gates"])
+                self.assertEqual(result["engineering_release"], "NOT_READY")
+
     def test_actual_applied_r08_can_numerically_close_with_visible_acceptance_gates(self):
         args = r14_adopted_consumer_fixture()
         result = _evaluate_single_r14_column(**args)
@@ -145,6 +170,73 @@ class R14AdoptedBasisTests(unittest.TestCase):
         unbound = _evaluate_single_r14_column(**args)
         self.assertNotEqual(unbound["status"], CLOSED)
         self.assertIn("STORY_ALPHA_VALUE_MISSING_OR_INVALID", unbound["open_gates"])
+
+
+class R14AxialIdealizationConsumptionTests(unittest.TestCase):
+    """Negative consumer tests begin with an actual normal-pipeline calculation."""
+
+    @classmethod
+    def setUpClass(cls):
+        from variable_axial_slice_fixture import source_and_request
+
+        raw, request = source_and_request()
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            source_path, request_path = root / "native.source", root / "scenario.json"
+            source_path.write_bytes(raw)
+            request_path.write_text(json.dumps(request), encoding="utf-8")
+            stream = io.StringIO()
+            with redirect_stdout(stream):
+                status = run_cli(Namespace(action="run-pipeline", source=source_path, design_scenario=request_path,
+                    out=root, case="Modal", compare_run=None, beam_selection=None, column_selection=None))
+            if status != 0:
+                raise AssertionError(stream.getvalue())
+            summary = json.loads(stream.getvalue())
+            cls.results = read_snapshot(Path(summary["run_dir"]), input_sha=summary["input_sha256"])["results"]
+
+    def context(self, local, evidence):
+        return _adopted_calculation_context("C1", self.results["column_axial"]["combination_plan"], local,
+            self.results["analysis_setup_reconciliation"], evidence)
+
+    def test_actual_bound_idealization_is_consumed_but_corrupted_inputs_and_arithmetic_are_not(self):
+        original = self.results["r08_local_slenderness"]["per_member"]["C1"]
+        recorded_evidence = self.results["report_evidence"]["design_revisions"]
+        context = self.context(original, recorded_evidence)
+        self.assertEqual(context["axial_idealization"]["status"], AXIAL_IDEALIZATION_APPLIED)
+        self.assertFalse(context["axial_idealization"]["conservative_bound_proven"])
+        self.assertFalse(context["axial_idealization"]["original_constant_axial_clause_satisfied"])
+        self.assertEqual(context["axial_idealization"]["engineering_approval"], "NOT_GRANTED")
+        for defect in ("nmax", "cut_missing", "local_nd", "factor_nd", "moment_product", "scope", "conservative_claim"):
+            with self.subTest(defect=defect):
+                local, evidence = deepcopy(original), deepcopy(recorded_evidence)
+                premises = local["axial_idealization_evidence"]
+                application = local["axial_idealization_application"]
+                case = sorted(premises["combinations"])[0]
+                row = next(r for r in local["magnified_selected_pmm"]["rows"] if r["combination"] == case)
+                if defect == "nmax":
+                    premises["combinations"][case]["nmax_kn"] -= 1
+                elif defect == "cut_missing":
+                    premises["combinations"][case]["cuts"].pop()
+                elif defect == "local_nd":
+                    row["nd_kn"] = premises["combinations"][case]["nmin_kn"]
+                elif defect == "factor_nd":
+                    row["adopted_axis_factors"]["M2"]["coefficient_nd_kn"] -= 1
+                elif defect == "moment_product":
+                    row["magnified_m2_design_knm"] *= .5
+                elif defect == "scope":
+                    application["combinations"].pop(case)
+                else:
+                    application["conservative_bound_proven"] = True
+                # Rehash the altered records: numerical/source consistency must
+                # fail independently of a stale outer digest or approval label.
+                premises["evidence_sha256"] = _digest({k: v for k, v in premises.items() if k != "evidence_sha256"})
+                application["eligibility_sha256"] = premises["evidence_sha256"]
+                for item in local["magnified_selected_pmm"]["rows"]:
+                    if "axial_idealization_evidence_sha256" in item:
+                        item["axial_idealization_evidence_sha256"] = premises["evidence_sha256"]
+                application["application_sha256"] = _digest({k: v for k, v in application.items() if k != "application_sha256"})
+                evidence["artifacts"]["r08:C1"]["payload_sha256"] = _digest(local)
+                self.assertIsNone(self.context(local, evidence))
 
 
 if __name__ == "__main__":

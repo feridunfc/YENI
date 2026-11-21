@@ -1,5 +1,30 @@
 # Local development and GitHub worker handoff
 
+## Immediate calculation: original-source C29 with explicit axial idealization
+
+The current remote software milestone starts at full baseline commit
+`eb6328290a66484c8ddbc8ba37158be270b8fc5d`. Read
+[the method and exact commands](../engineering/VARIABLE_AXIAL_SLICE_20261121.md)
+before the historical steps below. The existing selected TS 500 path now consumes
+an explicit self-weight Nmax idealization with independently complete source
+cuts, primitive superposition and local-N section evaluation. The public example
+calculates the real production owners through conditional R14 completion.
+
+Run `tools/prepare_axial_idealization_scenario.py` against the latest finalized
+original-source C29 scenario receipt, then the normal `run-pipeline` command.
+Keep the existing K/EI/Rm/global decisions, selected cage and joint 40. This step
+needs the already recorded original source, not another ETABS analysis. Inspect
+the actual C29 source-premise outcome, coefficient Nmax/local N, magnified PMM,
+column and beam shear and joint outcomes. Preserve every remaining condition.
+Do not substitute the synthetic 2/2 result for C29 or the building's 87 members.
+
+This declared idealization is not an approved variable-axial TS 500 method.
+Method qualification, the refined-model story inputs, coupled C104 design and
+alpha-below-one acceptance remain separate work. The private local capture and
+Windows working tree were not inspected here. Never overwrite newer local work
+to match the published baseline. Fresh verification is
+`EV-VARIABLE-AXIAL-NUMERICAL-SLICE-20261121`.
+
 ## November 21 consuming-design milestone
 
 The remote feature branch `work/vertical-slice-adopted-basis-20261121` starts at

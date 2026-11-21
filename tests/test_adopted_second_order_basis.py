@@ -26,6 +26,7 @@ from tbdy_next.vs05_d4_source_authority import COMBOS, SUMMARY
 from test_r03_analysis_setup import capture_table
 from tbdy_next.engineering.second_order_basis import (
     ACCEPTANCE_GATE, NONSWAY_POLICY, ROLE, SCHEMA, SWAY_POLICY, normalize_second_order_basis,
+    AXIAL_IDEALIZATION_APPLICABILITY,
 )
 from test_r08_local_live import _r08_local_fixture
 from test_r10_live import _rowset
@@ -84,6 +85,35 @@ def independent_euler(*, k, rm, method="TS500_7_20"):
 
 
 class AdoptedSecondOrderCalculationTests(unittest.TestCase):
+    def test_self_weight_nmax_is_explicit_adopted_applicability_not_a_clause_approval(self):
+        source = adopted_fixture()["source"]
+        raw = source["second_order_basis"]
+        member = raw["members"]["127"]
+        member.update(applicability=AXIAL_IDEALIZATION_APPLICABILITY, axial_idealization={
+            "method": "SELF_WEIGHT_NMAX", "combinations": ["G_STATIC"],
+            "decision_reference": "Explicit numerical approximation; applicability is not approved"})
+        expected = normalize_second_order_basis(raw, source_data_sha256=raw["source_data_sha256"])
+        self.assertEqual(expected["members"]["127"]["axial_idealization"]["method"], "SELF_WEIGHT_NMAX")
+        self.assertEqual(expected["engineering_approval"], "NOT_GRANTED")
+        for defect in ("constant_clause", "missing_policy", "unknown_case", "duplicate_case", "approval_flag", "cm"):
+            with self.subTest(defect=defect):
+                invalid = deepcopy(raw)
+                target = invalid["members"]["127"]
+                if defect == "constant_clause":
+                    target["applicability"] = "TS500_7_6_2_CONSTANT_SECTION_AND_AXIAL_FORCE"
+                elif defect == "missing_policy":
+                    target.pop("axial_idealization")
+                elif defect == "unknown_case":
+                    target["axial_idealization"]["combinations"] = ["UNKNOWN"]
+                elif defect == "duplicate_case":
+                    target["axial_idealization"]["combinations"] *= 2
+                elif defect == "approval_flag":
+                    target["axial_idealization"]["qualified"] = True
+                else:
+                    target["axes"]["M2"]["cm_policy"] = "SIGNED_END_RATIO"
+                with self.assertRaises(ValueError):
+                    normalize_second_order_basis(invalid, source_data_sha256=invalid["source_data_sha256"])
+
     def test_variable_axial_gate_uses_signed_pmm_even_without_order_log_or_weight_data(self):
         args = adopted_fixture()
         source = args["source"]

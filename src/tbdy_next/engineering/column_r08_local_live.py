@@ -34,7 +34,10 @@ from .column_effective_length import effective_length_reference, reference_end_r
 from .column_mat_support import project_mat_horizontal_supports
 from .column_r10_live import SelectedColumnCage
 from .live_column import project_column_slenderness_evidence
-from .second_order_basis import ACCEPTANCE_GATE, NONSWAY_POLICY, SWAY_POLICY
+from .second_order_basis import (
+    ACCEPTANCE_GATE, NONSWAY_POLICY, SWAY_POLICY, AXIAL_IDEALIZATION_APPLIED,
+    AXIAL_IDEALIZATION_GATE, AXIAL_IDEALIZATION_METHOD,
+)
 
 SCHEMA = "tbdy.next.column-r08-local-live.v1"
 
@@ -269,11 +272,34 @@ def _project_single_r08_local(
     for row in pmm.get("rows") or ():
         if row.get("nd_kn") is not None and row.get("object_station_m") is not None:
             rows_by_combo[row["combination"]].append(row)
-    if adopted_basis is not None and any(
-        item["status"] == "NUMERICAL_COMPLETE" and _observed_axial_change(rows_by_combo[item["name"]])
-        for item in pmm.get("combinations", ())
-    ):
+    variable_axial_cases = sorted(item["name"] for item in pmm.get("combinations", ())
+        if item["status"] == "NUMERICAL_COMPLETE" and _observed_axial_change(rows_by_combo[item["name"]]))
+    if adopted_basis is not None and variable_axial_cases:
         open_gates.append("VARIABLE_AXIAL_SECOND_ORDER_METHOD_UNQUALIFIED")
+    idealized_cases = {}
+    idealization = (adopted_basis or {}).get("member", {}).get("axial_idealization")
+    if idealization is not None:
+        from .column_axial_balance import project_self_weight_nmax_idealization
+
+        eligibility = project_self_weight_nmax_idealization(
+            source, pmm, physical_length, frame_length_m, adopted_basis)
+        out["axial_idealization_evidence"] = eligibility
+        out["axial_idealization_application"] = {
+            "status": "ADOPTED_AXIAL_IDEALIZATION_NOT_APPLIED", "method": AXIAL_IDEALIZATION_METHOD,
+            "decision_reference": idealization["decision_reference"],
+            "requested_combinations": idealization["combinations"],
+            "observed_variable_combinations": variable_axial_cases, "combinations": {},
+            "eligibility_sha256": eligibility["evidence_sha256"],
+            "original_constant_axial_clause_satisfied": False,
+            "conservative_bound_proven": False, "engineering_approval": "NOT_GRANTED",
+        }
+        requested = set(idealization["combinations"])
+        if (eligibility["status"] == "SELF_WEIGHT_NMAX_INPUTS_ELIGIBLE"
+                and set(eligibility.get("combinations", {})) == requested
+                and set(variable_axial_cases) <= requested):
+            idealized_cases = eligibility["combinations"]
+        else:
+            open_gates.append("AXIAL_IDEALIZATION_INPUTS_UNRESOLVED")
     if adopted_basis is not None and ln is not None and frame_length_m is not None:
         from .column_axial_balance import project_gravity_axial_balance
 
@@ -415,6 +441,10 @@ def _project_single_r08_local(
         r_start, r_end = combo_rows[0], combo_rows[-1]
         nd_max = (max(float(row["nd_kn"]) for row in combo_rows) if adopted_basis
                   else max(float(r_start["nd_kn"]), float(r_end["nd_kn"])))
+        if combo_name in idealized_cases:
+            # Use the maximum recomputed from native signed inputs. Each cut's
+            # actual axial force still drives eccentricity and section capacity.
+            nd_max = idealized_cases[combo_name]["nmax_kn"]
         axes_out: dict[str, Any] = {}
         combo_sel_axes: dict[str, float | None] = {}
         adopted_selected_axes = {}
@@ -429,6 +459,9 @@ def _project_single_r08_local(
                 if stiff.get("selected_nk_kn") is not None:
                     selected = _adopted_axis_factor(adopted_basis, axis_name, combo_name, nd_max,
                                                     stiff["selected_nk_kn"], stiff, end_ratio=end_ratio)
+                    if combo_name in idealized_cases:
+                        selected = {**selected, "coefficient_nd_kn": nd_max,
+                                    "axial_idealization_method": AXIAL_IDEALIZATION_METHOD}
                 combo_sel_axes[axis_name] = selected.get("final_factor") if selected else None
                 adopted_selected_axes[axis_name] = selected
                 axes_out[axis_name] = {
@@ -491,6 +524,9 @@ def _project_single_r08_local(
             "combination": combo_name,
             "end_stations_m": [float(r_start["object_station_m"]), float(r_end["object_station_m"])],
             "governing_nd_kn": nd_max,
+            **({"axial_idealization_method": AXIAL_IDEALIZATION_METHOD,
+                "axial_idealization_evidence_sha256": out["axial_idealization_evidence"]["evidence_sha256"]}
+               if combo_name in idealized_cases else {}),
             "axes": axes_out,
             "formal_compliance": "NOT_PROVEN",
         })
@@ -580,6 +616,10 @@ def _project_single_r08_local(
                 **demand,
                 **({"adopted_axis_factors": adopted_combo_factors[cname],
                     "second_order_basis_sha256": adopted_basis["basis_sha256"]} if adopted_basis else {}),
+                **({"axial_idealization_method": AXIAL_IDEALIZATION_METHOD,
+                    "coefficient_nd_kn": idealized_cases[cname]["nmax_kn"],
+                    "axial_idealization_evidence_sha256": out["axial_idealization_evidence"]["evidence_sha256"]}
+                   if cname in idealized_cases else {}),
                 "moment_demand_knm": None,
                 "radial_capacity_knm": None,
                 "moment_reserve_knm": None,
@@ -655,6 +695,29 @@ def _project_single_r08_local(
             out["second_order_basis_status"] = ("ADOPTED_CALCULATION_BASIS_APPLIED_NOT_PROVEN" if static_done and spectral_done
                                                  else "ADOPTED_CALCULATION_BASIS_DEMAND_INCOMPLETE")
             out["status"] = "ADOPTED_SECOND_ORDER_CALCULATED_NOT_PROVEN" if static_done and spectral_done else "ADOPTED_SECOND_ORDER_BASIS_UNRESOLVED"
+            if idealized_cases and static_done:
+                applied_cases = {}
+                for name, inputs in idealized_cases.items():
+                    rows = [row for row in mag_rows if row["combination"] == name]
+                    factors = adopted_combo_factors.get(name, {})
+                    if (len(rows) != len(inputs["cuts"]) or not rows
+                            or set(factors) != {"M2", "M3"}
+                            or any(not value or value.get("coefficient_nd_kn") != inputs["nmax_kn"]
+                                   or value.get("final_factor") is None for value in factors.values())
+                            or any(row.get("coefficient_nd_kn") != inputs["nmax_kn"] for row in rows)):
+                        continue
+                    applied_cases[name] = {"nmin_kn": inputs["nmin_kn"], "nmax_kn": inputs["nmax_kn"],
+                        "coefficient_nd_kn": inputs["nmax_kn"], "expected_cut_count": len(inputs["cuts"]),
+                        "evaluated_cut_count": len(rows), "coefficient_nd_kn_by_axis": {
+                            axis: factors[axis]["coefficient_nd_kn"] for axis in ("M2", "M3")}}
+                if set(applied_cases) == set(idealized_cases):
+                    out["axial_idealization_application"].update(
+                        status=AXIAL_IDEALIZATION_APPLIED, combinations=applied_cases)
+                    if "VARIABLE_AXIAL_SECOND_ORDER_METHOD_UNQUALIFIED" in open_gates:
+                        open_gates.remove("VARIABLE_AXIAL_SECOND_ORDER_METHOD_UNQUALIFIED")
+                    open_gates.append(AXIAL_IDEALIZATION_GATE)
+                else:
+                    open_gates.append("AXIAL_IDEALIZATION_CALCULATION_INCOMPLETE")
     return out
 
 
@@ -978,6 +1041,12 @@ def project_column_r08_local_live(
                 "selected_cage_sha256": cage.candidate_sha256 if isinstance(cage, SelectedColumnCage) else None,
                 "engineering_approval": "NOT_GRANTED",
             }
+            if "axial_idealization_application" in result:
+                from .design_scenario import _digest
+                application = result["axial_idealization_application"]
+                application.update({key: value for key, value in result["second_order_basis_application"].items()
+                                    if key != "status"})
+                application["application_sha256"] = _digest(application)
         if not adopted_basis and uid in end_ratios and result.get("stiffness_and_euler"):
             result["effective_length_reference"] = effective_length_reference(
                 end_ratios[uid], result, revised_member["section_evidence"],

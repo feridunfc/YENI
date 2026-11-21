@@ -884,6 +884,10 @@ def _assemble_complete_report(run_id: str, source: Mapping[str, Any],
         raise ReportUnavailable("Complete modal and geometry receipts required")
     source_columns = source.get("geometry_capture")
     source_mode = schema["payload"]["source_mode"]
+    example = source.get("example_context")
+    synthetic_example = (isinstance(example, Mapping)
+                         and example.get("classification") == "CONTRACT_FIXTURE"
+                         and example.get("origin") == "GENERATED_OFFLINE_NOT_ETABS")
     shown_case = modal["payload"]["case"]
     full_projection = snapshot is not None and snapshot["schema"] == SCHEMA
     modal_definition = next(item for item in check_registry() if item["check_id"] == "modal_mass_95")
@@ -1008,6 +1012,8 @@ def _assemble_complete_report(run_id: str, source: Mapping[str, Any],
         "model": ntpath.basename(str(metadata.get("model_filename", ""))) or None,
         "captured_at_utc": modal["captured_at_utc"],
         "source_mode": source_mode,
+        **({"example_context": {key: example.get(key) for key in ("classification", "origin", "name", "scope")}}
+           if synthetic_example else {}),
         "modal_case": shown_case,
         "engineering_release": "NOT_READY",
         "formal_compliance": "NOT_PROVEN",
@@ -1162,6 +1168,16 @@ def _with_material_members(items: list[dict], roster: list[dict]) -> list[dict]:
 def build_printable_html(report: Mapping[str, Any]) -> str:
     """Self-contained print-ready HTML. All five checks and every member row."""
     checks = report["checks"]
+    example = report.get("example_context") or {}
+    synthetic_example = (example.get("classification") == "CONTRACT_FIXTURE"
+                         and example.get("origin") == "GENERATED_OFFLINE_NOT_ETABS")
+    example_notice = (
+        '<div class="warning"><strong>SYNTHETIC CONTRACT FIXTURE — NO LIVE ETABS ANALYSIS.</strong> '
+        'The recorded source was generated offline to exercise the production calculation pipeline. '
+        'Its LIVE_ETABS label identifies the reused input schema, not a solver execution. '
+        + _val(example.get("name")) + '</div>' if synthetic_example else '')
+    source_description = "synthetic source inputs" if synthetic_example else "ETABS source data"
+    displayed_source = "CONTRACT_FIXTURE / GENERATED_OFFLINE" if synthetic_example else report["source_mode"]
     modal, geometry, extras = checks[0], checks[1:5], checks[5:]
     summary_cols = (
         ("check_id", "Check"), ("status", "Numerical status"),
@@ -1878,14 +1894,15 @@ th {{background:#e8eff7;font-weight:650}} tr:nth-child(even) td {{background:#f7
 </style></head><body>
 <div class="toolstrip">Press <strong>Ctrl+P</strong> to print or save as PDF.</div>
 <h1>TBDY Next Engine — Engineering Check Report</h1>
-<p class="muted">{_val((report.get('check_inventory') or {}).get('count', len(checks)))} limited-scope checks from ETABS source data. The STORY_DRIFT numerical result leaves TBDY compliance NOT_PROVEN.</p>
+{example_notice}
+<p class="muted">{_val((report.get('check_inventory') or {}).get('count', len(checks)))} limited-scope checks from {source_description}. The STORY_DRIFT numerical result leaves TBDY compliance NOT_PROVEN.</p>
 <p class="muted">Hover over a rounded value to see the original. The JSON export also includes full precision.</p>
 <div class="warning"><strong>FORMAL COMPLIANCE = NOT_PROVEN · ENGINEERING RELEASE = NOT_READY.</strong>
 The report covers the numerical checks documented below. Full TBDY and TS500 compliance requires further evidence.</div>
 <div class="grid">
 <div><strong>Model</strong><p>{_val(report.get('model'))}</p></div>
 <div><strong>Run / date</strong><p>{_val(report['run_id'])}<br>{_val(report['captured_at_utc'])}</p></div>
-<div><strong>Source / modal case</strong><p>{_val(report['source_mode'])}<br>{_val(report['modal_case'])}</p></div>
+<div><strong>Source / modal case</strong><p>{_val(displayed_source)}<br>{_val(report['modal_case'])}</p></div>
 </div>
 <h2>Check summary</h2>
 {_table(summary_cols, summary_rows)}
@@ -2596,12 +2613,30 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
     members = (local.get("per_member") or {"single": local}).values()
     basis_rows, factor_rows, balance_rows, pair_rows, pair_basis_rows = [], [], [], [], []
     refined_rows, refined_levels, mesh_changes = [], [], []
+    idealization_rows, idealization_cases, idealization_cuts = [], [], []
     for member in members:
         basis = member.get("adopted_second_order_basis") or {}
         if not basis:
             continue
         member_basis = basis.get("member") or {}
         stiffness = member.get("stiffness_and_euler") or {}
+        application = member.get("axial_idealization_application") or {}
+        if application:
+            premises = member.get("axial_idealization_evidence") or {}
+            idealization_rows.append({
+                "member": member.get("member_id"), "method": application.get("method"),
+                "status": application.get("status"), "premises": premises.get("status"),
+                "requested": application.get("requested_combinations"),
+                "variable": application.get("observed_variable_combinations"),
+                "reason": premises.get("reason") or premises.get("reasons"),
+                "reference": application.get("decision_reference"),
+                "approval": application.get("engineering_approval"),
+            })
+            idealization_cases.extend({"member": member.get("member_id"), "combination": name, **item}
+                                      for name, item in (application.get("combinations") or {}).items())
+            idealization_cuts.extend({"member": member.get("member_id"), **row}
+                for row in (member.get("magnified_selected_pmm") or {}).get("rows", ())
+                if row.get("axial_idealization_method"))
         for axis, inputs in (member_basis.get("axes") or {}).items():
             actual = stiffness.get(axis) or {}
             basis_rows.append({"member": member.get("member_id"), "axis": axis,
@@ -2658,6 +2693,27 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
                    ("beta", "Member factor"), ("beta_story", "Story factor"),
                    ("final_factor", "TS 500 factor used"), ("status", "Factor status")), factor_rows)
            if factor_rows else '')
+        + ('<h3>Adopted self-weight axial idealization</h3>'
+           '<p>Physical axial force varies along the member. For the explicitly named signed combinations, '
+           'the existing coefficient calculation uses the maximum compression. Each section retains its own '
+           'axial force for minimum eccentricity and PMM capacity. This is an adopted numerical idealization '
+           'outside the constant-axial-force condition of TS 500 7.6.2; conservatism and engineering acceptance '
+           'are not established. The source-premise checks do not grant method approval.</p>'
+           + _table((("member", "Column"), ("method", "Idealization"), ("status", "Application"),
+                     ("premises", "Source premises"), ("requested", "Declared combinations"),
+                     ("variable", "Observed variable-N combinations"), ("reason", "Unresolved premise"),
+                     ("reference", "Decision reference"), ("approval", "Engineering approval")), idealization_rows)
+           + (_table((("member", "Column"), ("combination", "Combination"), ("nmin_kn", "Minimum N (kN)"),
+                      ("nmax_kn", "Maximum N (kN)"), ("coefficient_nd_kn", "N used for coefficient (kN)"),
+                      ("expected_cut_count", "Expected cuts"), ("evaluated_cut_count", "Evaluated cuts")),
+                     idealization_cases) if idealization_cases else '')
+           + (_table((("member", "Column"), ("combination", "Combination"), ("object_station_m", "Station (m)"),
+                      ("analysis_element_id", "Element"), ("nd_kn", "Local N for section (kN)"),
+                      ("coefficient_nd_kn", "N for coefficient (kN)"), ("beta_m2", "Local M2 factor"),
+                      ("beta_m3", "Local M3 factor"), ("magnified_m2_design_knm", "Design M2 (kN·m)"),
+                      ("magnified_m3_design_knm", "Design M3 (kN·m)"), ("utilization", "PMM utilization"),
+                      ("status", "Section outcome")), idealization_cuts) if idealization_cuts else '')
+           if idealization_rows else '')
         + ('<h3>Gravity axial equilibrium between signed cuts</h3>'
            + _table((("member", "Column"), ("combination", "Combination"), ("start_m", "Start (m)"),
                      ("end_m", "End (m)"), ("native_axial_change_kn", "Native ΔP (kN)"),
