@@ -649,6 +649,15 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
                 payload, geometry, column_axial, axial_ledger, target=pmm_target, input_sha=input_sha,
             )
             if column_pmm is not None:
+                archive_order = (analysis_setup_reconciliation or {}).get("archived_analysis_order")
+                combinations = column_axial["combination_plan"]["combinations"]
+                if archive_order and combinations and all(
+                    row.get("case_names") and set(row["case_names"]) <= archive_order["solved_case_guids"].keys()
+                    for row in combinations
+                ):
+                    for item in [column_pmm, *column_pmm.get("members", ())]:
+                        item["analysis_order"] = archive_order["source_analysis_order"]
+                        item["archived_solver_log_sha256"] = archive_order["solver_log_sha256"]
                 run.record(PMM_STAGE, column_pmm, input_sha256=input_sha)
     mixed_components = None
     demand_sources = None

@@ -252,6 +252,23 @@ def _project_single_r08_local(
         "formal_compliance": "NOT_PROVEN",
         "engineering_release": "NOT_READY",
     }
+    if pmm.get("analysis_order") == "FIRST_ORDER" and pmm.get("archived_solver_log_sha256"):
+        out["source_analysis_order"] = pmm["analysis_order"]
+        out["archived_solver_log_sha256"] = pmm["archived_solver_log_sha256"]
+        open_gates.remove("ACTUAL_ANALYSIS_ORDER_UNVERIFIED")
+        evidence["unverified_inputs"].remove("Actual analysis order and global P–Δ treatment")
+        evidence["unverified_inputs"].append("Global P–Δ treatment for design")
+    if adopted_basis is not None and ln is not None and frame_length_m is not None:
+        from .column_axial_balance import project_gravity_axial_balance
+
+        balance = project_gravity_axial_balance(source, pmm, physical_length, frame_length_m)
+        if balance is not None:
+            out["gravity_axial_balance"] = balance
+            if out.get("archived_solver_log_sha256") and any(
+                abs(interval["native_axial_change_kn"]) > 1e-8
+                for combo in (balance.get("combinations") or {}).values() for interval in combo["intervals"]
+            ):
+                open_gates.append("VARIABLE_AXIAL_SECOND_ORDER_METHOD_UNQUALIFIED")
     resolved_k = {}
     if adopted_basis is not None:
         out.update(adopted_second_order_basis=adopted_basis,

@@ -26,7 +26,7 @@ LINEAGE = "tbdy.next.design-scenario-lineage.v1"
 LINEAGE_WITH_BASIS = "tbdy.next.design-scenario-lineage.v2"
 PARENT_FILE = "parent.source"
 POLICIES = ("beam_selection", "column_selection")
-CALCULATION_BASES = ("second_order_basis", "analysis_basis")
+CALCULATION_BASES = ("second_order_basis", "analysis_basis", "analysis_archive")
 
 
 @dataclass(frozen=True)
@@ -62,8 +62,18 @@ def _calculation_basis(key: str, value: Any, source_data_sha256: str) -> dict[st
     if key == "second_order_basis":
         from .second_order_basis import normalize_second_order_basis
         return normalize_second_order_basis(value, source_data_sha256=source_data_sha256)
+    if key == "analysis_archive":
+        from .analysis_archive import normalize_solver_archive
+        return normalize_solver_archive(value, source_data_sha256=source_data_sha256)
     from .analysis_setup import normalize_analysis_basis
     return normalize_analysis_basis(value, source_data_sha256=source_data_sha256)
+
+
+def _lineage_bases(bases: Mapping[str, Any]) -> dict[str, Any]:
+    # Archive artifacts belong to input.source. The sealed result and printed
+    # report only need their binding digest.
+    return {key: {"archive_sha256": _digest(value)} if key == "analysis_archive" else value
+            for key, value in bases.items()}
 
 
 def _policy(raw: Any, kind: str) -> dict[str, Any] | None:
@@ -133,7 +143,7 @@ def create_design_scenario(parent_raw: bytes, request: Mapping[str, Any]) -> byt
         "schema": LINEAGE_WITH_BASIS if bases else LINEAGE, "scenario_id": name, "parent_input_sha256": parent_sha,
         "source_data_sha256": native_sha, "policies": policies,
         "selection_role": "ALGORITHM_SELECTED_CANDIDATE", "engineering_approval": "NOT_GRANTED",
-        **({"calculation_bases": bases} if bases else {}),
+        **({"calculation_bases": _lineage_bases(bases)} if bases else {}),
     }
     result["design_scenario"] = {**lineage, "scenario_sha256": _digest(lineage)}
     return _bytes(result)
@@ -160,11 +170,12 @@ def validate_design_scenario(payload: Mapping[str, Any]) -> dict[str, Any] | Non
     if not isinstance(item["policies"], Mapping) or set(item["policies"]) != set(POLICIES):
         raise ValueError("SCENARIO_POLICIES_INVALID")
     bases = item.get("calculation_bases", {})
+    input_bases = {key: payload[key] for key in CALCULATION_BASES if payload.get(key) is not None}
     if (not isinstance(bases, Mapping) or set(bases) - set(CALCULATION_BASES)
             or (item["schema"] == LINEAGE_WITH_BASIS and not bases)
-            or bases != {key: payload[key] for key in CALCULATION_BASES if payload.get(key) is not None}):
+            or bases != _lineage_bases(input_bases)):
         raise ValueError("SCENARIO_CALCULATION_BASIS_CHANGED")
-    for key, value in bases.items():
+    for key, value in input_bases.items():
         if _calculation_basis(key, value, item["source_data_sha256"]) != value:
             raise ValueError("SCENARIO_CALCULATION_BASIS_NOT_NORMALIZED")
     if (item["scenario_sha256"] != _digest({k: v for k, v in item.items() if k != "scenario_sha256"})

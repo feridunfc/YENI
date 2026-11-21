@@ -116,7 +116,13 @@ def _adopted_calculation_context(uid, plan, local, reconciliation, evidence):
             return None
         names = {c["name"] for c in plan.get("combinations", ())}
         groups = {k: sorted(v) for k, v in ((plan.get("design_assignment") or {}).get("groups") or {}).items() if v}
-        if (not names or set(basis["member"]["combinations"]) != names or analysis["design_groups"] != groups):
+        force_groups = reconciliation.get("calculation_force_groups", analysis["design_groups"])
+        if (not names or set(basis["member"]["combinations"]) != names or force_groups != groups
+                or any(analysis["design_groups"].get(key) != value for key, value in groups.items())):
+            return None
+        archive_order = reconciliation.get("archived_analysis_order")
+        if archive_order and (local.get("source_analysis_order") != archive_order["source_analysis_order"]
+                              or local.get("archived_solver_log_sha256") != archive_order["solver_log_sha256"]):
             return None
         stiffness = local.get("stiffness_and_euler") or {}
         if set(stiffness) != {"M2", "M3"}:

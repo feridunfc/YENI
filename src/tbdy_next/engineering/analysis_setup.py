@@ -18,6 +18,7 @@ ADOPTED_ANALYSIS_SCHEMA = "tbdy.next.adopted-analysis-basis.v1"
 ADOPTED_ANALYSIS_PENDING = "ADOPTED_ANALYSIS_BASIS_ENGINEERING_ACCEPTANCE_PENDING"
 _ADMISSION_CODES = frozenset({"APPROVED_MODEL_PROFILE_MISSING",
     "APPROVED_LOAD_ROLES_AND_DESIGN_FAMILIES_MISSING", "LOAD_CASE_ROLES_UNAPPROVED",
+    "LOAD_CASE_ROLES_AND_REMAINING_DESIGN_FAMILIES_UNAPPROVED",
     "ANALYSIS_GENERATION_NOT_PROVEN"})
 
 
@@ -73,12 +74,14 @@ def normalize_analysis_basis(raw: Any, *, source_data_sha256: str) -> dict[str, 
     return result
 
 
-def _adopt_calculation_basis(snapshot, analysis_setup, assigned):
+def _adopt_calculation_basis(snapshot, analysis_setup, assigned, archived_order):
     """Require complete native definitions and exact assigned scope before use."""
     from .design_scenario import _digest, _source_data, validate_design_scenario
     lineage = validate_design_scenario(snapshot)
     if lineage is None:
         raise ValueError("ANALYSIS_BASIS_REQUIRES_PREPARED_SCENARIO")
+    if snapshot.get("analysis_archive") is not None and not archived_order:
+        raise ValueError("ANALYSIS_BASIS_REQUESTED_SOLVER_ARCHIVE_UNBOUND")
     basis = normalize_analysis_basis(snapshot["analysis_basis"], source_data_sha256=_digest(_source_data(snapshot)))
     if (not analysis_setup.get("definition_coverage_known")
             or analysis_setup.get("source_capture_scope") != "SAME_CAPTURE"):
@@ -96,11 +99,26 @@ def _adopt_calculation_basis(snapshot, analysis_setup, assigned):
                 or (kind == "Linear Static" and role not in {"GRAVITY", "STATIC_SEISMIC", "WIND", "OTHER_STATIC"})
                 or kind not in {"Response Spectrum", "Linear Static"} | modal_kinds):
             raise ValueError("ANALYSIS_BASIS_CASE_ROLE_OR_TYPE_UNSUPPORTED:" + name)
-    groups = {k: sorted(v) for k, v in ((assigned or {}).get("assigned_groups") or {}).items() if v}
-    if (not assigned or assigned.get("remaining_unassigned_families")
-            or groups != basis["design_groups"]
-            or not {name for values in groups.values() for name in values}
+    force_groups = {k: sorted(v) for k, v in ((assigned or {}).get("assigned_groups") or {}).items() if v}
+    declared = basis["design_groups"]
+    if (not force_groups or any(declared.get(key) != value for key, value in force_groups.items())
+            or not {name for values in declared.values() for name in values}
                    <= set(analysis_setup.get("defined_combination_names") or ())):
+        raise ValueError("ANALYSIS_BASIS_ASSIGNED_GROUP_POPULATION_MISMATCH")
+    catalog = assigned["project_role_catalog"]
+    if catalog["scope"] != "upper":
+        raise ValueError("ANALYSIS_BASIS_COLUMN_SCOPE_UNSUPPORTED")
+    # Full explicitly assigned books already supported by the existing contract
+    # retain their exact force-request roles. A scoped PMM request can supplement
+    # those roles only from the configured, complete same-capture catalog.
+    if set(force_groups) != set(catalog["active_families"]):
+        if (assigned["profile"] != catalog["profile"]
+                or not set(catalog["column_slice_families"]) <= declared.keys()
+                or not declared.keys() <= set(catalog["active_families"])
+                or any(catalog["available_groups"].get(key) != declared[key]
+                       for key in declared.keys() - force_groups.keys())):
+            raise ValueError("ANALYSIS_BASIS_PROJECT_ROLE_POPULATION_MISMATCH")
+    elif declared != force_groups:
         raise ValueError("ANALYSIS_BASIS_ASSIGNED_GROUP_POPULATION_MISMATCH")
     # A named nonlinear stiffness predecessor contradicts this supported route.
     # NonlinCase=None, in contrast, is never treated as proof of first order.
@@ -110,8 +128,10 @@ def _adopt_calculation_basis(snapshot, analysis_setup, assigned):
     # An explicit P-Delta stiffness record cannot be relabelled first order.
     # A Nonlinear Case / None entry is an unresolved initial condition, so it
     # may only accompany the explicit adopted assumption, never source proof.
-    if any(row.get("stiffness_setting") not in {"Unstressed", "Zero Initial Conditions", "Nonlinear Case"}
-           for row in analysis_setup.get("linear_static_settings") or ()):
+    if not archived_order and any(
+        row.get("stiffness_setting") not in {"Unstressed", "Zero Initial Conditions", "Nonlinear Case"}
+        for row in analysis_setup.get("linear_static_settings") or ()
+    ):
         raise ValueError("ANALYSIS_BASIS_FIRST_ORDER_STIFFNESS_SETTING_CONFLICT_OR_UNSUPPORTED")
     second = snapshot.get("second_order_basis")
     if second is not None and second.get("source_analysis_order") != basis["generation"]["source_analysis_order"]:
@@ -382,7 +402,7 @@ def _audit_cracked_section_modifiers(snapshot: Mapping[str, Any]) -> dict[str, A
     }
 
 
-def _reconcile_assigned_design_families(snapshot: Mapping[str, Any]) -> dict[str, Any] | None:
+def _reconcile_assigned_design_families(snapshot: Mapping[str, Any], setup: Mapping[str, Any]) -> dict[str, Any] | None:
     req = (snapshot.get("column_axial") or {}).get("request") or {}
     if req.get("combination_source") != "ASSIGNED_DESIGN":
         return None
@@ -392,22 +412,21 @@ def _reconcile_assigned_design_families(snapshot: Mapping[str, Any]) -> dict[str
     groups = assignment.get("groups")
     if not isinstance(groups, Mapping) or not groups:
         return None
-    from .design_assignments import _PROFILE
+    from .design_assignments import project_role_catalog
 
-    active_ids = [
-        g["id"]
-        for g in _PROFILE.get("groups", ())
-        if g.get("checks")
-    ]
+    scope = assignment.get("scope") or "upper"
+    catalog = project_role_catalog(setup, scope=scope)
     assigned_ids = sorted(k for k, v in groups.items() if isinstance(v, list) and v)
-    remaining = sorted(gid for gid in active_ids if gid not in assigned_ids)
+    remaining = sorted(set(catalog["active_families"]) - set(assigned_ids))
     return {
         "source": "ASSIGNED_DESIGN",
-        "profile": assignment.get("profile") or _PROFILE.get("id"),
-        "scope": assignment.get("scope"),
+        "profile": assignment.get("profile") or catalog["profile"],
+        "scope": scope,
         "assigned_groups": {k: list(v) for k, v in sorted(groups.items())},
         "bound_families": assigned_ids,
-        "remaining_unassigned_families": remaining,
+        "families_outside_force_request": remaining,
+        "remaining_unassigned_families": sorted(set(remaining) - catalog["available_groups"].keys()),
+        "project_role_catalog": catalog,
     }
 
 
@@ -418,7 +437,7 @@ def project_analysis_setup_reconciliation(
     """Reconcile base R03 audit against ASSIGNED_DESIGN families and ETABS Table 4.2 stiffness factors."""
     if not isinstance(analysis_setup, Mapping) or not isinstance(snapshot, Mapping):
         return None
-    assigned = _reconcile_assigned_design_families(snapshot)
+    assigned = _reconcile_assigned_design_families(snapshot, analysis_setup)
     stiffness = _audit_cracked_section_modifiers(snapshot)
     blockers = list(analysis_setup.get("blocker_codes") or ())
     if assigned and "APPROVED_LOAD_ROLES_AND_DESIGN_FAMILIES_MISSING" in blockers:
@@ -430,14 +449,28 @@ def project_analysis_setup_reconciliation(
         )
         blockers[idx] = replacement
     adopted = {}
+    archive = None
+    if snapshot.get("analysis_archive") is not None:
+        try:
+            from .analysis_archive import reconcile_archived_order
+            from .design_scenario import validate_design_scenario
+
+            if validate_design_scenario(snapshot) is None:
+                raise ValueError("SOLVER_ARCHIVE_SCENARIO_UNVERIFIED")
+            archive = reconcile_archived_order(snapshot, analysis_setup)
+        except (KeyError, TypeError, ValueError) as exc:
+            blockers.append("ARCHIVED_ANALYSIS_ORDER_UNBOUND:" + str(exc))
     if snapshot.get("analysis_basis") is not None:
         try:
-            basis = _adopt_calculation_basis(snapshot, analysis_setup, assigned)
+            basis = _adopt_calculation_basis(snapshot, analysis_setup, assigned, archive)
             from .design_scenario import _digest
             blockers = [code for code in blockers if code not in _ADMISSION_CODES]
             blockers.append(ADOPTED_ANALYSIS_PENDING)
             adopted = {"calculation_basis_status": "ADOPTED_CALCULATION_BASIS_APPLIED_NOT_PROVEN",
                        "calculation_basis": basis, "calculation_basis_sha256": _digest(basis),
+                       "calculation_force_groups": {k: sorted(v) for k, v in assigned["assigned_groups"].items() if v},
+                       "project_roles_outside_calculation": sorted(
+                           set(assigned["project_role_catalog"]["active_families"]) - basis["design_groups"].keys()),
                        "analysis_generation_independently_verified": False,
                        "engineering_approval": "NOT_GRANTED"}
         except (KeyError, TypeError, ValueError) as exc:
@@ -446,6 +479,7 @@ def project_analysis_setup_reconciliation(
         "schema": "tbdy.next.r03-reconciliation.v1",
         "design_families_assigned": bool(assigned),
         "assigned_design_families": assigned,
+        **({"archived_analysis_order": archive} if archive else {}),
         "cracked_section_stiffness_audit": stiffness,
         "reconciled_blocker_codes": blockers,
         **adopted,

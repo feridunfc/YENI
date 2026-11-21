@@ -1,5 +1,6 @@
 """Explicit calculation assumptions are consumed without granting engineering approval."""
 from copy import deepcopy
+from base64 import b64encode
 from hashlib import sha256
 import json
 from pathlib import Path
@@ -10,12 +11,14 @@ from tbdy_next.engineering.analysis_setup import (
     ADOPTED_ANALYSIS_PENDING, ADOPTED_ANALYSIS_SCHEMA, STATIC_CASES, SUMMARY,
     audit_model_analysis_setup, project_analysis_setup_reconciliation,
 )
-from tbdy_next.engineering.design_assignments import _PROFILE
+from tbdy_next.engineering.analysis_archive import SCHEMA as ARCHIVE_SCHEMA, STATIC, ZERO, COMPLETE, SPECTRAL
+from tbdy_next.engineering.design_assignments import _PROFILE, project_role_catalog
 from tbdy_next.engineering.design_scenario import (
     SCHEMA, _digest, _source_data, create_design_scenario, prepare_pipeline_source,
     validate_design_scenario, verify_parent,
 )
-from test_r03_analysis_setup import basis_probe
+from tbdy_next.vs05_d4_source_authority import COMBOS, SPECTRUM
+from test_r03_analysis_setup import basis_probe, capture_table
 
 
 def source_and_basis():
@@ -40,10 +43,12 @@ def source_and_basis():
     return source, basis
 
 
-def prepare(source, basis):
+def prepare(source, basis, *, archive=None):
     raw = json.dumps(source, sort_keys=True).encode()
     request = {"schema": SCHEMA, "scenario_id": "adopted-analysis", "parent_input_sha256": sha256(raw).hexdigest(),
                "beam_selection": "default", "column_selection": "default", "analysis_basis": basis}
+    if archive is not None:
+        request["analysis_archive"] = archive
     return raw, prepare_pipeline_source(raw, request=request)
 
 
@@ -143,6 +148,85 @@ class AdoptedAnalysisBasisTests(unittest.TestCase):
         result = project_analysis_setup_reconciliation(native, prepared.payload)
         self.assertIn("NATIVE_FORCE_GENERATION_MISMATCH", result["reconciled_blocker_codes"])
         self.assertIn(ADOPTED_ANALYSIS_PENDING, result["reconciled_blocker_codes"])
+
+    def test_scoped_column_request_binds_project_roles_without_wall(self):
+        source, basis = source_and_basis()
+        tables = source["vs04_basis_probe"]["table_reads"]
+        combos = [(name, "Linear Add", "spectrum-any-name" if family["spectrum"] else "gravity", "1", name + "-guid")
+                  for family in _PROFILE["families"].values() for name in family["names"]]
+        columns = ["Name", "Type", "LoadName", "SF", "GUID"]
+        tables[COMBOS] = capture_table(COMBOS, columns, combos + [
+            ("service-in-its-name", "Linear Add", "spectrum-any-name", "1", "native-service"),
+            ("envelope-any-name", "Envelope", "service-in-its-name", "1", "native-env"),
+            ("Duct_Seis_not_a_role", "Linear Add", "gravity", "1", "native-other"),
+        ])
+        setup = audit_model_analysis_setup(source["vs04_basis_probe"])
+        catalog = project_role_catalog(setup, scope="upper")
+        groups = catalog["available_groups"]
+        force_groups = {key: groups[key] for key in ("gravity", "ductile")}
+        source["column_axial"]["request"]["design_assignment"] = {
+            "scope": "upper", "profile": catalog["profile"], "groups": force_groups,
+        }
+        basis["source_data_sha256"] = _digest(_source_data(source))
+        basis["design_groups"] = {key: groups[key] for key in catalog["column_slice_families"]}
+        _, prepared = prepare(source, basis)
+        result = project_analysis_setup_reconciliation(setup, prepared.payload)
+        self.assertEqual(result["reconciled_blocker_codes"], [ADOPTED_ANALYSIS_PENDING])
+        self.assertEqual(result["calculation_force_groups"], force_groups)
+        self.assertEqual(result["project_roles_outside_calculation"], ["wall"])
+        self.assertEqual(result["assigned_design_families"]["remaining_unassigned_families"], [])
+        basis["design_groups"].pop("drift")
+        _, prepared = prepare(source, basis)
+        result = project_analysis_setup_reconciliation(setup, prepared.payload)
+        self.assertIn("ADOPTED_ANALYSIS_BASIS_INVALID:ANALYSIS_BASIS_PROJECT_ROLE_POPULATION_MISMATCH",
+                      result["reconciled_blocker_codes"])
+
+    def test_archive_reconciles_preset_only_when_solver_and_native_parent_match(self):
+        source, basis = source_and_basis()
+        source["capture_metadata"] = {"model_filename": "C:\\models\\fixture.EDB"}
+        tables = source["vs04_basis_probe"]["table_reads"]
+        tables[STATIC_CASES]["rows"][0]["StiffType"] = "P-Delta"
+        tables[SUMMARY] = capture_table(SUMMARY, ["Name", "Type", "GUID"], [
+            ("gravity", "Linear Static", "case-1"), ("spectrum-any-name", "Response Spectrum", "case-2"),
+            ("Modal", "Modal - Ritz", "case-3"),
+        ])
+        tables[SPECTRUM] = capture_table(SPECTRUM, ["Name", "ModalCase"], [("spectrum-any-name", "Modal")])
+        source["analysis_sources"] = {"tables": {"Modal Periods And Frequencies": {"rows": [{"Case": "Modal", "Mode": 1}]}}}
+        source["column_axial"]["r10_source"] = {"table_reads": {"Objects and Elements - Frames": {"row_count": 12}}}
+        basis["case_roles"]["Modal"] = "MODAL"
+        basis["generation"]["completed_case_names"].append("Modal")
+        basis["source_data_sha256"] = _digest(_source_data(source))
+        export = '\n'.join((
+            'PDELTA  METHOD "NONE"', 'LOADCASE "gravity" TYPE "Linear Static" INITCOND "PRESET"',
+            'LOADCASE "Modal" TYPE "Modal - Ritz" INITCOND "PRESET"',
+            'LOADCASE "spectrum-any-name" TYPE "Response Spectrum" MODALCASE "Modal"',
+        ))
+        log = '\n'.join((
+            "File: C:\\models\\fixture.LOG", "B E G I N   A N A L Y S I S",
+            "NUMBER OF FRAME/TENDON ELEMENTS = 12", "FORMING STIFFNESS AT ZERO (UNSTRESSED) INITIAL CONDITIONS",
+            STATIC, ZERO, "CASE: GRAVITY", "R I T Z   M O D A L   A N A L Y S I S",
+            "CASE: MODAL", ZERO, "NUMBER OF RITZ MODES FOUND = 1", SPECTRAL, "CASE: SPECTRUM-ANY-NAME",
+            "USING MODES FROM CASE: MODAL", "NUMBER OF DYNAMIC MODES TO BE USED = 1", COMPLETE,
+        ))
+        archive = {
+            "schema": ARCHIVE_SCHEMA, "source_data_sha256": basis["source_data_sha256"], "observed_edb_sha256": "b" * 64,
+            "model_export_base64": b64encode(export.encode()).decode(),
+            "log_base64": b64encode(log.encode()).decode(),
+        }
+        setup = audit_model_analysis_setup(source["vs04_basis_probe"])
+        _, prepared = prepare(source, basis, archive=archive)
+        result = project_analysis_setup_reconciliation(setup, prepared.payload)
+        self.assertEqual(result["reconciled_blocker_codes"], [ADOPTED_ANALYSIS_PENDING])
+        self.assertEqual(result["archived_analysis_order"]["configured_static_initial_conditions"], {"gravity": "PRESET"})
+        self.assertEqual(result["archived_analysis_order"]["spectrum_modal_parents"], {"spectrum-any-name": "Modal"})
+        self.assertFalse(result["analysis_generation_independently_verified"])
+        self.assertNotIn("log_base64", validate_design_scenario(prepared.payload)["calculation_bases"]["analysis_archive"])
+        archive["log_base64"] = b64encode(log.replace("USING MODES FROM CASE: MODAL", "USING MODES FROM CASE: OTHER").encode()).decode()
+        _, invalid = prepare(source, basis, archive=archive)
+        result = project_analysis_setup_reconciliation(setup, invalid.payload)
+        self.assertNotIn("archived_analysis_order", result)
+        self.assertIn("ARCHIVED_ANALYSIS_ORDER_UNBOUND:SOLVER_ARCHIVE_SPECTRAL_MODE_USE_MISMATCH:spectrum-any-name",
+                      result["reconciled_blocker_codes"])
 
     def test_changed_basis_changes_scenario_identity_and_cannot_be_silently_mutated(self):
         source, basis = source_and_basis()

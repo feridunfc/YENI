@@ -2594,7 +2594,7 @@ def _column_slenderness_html(evidence: Mapping[str, Any], local: Mapping[str, An
 def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
     """Project recorded adopted inputs and results; never rerun a calculation."""
     members = (local.get("per_member") or {"single": local}).values()
-    basis_rows, factor_rows = [], []
+    basis_rows, factor_rows, balance_rows = [], [], []
     for member in members:
         basis = member.get("adopted_second_order_basis") or {}
         if not basis:
@@ -2617,6 +2617,13 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
                 if factors:
                     factor_rows.append({"member": member.get("member_id"), "axis": axis,
                         "combination": combo.get("combination"), **factors})
+        balance = member.get("gravity_axial_balance") or {}
+        for name, combo in (balance.get("combinations") or {}).items():
+            balance_rows.extend({
+                "member": member.get("member_id"), "combination": name, "status": combo["status"],
+                "start_m": interval["start_cut"][1], "end_m": interval["end_cut"][1],
+                **interval,
+            } for interval in combo["intervals"])
     if not basis_rows:
         return ""
     return ('<section class="percheck"><h2>Second order · Adopted calculation basis</h2>'
@@ -2631,7 +2638,13 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
         + (_table((("member", "Column"), ("combination", "Combination"), ("axis", "Axis"),
                    ("beta", "Member factor"), ("beta_story", "Story factor"),
                    ("final_factor", "TS 500 factor used"), ("status", "Factor status")), factor_rows)
-           if factor_rows else '') + '</section>')
+           if factor_rows else '')
+        + ('<h3>Gravity axial equilibrium between signed cuts</h3>'
+           + _table((("member", "Column"), ("combination", "Combination"), ("start_m", "Start (m)"),
+                     ("end_m", "End (m)"), ("native_axial_change_kn", "Native ΔP (kN)"),
+                     ("predicted_self_weight_change_kn", "Self-weight ΔP (kN)"),
+                     ("residual_kn", "Residual (kN)"), ("status", "Balance status")), balance_rows)
+           if balance_rows else '') + '</section>')
 
 
 def _alpha_feedback_html(record: Mapping[str, Any]) -> str:
@@ -2831,12 +2844,18 @@ def _analysis_setup_html(setup: Mapping[str, Any], receipt_sha: str | None = Non
     if isinstance(reconciliation, Mapping):
         assigned = reconciliation.get("assigned_design_families") or {}
         stiff = reconciliation.get("cracked_section_stiffness_audit") or {}
+        archive = reconciliation.get("archived_analysis_order") or {}
+        catalog = assigned.get("project_role_catalog") or {}
         blockers = reconciliation.get("reconciled_blocker_codes") or setup["blocker_codes"]
         reconciled_html = (
-            f'<p><strong>Reconciled design families</strong> '
+            f'<p><strong>Force request roles</strong> '
             f'{_val(assigned.get("bound_families") or "None bound")} · '
-            f'Remaining {_val(assigned.get("remaining_unassigned_families") or [])}</p>'
-            f'<p><strong>TBDY Table 4.2 section modifiers</strong> '
+            f'Complete native project roles {_val(sorted(catalog.get("available_groups") or []))} · '
+            f'Unresolved catalog roles {_val(assigned.get("remaining_unassigned_families") or [])} · '
+            f'Outside calculation {_val(reconciliation.get("project_roles_outside_calculation") or [])}</p>'
+            + (f'<p><strong>Archived solver order</strong> {_val(archive["source_analysis_order"])} · '
+               f'{len(archive["solved_case_guids"])} solved cases</p>' if archive else '')
+            + f'<p><strong>TBDY Table 4.2 section modifiers</strong> '
             f'{_val(stiff.get("status"))} (columns 0.70: {_val(stiff.get("all_columns_match_0_70"))}, '
             f'beams 0.35: {_val(stiff.get("all_beams_match_0_35"))})</p>'
         )

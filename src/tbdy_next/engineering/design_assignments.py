@@ -7,11 +7,13 @@ from importlib.resources import files
 ASSIGNED_DESIGN = "ASSIGNED_DESIGN"
 COLUMN_AXIAL_ID = "4.3"
 _PROFILE = json.loads(files("tbdy_next").joinpath("config", "design_combination_groups.json").read_bytes())
+# Checks invoked by the complete column slice in addition to the PMM force request.
+_COLUMN_CHECKS = {"3.2", "4.3", "4.4", "4.7", "4.8", "6.2", "6.3"}
 
 
 def design_assignments(setup: dict) -> dict:
     audited = {row["combination"]: row for row in setup.get("combination_audit", ())}
-    catalog = set(setup["defined_combination_names"]) if setup.get("definition_coverage_known") else set()
+    catalog = set(setup.get("defined_combination_names", ())) if setup.get("definition_coverage_known") else set()
     defaults = {"upper": {}, "lower": {}}
     check_groups = {}
     for group in _PROFILE["groups"]:
@@ -46,3 +48,23 @@ def bind_assigned_combinations(project: dict, *, check: str, offered: object, ca
             raise ValueError("A design assignment contains invalid or missing ETABS combinations.")
     return {"profile": project["profile"], "scope": "upper",
             "groups": {group: sorted(offered[group]) for group in groups}}
+
+
+def project_role_catalog(setup, *, scope):
+    """Resolve the configured project roles against complete native families."""
+    defaults = design_assignments(setup)["defaults"].get(scope, {})
+    active = [group for group in _PROFILE["groups"] if group["checks"] and scope in group["scopes"]]
+    complete = {}
+    for group in active:
+        name = group["id"]
+        expected = sorted(_PROFILE["families"][group["family"]]["names"])
+        if defaults.get(name) == expected:
+            complete[name] = expected
+    return {
+        "profile": _PROFILE["id"],
+        "scope": scope,
+        "available_groups": complete,
+        "incomplete_families": sorted(group["id"] for group in active if group["id"] not in complete),
+        "column_slice_families": sorted(group["id"] for group in active if _COLUMN_CHECKS.intersection(group["checks"])),
+        "active_families": sorted(group["id"] for group in active),
+    }
