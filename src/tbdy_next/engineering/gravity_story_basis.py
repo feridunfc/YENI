@@ -10,12 +10,18 @@ from ..column_engine.source_bank import native_frame_force_rows
 from ..column_engine.ts500_column import (
     SWAY_PERMITTED, SWAY_PREVENTED, effective_length_factor, elastic_sway_length_factor, euler_load_kn,
 )
-from .column_clear_length import WALL_CONNECTIVITY, proven_clear_length_m
+from .column_clear_length import WALL_CONNECTIVITY, WALL_COUPLED, proven_clear_length_m
 from .column_pmm_section import MECHANICAL
 from .column_r10_live import _build_frame_catalog
 
 STORY_BASIS_SCHEMA = "tbdy.next.gravity-story-basis.v1"
 CONTRIBUTOR_MODIFIER_SCHEMA = "tbdy.next.gravity-story-contributor-modifiers.v1"
+CONDITIONAL_FRAME_BASIS_SCHEMA = "tbdy.next.gravity-story-conditional-frame-basis.v1"
+CONDITIONAL_FRAME_SCOPE = "ADOPTED_CONDITIONAL_FRAME_COLUMNS_ONLY"
+_CONDITIONAL_SUPPORTS = {
+    "MAT_HINGED_REFERENCE": "MAT_ROTATIONAL_STIFFNESS_UNBOUND",
+    "WALL_BELOW_HINGED_REFERENCE": "WALL_BELOW_ROTATIONAL_STIFFNESS_UNBOUND",
+}
 FRAME_FORCE = "NATIVE_FRAME_LOCAL_P_V2_V3"
 WALL_FORCE = "INTEGRATED_WALL_GLOBAL_UPPER_FREE_BODY"
 AXES = ("M2", "M3")
@@ -235,7 +241,7 @@ def project_native_story_frame_forces(source, level, uid, cut_z_m, cases, captur
     return result
 
 
-def _force_results(rows, equilibrium, population, reference, labels, uid, z):
+def _force_results(rows, equilibrium, population, reference, labels, uid, z, *, frame_scope=False):
     lines = defaultdict(dict)
     issues = defaultdict(list)
     for row in rows:
@@ -248,10 +254,10 @@ def _force_results(rows, equilibrium, population, reference, labels, uid, z):
         key = kind, object_id
         label = f"{kind}:{object_id}"
         if key not in population:
-            issues[name].append("STORY_FORCE_CONTRIBUTOR_NOT_EXPECTED:" + label)
+            issues[name].append((kind, "STORY_FORCE_CONTRIBUTOR_NOT_EXPECTED:" + label))
             continue
         if key in lines[name]:
-            issues[name].append("STORY_FORCE_DUPLICATE_CONTRIBUTOR:" + label)
+            issues[name].append((kind, "STORY_FORCE_DUPLICATE_CONTRIBUTOR:" + label))
             continue
         try:
             _checked(_text(row["element_id"]) and row["step_type"] == "Step" and _number(row["step_number"]) == 1
@@ -267,17 +273,19 @@ def _force_results(rows, equilibrium, population, reference, labels, uid, z):
                                 "representation": row["representation"], "vertical_kn": vertical,
                                 "compression_kn": compression}
         except ValueError as exc:
-            issues[name].append(f"{exc}:{label}")
+            issues[name].append((kind, f"{exc}:{label}"))
     for key in population:
         native_ids = {r[key]["element_id"] for r in lines.values() if key in r}
         if len(native_ids) > 1:
             for name in labels:
-                issues[name].append("STORY_FORCE_CONTRIBUTOR_ELEMENT_CHANGED:" + ":".join(key))
+                issues[name].append((key[0], "STORY_FORCE_CONTRIBUTOR_ELEMENT_CHANGED:" + ":".join(key)))
 
     result = {}
     for name in sorted(labels):
         forces = lines[name]
-        reasons = issues[name] + ["STORY_FORCE_MISSING:" + ":".join(key) for key in sorted(population.keys() - forces.keys())]
+        missing = sorted(population.keys() - forces.keys())
+        case_issues = issues[name] + [(key[0], "STORY_FORCE_MISSING:" + ":".join(key)) for key in missing]
+        reasons = [reason for _, reason in case_issues]
         signed = fsum(row["vertical_kn"] for row in forces.values())
         compression = fsum(row["compression_kn"] for row in forces.values())
         total = {"native_case": name, "expected_count": len(population), "evaluated_count": len(forces),
@@ -297,11 +305,23 @@ def _force_results(rows, equilibrium, population, reference, labels, uid, z):
         if compression <= 0:
             reasons.append("STORY_COMPRESSION_NONPOSITIVE")
         total.update(status="STORY_COMPRESSION_BOUND" if not reasons else "STORY_COMPRESSION_INCOMPLETE")
+        if frame_scope:
+            frames = [row for row in forces.values() if row["kind"] == "COLUMN"]
+            frame_nd = fsum(row["compression_kn"] for row in frames)
+            frame_reasons = [reason for kind, reason in case_issues if kind == "COLUMN"]
+            if frame_nd <= 0:
+                frame_reasons.append("STORY_FRAME_COLUMN_COMPRESSION_NONPOSITIVE")
+            total["frame_column_compression"] = {
+                "status": "STORY_FRAME_COLUMN_COMPRESSION_BOUND" if not frame_reasons
+                          else "STORY_FRAME_COLUMN_COMPRESSION_INCOMPLETE",
+                "expected_count": sum(kind == "COLUMN" for kind, _ in population),
+                "evaluated_count": len(frames), "nd_kn": frame_nd, "reasons": frame_reasons,
+            }
         result[name] = total
     return result
 
 
-def _end_restraint(record, joints, neighbors, frames, uid, axis_ref, ln, ei, sway):
+def _end_restraint(record, joints, neighbors, frames, uid, axis_ref, ln, ei, sway, end_references=None):
     _keys(record, {"method", "i", "j"}, "STORY_END_RESTRAINT_METHOD_UNBOUND")
     details, numerical = [], []
     method = record["method"]
@@ -311,6 +331,13 @@ def _end_restraint(record, joints, neighbors, frames, uid, axis_ref, ln, ei, swa
             _keys(end, {"joint_id", "k_knm_per_rad", "reference"}, "STORY_END_SPRING_UNBOUND")
             value = _number(end["k_knm_per_rad"])
             _checked(value >= 0, "STORY_NEGATIVE_END_SPRING")
+        elif method == "TS500_FRAME_JOINT_RATIO" and isinstance(end, Mapping) and "support_idealization" in end:
+            _keys(end, {"joint_id", "support_idealization", "reference"}, "STORY_CONDITIONAL_SUPPORT_UNBOUND")
+            expected = _CONDITIONAL_SUPPORTS.get(end["support_idealization"])
+            observed = (end_references or {}).get(side.upper(), {})
+            _checked(expected is not None and observed.get("basis") == expected and observed.get("joint_id") == joint,
+                     "STORY_CONDITIONAL_SUPPORT_GEOMETRY_MISMATCH")
+            value = None
         elif method == "TS500_FRAME_JOINT_RATIO":
             _keys(end, {"joint_id", "column_terms", "beam_terms", "reference"}, "STORY_FRAME_JOINT_RATIO_UNBOUND")
             potential = {}
@@ -352,12 +379,20 @@ def _end_restraint(record, joints, neighbors, frames, uid, axis_ref, ln, ei, swa
         _checked(sway == SWAY_PERMITTED, "STORY_END_SPRING_SWAY_POLICY_MISMATCH")
         k = elastic_sway_length_factor(clear_length_m=ln/1000, ei_knm2=ei/1e9,
                                        k_i_knm_per_rad=numerical[0], k_j_knm_per_rad=numerical[1])
+    elif None in numerical:
+        _checked(numerical.count(None) == 1, "STORY_CONDITIONAL_TWO_UNBOUND_SUPPORTS_UNSUPPORTED")
+        fixed = [0.0 if value is None else value for value in numerical]
+        candidates = {"fixed": effective_length_factor(alpha_i=fixed[0], alpha_j=fixed[1], sway=sway),
+                      "hinged": effective_length_factor(alpha_i=numerical[0], alpha_j=numerical[1], sway=sway)}
+        return max(candidates.values()), {"method": method, "basis": "CONDITIONAL_EXTERNAL_RESTRAINT_ASSUMPTION",
+                                         "ends": details, "candidate_k": candidates}
     else:
         k = effective_length_factor(alpha_i=numerical[0], alpha_j=numerical[1], sway=sway)
     return k, {"method": method, "basis": "ADOPTED_MODEL_BOUND_END_RESTRAINTS", "ends": details}
 
 
-def _column_axis(column, uid, axis, frames, frames_points, adjacency, expected_ln, expected_ei, modifiers):
+def _column_axis(column, uid, axis, frames, frames_points, adjacency, expected_ln, expected_ei, modifiers,
+                 end_references=None):
     _keys(column, {"ln_mm", "sway", "creep_reference", "axes"}, "STORY_COLUMN_STIFFNESS_BASIS_UNBOUND")
     _checked(column["sway"] in (SWAY_PERMITTED, SWAY_PREVENTED) and _text(column["creep_reference"]),
              "STORY_COLUMN_CREEP_OR_SWAY_BASIS_UNBOUND")
@@ -381,7 +416,8 @@ def _column_axis(column, uid, axis, frames, frames_points, adjacency, expected_l
              (modifiers is None or isclose(obj, modifiers[4 if axis == "M2" else 5], rel_tol=1e-6, abs_tol=0)),
              "STORY_COLUMN_NATIVE_OR_SELECTED_EI_MISMATCH")
     axis_vector = frame["axes_global"][1 if axis == "M2" else 2]
-    k, restraint = _end_restraint(info["restraint"], joints, adjacency, frames, uid, axis_vector, ln, ei, column["sway"])
+    k, restraint = _end_restraint(info["restraint"], joints, adjacency, frames, uid, axis_vector, ln, ei,
+                                  column["sway"], end_references)
     lk = k * ln
     return {"member_id": uid, "axis": axis, "ec_mpa": e, "native_i_mm4": inertia,
             "section_modifier": section, "object_modifier": obj, "effective_ei_nmm2": ei,
@@ -443,11 +479,40 @@ def _contributor_modifiers(block, level, population, frames):
         "captured_column_ids": sorted(normalized)}
 
 
-def produce_story_basis(source, local, level, uid, cases):
+def _conditional_frame_basis(block, story, uid, population, physical_lengths):
+    adoption = _keys(block["conditional_frame_basis"], {"schema", "decision_reference", "stories"},
+                     "STORY_CONDITIONAL_FRAME_SOURCE_INVALID")
+    _checked(adoption["schema"] == CONDITIONAL_FRAME_BASIS_SCHEMA and _text(adoption["decision_reference"])
+             and isinstance(adoption["stories"], Mapping), "STORY_CONDITIONAL_FRAME_SOURCE_INVALID")
+    row = _keys(adoption["stories"].get(story), {"credited_column_ids", "excluded_coupled_column_ids"},
+                "STORY_CONDITIONAL_FRAME_POPULATION_UNBOUND")
+    _checked(all(isinstance(ids, list) and all(_text(col) for col in ids) and len(set(ids)) == len(ids)
+                 for ids in row.values()), "STORY_CONDITIONAL_FRAME_POPULATION_INVALID")
+    credited, coupled = (set(row[key]) for key in ("credited_column_ids", "excluded_coupled_column_ids"))
+    expected = {col for kind, col in population if kind == "COLUMN"}
+    _checked(uid in credited and credited.isdisjoint(coupled) and credited | coupled == expected,
+             "STORY_CONDITIONAL_FRAME_POPULATION_MISMATCH")
+    for col in sorted(credited):
+        _checked(proven_clear_length_m(physical_lengths.get(col), col) is not None,
+                 "STORY_CONDITIONAL_ISOLATED_LENGTH_UNBOUND:" + col)
+    for col in sorted(coupled):
+        proof = physical_lengths.get(col) or {}
+        _checked(proof.get("member_id") == col and proof.get("status") == WALL_COUPLED,
+                 "STORY_CONDITIONAL_EXCLUDED_COLUMN_COUPLING_UNPROVEN:" + col)
+    return {"schema": adoption["schema"], "scope": CONDITIONAL_FRAME_SCOPE,
+            "decision_reference": adoption["decision_reference"], "engineering_approval": "NOT_GRANTED",
+            "expected_column_ids": sorted(expected), "credited_column_ids": sorted(credited),
+            "excluded_coupled_column_ids": sorted(coupled),
+            "excluded_wall_ids": sorted(col for kind, col in population if kind == "WALL"),
+            "cases": {}, "axes": {}, "story_inputs": {}}
+
+
+def produce_story_basis(source, local, level, uid, cases, *, story_geometry=None):
     """Compute a story basis from one mesh's force and stiffness source.
 
-    Scope and signed equilibrium come from the full horizontal free body.
-    Partial sums are diagnostic. No factor may consume a partial story.
+    Full-story scope and signed equilibrium come from the horizontal free body.
+    Explicit adoption can also use the complete frame-column compression and
+    the independently isolated critical-load population under a separate scope.
     """
     result = {"status": "REVISED_STORY_BASIS_SOURCE_UNAVAILABLE", "member_id": uid, "story_inputs": {},
               "reasons": [], "cases": {}, "axes": {}, "engineering_approval": "NOT_GRANTED"}
@@ -455,9 +520,9 @@ def produce_story_basis(source, local, level, uid, cases):
     if block is None:
         return result
     try:
-        _keys(block, {"schema", "model_sha256", "analysis_generation", "units_code", "story_cuts", "columns"} |
-              ({"contributor_modifiers"} if "contributor_modifiers" in block else set()),
-              "STORY_BASIS_SCHEMA_INVALID")
+        required = {"schema", "model_sha256", "analysis_generation", "units_code", "story_cuts", "columns"}
+        optional = {"contributor_modifiers", "conditional_frame_basis"}
+        _keys(block, required | (optional & block.keys()), "STORY_BASIS_SCHEMA_INVALID")
         generation = level.get("analysis_generation")
         _checked(block["schema"] == STORY_BASIS_SCHEMA and block["model_sha256"] == level["model_sha256"] and
                  _text(generation) and _SHA256.fullmatch(generation) and block["analysis_generation"] == generation and
@@ -480,6 +545,19 @@ def produce_story_basis(source, local, level, uid, cases):
         result.update(status="REVISED_STORY_BASIS_UNBOUND", reasons=[str(exc)])
         return result
 
+    geometry = story_geometry or {}
+    physical_lengths = geometry.get("physical_lengths", {})
+    conditional = None
+    if "conditional_frame_basis" in block:
+        try:
+            _checked("contributor_modifiers" in block, "STORY_CONDITIONAL_FRAME_MODIFIERS_REQUIRED")
+            conditional = _conditional_frame_basis(block, story, uid, population, physical_lengths)
+            result["conditional_frame_basis"] = conditional
+        except (AttributeError, KeyError, TypeError, ValueError) as exc:
+            result["conditional_frame_basis"] = {
+                "status": "REVISED_CONDITIONAL_FRAME_BASIS_UNBOUND", "reasons": [str(exc)]}
+    credited = set(conditional["credited_column_ids"]) if conditional is not None else set()
+    coupled = set(conditional["excluded_coupled_column_ids"]) if conditional is not None else set()
     labels = {pair["first"]: name for name, pair in cases.items()}
     try:
         section = _keys(block["story_cuts"].get(story), {"z_m", "forces", "equilibrium"}, "STORY_CUT_SOURCE_UNAVAILABLE:" + story)
@@ -488,7 +566,10 @@ def produce_story_basis(source, local, level, uid, cases):
                  set(section["equilibrium"]) <= set(labels), "STORY_CUT_SOURCE_PLANE_OR_CASE_MISMATCH")
         reference = _reference_target_rows(level, uid, labels, lower)
         result["cases"] = {labels[name]: v for name, v in
-                           _force_results(section["forces"], section["equilibrium"], population, reference, labels, uid, lower).items()}
+                           _force_results(section["forces"], section["equilibrium"], population, reference, labels, uid,
+                                          lower, frame_scope=conditional is not None).items()}
+        if conditional is not None:
+            conditional["cases"] = {name: row["frame_column_compression"] for name, row in result["cases"].items()}
     except (ArithmeticError, AttributeError, KeyError, TypeError, ValueError) as exc:
         result["reasons"].append(str(exc))
 
@@ -507,10 +588,14 @@ def produce_story_basis(source, local, level, uid, cases):
     supported = {}
     for axis, i in zip(AXES, (1, 2)):
         rows, gaps = [], []
+        credited_rows, credited_gaps = [], []
         axis_ref = target["axes_global"][i]
         for kind, element in sorted(population):
             if kind == "WALL":
                 gaps.append("STORY_WALL_CRITICAL_LOAD_METHOD_UNSUPPORTED:" + element)
+                continue
+            if element in coupled:
+                gaps.append("STORY_COUPLED_COLUMN_CRITICAL_LOAD_UNSUPPORTED:" + element)
                 continue
             try:
                 frame = frames[element]
@@ -523,7 +608,10 @@ def produce_story_basis(source, local, level, uid, cases):
                 known_ei = local["stiffness_and_euler"][axis]["selected_ei_nmm2"] if element == uid else None
                 modifiers = modifier_rows.get(element)
                 clear_mm = ln * 1000 if element == uid else None
-                if element != uid:
+                if element in credited:
+                    _checked(modifiers is not None, "STORY_COLUMN_REVISED_OBJECT_MODIFIER_UNAVAILABLE")
+                    clear_mm = 1000 * proven_clear_length_m(physical_lengths[element], element)
+                elif element != uid:
                     _checked(modifiers is not None, "STORY_COLUMN_REVISED_OBJECT_MODIFIER_UNAVAILABLE")
                     offset = offsets.get(element)
                     _checked(offset is not None, "STORY_COLUMN_NATIVE_CLEAR_LENGTH_UNAVAILABLE")
@@ -531,8 +619,9 @@ def produce_story_basis(source, local, level, uid, cases):
                     _checked(min(offsets_m) >= 0, "STORY_COLUMN_NATIVE_OFFSETS_INVALID")
                     clear_mm = 1000 * (dist(frame_points[frame["point_i"]], frame_points[frame["point_j"]]) - fsum(offsets_m))
                     _checked(clear_mm > 0, "STORY_COLUMN_NATIVE_CLEAR_LENGTH_INVALID")
+                end_refs = geometry.get("end_ratios", {}).get(element, {}).get(chosen) if element in credited else None
                 row = _column_axis(block["columns"].get(element), element, chosen, frames, frame_points, adjacency,
-                                   clear_mm, known_ei, modifiers)
+                                   clear_mm, known_ei, modifiers, end_refs)
                 material, section = materials.get(frame["material_name"]), sections.get(frame["section_name"])
                 if element != uid:
                     _checked(material is not None and section is not None,
@@ -549,9 +638,17 @@ def produce_story_basis(source, local, level, uid, cases):
                 if element == uid:
                     _checked(row["sway"] == cfg.get("sway"), "STORY_TARGET_SWAY_POLICY_MISMATCH")
                     supported[axis] = row
-                rows.append(row)
+                if element in credited:
+                    credited_rows.append(row)
+                if row["restraint"]["basis"] == "CONDITIONAL_EXTERNAL_RESTRAINT_ASSUMPTION":
+                    gaps.append("STORY_COLUMN_CONDITIONAL_SUPPORT_ONLY:" + element)
+                else:
+                    rows.append(row)
             except (ArithmeticError, AttributeError, KeyError, TypeError, ValueError) as exc:
-                gaps.append(f"{exc}:{element}")
+                reason = f"{exc}:{element}"
+                gaps.append(reason)
+                if element in credited:
+                    credited_gaps.append(reason)
         nk = fsum(row["member_nk_kn"] for row in rows)
         result["axes"][axis] = {"status": "STORY_CRITICAL_LOAD_BOUND" if not gaps else "STORY_CRITICAL_LOAD_INCOMPLETE",
                                 "expected_count": len(population), "evaluated_count": len(rows), "contributors": rows,
@@ -561,6 +658,25 @@ def produce_story_basis(source, local, level, uid, cases):
                            for name, v in result["cases"].items() if v["status"] == "STORY_COMPRESSION_BOUND"}
             if case_values:
                 result["story_inputs"][axis] = {"k": supported[axis]["k"], "story_aggregates": case_values}
+        if conditional is not None:
+            credited_nk = fsum(row["member_nk_kn"] for row in credited_rows)
+            axis_ready = not credited_gaps and len(credited_rows) == len(credited) and credited_nk > 0 and axis in supported
+            conditional["axes"][axis] = {
+                "status": "STORY_CONDITIONAL_FRAME_NK_BOUND" if axis_ready else "STORY_CONDITIONAL_FRAME_NK_INCOMPLETE",
+                "expected_count": len(credited), "evaluated_count": len(credited_rows),
+                "nk_kn": credited_nk, "contributors": credited_rows, "reasons": credited_gaps,
+            }
+            if axis_ready and not result["reasons"]:
+                case_values = {name: {"nd_kn": row["nd_kn"], "nk_kn": credited_nk}
+                               for name, row in conditional["cases"].items()
+                               if row["status"] == "STORY_FRAME_COLUMN_COMPRESSION_BOUND"}
+                if case_values:
+                    conditional["story_inputs"][axis] = {"k": supported[axis]["k"], "story_aggregates": case_values}
+    if conditional is not None:
+        available = conditional["story_inputs"]
+        ready = set(available) == set(AXES) and all(set(row["story_aggregates"]) == set(cases) for row in available.values())
+        conditional["status"] = ("REVISED_CONDITIONAL_FRAME_BASIS_CALCULATED" if ready
+                                 else "REVISED_CONDITIONAL_FRAME_BASIS_INCOMPLETE")
     complete = (set(result["story_inputs"]) == set(AXES) and
                 all(set(v["story_aggregates"]) == set(cases) for v in result["story_inputs"].values()))
     result["status"] = "REVISED_STORY_BASIS_CALCULATED" if complete else "REVISED_STORY_BASIS_INCOMPLETE"

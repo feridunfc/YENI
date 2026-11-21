@@ -158,7 +158,7 @@ def _native_ei(source, section_name, uid, record, stiffness):
     }
 
 
-def compare_gravity_order_pair(source, pmm, local, dims, capacity):
+def compare_gravity_order_pair(source, pmm, local, dims, capacity, *, story_geometry=None):
     """Run the control check before assessing the P–Delta vector on the same cage."""
     record = source.get("gravity_order_pair")
     uid = pmm["member_id"]
@@ -227,7 +227,8 @@ def compare_gravity_order_pair(source, pmm, local, dims, capacity):
         if all_matched and "refined_levels" in record:
             from .gravity_pair_refinement import compare_levels
 
-            out["refinement"] = compare_levels(source, pmm, local, record, dims, capacity, out["rows"])
+            out["refinement"] = compare_levels(source, pmm, local, record, dims, capacity, out["rows"],
+                                               story_geometry=story_geometry)
         return out
     except (ArithmeticError, KeyError, TypeError, ValueError) as exc:
         out.update(reason=str(exc))

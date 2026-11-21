@@ -2615,6 +2615,7 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
     refined_rows, refined_levels, mesh_changes = [], [], []
     deformation_rows, method_rows = [], []
     revised_factors, full_span_rows = [], []
+    story_force_rows, story_stiffness_rows = [], []
     idealization_rows, idealization_cases, idealization_cuts = [], [], []
     for member in members:
         basis = member.get("adopted_second_order_basis") or {}
@@ -2699,6 +2700,33 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
             revised_factors.extend({"member": uid, "divisions": level["divisions"],
                                     "model": level["model_sha256"], "generation": level.get("analysis_generation"), **row}
                                    for row in level.get("revised_axis_factors", ()))
+            story = level.get("revised_story_basis") or {}
+            conditional = story.get("conditional_frame_basis")
+            if conditional is not None:
+                identity = {"member": uid, "divisions": level["divisions"], "story": story.get("story"),
+                            "conditional_scope": conditional.get("scope"), "conditional_status": conditional.get("status"),
+                            "conditional_reference": conditional.get("decision_reference")}
+                for name, full in story.get("cases", {}).items():
+                    frame = conditional.get("cases", {}).get(name, {})
+                    story_force_rows.append({**identity, "combination": name,
+                        "full_count": [full["evaluated_count"], full["expected_count"]],
+                        "full_vertical_kn": full["signed_vertical_sum_kn"],
+                        "full_equilibrium_kn": full.get("free_body_load_kn"),
+                        "full_residual_kn": full.get("equilibrium_residual_kn"),
+                        "full_status": full["status"], "full_reasons": full["reasons"],
+                        "frame_count": [frame["evaluated_count"], frame["expected_count"]] if frame else None,
+                        "frame_nd_kn": frame.get("nd_kn"), "frame_status": frame.get("status"),
+                        "frame_reasons": frame.get("reasons") or conditional.get("reasons")})
+                for axis, full in story.get("axes", {}).items():
+                    frame = conditional.get("axes", {}).get(axis, {})
+                    story_stiffness_rows.append({**identity, "axis": axis,
+                        "full_count": [full["evaluated_count"], full["expected_count"]],
+                        "full_status": full["status"], "full_reasons": full["reasons"],
+                        "frame_count": [frame["evaluated_count"], frame["expected_count"]] if frame else None,
+                        "frame_nk_kn": frame.get("nk_kn"), "frame_status": frame.get("status"),
+                        "frame_reasons": frame.get("reasons") or conditional.get("reasons"),
+                        "excluded_coupled_column_ids": conditional.get("excluded_coupled_column_ids"),
+                        "excluded_wall_ids": conditional.get("excluded_wall_ids")})
     if not basis_rows:
         return ""
     return ('<section class="percheck"><h2>Second order · Adopted calculation basis</h2>'
@@ -2757,6 +2785,26 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
                      ("second_pmm_reason", "P–Delta cut reason"), ("ts500_utilization", "TS 500 PMM")), pair_rows)
            if pair_basis_rows else '')
         + ('<h3>Matched-stiffness gravity mesh comparison</h3>'
+           + ('<h4>Full story free body and conditional frame-column compression</h4>'
+              + _table((("member", "Column"), ("story", "Story"), ("divisions", "Partitions"),
+                        ("combination", "Combination"), ("full_count", "Full contributor count [read, expected]"),
+                        ("full_vertical_kn", "Signed vertical resultants read (kN)"),
+                        ("full_equilibrium_kn", "Upper free-body gravity (kN)"),
+                        ("full_residual_kn", "Vertical equilibrium residual (kN)"),
+                        ("full_status", "Full free-body status"), ("full_reasons", "Full free-body issues"),
+                        ("frame_count", "Frame-column count [read, expected]"), ("frame_nd_kn", "Frame Nd (kN)"),
+                        ("frame_status", "Frame force status"), ("frame_reasons", "Frame force issues")), story_force_rows)
+              if story_force_rows else '')
+           + ('<h4>Full story and conditional isolated-column critical loads</h4>'
+              + _table((("member", "Column"), ("story", "Story"), ("divisions", "Partitions"), ("axis", "Axis"),
+                        ("full_count", "Full contributor count [credited, expected]"),
+                        ("full_status", "Full critical-load status"), ("full_reasons", "Full critical-load issues"),
+                        ("frame_count", "Isolated column count [credited, expected]"), ("frame_nk_kn", "Isolated Nk (kN)"),
+                        ("frame_status", "Isolated critical-load status"), ("frame_reasons", "Isolated critical-load issues"),
+                        ("excluded_coupled_column_ids", "Coupled column IDs"), ("excluded_wall_ids", "Wall IDs"),
+                        ("conditional_scope", "Conditional scope"), ("conditional_status", "Conditional basis status"),
+                        ("conditional_reference", "Decision reference")), story_stiffness_rows)
+              if story_stiffness_rows else '')
            + ('<h4>Revised TS 500 coefficients</h4>'
               + _table((("member", "Column"), ("divisions", "Partitions"), ("combination", "Combination"),
                         ("axis", "Axis"), ("ei_nmm2", "EI (N·mm²)"), ("k", "K"), ("ln_mm", "Clear length (mm)"),
@@ -2765,7 +2813,7 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
                         ("story_nk_kn", "Story Nk (kN)"), ("member_denominator", "Member denominator"),
                         ("story_denominator", "Story denominator"), ("story_load_ratio_limit", "Story load ratio limit"),
                         ("final_factor", "Beta used"), ("eq729_selected_branch", "Eq. 7.29 branch"),
-                        ("status", "Status"), ("reason", "Reason"),
+                        ("story_scope", "Story basis scope"), ("status", "Status"), ("reason", "Reason"),
                         ("generation", "Analysis generation"), ("model", "Model revision")), revised_factors)
               if revised_factors else '')
            + ('<h4>Full-span deformation</h4>'
@@ -2818,6 +2866,7 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
                         ("original_ts500_pmm", "Original TS 500 PMM"), ("direct_pmm", "Direct second order PMM"),
                         ("revised_ts500_pmm", "Revised TS 500 PMM"),
                         ("revised_ts500_pmm_status", "Revised PMM status"),
+                        ("revised_ts500_story_scope", "Revised story basis scope"),
                         ("direct_minus_original_design_knm", "Direct minus original design M2/M3 (kN·m)"),
                         ("revised_ts500_minus_direct_design_knm", "Revised TS 500 minus direct M2/M3 (kN·m)"),
                         ("governing_comparison", "Governing method"), ("revised_ts500_status", "Revised TS 500 status")),
@@ -2829,6 +2878,7 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
                      ("second_pmm_utilization", "P–Delta PMM"), ("second_pmm_status", "P–Delta cut status"),
                      ("second_pmm_reason", "P–Delta cut reason"), ("ts500_utilization", "Revised TS 500 PMM"),
                      ("ts500_pmm_status", "Revised TS 500 cut status"),
+                     ("ts500_story_scope", "Revised story basis scope"),
                      ("ts500_pmm_reason", "Revised TS 500 cut reason")), refined_rows)
            if refined_levels else '') + '</section>')
 

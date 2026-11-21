@@ -199,6 +199,7 @@ def _project_single_r08_local(
     adopted_basis: Mapping[str, Any] | None = None,
     adopted_basis_error: str | None = None,
     restraint_axes: Mapping[str, Any] | None = None,
+    story_geometry: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Project TS 500 local slenderness, magnification and selected-cage 2nd-order PMM for one column."""
     evidence = project_column_slenderness_evidence(source, pmm, global_pdelta)
@@ -665,7 +666,7 @@ def _project_single_r08_local(
         if adopted_basis is not None and source.get("gravity_order_pair") is not None:
             from .gravity_order_pair import compare_gravity_order_pair
 
-            pair = compare_gravity_order_pair(source, pmm, out, dims_local, cap_solver)
+            pair = compare_gravity_order_pair(source, pmm, out, dims_local, cap_solver, story_geometry=story_geometry)
             if pair is not None:
                 out["gravity_order_pair"] = pair
         spectral_bound = _evaluate_spectral_bounding_corners(
@@ -1029,6 +1030,7 @@ def project_column_r08_local_live(
             eng_col_res=e_res, eng_col_section=e_sec, physical_length=physical_length,
             adopted_basis=adopted_basis, adopted_basis_error=basis_error,
             restraint_axes=end_ratios.get(uid),
+            story_geometry={"physical_lengths": physical_lengths, "end_ratios": end_ratios},
         )
         if adopted_basis is not None:
             cage = (selected_cages or {}).get(uid)

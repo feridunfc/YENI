@@ -135,7 +135,7 @@ def _paired_cuts(uid, level, cases, elements, original_z, low, high):
     return cuts
 
 
-def _refined_ts500(local, dims, capacity, cuts, story, cases):
+def _refined_ts500(local, dims, capacity, cuts, story, cases, *, story_scope=None):
     # The revised first-order vectors and level-specific story inputs drive the
     # same factor owner. The original selected demand stays on its own branch.
     basis = local["adopted_second_order_basis"]
@@ -159,6 +159,8 @@ def _refined_ts500(local, dims, capacity, cuts, story, cases):
             trace = {"combination": name, "axis": axis, "ei_nmm2": stiffness["selected_ei_nmm2"],
                      "ln_mm": stiffness["free_length_ln_mm"], "coefficient_nd_kn": peaks[name],
                      "status": "REVISED_TS500_STORY_BASIS_UNAVAILABLE"}
+            if story_scope is not None:
+                trace["story_scope"] = story_scope
             diagnostics.append(trace)
             if revised_axis:
                 k = revised_axis["k"]
@@ -199,7 +201,8 @@ def _refined_ts500(local, dims, capacity, cuts, story, cases):
     if any(trace["status"] == "BLOCKED" for trace in diagnostics):
         status = "REVISED_TS500_STABILITY_FAILURE"
     elif len(results) == len(cuts):
-        status = "REVISED_FIRST_ORDER_VECTORS_AND_STORY_INPUTS_CONSUMED"
+        status = ("REVISED_TS500_CONDITIONAL_FRAME_ONLY_CALCULATED" if story_scope is not None
+                  else "REVISED_FIRST_ORDER_VECTORS_AND_STORY_INPUTS_CONSUMED")
     else:
         status = "REVISED_TS500_STORY_BASIS_UNAVAILABLE"
     return results, status, diagnostics
@@ -227,7 +230,7 @@ def _node_chord_profiles(elements, record, cases, low):
     return result
 
 
-def compare_level(source, pmm, local, base, level, dims, capacity):
+def compare_level(source, pmm, local, base, level, dims, capacity, *, story_geometry=None):
     uid, cases = pmm["member_id"], base["cases"]
     out = {"divisions": level["divisions"], "model_sha256": level["model_sha256"], "rows": [],
            "status": "GRAVITY_REFINEMENT_UNBOUND",
@@ -247,15 +250,20 @@ def compare_level(source, pmm, local, base, level, dims, capacity):
         revised = {}
         try:
             story = level["story_inputs"].get(uid, {})
+            story_scope = None
             if base["schema"] == QUALIFIED_SCHEMA:
                 out["analysis_generation"] = level["analysis_generation"]
                 from .gravity_story_basis import produce_story_basis
 
-                story_basis = produce_story_basis(source, local, level, uid, cases)
+                story_basis = produce_story_basis(source, local, level, uid, cases, story_geometry=story_geometry)
                 out["revised_story_basis"] = story_basis
                 story = story_basis["story_inputs"]
+                conditional = story_basis.get("conditional_frame_basis") or {}
+                if story_basis["status"] != "REVISED_STORY_BASIS_CALCULATED" and conditional.get("story_inputs"):
+                    story = conditional["story_inputs"]
+                    story_scope = out["ts500_story_scope"] = conditional["scope"]
             revised, out["ts500_status"], out["revised_axis_factors"] = _refined_ts500(
-                local, dims, capacity, cuts, story, cases)
+                local, dims, capacity, cuts, story, cases, story_scope=story_scope)
         except (ArithmeticError, KeyError, TypeError, ValueError) as exc:
             out.update(ts500_status="REVISED_TS500_BASIS_INVALID", ts500_reason=str(exc))
         original_z = local["physical_clear_length"]["end_cuts"]["I"][1]
@@ -275,6 +283,8 @@ def compare_level(source, pmm, local, base, level, dims, capacity):
                 row.update({field: value for field, value in revised[key].items() if field != "ts500_pmm"})
                 row.update(ts500_utilization=_utilization(assessment),
                            ts500_pmm_status=assessment["status"], ts500_pmm_reason=assessment.get("reason"))
+                if story_scope is not None:
+                    row["ts500_story_scope"] = story_scope
             out["rows"].append(row)
         _summarize_pmm(out, len(cuts), controls_matched=True)
         # The two controls agree in case and mesh identity. Each refined run
@@ -403,6 +413,7 @@ def _method_comparison(original, finest, local):
                             "revised_ts500_beta": [cut["ts500_beta_m2"], cut["ts500_beta_m3"]] if ts else None,
                             "revised_ts500_m2_m3_knm": ts, "revised_ts500_pmm": cut.get("ts500_utilization"),
                             "revised_ts500_pmm_status": cut.get("ts500_pmm_status"),
+                            **({"revised_ts500_story_scope": cut["ts500_story_scope"]} if "ts500_story_scope" in cut else {}),
                             "revised_ts500_minus_direct_design_knm": delta(ts, direct),
                             "direct_minus_original_design_knm": (delta(direct, design)
                                                                  if all(_finite(v) for v in (*direct, *design)) else None),
@@ -413,11 +424,14 @@ def _method_comparison(original, finest, local):
                      "original_ts500_pmm": row["ts500_utilization"], "refined_cuts": choices})
     return {"divisions": finest["divisions"], "model_sha256": finest["model_sha256"],
             "expected_physical_cuts": len(rows), "matched_physical_cuts": sum(bool(row["refined_cuts"]) for row in rows),
-            "revised_ts500_status": finest.get("ts500_status"), "rows": rows}
+            "revised_ts500_status": finest.get("ts500_status"),
+            **({"revised_ts500_story_scope": finest["ts500_story_scope"]} if "ts500_story_scope" in finest else {}),
+            "rows": rows}
 
 
-def compare_levels(source, pmm, local, base, dims, capacity, original):
-    levels = [compare_level(source, pmm, local, base, level, dims, capacity) for level in base["refined_levels"]]
+def compare_levels(source, pmm, local, base, dims, capacity, original, *, story_geometry=None):
+    levels = [compare_level(source, pmm, local, base, level, dims, capacity, story_geometry=story_geometry)
+              for level in base["refined_levels"]]
     changes = [_mesh_change(a, b) for a, b in zip(levels, levels[1:])
                if a["status"] == b["status"] == "GRAVITY_PAIR_COMPARED"]
     full_series = len(levels) == len(DIVISIONS) and len(changes) == len(DIVISIONS) - 1
