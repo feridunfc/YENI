@@ -10,13 +10,21 @@ the existing selected R08 and R14 path. See the
 The public examples are executable synthetic contract fixtures, not the current
 original building or a new live capture. Preserve the local/private history below.
 
-The next ordinary-member product task is the source-to-report C29 calculation
-using locally inspected adopted decisions, while C104 coupled-section development
-continues in parallel. Integrate this requested feature branch only after
-comparing the current local baseline and unpublished changes. Do not replace newer
-work with the remote snapshot. Every source study must identify its consuming
-calculation and finish with that owner using or explicitly rejecting its result.
-No milestone is complete solely because a reference or hash was added.
+The feature commit `32b3158` was checked against the actual Windows baseline.
+The existing pipeline then computed the C29 sensitivity from the frozen
+original model at members 225 and 142. It evaluated 18 signed static cuts and
+48 assigned spectral case-cuts, with shared joint 40 in the same sealed
+results. Both R08 members consumed the scenario. R14 closes zero original
+columns. See `EV-C29-ADOPTED-BASIS-LOCAL-20261121` and the
+[current checkpoint](../CURRENT_STATE.md) for the exact scope and next input.
+
+Continue the C29 source-to-report slice by binding the archived analysis order
+and missing project combination families in R03. Resolve variable axial
+compression, the story compressive/critical-load population and the applicable
+second-order method before carrying the result through R10 and R14. For C104,
+obtain C104/W21/W22 reinforcement and connection details at the wall transition
+before qualifying the coupled section. The actual-owner alpha-below-one example
+also remains open.
 
 Begin each assignment at [AGENTS.md](../../AGENTS.md) on the current
 `baseline/local_import`. The [project charter and source guide](PROJECT_CHARTER.md)

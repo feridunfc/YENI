@@ -5935,6 +5935,51 @@
       "engineering_release": "NOT_READY",
       "original_building_replay": "NOT_RUN",
       "live_ETABS": "NOT_RUN"
+    },
+    {
+      "id": "EV-C29-ADOPTED-BASIS-LOCAL-20261121",
+      "observed_at": "2026-11-21",
+      "status": "ORIGINAL_C29_ADOPTED_BASIS_SENSITIVITY_CALCULATED",
+      "implementation_commit": "32b3158400be1e7c822d40099edbb016ab49c108",
+      "integration_base_commit": "0f1a809299ed0dbb6e0ecfde77be0642e1771ce3",
+      "environment": "Windows x64, Python 3.12.10 editable project interpreter, Node v24.22.1",
+      "commands": [
+        "python -X utf8 -B -m unittest discover -s tests -q",
+        "node --check src/tbdy_next/static/column.js; node on each tests/test_*.cjs with the project interpreter on PATH",
+        "python -X utf8 -B -m tbdy_next.cli inspect-golden-regression --require-complete",
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --source <frozen input.source> --case Modal --out <private control directory>",
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --source <frozen input.source> --design-scenario <private c29-sensitivity.json> --case Modal --out <private scenario directory>"
+      ],
+      "source_run_id": "RUN-ad31d3a7be684247a622444aa06475c4",
+      "control_run_id": "RUN-e7d9038543c349319b5f40deb43ffb55",
+      "scenario_run_id": "RUN-da9790658a3041d2afe84836b782e1bd",
+      "source_sha256": "dcaa231263607e6ea71d1282b597542480dbc2f90f845889e27ad9c2000e059d",
+      "parent_source_sha256": "703e202fc8b08f60043c571d9970945b6307e5cee99e8a45e6377c8446da56fc",
+      "scenario_file_sha256": "3e5ea881be453434d811617b252a1f5c0d4f6ee1a85543cc5806a03bca9715cb",
+      "scenario_input_sha256": "e1aa2d2fec7379a004f9b46f4fd7691e8257a63ed6f58f346654ab01d917f961",
+      "control_results_sha256": "7ce95c9e61dd6d0f4fdf53c44bc0863807461e72551cd2917434182838f6eb1e",
+      "scenario_results_sha256": "1de08215acae6692468a0735735866c13da76b58618c980c0d9f1cb3f9c50f15",
+      "summary_private": ".receipts/verification/vertical-adopted-basis-local-20261121/local-verification.json",
+      "summary_sha256": "1d834a301b36394a40051f6c44107e77119938e2fb511ddc8ab29750edfcc33b",
+      "report_sha256": "65190c50f45893a704a093b6ca474b72d8f1ed381e9eaf44e704aceacc4a65df",
+      "python_log_sha256": "e66f8eacf4cdcd50bee7b2b4ef1875e4c7a23115e30fb08c207985c1e3d0af54",
+      "javascript_log_sha256": "00e48e51df5ab209abb9f0b57d5f653c023f10baf473e0a1b1379c501969a9d5",
+      "counts": {
+        "python_tests": 1640,
+        "python_skipped": 1,
+        "javascript_test_files_passed": 11,
+        "golden_gate_exit_code": 3,
+        "golden_numerical_insufficient_interpretation": [33, 7, 4],
+        "original_member_combination_instances": 957,
+        "c29_signed_static_cuts": 18,
+        "c29_spectral_case_cuts": 48,
+        "c29_shear_direction_case_pairs": 32,
+        "r14_numerically_closed_columns": 0,
+        "r14_expected_columns": 87
+      },
+      "scope": "Scenario changes only the selected second-order basis and its manifest. Original parent bytes, native demand populations, selected policies and native PMM values were compared. Scenario-specific R08 changes are confined to 225 and 142. Shared joint 40 returns sufficient SCWB intervals in X and Y in the existing R10 reference context.",
+      "limit": "The conditional scenario uses Rm=1 and the available frame-column story compression and critical loads. Wall-shell compression, coupled critical loads, variable axial applicability and R03 approval remain open. The replay is offline and engineering release remains NOT_READY.",
+      "next_action": "Bind the archived first-order solver generation and the remaining declared design families in R03. Qualify a variable-axial calculation or a supported approximation for the two C29 members, then rerun their source-to-report slice with joint 40."
     }
   ],
   "new_record_template": {

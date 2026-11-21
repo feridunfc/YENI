@@ -45,13 +45,10 @@ can start with the bundled report fixtures and the source IDs above.
 
 Run `python -B -m tbdy_next.cli inspect-golden-regression --require-complete`
 from the checkout with the project interpreter. The current gate returns
-exit 3 with 20 numerical matches, 20 insufficient-source labels and
-four interpretation differences. Sixteen of the 20 open rows already contain
-agreeing independent and reference values at their recorded tolerances; five
-of these references are derived Boolean expectations, not printed numeric
-results. The existing `INSUFFICIENT_SOURCE` classification therefore includes
-missing production adapters and unresolved method or source qualification,
-as well as missing inputs.
+exit 3 with 33 numerical matches, seven insufficient-source or method records,
+and four interpretation differences across the same 44 comparisons. The
+November 21 production adapters add 13 matches using the existing calculation
+owners. See [the implementation verification](../engineering/vertical_slice_20261121/VERIFICATION_RESULTS.json).
 
 The existing `G01_THETA_GROUND` and `G01_THETA_UPPER` records now call
 `engineering.story_pdelta.theta_ii_reference`, the same scalar operation used
@@ -67,25 +64,16 @@ wrapper retains its complete source and limit checks.
 
 | Open group | Count | Next calculation or input |
 | --- | ---: | --- |
-| GOLDEN-01 scalar comparisons | 11 | Four spectrum coefficients/periods, two confinement quantities, two joint-shear equilibria, two sway indicators and one local-beta result. Their scalar source inputs are bundled. Complete the existing-owner adapters or the explicit stability-method decision described below. |
-| GOLDEN-02 second-order comparisons | 5 | Four printed-symbol Eq. 7.29 Boolean probes have source inputs; distinguish that arithmetic from physical clear length, support and final-factor approval. The fifth compares the sway branch. Revised displacement, sum of axial force over length and storey shear are available on PDF page 185; bind both compared cases to the production sway calculation. |
-| GOLDEN-01 full column checks | 2 | For biaxial capacity, bind bar coordinates, axes and concurrent N/M2/M3 to an independent capacity at that axial load and direction. For capacity shear, bind both end moments, clear length, the D branch and the design shear lower bound. |
-| GOLDEN-03 and GOLDEN-04 | 2 | Each has an open second-order record. Select a page-bound case per original report, calculate it independently and connect the same inputs to the production owner. |
+| GOLDEN-01 sway phi | 2 | Bind `G01_SWAY_PHI_GROUND` and `G01_SWAY_PHI_UPPER` to a supported calculation with the report's full story populations and explicit method. The printed scalar inputs are available. |
+| GOLDEN-02 sway change | 1 | `G02_SWAY_BRANCH_CHANGED` needs both story populations and the same method binding. Page 185 gives the revised displacement, sum of axial force over length and storey shear. |
+| Biaxial PMM and capacity shear | 2 | `PMM_REPORT_GATE` needs bar coordinates, axes, concurrent N/M2/M3 and independent fixed-N, fixed-direction capacity. `CAPACITY_SHEAR_REPORT_GATE` needs both end moments, physical clear length, D and the design shear lower bound. |
+| GOLDEN-03 and GOLDEN-04 | 2 | `GOLDEN03_REPORT_GATE` and `GOLDEN04_REPORT_GATE` need one independently calculated, page-bound second-order case per report and the same inputs in the production owner. |
 
-The next two G01 comparisons are the one- and two-beam joint equilibria on
-page 194. Reuse the arithmetic owned by
-`engineering.column_r10_live._attach_r13_joint_shear_and_transverse`, exposing
-a shared scalar operation within that owner if needed. Retain the source
-steel areas, strength, column-shear deduction and rounding allowance; this
-does not qualify the complete physical joint. The six spectrum/confinement
-quantities need adapters to arithmetic already present in `basis_linkage`,
-`spectrum_reconstruction`, `engineering.rebar_selection` and
-`column_engine.transverse_kernel`, not another request for the same source
-numbers. The two sway indicators require a production operation within the
-existing stability owner, `column_engine.ts500_column`. Its local-beta
-adapter also needs the explicit Cm/end-moment interpretation and a
-factor-greater-than-one reference; a result of 1.0 alone cannot diagnose a
-wrong denominator.
+The historical sway phi uses `1.5 × drift × sum(N/L) / story shear`. The
+existing `column_engine.ts500_column` sway classifier uses paired first- and
+second-order displacements. A future comparison needs explicit method and
+population alignment. The separately implemented TBDY theta checks continue
+to use the production story-P-delta owner.
 
 The four separately classified interpretation rows ask how the final moment
 magnification factor was chosen. On GOLDEN-02 page 186 the reported factors

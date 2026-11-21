@@ -1,5 +1,49 @@
 # Original building calculation and local handoff — 2026-11-21
 
+## Windows replay: C29 second-order sensitivity through the normal pipeline
+
+The inspected feature commit `32b3158400be1e7c822d40099edbb016ab49c108`
+is directly based on the then-current baseline `0f1a809`. Windows rediscovery
+ran 1,640 Python tests with one OS symlink skip and passed all 11 JavaScript
+test files. The public CLI fixtures repeated 1/1 and 2/2 conditional numeric
+column closure. The 44-row report gate reproduced 33 numerical, seven
+insufficient-source or method, and four interpretation differences.
+
+Two frozen-source runs used the existing CLI and the same sealed original
+ETABS parent. The control retained the existing design policies. The second
+added a C29-only sensitivity using the verified physical spans, calibrated
+axis-specific K, Rm=1, Cm=1, Eq. (7.21), the effective-length reading of
+Eq. (7.29) and unit TBDY global factors. Each member computed nine signed
+static cut results and 24 assigned spectral case-cuts (192 sampled corners).
+
+| C29 member | Clear length | K M2 / M3 | Max signed PMM | Max spectral corner PMM |
+| --- | ---: | ---: | ---: | ---: |
+| 225 at +0.00 | 4.45 m | 1.623 / 1.646 | 0.213469 | 0.356908 |
+| 142 at +4.50 | 3.80 m | 2.060 / 2.137 | 0.295470 | 0.353906 |
+
+Both R08 records report `ADOPTED_SECOND_ORDER_CALCULATED_NOT_PROVEN`.
+The sensitivity includes all frame-column compression in the story totals,
+uses the available frame-column critical loads, and leaves wall-shell
+compression and coupled critical loads open. At the three `Grav_Ult` cuts,
+the compression varies by 99.651 and 85.095 kN respectively. TS 500 §7.6's
+approximate constant-axial-force premise still needs engineering resolution.
+Spectral corners are sampled from nonconcurrent envelopes. R10 evaluated all
+16 assigned shear direction-case pairs per member without D reduction. Maximum
+selected-cage shear resistance utilization was 0.520544 for 225 and 0.654872
+for 142. The interval SCWB reference at shared joint 40 was sufficient in both
+directions. R14 remains partial for all 87 columns.
+
+**Next product calculation:** bind the archive's solver-confirmed first-order
+production run to R03, reconcile EDZ's preset stiffness selection with its
+actual solution order, and qualify the required capacity, drift, joint, wall
+and weight groups. Then run C29 with an applicable variable-axial second-order
+calculation or an explicitly justified approximation, including the supported
+story compression and critical-load scope. Carry this result through R10 and
+R14 on members 225 and 142 and both ends of joint 40. C104 still requires the
+W21/W22 connection and reinforcement basis to carry the coupled section
+through the wall transition. The actual-owner alpha-below-one example remains
+open. See `EV-C29-ADOPTED-BASIS-LOCAL-20261121` for replay identities.
+
 ## Remote implementation: adopted inputs consumed by the normal design path
 
 Feature branch: `work/vertical-slice-adopted-basis-20261121`, based on the inspected
@@ -34,14 +78,8 @@ test results, hashes and commands are in [the implementation verification](engin
 The 73-control recipe map, 44 report comparisons and historical 333 arithmetic
 assertions remain separate populations.
 
-**Next product calculation:** locally integrate the feature branch after checking
-newer work, then consume the actual adopted basis for C29 members 225 and 142 and
-their common joint through the normal pipeline. Use the current private source,
-its physical cuts and locally verified order/creep/restraint decisions; do not
-copy the public fixture assumptions. Retain all required columns in global sums.
-Continue the C104 coupled-section investigation in parallel. A complete actual-
-owner alpha-below-one example is still open. Do not infer 87-column completion
-from the public example.
+The Windows checkpoint above records the subsequent original-model replay and
+the remaining calculation inputs.
 
 Read [the implementation report and runnable commands](engineering/VERTICAL_SLICE_20261121.md).
 Ledger entry: `EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121`. The report identifies
