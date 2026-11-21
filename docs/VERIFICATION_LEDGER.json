@@ -6268,7 +6268,72 @@
       "live_etabs": "NOT_RUN",
       "scope": "The two original C29 members consume explicit source-reconciled Nmax for coefficient calculation and local cut N for eccentricity and PMM. Windows ran the existing engine from a frozen native source and verified the resulting conditional R14 calculation, connected beams, joint 40 and sealed report.",
       "limit": "Variable-axial method acceptance, the revised-stiffness peak local deformation, and qualified concurrent same-model TS 500 story inputs remain open.",
-      "next_action": "Independently qualify the varying-axial calculation and resolve the matched-EI local deformation peak and concurrent story inputs before comparing both methods at the same physical cuts."
+      "next_action": "Use EV-C29-COMMON-CUT-COMPARISON-20261121 for the audited replay and same-cut method comparison."
+    },
+    {
+      "id": "EV-C29-COMMON-CUT-COMPARISON-20261121",
+      "observed_at": "2026-11-21",
+      "status": "COMMON_CUT_AND_JOINT_COMPARISON_CONSUMED",
+      "gap_ids": ["GAP-009"],
+      "baseline": "ffc852b8cf072350a168a1347f4872ac5cab5aed",
+      "local_implementation_commit": "ca69cfa859e8f1dcd0af9cb19a6371ae7821f310",
+      "published_implementation_commit": "4b5dedeb007b3381d756715a509a8a32e124d9c0",
+      "verified_implementation_tree_sha": "949661d701e9b74e31b01a4dcb5f7193890c25b4",
+      "reference_evidence": ["EV-C29-SELF-WEIGHT-NMAX-LOCAL-20261121", "EV-C29-MATCHED-EI-REFINEMENT-20261121"],
+      "independent_audit": {
+        "run_id": "RUN-83284d14d2dc414ab6f55e4b5a7de789",
+        "comparison": "IDENTICAL",
+        "matched_stages": 16,
+        "auditor_report_sha256": "d328395ee6f4000e84ede0c379464e2ef8cb962eb15828e225b3ba3590825b41",
+        "auditor_replay_sha256": "bf3cd36215669b160384af32ebaecc237e0641c09859e962303c620ccf8ff2e3",
+        "auditor_arithmetic_sha256": "4167fed3fb34932918062dc1ee6dd9cc43d2e5e437bd9f7051b4d04fd28a643a",
+        "maximum_primitive_case_residual_kn": 5.084e-13,
+        "maximum_self_weight_residual_kn": 3.787839983004915e-05
+      },
+      "parent_c29_run": "RUN-be9d8258796f4dfca1a3609453e94e53",
+      "verified_run_id": "RUN-0e263530db30483f95f1013894bc01db",
+      "input_sha256": "0c722cc8925b8cecbfd13334396f3b8886404b293d6fcdeda029c16fff9d8c62",
+      "results_sha256": "a8e97f965c43ff16216d442e0e3a119e06b19812b8065d73c1a81e3b5b3a1144",
+      "report_sha256": "3071b7f837dc1e5957aa6c575d095ca84914badcfc8e27553d436323311e2426",
+      "private_summary": ".receipts/c29-common-cut-method/verification.json",
+      "commands": [
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --source <frozen matched-EI run>/parent.source --design-scenario .receipts/c29-self-weight-nmax/request.json --case Modal --out .receipts/c29-common-cut-method/replay",
+        "python -X utf8 -B .receipts/c29-common-cut-method/verify.py",
+        "python -X utf8 -B tools/test_offline.py"
+      ],
+      "physical_case_cuts": {"expected": 18, "matched": 18, "distinct_native_sides_on_finest_mesh": 24},
+      "common_node_deformation": {
+        "method": "MATCHED_NATIVE_JOINTS_RELATIVE_TO_ORIGINAL_NODE_CHORD",
+        "absolute_tolerance_mm": 0.01,
+        "four_to_eight_max_difference_mm": {"225": 4.722377174145617e-06, "142": 8.035826765051811e-07},
+        "status_each_member": "WITHIN_TOLERANCE"
+      },
+      "full_span_peak_status": "UNVERIFIED_BETWEEN_NATIVE_JOINTS",
+      "revised_ts500_status": "REVISED_TS500_STORY_BASIS_UNAVAILABLE",
+      "native_readback_checkpoint": {
+        "source": ".receipts/R08_C29_EI_MESH/method-readbacks/20261121T141550326246Z/session-8.json",
+        "saved_mesh_reopened_locked": false,
+        "saved_finished_gravity_cases": 0,
+        "expected_gravity_cases": 6
+      },
+      "tests": {
+        "environment": "Windows x64, Python 3.12.10, Node v24.22.1",
+        "status": "PASS_ON_FULL_RETRY",
+        "python_tests": 1671,
+        "python_skipped": 1,
+        "javascript_test_files_passed": 11,
+        "golden_numerical_insufficient_interpretation": [33, 7, 4],
+        "log_private": ".receipts/c29-common-cut-method/offline-retry.log",
+        "log_sha256": "93b37e1f2e5d29006c9a0122a43f599de0d4a7d1f095876211c484418e7a087d",
+        "initial_run": "One Windows localhost body-upload test encountered WinError 10053. It then passed in isolation and in the complete retry.",
+        "initial_log_sha256": "9de9bcfaf4975d86acfc93b9d717e6581ce3e28331d2234f5767b8ad745be772"
+      },
+      "r14_conditionally_numerically_closed_columns": 2,
+      "r14_expected_columns": 87,
+      "engineering_acceptance": "NOT_GRANTED",
+      "scope": "Project native joint displacement comparisons and measure signed moments and axial forces in both orders at the finest mesh's cuts against the original scenario. Retain both native element sides at shared interfaces and the original selected-section results.",
+      "limit": "Common-node displacement agreement does not establish the full-span deformation peak. The existing revised TS 500 calculation can consume same-level inputs, which have not been qualified for this building.",
+      "next_action": "Independently qualify the between-joint deformation peak and provide the revised per-case story compression, supported critical loads and axis-specific effective lengths."
     }
   ],
   "new_record_template": {

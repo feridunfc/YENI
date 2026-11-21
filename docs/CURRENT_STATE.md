@@ -1,5 +1,30 @@
 # Original building calculation and local handoff — 2026-11-21
 
+## C29 common physical cuts and deformation comparison
+
+The independent audit reproduced the archived original-source Nmax run
+across all 16 sealed stages. The separate R08 method comparison now uses
+its 18 physical case-cuts as the reference for the finest matched-EI
+model. Interface cuts keep both refined element sides. The report places
+each model's local axial force, the first-order axial maximum, both
+orders' moments, design moments and selected-cage PMM at the same location.
+Within the eight-part model, the largest direct second-order M2 increments
+at the 18 reference cuts are 2.0011 kN·m at the 225 I face and 0.7465 kN·m
+on the upper side of the 142 midpoint, each under Grav_Ult.
+
+At the shared 4/8-part nodes, the maximum transverse chord-relative
+vector difference is 4.7224e-6 mm (225) and 8.0358e-7 mm (142). The
+0.01 mm common-node criterion passes for both members. The observed
+peak under Grav_Ult shifts from 3.3375 m to 2.78125 m for 225 and
+0.950 m to 1.425 m for 142, measured from the I face. These are samples
+at different native joints. The full-span peak between joints is unverified.
+
+The original-source result is 2/87 conditional numerical closures. GAP-009
+still requires qualified per-axis critical load and effective-length data
+and concurrent column–wall compression from the revised model. The
+source-qualified inter-node deformation result is also pending.
+See `EV-C29-COMMON-CUT-COMPARISON-20261121`.
+
 ## Original C29 with explicit self-weight Nmax
 
 Windows replay `RUN-be9d8258796f4dfca1a3609453e94e53` uses the frozen parent of

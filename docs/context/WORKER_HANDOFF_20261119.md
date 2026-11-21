@@ -11,10 +11,14 @@ conditional numerical closures with explicit second-order and method
 acceptance gates. See [current results](../CURRENT_STATE.md) and
 `EV-C29-SELF-WEIGHT-NMAX-LOCAL-20261121`.
 
-Continue with independent variable-axial method qualification and the
-revised-stiffness C29 comparison on a common physical grid. Obtain
-concurrent column/wall compression and supported critical loads for each
-revised story basis. Read the C104 and alpha work below for their scopes.
+The independent local audit of the original run repeated 16/16 stages with
+identical results. Use the existing 18-cut common physical comparison and
+the matched-joint deformation table from
+`EV-C29-COMMON-CUT-COMPARISON-20261121`. The common native node criterion
+passes at both C29 members. Qualify the inter-node peak independently,
+then bind revised same-run column/wall compression, supported critical
+loads and axis-specific effective lengths. Read the C104 and alpha work
+below for their scopes.
 
 ## Earlier branches
 

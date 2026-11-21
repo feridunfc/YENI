@@ -290,7 +290,8 @@
         "EV-C29-PAIRED-GRAVITY-20261121",
         "EV-C29-MATCHED-EI-REFINEMENT-20261121",
         "EV-VARIABLE-AXIAL-NUMERICAL-SLICE-20261121",
-        "EV-C29-SELF-WEIGHT-NMAX-LOCAL-20261121"
+        "EV-C29-SELF-WEIGHT-NMAX-LOCAL-20261121",
+        "EV-C29-COMMON-CUT-COMPARISON-20261121"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -327,7 +328,16 @@
         "conditionally_numerically_closed_columns": 2,
         "expected_columns": 87,
         "engineering_acceptance": "NOT_GRANTED",
-        "next_action": "Qualify the varying-axial second-order method and compare it on the revised-stiffness mesh using qualified concurrent story inputs and a verified local deformation peak."
+        "next_action": "Use the common physical cut comparison to qualify the varying-axial second-order method."
+      },
+      "common_cut_comparison_checkpoint_20261121": {
+        "evidence_ref": "EV-C29-COMMON-CUT-COMPARISON-20261121",
+        "scope": "R08 joins all 18 original physical case-cuts to the finest matched-EI mesh and retains 24 signed native element sides. At common nodes 4-to-8-part displacement differences meet the 0.01 mm criterion for both members.",
+        "native_node_peak_status": "OUTSIDE_NUMERICAL_TOLERANCE",
+        "full_span_peak_status": "UNVERIFIED_BETWEEN_NATIVE_JOINTS",
+        "revised_ts500_status": "REVISED_TS500_STORY_BASIS_UNAVAILABLE",
+        "engineering_acceptance": "NOT_GRANTED",
+        "next_action": "Qualify the between-joint deformation peak and bind concurrent revised-model column and wall compression, per-axis critical loads and effective lengths. Finish the same-cut TS 500 moment and PMM comparison."
       }
     },
     {
