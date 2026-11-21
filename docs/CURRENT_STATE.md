@@ -1,5 +1,17 @@
 # Original building calculation and local handoff — 2026-11-21
 
+## Next implementation deliverable
+
+Execute [the C29 calculation completion task](engineering/C29_CALCULATION_COMPLETION_TASK_20261121.md):
+extend the existing displacement consumer to six DOFs and complete the source-bound
+revised story producer; calculate the 12 finest-mesh axis factors, all 24 common-side
+revised TS 500 moment/PMM rows and the full-span deformation outcomes through
+R08/R14. Use the named reference examples with the actual production owners.
+The task was inspected against full commit
+`d85c6e8670b65ba2236cc5a0960e7e59720a8dd0`; preserve newer local work.
+This assignment does not change the original-source 2/87 conditional result or
+close GAP-009. No engineering tests or live analyses were rerun for this brief.
+
 ## C29 common physical cuts and deformation comparison
 
 The independent audit reproduced the archived original-source Nmax run

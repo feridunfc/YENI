@@ -1,5 +1,21 @@
 # Local development and GitHub worker handoff
 
+## Assigned implementation: finish the C29 calculation
+
+Execute [C29 calculation completion](../engineering/C29_CALCULATION_COMPLETION_TASK_20261121.md)
+from the actual current baseline, preserving newer local work. The task was
+prepared against `d85c6e8670b65ba2236cc5a0960e7e59720a8dd0`. Complete the existing
+displacement consumer with six DOFs and the revised-story input producer, then feed R08/R14.
+Deliver 12 finest-mesh axis factors, revised TS 500 moments/PMM at all 24 native
+sides of the 18 physical case-cuts, and qualified full-span deformation outcomes
+for both C29 members and all three gravity combinations. Keep the original 2/87
+conditional result separate. Use the two named existing source examples to test
+the actual owners. Another unchanged replay or hash audit is not this milestone.
+
+The task includes corrections to the private result-recovery proposal and a
+finite source/consumer/test/publication sequence. Its publication is a
+documentation change; no new C29 execution or engineering closure is claimed.
+
 ## Current calculation: original-source C29 with explicit axial idealization
 
 Windows ran the actual original-source C29 vertical slice from

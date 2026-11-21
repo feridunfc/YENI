@@ -1,7 +1,7 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-21T09:13:09.435959+00:00",
+  "updated_at_utc": "2026-11-21T14:59:47.535457+00:00",
   "repository": "feridunfc/YENI",
   "baseline_implementation_commit": "0f1a809299ed0dbb6e0ecfde77be0642e1771ce3",
   "local_reconciled": false,
@@ -30,7 +30,7 @@
     "GAP-018",
     "GAP-006"
   ],
-  "active_task": "Complete the original C29 second-order method comparison on common physical cuts. Consume same-revision story inputs and qualified local-deformation results in the existing R08 calculation; retain the completed 18-cut original-source replay and its conditional R14 result.",
+  "active_task": "Execute docs/engineering/C29_CALCULATION_COMPLETION_TASK_20261121.md. Complete the existing deformation consumer and revised-story producer, then deliver 12 finest-mesh axis factors, revised TS500 design moments/PMM at all 24 native sides of the 18 common physical case-cuts, and full-span deformation outcomes for both C29 members and all three gravity cases through R08/R14. Preserve the original-source 2/87 conditional result; another unchanged replay or hash audit does not complete this calculation milestone.",
   "gaps": [
     {
       "id": "GAP-001",
