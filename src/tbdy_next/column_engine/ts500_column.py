@@ -2,7 +2,8 @@
 
 Adapted from TBDY 1440df1 / slenderness.py and moment_magnification.py.
 The original 1.3 denominator placement is corrected against TS500 7.24/7.27.
-No routine supplies k, creep, sway, analysis order or a physical free length.
+The caller supplies the physical length, sway and end-restraint basis, creep
+and analysis order.
 Eq.7.29's prose/symbol conflict is retained explicitly, never silently resolved.
 Kernel units: N, mm, MPa; Euler load is returned explicitly in kN.
 """
@@ -189,6 +190,33 @@ def effective_length_factor(*, alpha_i, alpha_j, sway):
         return 2 + .3 * alphas[0]
     mean = sum(alphas) / 2
     return (1 - mean / 20 if mean < 2 else .9) * math.sqrt(1 + mean)
+
+
+def elastic_sway_length_factor(*, clear_length_m, ei_knm2, k_i_knm_per_rad, k_j_knm_per_rad):
+    """Elastic prismatic reference with one lateral translation free and two end springs.
+
+    Both end rotations are free to respond through their specified springs.
+    The boundary condition for the rotation field on the unit interval is
+    theta'(0) = rho_i*theta(0), theta'(1) = -rho_j*theta(1), with
+    rho = K_theta*L/EI. The first mode satisfies
+    z = atan(rho_i/z) + atan(rho_j/z), and k = pi/z.
+    """
+    length = positive(clear_length_m, "clear_length_m")
+    ei = positive(ei_knm2, "ei_knm2")
+    springs = (finite(k_i_knm_per_rad, "k_i_knm_per_rad"), finite(k_j_knm_per_rad, "k_j_knm_per_rad"))
+    if min(springs) < 0 or max(springs) == 0:
+        raise BankError("ELASTIC_SWAY_POSITIVE_ROTATIONAL_RESTRAINT_REQUIRED")
+    a, b = (finite(k * length / ei, "dimensionless_rotational_stiffness") for k in springs)
+    lower, upper = 0., min(math.pi, math.sqrt(a + b))
+    if upper == 0:
+        raise BankError("ELASTIC_SWAY_ROTATIONAL_STIFFNESS_UNDERFLOW")
+    for _ in range(64):
+        z = lower + (upper - lower)/2
+        if z < math.atan2(a, z) + math.atan2(b, z):
+            lower = z
+        else:
+            upper = z
+    return positive(math.pi / upper, "elastic_sway_length_factor")
 
 
 def evaluate_slenderness(*, free_length_ln_mm, k, radius_mm, sway, signed_end_moment_ratio=None):

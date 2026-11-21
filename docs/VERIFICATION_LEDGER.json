@@ -19,26 +19,26 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "R08_MAT_BOUNDARY_AND_TS500_PAIRED_STATIC_REFERENCE",
-    "work_branch": "work/r08-mat-horizontal-boundary",
+    "status": "C29_MAT_ROTATION_AND_CALIBRATED_LENGTH_REFERENCE",
+    "work_branch": "work/r08-c29-mat-rotation",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "a850816d8d376a6ce5239417a692fb8ce9b96e6c",
+    "inspected_base_commit": "a43bd56fff191e6c0137a59e05b61a62a86da773",
     "source_run_id": "RUN-ec213e8622d2404ca2cd39ca5b392d7a",
     "source_sha256": "dcaa231263607e6ea71d1282b597542480dbc2f90f845889e27ad9c2000e059d",
     "production_run_id": "RUN-8ff05dc6b0814df59654e5b8e0bfbe2c",
     "results_sha256": "e8097f03d14812d3de906fed4515141df605ec7b029ccaa83b8a0d5553aaed84",
     "evidence_refs": [
-      "EV-R08-MAT-HORIZONTAL-BOUNDARY-20261121",
+      "EV-C29-MAT-ROTATION-CALIBRATED-LENGTH-20261121",
       "EV-R08-TS500-PAIRED-STATIC-20261121",
-      "EV-C29-TS500-EFFECTIVE-LENGTH-20261121"
+      "EV-R08-MAT-HORIZONTAL-BOUNDARY-20261121"
     ],
     "engineering_release": "NOT_READY",
-    "next_action": "Carry forward the TS 500 sway-permitted effective-length calculation at C29. Bind directional end stiffness, including the mat at 934 if used, the applicable creep and signed demand under GAP-009. The paired static reference load sets do not qualify k=1.0."
+    "next_action": "Adopt a supported story creep convention for opposed shear contributions and qualify the governing stiffness and signed demands. Resolve missing story column spans under GAP-006, then calculate the complete Eq. (7.27)–(7.28) story sums and apply the chosen R08 factors."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
-    "commit_sha": "a850816d8d376a6ce5239417a692fb8ce9b96e6c",
-    "git_tree_sha": "e270e003a5d13073290493722cb205d3ad7ddd20",
+    "commit_sha": "a43bd56fff191e6c0137a59e05b61a62a86da773",
+    "git_tree_sha": "029df34bf117b09e07daab0cb15a667a24a7962d",
     "observed_on": "2026-11-21",
     "scope": "Verified parent of this checkpoint. Resolve the current published ref with git ls-remote."
   },
@@ -5281,6 +5281,103 @@
       "limit": "All six tested story directions have exceedances. The signed reference scope is distinct from the spectral design combinations. No sway-prevented shortcut or final design acceptance is issued.",
       "engineering_release": "NOT_READY",
       "next_action": "Carry forward the TS 500 sway-permitted effective-length calculation at C29. Bind directional end stiffness, including the mat at 934 if used, the applicable creep and signed demand under GAP-009. The paired static reference load sets do not qualify k=1.0."
+    },
+    {
+      "id": "EV-C29-MAT-ROTATION-CALIBRATED-LENGTH-20261121",
+      "date": "2026-11-21",
+      "gaps": [
+        "GAP-009"
+      ],
+      "base_commit": "a43bd56fff191e6c0137a59e05b61a62a86da773",
+      "classification": "NATIVE_MAT_ROTATION_AND_ELASTIC_EFFECTIVE_LENGTH_REFERENCE",
+      "method": "Use the original mat shells and soil springs in four signed zero-initial ETABS staged cases. Recover the reciprocal two-axis compliance at 934. Use the elastic prismatic root for the lower segment with the measured mat and a 3Ec Σ(Icr/L) reference at 40. Use TS 500 Eq. (7.15) for the upper reference based on the checked full-span floor strips.",
+      "native_source_sha256": "dcaa231263607e6ea71d1282b597542480dbc2f90f845889e27ad9c2000e059d",
+      "local_sources": {
+        "mat_run": ".receipts/R08_C29_MAT/runs/20261121T055243552046Z",
+        "native_sha256": "fc7fcd417025b6497109e01f79a562dc1cac52fc3b56aad3f7384d787315e454",
+        "mat_evaluation_sha256": "343307a560bfd8edd9942d8f7d2e1ec92da2117c9775726e2ea20cfc6a5f8b4d",
+        "mat_copy_sha256": "628e32c7994bf9d0a354d9a9b103d9b540577a578c58f54340175642966500c5",
+        "original_edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+        "earlier_pd_copy_edb_sha256": "72b61f91447831b55a21016073f924b77f1d6b2c4caaf3a6e201b801713f5d43",
+        "calculation_dir": ".receipts/verification/r08-sway-inputs-20261121",
+        "frame_sections_sha256": "7161abea07e6fdab31b7db57095588450a86125774f6a2e59e462a46bf74e272",
+        "signed_story_creep_sha256": "71823049961889ca5be0e9f2535c66fb97ad84918db87ab9054e5fc333e0393c",
+        "calibrated_length_sha256": "a8d2bb7ba09ca490eae0247b4d6759fb08de620ae6a8da3582e9e229e4c9b608"
+      },
+      "observed": {
+        "native_finished_cases": 4,
+        "maximum_reaction_equilibrium_residual": 8.97321584712122e-13,
+        "mat_scalar_stiffness_knm_per_rad": {
+          "X": 1844987.1786719111,
+          "Y": 1903670.783727827
+        },
+        "mat_rotation_compliance_rad_per_knm": [
+          [
+            5.420091866003299e-07,
+            4.1874407184218975e-09
+          ],
+          [
+            4.1874407184218975e-09,
+            5.253009126093584e-07
+          ]
+        ],
+        "effective_length_rows": {
+          "225": {
+            "M2": {
+              "k": 1.622653335114175,
+              "length_mm": 7220.807341258079,
+              "length_over_i": 31.26701296681333
+            },
+            "M3": {
+              "k": 1.6458169575893096,
+              "length_mm": 7323.885461272427,
+              "length_over_i": 31.713354319347165
+            }
+          },
+          "142": {
+            "M2": {
+              "k": 2.059751753394436,
+              "length_mm": 7827.056662898857,
+              "length_over_i": 33.89214953465331
+            },
+            "M3": {
+              "k": 2.136764472987283,
+              "length_mm": 8119.704997351675,
+              "length_over_i": 35.15935399471004
+            }
+          }
+        },
+        "equivalent_eq729_cases": 16,
+        "signed_story_cases": 24,
+        "opposed_signed_story_shears": 12,
+        "reference_column_only_max_sum_nd_kn": {
+          "+0.00": 47488.92463327819,
+          "+4.50": 36569.81349242311,
+          "+9.00": 17664.614913382447
+        }
+      },
+      "verification": {
+        "offline_python_passed": 1561,
+        "offline_python_skipped": 1,
+        "offline_js_passed": 11,
+        "wheel_python_passed": 410,
+        "offline_log_sha256": "ca2d71c1e1a4d627b552d1d541e40c15009384fe77cc506f4787eda764630de0",
+        "wheel_log_sha256": "e47ace3848ed9b71566240a456bbe1e89216ba08a0088151b0dc2376af8f099f",
+        "wheel_sha256": "991e58cb5d0bbb61228d39d71ccdc49d7c1f4a340a21fa60a2d11b4ff71dfa9f",
+        "tested_files": ".receipts/verification/r08-sway-inputs-20261121/tested-files.json"
+      },
+      "commands": [
+        "python -X utf8 -B .receipts/R08_C29_MAT/run_c29_mat.py --pid <desktop ETABS PID>",
+        "python -X utf8 -B .receipts/R08_C29_MAT/evaluate_c29_mat.py .receipts/R08_C29_MAT/runs/20261121T055243552046Z",
+        "python -X utf8 -B .receipts/verification/r08-sway-inputs-20261121/c29_frame_sections.py",
+        "python -X utf8 -B .receipts/verification/r08-sway-inputs-20261121/check_signed_creep.py",
+        "python -X utf8 -B .receipts/verification/r08-sway-inputs-20261121/calculate_c29_effective.py .receipts/R08_C29_MAT/runs/20261121T055243552046Z/evaluation.json",
+        "python -X utf8 -B tools/test_offline.py",
+        "python -X utf8 -B tools/test_installed_wheel.py .receipts/verification/r08-sway-inputs-20261121/wheel-final"
+      ],
+      "limit": "Isolated zero-preload mat, selected full-span beam strip reference, and eight signed reference load sets. Reported k values remain conditional on that elastic model and the beam-end idealization.",
+      "engineering_release": "NOT_READY",
+      "next_action": "Adopt a supported story creep convention for opposed shear contributions and qualify the governing stiffness and signed demands. Resolve missing story column spans under GAP-006, then calculate the complete Eq. (7.27)–(7.28) story sums and apply the chosen R08 factors."
     }
   ],
   "new_record_template": {

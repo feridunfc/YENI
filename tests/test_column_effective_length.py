@@ -1,7 +1,9 @@
 import math
 import unittest
 
-from tbdy_next.column_engine.ts500_column import SWAY_PERMITTED, SWAY_PREVENTED, effective_length_factor
+from tbdy_next.column_engine.ts500_column import (
+    SWAY_PERMITTED, SWAY_PREVENTED, effective_length_factor, elastic_sway_length_factor,
+)
 from tbdy_next.engineering.column_effective_length import effective_length_reference
 
 
@@ -17,6 +19,22 @@ class ColumnEffectiveLengthTests(unittest.TestCase):
         self.assertAlmostEqual(effective_length_factor(alpha_i=None, alpha_j=5, sway=SWAY_PERMITTED), 3.5)
         with self.assertRaises(ValueError):
             effective_length_factor(alpha_i=None, alpha_j=None, sway=SWAY_PERMITTED)
+
+    def test_elastic_sway_springs_have_known_roots_and_fixed_limits(self):
+        def k(a, b):
+            return elastic_sway_length_factor(clear_length_m=4, ei_knm2=2000,
+                                             k_i_knm_per_rad=a*500, k_j_knm_per_rad=b*500)
+
+        self.assertAlmostEqual(k(0, math.pi/4), 4)
+        self.assertAlmostEqual(k(math.pi/4, 0), 4)
+        self.assertAlmostEqual(k(math.pi/2, math.pi/2), 2)
+        self.assertAlmostEqual(k(0, 1e10), 2)
+        self.assertAlmostEqual(k(1e10, 1e10), 1)
+        self.assertLess(k(2, 1), k(1, 1))
+        with self.assertRaises(ValueError):
+            k(0, 0)
+        with self.assertRaises(ValueError):
+            k(-1, 2)
 
     def test_reference_emits_both_support_limiting_scenarios_and_length_readings(self):
         end = {"alpha_web": 5, "alpha_flange_comparison": 3}

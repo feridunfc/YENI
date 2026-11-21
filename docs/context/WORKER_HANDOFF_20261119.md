@@ -48,10 +48,14 @@ RSX/RSY point rows. At joint 934, both global horizontal DOFs are restrained.
 Use `EV-R08-TS500-PAIRED-STATIC-20261121` for the completed matched
 ETABS first- and second-order comparison. Each occupied story direction
 has an exceedance of the 5% threshold with the original signed static
-reference loads. Carry forward the sway-permitted effective-length
-method and resolve the mat rotational response if needed. The existing
-physical scope accounts for six occupied story directions and the
-empty +14.5 story.
+reference loads. Use `EV-C29-MAT-ROTATION-CALIBRATED-LENGTH-20261121`
+for the four mat-only perturbations and the resulting two-axis C29
+effective-length reference. Match the beam strips against the actual
+floor polygons. Check equilibrium, reciprocity and the opposed
+permanent and total shears in the signed reference scope. Continue with
+the adopted effective stiffness, creep convention and the complete
+story Eq. (7.27)–(7.28) sums. The physical scope accounts for six
+occupied story directions and the empty +14.5 story.
 
 For assigned C29 shear use `EV-C29-SPECTRAL-SHEAR-20261120`. Both C29 segments
 have eight assigned cases for V2 and V3 inside the selected R10 capacity shear

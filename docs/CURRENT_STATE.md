@@ -6,6 +6,43 @@ Start each assignment at [AGENTS.md](../AGENTS.md). The
 in a GitHub checkout. Follow the [November 18 full recipe](engineering/reference/recipe_20261118/delivery/RECIPE.md)
 and its [six-step calculation sequence](engineering/reference/recipe_20261118/delivery/PRIORITY_CHAIN.json).
 
+## C29 mat rotation and calibrated effective-length reference
+
+The approved second Save As ran four signed 1 kN·m cases at node 934.
+ETABS staged analysis activated only the two original mat areas and used
+their original soil springs. The horizontal translations were zero.
+The applied moments and base reactions balanced to within 9 × 10⁻¹³
+kN·m. The isolated mat's rotational stiffness with the orthogonal moment
+free was 1,844,987 kN·m/rad about X and 1,903,671 kN·m/rad about Y.
+
+At joints 40 and 6, the connected floor strips changed the flange
+comparison for C29. The four full-span single-sided checks and the
+three double-sided checks use the TS 500 §6.3.6 inner-span reference
+`lp = 0.60L` and its geometric caps. One beam has no verified
+continuous strip. The lower column uses the measured mat rotation
+in an elastic prismatic sway model with a `3 Ec Σ(Icr/L)` beam-end
+reference at joint 40. The upper column uses TS 500 Eq. (7.15).
+
+| C29 member axis | Reference k | Effective length (m) | Slenderness |
+| --- | ---: | ---: | ---: |
+| 225 M2 | 1.62265 | 7.22081 | 31.2670 |
+| 225 M3 | 1.64582 | 7.32389 | 31.7134 |
+| 142 M2 | 2.05975 | 7.82706 | 33.8921 |
+| 142 M3 | 2.13676 | 8.11970 | 35.1594 |
+
+All four references exceed the sway-permitted neglect limit of 22.
+The Eq. (7.29) readings agree in the 16 checked signed instances.
+Original primitive column shears reproduced the 24 signed story
+references. Twelve signed Eq. (7.23) ratios have opposing permanent
+and total shears. Determine their creep convention before applying
+them to stiffness. The adopted member stiffness and complete story
+Eq. (7.27)–(7.28) sums are required for final moment magnification.
+The maximum checked column compression subtotals at the common I cuts
+are 47,489 kN at +0.00, 36,570 kN at +4.50 and 17,665 kN at +9.00.
+The two lower stories each have 14 columns with unbound clear length.
+See `EV-C29-MAT-ROTATION-CALIBRATED-LENGTH-20261121` in the
+[verification ledger](VERIFICATION_LEDGER.json).
+
 ## R08 mat horizontal boundary
 
 The existing ETABS gateway read the restraints and local axes of all 119
@@ -38,10 +75,9 @@ These results do not qualify the sway-prevented shortcut under TS 500
 §7.6.2.1 for the tested load sets. The reference cases used the original
 `Grav_Service` and `Grav_Ult` factors with signed `LC_EQX` or `LC_EQY`.
 The assigned R08 spectral design demand retains its own approval gate.
-Use `EV-R08-TS500-PAIRED-STATIC-20261121` and carry forward the directional
-sway-permitted effective-length calculation under §7.6.2.2. Qualify its
-end stiffness, including the mat at 934 if used, and establish the
-applicable creep and signed demand before applying magnification.
+Use `EV-R08-TS500-PAIRED-STATIC-20261121` for the classification check.
+The current calibrated effective-length reference above advances the
+sway-permitted route.
 
 ## C29 TS 500 effective length reference
 
