@@ -244,7 +244,17 @@ class AdoptedSecondOrderCalculationTests(unittest.TestCase):
         self.assertGreater(last["additional_physical_cuts"], 0)
         self.assertEqual({row["analysis_element_id"] for row in last["rows"]}, {f"E8-{i}" for i in range(8)})
         self.assertEqual(last["rows"][0]["control"]["p_kn"], -950.)
+        self.assertEqual(last["rows"][0]["ts500_coefficient_nd_kn"], 950.)
         self.assertNotEqual(last["rows"][0]["ts500_m2_knm"], compared["rows"][0]["ts500_m2_knm"])
+        common = refined["changes"][-1]["common_node_deformation"]
+        self.assertEqual(common["status"], "WITHIN_TOLERANCE")
+        self.assertIn(1.9, {row["station_m"] for row in common["cases"][name]["samples"]})
+        self.assertEqual(refined["changes"][-1]["full_span_peak_status"], "UNVERIFIED_BETWEEN_NATIVE_JOINTS")
+        table = refined["method_comparison"]
+        self.assertEqual(table["expected_physical_cuts"], table["matched_physical_cuts"])
+        first = table["rows"][0]["refined_cuts"][0]
+        self.assertEqual((first["first_nd_kn"], first["second_nd_kn"], first["revised_nmax_kn"]), (950., 1100., 950.))
+        self.assertIsNotNone(first["revised_ts500_minus_direct_design_knm"])
         levels[-1]["force_source"]["rowsets"][uid]["ElmSta"][0] = 0.1
         failed = project_column_r08_local_live(**args)["gravity_order_pair"]["refinement"]
         self.assertEqual(failed["status"], "UNVERIFIED")

@@ -224,7 +224,7 @@ def compare_gravity_order_pair(source, pmm, local, dims, capacity):
         if all_matched and "refined_levels" in record:
             from .gravity_pair_refinement import compare_levels
 
-            out["refinement"] = compare_levels(source, pmm, local, record, dims, capacity)
+            out["refinement"] = compare_levels(source, pmm, local, record, dims, capacity, out["rows"])
         return out
     except (ArithmeticError, KeyError, TypeError, ValueError) as exc:
         out.update(reason=str(exc))

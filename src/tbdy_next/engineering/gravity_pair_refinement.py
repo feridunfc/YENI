@@ -138,8 +138,10 @@ def _refined_ts500(local, dims, capacity, cuts, level, uid, cases):
                 or set(item["story_aggregates"]) != set(cases)):
             raise ValueError("GRAVITY_REFINEMENT_AXIS_BASIS_INVALID")
     factors = {}
+    peaks = {}
     for name in cases:
         peak = max(-value["first"][0] for key, value in cuts.items() if key[0] == name)
+        peaks[name] = peak
         for axis, stiffness in local["stiffness_and_euler"].items():
             revised_axis = story[axis]
             totals = revised_axis["story_aggregates"][name]
@@ -164,11 +166,15 @@ def _refined_ts500(local, dims, capacity, cuts, level, uid, cases):
         demand = _magnified_moment_demand(nd_kn=nd, m2_knm=m2, m3_knm=m3, dims=dims,
             beta_m2=factors[name, "M2"], beta_m3=factors[name, "M3"], global_factor=1.0)
         m2, m3 = demand["magnified_m2_design_knm"], demand["magnified_m3_design_knm"]
-        results[key] = (m2, m3, capacity.assess(nd * 1000.0, m2 * 1e6, m3 * 1e6))
+        results[key] = {
+            "ts500_m2_knm": m2, "ts500_m3_knm": m3, "ts500_coefficient_nd_kn": peaks[name],
+            "ts500_beta_m2": factors[name, "M2"], "ts500_beta_m3": factors[name, "M3"],
+            "ts500_pmm": capacity.assess(nd * 1000.0, m2 * 1e6, m3 * 1e6),
+        }
     return results, "REVISED_FIRST_ORDER_VECTORS_AND_STORY_INPUTS_CONSUMED"
 
 
-def _chord_bow(elements, record, cases):
+def _node_chord_profiles(elements, record, cases, low):
     joints = [(row["i_joint"], row["i_xyz"][2]) for row in elements]
     joints.append((elements[-1]["j_joint"], elements[-1]["j_xyz"][2]))
     result = {}
@@ -179,12 +185,14 @@ def _chord_bow(elements, record, cases):
             return {}
         start, end = joints[0][1], joints[-1][1]
         a, b = (vectors[joints[i][0]] for i in (0, -1))
-        peak = 0.0
-        for joint, z in joints[1:-1]:
+        samples = []
+        for joint, z in joints:
             t = (z - start) / (end - start)
             u = vectors[joint]
-            peak = max(peak, hypot(*(u[i] - a[i] - t * (b[i] - a[i]) for i in (0, 1))) * 1000)
-        result[name] = peak
+            offset = [(u[i] - a[i] - t * (b[i] - a[i])) * 1000 for i in (0, 1)]
+            samples.append({"station_m": round(z - low, 6), "joint_id": joint,
+                            "dx_mm": offset[0], "dy_mm": offset[1], "norm_mm": hypot(*offset)})
+        result[name] = samples
     return result
 
 
@@ -203,6 +211,8 @@ def compare_level(source, pmm, local, base, level, dims, capacity):
             raise ValueError("GRAVITY_REFINEMENT_EFFECTIVE_EI_MISMATCH")
         cuts = _paired_cuts(uid, level, cases, elements, z, low, high)
         out["cut_counts"].update(expected=len(cuts), unresolved=len(cuts))
+        out["first_order_nmax_kn"] = {name: max(-value["first"][0] for key, value in cuts.items() if key[0] == name)
+                                     for name in cases}
         try:
             revised, out["ts500_status"] = _refined_ts500(local, dims, capacity, cuts, level, uid, cases)
         except (ArithmeticError, KeyError, TypeError, ValueError) as exc:
@@ -221,18 +231,50 @@ def compare_level(source, pmm, local, base, level, dims, capacity):
                    "control": dict(zip(FORCE_FIELDS, cut["first"])), "second": dict(zip(FORCE_FIELDS, cut["second"])),
                    **_station_pmm(cut["second"], dims, capacity)}
             if revised is not None:
-                m2, m3, assessment = revised[key]
-                row.update(ts500_m2_knm=m2, ts500_m3_knm=m3, ts500_utilization=_utilization(assessment),
+                assessment = revised[key]["ts500_pmm"]
+                row.update({field: value for field, value in revised[key].items() if field != "ts500_pmm"})
+                row.update(ts500_utilization=_utilization(assessment),
                            ts500_pmm_status=assessment["status"], ts500_pmm_reason=assessment.get("reason"))
             out["rows"].append(row)
         _summarize_pmm(out, len(cuts), controls_matched=True)
         # The two controls agree in case and mesh identity. Each refined run
         # carries its own first-order forces.
         out["control_status"] = "REVISED_MODEL_FIRST_ORDER_PAIRED"
-        out["second_order_node_chord_bow_mm"] = _chord_bow(elements, level["joint_displacements"].get(uid, {}), cases)
+        profiles = _node_chord_profiles(elements, level["joint_displacements"].get(uid, {}), cases, low)
+        peaks = {name: max(samples, key=lambda row: row["norm_mm"]) for name, samples in profiles.items()}
+        out["second_order_node_chord_samples"] = profiles
+        out["sampled_chord_peaks"] = peaks
+        out["second_order_node_chord_bow_mm"] = {name: row["norm_mm"] for name, row in peaks.items()}
+        out["clear_length_m"] = round(high - low, 6)
+        out["full_span_peak_status"] = "UNVERIFIED_BETWEEN_NATIVE_JOINTS"
     except (ArithmeticError, KeyError, TypeError, ValueError) as exc:
         out.update(reason=str(exc))
     return out
+
+
+def _common_node_deformation(before, after, names):
+    profiles = [level["second_order_node_chord_samples"] for level in (before, after)]
+    cases = {}
+    for name in sorted(names):
+        a, b = ({r["station_m"]: r for r in profile.get(name, ())} for profile in profiles)
+        stations = sorted(s for s in a.keys() & b.keys() if 0 <= s <= after["clear_length_m"])
+        # Matching only two support nodes gives no information on local bow.
+        if not any(0 < s < after["clear_length_m"] for s in stations):
+            continue
+        rows = []
+        for station in stations:
+            first = [a[station][axis] for axis in ("dx_mm", "dy_mm")]
+            second = [b[station][axis] for axis in ("dx_mm", "dy_mm")]
+            difference = [y - x for x, y in zip(first, second)]
+            rows.append({"station_m": station, "before_joint_id": a[station]["joint_id"],
+                         "after_joint_id": b[station]["joint_id"], "before_xy_mm": first, "after_xy_mm": second,
+                         "difference_xy_mm": difference, "difference_mm": hypot(*difference)})
+        cases[name] = {"samples": rows, "max_difference_mm": max(row["difference_mm"] for row in rows)}
+    within = (all(case["max_difference_mm"] <= BOW_TOL_MM for case in cases.values())
+              if names and cases.keys() == names else None)
+    return {"method": "MATCHED_NATIVE_JOINTS_RELATIVE_TO_ORIGINAL_NODE_CHORD", "tolerance_mm": BOW_TOL_MM,
+            "status": {None: "UNVERIFIED", True: "WITHIN_TOLERANCE", False: "OUTSIDE_TOLERANCE"}[within],
+            "cases": cases}
 
 
 def _mesh_change(before, after):
@@ -259,19 +301,70 @@ def _mesh_change(before, after):
     return {"before": before["divisions"], "after": after["divisions"], "shared_signed_cuts": len(shared),
             "max_common_absolute_difference": force_deltas,
             "sufficient_common_locations": covers_common,
+            "common_node_deformation": _common_node_deformation(before, after, names),
+            "full_span_peak_status": "UNVERIFIED_BETWEEN_NATIVE_JOINTS",
             "forces_within_tolerance": forces_match and covers_common, "full_mesh_extrema_within_tolerance": peaks_match,
             "full_mesh_pmm_within_tolerance": pmms_match, "node_chord_bow_within_tolerance": bow_matches,
             "within_tolerance": (forces_match and peaks_match and pmms_match and bow_matches
                                  if covers_common and bow_available else None)}
 
 
-def compare_levels(source, pmm, local, base, dims, capacity):
+def _method_comparison(original, finest, local):
+    """Keep both native sides when a reference cut falls at a refined junction."""
+    start = local["physical_clear_length"]["end_cuts"]["I"][1]
+    cuts = defaultdict(list)
+    for row in finest["rows"]:
+        cuts[row["combination"], row["physical_station_m"]].append(row)
+    original_coefficients = {row["combination"]: row["coefficient_nd_kn"]
+                             for row in local["magnified_selected_pmm"]["rows"] if "coefficient_nd_kn" in row}
+
+    def moments(vector):
+        return [vector["m2_knm"], vector["m3_knm"]]
+
+    def delta(a, b):
+        return [x - y for x, y in zip(a, b)] if a is not None and b is not None else None
+
+    rows = []
+    for row in original:
+        name = row["combination"]
+        station = round(row["object_station_m"] - start, 6)
+        design = [row["ts500_m2_knm"], row["ts500_m3_knm"]]
+        choices = []
+        for cut in cuts[name, station]:
+            direct = [cut.get("second_design_m2_knm"), cut.get("second_design_m3_knm")]
+            ts = [cut["ts500_m2_knm"], cut["ts500_m3_knm"]] if "ts500_m2_knm" in cut else None
+            ratios = [("ORIGINAL_TS500", row["ts500_utilization"]), ("DIRECT_P_DELTA", cut["second_pmm_utilization"]),
+                      ("REVISED_TS500", cut.get("ts500_utilization"))]
+            complete = all(_finite(value) for _, value in ratios)
+            choices.append({"element": cut["analysis_element_id"], "side": cut["side"],
+                            "first_nd_kn": -cut["control"]["p_kn"], "second_nd_kn": -cut["second"]["p_kn"],
+                            "first_m2_m3_knm": moments(cut["control"]), "second_m2_m3_knm": moments(cut["second"]),
+                            "direct_design_m2_m3_knm": direct, "direct_pmm": cut["second_pmm_utilization"],
+                            "revised_nmax_kn": finest["first_order_nmax_kn"][name],
+                            "revised_ts500_coefficient_nd_kn": cut.get("ts500_coefficient_nd_kn"),
+                            "revised_ts500_beta": [cut["ts500_beta_m2"], cut["ts500_beta_m3"]] if ts else None,
+                            "revised_ts500_m2_m3_knm": ts, "revised_ts500_pmm": cut.get("ts500_utilization"),
+                            "revised_ts500_minus_direct_design_knm": delta(ts, direct),
+                            "direct_minus_original_design_knm": (delta(direct, design)
+                                                                 if all(_finite(v) for v in (*direct, *design)) else None),
+                            "governing_comparison": max(ratios, key=lambda item: item[1])[0] if complete else None})
+        rows.append({"combination": name, "physical_station_m": station, "original_element": row["analysis_element_id"],
+                     "original_nd_kn": -row["original"]["p_kn"], "original_coefficient_nd_kn": original_coefficients.get(name),
+                     "original_first_m2_m3_knm": moments(row["original"]), "original_ts500_design_m2_m3_knm": design,
+                     "original_ts500_pmm": row["ts500_utilization"], "refined_cuts": choices})
+    return {"divisions": finest["divisions"], "model_sha256": finest["model_sha256"],
+            "expected_physical_cuts": len(rows), "matched_physical_cuts": sum(bool(row["refined_cuts"]) for row in rows),
+            "revised_ts500_status": finest.get("ts500_status"), "rows": rows}
+
+
+def compare_levels(source, pmm, local, base, dims, capacity, original):
     levels = [compare_level(source, pmm, local, base, level, dims, capacity) for level in base["refined_levels"]]
     changes = [_mesh_change(a, b) for a, b in zip(levels, levels[1:])
                if a["status"] == b["status"] == "GRAVITY_PAIR_COMPARED"]
     full_series = len(levels) == len(DIVISIONS) and len(changes) == len(DIVISIONS) - 1
     final_comparison = changes[-1]["within_tolerance"] if full_series else None
     status = {True: "WITHIN_NUMERICAL_TOLERANCE", False: "OUTSIDE_NUMERICAL_TOLERANCE", None: "UNVERIFIED"}[final_comparison]
-    return {"levels": levels, "changes": changes, "status": status,
+    comparison = _method_comparison(original, levels[-1], local) if levels[-1]["rows"] else None
+    return {"levels": levels, "changes": changes, "status": status, "method_comparison": comparison,
             "tolerances": {"relative": REL_TOL, "force_kn": FORCE_TOL, "moment_knm": FORCE_TOL,
                            "node_chord_bow_mm": BOW_TOL_MM, "pmm": PMM_TOL}}

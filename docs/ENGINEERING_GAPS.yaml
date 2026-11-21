@@ -30,7 +30,7 @@
     "GAP-018",
     "GAP-006"
   ],
-  "active_task": "Run the existing original-source C29 calculation with the explicit self-weight Nmax idealization using the finalized local scenario receipt; report actual selected-section PMM, shear, beam and joint results. Continue GAP-009 method qualification and coupled C104 work without substituting synthetic closure for original-building acceptance.",
+  "active_task": "Complete the original C29 second-order method comparison on common physical cuts. Consume same-revision story inputs and qualified local-deformation results in the existing R08 calculation; retain the completed 18-cut original-source replay and its conditional R14 result.",
   "gaps": [
     {
       "id": "GAP-001",

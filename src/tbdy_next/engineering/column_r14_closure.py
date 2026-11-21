@@ -706,7 +706,11 @@ def _evaluate_single_r14_column(
                 **({"gravity_refinement": {
                     "status": r08_local_col["gravity_order_pair"]["refinement"]["status"],
                     "changes": r08_local_col["gravity_order_pair"]["refinement"]["changes"],
-                    "levels": [{key: value for key, value in level.items() if key != "rows"}
+                    "method_comparison": {key: value for key, value in (
+                        r08_local_col["gravity_order_pair"]["refinement"].get("method_comparison") or {}).items()
+                        if key != "rows"},
+                    "levels": [{key: value for key, value in level.items()
+                                if key not in {"rows", "second_order_node_chord_samples"}}
                                for level in r08_local_col["gravity_order_pair"]["refinement"]["levels"]],
                 }} if ((r08_local_col or {}).get("gravity_order_pair") or {}).get("refinement") else {}),
             },

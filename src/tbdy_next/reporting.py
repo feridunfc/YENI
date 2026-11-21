@@ -2613,6 +2613,7 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
     members = (local.get("per_member") or {"single": local}).values()
     basis_rows, factor_rows, balance_rows, pair_rows, pair_basis_rows = [], [], [], [], []
     refined_rows, refined_levels, mesh_changes = [], [], []
+    deformation_rows, method_rows = [], []
     idealization_rows, idealization_cases, idealization_cuts = [], [], []
     for member in members:
         basis = member.get("adopted_second_order_basis") or {}
@@ -2672,7 +2673,18 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
                 "second_pmm_status": row.get("second_pmm_status", (row.get("second_order_pmm") or {}).get("status")),
                 "second_pmm_reason": row.get("second_pmm_reason", (row.get("second_order_pmm") or {}).get("reason"))})
         refinement = paired.get("refinement") or {}
-        mesh_changes.extend({"member": member.get("member_id"), **row} for row in refinement.get("changes", ()))
+        uid = member.get("member_id")
+        for change in refinement.get("changes", ()):
+            common = change.get("common_node_deformation") or {}
+            mesh_changes.append({"member": uid, "common_node_status": common.get("status"), **change})
+            for name, case in common.get("cases", {}).items():
+                deformation_rows.extend({"member": uid, "combination": name,
+                    "before": change["before"], "after": change["after"], **row} for row in case["samples"])
+        comparison = refinement.get("method_comparison") or {}
+        for row in comparison.get("rows", ()):
+            for cut in row["refined_cuts"] or [{}]:
+                method_rows.append({"member": uid, **row, **cut,
+                    "divisions": comparison["divisions"], "revised_ts500_status": comparison["revised_ts500_status"]})
         for level in refinement.get("levels", ()):
             refined_levels.append({"member": member.get("member_id"), "convergence": refinement["status"],
                                    **level, **(level.get("cut_counts") or {})})
@@ -2741,7 +2753,7 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
                      ("common_original_physical_cuts", "Common cuts"), ("additional_physical_cuts", "Additional cuts"),
                      ("stiffness_comparison", "ETABS and TS 500 EI"), ("convergence", "Mesh convergence"),
                      ("governing", "Governing P–Delta cut"),
-                     ("second_order_node_chord_bow_mm", "Node-chord bow (mm)"),
+                     ("sampled_chord_peaks", "Native-node peak value and location"),
                      ("ts500_status", "Revised TS 500 scope"), ("ts500_reason", "Revised TS 500 issue"),
                      ("reason", "Source issue")), refined_levels)
            + (_table((("member", "Column"), ("before", "Coarser mesh"), ("after", "Finer mesh"),
@@ -2750,8 +2762,35 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
                       ("forces_within_tolerance", "Signed forces within tolerance"),
                       ("full_mesh_extrema_within_tolerance", "Full-mesh extrema within tolerance"),
                       ("full_mesh_pmm_within_tolerance", "Full-mesh PMM within tolerance"),
-                      ("node_chord_bow_within_tolerance", "Bow within tolerance")), mesh_changes)
+                      ("common_node_status", "Common joint deformation"),
+                      ("node_chord_bow_within_tolerance", "Native-node peaks within tolerance"),
+                      ("full_span_peak_status", "Full-span peak status")), mesh_changes)
               if mesh_changes else '')
+           + ('<h4>Chord-relative displacements on common native joints</h4>'
+              + _table((("member", "Column"), ("combination", "Combination"), ("before", "Coarser mesh"),
+                        ("after", "Finer mesh"), ("station_m", "Station from I face (m)"),
+                        ("before_xy_mm", "Coarser X/Y (mm)"), ("after_xy_mm", "Finer X/Y (mm)"),
+                        ("difference_mm", "Vector difference (mm)")), deformation_rows)
+              if deformation_rows else '')
+           + ('<h4>Gravity methods at common physical cuts</h4>'
+              + _table((("member", "Column"), ("combination", "Combination"), ("physical_station_m", "Station (m)"),
+                        ("side", "Refined cut side"), ("original_nd_kn", "Original local N (kN)"),
+                        ("original_coefficient_nd_kn", "Original coefficient N (kN)"),
+                        ("original_first_m2_m3_knm", "Original first order M2/M3 (kN·m)"),
+                        ("first_nd_kn", "Revised first order N (kN)"), ("revised_nmax_kn", "Revised first order Nmax (kN)"),
+                        ("first_m2_m3_knm", "Revised first order M2/M3 (kN·m)"),
+                        ("second_nd_kn", "Direct second order N (kN)"),
+                        ("second_m2_m3_knm", "Direct second order M2/M3 (kN·m)"),
+                        ("direct_design_m2_m3_knm", "Direct design M2/M3 (kN·m)"),
+                        ("original_ts500_design_m2_m3_knm", "Original TS 500 design M2/M3 (kN·m)"),
+                        ("revised_ts500_m2_m3_knm", "Revised TS 500 design M2/M3 (kN·m)"),
+                        ("original_ts500_pmm", "Original TS 500 PMM"), ("direct_pmm", "Direct second order PMM"),
+                        ("revised_ts500_pmm", "Revised TS 500 PMM"),
+                        ("direct_minus_original_design_knm", "Direct minus original design M2/M3 (kN·m)"),
+                        ("revised_ts500_minus_direct_design_knm", "Revised TS 500 minus direct M2/M3 (kN·m)"),
+                        ("governing_comparison", "Governing method"), ("revised_ts500_status", "Revised TS 500 status")),
+                       method_rows)
+              if method_rows else '')
            + _table((("member", "Column"), ("divisions", "Partitions"), ("combination", "Combination"),
                      ("physical_station_m", "Physical station (m)"), ("analysis_element_id", "ETABS element"),
                      ("side", "Cut side"), ("control", "Revised first order"), ("second", "Revised P–Delta"),
