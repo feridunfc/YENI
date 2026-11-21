@@ -29,6 +29,7 @@ from ..column_engine.ts500_column import (
     rectangle_properties,
 )
 from .column_clear_length import FACE_BASIS, proven_clear_length_m
+from .column_effective_length import effective_length_reference, reference_end_ratios
 from .column_r10_live import SelectedColumnCage
 from .live_column import project_column_slenderness_evidence
 
@@ -679,6 +680,7 @@ def project_column_r08_local_live(
     if previous_result is not None and recompute_member_ids is None:
         raise ValueError("ALPHA_R08_REUSE_SCOPE_REQUIRED")
     physical_lengths = ((r10_live or {}).get("physical_clear_lengths") or {}).get("per_member", {})
+    end_ratios = reference_end_ratios(source, physical_lengths)
 
     def _reported_selection(uid: str) -> Mapping[str, Any] | None:
         if not r10_live:
@@ -750,6 +752,10 @@ def project_column_r08_local_live(
             source, geometry, axial, revised_member, global_pdelta,
             eng_col_res=e_res, eng_col_section=e_sec, physical_length=physical_length,
         )
+        if uid in end_ratios and result.get("stiffness_and_euler"):
+            result["effective_length_reference"] = effective_length_reference(
+                end_ratios[uid], result, revised_member["section_evidence"],
+            )
         if binding is not None:
             result["input_binding_sha256"] = binding
         if demand_revision is not None:

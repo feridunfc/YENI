@@ -176,6 +176,21 @@ def axial_compression_caps_kn(
     }
 
 
+def effective_length_factor(*, alpha_i, alpha_j, sway):
+    """TS 500 7.14–7.15. None denotes an explicitly assumed hinged end."""
+    _sway(sway)
+    alphas = sorted(finite(a, "alpha") for a in (alpha_i, alpha_j) if a is not None)
+    if not alphas or alphas[0] < 0:
+        raise BankError("INVALID_EFFECTIVE_LENGTH_END_RESTRAINTS")
+    if sway == SWAY_PREVENTED:
+        return (min(1.0, .7 + .05 * sum(alphas), .85 + .05 * alphas[0])
+                if len(alphas) == 2 else min(1.0, .85 + .05 * alphas[0]))
+    if len(alphas) == 1:
+        return 2 + .3 * alphas[0]
+    mean = sum(alphas) / 2
+    return (1 - mean / 20 if mean < 2 else .9) * math.sqrt(1 + mean)
+
+
 def evaluate_slenderness(*, free_length_ln_mm, k, radius_mm, sway, signed_end_moment_ratio=None):
     ln, k, radius = (positive(v, label) for v, label in
         ((free_length_ln_mm, "ln"), (k, "k"), (radius_mm, "radius")))

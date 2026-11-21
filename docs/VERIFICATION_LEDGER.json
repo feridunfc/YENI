@@ -19,26 +19,26 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "ORIGINAL_PHYSICAL_COLUMN_CLEAR_LENGTH_BOUND",
-    "work_branch": "work/c29-physical-faces",
+    "status": "C29_TS500_EFFECTIVE_LENGTH_SCENARIOS",
+    "work_branch": "work/c29-effective-length",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "7b13877d5ceb823fda4236b8d6df39df678d3229",
+    "inspected_base_commit": "c1f2eda2e282298bb39c5f57437b619260695530",
     "source_run_id": "RUN-7b6c79ccc46c47c0a8e8d15344a22e2e",
-    "production_run_id": "RUN-173475b04c9a42c5bf2f303ba1f695f6",
     "source_sha256": "28fbbe15aeb94e42a989c7b3a13545c86919b482ef377a5a46112907edd8ecfb",
-    "results_sha256": "db8f6b54843239267e25a6e501cd81df7a52eefcd1abba470e9275d8c47a761e",
+    "production_run_id": "RUN-d3178de6fc6c495c9c2e93b3289c870c",
+    "results_sha256": "883786aeae5c75963a344f61b7e52813a18858ff0a644c5c0c26ccf8b71b30cd",
     "evidence_refs": [
-      "EV-C29-PHYSICAL-CLEAR-LENGTH-20261120"
+      "EV-C29-TS500-EFFECTIVE-LENGTH-20261121"
     ],
     "engineering_release": "NOT_READY",
-    "next_action": "Calculate C29 axis-specific end rotational restraints and TS 500 story sway classification. Establish effective length k and the Eq. (7.29) length basis in local R08. GAP-009. Resolve wall-interrupted clear spans in GAP-006."
+    "next_action": "Acquire the qualified TS 500 story sway analysis and foundation-only condensed rotational restraint for C29 node 934. Finalize the adopted k and update R08 local and story magnification under GAP-009."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
-    "commit_sha": "7b13877d5ceb823fda4236b8d6df39df678d3229",
-    "git_tree_sha": "ee353bd0867f62fb00a5eeea581c954cc8019c23",
-    "observed_on": "2026-11-20",
-    "scope": "Verified base when this record was produced. Resolve the current published ref with git ls-remote."
+    "commit_sha": "c1f2eda2e282298bb39c5f57437b619260695530",
+    "git_tree_sha": "b6cadb8c4b38e58331cb1f94bd968a8fa30b882b",
+    "observed_on": "2026-11-21",
+    "scope": "Verified integration base of this checkpoint. Resolve the published ref with git ls-remote."
   },
   "record_policy": {
     "append_new_ids": true,
@@ -4849,6 +4849,290 @@
       "engineering_release": "NOT_READY",
       "engineering_release_granted": false,
       "next_action": "Calculate C29 axis-specific end rotational restraints and TS 500 story sway classification. Establish effective length k and the Eq. (7.29) length basis in local R08. GAP-009. Resolve wall-interrupted clear spans in GAP-006."
+    },
+    {
+      "id": "EV-C29-TS500-EFFECTIVE-LENGTH-20261121",
+      "observed_at_utc": "2026-11-21T04:46:48.548908Z",
+      "inspected_base_commit": "c1f2eda2e282298bb39c5f57437b619260695530",
+      "work_branch": "work/c29-effective-length",
+      "prior_evidence": [
+        "EV-C29-PHYSICAL-CLEAR-LENGTH-20261120"
+      ],
+      "scope": "TS 500 Eqs. (7.14)–(7.19) conditional effective length and comparison of the two Eq. (7.29) readings in R08.",
+      "standard": "TS 500 February 2000, §§6.3.5–6.3.7 and 7.6.2.1–7.6.2.5, reference profile.",
+      "method_version": "column-r08-local.v8",
+      "source": ".receipts/RUN-7b6c79ccc46c47c0a8e8d15344a22e2e/input.source",
+      "source_sha256": "28fbbe15aeb94e42a989c7b3a13545c86919b482ef377a5a46112907edd8ecfb",
+      "previous_audit_replay": "RUN-adecc1a579394d3e94d2a8f6b6396a63",
+      "previous_audit_comparison_16_stages": "IDENTICAL",
+      "physical_story_directions": 6,
+      "excluded_story": "+14.5",
+      "c29_eq729_signed_case_comparisons": 36,
+      "c29_eq729_comparisons_requiring_product_either_reading": 0,
+      "c29_eq729_separate_native_axial_envelope": {
+        "225": {
+          "native_combination_count": 11,
+          "max_nd_kn": 3240.4657836269826,
+          "governing_case": "Grav_Ult",
+          "object_station_m": 0.0,
+          "step_type": "Single Value",
+          "minimum_eq729_threshold": 92.02129346681555,
+          "scenario_max_lk_over_i": 72.07342228414984,
+          "sway_local_beta_upper_in_tested_scenarios_rm_0_to_1": 3.5859606111294116
+        },
+        "142": {
+          "native_combination_count": 11,
+          "max_nd_kn": 2158.045264325103,
+          "governing_case": "Grav_Ult",
+          "object_station_m": 0.0,
+          "step_type": "Single Value",
+          "minimum_eq729_threshold": 112.76174258420923,
+          "scenario_max_lk_over_i": 39.17153265038663,
+          "sway_local_beta_upper_in_tested_scenarios_rm_0_to_1": 1.1653111922144568
+        }
+      },
+      "c29_sway_screen": {
+        "225": {
+          "M2": [
+            {
+              "support": "MAT_FIXED",
+              "section": "alpha_web",
+              "sway": "SWAY_PREVENTED",
+              "k": 0.85,
+              "lk_over_i": 16.378705449073195
+            },
+            {
+              "support": "MAT_FIXED",
+              "section": "alpha_web",
+              "sway": "SWAY_PERMITTED",
+              "k": 1.7031502497604762,
+              "lk_over_i": 32.818113266285046
+            },
+            {
+              "support": "MAT_HINGED",
+              "section": "alpha_web",
+              "sway": "SWAY_PREVENTED",
+              "k": 1.0,
+              "lk_over_i": 19.26906523420376
+            },
+            {
+              "support": "MAT_HINGED",
+              "section": "alpha_web",
+              "sway": "SWAY_PERMITTED",
+              "k": 3.548682054266054,
+              "lk_over_i": 68.3797859991008
+            },
+            {
+              "support": "MAT_FIXED",
+              "section": "alpha_flange_comparison",
+              "sway": "SWAY_PREVENTED",
+              "k": 0.85,
+              "lk_over_i": 16.378705449073195
+            },
+            {
+              "support": "MAT_FIXED",
+              "section": "alpha_flange_comparison",
+              "sway": "SWAY_PERMITTED",
+              "k": 1.4648269527928253,
+              "lk_over_i": 28.225846110184865
+            },
+            {
+              "support": "MAT_HINGED",
+              "section": "alpha_flange_comparison",
+              "sway": "SWAY_PREVENTED",
+              "k": 1.0,
+              "lk_over_i": 19.26906523420376
+            },
+            {
+              "support": "MAT_HINGED",
+              "section": "alpha_flange_comparison",
+              "sway": "SWAY_PERMITTED",
+              "k": 2.9064051196413683,
+              "lk_over_i": 56.00370984739331
+            }
+          ],
+          "M3": [
+            {
+              "support": "MAT_FIXED",
+              "section": "alpha_web",
+              "sway": "SWAY_PREVENTED",
+              "k": 0.85,
+              "lk_over_i": 16.378705449073195
+            },
+            {
+              "support": "MAT_FIXED",
+              "section": "alpha_web",
+              "sway": "SWAY_PERMITTED",
+              "k": 1.777497879634798,
+              "lk_over_i": 34.25072259634179
+            },
+            {
+              "support": "MAT_HINGED",
+              "section": "alpha_web",
+              "sway": "SWAY_PREVENTED",
+              "k": 1.0,
+              "lk_over_i": 19.26906523420376
+            },
+            {
+              "support": "MAT_HINGED",
+              "section": "alpha_web",
+              "sway": "SWAY_PERMITTED",
+              "k": 3.740369416374965,
+              "lk_over_i": 72.07342228414984
+            },
+            {
+              "support": "MAT_FIXED",
+              "section": "alpha_flange_comparison",
+              "sway": "SWAY_PREVENTED",
+              "k": 0.85,
+              "lk_over_i": 16.378705449073195
+            },
+            {
+              "support": "MAT_FIXED",
+              "section": "alpha_flange_comparison",
+              "sway": "SWAY_PERMITTED",
+              "k": 1.494282204146038,
+              "lk_over_i": 28.793421269999786
+            },
+            {
+              "support": "MAT_HINGED",
+              "section": "alpha_flange_comparison",
+              "sway": "SWAY_PREVENTED",
+              "k": 1.0,
+              "lk_over_i": 19.26906523420376
+            },
+            {
+              "support": "MAT_HINGED",
+              "section": "alpha_flange_comparison",
+              "sway": "SWAY_PERMITTED",
+              "k": 2.992098440167431,
+              "lk_over_i": 57.654940030745536
+            }
+          ]
+        },
+        "142": {
+          "M2": [
+            {
+              "support": "FRAME_JOINTS",
+              "section": "alpha_web",
+              "sway": "SWAY_PREVENTED",
+              "k": 1.0,
+              "lk_over_i": 16.454482671904334
+            },
+            {
+              "support": "FRAME_JOINTS",
+              "section": "alpha_web",
+              "sway": "SWAY_PERMITTED",
+              "k": 2.265450793569577,
+              "lk_over_i": 37.27682082684253
+            },
+            {
+              "support": "FRAME_JOINTS",
+              "section": "alpha_flange_comparison",
+              "sway": "SWAY_PREVENTED",
+              "k": 1.0,
+              "lk_over_i": 16.454482671904334
+            },
+            {
+              "support": "FRAME_JOINTS",
+              "section": "alpha_flange_comparison",
+              "sway": "SWAY_PERMITTED",
+              "k": 1.8274888879893283,
+              "lk_over_i": 30.070384240518123
+            }
+          ],
+          "M3": [
+            {
+              "support": "FRAME_JOINTS",
+              "section": "alpha_web",
+              "sway": "SWAY_PREVENTED",
+              "k": 1.0,
+              "lk_over_i": 16.454482671904334
+            },
+            {
+              "support": "FRAME_JOINTS",
+              "section": "alpha_web",
+              "sway": "SWAY_PERMITTED",
+              "k": 2.3805994652916773,
+              "lk_over_i": 39.17153265038663
+            },
+            {
+              "support": "FRAME_JOINTS",
+              "section": "alpha_flange_comparison",
+              "sway": "SWAY_PREVENTED",
+              "k": 1.0,
+              "lk_over_i": 16.454482671904334
+            },
+            {
+              "support": "FRAME_JOINTS",
+              "section": "alpha_flange_comparison",
+              "sway": "SWAY_PERMITTED",
+              "k": 1.8917927796732295,
+              "lk_over_i": 31.12847151196689
+            }
+          ]
+        }
+      },
+      "conditional_members": 59,
+      "r14_open_gate_histogram": {
+        "12": 28,
+        "11": 59
+      },
+      "model_facts": [
+        "F185 and F186 use ASpr1 with vertical stiffness 14500 kN/m3 in the sealed source.",
+        "The archived base annotation identifies the C29 base point restraint as UX UY.",
+        "The mat rotation scenarios are idealized fixed and hinged limits. Beam end continuity, actual slab transfer and creep remain unresolved.",
+        "The six occupied story directions in scoped R08 report TBDY values. TS 500 sway requires its own model and load basis.",
+        "The archived original model shows PDELTA METHOD NONE. The available signed load cases have no paired second-order records."
+      ],
+      "cli": {
+        "run": ".receipts/verification/c29-effective-length-20261121/final/RUN-d3178de6fc6c495c9c2e93b3289c870c",
+        "comparison_to_baseline": {
+          "reference_stages": 16,
+          "current_stages": 16,
+          "mismatched_stages": [
+            "engine-results",
+            "live-capture"
+          ],
+          "missing_stages": [],
+          "extra_stages": [],
+          "source_identical": true,
+          "sealed_stage_coverage": true,
+          "comparison_scope": "PIPELINE_RESULTS_REPORT_EVIDENCE_AND_ALL_RECORDED_RECEIPTS",
+          "status": "DIFFERENT"
+        },
+        "results_sha256": "883786aeae5c75963a344f61b7e52813a18858ff0a644c5c0c26ccf8b71b30cd",
+        "prior_r10_and_r14_calculations_identical": true,
+        "r14_dependency_digests_revised": true
+      },
+      "regression": {
+        "python_passed": 1555,
+        "windows_skipped": 1,
+        "javascript_files_passed": 11,
+        "installed_wheel_passed": 404,
+        "runtime_python_files": 131,
+        "wheel_sha256": "ea31fd6af8854ac3c3bd5093f53c859cf6b5da8e96ad32aa42617ec39ef34af0",
+        "initial_attempt": "WinError 10053 in the existing live-modal loopback body-rejection test. Subsequent full attempt passed."
+      },
+      "report_sha256": "104927a89432ce0661621c74090c80faf6cebf2d9b8c77e9eaa5b0d8ac5a7ec2",
+      "private_receipt_root": ".receipts/verification/c29-effective-length-20261121",
+      "private_file_sha256": {
+        "tested-files.json": "efe37f59b0407d9f6e04aec3dd22cd583dfa89f4f5ebe4b1df7fdec0ec43237d",
+        "verification.json": "a28ce88beab9f6ecb67bec9174700f0971f6f3120c6b21e9afd3528d7fff3e7d",
+        "verify.py": "992f83e4ac9af8c01180031844be4f171f7b286a02c9cb4b911918736833f1dc",
+        "offline-tests.log": "0c091a7b56e9ad76868a756c9bdfb31076947fa1b573521fc625418f79e430fb",
+        "offline-tests-attempt1.log": "03b768ee959b2018f10c58815dde3e7c47bdb13486ceb85da353d7ee34bda3af",
+        "wheel-tests.log": "127f33a9868cc3c7b9114cc3b73d995eb5f444f395effc872bff226b928f2570",
+        "wheel-content.json": "6374d5e9959da73301a02e42a4b889f5ae85057a4ea879e21598897a516385e9"
+      },
+      "commands": [
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --source .receipts/RUN-7b6c79ccc46c47c0a8e8d15344a22e2e/input.source --case Modal --out .receipts/verification/c29-effective-length-20261121/final",
+        "python -X utf8 -B .receipts/verification/c29-effective-length-20261121/verify.py",
+        "python -X utf8 -B .receipts/verification/c29-effective-length-20261121/axial_envelope.py",
+        "python -X utf8 -B tools/test_offline.py"
+      ],
+      "engineering_release": "NOT_READY",
+      "next_action": "Acquire the qualified TS 500 story sway analysis and foundation-only condensed rotational restraint for C29 node 934. Finalize the adopted k and update R08 local and story magnification under GAP-009."
     }
   ],
   "new_record_template": {
@@ -4873,7 +5157,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-20T18:31:37.251958Z",
+  "updated_at_utc": "2026-11-21T04:46:48.548908Z",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -5460,6 +5744,21 @@
       ],
       "engineering_release": "NOT_READY",
       "next_action": "Reconstruct the two C29 physical clear heights from support and beam face elevations at the lower, shared and upper joints. Reconcile cuts and offsets, then rerun both axes with verified physical lengths. GAP-006 and GAP-014."
+    },
+    {
+      "status": "ORIGINAL_PHYSICAL_COLUMN_CLEAR_LENGTH_BOUND",
+      "work_branch": "work/c29-physical-faces",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "7b13877d5ceb823fda4236b8d6df39df678d3229",
+      "source_run_id": "RUN-7b6c79ccc46c47c0a8e8d15344a22e2e",
+      "production_run_id": "RUN-173475b04c9a42c5bf2f303ba1f695f6",
+      "source_sha256": "28fbbe15aeb94e42a989c7b3a13545c86919b482ef377a5a46112907edd8ecfb",
+      "results_sha256": "db8f6b54843239267e25a6e501cd81df7a52eefcd1abba470e9275d8c47a761e",
+      "evidence_refs": [
+        "EV-C29-PHYSICAL-CLEAR-LENGTH-20261120"
+      ],
+      "engineering_release": "NOT_READY",
+      "next_action": "Calculate C29 axis-specific end rotational restraints and TS 500 story sway classification. Establish effective length k and the Eq. (7.29) length basis in local R08. GAP-009. Resolve wall-interrupted clear spans in GAP-006."
     }
   ],
   "remote_audit_correction_checkpoint": {
@@ -5487,9 +5786,9 @@
   },
   "previous_observed_remote_implementation": {
     "branch": "baseline/local_import",
-    "commit_sha": "a359cd8f20c208df69c1524eafe2be179c65cd0b",
-    "git_tree_sha": "0051bc2fa75028f9dd1ed0df3d6f30394589dd7a",
+    "commit_sha": "7b13877d5ceb823fda4236b8d6df39df678d3229",
+    "git_tree_sha": "ee353bd0867f62fb00a5eeea581c954cc8019c23",
     "observed_on": "2026-11-20",
-    "scope": "Remote integration base verified before publishing these changes. Resolve the current ref with git ls-remote."
+    "scope": "Verified base when this record was produced. Resolve the current published ref with git ls-remote."
   }
 }

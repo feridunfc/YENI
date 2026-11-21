@@ -33,6 +33,7 @@ WHEEL_TESTS = (
     "test_story_alpha_applicability",
     "test_column_spectral_shear",
     "test_column_clear_length",
+    "test_column_effective_length",
     "test_rebar_selection",
     "test_recorded_column_calculation_report",
 )

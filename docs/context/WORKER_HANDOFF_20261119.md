@@ -39,8 +39,11 @@ station. The lower foundation shares its analysis joint with C29. Join
 beam and floor objects by their native unique IDs and ordered point identities.
 Read the shared length in R08 and R10 and the open R14 gates. Fifty-nine
 columns use physical model faces. Twenty-eight have unbound wall contacts.
-For the next calculation derive C29 rotational restraint, sway classification
-and effective length by axis and trace the resulting TS 500 local checks.
+For C29 effective lengths use `EV-C29-TS500-EFFECTIVE-LENGTH-20261121`.
+Trace the axis-length frame terms and the two clear spans into R08. Record
+the mat response required at 934 and the analysis basis required for the
+TS 500 sway decision. The existing physical scope already accounts for six
+occupied story directions and records the empty +14.5 story.
 
 For assigned C29 shear use `EV-C29-SPECTRAL-SHEAR-20261120`. Both C29 segments
 have eight assigned cases for V2 and V3 inside the selected R10 capacity shear

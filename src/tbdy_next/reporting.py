@@ -1331,6 +1331,23 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
     if report.get("column_slenderness_evidence") is not None:
         vs04_sections.append(_column_slenderness_html(report["column_slenderness_evidence"],
                                                       report.get("r08_local_slenderness")))
+    local_order = report.get("r08_local_slenderness") or {}
+    restraint_rows = [
+        {"member": row.get("member_id"), "axis": axis, **case}
+        for row in (local_order.get("per_member") or {"single": local_order}).values()
+        for axis, branch in ((row.get("effective_length_reference") or {}).get("axes") or {}).items()
+        for case in branch["cases"]
+    ]
+    if restraint_rows:
+        vs04_sections.append(
+            '<section class="percheck"><h2>TS 500 · Conditional effective lengths</h2>'
+            '<p>Frame inertia and slab flange comparisons with assumed sway and support. Euler loads use Rm = 0.</p>'
+            + _table((("member", "Column"), ("axis", "Moment axis"), ("section", "Section basis"),
+                      ("support", "End condition"), ("sway", "Sway assumption"), ("k", "k"),
+                      ("lk_mm", "Effective length (mm)"), ("lk_over_i", "Slenderness"),
+                      ("nk_rm0_kn", "Euler load (kN)"), ("status", "TS 500 screen")), restraint_rows)
+            + '</section>'
+        )
     if report.get("alpha_iteration") is not None:
         vs04_sections.append(_alpha_feedback_html(report["alpha_iteration"]))
     if report.get("r14_closure") is not None:

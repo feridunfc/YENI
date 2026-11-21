@@ -6,6 +6,32 @@ Start each assignment at [AGENTS.md](../AGENTS.md). The
 in a GitHub checkout. Follow the [November 18 full recipe](engineering/reference/recipe_20261118/delivery/RECIPE.md)
 and its [six-step calculation sequence](engineering/reference/recipe_20261118/delivery/PRIORITY_CHAIN.json).
 
+## C29 TS 500 effective length reference
+
+R08 now calculates the two directional effective-length scenarios from the
+framing at joints 40 and 6. The stiffness ratios use the native member axis
+lengths. The effective length uses the verified clear span. A beam web
+scenario and an assumed flange comparison bracket the two chosen section
+models. At joint 934 the fixed and hinged cases show the sensitivity to
+the unresolved mat restraint. These scenarios also give Euler loads at
+`Rm = 0` and both readings of Eq. (7.29) for the existing signed combinations.
+See `EV-C29-TS500-EFFECTIVE-LENGTH-20261121` in the
+[verification ledger](VERIFICATION_LEDGER.json).
+
+For upper C29, the sway-permitted reference has `k = 1.827489–2.380599` and
+`lk/i = 30.070384–39.171533`. The sway-prevented reference has `k = 1.00`
+and `lk/i = 16.454483`. Both C29 segments require a magnification calculation
+in every tested sway-permitted case. In 36 signed case comparisons, both
+Eq. (7.29) length readings give the ordinary branch. The reference scenarios
+leave the adopted sway, restraint and creep inputs open.
+
+The existing physical story scope accounts for all six occupied story
+directions. +14.5 is a verified empty story. The archived model defines a
+vertical area spring under the mat. The next inputs are the condensed
+rotational response at joint 934 and the same-model analyses for the TS 500
+sway decision. GAP-009 tracks both inputs. The paired analysis route and
+the uncracked Eq. (7.13) route have their own load and stiffness prerequisites.
+
 ## Column support faces, local slenderness and shear
 
 The existing Windows gateway captured the frame and area insertion points,
@@ -39,11 +65,6 @@ analysis-generation checks are still open. The engineering release is
 The offline suite passed 1,552 Python tests and 11 JavaScript test files
 with one Windows skip. The clean installed wheel passed 401 tests.
 
-**Next calculation.** Establish the C29 end rotational restraints by axis
-using the connected beams, columns and the elastic foundation model. Evaluate
-the TS 500 story sway criteria separately in both directions. Derive the
-effective length factors, then bind the effective lengths and Eq. (7.29) in
-the existing local R08 calculation. GAP-009 owns the second-order check.
 GAP-006 still tracks the 28 wall-connected columns.
 
 ## Previous assigned seismic column shear calculation
