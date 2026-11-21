@@ -51,6 +51,13 @@ _UTILIZATION_STATUSES = frozenset({"WITHIN_SCENARIO_SURFACE", "EXCEEDS_SCENARIO_
 _SELECTED_CAGE_UNAVAILABLE = "SAME_RUN_SELECTED_COLUMN_CAGE_UNAVAILABLE"
 
 
+def _observed_axial_change(rows: list[Mapping[str, Any]]) -> bool:
+    if len({float(row["object_station_m"]) for row in rows}) < 2:
+        return False
+    forces = [float(row["nd_kn"]) for row in rows]
+    return max(forces) - min(forces) > 1e-8
+
+
 def _reference_ec_mpa(fck_mpa: float) -> float:
     return 3250.0 * math.sqrt(fck_mpa) + 14000.0
 
@@ -258,17 +265,21 @@ def _project_single_r08_local(
         open_gates.remove("ACTUAL_ANALYSIS_ORDER_UNVERIFIED")
         evidence["unverified_inputs"].remove("Actual analysis order and global P–Δ treatment")
         evidence["unverified_inputs"].append("Global P–Δ treatment for design")
+    rows_by_combo: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
+    for row in pmm.get("rows") or ():
+        if row.get("nd_kn") is not None and row.get("object_station_m") is not None:
+            rows_by_combo[row["combination"]].append(row)
+    if adopted_basis is not None and any(
+        item["status"] == "NUMERICAL_COMPLETE" and _observed_axial_change(rows_by_combo[item["name"]])
+        for item in pmm.get("combinations", ())
+    ):
+        open_gates.append("VARIABLE_AXIAL_SECOND_ORDER_METHOD_UNQUALIFIED")
     if adopted_basis is not None and ln is not None and frame_length_m is not None:
         from .column_axial_balance import project_gravity_axial_balance
 
         balance = project_gravity_axial_balance(source, pmm, physical_length, frame_length_m)
         if balance is not None:
             out["gravity_axial_balance"] = balance
-            if out.get("archived_solver_log_sha256") and any(
-                abs(interval["native_axial_change_kn"]) > 1e-8
-                for combo in (balance.get("combinations") or {}).values() for interval in combo["intervals"]
-            ):
-                open_gates.append("VARIABLE_AXIAL_SECOND_ORDER_METHOD_UNQUALIFIED")
     resolved_k = {}
     if adopted_basis is not None:
         out.update(adopted_second_order_basis=adopted_basis,
@@ -392,11 +403,6 @@ def _project_single_r08_local(
             if stiffness_map[axis_name]["selected_nk_kn"] is None:
                 open_gates.append("ADOPTED_SECOND_ORDER_SELECTED_EI_INPUTS_MISSING:" + axis_name)
     out["stiffness_and_euler"] = stiffness_map
-
-    rows_by_combo: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
-    for row in pmm.get("rows") or ():
-        if row.get("nd_kn") is not None and row.get("object_station_m") is not None:
-            rows_by_combo[row["combination"]].append(row)
 
     betas: list[float] = []
     scenarios: list[dict[str, Any]] = []
@@ -616,6 +622,12 @@ def _project_single_r08_local(
             "rows": mag_rows,
             "formal_compliance": "NOT_PROVEN",
         }
+        if adopted_basis is not None and source.get("gravity_order_pair") is not None:
+            from .gravity_order_pair import compare_gravity_order_pair
+
+            pair = compare_gravity_order_pair(source, pmm, out, dims_local, cap_solver)
+            if pair is not None:
+                out["gravity_order_pair"] = pair
         spectral_bound = _evaluate_spectral_bounding_corners(
             uid=uid,
             source=source,

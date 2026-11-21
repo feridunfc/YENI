@@ -26,7 +26,7 @@ LINEAGE = "tbdy.next.design-scenario-lineage.v1"
 LINEAGE_WITH_BASIS = "tbdy.next.design-scenario-lineage.v2"
 PARENT_FILE = "parent.source"
 POLICIES = ("beam_selection", "column_selection")
-CALCULATION_BASES = ("second_order_basis", "analysis_basis", "analysis_archive")
+CALCULATION_BASES = ("second_order_basis", "analysis_basis", "analysis_archive", "gravity_order_pair")
 
 
 @dataclass(frozen=True)
@@ -65,6 +65,9 @@ def _calculation_basis(key: str, value: Any, source_data_sha256: str) -> dict[st
     if key == "analysis_archive":
         from .analysis_archive import normalize_solver_archive
         return normalize_solver_archive(value, source_data_sha256=source_data_sha256)
+    if key == "gravity_order_pair":
+        from .gravity_order_pair import normalize_gravity_order_pair
+        return normalize_gravity_order_pair(value, source_data_sha256=source_data_sha256)
     from .analysis_setup import normalize_analysis_basis
     return normalize_analysis_basis(value, source_data_sha256=source_data_sha256)
 
@@ -72,7 +75,7 @@ def _calculation_basis(key: str, value: Any, source_data_sha256: str) -> dict[st
 def _lineage_bases(bases: Mapping[str, Any]) -> dict[str, Any]:
     # Archive artifacts belong to input.source. The sealed result and printed
     # report only need their binding digest.
-    return {key: {"archive_sha256": _digest(value)} if key == "analysis_archive" else value
+    return {key: {"archive_sha256": _digest(value)} if key in {"analysis_archive", "gravity_order_pair"} else value
             for key, value in bases.items()}
 
 

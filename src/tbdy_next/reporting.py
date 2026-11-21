@@ -2594,7 +2594,7 @@ def _column_slenderness_html(evidence: Mapping[str, Any], local: Mapping[str, An
 def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
     """Project recorded adopted inputs and results; never rerun a calculation."""
     members = (local.get("per_member") or {"single": local}).values()
-    basis_rows, factor_rows, balance_rows = [], [], []
+    basis_rows, factor_rows, balance_rows, pair_rows, pair_basis_rows = [], [], [], [], []
     for member in members:
         basis = member.get("adopted_second_order_basis") or {}
         if not basis:
@@ -2624,6 +2624,14 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
                 "start_m": interval["start_cut"][1], "end_m": interval["end_cut"][1],
                 **interval,
             } for interval in combo["intervals"])
+        paired = member.get("gravity_order_pair") or {}
+        if paired:
+            pair_basis_rows.append({"member": member.get("member_id"), "status": paired["status"],
+                                    "mesh": paired.get("analysis_elements"), "reason": paired.get("reason"),
+                                    "ei": paired.get("stiffness_comparison"), "governing": paired.get("governing")})
+        for row in paired.get("rows", ()):
+            pair_rows.append({"member": member.get("member_id"), **row,
+                              "etabs_utilization": (row.get("second_order_pmm") or {}).get("utilization")})
     if not basis_rows:
         return ""
     return ('<section class="percheck"><h2>Second order · Adopted calculation basis</h2>'
@@ -2644,7 +2652,19 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
                      ("end_m", "End (m)"), ("native_axial_change_kn", "Native ΔP (kN)"),
                      ("predicted_self_weight_change_kn", "Self-weight ΔP (kN)"),
                      ("residual_kn", "Residual (kN)"), ("status", "Balance status")), balance_rows)
-           if balance_rows else '') + '</section>')
+           if balance_rows else '')
+        + ('<h3>Matched ETABS gravity cases and TS 500</h3>'
+           '<p>The ETABS pair is a comparison input. The TS 500 magnification remains the selected demand calculation. '
+           'Native P uses tension-positive sign. Local P–δ mesh convergence requires a separate check.</p>'
+           + _table((("member", "Column"), ("status", "Status"), ("mesh", "Analysis elements"),
+                     ("ei", "ETABS and TS 500 EI (N·mm²)"), ("governing", "Governing P–Delta PMM"),
+                     ("reason", "Source issue")), pair_basis_rows)
+           + _table((("member", "Column"), ("combination", "Combination"), ("object_station_m", "Station (m)"),
+                     ("original", "Original force vector"), ("control", "Control force vector"),
+                     ("control_difference", "Control minus original"), ("second", "P–Delta force vector"),
+                     ("ts500_m2_knm", "TS 500 M2 (kN·m)"), ("ts500_m3_knm", "TS 500 M3 (kN·m)"),
+                     ("etabs_utilization", "P–Delta PMM"), ("ts500_utilization", "TS 500 PMM")), pair_rows)
+           if pair_basis_rows else '') + '</section>')
 
 
 def _alpha_feedback_html(record: Mapping[str, Any]) -> str:

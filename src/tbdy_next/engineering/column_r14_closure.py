@@ -576,6 +576,9 @@ def _evaluate_single_r14_column(
                 "spectral_envelope_pmm_status": spec_pmm.get("status"),
                 "spectral_envelope_max_utilization": spec_pmm.get("max_bounding_utilization"),
                 **({"adopted_calculation_context": adopted_context} if adopted_context is not None else {}),
+                **({"gravity_order_comparison": {
+                    key: value for key, value in r08_local_col["gravity_order_pair"].items() if key != "rows"
+                }} if r08_local_col and "gravity_order_pair" in r08_local_col else {}),
             },
             "column_shear_ve": {
                 **({"assigned_spectral_status": spectral_shear.get("status"),

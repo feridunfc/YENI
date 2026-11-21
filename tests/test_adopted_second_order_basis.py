@@ -9,7 +9,7 @@ import math
 import unittest
 from unittest.mock import patch
 
-from tbdy_next.column_engine.section_capacity import Material, Section, perimeter
+from tbdy_next.column_engine.section_capacity import Material, Section, perimeter, solver
 from tbdy_next.column_engine.native_archive import BankError
 from tbdy_next.column_engine.ts500_column import (
     adopted_magnification_factors, member_magnification_coefficient, moment_magnification_factors,
@@ -17,9 +17,13 @@ from tbdy_next.column_engine.ts500_column import (
 from tbdy_next.engineering.column_clear_length import FACE_BASIS, WALL_COUPLED
 from tbdy_next.engineering.column_effective_length import reference_end_ratios, resolve_adopted_frame_k
 from tbdy_next.engineering.column_pmm import evaluate_column_pmm
+from tbdy_next.engineering.column_pmm_section import MECHANICAL
 from tbdy_next.engineering.column_r08_local_live import project_column_r08_local_live
 from tbdy_next.engineering.column_r10_live import SelectedColumnCage
 from tbdy_next.engineering.design_scenario import _digest, _source_data
+from tbdy_next.engineering.gravity_order_pair import SCHEMA as PAIR_SCHEMA, normalize_gravity_order_pair
+from tbdy_next.vs05_d4_source_authority import COMBOS, SUMMARY
+from test_r03_analysis_setup import capture_table
 from tbdy_next.engineering.second_order_basis import (
     ACCEPTANCE_GATE, NONSWAY_POLICY, ROLE, SCHEMA, SWAY_POLICY, normalize_second_order_basis,
 )
@@ -80,6 +84,70 @@ def independent_euler(*, k, rm, method="TS500_7_20"):
 
 
 class AdoptedSecondOrderCalculationTests(unittest.TestCase):
+    def test_variable_axial_gate_uses_signed_pmm_even_without_order_log_or_weight_data(self):
+        args = adopted_fixture()
+        source = args["source"]
+        source["column_axial"]["force_source"]["rowsets"]["127"]["P"][1] += 200.0
+        source["second_order_basis"]["source_data_sha256"] = _digest(_source_data(source))
+        args["pmm"] = evaluate_column_pmm(source, args["geometry"], args["axial"])
+        result = project_column_r08_local_live(**args)
+        self.assertEqual(result["status"], "ADOPTED_SECOND_ORDER_CALCULATED_NOT_PROVEN")
+        self.assertEqual(result["gravity_axial_balance"]["status"], "GRAVITY_AXIAL_BALANCE_UNBOUND")
+        self.assertNotIn("archived_solver_log_sha256", result)
+        self.assertIn("VARIABLE_AXIAL_SECOND_ORDER_METHOD_UNQUALIFIED", result["open_gates"])
+
+    def test_matched_gravity_pair_uses_same_section_at_unmagnified_second_order_vector(self):
+        args = adopted_fixture()
+        source = args["source"]
+        patterns, static = "Load Pattern Definitions", "Load Case Definitions - Linear Static"
+        source["vs04_basis_probe"] = {"table_reads": {
+            SUMMARY: capture_table(SUMMARY, ["Name", "Type", "GUID"], [("DEAD", "Linear Static", "g")]),
+            COMBOS: capture_table(COMBOS, ["Name", "Type", "LoadName", "SF", "GUID"], [
+                ("G_STATIC", "Linear Add", "DEAD", "1.4", "combo-guid"),
+            ]),
+            static: capture_table(static, ["Name", "LoadType", "LoadName", "SF"], [("DEAD", "Load", "DT", "1")]),
+            patterns: capture_table(patterns, ["Name", "Type", "SelfWtMult"], [("DT", "Dead", "1")]),
+        }}
+        section_summary = "Frame Section Property Definitions - Summary"
+        source["geometry_capture"]["tables"]["SECTION_SUMMARY"] = capture_table(
+            section_summary, ["Name", "Material"], [("Column_80x80", "C35/45")])
+        mechanical = source["column_axial"]["pmm_section_source"]["table_reads"][MECHANICAL]
+        mechanical["rows"].append({"Material": "C35/45", "E1": "34000000"})
+        mechanical["row_count"] += 1
+        native_sha = _digest(_source_data(source))
+        source["second_order_basis"]["source_data_sha256"] = native_sha
+
+        before = {"cases": {"F": False, "P": False}, "combos": {"G_STATIC": True}}
+        pair_rows = [("127", x, "127-1", x, name, "Step", 1., -5000., 0., 0., 0., m2, m3)
+                     for x in (0., 3.8) for name, m2, m3 in (("F", -20., 30.), ("P", -300., 350.))]
+        raw = {
+            "schema": PAIR_SCHEMA, "source_data_sha256": native_sha, "section_name": "Column_80x80",
+            "cases": {"G_STATIC": {"first": "F", "second": "P", "patterns": {"DT": 1.4}}},
+            "force_source": {"schema": "tbdy.next.etabs-frame-force-source.v1", "units_code": 6, "errors": {},
+                "api": "Results.FrameForce", "item_type": "ObjectElm", "rowsets": {"127": _rowset(pair_rows)},
+                "output_selection_before": before, "output_selection_after": before,
+                "output_selection_during": {"cases": {"F": True, "P": True}, "combos": {"G_STATIC": False}}},
+            "frame_section_modifiers": [1., 1., 1., 1., .7, .7, 1., 1.],
+            "frame_object_modifiers": {"127": [1.] * 8}, "mesh": {"127": ["127-1"]},
+        }
+        source["gravity_order_pair"] = normalize_gravity_order_pair(raw, source_data_sha256=native_sha)
+        result = project_column_r08_local_live(**args)
+        compared = result["gravity_order_pair"]
+        self.assertEqual(compared["status"], "GRAVITY_PAIR_COMPARED")
+        self.assertEqual(len(compared["rows"]), 2)
+        self.assertFalse(compared["elastic_stiffness_matches_ts500"])
+        self.assertEqual(compared["local_p_delta_mesh_convergence"], "UNVERIFIED")
+        expected = solver(args["selected_cages"]["127"].section).assess(5000e3, -300e6, 350e6)["utilization"]
+        self.assertAlmostEqual(compared["governing"]["utilization"], expected)
+        self.assertEqual(result["magnified_selected_pmm"], project_column_r08_local_live(
+            **{**args, "source": {key: value for key, value in source.items() if key != "gravity_order_pair"}}
+        )["magnified_selected_pmm"])
+
+        raw["force_source"]["rowsets"]["127"]["M2"][0] += 1.0
+        mismatch = project_column_r08_local_live(**args)["gravity_order_pair"]
+        self.assertEqual(mismatch["status"], "GRAVITY_PAIR_CONTROL_MISMATCH")
+        self.assertNotIn("second_order_pmm", mismatch["rows"][0])
+
     def test_selected_static_demand_consumes_k_and_rm_before_euler_and_floor_before_beta(self):
         args = adopted_fixture()
         before = deepcopy(args["source"])
