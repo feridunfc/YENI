@@ -18,13 +18,16 @@ results. Both R08 members consumed the scenario. R14 closes zero original
 columns. See `EV-C29-ADOPTED-BASIS-LOCAL-20261121` and the
 [current checkpoint](../CURRENT_STATE.md) for the exact scope and next input.
 
-Continue the C29 source-to-report slice by binding the archived analysis order
-and missing project combination families in R03. Resolve variable axial
-compression, the story compressive/critical-load population and the applicable
-second-order method before carrying the result through R10 and R14. For C104,
-obtain C104/W21/W22 reinforcement and connection details at the wall transition
-before qualifying the coupled section. The actual-owner alpha-below-one example
-also remains open.
+The next Windows run bound six C29 project roles separately from its two force
+request roles. R03 reconciles the configured EDZ preset and actual zero-state
+solver stiffness. R08 balances the native gravity cut changes against LC_DL
+self-weight for both members. See `EV-C29-R03-ORDER-AXIAL-BALANCE-20261121`.
+Continue with an applicable variable-axial second-order calculation and the
+complete story compressive/critical-load population. The previous first/second
+order pair has no exact load set for the three assigned gravity combinations.
+Carry the result through R10 and R14, retaining joint 40. For C104, obtain
+C104/W21/W22 reinforcement and connection details at the wall transition before
+qualifying the coupled section. The actual-owner alpha-below-one example is open.
 
 Begin each assignment at [AGENTS.md](../../AGENTS.md) on the current
 `baseline/local_import`. The [project charter and source guide](PROJECT_CHARTER.md)

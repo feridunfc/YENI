@@ -5980,6 +5980,53 @@
       "scope": "Scenario changes only the selected second-order basis and its manifest. Original parent bytes, native demand populations, selected policies and native PMM values were compared. Scenario-specific R08 changes are confined to 225 and 142. Shared joint 40 returns sufficient SCWB intervals in X and Y in the existing R10 reference context.",
       "limit": "The conditional scenario uses Rm=1 and the available frame-column story compression and critical loads. Wall-shell compression, coupled critical loads, variable axial applicability and R03 approval remain open. The replay is offline and engineering release remains NOT_READY.",
       "next_action": "Bind the archived first-order solver generation and the remaining declared design families in R03. Qualify a variable-axial calculation or a supported approximation for the two C29 members, then rerun their source-to-report slice with joint 40."
+    },
+    {
+      "id": "EV-C29-R03-ORDER-AXIAL-BALANCE-20261121",
+      "observed_at": "2026-11-21",
+      "status": "ORIGINAL_C29_ARCHIVE_ORDER_AND_GRAVITY_BALANCE_CONSUMED",
+      "gap_ids": ["GAP-003", "GAP-009"],
+      "baseline": "5f7a3aa6f23cd92a2c667a523cf40ab4215530ee",
+      "local_implementation_commit": "9901b34d267896025cf8691f49490397eefc66a2",
+      "published_implementation_commit": "990bd48f6a0f753028ad9283a49a09b1c08b80c9",
+      "verified_implementation_tree_sha": "7608b2a71f120286546cc2673fe6eebb4db730a1",
+      "commands": [
+        "python -X utf8 -B tools/test_offline.py",
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --source <private frozen input.source> --design-scenario <private c29-r03-scenario.json> --case Modal --out <private verified-replay>",
+        "python -X utf8 -B .receipts/verification/c29-r03-scope-20261121/verify_run.py .receipts/verification/c29-r03-scope-20261121 verified-replay"
+      ],
+      "previous_calculation": "EV-C29-ADOPTED-BASIS-LOCAL-20261121",
+      "archived_initial_order_reference": "EV-GAP009-ORIGINAL-FIRST-ORDER-20261121",
+      "source_run_id": "RUN-ad31d3a7be684247a622444aa06475c4",
+      "verified_run_id": "RUN-079e002645964eb4ad909802f5e92dee",
+      "source_parent_sha256": "703e202fc8b08f60043c571d9970945b6307e5cee99e8a45e6377c8446da56fc",
+      "scenario_sha256": "bbe96c57ceb1d0005bcf917569e63a6c55a85b6790b4081c8d2996736c010588",
+      "replay_input_sha256": "a811a74e7a92a9710f61c59214949d91af983eb420e75a3d5ba25ada2e769484",
+      "results_sha256": "9b0bcf4f18efebc6b67ebd4adf6756994f2925a4eb7a766d6baa152ff5f91bdc",
+      "private_verification": ".receipts/verification/c29-r03-scope-20261121/replay-verification.json",
+      "report_sha256": "38c9031cca699ef0769ba81a7eda6277eae9866d8159686a6771898a4f6b6240",
+      "native_cases": 15,
+      "modal_modes": 100,
+      "catalog_project_roles": 7,
+      "scoped_column_roles": 6,
+      "gravity_balanced_intervals": 12,
+      "factored_gravity_gradient_kn_per_m": 22.393386624,
+      "grav_ult_axial_change_kn_by_member": {"225": 99.65057047679966, "142": 85.09486917120012},
+      "r14_numerically_closed_columns": 0,
+      "r14_expected_columns": 87,
+      "software_regression": {
+        "status": "PASS",
+        "environment": "Windows x64, Python 3.12.10, Node v24.22.1",
+        "python_tests": 1642,
+        "python_skipped": 1,
+        "javascript_test_files_passed": 11,
+        "golden_numerical_insufficient_interpretation": [33, 7, 4],
+        "log_private": ".receipts/verification/c29-r03-scope-20261121/offline-tests-network.log",
+        "log_sha256": "aa57fa1c17a81abb26319937d9734dc6434d4ce1ea7e6d5217790741fea0b676"
+      },
+      "scope": "Use the same frozen parent and original cages. Gravity and ductile remain the force request. Capacity, joint, drift and weight are additionally declared from the complete same-capture project catalog. R03 matches the archived EDZ preset to the solver's first-order conditions with the native case and modal populations. The original eight-corner spectral PMM, assigned shear and joint-40 SCWB reference results were reproduced.",
+      "limit": "The observed gravity gradients balance at the signed cuts. Variable-axial second order, wall-shell compression and coupled critical-load totals still require qualified analysis. Independent generation and engineering approvals stay open. No additional live capture was available.",
+      "next_action": "Use the exact original gravity coefficients in a qualified variable-axial or matched first/second-order calculation, with concurrent wall and column compression totals and supported critical-load contributions. Run the adopted results through the existing PMM, joint and shear checks."
     }
   ],
   "new_record_template": {

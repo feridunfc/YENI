@@ -1,5 +1,43 @@
 # Original building calculation and local handoff — 2026-11-21
 
+## C29 project roles, archived solution order and gravity equilibrium
+
+The C29 force request still carries the exact assigned gravity and ductile
+groups. The complete same-capture catalog resolves all seven configured upper
+project roles. The declared C29 calculation uses six roles, including the
+capacity and joint roles on the existing `Cap_Seis*` family, drift on
+`Crack_Seis*`, and weight on `WGHT`. Wall design remains outside that scope.
+Model, demand and engineering approval remain open.
+
+R03 reads the supplied archived ETABS log and model export. It reconciles all
+15 native cases, 100 modal modes and both spectrum parent relations to the
+frozen source. EDZ is configured to use the preset. The export shows preset
+P–Delta disabled, and the completed solver blocks show zero-state stiffness.
+The order record flows to PMM and R08. Independent model-generation approval
+remains pending. The solver input artifacts are kept in the private input
+archive and sealed reports retain their binding digests.
+
+At the three physical cuts of each C29 member, the primitive signed cases
+reproduce the three assigned gravity combinations. LC_DL supplies the entire
+observed axial gradient. The model export has a unit weight of 24.992619
+kN/m³, the 0.80 × 0.80 m section has weight modifier 1, and the Grav_Ult
+factor on LC_DL is 1.4. The observed factored gradient is 22.393386624 kN/m
+in both members. See `EV-C29-R03-ORDER-AXIAL-BALANCE-20261121`.
+
+The sealed replay retained the prior PMM and shear utilization and the joint 40
+SCWB intervals. It calculated 18 signed PMM cuts, 48 spectral case-cuts and
+32 direction-combination shear results for C29. R14 remains partial for all 87
+columns. Both C29 members retain the variable-axial method qualification gate.
+
+Run the next C29 calculation with the exact original gravity coefficients
+and the physical cuts for an applicable variable-axial second-order
+method or a matched ETABS first/second-order run. The previous private P–Delta
+pair has different coefficients. For the TS 500 story calculation, obtain
+same-cut wall-shell and column compression and the critical-load contribution
+for the coupled members. Keep the R08 method gate until these inputs are
+qualified. Keep the joint 40 interval SCWB result and the nonconcurrent
+spectral-corner scope in the report.
+
 ## Windows replay: C29 second-order sensitivity through the normal pipeline
 
 The inspected feature commit `32b3158400be1e7c822d40099edbb016ab49c108`
@@ -33,16 +71,11 @@ selected-cage shear resistance utilization was 0.520544 for 225 and 0.654872
 for 142. The interval SCWB reference at shared joint 40 was sufficient in both
 directions. R14 remains partial for all 87 columns.
 
-**Next product calculation:** bind the archive's solver-confirmed first-order
-production run to R03, reconcile EDZ's preset stiffness selection with its
-actual solution order, and qualify the required capacity, drift, joint, wall
-and weight groups. Then run C29 with an applicable variable-axial second-order
-calculation or an explicitly justified approximation, including the supported
-story compression and critical-load scope. Carry this result through R10 and
-R14 on members 225 and 142 and both ends of joint 40. C104 still requires the
-W21/W22 connection and reinforcement basis to carry the coupled section
-through the wall transition. The actual-owner alpha-below-one example remains
-open. See `EV-C29-ADOPTED-BASIS-LOCAL-20261121` for replay identities.
+The newer checkpoint above records the R03 role and order results. C104 still
+requires the W21/W22 connection and reinforcement basis to carry the coupled
+section through the wall transition. The actual-owner alpha-below-one example
+remains open. See `EV-C29-ADOPTED-BASIS-LOCAL-20261121` for the initial replay
+identities.
 
 ## Remote implementation: adopted inputs consumed by the normal design path
 

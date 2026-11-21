@@ -88,7 +88,7 @@
       "title": "Model and analysis generation",
       "status": "OPEN",
       "priority": "P0",
-      "achieved_scope": "Source/result SHA lineage and same-acquisition identities are preserved.",
+      "achieved_scope": "Source/result SHA lineage and same-acquisition identities are preserved. The original C29 replay uses archived solver and export content to reconcile the configured and applied initial stiffness for all 15 native cases and propagate the first-order basis to PMM and R08. Independent binary analysis-generation approval remains open.",
       "blocker": "Model lock and file hashes alone do not establish analysis generation.",
       "closure_criteria": "Bind model contents and consumed results to the same analysis generation with traceable evidence.",
       "owner_paths": [
@@ -97,7 +97,8 @@
       "evidence_refs": [
         "EV-D3B-REPLAY",
         "EV-LOCAL-NATIVE",
-        "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121"
+        "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
+        "EV-C29-R03-ORDER-AXIAL-BALANCE-20261121"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -254,7 +255,7 @@
       "status": "PARTIAL",
       "priority": "P0",
       "achieved_scope": "Selected candidates can bind same-run R08 inputs; EI/Nk and second-order reference calculations exist. Same-run selected sections now carry both first-order and magnified design moments with the local/global factors and fixed-N radial reserve. R08 applies the existing minimum-eccentricity owner before local/global magnification for static and spectral-box references. Raw, floored and final moments are recorded and projected in the normal report. The two GOLDEN-01 theta scalars now call the existing global P-delta owner. R08 consumes the verified 4.45 m and 3.80 m C29 model clear lengths and the corresponding verified clear lengths of 57 more columns. R08 evaluates conditional TS 500 effective lengths and Euler loads at 59 columns using native directional framing. C29 has 36 aligned Eq. (7.29) comparisons across the stated scenarios. The accepted C29 base boundary at joint 934 restrains UX and UY, consistent with 14 sealed displacement rows. R08 and R14 now bind all 32 mat-connected column boundary conditions from 119 native point reads and R08 computes 64 same-case spectral endpoint differentials. The private ETABS copy supplied 2,784 paired signed end-moment comparisons across all 87 columns. 105 exceed the 5% TS 500 threshold across the six occupied story directions. The isolated ETABS mat gives finite two-axis rotational stiffness at joint 934. Actual floor strips and the mat probe support the two-axis C29 effective-length reference. Signed Eq. (7.23) inputs and column compression subtotals were verified for 24 story references. The 16 C29 Eq. (7.29) signed reference instances give the same branch for both length readings. The 48 signed story/axis references include all frame-column compression. The Rm=1 sensitivity calculation includes complete frame-column critical-load credit at +4.50 and +9.00 and 18 verified-span columns at +0.00. The selected-cage signed C29 PMM reference is evaluated at 48 native cuts. Eight assigned seismic combinations have 48 story-axis references and 1,752 magnified demand boxes for the 73 standalone columns under the Rm=1 sensitivity basis. R08 withholds isolated magnification for the 14 wall-coupled columns and preserves their native cut evidence. The first-order 50 and 25 mm matched-mesh runs show verified interior wall-frame force transfer and unresolved refinement sensitivity at C104. The C104 ideal gross coupled cross section changes geometry at -1.50 m.",
-      "blocker": "Provide coupled second-order demands for the 14 wall-frame columns. Qualify the full story compression and critical-load basis, stiffness and creep convention, and R03 consumption of the archived first-order ETABS solution. The C29 sensitivity gives numerical R08 results for 225/142. The observed axial variation along each column still requires an applicable variable-axial method or an explicitly justified approximation.",
+      "blocker": "Provide coupled second-order demands for the 14 wall-frame columns. Qualify the full story compression and critical-load basis, stiffness and creep convention. R03 now consumes the matched archive order and scoped project roles. The native gravity axial variations of C29 225/142 balance with self-weight between physical cuts. Complete an applicable variable-axial method or explicitly justify the approximation before accepting the second-order result.",
       "closure_criteria": "Independently verify both-axis clear/effective lengths and EI, prevent double counting, and prove consumption of the qualified demands.",
       "owner_paths": [
         "src/tbdy_next/column_engine/ts500_column.py",
@@ -284,7 +285,8 @@
         "EV-GAP006-C104-REFINEMENT-20261121",
         "EV-GAP006-C104-SECTION-PROFILE-20261121",
         "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
-        "EV-C29-ADOPTED-BASIS-LOCAL-20261121"
+        "EV-C29-ADOPTED-BASIS-LOCAL-20261121",
+        "EV-C29-R03-ORDER-AXIAL-BALANCE-20261121"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -295,8 +297,8 @@
         "original_building_replay": "NOT_RUN"
       },
       "local_calculation_checkpoint_20261121": {
-        "evidence_ref": "EV-C29-ADOPTED-BASIS-LOCAL-20261121",
-        "scope": "Original C29 225/142: all 18 signed static cuts and 48 assigned spectral case-cuts were calculated under an Rm=1 TS 500 sway sensitivity. R14 remains partial pending source/order and physical applicability.",
+        "evidence_ref": "EV-C29-R03-ORDER-AXIAL-BALANCE-20261121",
+        "scope": "The original C29 sensitivity is replayed through R03 archived order, six scoped project roles, gravity cut equilibrium, 18 signed static cuts and 48 spectral case-cuts. R14 retains the variable-axial method and all applicable engineering gates.",
         "engineering_acceptance": "NOT_GRANTED"
       }
     },
