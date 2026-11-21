@@ -77,6 +77,11 @@ before magnification. For the 14 coupled columns continue from
 `EV-R08-WALL-COUPLED-ISOLATED-GUARD-20261121`. R08 returns the native cut
 evidence and the coupled-model requirement. Use a coupled second-order
 analysis for their interior force transfer.
+`EV-GAP009-ORIGINAL-FIRST-ORDER-20261121` identifies the original
+first-order baseline. The archived ETABS log shows zero-state stiffness
+for both the static and Ritz stages. RSX and RSY use the resulting modal
+basis. For a second-order comparison, keep the load definitions and
+cuts fixed and track the changed stiffness basis through both spectra.
 
 For assigned C29 shear use `EV-C29-SPECTRAL-SHEAR-20261120`. Both C29 segments
 have eight assigned cases for V2 and V3 inside the selected R10 capacity shear

@@ -20,9 +20,9 @@
   },
   "local_checkpoint": {
     "status": "C104_COMMON_JOINT_TRANSFER_AND_ASSIGNED_SPECTRAL_SWAY_VERIFIED",
-    "work_branch": "work/gap006-009-matched-mesh",
+    "work_branch": "work/gap009-original-analysis-order",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "79fa56ae78c89f5e5790cffc90daad14ad6c1836",
+    "inspected_base_commit": "5d1597ee658a74b9c1bbaba34ffd3c41a0c36ec9",
     "source_run_id": "RUN-ec213e8622d2404ca2cd39ca5b392d7a",
     "source_sha256": "dcaa231263607e6ea71d1282b597542480dbc2f90f845889e27ad9c2000e059d",
     "production_run_id": "RUN-b52de9fc8acf4ca5a1f6dbcf10c44f87",
@@ -30,15 +30,16 @@
     "evidence_refs": [
       "EV-GAP006-C104-MATCHED-MESH-20261121",
       "EV-GAP009-ASSIGNED-SPECTRAL-SWAY-20261121",
-      "EV-R08-WALL-COUPLED-ISOLATED-GUARD-20261121"
+      "EV-R08-WALL-COUPLED-ISOLATED-GUARD-20261121",
+      "EV-GAP009-ORIGINAL-FIRST-ORDER-20261121"
     ],
     "engineering_release": "NOT_READY",
     "next_action": "Solve the prepared 25 mm private mesh, compare the same physical sides and establish the local demand basis before binding the adopted mesh to R08 and R10. Calculate the coupled second-order demand, then qualify stiffness, creep and analysis-order inputs."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
-    "commit_sha": "79fa56ae78c89f5e5790cffc90daad14ad6c1836",
-    "git_tree_sha": "d15c913db2876c40a7951f602fee943e5db1f590",
+    "commit_sha": "5d1597ee658a74b9c1bbaba34ffd3c41a0c36ec9",
+    "git_tree_sha": "8d446c0967bb296c9136a0393fa52ea96e9daa79",
     "observed_on": "2026-11-21",
     "scope": "Verified parent of this checkpoint. Resolve the current published ref with git ls-remote."
   },
@@ -5700,6 +5701,35 @@
         "R14_PARTIAL_OR_UNBOUND": 87
       },
       "engineering_release": "NOT_READY"
+    },
+    {
+      "id": "EV-GAP009-ORIGINAL-FIRST-ORDER-20261121",
+      "observed_at_utc": "2026-11-21T07:06:10+00:00",
+      "gaps": [
+        "GAP-009"
+      ],
+      "base_commit": "5d1597ee658a74b9c1bbaba34ffd3c41a0c36ec9",
+      "classification": "ARCHIVED_ORIGINAL_FIRST_ORDER_CONFIRMED",
+      "method": "Compare native EDB, E2K, LOG and OUT identities with the archived original. Confirm the preset P-Delta method, actual zero-state static and Ritz stiffness, native modal inventory, and RSX and RSY modal parent through both solver passes. Expand the native assigned combination graph and check the physical order of each primitive case.",
+      "input_sha256": "dcaa231263607e6ea71d1282b597542480dbc2f90f845889e27ad9c2000e059d",
+      "original_edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+      "text_export_sha256": "3ca524d6a951c5490ea28793ddbc349b271801fd7ec1ed1452d191c22911b02b",
+      "solver_log_sha256": "1d2a38011092e04bd59f6da411e44fa775dc9b7b7b5ce0fcd9d71fb97539a6db",
+      "solver_output_sha256": "306e012886448428247402a534d1c6056ea2b8bf728e085c8bea134c8fc36acb",
+      "verification_sha256": "c3ac670e01207339d5d293e1fe0cb4913c8c27cb8ceb8ef49dc92e8ce6d72ce0",
+      "native_mode_count": 100,
+      "named_static_case_count": 12,
+      "spectrum_cases": [
+        "RSX",
+        "RSY"
+      ],
+      "assigned_combinations_with_first_order_primitives": 11,
+      "reference": "https://docs.csiamerica.com/help-files/etabs/Menus/Analyze/Set_Analysis_Options/Initial_P-Delta_Analysis.htm",
+      "private_receipt": ".receipts/verification/gap009-spectral-orders-20261121/original-analysis-order.json",
+      "command": "python -X utf8 -B .receipts/verification/gap009-spectral-orders-20261121/verify_original_analysis_order.py",
+      "software_tests": "NOT_RUN_ARCHIVED_SOLVER_OUTPUT_CHECK_ONLY",
+      "limit": "Archived physical load-case order. R03 source/design admission and second-order predictions are separate.",
+      "engineering_release": "NOT_READY"
     }
   ],
   "new_record_template": {
@@ -5724,7 +5754,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-21T06:56:42+00:00",
+  "updated_at_utc": "2026-11-21T07:06:10+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",

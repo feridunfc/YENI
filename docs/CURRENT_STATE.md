@@ -38,9 +38,13 @@ Both readings of Eq. (7.29) use the ordinary maximum branch in the 3,504
 member-axis evaluations. C29 utilization reaches 0.362 for 225 and 0.356
 for 142 over 576 capacity samples. The samples use axial endpoints and
 midpoints. The factors remain separate from TBDY global amplification.
-GAP-009 requires a qualified coupled second-order analysis for the 14
-wall-frame members, and adopted stiffness, creep and analysis order for
-using the assigned demands in design.
+The original ETABS solver log confirms that all 12 named static cases and
+the 100-mode Ritz case used unstressed stiffness. RSX and RSY inherit
+that modal basis. Each of the 11 assigned combinations uses those cases.
+Use `EV-GAP009-ORIGINAL-FIRST-ORDER-20261121` as the first-order reference.
+GAP-009 still requires second-order demands for the 14 coupled members.
+The design run must bind the chosen model, stiffness and creep basis,
+and consume the appropriate order of demand once.
 
 ## Wall contacts, complete cut census and C29 story magnification reference
 
