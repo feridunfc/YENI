@@ -1,0 +1,43 @@
+{
+  "diagnostic_id": "YSA-03-RECEIPT-INDEX-BOUNDARY",
+  "diagnostic_script_sha256": "ca9bd8c3e1cf9bcf0194e43c9e57588c3ba9052f47f17d6ca38baa2abff80684",
+  "scope": "API receipt-index diagnostic; no structural model, ETABS or engineering calculation",
+  "baseline_commit": "c71a4dda4ab9453f428a38b3ed79931f8e6eeea3",
+  "inspected_commit": "c71a4dda4ab9453f428a38b3ed79931f8e6eeea3",
+  "baseline_source_hashes": {
+    "src/tbdy_next/receipts.py": "b413cb3ebb3d70e48fb7c7731c942777e90a3b877445b410d3d845723f52b653",
+    "src/tbdy_next/history.py": "b88e933ec29044ea4f6d9cd7012b22d25305fdeb2f53796043859180355f028b",
+    "src/tbdy_next/engineering/pipeline_snapshot.py": "12ed0f6b4ac939430f703c4942a5a95ba0de8e5684a86b51b0ff75562b819f21"
+  },
+  "inspected_source_hashes": {
+    "src/tbdy_next/receipts.py": "b413cb3ebb3d70e48fb7c7731c942777e90a3b877445b410d3d845723f52b653",
+    "src/tbdy_next/history.py": "b88e933ec29044ea4f6d9cd7012b22d25305fdeb2f53796043859180355f028b",
+    "src/tbdy_next/engineering/pipeline_snapshot.py": "12ed0f6b4ac939430f703c4942a5a95ba0de8e5684a86b51b0ff75562b819f21"
+  },
+  "baseline_source_hashes_match": true,
+  "environment": {
+    "platform": "Linux",
+    "python_version": "3.12.14"
+  },
+  "expected_defect": {
+    "written_receipts": 100,
+    "read_receipts": 99,
+    "hundredth_file_exists": true,
+    "hundredth_record_loaded": false,
+    "history_hundredth_record_loaded": false
+  },
+  "production_files_modified": false,
+  "temporary_receipts_retained": false,
+  "observed": {
+    "written_receipts": 100,
+    "read_receipts": 99,
+    "hundredth_file_exists": true,
+    "hundredth_record_loaded": false,
+    "history_hundredth_record_loaded": false
+  },
+  "hundredth_filename": "100-probe-100.json",
+  "baseline_defect_reproduced": true,
+  "status": "BASELINE_DEFECT_REPRODUCED",
+  "interpretation": "Exactly two-digit reader globs omit the writer's 100th receipt. The current recorded 16-receipt C29 run is outside this failing boundary.",
+  "exit_code": 0
+}

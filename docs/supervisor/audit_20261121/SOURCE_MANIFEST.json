@@ -1,0 +1,226 @@
+{
+  "schema": "yeni.supervisor.audit-source-manifest.v1",
+  "inspected_baseline": "c71a4dda4ab9453f428a38b3ed79931f8e6eeea3",
+  "observed_on": "2026-11-21",
+  "production_repository": "feridunfc/YENI",
+  "scope": "Source/document audit and bounded code diagnostics; private Windows C29 captures not reread; no live analysis or engineering acceptance.",
+  "report_inventory": {
+    "file_count": 26,
+    "docx_count": 20,
+    "pdf_count": 6,
+    "pdf_page_count": 1256,
+    "retained_bytes_rehashed": 26,
+    "drive_refresh": "Metadata identity/size inventory refreshed; all retained local hashes rechecked. Not a new binary download of all 26 files.",
+    "full_pdf_numerical_acceptance": false,
+    "files": [
+      {
+        "name": "sway1.docx",
+        "sha256": "6e8863ae52834af5febbdd30db0648de186a713f7da991e05db660bb2425b0d7",
+        "size_bytes": 66279,
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "name": "tr2-ColSln.docx",
+        "sha256": "d9c9643962326db86e625497dd40c8ecbb4fe0baa3048123e9ca5deae80627ac",
+        "size_bytes": 30661,
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "name": "ex_Hesap Raporu1.pdf",
+        "sha256": "2722e7198e308dd817d50f31d4fb690702c7d568d26afa94d3a09925b586f2e6",
+        "size_bytes": 8414592,
+        "mime_type": "application/pdf"
+      },
+      {
+        "name": "ex_Hesap Raporu2.pdf",
+        "sha256": "37c24baf90a0dfcd829601e24c69756b3bfa5cb8128b952ead2be8f73c762c02",
+        "size_bytes": 2779188,
+        "mime_type": "application/pdf"
+      },
+      {
+        "name": "ex_Hesap Raporu3.pdf",
+        "sha256": "e54fa34fd80184fd06bc842be7c2f2ec259cc41d1771347660595e9328c41589",
+        "size_bytes": 3455169,
+        "mime_type": "application/pdf"
+      },
+      {
+        "name": "ex_Hesap Raporu4.pdf",
+        "sha256": "ce70cde568bb2f9c2fe899629bfb1ad8badc56ebe41fc36550ca0a6230de9991",
+        "size_bytes": 2762631,
+        "mime_type": "application/pdf"
+      },
+      {
+        "name": "ex_Hesap Raporu6.pdf",
+        "sha256": "f63e5de2b80fbee33eec9d5cf957820b592aa7821fc854d325c8699047ef87b9",
+        "size_bytes": 2172467,
+        "mime_type": "application/pdf"
+      },
+      {
+        "name": "ex_Hesap Raporu7.pdf",
+        "sha256": "47346ce799571dff9ad6b1c12513b81674c52353e7654c4d52b5f1ccb91ce9f5",
+        "size_bytes": 2199517,
+        "mime_type": "application/pdf"
+      },
+      {
+        "name": "col5.docx",
+        "sha256": "c7694aead44b8b99ebe982a526006143b3b2fc726d54c95839f626ee0738c360",
+        "size_bytes": 2081328,
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "name": "m4.docx",
+        "sha256": "b004892eec88f04306d139054eee8be497685ba382164428ddc9958643c4168d",
+        "size_bytes": 79333,
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "name": "m3.docx",
+        "sha256": "52266942a8ce8860c5832cd5cc99d46292195aec3fab663cfb4f0609314b0786",
+        "size_bytes": 443714,
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "name": "m2.docx",
+        "sha256": "38f6cdfc250423342f31861f729adbd3e7bc7fa15525122c4017c52e843851c7",
+        "size_bytes": 75939,
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "name": "m1.docx",
+        "sha256": "05cf266dcf79234987d6394151154d354da3afc42fbc5aac71f4603e1b4a075f",
+        "size_bytes": 75692,
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "name": "col1.docx",
+        "sha256": "75e14b85d28958e13b59e77cf12242ef6bf2546492754cd33ac9b900e45fc0de",
+        "size_bytes": 196711,
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "name": "col.docx",
+        "sha256": "4cbf57f2240882515dc13a7b55f4c15b0ae6145ef39f07c0fa8c28134d992cd0",
+        "size_bytes": 196669,
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "name": "strongcol4.docx",
+        "sha256": "1cd33ea03a220146af92032773190bb08105634cf8c76dbec384973e70d64550",
+        "size_bytes": 25446,
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "name": "strongcol3.docx",
+        "sha256": "ae7d9b480137095b811db140dff34a709566d60bb01d049f39ecd7557e434ec2",
+        "size_bytes": 25513,
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "name": "strongcol2.docx",
+        "sha256": "77309f71fe1c40a3e6a375928478f74e914fce0990e409e89968e1eb3bb3cdd6",
+        "size_bytes": 25427,
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "name": "strongcol1.docx",
+        "sha256": "66d596e98139b227b7ac6f8ce7b992ecf52d9110793b9da2624e5968d4be8f4d",
+        "size_bytes": 25222,
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "name": "strongcol.docx",
+        "sha256": "427c0992d550f8d527fc19c939a3e222fe2633d9fc50e967c8dd7ea342ca99ea",
+        "size_bytes": 24723,
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "name": "tr6.docx",
+        "sha256": "3d9d226df14262457c83e539397c6a975ed587f5d873db6ed44bff1046f6f543",
+        "size_bytes": 167062,
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "name": "tr5.docx",
+        "sha256": "ddba5a776ddadb52e52b302321af3ca14ec4c166348c5c7d5ebecc2005d18ffd",
+        "size_bytes": 117248,
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "name": "tr4.docx",
+        "sha256": "a647de3878dfad15422726614b8509cb77e6359561fa52cf539463e3d3fc7318",
+        "size_bytes": 120748,
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "name": "tr3.docx",
+        "sha256": "ce1cad6659405c7e52baf1101e51819db48488ad990ee73481e3e8cca16179fb",
+        "size_bytes": 152459,
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "name": "tr2.docx",
+        "sha256": "fed779673b89681a733101ea42fbf640f7da692bc24f7a72a9c2c3624be0c194",
+        "size_bytes": 157503,
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      {
+        "name": "tr1.docx",
+        "sha256": "c775fe48d1dc17cdd50947fb7b2ee0278d8ae5a49d1affbd29aa44e6ddc0c051",
+        "size_bytes": 159342,
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      }
+    ]
+  },
+  "historical_constitutions": [
+    {
+      "name": "TBDY_Mimari_DAG_TamRapor.txt",
+      "modified_time": "2026-11-06T13:18:30.853Z",
+      "extracted_text_sha256": "be6e49057f9593159f06542928c49b9c8beeafd4909071b90be69ffc7f9b2467",
+      "hash_scope": "Retrieved text, not original binary bytes",
+      "role": "Historical reference; not current YENI execution authority"
+    },
+    {
+      "name": "TBDY_Engine_Canonical_Product_Architecture_v2.3_RECONCILED_2026-09-27.md",
+      "modified_time": "2026-09-27T07:54:27.175Z",
+      "extracted_text_sha256": "766f6cb6e4f78b417ecb03a5e6b857c195ddd7495c8dde922bc3cd9d49d006f1",
+      "hash_scope": "Retrieved text, not original binary bytes",
+      "role": "Historical reference; not current YENI execution authority"
+    },
+    {
+      "name": "TBDY_Engine_Canonical_Product_Architecture_v2.3_POST_AUDIT_ADDENDUM_2026-10-08.md",
+      "modified_time": "2026-10-08T14:59:18.514Z",
+      "extracted_text_sha256": "65319cd00423beb4e5cb3dd4eb5308ac5ac2ff7fc35b21292e57d2b8548af25c",
+      "hash_scope": "Retrieved text, not original binary bytes",
+      "role": "Historical reference; not current YENI execution authority"
+    },
+    {
+      "name": "MASTER_HANDOFF_VE_STATE.md",
+      "modified_time": "2026-10-29T19:40:34.727Z",
+      "extracted_text_sha256": "2a7d61e891b6aa824b5f67ece64be64b9a3553ec6688781e1ff102e2261b67c9",
+      "hash_scope": "Retrieved text, not original binary bytes",
+      "role": "Historical reference; not current YENI execution authority"
+    }
+  ],
+  "reference_repository_manifest": "REFERENCE_REPOSITORIES.json",
+  "primary_sources": "PRIMARY_SOURCES.json",
+  "ts500": {
+    "sha256": "d925114d01a1de2baee63738bc0da0112b547b58526c3394843c36ee66722d44",
+    "bytes": 898520,
+    "pdf_pages": 83,
+    "edition": "February 2000 with appended T1/2001 and T2/2002",
+    "visual_verification": {
+      "pdf_page": 34,
+      "printed_page": 27
+    },
+    "current_consolidated_edition_verified": false
+  },
+  "native_results_provenance": {
+    "kind": "Versioned YENI ledger, not new native acquisition",
+    "evidence_ids": [
+      "EV-C29-NATIVE-CONDITIONAL-TS500-20261121",
+      "EV-GAP006-WALL-MESH-AND-CUTS-20261121",
+      "EV-R10-WALL-COUPLED-CAPACITY-SPAN-20261121"
+    ]
+  },
+  "privacy": "Original reports, EDBs, source captures, Drive IDs and bearer download URLs are excluded from this public bundle."
+}

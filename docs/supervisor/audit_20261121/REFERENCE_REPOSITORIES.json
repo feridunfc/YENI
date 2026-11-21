@@ -1,0 +1,215 @@
+{
+  "schema": "yeni.audit.reference-method-inventory.v1",
+  "date": "2026-11-21",
+  "yeni_commit": "c71a4dda4ab9453f428a38b3ed79931f8e6eeea3",
+  "scope": "Read-only research. No ETABS execution, production changes, or normative acceptance.",
+  "repositories": [
+    {
+      "repo": "feridunfc/TBDY",
+      "branch": "main",
+      "commit": "1440df1b9300f75b1e604204438f5cada9ebd247"
+    },
+    {
+      "repo": "feridunfc/Column-Engine",
+      "branch": "main",
+      "commit": "df754b202415a58508f60b27d96f731a7b840041"
+    },
+    {
+      "repo": "feridunfc/Column-Engine",
+      "branch": "worker/d7-b7-codespaces-evidence-20261105",
+      "commit": "4f0afbeb67fd3e7c7d140cd9eb4eda2f191631ca"
+    },
+    {
+      "repo": "feridunfc/Column",
+      "branch": "main",
+      "commit": "9269a00f5f5471ab68413c039912cafb2cf4db39"
+    },
+    {
+      "repo": "feridunfc/Column",
+      "branch": "worker/v132-c3-c8-column-candidate-20261023",
+      "commit": "083be4f61f312ff8ffbe89f03290e5518adeb796"
+    }
+  ],
+  "files": [
+    {
+      "repo": "feridunfc/TBDY",
+      "path": "tbdy_engine/design/columns/sway_stability.py",
+      "inspection": "full",
+      "blob_sha": "590f138d49faabb42df1a5af103ed4945a599128",
+      "display_url": "https://github.com/feridunfc/TBDY/blob/1440df1b9300f75b1e604204438f5cada9ebd247/tbdy_engine/design/columns/sway_stability.py",
+      "characters": 9776,
+      "source_retrieved": true
+    },
+    {
+      "repo": "feridunfc/TBDY",
+      "path": "tbdy_engine/design/columns/moment_magnification.py",
+      "inspection": "relevant arithmetic and contracts",
+      "blob_sha": "8bd6ab3bd97a47b99f9284debdfac8159de58845",
+      "display_url": "https://github.com/feridunfc/TBDY/blob/1440df1b9300f75b1e604204438f5cada9ebd247/tbdy_engine/design/columns/moment_magnification.py",
+      "characters": 15298,
+      "source_retrieved": true
+    },
+    {
+      "repo": "feridunfc/TBDY",
+      "path": "tbdy_engine/design/columns/local_axis_sway_binding.py",
+      "inspection": "first 6000 characters and relevant mapping",
+      "blob_sha": "6b18787b24a20fc02f56097e964bf95189fb8656",
+      "display_url": "https://github.com/feridunfc/TBDY/blob/1440df1b9300f75b1e604204438f5cada9ebd247/tbdy_engine/design/columns/local_axis_sway_binding.py",
+      "characters": 7015,
+      "source_retrieved": true
+    },
+    {
+      "repo": "feridunfc/TBDY",
+      "path": "tbdy_engine/design/columns/slenderness_basis.py",
+      "inspection": "first 6000 characters and relevant qualification",
+      "blob_sha": "8bbaf8a828c5ed4989964fcda4ca4065b9681b84",
+      "display_url": "https://github.com/feridunfc/TBDY/blob/1440df1b9300f75b1e604204438f5cada9ebd247/tbdy_engine/design/columns/slenderness_basis.py",
+      "characters": 11796,
+      "source_retrieved": true
+    },
+    {
+      "repo": "feridunfc/Column-Engine",
+      "path": "tools/audit_d7b12_phi_readiness.py",
+      "inspection": "full/relevant scope outputs",
+      "blob_sha": "b7a78b6eda550689ca99ef51a240325b9588e578",
+      "display_url": "https://github.com/feridunfc/Column-Engine/blob/4f0afbeb67fd3e7c7d140cd9eb4eda2f191631ca/tools/audit_d7b12_phi_readiness.py",
+      "characters": 24471,
+      "source_retrieved": true
+    },
+    {
+      "repo": "feridunfc/Column-Engine",
+      "path": "docs/D7_B14_WINDOWS_ETABS_CAPTURE_RECIPE_TR.md",
+      "inspection": "first 5500 characters",
+      "blob_sha": "3e749197338b232fb8301a3d37a9eb174f3cd96e",
+      "display_url": "https://github.com/feridunfc/Column-Engine/blob/4f0afbeb67fd3e7c7d140cd9eb4eda2f191631ca/docs/D7_B14_WINDOWS_ETABS_CAPTURE_RECIPE_TR.md",
+      "characters": 11565,
+      "source_retrieved": true
+    },
+    {
+      "repo": "feridunfc/Column-Engine",
+      "path": "docs/D7_B14_EXISTING_SOURCE_RECOVERY_TR.md",
+      "inspection": "first 6000 characters",
+      "blob_sha": "ee6957f1054dfc4d7be89050f150141b64d91349",
+      "display_url": "https://github.com/feridunfc/Column-Engine/blob/4f0afbeb67fd3e7c7d140cd9eb4eda2f191631ca/docs/D7_B14_EXISTING_SOURCE_RECOVERY_TR.md",
+      "characters": 8550,
+      "source_retrieved": true
+    },
+    {
+      "repo": "feridunfc/Column-Engine",
+      "path": "tbdy_column_workflow/recipe_v11/RULE_CARDS.json",
+      "inspection": "parsed full card inventory",
+      "blob_sha": "6a95d58a112715bf1345bd83e80208bde6ccad8b",
+      "display_url": "https://github.com/feridunfc/Column-Engine/blob/4f0afbeb67fd3e7c7d140cd9eb4eda2f191631ca/tbdy_column_workflow/recipe_v11/RULE_CARDS.json",
+      "characters": 19519,
+      "source_retrieved": true
+    },
+    {
+      "repo": "feridunfc/Column-Engine",
+      "path": "tbdy_column_workflow/recipe_v11/rules.py",
+      "inspection": "full",
+      "blob_sha": "34f7ee93a9c36e5ec4151dc513f8ad7714b88597",
+      "display_url": "https://github.com/feridunfc/Column-Engine/blob/4f0afbeb67fd3e7c7d140cd9eb4eda2f191631ca/tbdy_column_workflow/recipe_v11/rules.py",
+      "characters": 1661,
+      "source_retrieved": true
+    },
+    {
+      "repo": "feridunfc/Column",
+      "path": "COLUMN_CONSTITUTION.md",
+      "inspection": "first 5500 characters",
+      "blob_sha": "fc3a8066c6d4235774e070e942569bac85a1498c",
+      "display_url": "https://github.com/feridunfc/Column/blob/9269a00f5f5471ab68413c039912cafb2cf4db39/COLUMN_CONSTITUTION.md",
+      "characters": 34248,
+      "source_retrieved": true
+    },
+    {
+      "repo": "feridunfc/Column",
+      "path": "SPRINT_B7_INDEPENDENT_ORACLE_EVIDENCE.md",
+      "inspection": "full",
+      "blob_sha": "2757baa70723c985b83234843481456072c8dde8",
+      "display_url": "https://github.com/feridunfc/Column/blob/9269a00f5f5471ab68413c039912cafb2cf4db39/SPRINT_B7_INDEPENDENT_ORACLE_EVIDENCE.md",
+      "characters": 1490,
+      "source_retrieved": true
+    },
+    {
+      "repo": "feridunfc/Column",
+      "path": "tests/independent/oracle.py",
+      "inspection": "first 5500 characters and algorithm design",
+      "blob_sha": "4b78e7bd83e1ed31d3ac006122e5e499499c7e9b",
+      "display_url": "https://github.com/feridunfc/Column/blob/9269a00f5f5471ab68413c039912cafb2cf4db39/tests/independent/oracle.py",
+      "characters": 16352,
+      "source_retrieved": true
+    },
+    {
+      "repo": "feridunfc/Column",
+      "path": "tbdy_column_core/engineering/radial_admissibility.py",
+      "inspection": "full",
+      "blob_sha": "0753b1d4dea9827ed0882110992f5c7caca8bf5d",
+      "display_url": "https://github.com/feridunfc/Column/blob/9269a00f5f5471ab68413c039912cafb2cf4db39/tbdy_column_core/engineering/radial_admissibility.py",
+      "characters": 5166,
+      "source_retrieved": true
+    },
+    {
+      "repo": "feridunfc/Column",
+      "path": "docs/c_series/C8_SUPERVISOR_BATCH_REVIEW.md",
+      "inspection": "full",
+      "blob_sha": "239a1922cfc9c2ccf1f970e7438165c710c7237f",
+      "display_url": "https://github.com/feridunfc/Column/blob/083be4f61f312ff8ffbe89f03290e5518adeb796/docs/c_series/C8_SUPERVISOR_BATCH_REVIEW.md",
+      "characters": 6727,
+      "source_retrieved": true
+    },
+    {
+      "repo": "feridunfc/Column",
+      "path": "docs/c_series/C01_C32_SUPERVISOR_MATRIX.md",
+      "inspection": "first 2500 characters",
+      "blob_sha": "eeaeca2462a45d76440138ad5a4f4dfc21438136",
+      "display_url": "https://github.com/feridunfc/Column/blob/083be4f61f312ff8ffbe89f03290e5518adeb796/docs/c_series/C01_C32_SUPERVISOR_MATRIX.md",
+      "characters": 3404,
+      "source_retrieved": true
+    }
+  ],
+  "ts500": {
+    "sha256": "d925114d01a1de2baee63738bc0da0112b547b58526c3394843c36ee66722d44",
+    "bytes": 898520,
+    "pdf_pages": 83,
+    "edition": "February 2000 with appended T1/2001 and T2/2002",
+    "visual_verification": {
+      "pdf_page": 34,
+      "printed_page": 27
+    },
+    "current_consolidated_edition_verified": false
+  },
+  "experiments": [
+    {
+      "id": "E09-A",
+      "status": "PROPOSED_NOT_RUN"
+    },
+    {
+      "id": "E09-B",
+      "status": "PROPOSED_NOT_RUN"
+    },
+    {
+      "id": "E09-C",
+      "status": "PROPOSED_NOT_RUN"
+    },
+    {
+      "id": "E09-D",
+      "status": "PROPOSED_NOT_RUN"
+    },
+    {
+      "id": "E09-E / E16-A",
+      "status": "PROPOSED_NOT_RUN"
+    },
+    {
+      "id": "E10-A",
+      "status": "PROPOSED_NOT_RUN"
+    },
+    {
+      "id": "E13-A",
+      "status": "PROPOSED_NOT_RUN"
+    },
+    {
+      "id": "E18-A",
+      "status": "PROPOSED_NOT_RUN"
+    }
+  ]
+}

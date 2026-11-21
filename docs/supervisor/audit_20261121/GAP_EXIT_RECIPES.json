@@ -1,0 +1,884 @@
+{
+  "schema": "tbdy.next.engineering-audit-gap-recipes.v1",
+  "inspected_baseline": "c71a4dda4ab9453f428a38b3ed79931f8e6eeea3",
+  "evidence_policy": "Code and selected tests inspected; cited historical ledger evidence not re-executed; private original Windows receipts unavailable to this audit agent. Proposed recipes are not completed calculations.",
+  "gap_count": 18,
+  "registered_status_counts": {
+    "OPEN": 3,
+    "PARTIAL": 15,
+    "CLOSED": 0
+  },
+  "owner_path_prefix": "src/tbdy_next/",
+  "recipe_dependency_note": "Dependencies denote engineering qualification, not a demand to serialize all implementation. Offline infrastructure and independent reference work can proceed in parallel. GAP-013 consumes the independently validated initial PMM/shear/joint owners; its iteration then invalidates their results, not the initial method qualification.",
+  "recipes": [
+    {
+      "id": "GAP-001",
+      "title": "Approved model profile",
+      "registered_status": "OPEN",
+      "registered_priority": "P0",
+      "verified_existing_scope": "Candidate model contracts and an exact-source adopted model profile exist; conditional computation is possible without normative approval.",
+      "remaining_problem": "A complete qualified project model profile and an accepted applicability/approval route are missing. The current adopted profile explicitly requires engineering_approval=NOT_GRANTED; adding an approval-shaped string is not an implementation of acceptance.",
+      "actual_owners": [
+        "candidate_model_contracts.py::review_model_profile_candidate",
+        "engineering/analysis_setup.py::normalize_analysis_basis",
+        "engineering/analysis_setup.py::_adopt_calculation_basis"
+      ],
+      "required_inputs": [
+        "Standard edition and amendments",
+        "Structural system and ductility by direction",
+        "BKS/DTS/BYS and R/D/I/Ch where applicable",
+        "Physical story and basement roles",
+        "Source-bound model, materials, seismic mass and stiffness policy"
+      ],
+      "closure_experiment": "Reconcile one complete C29 project profile against original geometry, code applicability and recorded model configuration. Emit a field-by-field qualified or unresolved result and consume it through R03 and the normal runner. Challenge one wrong story role and one wrong system parameter.",
+      "independent_oracle": "Independent engineer worksheet and primary standard clauses, tied to the same native census; no inference from case names or reference report appearance.",
+      "acceptance": [
+        "Every required profile field has provenance and a declared responsible decision",
+        "Contradictory native/profile data rejects affected checks",
+        "Conditional assumptions remain distinguishable from approved model facts",
+        "Do not globally clear NOT_READY solely by attaching an approval document"
+      ],
+      "dependencies": [],
+      "offline_work": "Build applicability schema, exact field/source comparisons and owner consumption offline.",
+      "windows_work": "Read only missing native profile facts; engineering decisions/construction records are not ETABS getters.",
+      "reviewed_tests": [
+        "test_vs05_candidate_model_contracts.py",
+        "test_adopted_analysis_basis.py",
+        "test_r03_analysis_setup.py"
+      ],
+      "latest_relevant_evidence": [
+        "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
+        "EV-C29-R03-ORDER-AXIAL-BALANCE-20261121"
+      ],
+      "scope_correction": ""
+    },
+    {
+      "id": "GAP-002",
+      "title": "Combination book and design family scope",
+      "registered_status": "PARTIAL",
+      "registered_priority": "P0",
+      "verified_existing_scope": "Native combination definitions, configured design groups and exact assigned role scope are available; mixed signed and scalar spectral routes exist.",
+      "remaining_problem": "The required design-family roster is not independently derived from applicable code/system choices. Defined or selected ETABS combinations alone cannot prove completeness.",
+      "actual_owners": [
+        "engineering/design_assignments.py::design_assignments",
+        "engineering/design_assignments.py::project_role_catalog",
+        "engineering/analysis_setup.py::_adopt_calculation_basis",
+        "engineering/mixed_demands.py::native_graph"
+      ],
+      "required_inputs": [
+        "Qualified project profile",
+        "All native case/pattern/combination ASTs and GUIDs",
+        "Independent required family/direction/sign roster",
+        "Gravity/live-load participation, vertical earthquake and overstrength policies"
+      ],
+      "closure_experiment": "Freeze the required combination book independently, compare every required expression against the native typed AST, and preserve missing families in the expected denominator. On C29 distinguish the recorded 3 static + 8 assigned seismic combinations from the project-wide required book.",
+      "independent_oracle": "Independent symbolic coefficient table and primary standard expression review; arithmetic checked with rational/Decimal coefficients.",
+      "acceptance": [
+        "Required versus available family sets reconcile explicitly",
+        "Every coefficient/operator/role is verified once",
+        "Nested nonconcurrent operators cannot be treated as signed vectors",
+        "An unassigned but required family remains a failure or unresolved obligation"
+      ],
+      "dependencies": [
+        "GAP-001"
+      ],
+      "offline_work": "Compile and compare expressions, roles and expected scopes offline.",
+      "windows_work": "Acquire only absent definitions/selected native groups with selection restoration.",
+      "reviewed_tests": [
+        "test_mixed_design_demands.py",
+        "test_r03_analysis_setup.py",
+        "test_adopted_analysis_basis.py"
+      ],
+      "latest_relevant_evidence": [
+        "EV-D3B",
+        "EV-COLUMN-JOINT-SLICE-20261119"
+      ],
+      "scope_correction": ""
+    },
+    {
+      "id": "GAP-003",
+      "title": "Model and analysis generation",
+      "registered_status": "OPEN",
+      "registered_priority": "P0",
+      "verified_existing_scope": "Immutable source/result hashes, native case identities and archived C29 solver/order reconciliation exist. Native first-order assumptions reject explicit contradictory predecessors.",
+      "remaining_problem": "A hash or locked model is not independent proof that results were solved from the exact consumed model contents. General analysis-generation qualification remains missing.",
+      "actual_owners": [
+        "engineering/analysis_setup.py::audit_model_analysis_setup",
+        "engineering/analysis_setup.py::_adopt_calculation_basis",
+        "engineering/design_scenario.py::verify_parent",
+        "engineering/analysis_archive.py::reconcile_archived_order"
+      ],
+      "required_inputs": [
+        "Analysis log and completed case inventory",
+        "Model content identity before/after analysis",
+        "Consumed-result generation identity",
+        "Relevant stiffness, support, loads, mass and solver settings"
+      ],
+      "closure_experiment": "On an isolated controlled model, bind analysis start/completion evidence to a semantic model digest and consumed result inventory. Change a section or load after solution and demonstrate rejection of stale results; do not use model-lock state as the oracle.",
+      "independent_oracle": "Independent before/after semantic export plus solver lifecycle/log evidence and known deliberate stale-model challenge.",
+      "acceptance": [
+        "Every consumed case belongs to the proven generation",
+        "Any relevant post-analysis model mutation invalidates downstream results",
+        "Output-selection changes remain acquisition transactions, not new structural generations",
+        "Analysis order is independently established, not inferred from NonlinCase=None"
+      ],
+      "dependencies": [
+        "GAP-001"
+      ],
+      "offline_work": "Specify generation proof, reconcile archived evidence, implement rejection and lineage checks.",
+      "windows_work": "A lifecycle/staleness experiment needs a controlled Windows ETABS copy; no Linux COM claim.",
+      "reviewed_tests": [
+        "test_adopted_analysis_basis.py",
+        "test_r03_analysis_setup.py",
+        "test_offline_design_scenario.py"
+      ],
+      "latest_relevant_evidence": [
+        "EV-C29-R03-ORDER-AXIAL-BALANCE-20261121",
+        "EV-D3B-REPLAY"
+      ],
+      "scope_correction": ""
+    },
+    {
+      "id": "GAP-004",
+      "title": "Native schema, units and selection transactions",
+      "registered_status": "PARTIAL",
+      "registered_priority": "P1",
+      "verified_existing_scope": "Existing gateway and transactional capture restore output/pattern/mode selections; native modal getters and exact companion identities are implemented and observed on the recorded ETABS installation.",
+      "remaining_problem": "The supported-version/schema matrix is not yet a declared and fully accepted product boundary. Unsupported versions, null returns and precision sources must be explicit.",
+      "actual_owners": [
+        "etabs_source_gateway_windows.py",
+        "frame_force_capture.py",
+        "basis_probe.py",
+        "engineering/demand_sources.py::native_modal_precision"
+      ],
+      "required_inputs": [
+        "Actual ETABS version/type library",
+        "Exact table fields, units, API signatures and raw return codes",
+        "Session selections before/after capture",
+        "Native double versus printed precision metadata"
+      ],
+      "closure_experiment": "Declare the supported ETABS build(s) and getter/table contracts, then replay one real raw packet per supported schema. On Windows induce a recoverable getter failure and verify every temporary selection is restored. Preserve user-authorized units 6.",
+      "independent_oracle": "Native type-library/API contract and independent before/after getter inventory; malformed raw packets test rejection.",
+      "acceptance": [
+        "Unsupported signature/version fails with a precise reason",
+        "All restored selections match their captured original values",
+        "Any restoration failure prevents accepted capture",
+        "Do not restore old tonf units contrary to authorized kN/m/C policy"
+      ],
+      "dependencies": [],
+      "offline_work": "Replay real raw packets and typed error/ambiguity contracts; build support matrix.",
+      "windows_work": "Capture missing schema versions and selection restoration behavior through existing gateway.",
+      "reviewed_tests": [
+        "test_etabs_source_gateway.py",
+        "test_native_demand_sources.py",
+        "test_capture_modal_etabs23.py"
+      ],
+      "latest_relevant_evidence": [
+        "EV-LIVE-MODAL-IDENTITY",
+        "EV-LIVE-MODAL-NUMERIC-ORACLE",
+        "EV-LIVE-MODAL-REPLAY-REPORT"
+      ],
+      "scope_correction": ""
+    },
+    {
+      "id": "GAP-005",
+      "title": "Complete expected check population",
+      "registered_status": "PARTIAL",
+      "registered_priority": "P0",
+      "verified_existing_scope": "Column/member/case/cut scopes are explicit in PMM and many dependent paths; 87 members / 957 assigned pairs and independently predicted cuts are recorded.",
+      "remaining_problem": "A general expected-check-instance ledger across all rule families is absent. One reproduced source-error path drops a known 4-instance global second-order population to 0 expected.",
+      "actual_owners": [
+        "engineering/pipeline.py::STAGES",
+        "engineering/pipeline.py::run_source_pipeline",
+        "engineering/design_scenario.py::design_dependency_ledger",
+        "compiled_dag.py::RegulatoryCompiler",
+        "story_second_order.py::bind_story_second_order"
+      ],
+      "required_inputs": [
+        "Qualified physical members/stories/joints",
+        "Rule applicability and demand family definitions",
+        "Independent physical cut and element-side census"
+      ],
+      "closure_experiment": "Freeze each rule population before numerical evaluation; first repair the reproduced global-second-order 4-to-0 loss. Then produce a check/member/story/case/direction/cut ledger and deliberately remove one required cut, story, beam and case. Each remains in the denominator.",
+      "independent_oracle": "Independent topology/case enumeration from native geometry and reviewed applicability, not the successful result rows.",
+      "acceptance": [
+        "Expected = evaluated + unresolved + proven-not-applicable, with explicit failures retained",
+        "Source failures cannot erase known expected instances",
+        "Duplicate identifiers or sides cannot increase coverage",
+        "Catalog nodes, test counts and engineering instances remain separate"
+      ],
+      "dependencies": [
+        "GAP-001",
+        "GAP-002",
+        "GAP-006"
+      ],
+      "offline_work": "Implement and verify population producers and denominator invariance offline.",
+      "windows_work": "Only missing topology/assignment facts require acquisition.",
+      "reviewed_tests": [
+        "test_design_member_dependencies.py",
+        "test_r08_story_second_order.py",
+        "test_vs05_compiled_dag.py",
+        "test_vs08_wall_geometry.py"
+      ],
+      "latest_relevant_evidence": [
+        "EV-GAP006-WALL-MESH-AND-CUTS-20261121",
+        "EV-AUDIT-FIXES-20261120"
+      ],
+      "scope_correction": "A declared catalog with 94 nodes or 242 recipe items is not 94/242 completed calculations."
+    },
+    {
+      "id": "GAP-006",
+      "title": "Same-cut mesh, offsets and physical faces",
+      "registered_status": "PARTIAL",
+      "registered_priority": "P0",
+      "verified_existing_scope": "The original MinStations=3/zero-I-offset census binds 402 cuts, 957 member-case inventories and 7,638 native rows. Latest recorded physical free lengths cover 73 standalone columns; 14 columns are wall coupled.",
+      "remaining_problem": "C104/W21/W22 reinforcement continuity, the two physical section geometries and mesh-insensitive coupled demand are not qualified. Geometric contact alone is not a verified analysis constraint or composite capacity.",
+      "actual_owners": [
+        "engineering/column_clear_length.py::project_column_clear_lengths",
+        "engineering/column_pmm.py::bind_configured_output_cuts",
+        "engineering/column_r08_local_live.py",
+        "engineering/column_r10_live.py::_column_capacity_shear_ve"
+      ],
+      "required_inputs": [
+        "C104/W21/W22 construction reinforcement and connection details",
+        "Native shell/frame connectivity and constraints",
+        "Upper/lower cut faces at the -1.50 m transition",
+        "Signed same-state component forces and moments about one origin"
+      ],
+      "closure_experiment": "Adopt and document each physical composite section at the two geometries, integrate signed section resultants without overlapping area/force credit, and compare successive meshes at identical cuts and states. Use actual reinforcement continuity to decide composite versus interacting members before capacity.",
+      "independent_oracle": "Independent polygon union area/centroid/inertia and manual FBD equilibrium; a distinct section analysis for the chosen physical section; convergence on resultants as well as displacements.",
+      "acceptance": [
+        "One-to-one physical/analysis cut mapping and complete component census",
+        "No double credit for overlapping concrete or force representations",
+        "Predeclared local-demand/refinement tolerances met at all required cuts",
+        "14 coupled members never regain an isolated-column clear-span fallback"
+      ],
+      "dependencies": [
+        "GAP-003",
+        "GAP-004"
+      ],
+      "offline_work": "Integrate archived cuts and geometry; build qualified composite source contract within existing owner.",
+      "windows_work": "Missing construction details come from drawings; targeted mesh/coupled-model experiments need Windows copies.",
+      "reviewed_tests": [
+        "test_column_clear_length.py",
+        "test_gravity_story_basis.py",
+        "test_r14_adopted_basis.py"
+      ],
+      "latest_relevant_evidence": [
+        "EV-GAP006-WALL-MESH-AND-CUTS-20261121",
+        "EV-GAP006-C104-REFINEMENT-20261121",
+        "EV-GAP006-C104-SECTION-PROFILE-20261121",
+        "EV-R10-WALL-COUPLED-CAPACITY-SPAN-20261121"
+      ],
+      "scope_correction": "59 proven lengths is historical; latest census records 73. Small global frequency/base-reaction changes do not establish local C104 mesh convergence."
+    },
+    {
+      "id": "GAP-007",
+      "title": "Exact static Linear Add",
+      "registered_status": "PARTIAL",
+      "registered_priority": "P0",
+      "verified_existing_scope": "Exact signed Linear Add uses recursive nested expansion and Fraction coefficients; repeated leaf contributions cancel correctly. Recorded original static reconstruction has 1,206 tuples / 7,236 scalar controls.",
+      "remaining_problem": "Project-wide nested real-definition qualification, operator-specific consumption and approved family coverage remain. Nonlinear/envelope operators must retain their own semantics rather than be coerced into sums.",
+      "actual_owners": [
+        "engineering/mixed_demands.py::linear_coefficients",
+        "engineering/mixed_demands.py::represent_linear_effect",
+        "engineering/mixed_demands.py::earthquake_row",
+        "engineering/demand_sources.py::component_force_rows"
+      ],
+      "required_inputs": [
+        "Full native typed AST",
+        "Primitive same-cut signed rowsets",
+        "Exact case/step/side identities",
+        "Qualified design family roster"
+      ],
+      "closure_experiment": "Select an actual nested combination from the frozen book; independently flatten it and compare all six components at every expected cut. Exercise repeated coefficients, zero cancellation, cycle/depth rejection and Envelope under Linear Add.",
+      "independent_oracle": "Independent rational expression expansion and native direct-result comparison on the same generation; no nearest-cut matching.",
+      "acceptance": [
+        "Coefficient identities exact",
+        "Native scalar comparison uses frozen existing tolerance, not widened to fit",
+        "Missing primitive or opposite interface side remains unresolved",
+        "Nonconcurrent nested operators remain rejected by signed consumers"
+      ],
+      "dependencies": [
+        "GAP-002",
+        "GAP-003",
+        "GAP-006"
+      ],
+      "offline_work": "Nested algebra and archived replay are offline; do not rewrite existing recursion.",
+      "windows_work": "Acquire only missing primitive rows through existing acquisition route.",
+      "reviewed_tests": [
+        "test_mixed_design_demands.py::test_nested_static_repeated_coefficients_cancel",
+        "test_mixed_design_demands.py::test_envelope_operator_not_accepted_as_linear_sum",
+        "test_same_source_spectral_replay.py"
+      ],
+      "latest_relevant_evidence": [
+        "EV-COLUMN-JOINT-SLICE-20261119",
+        "EV-LOCAL-ORACLE"
+      ],
+      "scope_correction": "The current GAP text is too broad if read as claiming nested Linear Add is unimplemented; it already exists."
+    },
+    {
+      "id": "GAP-008",
+      "title": "Design demand in the same generation",
+      "registered_status": "PARTIAL",
+      "registered_priority": "P0",
+      "verified_existing_scope": "Scenario parents, source digests, selected candidate revisions and exact case/cut/side/step identities are retained; changed requests create new scenario identities.",
+      "remaining_problem": "Generation proof and applicable seismic vector policy are not established by lineage alone. A coherent hash chain can still faithfully reference an unqualified structural assumption.",
+      "actual_owners": [
+        "engineering/design_scenario.py::create_design_scenario",
+        "engineering/design_scenario.py::verify_parent",
+        "engineering/design_scenario.py::prepare_pipeline_source",
+        "engineering/design_dependencies.py",
+        "engineering/mixed_demands.py"
+      ],
+      "required_inputs": [
+        "Qualified generation and combination policy",
+        "Immutable source parent",
+        "Demand/cage/method revision identities",
+        "Complete cut and neighbor dependency graph"
+      ],
+      "closure_experiment": "Choose one signed C29 demand and one assigned seismic demand. Trace source through scenario, R08, PMM, Ve, joint and R14; change one upstream item and verify every dependent result is invalidated while unrelated members retain identity.",
+      "independent_oracle": "Independent tuple/identity manifest and byte-level source preservation checks; numerical oracle belongs to the relevant demand/capacity owner.",
+      "acceptance": [
+        "No cross-generation/cut/step joins",
+        "Web, CLI and report show the same sealed result identity",
+        "Mutating source/cage/method produces a new dependent identity",
+        "Engineering scope is not inferred from matching names"
+      ],
+      "dependencies": [
+        "GAP-002",
+        "GAP-003",
+        "GAP-005",
+        "GAP-006"
+      ],
+      "offline_work": "Trace and challenge immutable dependencies and artifact lineage offline.",
+      "windows_work": "No new analysis for already qualified archived source; native missing facts only.",
+      "reviewed_tests": [
+        "test_offline_design_scenario.py",
+        "test_design_member_dependencies.py",
+        "test_pipeline_unification.py"
+      ],
+      "latest_relevant_evidence": [
+        "EV-D1",
+        "EV-D3B-REPLAY",
+        "EV-LOCAL-SPECTRAL"
+      ],
+      "scope_correction": ""
+    },
+    {
+      "id": "GAP-009",
+      "title": "Global and local second-order effects",
+      "registered_status": "PARTIAL",
+      "registered_priority": "P0",
+      "verified_existing_scope": "C29 native 2/4/8 comparison completed 18 cases, 12 adopted factors, 24 revised PMM sides at 18 physical case-cuts, with FULL_SPAN_RECOVERED and six passing 4-to-8 bounds. Full wall scope is explicitly separate.",
+      "remaining_problem": "Full signed column-wall upper-body equilibrium, supported two-axis wall-frame critical-load/second-order method, 14 coupled columns, stiffness/creep acceptance and varying-axial applicability remain. Confirmed code defects affect known-imbalance fallback and negative global elevations.",
+      "actual_owners": [
+        "engineering/gravity_story_basis.py::produce_story_basis",
+        "engineering/gravity_pair_refinement.py::compare_level",
+        "engineering/column_r08_local_live.py",
+        "engineering/story_pdelta.py::review_story_pdelta",
+        "story_second_order.py::bind_story_second_order",
+        "column_engine/ts500_column.py"
+      ],
+      "required_inputs": [
+        "Concurrent upper-side wall resultants for 21/4 wall objects",
+        "32 column forces per story on the same generation/case/cut",
+        "Independent upper external loads and self weight",
+        "Revised stiffness, restraints, coupling, creep and load pattern",
+        "Selected cage and physical variable-axial method scope"
+      ],
+      "closure_experiment": "First fix the two reproduced contract defects. On solved 8-part C29G_U_F, assemble 53/36 physical contributors and independent upper-body balance at the two cuts; extend to TN_F/TP_F. Then qualify a coupled wall-frame stability method using explicit boundary conditions and one consistent load pattern, and consume revised demands in normal R08/R14. Preserve conditional frame output separately.",
+      "independent_oracle": "Independent signed FBD integration and applied-load audit; independent analytical/member and coupled-system stability benchmarks; native direct second-order comparison at identical cuts and consistent EI. Coordinate translation must leave theta unchanged.",
+      "acceptance": [
+        "Current FBD gate: abs_tol 0.01 kN, rel_tol 1e-6, with explicit signs and full expected scope",
+        "Known demonstrated imbalance cannot be silently consumed by conditional fallback",
+        "Wall method has a justified per-axis/system basis; no arbitrary isolated-wall Euler sum",
+        "Original six deformation error budgets and 12/24 conditional numbers remain traceable",
+        "Full demands, same selected cage and 18/24 comparison propagate to sealed report"
+      ],
+      "dependencies": [
+        "GAP-001",
+        "GAP-002",
+        "GAP-003",
+        "GAP-006"
+      ],
+      "offline_work": "Repair source gates; integrate recorded force rows; implement/verify accepted method in current owners.",
+      "windows_work": "Only exact-state wall forces or controlled coupled/stability experiments absent from existing captures need Windows; PID must be rediscovered.",
+      "reviewed_tests": [
+        "test_gravity_story_basis.py",
+        "test_gravity_deformation.py",
+        "test_variable_axial_vertical_slice.py",
+        "test_adopted_second_order_basis.py",
+        "test_engine_r08_story.py",
+        "test_r08_story_second_order.py"
+      ],
+      "latest_relevant_evidence": [
+        "EV-C29-NATIVE-CONDITIONAL-TS500-20261121",
+        "EV-C29-SELF-WEIGHT-NMAX-LOCAL-20261121",
+        "EV-GAP009-ASSIGNED-SPECTRAL-SWAY-20261121"
+      ],
+      "scope_correction": "A balanced wall resultant does not implement wall critical load. Zero wall Nk with omitted wall Nd is an adopted frame-only scope, not a proved conservative full-system bound."
+    },
+    {
+      "id": "GAP-010",
+      "title": "Independent PMM capacity acceptance",
+      "registered_status": "PARTIAL",
+      "registered_priority": "P0",
+      "verified_existing_scope": "Rectangular two-axis-symmetric PMM uses strain compatibility, exact displaced bar-disk concrete subtraction, axial equilibrium roots and a moment-direction root. Required static cuts and selected cages are consumed.",
+      "remaining_problem": "Independent full-design capacity acceptance is missing; asymmetric/nonrectangular composite wall sections lie outside this kernel. Angular stability is observed, not a proof of a continuous global error bound.",
+      "actual_owners": [
+        "column_engine/section_capacity.py::Section",
+        "column_engine/section_capacity.py::_Curve",
+        "column_engine/section_capacity.py::_direction_root",
+        "column_engine/section_capacity.py::RadialSolver.assess",
+        "engineering/column_pmm.py::_station_result"
+      ],
+      "required_inputs": [
+        "Exact section/material and bar coordinates",
+        "Compression-positive N and CSI local M2/M3",
+        "Same-cut source and minimum eccentricity",
+        "Separate axial code caps and physical cage role"
+      ],
+      "closure_experiment": "Recover one complete actual report PMM case with bars, material strengths and concurrent N/M2/M3; solve fixed-N capacity on the same moment ray by an independent implementation. Include rectangular unequal axes, rotated demand, tension/compression endpoints and near-boundary cases.",
+      "independent_oracle": "Independent strain integration/root solution or independently documented section program; hand uniaxial limits plus equilibrium residuals. It must not call the production solver.",
+      "acceptance": [
+        "Force residual and moment-direction residual satisfy the existing owner budgets",
+        "Capacity and utilization match the frozen independent tolerance",
+        "Near-surface decisions remain unresolved within numerical guard",
+        "Axial code cap failures override small PMM utilization",
+        "Unsupported asymmetric/composite sections do not masquerade as accepted rectangles"
+      ],
+      "dependencies": [
+        "GAP-006",
+        "GAP-008",
+        "GAP-009",
+        "GAP-011"
+      ],
+      "offline_work": "Independent section calculation and actual-report binding are offline.",
+      "windows_work": "No ETABS needed for capacity once bar/source geometry is known; demand capture only if missing.",
+      "reviewed_tests": [
+        "test_vs25_pmm_direction_root.py",
+        "test_vs25_pmm_root_integration.py",
+        "test_vs21_section_reference.py",
+        "test_structural_demand_floors.py"
+      ],
+      "latest_relevant_evidence": [
+        "EV-PMM6",
+        "EV-COLUMN-JOINT-SLICE-20261119",
+        "EV-C29-NATIVE-CONDITIONAL-TS500-20261121"
+      ],
+      "scope_correction": ""
+    },
+    {
+      "id": "GAP-011",
+      "title": "Reinforcement selection and detailing",
+      "registered_status": "PARTIAL",
+      "registered_priority": "P0",
+      "verified_existing_scope": "Candidate selection enforces the 1% minimum longitudinal ratio, coordinates, spacing and selected tie checks. 32Phi16 / Phi10/90 are recorded algorithm-selected scenarios, not automatically as-built.",
+      "remaining_problem": "Complete effective crosstie topology, bend/hooks, anchorage/laps, congestion and engineer/as-built role acceptance remain. Restricted cage-family exhaustion is not proof no constructible design exists.",
+      "actual_owners": [
+        "engineering/rebar_selection.py::select_column_rebar",
+        "engineering/rebar_selection.py::_evaluate_column_transverse_choice",
+        "column_engine/transverse_kernel.py",
+        "engineering/column_r14_closure.py"
+      ],
+      "required_inputs": [
+        "Physical bar/hoop/crosstie coordinates and effective directions",
+        "Cover and clear spacing",
+        "Axial branch across required combinations",
+        "Anchorage, lap, hook and support details",
+        "Explicit candidate versus approved/as-built role"
+      ],
+      "closure_experiment": "Take the selected C29 cage into one buildable end-region and joint detail; enumerate every effective leg and longitudinal-bar restraint, compute confinement/shear both axes, and check lengths/hooks/congestion. Feed qualified details through current R14 rather than simply changing its role label.",
+      "independent_oracle": "Independent drawing-based bar/leg geometry takeoff and clause-by-clause calculations using actual detail dimensions.",
+      "acceptance": [
+        "As >= 0.01Ac without deficit tolerance",
+        "Every credited effective leg is geometrically and mechanically supported",
+        "Pitch, cover, bar spacing, confinement length and anchorage criteria all pass",
+        "Candidate/approved/as-built distinction survives UI and report",
+        "A failed tie-spacing result remains a failure despite PMM pass"
+      ],
+      "dependencies": [
+        "GAP-001",
+        "GAP-008"
+      ],
+      "offline_work": "Geometry enumeration, candidate constraints and independent arithmetic offline.",
+      "windows_work": "Construction drawing/detail evidence, not extra ETABS analysis, is usually the missing source.",
+      "reviewed_tests": [
+        "test_rebar_selection.py",
+        "test_p0_handoff_f01_f13.py",
+        "test_r14_adopted_basis.py"
+      ],
+      "latest_relevant_evidence": [
+        "EV-COLUMN-CAGE-TIE10",
+        "EV-COLUMN-CAGE-REPORT-TESTS"
+      ],
+      "scope_correction": ""
+    },
+    {
+      "id": "GAP-012",
+      "title": "Beam capacity and end topology",
+      "registered_status": "PARTIAL",
+      "registered_priority": "P0",
+      "verified_existing_scope": "180 beam candidate scenarios and signed N=0 end capacities are recorded; selected multi-row bars are available through the existing beam owner.",
+      "remaining_problem": "Physical end faces, constructible signed top/bottom reinforcement, continuity/anchorage and the applicability of beam N=0 remain qualified assumptions, not a complete beam design.",
+      "actual_owners": [
+        "engineering/beam_r10_live.py::_evaluate_beam_end",
+        "engineering/beam_r10_live.py::_beam_shear_ve",
+        "column_engine/beam_capacity.py::build_selected_beam_cage",
+        "column_engine/beam_capacity.py::signed_beam_capacity"
+      ],
+      "required_inputs": [
+        "Every incident beam I/J physical face and local orientation",
+        "Selected top/bottom row coordinates and development length",
+        "Same-source design demands",
+        "Axial force policy and release/offset details"
+      ],
+      "closure_experiment": "Close one C29 interior/roof joint with all its incident beam end/sign capacities from actual selected bars; independently reconstruct positive/negative resistance and beam Ve at the physical clear length. Keep all eight distinct connected beams in C29 scope.",
+      "independent_oracle": "Independent section equilibrium at N=0, then sensitivity/qualification if actual beam axial force is relevant; construction detail review for continuity.",
+      "acceptance": [
+        "Every required I/J sign has a capacity and complete bar coordinates",
+        "Native axes and physical faces map exactly",
+        "No source beam is dropped because its cage cannot be built",
+        "Beam shear includes gravity term and applicable lower/brittle bounds",
+        "N=0 remains explicit until accepted for the scenario"
+      ],
+      "dependencies": [
+        "GAP-006",
+        "GAP-008",
+        "GAP-011"
+      ],
+      "offline_work": "End-capacity, sign and detail checks on archived source.",
+      "windows_work": "Only absent end geometry/releases/native forces require capture; anchorage requires drawings.",
+      "reviewed_tests": [
+        "test_beam_r10_live.py",
+        "test_vs23_beam_capacity.py",
+        "test_vs23_beam_references.py"
+      ],
+      "latest_relevant_evidence": [
+        "EV-D1",
+        "EV-D2",
+        "EV-COLUMN-JOINT-SLICE-20261119"
+      ],
+      "scope_correction": ""
+    },
+    {
+      "id": "GAP-013",
+      "title": "SCWB and alpha demand feedback",
+      "registered_status": "PARTIAL",
+      "registered_priority": "P0",
+      "verified_existing_scope": "Original selected case has 47 qualified low-axial exempt joints and 5 non-exempt joints with 160 sufficient interval comparisons; its alpha alternative is not required. Bounded feedback and actual-owner candidate reselection exist.",
+      "remaining_problem": "No complete independent actual-owner example requiring alpha < 1 has demonstrated alpha -> revised demand -> reselected cage -> PMM/Ve/joint -> recomputed alpha and stable termination. Scalar 60/20/20 fixture is not that example.",
+      "actual_owners": [
+        "engineering/alpha_iteration.py::qualify_story_alpha",
+        "engineering/alpha_iteration.py::run_bounded_feedback",
+        "engineering/alpha_iteration.py::run_alpha_design_iteration",
+        "engineering/scwb_axial.py",
+        "column_engine/story_alpha.py",
+        "engineering/design_dependencies.py"
+      ],
+      "required_inputs": [
+        "Complete physical story and both directional end populations",
+        "Same-case earthquake shear components",
+        "Actual selected beam/column capacities and low-N qualification",
+        "Initial and revised demand/cage revisions"
+      ],
+      "closure_experiment": "Choose an independent actual report/model whose calculated capacities genuinely give 0.70 <= alpha < 1. Run the existing owners without injecting success dictionaries; independently calculate numerator/denominator and factor, then demonstrate one changed design and all downstream rechecks. Separately exercise alpha < 0.70, oscillation and exhausted candidate family.",
+      "independent_oracle": "Independent story force/moment equilibrium and a complete hand/spreadsheet design example with documented branch applicability; not manually supplied SCWB flags.",
+      "acceptance": [
+        "All required directional ends stay in the denominator",
+        "Low-N numerator credit and eligibility for demand amplification remain separate",
+        "Factor applies once to the qualified earthquake component at the same cuts",
+        "Joint/panel/tie failures survive terminal-state precedence",
+        "Convergence, design failure and nonconvergence are distinct reproducible outcomes"
+      ],
+      "dependencies": [
+        "GAP-002",
+        "GAP-005",
+        "GAP-008",
+        "GAP-009",
+        "GAP-010",
+        "GAP-011",
+        "GAP-012",
+        "GAP-014"
+      ],
+      "offline_work": "A complete archived independent example can drive this offline; no need to force the already passing original model to fail.",
+      "windows_work": "Windows needed only if an independently specified reference model lacks native analysis source.",
+      "reviewed_tests": [
+        "test_alpha_design_iteration.py",
+        "test_alpha_low_axial_credit.py",
+        "test_alpha_joint_feasibility.py",
+        "test_vertical_slice_pipeline.py",
+        "test_scwb_axial_interval.py"
+      ],
+      "latest_relevant_evidence": [
+        "EV-R10-LIVE-INTERVAL-20261120",
+        "EV-STORY-STATIC-APPLICABILITY-20261120",
+        "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121"
+      ],
+      "scope_correction": "The original alpha=1 or ALTERNATIVE_NOT_REQUIRED result is not an algorithm failure; it cannot validate the nontrivial feedback branch."
+    },
+    {
+      "id": "GAP-014",
+      "title": "Capacity shear, ties and joint panel",
+      "registered_status": "PARTIAL",
+      "registered_priority": "P0",
+      "verified_existing_scope": "Signed Vd floors, full end-moment capacity shear, zero-concrete comparisons, brittle limits and joint/tie reference branches exist. Earlier 1,392 assigned spectral checks remain recorded.",
+      "remaining_problem": "Current R10 intentionally withholds isolated capacity-shear spans for 14 wall-coupled columns. Full physical anchorage/enclosure and detailing remain; current 73-supported-column behavior must not be confused with earlier all-87 numerical screens.",
+      "actual_owners": [
+        "engineering/column_r10_live.py::_column_capacity_shear_ve",
+        "engineering/column_r10_live.py::_attach_r13_joint_shear_and_transverse",
+        "engineering/column_spectral_shear.py",
+        "column_engine/joint_kernel.py",
+        "column_engine/transverse_kernel.py",
+        "engineering/column_r14_closure.py"
+      ],
+      "required_inputs": [
+        "Qualified physical spans and signed capacities both ends",
+        "Native same-case Vd at all required cuts",
+        "Effective transverse legs/material/spacing",
+        "Joint enclosure, offsets and anchorage",
+        "Compatible column shear deduction and axial branch evidence"
+      ],
+      "closure_experiment": "Complete one physical joint/column example independently through Ve, Vd floor, concrete/zero-concrete branch, brittle ceiling, tie sizing and joint panel. Then reconcile the expected 73 standalone versus 14 coupled population explicitly; supply coupled demand only after GAP-006/009 method qualification.",
+      "independent_oracle": "Independent equilibrium and section/shear worksheet using actual end capacities and joint bar forces; retaining failed results beside missing siblings.",
+      "acceptance": [
+        "Ve >= applicable Vd at the governing native witness",
+        "Both axes/all cases and physical sides accounted",
+        "A lower/upper bound that fails is not mislabeled as a proved physical demand failure unless justified",
+        "Proven native brittle or joint failures cannot become only BLOCKED because a sibling is missing",
+        "All accepted physical details are consumed in R14 and sealed report"
+      ],
+      "dependencies": [
+        "GAP-006",
+        "GAP-008",
+        "GAP-009",
+        "GAP-010",
+        "GAP-011",
+        "GAP-012"
+      ],
+      "offline_work": "Independent Ve/tie/panel calculations and source-bound adapter qualification.",
+      "windows_work": "Missing coupled demands or physical source facts need targeted capture; anchorage is drawing evidence.",
+      "reviewed_tests": [
+        "test_structural_demand_floors.py",
+        "test_r13_joint_adapters.py",
+        "test_column_spectral_shear.py",
+        "test_spectral_shear_failure_propagation.py",
+        "test_alpha_joint_feasibility.py"
+      ],
+      "latest_relevant_evidence": [
+        "EV-C29-SPECTRAL-SHEAR-20261120",
+        "EV-AUDIT-FIXES-20261120",
+        "EV-R10-WALL-COUPLED-CAPACITY-SPAN-20261121"
+      ],
+      "scope_correction": ""
+    },
+    {
+      "id": "GAP-015",
+      "title": "Wall/pier factor and wall design",
+      "registered_status": "OPEN",
+      "registered_priority": "P1",
+      "verified_existing_scope": "Wall rectangular geometry screening exists, including explicit unsupported special branches and missing-panel denominator preservation. It is not a full wall design engine.",
+      "remaining_problem": "Wall/pier/frame identity, overlapping area/force ownership, signed coupled demand, wall flexure/shear and complete boundary/web/coupling-beam detailing are not implemented as one accepted vertical slice.",
+      "actual_owners": [
+        "wall_geometry.py::bind_wall_geometry",
+        "engineering/column_clear_length.py",
+        "engineering/gravity_story_basis.py",
+        "engineering/pipeline.py"
+      ],
+      "required_inputs": [
+        "Physical wall/arm polygons and boundary elements",
+        "Shell/pier membership with a nonoverlap ownership map",
+        "Concurrent integrated resultants",
+        "Actual wall reinforcement and connections",
+        "Applicable wall-system parameters and detailing rules"
+      ],
+      "closure_experiment": "Select one real wall/pier from the report/model bank, establish a physical object independent of ETABS pier label, reconcile integrated section resultants and overlapping columns, then implement its first complete flexure/shear/detail result through the current runner. Start with the geometry family actually supported; do not claim every wall shape.",
+      "independent_oracle": "Independent polygon/section equilibrium, reinforced wall capacity and clause review from a complete worked example; printed wall M22 transformations must first be identified.",
+      "acceptance": [
+        "No duplicated shell/pier/frame contributions",
+        "Complete physical wall/arm population and force state",
+        "All required failure modes/detail branches have results or explicit unsupported reasons",
+        "Normal runner consumes wall results and report projects them",
+        "No blanket engineering closure from wall aspect-ratio pass"
+      ],
+      "dependencies": [
+        "GAP-001",
+        "GAP-002",
+        "GAP-003",
+        "GAP-005",
+        "GAP-006",
+        "GAP-008"
+      ],
+      "offline_work": "Physical wall mapping, independent report reconstruction and existing-runner vertical-slice implementation.",
+      "windows_work": "Missing integrated native wall demands require targeted Windows capture; reinforcement/continuity requires drawings.",
+      "reviewed_tests": [
+        "test_vs08_wall_geometry.py",
+        "test_column_clear_length.py",
+        "test_gravity_story_basis.py"
+      ],
+      "latest_relevant_evidence": [
+        "EV-RECIPE18-INTAKE",
+        "EV-GAP006-C104-SECTION-PROFILE-20261121",
+        "EV-REPORT-SWAY-RECONSTRUCTION-20261121"
+      ],
+      "scope_correction": ""
+    },
+    {
+      "id": "GAP-016",
+      "title": "Golden coverage and complete independent example",
+      "registered_status": "PARTIAL",
+      "registered_priority": "P0",
+      "verified_existing_scope": "The fixed 44-ID comparison has 36 numerical matches, four interpretation differences and four insufficient-source records. Actual Drive report reconstruction and production phi scalar binding are completed in recorded scopes.",
+      "remaining_problem": "PMM, capacity shear, GOLDEN-03 and GOLDEN-04 need complete page/source-bound owner cases; four adopted-factor rows need a justified length/maximum-product policy. A complete actual-owner alpha-below-one design oracle is missing.",
+      "actual_owners": [
+        "verification/golden_gate.py",
+        "verification/report_oracles.py",
+        "column_engine/ts500_column.py::sway_phi_reference",
+        "column_engine/ts500_column.py::select_sway_magnification_factor"
+      ],
+      "required_inputs": [
+        "Original source hash/page/XML locator",
+        "Complete governing inputs and intermediate calculations",
+        "Bar geometry for PMM",
+        "Both end capacities/clear span/D/Vd for capacity shear",
+        "Unambiguous Eq.7.29 length and chosen-factor provenance"
+      ],
+      "closure_experiment": "Resolve one insufficient-source record at a time by a complete real report calculation through the production owner, keeping original IDs and expectations. For GOLDEN-02 compare all printed factors against both declared branches; identify the report convention before deciding normative implementation. Then run a full independent actual-owner design chain.",
+      "independent_oracle": "Independent formulas/solver and source extraction with printed-resolution uncertainty; no oracle importing the production numerical function.",
+      "acceptance": [
+        "44 comparison IDs and denominator preserved",
+        "Expected values/tolerances not adjusted to force agreement",
+        "Arithmetic agreement, source completeness and normative acceptance separately recorded",
+        "All 36 product matches do not by themselves authorize the product rule",
+        "Any remaining discrepancy is retained with its exact data and cause"
+      ],
+      "dependencies": [
+        "GAP-007",
+        "GAP-009",
+        "GAP-010",
+        "GAP-012",
+        "GAP-013",
+        "GAP-014"
+      ],
+      "offline_work": "All report extraction, arithmetic reconstruction and owner binding can be offline when originals are available.",
+      "windows_work": "No ETABS dependency for report-only or capacity references.",
+      "reviewed_tests": [
+        "test_golden_scalar_adapters.py",
+        "test_vs26_golden_gate.py",
+        "test_vs25_pmm_direction_root.py",
+        "test_vertical_slice_pipeline.py"
+      ],
+      "latest_relevant_evidence": [
+        "EV-REPORT-SWAY-RECONSTRUCTION-20261121",
+        "EV-GOLDEN01-OWNER-BINDINGS-20261119",
+        "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121"
+      ],
+      "scope_correction": ""
+    },
+    {
+      "id": "GAP-017",
+      "title": "One pipeline, dependency graph and sealed reports",
+      "registered_status": "PARTIAL",
+      "registered_priority": "P0",
+      "verified_existing_scope": "Web and CLI share EnginePipelineRunner; finalized v2 reports project sealed results; recorded 16-stage replay and zero-calculator report projection exist. Dependency contracts and method identities are present.",
+      "remaining_problem": "Catalog-wide topological execution and a general check-instance ledger are not complete. Existing STAGES and candidate regulatory graph are not interchangeable, and some legacy entry paths remain.",
+      "actual_owners": [
+        "engineering/pipeline.py::StageSpec",
+        "engineering/pipeline.py::STAGES",
+        "engineering/pipeline.py::EnginePipelineRunner",
+        "compiled_dag.py::RegulatoryCompiler",
+        "engineering/pipeline_snapshot.py",
+        "reporting.py"
+      ],
+      "required_inputs": [
+        "One explicit supported-check registry",
+        "Typed produces/consumes and method revisions",
+        "Independent expected instances",
+        "Immutable source/scenario/result identities"
+      ],
+      "closure_experiment": "Trace one complete column/joint chain, then migrate the next existing rule family to typed dependency execution without a parallel solver. Show missing upstream blocks, cycles reject, changed upstream invalidates only dependents, and report opening never recalculates. Report declared/bound/executed/accepted coverage separately.",
+      "independent_oracle": "Independent expected DAG topology and sealed payload comparisons with numerical entrypoints disabled during projection.",
+      "acceptance": [
+        "One canonical calculation owner per rule",
+        "No successful stage inferred from node binding alone",
+        "Every known required instance obtains a terminal result/reason",
+        "Identical source/method gives identical sealed stage payloads",
+        "UI/CLI/report share identities and values"
+      ],
+      "dependencies": [
+        "GAP-005",
+        "GAP-008"
+      ],
+      "offline_work": "Refactor the existing runner/registry incrementally and replay archived source.",
+      "windows_work": "No Windows dependency except new source acquisition for a newly supported rule.",
+      "reviewed_tests": [
+        "test_pipeline_unification.py",
+        "test_design_member_dependencies.py",
+        "test_recorded_column_calculation_report.py",
+        "test_vs05_compiled_dag.py"
+      ],
+      "latest_relevant_evidence": [
+        "EV-D3B-REPLAY",
+        "EV-LOCAL-REPORT",
+        "EV-AUDIT-FIXES-20261120"
+      ],
+      "scope_correction": ""
+    },
+    {
+      "id": "GAP-018",
+      "title": "Spectral design demands and simultaneity",
+      "registered_status": "PARTIAL",
+      "registered_priority": "P0",
+      "verified_existing_scope": "Native modes/eccentricities and source precision contracts exist; the private same-analysis study matches 4,824/4,824 increments and zero-eccentricity CQC maxima. Original-to-private controls match 4,686/4,824, leaving 138 exceptions at 34 columns.",
+      "remaining_problem": "Original full-precision applied amplitudes/effective damping and transferable static eccentricity vectors remain unresolved; signed dynamic design allocation and physical simultaneity are separate policy/method issues, not resolved by componentwise maxima.",
+      "actual_owners": [
+        "engineering/demand_sources.py::native_modal_precision",
+        "engineering/mixed_demands.py::spectral_component_evidence",
+        "column_engine/spectral_envelope.py::replay_component_envelope",
+        "spectrum_reconstruction.py",
+        "engineering/scwb_axial.py",
+        "engineering/column_spectral_shear.py"
+      ],
+      "required_inputs": [
+        "Original generation modal amplitudes, effective damping and function/scaling facts",
+        "Accidental torsion definition and signed static effects",
+        "Same-cut modal force components",
+        "Required design direction/sign policy",
+        "Full expected scalar control inventory"
+      ],
+      "closure_experiment": "Partition the 138 original/private exceptions by case, cut, component, amplitude precision and torsion contribution without changing tolerance. Resolve native precision/transfer on one affected column, then the fixed 4,824 denominator. Separately qualify the demand policy used by SCWB/alpha/PMM; retain proved interval sufficient results when exact concurrency is unavailable.",
+      "independent_oracle": "Independent high-precision CQC/scaling calculation and signed static torsion equilibrium on the same analysis; orthogonal/damping limits and exact perturbations. Physical concurrency is not an oracle output of SRSS/CQC component extrema.",
+      "acceptance": [
+        "All 4,824 controls accounted at frozen tolerance",
+        "Each exception has a resolved cause or remains open",
+        "No double spectrum scaling, 100/30 or alpha factor",
+        "No scalar interval corner labeled a simultaneous physical vector",
+        "Any sufficient bound is explicitly scoped; failed bound alone is not a proven physical failure"
+      ],
+      "dependencies": [
+        "GAP-002",
+        "GAP-003",
+        "GAP-004",
+        "GAP-006",
+        "GAP-008"
+      ],
+      "offline_work": "Exception clustering, high-precision reconstruction and method-policy validation on archived packets.",
+      "windows_work": "Missing original applied modal/torsion data and controlled paired analysis require Windows; existing solved evidence should be reused first.",
+      "reviewed_tests": [
+        "test_native_demand_sources.py",
+        "test_same_source_spectral_replay.py",
+        "test_vs26_spectral_envelopes.py",
+        "test_scwb_axial_interval.py",
+        "test_column_spectral_shear.py"
+      ],
+      "latest_relevant_evidence": [
+        "EV-GAP018-MANUAL-PAIR-20261119",
+        "EV-GAP018-PAIR-CONTROL-20261119",
+        "EV-R10-LIVE-INTERVAL-20261120",
+        "EV-STORY-STATIC-APPLICABILITY-20261120"
+      ],
+      "scope_correction": ""
+    }
+  ]
+}

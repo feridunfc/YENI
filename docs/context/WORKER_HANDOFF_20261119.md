@@ -1,5 +1,43 @@
 # Local development and GitHub worker handoff
 
+## Active supervisor assignment — system audit 21 November 2026
+
+Read the [system audit](../supervisor/SYSTEM_AUDIT_20261121.md) and
+[canonical roadmap](../supervisor/ROADMAP_20261121.md). The inspected base is
+`c71a4dda4ab9453f428a38b3ed79931f8e6eeea3`; inspect the current remote before
+starting new code work. The audit changes documentation and adds bounded
+diagnostics only. All S00–S15 implementation packages remain proposed.
+
+**Offline worker: S00.** Reproduce the signed-datum/expected-count defect,
+the complete-data balance/conditional-consumer defect and the receipt
+99/100 boundary using [the audit commands](../supervisor/audit_20261121/README.md).
+Correct the existing owners with targeted regressions. Preserve the
+conditional frame calculation where full-wall evidence is merely absent;
+only qualified complete-contributor, same-state, independently loaded
+equilibrium can establish the contradiction that blocks dependent use.
+Retain diagnostic values and every expected unresolved instance. Then
+replay the actual archived C29 source/scenario to establish impact.
+
+**Windows worker: S02 in parallel.** Continue the exact two-cut first-order
+balance below, beginning with `C29G_U_F` and extending to TN_F/TP_F. Rediscover
+the active source/PID and installed API; reuse a valid solved generation.
+Report physical contributor counts 53 and 36 separately from generated
+shell row counts. A balance table is a valid partial delivery while the
+wall critical-load method remains open.
+
+**Research/verification lane:** prepare E09-B/C/D/E and the independent
+fixed-N/direction section oracle; qualify the `strongcol4.docx` alpha-below-one
+example's actual capacity/source inputs. Calculate viable alternatives
+before method review. A failed eigenvalue-to-story-Nk mapping is not a
+reason to fabricate Nk or to prohibit a qualified direct-demand candidate.
+
+One integration owner and one writer per module. Each return must include
+source/case/cut, expected/evaluated population, actual owner and downstream
+consumer, numerical values/error budget, independent check, remaining
+scope and the next exact action. The completed C29 full-span recovery is
+not restarted as a substitute for these missing calculations. Existing
+native results and test counts below remain historical evidence.
+
 ## Windows regression checkpoint
 
 `EV-WINDOWS-OFFLINE-31A8B08-20261121` records the user's completed Windows

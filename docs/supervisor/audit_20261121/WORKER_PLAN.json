@@ -1,0 +1,682 @@
+{
+  "schema": "yeni.supervisor.worker-plan.v1",
+  "date": "2026-11-21",
+  "inspected_baseline": "c71a4dda4ab9453f428a38b3ed79931f8e6eeea3",
+  "status": "AUDIT_COMPLETE_IMPLEMENTATION_PROPOSED",
+  "production_changes_in_audit": false,
+  "execution_policy": "Use existing production owners and normal runner; one active writer per source module; research exemplars are not original-building evidence.",
+  "dependency_semantics": "depends_on gates final integration/acceptance artifacts; research, schema and source preparation may start earlier. It does not require globally closing an entire upstream GAP.",
+  "first_parallel_lanes": {
+    "offline": "S00",
+    "windows": "S02",
+    "research": "S04 experiment design and S06 oracle inputs"
+  },
+  "registered_gap_count": 18,
+  "work_packages": [
+    {
+      "id": "S00",
+      "title": "Repair reproduced source and receipt defects",
+      "status": "PLANNED_NOT_RUN",
+      "gaps": [
+        "GAP-005",
+        "GAP-009",
+        "GAP-017"
+      ],
+      "depends_on": [],
+      "environment": "Offline first; Windows only for the subsequent private native-C29 replay.",
+      "required_inputs": [
+        "Current baseline and the two audit reproduction scripts",
+        "Existing test_engine_r08_story, test_r08_story_second_order and test_gravity_story_basis inputs",
+        "Sealed native C29 source/scenario for post-fix impact assessment"
+      ],
+      "existing_owners": [
+        "engineering/story_pdelta.py",
+        "story_second_order.py",
+        "engineering/gravity_story_basis.py",
+        "engineering/gravity_pair_refinement.py",
+        "receipts.py",
+        "history.py",
+        "engineering/pipeline_snapshot.py",
+        "web.py",
+        "column_engine/store.py",
+        "engineering/cli_adapter.py"
+      ],
+      "procedure": [
+        "Allow finite signed absolute elevations; retain positive height and other physical input constraints. Freeze the known story-direction denominator before numerical failure.",
+        "Distinguish unavailable wall evidence from a complete, same-state, independently qualified balance that demonstrably fails. Propagate the latter to conditional consumer eligibility while retaining diagnostic numbers.",
+        "Read variable-width numeric receipt prefixes and sort numerically; check duplicate indices and terminal-record selection. Cover 99, 100 and 101 records.",
+        "Rerun the native C29 archive through the normal runner after the correction and report whether its supported results change."
+      ],
+      "independent_oracle": "Datum translation invariance; independent +100 kN imbalance in an existing complete fixture; actual 100-record writer/reader comparison.",
+      "acceptance": [
+        "Translated datum preserves theta and four expected instances. Invalid numerical input retains four unresolved instances.",
+        "Missing wall evidence preserves the authorized conditional scenario; a qualified -100 kN balance contradiction cannot produce consumer-eligible factors.",
+        "The complete reader/caller census accounts for records across the 99/100 boundary in numeric order, including web, store and CLI assumptions beyond the two probed readers.",
+        "Native replay has an explicit before/after table; no assertion that a fixture proves original-building impact."
+      ],
+      "stop_or_branch": "Do not broaden this repair into a new second-order method or rewrite the runner. A failed native replay is an accounted result requiring a scoped follow-up, not a reason to delete completed evidence.",
+      "deliverable": "Targeted regression changes, before/after probes, source hashes and one normal-runner C29 impact report."
+    },
+    {
+      "id": "S01",
+      "title": "Qualify project profile, generation and required design scope",
+      "status": "PLANNED_NOT_RUN",
+      "gaps": [
+        "GAP-001",
+        "GAP-002",
+        "GAP-003",
+        "GAP-004",
+        "GAP-005",
+        "GAP-007",
+        "GAP-008"
+      ],
+      "depends_on": [
+        "S00"
+      ],
+      "environment": "Mostly offline source reconciliation; Windows for specifically absent native facts.",
+      "required_inputs": [
+        "Project-adopted standard edition and amendments",
+        "Native system, story/basement roles, mass, modifiers and analysis-case settings",
+        "Required combination/family roster and actual source-generation evidence"
+      ],
+      "existing_owners": [
+        "candidate_model_contracts.py",
+        "engineering/analysis_setup.py",
+        "engineering/mixed_demands.py",
+        "engineering/design_assignments.py",
+        "engineering/design_scenario.py",
+        "engineering/pipeline.py"
+      ],
+      "procedure": [
+        "Create a field-level sourced/adopted/unresolved applicability matrix, including BKS/DTS/BYS and directional system parameters where relevant.",
+        "Freeze required check/combination populations independently from captured or successful rows.",
+        "Use existing recursive Linear Add expansion; classify unsupported operators and missing leaves rather than reimplement recursion.",
+        "Challenge a contradictory source generation, wrong structural role and missing required combination through real consumers."
+      ],
+      "independent_oracle": "Independent project worksheet and adopted primary clauses; controlled source-state changes; hand-expanded representative combination AST.",
+      "acceptance": [
+        "Every mandatory field has provenance or an explicit unresolved reason.",
+        "Case/step/source identity survives capture, scenario and consumer stages.",
+        "Missing and failed required instances remain in the denominator.",
+        "No approval-shaped field alone enables global acceptance."
+      ],
+      "stop_or_branch": "Engineering assumptions that cannot be read from ETABS become named decisions with calculated alternatives; do not repeatedly query an API for construction intent.",
+      "deliverable": "Versioned model/profile and combination manifests consumed by the current runner, with known unresolved scope."
+    },
+    {
+      "id": "S02",
+      "title": "Close the C29 full column-wall first-order balance",
+      "status": "PLANNED_NOT_RUN",
+      "gaps": [
+        "GAP-009",
+        "GAP-004",
+        "GAP-008"
+      ],
+      "depends_on": [],
+      "environment": "Windows native source lane, followed by offline integration. May start in parallel with S00.",
+      "required_inputs": [
+        "Valid solved finest METHOD generation and C29G_U_F, then TN_F and TP_F",
+        "Two physical cuts: +0.00 with 32 columns and 21 walls; +4.50 with 32 columns and four walls",
+        "Independent upper-body applied loads and self weight; actual cut side, origin and axis definitions"
+      ],
+      "existing_owners": [
+        "etabs_source_gateway_windows.py",
+        "frame_force_capture.py",
+        "engineering/gravity_story_basis.py",
+        "engineering/gravity_pair_refinement.py"
+      ],
+      "procedure": [
+        "Read current installed API/output settings; acquire exact signed case/step rows and restore selections through the existing gateway. Do not assume the historical PID is still current.",
+        "Transform point-element forces correctly to global axes, integrate the upper boundary once, and preserve every contributor identity.",
+        "First publish both cuts for U_F; then extend to all six first-order case-cuts. Compare native section cuts as a second extraction path where available."
+      ],
+      "independent_oracle": "Independent load/self-weight accounting and signed equilibrium; SectionCutAnalysis cross-checks extraction but is not an independent solver.",
+      "acceptance": [
+        "Both physical contributor censuses are complete and same-state qualified.",
+        "All six case-cuts account for signed force, compression, external load and residual with existing abs=0.01 kN / rel=1e-6 isclose semantics.",
+        "Missing rows are unresolved, never zero compression.",
+        "Full free-body completion is reported separately from the unsupported wall critical-load method."
+      ],
+      "stop_or_branch": "If only Max/Min shell rows are available, resolve the setting/state issue instead of relabeling them Step 1. Do not rerun the completed 18 cases unless their solved generation is invalid or a bounded missing result requires it.",
+      "deliverable": "Six-row complete balance summary plus per-contributor lineage, sealed through the existing story consumer."
+    },
+    {
+      "id": "S03",
+      "title": "Qualify C104 physical coupling and local section resultants",
+      "status": "PLANNED_NOT_RUN",
+      "gaps": [
+        "GAP-006",
+        "GAP-015"
+      ],
+      "depends_on": [
+        "S01"
+      ],
+      "environment": "Construction/detail review plus Windows controlled analyses and offline integration.",
+      "required_inputs": [
+        "C104/W21/W22 geometry and frame-shell connections",
+        "Two gross geometries across elevation -1.50 m",
+        "Actual longitudinal/transverse reinforcement, anchorage and construction continuity",
+        "Existing 50/25 mm matched mesh evidence"
+      ],
+      "existing_owners": [
+        "engineering/column_clear_length.py",
+        "column_engine/csi_geometry.py",
+        "engineering/column_pmm.py",
+        "engineering/column_r10_live.py",
+        "engineering/column_r08_local_live.py"
+      ],
+      "procedure": [
+        "Decide and document which physical parts act as one reinforced section and which exchange forces as connected members.",
+        "Integrate common physical section resultants in a common origin, including moment transfer r cross F.",
+        "Separate mesh change, geometry change and material/EI change; study local transfer zones and both geometry regions.",
+        "Keep all 14 coupled columns visible; do not reuse isolated clear-length capacity shear where not qualified."
+      ],
+      "independent_oracle": "Independent free-body integration and a reduced analytical model only within justified kinematics; construction drawings determine reinforcement continuity.",
+      "acceptance": [
+        "Actual reinforcement/connection assumptions are sourced or explicitly adopted.",
+        "Six resultants balance at defined cuts.",
+        "Local governing demand and transfer quantities meet prespecified convergence budgets; frequency/base agreement alone is insufficient.",
+        "The existing 73 standalone scope is preserved while the coupled scope is explicitly qualified or unresolved."
+      ],
+      "stop_or_branch": "Missing construction detail is a source/decision task, not a reason to run more COM getters. Do not treat every generated frame station as a physical section.",
+      "deliverable": "Physical section/connection contract for both geometries and a local-resultant convergence report."
+    },
+    {
+      "id": "S04",
+      "title": "Choose and qualify the second-order method by domain",
+      "status": "PLANNED_NOT_RUN",
+      "gaps": [
+        "GAP-009",
+        "GAP-016"
+      ],
+      "depends_on": [
+        "S00",
+        "S01",
+        "S02",
+        "S03"
+      ],
+      "environment": "Research can start immediately; final integration uses qualified S01-S03 artifacts.",
+      "required_inputs": [
+        "Source-compatible loads, geometry, stiffness, creep and support assumptions",
+        "Every member/neighbor EI/L term and actual local-axis mapping",
+        "Supplied TS500 edition and unresolved Eq.7.29 interpretation",
+        "Actual variable-N and frozen Nmax cases"
+      ],
+      "existing_owners": [
+        "engineering/gravity_story_basis.py",
+        "engineering/gravity_deformation.py",
+        "engineering/gravity_pair_refinement.py",
+        "engineering/column_effective_length.py",
+        "engineering/column_r08_local_live.py",
+        "column_engine/ts500_column.py"
+      ],
+      "procedure": [
+        "Execute E09-B/C: direct matched first/second-order response and load-pattern-specific eigenbuckling with analytical limits and mode/mesh sensitivity.",
+        "Derive any scalar system-to-story Nk mapping; if unsupported, calculate a bounded direct-demand alternative through current design owners.",
+        "Source-bind every EI/L term or identify its adopted idealization.",
+        "Execute E09-D/E: separate the narrow Nmax stability statement from signed response/PMM bounds; compute discriminating length and product/max interpretations."
+      ],
+      "independent_oracle": "Analytical member/frame limits, independent reduced model where justified, converged direct response, primary-code applicability and a branch-discriminating report case.",
+      "acceptance": [
+        "The chosen route names its material, cracking, creep, slenderness, axial-variation and coupling domain.",
+        "Eigenvalue times story Nd is not accepted as Nk without a demonstrated mapping.",
+        "No double application of initial P-Delta and magnification; first/second analyses share the intended basis.",
+        "All calculable candidates, their differences where comparable, and failed or unsupported scalar-mapping evidence are recorded. A qualified direct route can be reviewed without manufacturing Nk."
+      ],
+      "stop_or_branch": "A failed scalar mapping ends that hypothesis; it does not justify inventing wall Nk. Direct linear-material geometric response also must not be declared a complete nonlinear-material code method without qualification.",
+      "deliverable": "Versioned method decision and implemented consumer for its supported domain, with alternative results and remaining limitations."
+    },
+    {
+      "id": "S05",
+      "title": "Resolve spectral scalar residuals and design-demand policy",
+      "status": "PLANNED_NOT_RUN",
+      "gaps": [
+        "GAP-018",
+        "GAP-008"
+      ],
+      "depends_on": [
+        "S01"
+      ],
+      "environment": "Offline reconstruction; Windows only for absent full-precision modal/torsion inputs.",
+      "required_inputs": [
+        "Frozen 4,824 comparison population, 4,686 matches and 138 exceptions at 34 columns",
+        "Original modal amplitudes, modes, damping, scaling and eccentricity definitions",
+        "Physical cuts and exact generation identities"
+      ],
+      "existing_owners": [
+        "engineering/demand_sources.py",
+        "engineering/mixed_demands.py",
+        "spectrum_reconstruction.py",
+        "column_engine/spectral_envelope.py",
+        "engineering/scwb_axial.py",
+        "engineering/column_spectral_shear.py"
+      ],
+      "procedure": [
+        "Partition the 138 exceptions by mechanism and resolve one representative end to end before broad recapture.",
+        "Recompute the whole fixed population without increasing tolerances to absorb unexplained error.",
+        "Separately calculate an explicit sufficient-bound/envelope policy or compatible signed reference scenario for each design consumer.",
+        "Demonstrate coverage of any continuous PMM search; interval corners alone are not a general proof."
+      ],
+      "independent_oracle": "Independent high-precision CQC/scale arithmetic, damping/orthogonal limits and static torsion equilibrium.",
+      "acceptance": [
+        "All 4,824 controls remain accounted.",
+        "Resolved precision or scaling mechanisms reproduce the relevant class.",
+        "No scalar spectrum extrema are labeled physically simultaneous.",
+        "Design-bound success, bound failure, physical failure and unresolved applicability have distinct meanings."
+      ],
+      "stop_or_branch": "Do not search for a unique simultaneous N-M-V state in Max/Min spectra: that information is absent. Unexplained cases remain explicit while proved narrower sufficient bounds remain usable.",
+      "deliverable": "Fixed-population residual ledger and a separately versioned design-demand policy with actual consumer examples."
+    },
+    {
+      "id": "S06",
+      "title": "Qualify independent section capacity and cage/detailing inputs",
+      "status": "PLANNED_NOT_RUN",
+      "gaps": [
+        "GAP-010",
+        "GAP-011",
+        "GAP-016"
+      ],
+      "depends_on": [
+        "S01"
+      ],
+      "environment": "Offline independent numerical work; missing real drawings/report inputs may require source retrieval.",
+      "required_inputs": [
+        "Actual bar coordinates, cover, materials and cage roles",
+        "Matched N and moment direction for C29 and one complete reference example",
+        "Strain/material laws and production section-method domain"
+      ],
+      "existing_owners": [
+        "column_engine/section_capacity.py",
+        "engineering/column_pmm.py",
+        "engineering/rebar_selection.py",
+        "column_engine/transverse_kernel.py",
+        "verification/golden_gate.py",
+        "verification/report_oracles.py"
+      ],
+      "procedure": [
+        "Use an independent strip/fiber integration, axial root and radial geometry implementation; do not call the production capacity owner from the oracle.",
+        "Verify analytic limits, multiple relevant roots and spatial/angular convergence at fixed N and direction.",
+        "Test the actual selected cage, not a same-area surrogate.",
+        "Coordinate missing-source acquisition for the four goldens, but close only PMM_REPORT_GATE here. CAPACITY_SHEAR_REPORT_GATE belongs to S07; GOLDEN03/04 second-order report gates belong to S04/reference work. Preserve interpretation differences until adjudicated."
+      ],
+      "independent_oracle": "Independent numerical implementation and analytic limits; matched OpenSees fiber experiment may supplement but does not establish TS500 material acceptance.",
+      "acceptance": [
+        "Prespecified capacity-unit tolerances are supported by residual and discretization estimates.",
+        "Section equilibrium and ray admissibility are checked at domain boundaries.",
+        "Shared constitutive assumptions are listed separately from implementation independence.",
+        "Minimum/detailing constraints and section resistance remain distinct checks."
+      ],
+      "stop_or_branch": "A rounded report match or a broad regression tolerance is not an independent PMM error bound. Expand beyond the current section domain only with its own evidence.",
+      "deliverable": "Independent capacity comparison table, complete cage input evidence and one qualified section-method domain."
+    },
+    {
+      "id": "S07",
+      "title": "Complete standalone beam-column-joint capacity chain",
+      "status": "PLANNED_NOT_RUN",
+      "gaps": [
+        "GAP-012",
+        "GAP-014"
+      ],
+      "depends_on": [
+        "S01",
+        "S06"
+      ],
+      "environment": "Offline using complete source and detailing inputs; targeted native reads only as needed.",
+      "required_inputs": [
+        "Complete incident beams and columns at a real joint",
+        "Actual beam longitudinal steel, anchorage, support faces and axial assumption",
+        "Signed compatible demands and selected cages"
+      ],
+      "existing_owners": [
+        "engineering/beam_r10_live.py",
+        "column_engine/beam_capacity.py",
+        "engineering/column_r10_live.py",
+        "column_engine/joint_kernel.py",
+        "column_engine/transverse_kernel.py"
+      ],
+      "procedure": [
+        "Compute actual signed end capacities and same-cut native Vd alongside capacity-derived Ve.",
+        "Run transverse reinforcement and joint-panel checks with actual geometry and confinement/anchorage facts.",
+        "Show a supported failure as well as a pass without losing incomplete neighbors.",
+        "Progress standalone members first; couple wall-frame capacity shear only after S03/S04 and the relevant wall design contract."
+      ],
+      "independent_oracle": "Independent beam/column capacity, shear and joint worksheets with exact incident-member census and source-linked clauses.",
+      "acceptance": [
+        "All incident member endpoints are included or explicitly unresolved.",
+        "Brittle limits and known failures survive other missing checks.",
+        "No obsolete cage or first-order demand reaches final shear/joint consumers.",
+        "Final numbers reach the normal-runner sealed report."
+      ],
+      "stop_or_branch": "Beam N=0 and slab/anchorage contributions require an explicit applicable assumption; do not infer them from missing source fields.",
+      "deliverable": "One complete standalone column-beam-joint calculation chain, with supported scope and failure witnesses."
+    },
+    {
+      "id": "S08",
+      "title": "Demonstrate nontrivial alpha feedback with real owners",
+      "status": "PLANNED_NOT_RUN",
+      "gaps": [
+        "GAP-013",
+        "GAP-016"
+      ],
+      "depends_on": [
+        "S06",
+        "S07"
+      ],
+      "environment": "Offline candidate preparation; native reanalysis only if the chosen revision invalidates source stiffness/geometry.",
+      "required_inputs": [
+        "A complete real case with 0.70 <= alpha < 1",
+        "Candidate: strongcol4.docx story 1, Vk/Vs 45.813/41.607 and 54.035/41.450; capacities and generation still need binding",
+        "Original immutable demand, incident capacities and actual cages",
+        "A qualified second-order method for this benchmark with source/stiffness/applicability identity; use an applicable standalone method. Require the relevant S04 artifact only if the example enters its coupled or unresolved domain."
+      ],
+      "existing_owners": [
+        "engineering/alpha_iteration.py",
+        "engineering/design_dependencies.py",
+        "engineering/column_r10_live.py",
+        "engineering/beam_r10_live.py",
+        "column_engine/story_alpha.py",
+        "column_engine/scwb_kernel.py",
+        "engineering/column_r14_closure.py"
+      ],
+      "procedure": [
+        "Compute alpha through real capacities; the report candidate gives about 0.908192 and 0.767095, not a preapproved new source.",
+        "Apply the prescribed demand transformation exactly once from the original demand, then rerun selection, PMM, Ve, ties and joints.",
+        "Record each iteration, source invalidation and convergence or exhaustion.",
+        "Keep alpha=1 and alpha<0.70 as separate control/system-boundary cases."
+      ],
+      "independent_oracle": "Independent joint/story force partition and end-capacity worksheet; visible before/after change in an actual downstream governing result.",
+      "acceptance": [
+        "No injected successful-stage dictionaries.",
+        "At least one genuine downstream demand, utilization or cage decision changes.",
+        "Replaying the same source cannot compound the factor.",
+        "Nonconvergence and the alpha<0.70 structural-system consequence are reported explicitly."
+      ],
+      "stop_or_branch": "The original C29 zero-iteration outcome remains valid within its scope. If the report lacks capacities, acquire those exact fields or identify a separately named complete physical benchmark. Do not wait for the full C29 wall-frame method to verify an independently qualified standalone alpha example; do not bypass the chosen example's own second-order qualification.",
+      "deliverable": "Sealed before/after feedback example with all affected consumers and a transparent stopping reason."
+    },
+    {
+      "id": "S09",
+      "title": "Align execution, required instances and sealed reporting",
+      "status": "PLANNED_NOT_RUN",
+      "gaps": [
+        "GAP-005",
+        "GAP-017"
+      ],
+      "depends_on": [
+        "S00",
+        "S01"
+      ],
+      "environment": "Offline architecture lane; coordinate module ownership with engineering work.",
+      "required_inputs": [
+        "Actual runner sequence, 22 registry entries and candidate mapping",
+        "Current supported physical/family census",
+        "Recorded source/scenario/stage/report hashes"
+      ],
+      "existing_owners": [
+        "engineering/pipeline.py",
+        "engineering/design_dependencies.py",
+        "compiled_dag.py",
+        "engineering/pipeline_snapshot.py",
+        "reporting.py",
+        "engineering/column_r10_live.py"
+      ],
+      "procedure": [
+        "Expose R14 and hidden report-evidence checks in the registry without duplicating their calculation owners.",
+        "Validate current consumes/produces against actual execution and retain unresolved required instances.",
+        "Extract neutral frame topology from R10 with unchanged semantics and dedicated migration comparisons.",
+        "Define the scoped acceptance-result contract and keep finalized report generation a pure projection."
+      ],
+      "independent_oracle": "Recorded-run equivalence, deliberate missing/failing instance challenges, UI/CLI/report identity checks and source-to-result trace review.",
+      "acceptance": [
+        "Registry claims match invoked owners and artifacts.",
+        "Every supported required instance has a terminal result/reason.",
+        "Identical source/method produces equivalent sealed stage payloads.",
+        "Neither node binding nor UI visibility is counted as engineering execution or approval."
+      ],
+      "stop_or_branch": "Do not introduce another 94-node runtime. Avoid changing geometry identities and engineering formulas in one patch.",
+      "deliverable": "Observable current execution graph, complete supported-instance ledger and source-compatible geometry ownership."
+    },
+    {
+      "id": "S10",
+      "title": "Qualify and extend the supported frame design slice",
+      "status": "PLANNED_NOT_RUN",
+      "gaps": [
+        "GAP-001",
+        "GAP-005",
+        "GAP-009",
+        "GAP-010",
+        "GAP-011",
+        "GAP-012",
+        "GAP-013",
+        "GAP-014",
+        "GAP-016",
+        "GAP-017",
+        "GAP-018"
+      ],
+      "depends_on": [
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "S09"
+      ],
+      "environment": "Integrated offline/native replay under the declared source basis.",
+      "required_inputs": [
+        "Qualified previous-sprint artifacts",
+        "All 87 original columns and every required case/check instance",
+        "Independent complete design example and scoped acceptance criteria"
+      ],
+      "existing_owners": [
+        "engineering/pipeline.py",
+        "engineering/column_r14_closure.py",
+        "verification/golden_gate.py",
+        "reporting.py"
+      ],
+      "procedure": [
+        "Complete one independently verified supported frame design before expanding the accepted domain.",
+        "Account for all 87 columns; distinguish 73 standalone and 14 coupled rather than converting a selected subset to a building result.",
+        "Expand only through qualified domain conditions and demonstrate UI/report/check-ledger agreement.",
+        "Use a scoped acceptance evaluator with evidence and review, not a hard-coded READY edit."
+      ],
+      "independent_oracle": "Complete independent design calculation using the same physical/source/cage identities.",
+      "acceptance": [
+        "Supported scope is independently verified end to end.",
+        "All excluded/unsupported required members remain visible with reasons.",
+        "Fresh full regression results identify environment, commit, logs and skip reasons.",
+        "Whole-building acceptance remains unavailable while mandatory product families are absent."
+      ],
+      "stop_or_branch": "73 proven lengths are not 73 accepted designs. A selected-column acceptance does not close full-building mandatory scope.",
+      "deliverable": "Reviewed supported-frame release candidate with complete instance accounting and independently checked numerical outputs."
+    },
+    {
+      "id": "S11",
+      "title": "Deliver full wall/pier and coupling-beam design",
+      "status": "PLANNED_NOT_RUN",
+      "gaps": [
+        "GAP-015"
+      ],
+      "depends_on": [
+        "S03",
+        "S04",
+        "S06",
+        "S09"
+      ],
+      "environment": "New domain implementation in the existing package; construction and native source evidence required.",
+      "required_inputs": [
+        "Actual wall/pier/coupling-beam reinforcement and physical sections",
+        "Qualified simultaneous or approved bounded demands",
+        "Boundary-region, confinement and applicable system rules"
+      ],
+      "existing_owners": [
+        "wall_geometry.py (geometry only)",
+        "engineering/pipeline.py (integration)",
+        "column_engine/section_capacity.py (reuse only within qualified domain)"
+      ],
+      "procedure": [
+        "Create the missing wall domain owner within YENI, with explicit axial-flexural, shear, boundary, confinement and coupling-beam responsibilities.",
+        "Implement one real wall slice including geometry changes and adjoining column interaction.",
+        "Add complete expected instances, independent capacity checks and a sealed report section."
+      ],
+      "independent_oracle": "Independent complete wall/pier/coupling-beam calculation and physical reinforcement/detail review.",
+      "acceptance": [
+        "Wall geometry screening is not relabeled wall design.",
+        "Critical regions and actual reinforcement continuity are included.",
+        "Brittle and ductile checks remain distinct with all required cases accounted."
+      ],
+      "stop_or_branch": "Do not apply the current symmetric rectangular-column PMM domain to arbitrary composite walls without qualification.",
+      "deliverable": "First complete verified wall/pier slice, then a documented domain-expansion plan."
+    },
+    {
+      "id": "S12",
+      "title": "Complete diaphragm transfer and remaining building irregularities",
+      "status": "PLANNED_NOT_RUN",
+      "gaps": [],
+      "depends_on": [
+        "S01",
+        "S09"
+      ],
+      "environment": "Whole-building domain milestone; can proceed beside wall research.",
+      "required_inputs": [
+        "Diaphragm constraints, openings, collectors/chords and transfer levels",
+        "Applicable A2/A3/B3 and other required building checks",
+        "Same-state floor/cut force and geometric evidence"
+      ],
+      "existing_owners": [
+        "diaphragm_probe.py (source)",
+        "physical_story_scope.py",
+        "weak_story_b1.py",
+        "soft_story_b2.py",
+        "engineering/pipeline.py"
+      ],
+      "procedure": [
+        "Define missing physical diaphragm/load-path checks and their required instance population.",
+        "Implement one force-transfer example with collectors/chords and opening/transfer applicability.",
+        "Keep already implemented A1/B1/B2 scopes separate from missing irregularity rules."
+      ],
+      "independent_oracle": "Independent floor free body and clause-level geometry/applicability worksheet.",
+      "acceptance": [
+        "Force transfer is checked, not inferred from a rigid-diaphragm assignment.",
+        "All applicable irregularity instances are classified with evidence."
+      ],
+      "stop_or_branch": "An existing UI/catalog row is not a calculation owner. Introduce missing owners through the common runner only.",
+      "deliverable": "Verified diaphragm/transfer slice and an explicit complete irregularity applicability matrix."
+    },
+    {
+      "id": "S13",
+      "title": "Complete slab and beam serviceability/design families",
+      "status": "PLANNED_NOT_RUN",
+      "gaps": [],
+      "depends_on": [
+        "S01",
+        "S06",
+        "S09"
+      ],
+      "environment": "Whole-building milestone with bounded sub-sprints for slab, punching and beam SLS/torsion.",
+      "required_inputs": [
+        "Slab geometry/supports/openings, reinforcement and applicable load cases",
+        "Long-term cracking/creep assumptions and serviceability limits",
+        "Beam torsion, side reinforcement, anchorage and actual support conditions"
+      ],
+      "existing_owners": [
+        "engineering/beam_r10_live.py (existing beam capacity integration)",
+        "column_engine/beam_capacity.py (limited existing capacity domain)",
+        "engineering/pipeline.py"
+      ],
+      "procedure": [
+        "Add missing slab flexure/punching/serviceability owners with actual physical sections.",
+        "Complete beam torsion/side reinforcement/anchorage and crack/deflection scopes as separate bounded cards.",
+        "Use stated long-term stiffness and load assumptions; preserve construction versus selected reinforcement roles."
+      ],
+      "independent_oracle": "Independent slab/punching and beam SLS/torsion calculations with analytical limits and matched physical examples.",
+      "acceptance": [
+        "Each family reaches a normal-runner report and independent numerical comparison.",
+        "Instantaneous and long-term deflection/strength checks remain distinct.",
+        "Missing detailing and serviceability scope cannot vanish from building acceptance."
+      ],
+      "stop_or_branch": "Treat this as a milestone to decompose after the first physical example is selected, not a promise to implement an entire slab/beam code in one short sprint.",
+      "deliverable": "Verified first examples and domain-specific acceptance matrices for the missing horizontal-member families."
+    },
+    {
+      "id": "S14",
+      "title": "Deliver foundation and ground-interface design",
+      "status": "PLANNED_NOT_RUN",
+      "gaps": [],
+      "depends_on": [
+        "S01",
+        "S09"
+      ],
+      "environment": "Whole-building milestone; geotechnical and construction inputs are essential.",
+      "required_inputs": [
+        "Geotechnical design parameters and adopted combinations",
+        "Foundation geometry, contact/uplift conditions, reinforcement and supports",
+        "Qualified superstructure reactions and applicable soil-structure assumptions",
+        "Applicable qualified flexure, shear and punching methods; consume the specific S11/S13 artifacts only where the chosen foundation requires them, without waiting for unrelated wall or beam-SLS completion."
+      ],
+      "existing_owners": [
+        "engineering/column_mat_support.py (support qualification only)",
+        "engineering/pipeline.py"
+      ],
+      "procedure": [
+        "Implement ground pressure/contact/uplift and foundation flexure, punching and shear as explicit new domain owners.",
+        "Distinguish superstructure end restraint from foundation capacity and geotechnical acceptability.",
+        "Qualify one actual foundation example and then the supported foundation types."
+      ],
+      "independent_oracle": "Independent geotechnical/contact and reinforced-concrete foundation calculations, including equilibrium and limiting cases.",
+      "acceptance": [
+        "Load combinations, contact domain and soil assumptions are explicit.",
+        "Foundation and soil failure modes have independent results.",
+        "Support qualification is never represented as completed foundation design."
+      ],
+      "stop_or_branch": "Start source/schema work in parallel; final acceptance needs qualified upstream reactions and domain methods. Missing geotechnical parameters cannot be inferred from ETABS labels.",
+      "deliverable": "First integrated foundation/soil-interface design slice and supported-domain statement."
+    },
+    {
+      "id": "S15",
+      "title": "Independent whole-building acceptance and release",
+      "status": "PLANNED_NOT_RUN",
+      "gaps": [],
+      "depends_on": [
+        "S10",
+        "S11",
+        "S12",
+        "S13",
+        "S14"
+      ],
+      "environment": "Controlled integration and independent engineering review.",
+      "required_inputs": [
+        "Completed applicable domain owners and full required-instance census",
+        "Versioned accepted profile, methods and design/cage revisions",
+        "Independent building example and all material discrepancy decisions"
+      ],
+      "existing_owners": [
+        "engineering/pipeline.py",
+        "compiled_dag.py",
+        "verification/golden_gate.py",
+        "reporting.py"
+      ],
+      "procedure": [
+        "Run a complete independently checkable building example through the common source-to-report route.",
+        "Reconcile physical source tree, rule applicability, dependency graph and result tree without disappearing required instances.",
+        "Implement and exercise the scoped acceptance evaluator and review workflow.",
+        "Freeze final source/method identities, full test logs, numerical differences and accepted limitations."
+      ],
+      "independent_oracle": "Independent complete structural calculation and review of source, methods, detailing and governing failure modes.",
+      "acceptance": [
+        "Every required instance is covered or has an accepted applicability exclusion.",
+        "No unresolved mandatory numerical/source/method failure is hidden by a global flag.",
+        "UI, CLI, exported report and ledger agree on scope and status.",
+        "Release is a reviewed evidence result, not a test-count threshold."
+      ],
+      "stop_or_branch": "Do not advertise complete building READY before mandatory wall/slab/foundation/diaphragm and other applicable families are qualified.",
+      "deliverable": "Reviewed engineering release for an explicit building/product domain, with reproducible evidence and remaining exclusions."
+    }
+  ],
+  "whole_building_milestones": [
+    "S11",
+    "S12",
+    "S13",
+    "S14",
+    "S15"
+  ]
+}

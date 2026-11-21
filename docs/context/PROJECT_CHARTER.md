@@ -9,6 +9,30 @@ Its branch list and publication hold describe that dated snapshot. The
 [worker handoff](WORKER_HANDOFF_20261119.md) carries the current branch workflow.
 [Original source manifest](../engineering/reference/recipe_20261118/delivery/SOURCE_MANIFEST.json)
 
+## Current architecture and forward plan
+
+The [21 November system audit](../supervisor/SYSTEM_AUDIT_20261121.md),
+[current implementation architecture](../ARCHITECTURE.md) and
+[canonical S00–S15 roadmap](../supervisor/ROADMAP_20261121.md) reconcile the
+present product with the historical reference documents. Older TBDY,
+Column and Column-Engine constitutions retain their original repository,
+date and evidence scope; they do not transfer branch rules or ownership
+into YENI.
+
+Keep factual authority separate from normative authority: current verified
+code and source/receipt identities establish what was executed; applicable
+primary standards, project applicability and qualified method decisions
+establish what engineering behavior is required. Code does not override a
+standard, and reproducing a report does not approve its hidden assumptions.
+
+Every research question should end with a discriminating experiment,
+calculated candidates or a rejected hypothesis and a bounded next action.
+Prepare calculable alternatives before requesting a method-adoption
+decision. Every implementation slice must reach the existing calculation
+owner, actual dependent consumer and sealed report. Preserve supported
+subscopes and known failures while mandatory unsupported domains remain
+visible in the full-product acceptance population.
+
 ## Calculation and review
 
 - YENI owns one engineering runtime. Web and CLI enter through the same

@@ -1,0 +1,85 @@
+{
+  "schema": "yeni.audit.primary-method-sources.v1",
+  "sources": [
+    {
+      "id": "CSI-01",
+      "url": "https://docs.csiamerica.com/help-files/etabs-api-2016/html/e6826614-bf6b-d3cd-a0e5-5d70e06cbc07.htm",
+      "retrieved_on": "2026-11-21"
+    },
+    {
+      "id": "CSI-02",
+      "url": "https://docs.csiamerica.com/help-files/etabs-api-2016/html/be5b0573-7188-5a02-da50-9a3ab73bf28c.htm",
+      "retrieved_on": "2026-11-21"
+    },
+    {
+      "id": "CSI-03a",
+      "url": "https://docs.csiamerica.com/help-files/etabs/Menus/Define/Section_Cuts.htm",
+      "retrieved_on": "2026-11-21"
+    },
+    {
+      "id": "CSI-03b",
+      "url": "https://docs.csiamerica.com/help-files/etabs/Menus/Define/Section_Cut_Data_Form.htm",
+      "retrieved_on": "2026-11-21"
+    },
+    {
+      "id": "CSI-03c",
+      "url": "https://docs.csiamerica.com/help-files/sap/Output/Section_Cut_Output_Conventions.htm",
+      "retrieved_on": "2026-11-21"
+    },
+    {
+      "id": "CSI-04",
+      "url": "https://docs.csiamerica.com/help-files/etabs/Menus/Analyze/Set_Analysis_Options/Initial_P-Delta_Analysis.htm",
+      "retrieved_on": "2026-11-21"
+    },
+    {
+      "id": "CSI-05",
+      "url": "https://docs.csiamerica.com/help-files/etabs/Menus/Define/Load_Cases/Buckling_Form.htm",
+      "retrieved_on": "2026-11-21"
+    },
+    {
+      "id": "CSI-06",
+      "url": "https://docs.csiamerica.com/manuals/etabs/Analysis%20Reference.pdf",
+      "retrieved_on": "2026-11-21"
+    },
+    {
+      "id": "CSI-07",
+      "url": "https://web.wiki.csiamerica.com/wiki/spaces/etabs/pages/1474589/Torsional%2BIrregularities%2Bcheck%2Bfor%2BResponse%2BSpectrum%2BAnalysis%2BRSA",
+      "retrieved_on": "2026-11-21"
+    },
+    {
+      "id": "CSI-08",
+      "url": "https://docs.csiamerica.com/help-files/etabs/Menus/Define/Load_Cases/Response_Spectrum.htm",
+      "retrieved_on": "2026-11-21"
+    },
+    {
+      "id": "CSI-09",
+      "url": "https://web.wiki.csiamerica.com/wiki/spaces/kb/pages/2005292/Deflected%2Bconfiguration",
+      "retrieved_on": "2026-11-21"
+    },
+    {
+      "id": "CSI-10a",
+      "url": "https://docs.csiamerica.com/help-files/etabs-api-2016/html/a967c5f3-3f6f-4cef-45f3-d9c331494e55.htm",
+      "retrieved_on": "2026-11-21"
+    },
+    {
+      "id": "CSI-10b",
+      "url": "https://docs.csiamerica.com/help-files/etabs-api-2016/html/577536f1-68a6-1d01-d552-84a4a37e5256.htm",
+      "retrieved_on": "2026-11-21"
+    },
+    {
+      "id": "OS-01",
+      "url": "https://opensees.berkeley.edu/OpenSees/manuals/ExamplesManual/HTML/3886.htm",
+      "retrieved_on": "2026-11-21"
+    },
+    {
+      "id": "TBDY-01a",
+      "url": "https://afad.gov.tr/turkiye-bina-deprem-yonetmeligi",
+      "retrieved_on": "2026-11-21"
+    },
+    {
+      "id": "TBDY-01b",
+      "url": "https://www.afad.gov.tr/kurumlar/afad.gov.tr/2309/files/TBDY_2018.pdf",
+      "retrieved_on": "2026-11-21"
+    }
+  ]
+}

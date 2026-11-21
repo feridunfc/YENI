@@ -1,0 +1,891 @@
+{
+  "base_commit": "c71a4dda4ab9453f428a38b3ed79931f8e6eeea3",
+  "module_path": "src/tbdy_next/__init__.py",
+  "registry_stage_count": 22,
+  "mode_counts": {
+    "ARCHIVED_RECEIPT_SCENARIO": 1,
+    "LIVE_SOURCE_RUN": 20,
+    "OFFLINE_COLUMN_BANK": 1
+  },
+  "typed_input_stage_count": 7,
+  "declared_producer_count": 11,
+  "stages": [
+    {
+      "key": "modal",
+      "mode": "LIVE_SOURCE_RUN",
+      "owner": "tbdy_next.modal",
+      "receipts": [
+        "schema-discovery",
+        "schema",
+        "modal"
+      ],
+      "dag_nodes": [
+        "MODAL_MASS"
+      ],
+      "condition": "ALWAYS",
+      "summary": "Modal participating mass ratio"
+    },
+    {
+      "key": "geometry",
+      "mode": "LIVE_SOURCE_RUN",
+      "owner": "tbdy_next.quick_checks",
+      "receipts": [
+        "quick-geometry"
+      ],
+      "dag_nodes": [
+        "BEAM_GEOMETRY",
+        "FRAME_CENSUS_GATE"
+      ],
+      "condition": "SUITE",
+      "summary": "Frame/section geometry census and minimum dimensions",
+      "produces": [
+        {
+          "key": "geometry",
+          "discriminator": "stage",
+          "value": "QUICK_GEOMETRY_SCREENING"
+        }
+      ]
+    },
+    {
+      "key": "material-a1",
+      "mode": "LIVE_SOURCE_RUN",
+      "owner": "tbdy_next.next_checks",
+      "receipts": [
+        "quick-extra"
+      ],
+      "dag_nodes": [
+        "TORSION_A1",
+        "MATERIAL_SECTION_GATE"
+      ],
+      "condition": "NEXT_CAPTURE",
+      "summary": "Concrete fck screening and A1 torsion source classification",
+      "produces": [
+        {
+          "key": "extra",
+          "discriminator": "stage",
+          "value": "VS03_MATERIAL_A1"
+        }
+      ]
+    },
+    {
+      "key": "vs04-source",
+      "mode": "LIVE_SOURCE_RUN",
+      "owner": "tbdy_next.live_source_pipeline",
+      "receipts": [
+        "vs04-schema",
+        "vs04-numerics",
+        "vs04-readiness",
+        "vs04-pipeline"
+      ],
+      "dag_nodes": [
+        "ANALYSIS_BASIS_GATE",
+        "DESIGN_SPECTRUM",
+        "MODAL_PERIOD",
+        "BASE_SHEAR"
+      ],
+      "condition": "ANALYSIS_SOURCES",
+      "summary": "Analysis basis, spectrum and base-shear source screening"
+    },
+    {
+      "key": "story-drift",
+      "mode": "LIVE_SOURCE_RUN",
+      "owner": "tbdy_next.story_drift_binding",
+      "receipts": [
+        "vs05-story-drift"
+      ],
+      "dag_nodes": [
+        "STORY_DRIFT",
+        "STORY_CUT_GATE"
+      ],
+      "condition": "DELTA_SOURCE",
+      "summary": "Story drift source binding"
+    },
+    {
+      "key": "analysis-setup",
+      "mode": "LIVE_SOURCE_RUN",
+      "owner": "tbdy_next.engineering.analysis_setup",
+      "receipts": [
+        "r03-analysis-setup"
+      ],
+      "dag_nodes": [
+        "COMBINATION_DEFINITION_GATE",
+        "LOAD_PATTERN_GATE",
+        "ANALYSIS_GENERATION_GATE"
+      ],
+      "condition": "BASIS_PROBE",
+      "summary": "ETABS definitions and explicit source-bound calculation assumptions",
+      "method_version": "analysis-setup.adopted-basis.v1",
+      "produces": [
+        {
+          "key": "analysis_setup",
+          "discriminator": "schema",
+          "value": "tbdy.next.r03.model-analysis-setup-audit.v2"
+        }
+      ]
+    },
+    {
+      "key": "column-axial",
+      "mode": "LIVE_SOURCE_RUN",
+      "owner": "tbdy_next.engineering.column_axial",
+      "receipts": [
+        "column-axial"
+      ],
+      "dag_nodes": [
+        "COLUMN_AXIAL",
+        "COLUMN_DEMAND"
+      ],
+      "condition": "COLUMN_REQUEST",
+      "summary": "TS500 Eq. 7.7 axial compression over selected combinations",
+      "consumes": [
+        {
+          "key": "geometry",
+          "discriminator": "stage",
+          "value": "QUICK_GEOMETRY_SCREENING"
+        },
+        {
+          "key": "extra",
+          "discriminator": "stage",
+          "value": "VS03_MATERIAL_A1"
+        },
+        {
+          "key": "analysis_setup",
+          "discriminator": "schema",
+          "value": "tbdy.next.r03.model-analysis-setup-audit.v2"
+        },
+        {
+          "key": "force_source",
+          "discriminator": "schema",
+          "value": "tbdy.next.etabs-frame-force-source.v1"
+        }
+      ],
+      "method_version": "column-axial.v1",
+      "produces": [
+        {
+          "key": "column_axial",
+          "discriminator": "schema",
+          "value": "tbdy.next.column-axial-check.v1"
+        }
+      ]
+    },
+    {
+      "key": "column-pmm",
+      "mode": "LIVE_SOURCE_RUN",
+      "owner": "tbdy_next.engineering.column_pmm",
+      "receipts": [
+        "column-pmm"
+      ],
+      "dag_nodes": [
+        "COLUMN_PMM",
+        "COLUMN_SECTION_CAPACITY"
+      ],
+      "condition": "COLUMN_PMM_MEMBER",
+      "summary": "Signed-station P-M2-M3 with TS500 6.16 minimum eccentricity",
+      "consumes": [
+        {
+          "key": "geometry",
+          "discriminator": "stage",
+          "value": "QUICK_GEOMETRY_SCREENING"
+        },
+        {
+          "key": "force_source",
+          "discriminator": "schema",
+          "value": "tbdy.next.etabs-frame-force-source.v1"
+        },
+        {
+          "key": "column_axial",
+          "discriminator": "schema",
+          "value": "tbdy.next.column-axial-check.v1"
+        },
+        {
+          "key": "pmm_section_source",
+          "discriminator": "schema",
+          "value": "tbdy.next.etabs-column-pmm-section-source.v1"
+        }
+      ],
+      "method_version": "column-pmm.v7",
+      "produces": [
+        {
+          "key": "column_pmm",
+          "discriminator": "schema",
+          "value": "tbdy.next.column-pmm-check.v1"
+        },
+        {
+          "key": "pmm_scope",
+          "discriminator": "schema",
+          "value": "tbdy.next.column-pmm-expected-instances.v1"
+        }
+      ]
+    },
+    {
+      "key": "design-dependencies",
+      "mode": "LIVE_SOURCE_RUN",
+      "owner": "tbdy_next.engineering.design_dependencies",
+      "receipts": [],
+      "dag_nodes": [],
+      "condition": "DESIGN_SCENARIO",
+      "summary": "Offline member/joint scope and fail-closed source dependencies; not a new code check",
+      "consumes": [
+        {
+          "key": "geometry",
+          "discriminator": "stage",
+          "value": "QUICK_GEOMETRY_SCREENING"
+        },
+        {
+          "key": "pmm_scope",
+          "discriminator": "schema",
+          "value": "tbdy.next.column-pmm-expected-instances.v1"
+        }
+      ],
+      "method_version": "offline-member-dependencies.d2.v1",
+      "produces": [
+        {
+          "key": "design_dependencies",
+          "discriminator": "schema",
+          "value": "tbdy.next.member-design-dependencies.v1"
+        }
+      ]
+    },
+    {
+      "key": "mixed-demand-components",
+      "mode": "LIVE_SOURCE_RUN",
+      "owner": "tbdy_next.engineering.mixed_demands",
+      "receipts": [],
+      "dag_nodes": [],
+      "condition": "PMM_SCOPE",
+      "summary": "Native cut coverage, signed modal amplitude evidence, spectrum input definitions and same-source scalar replay",
+      "consumes": [
+        {
+          "key": "column_axial",
+          "discriminator": "schema",
+          "value": "tbdy.next.column-axial-check.v1"
+        },
+        {
+          "key": "pmm_scope",
+          "discriminator": "schema",
+          "value": "tbdy.next.column-pmm-expected-instances.v1"
+        }
+      ],
+      "method_version": "same-source-spectral-components.v8",
+      "produces": [
+        {
+          "key": "mixed_demand_components",
+          "discriminator": "schema",
+          "value": "tbdy.next.mixed-demand-components.v1"
+        },
+        {
+          "key": "native_demand_sources",
+          "discriminator": "schema",
+          "value": "tbdy.next.native-demand-source-evidence.v1"
+        }
+      ]
+    },
+    {
+      "key": "column-gates",
+      "mode": "LIVE_SOURCE_RUN",
+      "owner": "tbdy_next.engineering.column_live_gates",
+      "receipts": [],
+      "dag_nodes": [
+        "COLUMN_REBAR",
+        "COLUMN_AXIAL",
+        "COLUMN_PMM"
+      ],
+      "condition": "COLUMN_REQUEST",
+      "summary": "CHK-004/CHK-005 caps, reinforcement role and open gates over the SAME axial/PMM results (computed by pipeline; persisted in engine-results)"
+    },
+    {
+      "key": "beam-r10-live",
+      "mode": "LIVE_SOURCE_RUN",
+      "owner": "tbdy_next.engineering.beam_r10_live",
+      "receipts": [],
+      "dag_nodes": [
+        "BEAM_DEMAND",
+        "BEAM_FLEXURE",
+        "BEAM_REBAR",
+        "BEAM_SHEAR"
+      ],
+      "condition": "COLUMN_REQUEST",
+      "summary": "Beam end demand targets, CHK-131..136 multi-row cages, signed N=0 capacity and Ve terms (computed by pipeline; persisted in engine-results)"
+    },
+    {
+      "key": "column-r10",
+      "mode": "LIVE_SOURCE_RUN",
+      "owner": "tbdy_next.engineering.column_r10_live",
+      "receipts": [],
+      "dag_nodes": [
+        "JOINT_TOPOLOGY_CHECK",
+        "JOINT_SHEAR",
+        "SCWB",
+        "COLUMN_SHEAR",
+        "COLUMN_SHEAR_REBAR"
+      ],
+      "condition": "COLUMN_REQUEST",
+      "summary": "TBDY 7.3.5 joint applicability, 7.3.6 SCWB, 7.5 joint shear and column confinement/shear (computed by pipeline; persisted in engine-results)",
+      "method_version": "column-r10-spectral-shear.v8",
+      "produces": [
+        {
+          "key": "r10_live",
+          "discriminator": "schema",
+          "value": "tbdy.next.column-r10-live.v1"
+        }
+      ]
+    },
+    {
+      "key": "second-order",
+      "mode": "LIVE_SOURCE_RUN",
+      "owner": "tbdy_next.story_second_order",
+      "receipts": [
+        "r08-second-order"
+      ],
+      "dag_nodes": [
+        "GLOBAL_SECOND_ORDER"
+      ],
+      "condition": "R08_SOURCE",
+      "summary": "TBDY 4.33 story second-order precheck"
+    },
+    {
+      "key": "column-r08-local",
+      "mode": "LIVE_SOURCE_RUN",
+      "owner": "tbdy_next.engineering.column_r08_local_live",
+      "receipts": [],
+      "dag_nodes": [
+        "COLUMN_SLENDERNESS",
+        "COLUMN_PMM"
+      ],
+      "condition": "COLUMN_PMM_MEMBER",
+      "summary": "TS500 local slenderness, adopted EI/K/Rm and scoped self-weight axial idealization for selected-section PMM",
+      "consumes": [
+        {
+          "key": "geometry",
+          "discriminator": "stage",
+          "value": "QUICK_GEOMETRY_SCREENING"
+        },
+        {
+          "key": "column_axial",
+          "discriminator": "schema",
+          "value": "tbdy.next.column-axial-check.v1"
+        },
+        {
+          "key": "column_pmm",
+          "discriminator": "schema",
+          "value": "tbdy.next.column-pmm-check.v1"
+        },
+        {
+          "key": "pmm_scope",
+          "discriminator": "schema",
+          "value": "tbdy.next.column-pmm-expected-instances.v1"
+        }
+      ],
+      "method_version": "column-r08-local.adopted-basis.v15",
+      "produces": [
+        {
+          "key": "r08_local_slenderness",
+          "discriminator": "schema",
+          "value": "tbdy.next.column-r08-local-live.v1"
+        }
+      ]
+    },
+    {
+      "key": "alpha-feedback",
+      "mode": "LIVE_SOURCE_RUN",
+      "owner": "tbdy_next.engineering.alpha_iteration",
+      "receipts": [],
+      "dag_nodes": [],
+      "condition": "EXPLICIT_DESIGN_SCENARIO",
+      "summary": "Bounded qualified signed alpha demand revision and dirty-member rechecks",
+      "consumes": [
+        {
+          "key": "design_dependencies",
+          "discriminator": "schema",
+          "value": "tbdy.next.member-design-dependencies.v1"
+        },
+        {
+          "key": "pmm_scope",
+          "discriminator": "schema",
+          "value": "tbdy.next.column-pmm-expected-instances.v1"
+        },
+        {
+          "key": "column_pmm",
+          "discriminator": "schema",
+          "value": "tbdy.next.column-pmm-check.v1"
+        },
+        {
+          "key": "r10_live",
+          "discriminator": "schema",
+          "value": "tbdy.next.column-r10-live.v1"
+        },
+        {
+          "key": "r08_local_slenderness",
+          "discriminator": "schema",
+          "value": "tbdy.next.column-r08-local-live.v1"
+        }
+      ],
+      "method_version": "alpha-feedback.mixed-signed-same-cut.v6",
+      "produces": [
+        {
+          "key": "alpha_iteration",
+          "discriminator": "schema",
+          "value": "tbdy.next.alpha-design-iteration.v1"
+        }
+      ]
+    },
+    {
+      "key": "design-revisions",
+      "mode": "LIVE_SOURCE_RUN",
+      "owner": "tbdy_next.engineering.design_dependencies",
+      "receipts": [],
+      "dag_nodes": [],
+      "condition": "DESIGN_SCENARIO",
+      "summary": "Recorded candidate/demand to joint/story/Ve/R14 dependency revisions and consumed alpha feedback; no persistent cache",
+      "consumes": [
+        {
+          "key": "design_dependencies",
+          "discriminator": "schema",
+          "value": "tbdy.next.member-design-dependencies.v1"
+        }
+      ],
+      "method_version": "offline-member-dependencies.d2.v1",
+      "produces": [
+        {
+          "key": "design_revisions",
+          "discriminator": "schema",
+          "value": "tbdy.next.design-artifact-revisions.v1"
+        }
+      ]
+    },
+    {
+      "key": "report-evidence",
+      "mode": "LIVE_SOURCE_RUN",
+      "owner": "tbdy_next.engineering.pipeline",
+      "receipts": [],
+      "dag_nodes": [],
+      "condition": "SUITE",
+      "summary": "Scoped story checks, source controls, design assignments and member evidence"
+    },
+    {
+      "key": "engine-results",
+      "mode": "LIVE_SOURCE_RUN",
+      "owner": "tbdy_next.engineering.pipeline_snapshot",
+      "receipts": [
+        "engine-results"
+      ],
+      "dag_nodes": [],
+      "condition": "ALWAYS",
+      "summary": "Sealed returned-stage snapshot with source, method, registry and result hashes"
+    },
+    {
+      "key": "live-capture",
+      "mode": "LIVE_SOURCE_RUN",
+      "owner": "tbdy_next.engineering.pipeline",
+      "receipts": [
+        "live-capture"
+      ],
+      "dag_nodes": [],
+      "condition": "ALWAYS",
+      "summary": "Completed live-source run bound to its engine results"
+    },
+    {
+      "key": "column-127-archived",
+      "mode": "ARCHIVED_RECEIPT_SCENARIO",
+      "owner": "tbdy_next.engineering.live_column",
+      "receipts": [],
+      "dag_nodes": [
+        "COLUMN_PMM",
+        "COLUMN_AXIAL",
+        "COLUMN_SLENDERNESS"
+      ],
+      "condition": "ALWAYS",
+      "summary": "Archived R07-R09 127/C88 reconciliation; same gate primitives as the live path"
+    },
+    {
+      "key": "column-bank",
+      "mode": "OFFLINE_COLUMN_BANK",
+      "owner": "tbdy_next.column_engine.store",
+      "receipts": [
+        "column-bank"
+      ],
+      "dag_nodes": [
+        "COLUMN_DEMAND",
+        "COLUMN_SHEAR",
+        "SCWB",
+        "JOINT_SHEAR"
+      ],
+      "condition": "ALWAYS",
+      "summary": "Native column ZIP/SQLite bank with PMM, shear, SCWB and joint views (offline; not fed by live capture)"
+    }
+  ],
+  "dag_coverage": {
+    "schema": "tbdy.next.pipeline-dag-coverage.v1",
+    "catalog_node_count": 94,
+    "bound_node_count": 30,
+    "unbound_node_count": 64,
+    "by_node_type": {
+      "DERIVATION": {
+        "total": 10,
+        "bound_to_stage": 6
+      },
+      "DESIGN_CHECK": {
+        "total": 36,
+        "bound_to_stage": 9
+      },
+      "REGULATORY_CHECK": {
+        "total": 32,
+        "bound_to_stage": 7
+      },
+      "SOURCE_GATE": {
+        "total": 16,
+        "bound_to_stage": 8
+      }
+    },
+    "unknown_node_ids": [],
+    "bindings": {
+      "ANALYSIS_BASIS_GATE": [
+        "vs04-source"
+      ],
+      "ANALYSIS_GENERATION_GATE": [
+        "analysis-setup"
+      ],
+      "BASE_SHEAR": [
+        "vs04-source"
+      ],
+      "BEAM_DEMAND": [
+        "beam-r10-live"
+      ],
+      "BEAM_FLEXURE": [
+        "beam-r10-live"
+      ],
+      "BEAM_GEOMETRY": [
+        "geometry"
+      ],
+      "BEAM_REBAR": [
+        "beam-r10-live"
+      ],
+      "BEAM_SHEAR": [
+        "beam-r10-live"
+      ],
+      "COLUMN_AXIAL": [
+        "column-axial",
+        "column-gates",
+        "column-127-archived"
+      ],
+      "COLUMN_DEMAND": [
+        "column-axial",
+        "column-bank"
+      ],
+      "COLUMN_PMM": [
+        "column-pmm",
+        "column-gates",
+        "column-r08-local",
+        "column-127-archived"
+      ],
+      "COLUMN_REBAR": [
+        "column-gates"
+      ],
+      "COLUMN_SECTION_CAPACITY": [
+        "column-pmm"
+      ],
+      "COLUMN_SHEAR": [
+        "column-r10",
+        "column-bank"
+      ],
+      "COLUMN_SHEAR_REBAR": [
+        "column-r10"
+      ],
+      "COLUMN_SLENDERNESS": [
+        "column-r08-local",
+        "column-127-archived"
+      ],
+      "COMBINATION_DEFINITION_GATE": [
+        "analysis-setup"
+      ],
+      "DESIGN_SPECTRUM": [
+        "vs04-source"
+      ],
+      "FRAME_CENSUS_GATE": [
+        "geometry"
+      ],
+      "GLOBAL_SECOND_ORDER": [
+        "second-order"
+      ],
+      "JOINT_SHEAR": [
+        "column-r10",
+        "column-bank"
+      ],
+      "JOINT_TOPOLOGY_CHECK": [
+        "column-r10"
+      ],
+      "LOAD_PATTERN_GATE": [
+        "analysis-setup"
+      ],
+      "MATERIAL_SECTION_GATE": [
+        "material-a1"
+      ],
+      "MODAL_MASS": [
+        "modal"
+      ],
+      "MODAL_PERIOD": [
+        "vs04-source"
+      ],
+      "SCWB": [
+        "column-r10",
+        "column-bank"
+      ],
+      "STORY_CUT_GATE": [
+        "story-drift"
+      ],
+      "STORY_DRIFT": [
+        "story-drift"
+      ],
+      "TORSION_A1": [
+        "material-a1"
+      ]
+    },
+    "dag_execution_authority": "DENIED",
+    "note": "Bound means a registered stage computes related evidence; no node is promoted to code PASS."
+  },
+  "candidate_graph": {
+    "schema": "tbdy.next.vs05.candidate-dag-validation.v1",
+    "catalog_sha256": "6739a5d37f9e47b62c9e3e8afc61fe716cf5427ca94a5be12954ef1b73f27a64",
+    "candidate_nodes": 94,
+    "candidate_dependency_edges": 140,
+    "source_gate_count": 16,
+    "derivation_count": 10,
+    "regulatory_candidate_count": 32,
+    "design_candidate_count": 36,
+    "candidate_check_node_count": 68,
+    "topological_waves": [
+      [
+        "SOURCE_SHA_GATE"
+      ],
+      [
+        "MODEL_PROFILE_GATE"
+      ],
+      [
+        "ANALYSIS_GENERATION_GATE",
+        "AREA_CENSUS_GATE",
+        "FRAME_CENSUS_GATE",
+        "JOINT_CENSUS_GATE",
+        "LOAD_PATTERN_GATE",
+        "SEISMIC_DESIGN_BASIS"
+      ],
+      [
+        "ASSIGNMENT_GATE",
+        "COMBINATION_DEFINITION_GATE",
+        "DESIGN_SPECTRUM",
+        "JOINT_TOPOLOGY_CHECK",
+        "MATERIAL_SECTION_GATE",
+        "NONSTRUCTURAL_SEISMIC",
+        "PLAN_PROTRUSIONS_A3",
+        "VERTICAL_DISCONTINUITY_B3",
+        "WALL_RATIO"
+      ],
+      [
+        "ANALYSIS_BASIS_GATE",
+        "BEAM_GEOMETRY",
+        "COLUMN_SECTION_CAPACITY",
+        "FORCE_CONCURRENCE_GATE",
+        "FOUNDATION_SOURCE_GATE",
+        "SLAB_DISCONTINUITY_A2",
+        "SLAB_LOAD_RECONCILIATION",
+        "SLAB_THICKNESS",
+        "STORY_CUT_GATE",
+        "WALL_GEOMETRY_CHECK",
+        "WEAK_STORY_B1"
+      ],
+      [
+        "BEAM_DEFLECTION",
+        "BEAM_DEMAND",
+        "COLUMN_REBAR",
+        "COLUMN_SLENDERNESS",
+        "DIAPHRAGM_TRANSFER",
+        "FOUNDATION_ISOLATED_FLEXURE",
+        "FOUNDATION_RAFT_FLEXURE",
+        "FOUNDATION_SOIL_PRESSURE",
+        "FOUNDATION_STRIP_FLEXURE",
+        "FOUNDATION_TIE_BEAM",
+        "LINK_BEAM_COUPLING",
+        "MODAL_PERIOD",
+        "SEISMIC_GAP",
+        "SLAB_DEFLECTION",
+        "SLAB_FLEXURE",
+        "SLAB_STRESS",
+        "STORY_DRIFT",
+        "STORY_PHI",
+        "WALL_DEMAND"
+      ],
+      [
+        "BEAM_AXIAL",
+        "BEAM_FLEXURE",
+        "BEAM_TORSION",
+        "FOUNDATION_ISOLATED_PUNCHING",
+        "FOUNDATION_RAFT_PUNCHING",
+        "FOUNDATION_RAFT_SHEAR",
+        "FOUNDATION_STRIP_CANTILEVER",
+        "FOUNDATION_STRIP_SHEAR",
+        "MODAL_MASS",
+        "RIBBED_SLAB_FLEXURE",
+        "SLAB_PUNCHING",
+        "SLAB_REBAR",
+        "SOFT_STORY_B2",
+        "TORSION_A1",
+        "WAFFLE_SLAB_FLEXURE",
+        "WALL_AXIAL",
+        "WALL_FLEXURE",
+        "WALL_GROUP_FLEXURE"
+      ],
+      [
+        "BASE_SHEAR",
+        "BEAM_REBAR",
+        "RIBBED_SLAB_DEFLECTION",
+        "WAFFLE_SLAB_DEFLECTION",
+        "WALL_GROUP_AXIAL",
+        "WALL_GROUP_REBAR",
+        "WALL_GROUP_SHEAR",
+        "WALL_REBAR",
+        "WALL_STRONG_CHECK"
+      ],
+      [
+        "BEAM_BALANCED_REBAR",
+        "BEAM_CRACK",
+        "BEAM_SECTION_CAPACITY",
+        "BEAM_SHEAR",
+        "GLOBAL_OVERTURNING",
+        "GLOBAL_SECOND_ORDER",
+        "WALL_SHEAR"
+      ],
+      [
+        "BEAM_HANGER_REBAR",
+        "BEAM_SHEAR_REBAR",
+        "COLUMN_DEMAND",
+        "COLUMN_LOCAL_SECOND_ORDER",
+        "JOINT_SHEAR",
+        "WALL_FRICTION_SHEAR",
+        "WALL_OVERTURNING"
+      ],
+      [
+        "COLUMN_AXIAL",
+        "COLUMN_FRICTION_SHEAR",
+        "COLUMN_PMM",
+        "COLUMN_SHEAR",
+        "SCWB"
+      ],
+      [
+        "COLUMN_SHEAR_REBAR"
+      ]
+    ],
+    "execution_authorized_nodes": 0,
+    "formal_compliance": "NOT_PROVEN"
+  },
+  "unbound_nodes": [
+    "AREA_CENSUS_GATE",
+    "ASSIGNMENT_GATE",
+    "BEAM_AXIAL",
+    "BEAM_BALANCED_REBAR",
+    "BEAM_CRACK",
+    "BEAM_DEFLECTION",
+    "BEAM_HANGER_REBAR",
+    "BEAM_SECTION_CAPACITY",
+    "BEAM_SHEAR_REBAR",
+    "BEAM_TORSION",
+    "COLUMN_FRICTION_SHEAR",
+    "COLUMN_LOCAL_SECOND_ORDER",
+    "DIAPHRAGM_TRANSFER",
+    "FORCE_CONCURRENCE_GATE",
+    "FOUNDATION_ISOLATED_FLEXURE",
+    "FOUNDATION_ISOLATED_PUNCHING",
+    "FOUNDATION_RAFT_FLEXURE",
+    "FOUNDATION_RAFT_PUNCHING",
+    "FOUNDATION_RAFT_SHEAR",
+    "FOUNDATION_SOIL_PRESSURE",
+    "FOUNDATION_SOURCE_GATE",
+    "FOUNDATION_STRIP_CANTILEVER",
+    "FOUNDATION_STRIP_FLEXURE",
+    "FOUNDATION_STRIP_SHEAR",
+    "FOUNDATION_TIE_BEAM",
+    "GLOBAL_OVERTURNING",
+    "JOINT_CENSUS_GATE",
+    "LINK_BEAM_COUPLING",
+    "MODEL_PROFILE_GATE",
+    "NONSTRUCTURAL_SEISMIC",
+    "PLAN_PROTRUSIONS_A3",
+    "RIBBED_SLAB_DEFLECTION",
+    "RIBBED_SLAB_FLEXURE",
+    "SEISMIC_DESIGN_BASIS",
+    "SEISMIC_GAP",
+    "SLAB_DEFLECTION",
+    "SLAB_DISCONTINUITY_A2",
+    "SLAB_FLEXURE",
+    "SLAB_LOAD_RECONCILIATION",
+    "SLAB_PUNCHING",
+    "SLAB_REBAR",
+    "SLAB_STRESS",
+    "SLAB_THICKNESS",
+    "SOFT_STORY_B2",
+    "SOURCE_SHA_GATE",
+    "STORY_PHI",
+    "VERTICAL_DISCONTINUITY_B3",
+    "WAFFLE_SLAB_DEFLECTION",
+    "WAFFLE_SLAB_FLEXURE",
+    "WALL_AXIAL",
+    "WALL_DEMAND",
+    "WALL_FLEXURE",
+    "WALL_FRICTION_SHEAR",
+    "WALL_GEOMETRY_CHECK",
+    "WALL_GROUP_AXIAL",
+    "WALL_GROUP_FLEXURE",
+    "WALL_GROUP_REBAR",
+    "WALL_GROUP_SHEAR",
+    "WALL_OVERTURNING",
+    "WALL_RATIO",
+    "WALL_REBAR",
+    "WALL_SHEAR",
+    "WALL_STRONG_CHECK",
+    "WEAK_STORY_B1"
+  ],
+  "metadata": {
+    "docs/engineering/reference/recipe_20261118/delivery/CHECK_MAPPING.json": {
+      "type": "dict",
+      "keys": [
+        "schema_version",
+        "language",
+        "generated_date",
+        "review_boundary",
+        "counts",
+        "common_contract",
+        "verification_boundary",
+        "checks"
+      ],
+      "arrays": {
+        "checks": 73
+      }
+    },
+    "src/tbdy_next/verification/data/RULE_CARDS.json": {
+      "type": "dict",
+      "keys": [
+        "schema",
+        "version",
+        "ruleset_date",
+        "source_authority",
+        "product",
+        "eq729_policy",
+        "implementation_acceptance",
+        "rules"
+      ],
+      "arrays": {
+        "source_authority": 2,
+        "rules": 27
+      }
+    },
+    "src/tbdy_next/verification/data/GOLDEN_EVIDENCE.json": {
+      "type": "dict",
+      "keys": [
+        "schema",
+        "sources",
+        "additional_archive",
+        "notes"
+      ],
+      "arrays": {
+        "sources": 4
+      }
+    }
+  }
+}

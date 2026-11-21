@@ -1,0 +1,182 @@
+{
+  "classification": "CODE_DEFECT_PROBE_NOT_C29",
+  "baseline": "c71a4dda4ab9453f428a38b3ed79931f8e6eeea3",
+  "package_import": "src/tbdy_next/__init__.py",
+  "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "scope": "Existing test fixture inputs; actual production owners; no full regression or live ETABS run.",
+  "conditional_known_imbalance": {
+    "before": {
+      "full_status": "REVISED_STORY_BASIS_CALCULATED",
+      "case": {
+        "native_case": "F",
+        "expected_count": 1,
+        "evaluated_count": 1,
+        "contributors": [
+          {
+            "kind": "COLUMN",
+            "object_id": "C",
+            "element_id": "A",
+            "representation": "NATIVE_FRAME_LOCAL_P_V2_V3",
+            "vertical_kn": 950.0,
+            "compression_kn": 950.0
+          }
+        ],
+        "signed_vertical_sum_kn": 950.0,
+        "supported_compression_kn": 950.0,
+        "reasons": [],
+        "free_body": {
+          "upper_external_applied_kn": 940.0,
+          "upper_self_weight_kn": 10.0,
+          "reference": "Manufactured upper free body, 10 kN independently applied self weight"
+        },
+        "free_body_load_kn": 950.0,
+        "equilibrium_residual_kn": 0.0,
+        "status": "STORY_COMPRESSION_BOUND",
+        "frame_column_compression": {
+          "status": "STORY_FRAME_COLUMN_COMPRESSION_BOUND",
+          "expected_count": 1,
+          "evaluated_count": 1,
+          "nd_kn": 950.0,
+          "reasons": []
+        }
+      },
+      "conditional_status": "REVISED_CONDITIONAL_FRAME_BASIS_CALCULATED",
+      "conditional_story_inputs": {
+        "M2": {
+          "k": 2.0,
+          "story_aggregates": {
+            "G": {
+              "nd_kn": 950.0,
+              "nk_kn": 33926.76512874467
+            }
+          }
+        },
+        "M3": {
+          "k": 2.0,
+          "story_aggregates": {
+            "G": {
+              "nd_kn": 950.0,
+              "nk_kn": 33926.76512874467
+            }
+          }
+        }
+      }
+    },
+    "after": {
+      "full_status": "REVISED_STORY_BASIS_INCOMPLETE",
+      "case": {
+        "native_case": "F",
+        "expected_count": 1,
+        "evaluated_count": 1,
+        "contributors": [
+          {
+            "kind": "COLUMN",
+            "object_id": "C",
+            "element_id": "A",
+            "representation": "NATIVE_FRAME_LOCAL_P_V2_V3",
+            "vertical_kn": 950.0,
+            "compression_kn": 950.0
+          }
+        ],
+        "signed_vertical_sum_kn": 950.0,
+        "supported_compression_kn": 950.0,
+        "reasons": [
+          "STORY_FREE_BODY_VERTICAL_IMBALANCE"
+        ],
+        "free_body": {
+          "upper_external_applied_kn": 1040.0,
+          "upper_self_weight_kn": 10.0,
+          "reference": "Manufactured upper free body, 10 kN independently applied self weight"
+        },
+        "free_body_load_kn": 1050.0,
+        "equilibrium_residual_kn": -100.0,
+        "status": "STORY_COMPRESSION_INCOMPLETE",
+        "frame_column_compression": {
+          "status": "STORY_FRAME_COLUMN_COMPRESSION_BOUND",
+          "expected_count": 1,
+          "evaluated_count": 1,
+          "nd_kn": 950.0,
+          "reasons": []
+        }
+      },
+      "conditional_status": "REVISED_CONDITIONAL_FRAME_BASIS_CALCULATED",
+      "conditional_story_inputs": {
+        "M2": {
+          "k": 2.0,
+          "story_aggregates": {
+            "G": {
+              "nd_kn": 950.0,
+              "nk_kn": 33926.76512874467
+            }
+          }
+        },
+        "M3": {
+          "k": 2.0,
+          "story_aggregates": {
+            "G": {
+              "nd_kn": 950.0,
+              "nk_kn": 33926.76512874467
+            }
+          }
+        }
+      }
+    },
+    "defect_reproduced": true,
+    "consumer_observation": "gravity_pair_refinement.compare_level selects nonempty conditional story_inputs when the full story basis is not calculated; this script probes the producer only."
+  },
+  "global_theta_vertical_origin": {
+    "before_theta_max": {
+      "X": 0.01,
+      "Y": 0.014814814814814815
+    },
+    "translated_level_m": [
+      -1.0,
+      -5.5
+    ],
+    "after": null,
+    "exception": "INVALID_STORY_VALUE:level_m",
+    "defect_reproduced": true
+  },
+  "global_theta_product_adapter": {
+    "before": {
+      "status": "NUMERIC_PRECHECK_UNAPPROVED",
+      "evaluated": 4,
+      "expected": 4,
+      "directions": {
+        "X": {
+          "theta_max_candidate": "0.007407407407407408",
+          "theta_limit_reference": "0.08571428571428572",
+          "beta_ii_candidate": "1.0",
+          "within_reference_limit_candidate": true,
+          "applied_to_design_forces": false
+        },
+        "Y": {
+          "theta_max_candidate": "0.007054673721340388",
+          "theta_limit_reference": "0.08571428571428572",
+          "beta_ii_candidate": "1.0",
+          "within_reference_limit_candidate": true,
+          "applied_to_design_forces": false
+        }
+      }
+    },
+    "after": {
+      "status": "BLOCKED_SOURCE_INVALID",
+      "evaluated": 0,
+      "expected": 0,
+      "reasons": [
+        "INVALID_STORY_VALUE:level_m"
+      ]
+    },
+    "defect_reproduced": true,
+    "expected_scope_lost": true
+  },
+  "file_sha256": {
+    "src/tbdy_next/engineering/gravity_story_basis.py": "13b89297c9c676152f79da8fc8bafd2ba13c9292d30a10109aedd61ad5038e08",
+    "src/tbdy_next/engineering/gravity_pair_refinement.py": "3dda073cc5e04f2600794e6151600fafee788cb8a39c4020896920b72174d7d3",
+    "src/tbdy_next/engineering/story_pdelta.py": "ee200ce03d3e17724beccb786ef4062fd7686dbd64c41260cea0f45532c712d2",
+    "src/tbdy_next/story_second_order.py": "ffd2e33e239cc53df24d3743b62c22906669de84a4ed4153c0b5a9fc4e1fdb59",
+    "tests/test_gravity_story_basis.py": "bbe36bd945d99dc8a5ff153e1640837ea6fa26af95664d296861af6f79edc4bc",
+    "tests/test_engine_r08_story.py": "f6f2c02e202b93bc6883ede2b737da2f64ee711ba78b4a962a89b9e22fddfdac",
+    "tests/test_r08_story_second_order.py": "84de265029c61ef0813ee7d73fe10323af5b02f748eff1d1629a366f0886ee39"
+  }
+}

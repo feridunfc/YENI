@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-21T16:01:12.494074+00:00",
+  "updated_at_utc": "2026-11-21T20:37:12.876694+00:00",
   "repository": "feridunfc/YENI",
-  "baseline_implementation_commit": "0f1a809299ed0dbb6e0ecfde77be0642e1771ce3",
+  "baseline_implementation_commit": "c71a4dda4ab9453f428a38b3ed79931f8e6eeea3",
   "local_reconciled": false,
-  "scope_note": "18 stable GAPs. Remote source inspection at the full baseline SHA; unpublished local work and current private original captures were not inspected. Original cut/length counts remain attributed to the existing local ledger. The new public actual-owner examples are synthetic contract fixtures, not an original-building replay or engineering acceptance.",
+  "scope_note": "18 stable GAPs inspected at the named public implementation. Current code, versioned native-result ledger, 26 retained reference report hashes, selected historical constitutions and primary method sources were audited. Private Windows captures were not reread and ETABS was not run. Bounded existing-fixture diagnostics are code findings, not new building evidence. Statuses and verified subscopes are preserved.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -30,7 +30,7 @@
     "GAP-018",
     "GAP-006"
   ],
-  "active_task": "Qualify the full C29 column-wall gravity free body and wall-frame critical-load basis, and continue coupled demands for the 14 wall-frame columns. The 2/4/8 full-span recovery and 12 adopted TS500 factors / 24 revised PMM sides are complete. Preserve the original 2/87 conditional result.",
+  "active_task": "S00 repairs reproduced datum/failure-eligibility/receipt defects; S02 completes native C29 full column-wall first-order balance in parallel; S04/S06 qualify coupled method and independent section evidence. Preserve completed conditional C29 full-span, 12 factors and 24 PMM sides. Follow the canonical supervisor roadmap, including separate whole-building domain milestones.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -55,6 +55,15 @@
         "scope": "An explicit source-bound adopted model profile now enables conditional calculation without granting engineering approval.",
         "engineering_acceptance": "NOT_GRANTED",
         "original_building_replay": "NOT_RUN"
+      },
+      "supervisor_exit_recipe_20261121": {
+        "evidence_ref": "EV-SUPERVISOR-SYSTEM-AUDIT-20261121",
+        "recipe": "docs/supervisor/audit_20261121/GAP_EXIT_RECIPES.json",
+        "recipe_id": "GAP-001",
+        "work_packages": [
+          "S01",
+          "S10"
+        ]
       }
     },
     {
@@ -81,6 +90,14 @@
         "scope": "The adopted analysis input requires exact native case roles and assigned design-group scope; it does not assert a complete code-combination book.",
         "engineering_acceptance": "NOT_GRANTED",
         "original_building_replay": "NOT_RUN"
+      },
+      "supervisor_exit_recipe_20261121": {
+        "evidence_ref": "EV-SUPERVISOR-SYSTEM-AUDIT-20261121",
+        "recipe": "docs/supervisor/audit_20261121/GAP_EXIT_RECIPES.json",
+        "recipe_id": "GAP-002",
+        "work_packages": [
+          "S01"
+        ]
       }
     },
     {
@@ -107,6 +124,14 @@
         "scope": "The conditional first-order route rejects named nonlinear predecessors, explicit P-Delta stiffness and unsupported case types. Native Ritz/Eigen names bind correctly. Source generation remains independently unverified by this route.",
         "engineering_acceptance": "NOT_GRANTED",
         "original_building_replay": "NOT_RUN"
+      },
+      "supervisor_exit_recipe_20261121": {
+        "evidence_ref": "EV-SUPERVISOR-SYSTEM-AUDIT-20261121",
+        "recipe": "docs/supervisor/audit_20261121/GAP_EXIT_RECIPES.json",
+        "recipe_id": "GAP-003",
+        "work_packages": [
+          "S01"
+        ]
       }
     },
     {
@@ -142,7 +167,16 @@
           "source_sha256": "6f46177e64a5d0ee8e9b6fc7d7b5ba74e252e2cb547fb3655ad97d6aaf490b1f",
           "acceptance": "REFERENCE_ONLY_NO_ENGINEERING_CLOSURE"
         }
-      ]
+      ],
+      "supervisor_exit_recipe_20261121": {
+        "evidence_ref": "EV-SUPERVISOR-SYSTEM-AUDIT-20261121",
+        "recipe": "docs/supervisor/audit_20261121/GAP_EXIT_RECIPES.json",
+        "recipe_id": "GAP-004",
+        "work_packages": [
+          "S01",
+          "S02"
+        ]
+      }
     },
     {
       "id": "GAP-005",
@@ -150,7 +184,7 @@
       "status": "PARTIAL",
       "priority": "P0",
       "achieved_scope": "87 columns / 957 design pairs and expected supporting cut/mode populations remain in their ledgers. Fresh sources with embedded selection policies now enter the same prepared-scenario member/cut dependency checks as explicit selection. Missing native Vd combinations and element-side cuts remain in the capacity-shear result rather than disappearing from its maximum.",
-      "blocker": "A general ExpectedCheckInstance census and execution for every check family are not implemented.",
+      "blocker": "A general ExpectedCheckInstance census and execution for every check family are not implemented. The audit also reproduces loss of four known story-direction obligations after a signed-elevation source rejection; repair the local denominator as S00.",
       "closure_criteria": "Freeze each rule population at the correct grain before calculation; account for missing data and proven exceptions explicitly.",
       "owner_paths": [
         "src/tbdy_next/engineering/pipeline.py",
@@ -171,7 +205,18 @@
           "source_sha256": "6f46177e64a5d0ee8e9b6fc7d7b5ba74e252e2cb547fb3655ad97d6aaf490b1f",
           "acceptance": "REFERENCE_ONLY_NO_ENGINEERING_CLOSURE"
         }
-      ]
+      ],
+      "supervisor_exit_recipe_20261121": {
+        "evidence_ref": "EV-SUPERVISOR-SYSTEM-AUDIT-20261121",
+        "recipe": "docs/supervisor/audit_20261121/GAP_EXIT_RECIPES.json",
+        "recipe_id": "GAP-005",
+        "work_packages": [
+          "S00",
+          "S01",
+          "S09",
+          "S10"
+        ]
+      }
     },
     {
       "id": "GAP-006",
@@ -206,6 +251,14 @@
         "scope": "The clear-length owner now withholds isolated-column calculation for possible nonmatching interior wall contacts, without treating geometric overlap as proof of an analysis constraint.",
         "engineering_acceptance": "NOT_GRANTED",
         "original_building_replay": "NOT_RUN"
+      },
+      "supervisor_exit_recipe_20261121": {
+        "evidence_ref": "EV-SUPERVISOR-SYSTEM-AUDIT-20261121",
+        "recipe": "docs/supervisor/audit_20261121/GAP_EXIT_RECIPES.json",
+        "recipe_id": "GAP-006",
+        "work_packages": [
+          "S03"
+        ]
       }
     },
     {
@@ -213,9 +266,9 @@
       "title": "Exact static Linear Add",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Signed E partition remains supported. The newer acquisition now supplies 22 native patterns and the required primitive case-force records. All three signed static Linear Add design combinations were reconstructed from primitive ETABS rows at 1,206 original member/case/cuts, including the element side and step. All 7,236 direct scalar controls agreed.",
-      "blocker": "Other combination operators, nested definitions and an approved design-family roster remain open.",
-      "closure_criteria": "Verify supported same-source signed expressions and nested role/operator scope with independent expected values and tolerances.",
+      "achieved_scope": "Signed E partition remains supported. The newer acquisition now supplies 22 native patterns and the required primitive case-force records. All three signed static Linear Add design combinations were reconstructed from primitive ETABS rows at 1,206 original member/case/cuts, including the element side and step. All 7,236 direct scalar controls agreed. Current linear_coefficients already recursively expands nested Linear Add with exact Fraction arithmetic, cancellation and cycle/operator/reference guards.",
+      "blocker": "Unsupported combination operators and their semantics, complete required native leaf coverage, and an approved design-family roster remain open. Nested Linear Add recursion itself is implemented.",
+      "closure_criteria": "Verify the complete required same-source combination book and supported nested role/operator scope with independent expected values and frozen tolerances; retain unsupported operators explicitly.",
       "owner_paths": [
         "src/tbdy_next/engineering/mixed_demands.py",
         "src/tbdy_next/engineering/demand_sources.py"
@@ -227,7 +280,15 @@
         "EV-COLUMN-JOINT-SLICE-20261119"
       ],
       "closure_evidence_refs": [],
-      "local_update_needed": false
+      "local_update_needed": false,
+      "supervisor_exit_recipe_20261121": {
+        "evidence_ref": "EV-SUPERVISOR-SYSTEM-AUDIT-20261121",
+        "recipe": "docs/supervisor/audit_20261121/GAP_EXIT_RECIPES.json",
+        "recipe_id": "GAP-007",
+        "work_packages": [
+          "S01"
+        ]
+      }
     },
     {
       "id": "GAP-008",
@@ -247,7 +308,17 @@
         "EV-LOCAL-SPECTRAL"
       ],
       "closure_evidence_refs": [],
-      "local_update_needed": false
+      "local_update_needed": false,
+      "supervisor_exit_recipe_20261121": {
+        "evidence_ref": "EV-SUPERVISOR-SYSTEM-AUDIT-20261121",
+        "recipe": "docs/supervisor/audit_20261121/GAP_EXIT_RECIPES.json",
+        "recipe_id": "GAP-008",
+        "work_packages": [
+          "S01",
+          "S02",
+          "S05"
+        ]
+      }
     },
     {
       "id": "GAP-009",
@@ -356,6 +427,32 @@
         "original_C29_revised_model_replay": "NOT_RUN",
         "engineering_acceptance": "NOT_GRANTED",
         "next_action": "Consume the original native six-DOF packet now; bind column contributor modifiers through the fixed source contract. The unsupported wall critical-load branch needs an explicit method decision, not another nominal capture."
+      },
+      "supervisor_exit_recipe_20261121": {
+        "evidence_ref": "EV-SUPERVISOR-SYSTEM-AUDIT-20261121",
+        "recipe": "docs/supervisor/audit_20261121/GAP_EXIT_RECIPES.json",
+        "recipe_id": "GAP-009",
+        "work_packages": [
+          "S00",
+          "S02",
+          "S04",
+          "S10"
+        ]
+      },
+      "audit_findings_20261121": {
+        "reproduced": [
+          "YSA-01",
+          "YSA-02"
+        ],
+        "source_review_only": [
+          "YSA-13"
+        ],
+        "native_c29_impact": "NOT_REPLAYED",
+        "next_exits": [
+          "Complete first-order full physical free-body balance",
+          "Qualify per-domain second-order method or supported direct-demand alternative"
+        ],
+        "conditional_guard": "Missing wall evidence differs from a demonstrated complete-population, same-state, independently loaded imbalance. Preserve diagnostic numerical values without making known failed evidence eligible."
       }
     },
     {
@@ -377,7 +474,16 @@
         "EV-COLUMN-JOINT-SLICE-20261119"
       ],
       "closure_evidence_refs": [],
-      "local_update_needed": false
+      "local_update_needed": false,
+      "supervisor_exit_recipe_20261121": {
+        "evidence_ref": "EV-SUPERVISOR-SYSTEM-AUDIT-20261121",
+        "recipe": "docs/supervisor/audit_20261121/GAP_EXIT_RECIPES.json",
+        "recipe_id": "GAP-010",
+        "work_packages": [
+          "S06",
+          "S10"
+        ]
+      }
     },
     {
       "id": "GAP-011",
@@ -398,7 +504,16 @@
         "EV-COLUMN-CAGE-REPORT-TESTS"
       ],
       "closure_evidence_refs": [],
-      "local_update_needed": false
+      "local_update_needed": false,
+      "supervisor_exit_recipe_20261121": {
+        "evidence_ref": "EV-SUPERVISOR-SYSTEM-AUDIT-20261121",
+        "recipe": "docs/supervisor/audit_20261121/GAP_EXIT_RECIPES.json",
+        "recipe_id": "GAP-011",
+        "work_packages": [
+          "S06",
+          "S10"
+        ]
+      }
     },
     {
       "id": "GAP-012",
@@ -417,7 +532,16 @@
         "EV-D2"
       ],
       "closure_evidence_refs": [],
-      "local_update_needed": false
+      "local_update_needed": false,
+      "supervisor_exit_recipe_20261121": {
+        "evidence_ref": "EV-SUPERVISOR-SYSTEM-AUDIT-20261121",
+        "recipe": "docs/supervisor/audit_20261121/GAP_EXIT_RECIPES.json",
+        "recipe_id": "GAP-012",
+        "work_packages": [
+          "S07",
+          "S10"
+        ]
+      }
     },
     {
       "id": "GAP-013",
@@ -465,6 +589,15 @@
         "scope": "Scoped physical applicability survives unrelated design infeasibility. The same physical owner now qualifies signed roof/beamless ends before requiring interior SCWB cases. The existing bounded driver supports native-demand cage reselection with no alpha scaling. A public two-story actual-owner example evaluates 16 unique interior SCWB comparisons; it does not require alpha below one.",
         "engineering_acceptance": "NOT_GRANTED",
         "original_building_replay": "NOT_RUN"
+      },
+      "supervisor_exit_recipe_20261121": {
+        "evidence_ref": "EV-SUPERVISOR-SYSTEM-AUDIT-20261121",
+        "recipe": "docs/supervisor/audit_20261121/GAP_EXIT_RECIPES.json",
+        "recipe_id": "GAP-013",
+        "work_packages": [
+          "S08",
+          "S10"
+        ]
       }
     },
     {
@@ -507,6 +640,15 @@
         "scope": "A native spectral Vd exceeding the brittle geometric limit is propagated as a calculated failure even beside missing sibling cases. Public source-to-report examples execute actual joint, confinement and capacity-shear owners; an explicit tie-policy trial changes the two-column numerical disposition.",
         "engineering_acceptance": "NOT_GRANTED",
         "original_building_replay": "NOT_RUN"
+      },
+      "supervisor_exit_recipe_20261121": {
+        "evidence_ref": "EV-SUPERVISOR-SYSTEM-AUDIT-20261121",
+        "recipe": "docs/supervisor/audit_20261121/GAP_EXIT_RECIPES.json",
+        "recipe_id": "GAP-014",
+        "work_packages": [
+          "S07",
+          "S10"
+        ]
       }
     },
     {
@@ -531,7 +673,16 @@
           "source_sha256": "6f46177e64a5d0ee8e9b6fc7d7b5ba74e252e2cb547fb3655ad97d6aaf490b1f",
           "acceptance": "REFERENCE_ONLY_NO_ENGINEERING_CLOSURE"
         }
-      ]
+      ],
+      "supervisor_exit_recipe_20261121": {
+        "evidence_ref": "EV-SUPERVISOR-SYSTEM-AUDIT-20261121",
+        "recipe": "docs/supervisor/audit_20261121/GAP_EXIT_RECIPES.json",
+        "recipe_id": "GAP-015",
+        "work_packages": [
+          "S03",
+          "S11"
+        ]
+      }
     },
     {
       "id": "GAP-016",
@@ -593,6 +744,17 @@
         "source_population_qualified": false,
         "automatic_sway_assignment_authorized": false,
         "engineering_acceptance": "NOT_GRANTED"
+      },
+      "supervisor_exit_recipe_20261121": {
+        "evidence_ref": "EV-SUPERVISOR-SYSTEM-AUDIT-20261121",
+        "recipe": "docs/supervisor/audit_20261121/GAP_EXIT_RECIPES.json",
+        "recipe_id": "GAP-016",
+        "work_packages": [
+          "S04",
+          "S06",
+          "S08",
+          "S10"
+        ]
       }
     },
     {
@@ -601,7 +763,7 @@
       "status": "PARTIAL",
       "priority": "P0",
       "achieved_scope": "One runner and finalized v2 remain; current same-source stage repeats 16/16 IDENTICAL, and report projection makes zero calls with 21 entry points disabled. Web and CLI now share scenario preparation and original-parent verification, with complete sealed-result equality checks. Normal single/all-column reports project governing PMM cuts and joint shear/tie details without calculation. The logical baseline is included in CI filters. All declared method versions are exported even when a stage has no consumes contract. New legacy-policy selections are prepared through the single scenario owner; an unprepared direct-run selection is rejected before calculation receipts. New raw/floored/final moment and alpha-population report fields are sealed-result projections.",
-      "blocker": "General catalog-wide topological execution and complete CHECK-instance ledger remain open; legacy compatibility still exists.",
+      "blocker": "General catalog-wide topological execution and complete CHECK-instance ledger remain open; legacy compatibility still exists. The registry is descriptive rather than the complete execution scheduler; R14 and report-evidence computations need visibility. Two-digit receipt readers omit index 100; S00 reproduces and scopes this boundary.",
       "closure_criteria": "Execute one registry with typed dependencies and complete expected scope; block missing upstreams and project the same sealed result in UI/CLI/report.",
       "owner_paths": [
         "src/tbdy_next/engineering/pipeline.py",
@@ -625,7 +787,17 @@
           "source_sha256": "6f46177e64a5d0ee8e9b6fc7d7b5ba74e252e2cb547fb3655ad97d6aaf490b1f",
           "acceptance": "REFERENCE_ONLY_NO_ENGINEERING_CLOSURE"
         }
-      ]
+      ],
+      "supervisor_exit_recipe_20261121": {
+        "evidence_ref": "EV-SUPERVISOR-SYSTEM-AUDIT-20261121",
+        "recipe": "docs/supervisor/audit_20261121/GAP_EXIT_RECIPES.json",
+        "recipe_id": "GAP-017",
+        "work_packages": [
+          "S00",
+          "S09",
+          "S10"
+        ]
+      }
     },
     {
       "id": "GAP-018",
@@ -633,8 +805,8 @@
       "status": "PARTIAL",
       "priority": "P0",
       "achieved_scope": "Same-session live v6 source binds 100/100 native modal numeric modes and 2/2 eccentricity definitions. Independent Decimal(80) checks all 500 native numeric relationships with zero outside the unchanged tolerance. Existing 200/200 displayed spectrum mode rows, 1131/1131 supporting member-case pairs and 3216 scalar spectral cuts remain recorded. Repeat receipts are 16/16 IDENTICAL; report projection invokes zero calculators. No physical concurrency or alpha authority is granted. The v7 archived selected scenario independently matches 200 signed amplitude relationships at printed resolution across 100 modes and two directions. All 16 repeat receipt payloads match. The new same-session source readers have synthetic contract coverage. Live v8 binds 26 native function points, two case damping definitions, eight material getter returns and the two area-spring assignments behind 5,579 generated link elements. The independent reference checks 1,000 numbers for 200 case-modes. Conditional dynamic CQC was evaluated for all six force components at 804 case-cuts. Raw and same-policy selected replays each reproduce 16 sealed stage payloads. The private manual analysis yielded 804 signed static eccentricity effects from paired internal static cases. All 4,824 absolute component increments agree with the native spectrum envelope change. Independent conditional CQC on that same analysis reproduces all 4,824 zero-eccentricity maxima. The fresh-acquisition/original-archive comparison matched all 45,828 native scalar components over 7,638 assigned force rows. Original-model componentwise axial intervals now feed the conditional selected-cage R10 check at the five non-exempt physical joints. A fresh original capture adds 402 signed rows per supplementary pure static earthquake case across all 87 columns. Their case identities, selection and signed forces bind to the same source as the assigned gravity rows. The +4.50 principal-direction static references are reproducible at the same cuts. All 87 columns now have conservative selected-cage shear checks for every assigned spectral combination and local axis. A second existing sealed source corroborated every D-control shear extremum.",
-      "blocker": "The original scenario still lacks full-precision applied amplitudes, effective modal ratios and transferable static eccentricity vectors. The private study reproduces 4,686/4,824 original force controls within the fixed tolerance. Two dedicated torsion cases yielded zero native frame rows. Selected principal-plane column resistance is now bounded across the original model's assigned Nd intervals. Directional design policy, signed response-spectrum shear allocation and dynamic simultaneity remain open. The supplementary linear static references carry their own case identities.",
-      "closure_criteria": "Preserve the existing bound modal sources; qualify precision and accidental-torsion contributions through existing owners, then independently verify aggregation before SCWB/alpha consumption and a complete example. Never call scalar intervals simultaneous vectors.",
+      "blocker": "Original full-precision applied amplitudes, effective modal ratios and transferable static eccentricity vectors remain unresolved for 138 of the fixed 4,824 original/private scalar controls. Separately, SCWB/alpha/PMM need an explicit qualified design-envelope/bound or compatible signed-reference policy. Physical dynamic cross-component simultaneity cannot be reconstructed uniquely from RSA Max/Min outputs; it is not a missing field to recover by more report matching.",
+      "closure_criteria": "Resolve and account for the fixed scalar residual population through current reconstruction owners. Independently qualify each downstream design-demand policy and its coverage; do not represent scalar intervals or independently maximized spectrum terms as simultaneous vectors. A failed sufficient bound is not alone a physical failure.",
       "owner_paths": [
         "src/tbdy_next/engineering/demand_sources.py",
         "src/tbdy_next/engineering/mixed_demands.py",
@@ -841,6 +1013,15 @@
           "coupled_columns": 14,
           "remote_replay_status": "NOT_RUN"
         }
+      },
+      "supervisor_exit_recipe_20261121": {
+        "evidence_ref": "EV-SUPERVISOR-SYSTEM-AUDIT-20261121",
+        "recipe": "docs/supervisor/audit_20261121/GAP_EXIT_RECIPES.json",
+        "recipe_id": "GAP-018",
+        "work_packages": [
+          "S05",
+          "S10"
+        ]
       }
     }
   ],
@@ -856,5 +1037,13 @@
     "live_ETABS": "NOT_RUN"
   },
   "previous_gap_inventory_base_commit": "7b13877d5ceb823fda4236b8d6df39df678d3229",
-  "baseline_identity": "Inspected parent of this milestone. Git identifies the commit containing the current evidence record."
+  "baseline_identity": "Inspected parent of this milestone. Git identifies the commit containing the current evidence record.",
+  "previous_audit_baseline_implementation_commit": "0f1a809299ed0dbb6e0ecfde77be0642e1771ce3",
+  "supervisor_audit": {
+    "evidence_ref": "EV-SUPERVISOR-SYSTEM-AUDIT-20261121",
+    "report": "docs/supervisor/SYSTEM_AUDIT_20261121.md",
+    "roadmap": "docs/supervisor/ROADMAP_20261121.md",
+    "machine_plan": "docs/supervisor/audit_20261121/WORKER_PLAN.json",
+    "status_changed": false
+  }
 }

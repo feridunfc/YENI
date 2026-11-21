@@ -7466,6 +7466,83 @@
       "whole_building_gap_closure": "NOT_GRANTED",
       "new_live_etabs_calculation": "NOT_RUN",
       "next_action": "Use the solved eight-part METHOD source to qualify concurrent first-order column-wall cut forces and an independent upper-body external-load/self-weight balance at +0.00 and +4.50. The wall-frame critical-load method and broader GAP-009 qualifications remain separate."
+    },
+    {
+      "id": "EV-SUPERVISOR-SYSTEM-AUDIT-20261121",
+      "observed_at": "2026-11-21",
+      "recorded_at_utc": "2026-11-21T20:37:12.876694+00:00",
+      "status": "SOURCE_AND_DOCUMENT_AUDIT_COMPLETE_WITH_REPRODUCED_FINDINGS",
+      "gap_ids": [
+        "GAP-001",
+        "GAP-002",
+        "GAP-003",
+        "GAP-004",
+        "GAP-005",
+        "GAP-006",
+        "GAP-007",
+        "GAP-008",
+        "GAP-009",
+        "GAP-010",
+        "GAP-011",
+        "GAP-012",
+        "GAP-013",
+        "GAP-014",
+        "GAP-015",
+        "GAP-016",
+        "GAP-017",
+        "GAP-018"
+      ],
+      "inspected_implementation_commit": "c71a4dda4ab9453f428a38b3ed79931f8e6eeea3",
+      "scope": "Current architecture, 18 registered GAPs, whole-building domain backlog, primary-source method research, pinned reference repositories and actual report-reconstruction evidence. Production code and existing tests unchanged.",
+      "report": "docs/supervisor/SYSTEM_AUDIT_20261121.md",
+      "roadmap": "docs/supervisor/ROADMAP_20261121.md",
+      "bundle": "docs/supervisor/audit_20261121/README.md",
+      "findings": {
+        "YSA-01": "Existing-fixture negative-datum rejection and expected population loss reproduced",
+        "YSA-02": "Existing complete-data imbalance retains conditional producer inputs; consumer fallback separately inspected",
+        "YSA-03": "100 actual receipts written and 99 read by both current reader paths",
+        "YSA-13": "Code review only: non-target EI and term lengths require stronger source/assumption qualification"
+      },
+      "audit_artifact_sha256": {
+        "ENGINEERING_PROBES.json": "96b048aed530c4559bcca8ab4c050ed2e5f43d40d36e9c62bcc0aec158369bcd",
+        "RECEIPT_INDEX_PROBE.json": "d68924a7303a48b3f3f9e5f8b0b92bdb5a65c7fc89f5baa9d2f3c8c805e81565",
+        "SOURCE_MANIFEST.json": "1fc41f79d4b447dbd4ffa4c8495dcf8121817d63f6ab7e7aa2f6b56a5278926b",
+        "ARCHITECTURE_INVENTORY.json": "4be524a935c0c07edd5570710f310eda62795ad9047bb3b10a55091585988a9e",
+        "GAP_EXIT_RECIPES.json": "d880682560e1fcdc014fe69b9cce1220b0c419a637884e81af2af7b62fb29826",
+        "WORKER_PLAN.json": "22514fc6c38dd20b5eda54e5c5cc057a2ed2fac01460aba8a145b3f91800396d",
+        "REFERENCE_REPOSITORIES.json": "de17c26a618c4fcf4261f08aece7372a08850ff88c325c2e089b968d26fb2a54",
+        "PRIMARY_SOURCES.json": "1348627856293d80e4c25abb6b6a36d888ac6be8ed8f18a9b55f5708adab8af9",
+        "reproduce_engineering_findings.py": "bbd6fa2be8710d82616eaf879b2d28412fbbb10578e7193c92912ffb49137ff6",
+        "reproduce_receipt_index.py": "ca9bd8c3e1cf9bcf0194e43c9e57588c3ba9052f47f17d6ca38baa2abff80684"
+      },
+      "source_inventory": {
+        "retained_report_hashes_rechecked": 26,
+        "docx": 20,
+        "pdf": 6,
+        "pdf_pages": 1256,
+        "historical_constitution_texts_read": 4,
+        "reference_branch_heads": 5,
+        "reference_files_inspected": 15,
+        "scope_limits": "Some reference files were read in relevant sections; report page inventory is not full independent design acceptance."
+      },
+      "verification": {
+        "targeted_diagnostic_scripts_executed": 2,
+        "reproduced_findings": 3,
+        "production_source_hashes_verified": true,
+        "full_python_suite": "NOT_RUN_FOR_DOCUMENTATION_AUDIT",
+        "javascript_suite": "NOT_RUN_FOR_DOCUMENTATION_AUDIT",
+        "validation_artifact": "docs/supervisor/audit_20261121/VALIDATION.json"
+      },
+      "preserved_statuses": {
+        "OPEN": 3,
+        "PARTIAL": 15,
+        "CLOSED": 0
+      },
+      "native_c29_impact": "NOT_REPLAYED",
+      "new_live_etabs_calculation": "NOT_RUN",
+      "engineering_acceptance": "NOT_GRANTED",
+      "whole_building_gap_closure": "NOT_GRANTED",
+      "next_action": "S00 actual-owner fixes and archived native impact check; S02 complete two-cut first-order equilibrium in parallel; S04/S06 method/oracle work with explicit applicability. Use S00-S15 worker cards and preserve completed conditional C29 scope."
     }
   ],
   "new_record_template": {
@@ -7490,7 +7567,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-21T16:01:12.494074+00:00",
+  "updated_at_utc": "2026-11-21T20:37:12.876694+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -8131,5 +8208,17 @@
     "local_private_checkpoint_preserved": true,
     "unpublished_local_changes": "NOT_INSPECTED",
     "next_action": "Integrate reviewed branch without replacing newer local work; run current original C29 members225/142 and common joint with the actual adopted inputs. Continue C104 coupled work in parallel."
+  },
+  "supervisor_audit_checkpoint": {
+    "evidence_ref": "EV-SUPERVISOR-SYSTEM-AUDIT-20261121",
+    "inspected_implementation_commit": "c71a4dda4ab9453f428a38b3ed79931f8e6eeea3",
+    "integration_branch": "baseline/local_import",
+    "production_changes": false,
+    "next_parallel_work": [
+      "S00",
+      "S02",
+      "S04/S06 preparation"
+    ],
+    "engineering_release": "NOT_READY"
   }
 }

@@ -1,5 +1,36 @@
 # Original building calculation and local handoff — 2026-11-21
 
+## Supervisor system audit and execution roadmap — 21 November 2026
+
+The [whole-project audit](supervisor/SYSTEM_AUDIT_20261121.md) inspects
+implementation `c71a4dda4ab9453f428a38b3ed79931f8e6eeea3`. It updates the
+[current architecture](ARCHITECTURE.md), provides [18 detailed GAP exit
+recipes](supervisor/GAP_EXIT_RECIPES_20261121.md), a [canonical S00–S15
+roadmap](supervisor/ROADMAP_20261121.md), and a [primary-source/reference
+method strategy](supervisor/RESEARCH_AND_REFERENCE_STRATEGY_20261121.md).
+
+Two existing-fixture production probes reproduced a negative-elevation /
+expected-population defect and failure to make a complete-data equilibrium
+contradiction ineligible for conditional factor consumption. A separate API
+probe reproduced 100 receipts written / 99 read. These are documented
+findings, **not production fixes or proof that native C29 is affected**.
+See `EV-SUPERVISOR-SYSTEM-AUDIT-20261121` and the
+[reproducible audit bundle](supervisor/audit_20261121/README.md).
+
+Start **S00** on the existing owners. In parallel **S02** completes exact-state
+column-wall balance at the two existing C29 cuts; **S04/S06** prepare method
+comparison and independent section verification. Full-body balance and a
+qualified wall-frame second-order method have separate exits. The native
+C29 12 factors / 24 PMM sides / six full-span convergence comparisons remain
+completed within their conditional scope. The latest free-length census is
+73 standalone / 14 coupled, not the older 59-member checkpoint.
+
+No new full suite or live ETABS calculation was run for this documentation
+audit. Existing Linux and user-supplied Windows test evidence below remains
+separately attributed. GAP status is unchanged: **3 OPEN, 15 PARTIAL, 0 CLOSED**;
+whole-building engineering release remains `NOT_READY`. S11–S15 explicitly
+cover the missing wall, diaphragm, slab/beam SLS and foundation product domains.
+
 ## Windows offline verification of the published implementation
 
 The user supplied the completed Windows `tools/test_offline.py` output for
