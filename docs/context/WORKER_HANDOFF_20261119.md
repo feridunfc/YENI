@@ -1,6 +1,31 @@
 # Local development and GitHub worker handoff
 
-## Immediate calculation: original-source C29 with explicit axial idealization
+## Current calculation: original-source C29 with explicit axial idealization
+
+Windows ran the actual original-source C29 vertical slice from
+`RUN-464231f1e18f465f88da868f7306a753` into
+`RUN-be9d8258796f4dfca1a3609453e94e53`. R08 and R14 consume 18/18 cuts at
+members 225 and 142. All eight distinct connected beams have bound design
+shear. Joint 40 has 16 X and 16 Y interval checks. R14 records 2/87
+conditional numerical closures with explicit second-order and method
+acceptance gates. See [current results](../CURRENT_STATE.md) and
+`EV-C29-SELF-WEIGHT-NMAX-LOCAL-20261121`.
+
+Continue with independent variable-axial method qualification and the
+revised-stiffness C29 comparison on a common physical grid. Obtain
+concurrent column/wall compression and supported critical loads for each
+revised story basis. Read the C104 and alpha work below for their scopes.
+
+## Earlier branches
+
+The earlier C29 work tips have identical trees to the published
+checkpoints `5f7a3aa`, `1676af9`, `4aaaf6d` and `eb63282`. The current
+engine and tests carry the earlier modal, A1, capture-unit, R08 story and
+execution-console behavior. The separate [15 November status report](../engineering/STATUS_20261115.md)
+is preserved from `4bbf7b4` as a dated record of the earlier 44-row
+comparison and its original run locator.
+
+## Published implementation and replay method
 
 The current remote software milestone starts at full baseline commit
 `eb6328290a66484c8ddbc8ba37158be270b8fc5d`. Read
@@ -10,8 +35,8 @@ an explicit self-weight Nmax idealization with independently complete source
 cuts, primitive superposition and local-N section evaluation. The public example
 calculates the real production owners through conditional R14 completion.
 
-Run `tools/prepare_axial_idealization_scenario.py` against the latest finalized
-original-source C29 scenario receipt, then the normal `run-pipeline` command.
+To reproduce, run `tools/prepare_axial_idealization_scenario.py` against the
+finalized C29 matched-EI scenario receipt, then the normal `run-pipeline` command.
 Keep the existing K/EI/Rm/global decisions, selected cage and joint 40. This step
 needs the already recorded original source, not another ETABS analysis. Inspect
 the actual C29 source-premise outcome, coefficient Nmax/local N, magnified PMM,

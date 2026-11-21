@@ -289,7 +289,8 @@
         "EV-C29-R03-ORDER-AXIAL-BALANCE-20261121",
         "EV-C29-PAIRED-GRAVITY-20261121",
         "EV-C29-MATCHED-EI-REFINEMENT-20261121",
-        "EV-VARIABLE-AXIAL-NUMERICAL-SLICE-20261121"
+        "EV-VARIABLE-AXIAL-NUMERICAL-SLICE-20261121",
+        "EV-C29-SELF-WEIGHT-NMAX-LOCAL-20261121"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -317,7 +318,16 @@
         "private_current_c29_source": "NOT_INSPECTED",
         "engineering_acceptance": "NOT_GRANTED",
         "conservative_bound_proven": false,
-        "next_action": "Prepare the explicit request from the latest local finalized original-source C29 scenario receipt, then run the existing pipeline and report actual PMM, shear, beam and joint outcomes. Retain the method acceptance condition and any source or design failure."
+        "next_action": "Use the Windows original-building checkpoint for the replay and subsequent method qualification."
+      },
+      "original_self_weight_nmax_checkpoint_20261121": {
+        "evidence_ref": "EV-C29-SELF-WEIGHT-NMAX-LOCAL-20261121",
+        "original_building_replay": "COMPLETE",
+        "scope": "Members 225 and 142 consumed all 18 original signed gravity case-cuts in R08. R14 binds all eight distinct connected beams and the X/Y interval results at joint 40. Both members close conditionally on the explicit numerical method.",
+        "conditionally_numerically_closed_columns": 2,
+        "expected_columns": 87,
+        "engineering_acceptance": "NOT_GRANTED",
+        "next_action": "Qualify the varying-axial second-order method and compare it on the revised-stiffness mesh using qualified concurrent story inputs and a verified local deformation peak."
       }
     },
     {

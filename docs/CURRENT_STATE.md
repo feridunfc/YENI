@@ -1,5 +1,31 @@
 # Original building calculation and local handoff — 2026-11-21
 
+## Original C29 with explicit self-weight Nmax
+
+Windows replay `RUN-be9d8258796f4dfca1a3609453e94e53` uses the frozen parent of
+the C29 matched-EI scenario. Three signed gravity combinations at three
+physical cuts per member give 18/18 eligible and consumed cuts. The largest
+absolute primitive-case axial superposition residual is 5.084e-13 kN. The
+coefficient uses each combination's Nmax. Eccentricity and PMM use each
+cut's local N. Both parts select 32Φ16 and Φ10/90 in this scenario.
+
+| C29 member | Grav_Ult Nmax (kN) | Governing static PMM | Spectral PMM bound | Capacity shear / TS 500 resistance | Capacity shear / zero-concrete resistance |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 225 | 3240.466 | 0.213469 | 0.356908 | 0.538602 | 0.757645 |
+| 142 | 2158.045 | 0.295470 | 0.353906 | 0.578302 | 0.793044 |
+
+Grav_Ult at each I face governs the signed static PMM. R14 binds design
+shear for all eight distinct connected beams. Joint 40 has 16/16 seismic
+axial interval checks in each direction. The minimum sampled normalized
+SCWB ratios are 2.187944 in X and 3.263833 in Y. R14 records 2/87
+conditionally numerically closed, with both C29 members carrying the
+explicit axial idealization acceptance gate.
+
+GAP-009 remains partial. The Nmax idealization requires engineering
+acceptance. The revised-stiffness gravity comparison still needs qualified
+same-run story inputs and peak local deformation. Recover the exact private
+run and the next calculation from `EV-C29-SELF-WEIGHT-NMAX-LOCAL-20261121`.
+
 ## Executable variable-axial design slice
 
 The inspected integration base is `eb6328290a66484c8ddbc8ba37158be270b8fc5d`.
@@ -23,19 +49,18 @@ CLI/Web replay is `IDENTICAL`; the existing 44-record golden bank remains
 differences. These are fresh runs for this milestone, separate from the older
 private Windows results below.
 
-The immediate Windows calculation is to prepare the explicit scenario from the
-latest finalized original-source C29 receipt, then run the existing pipeline.
+The Windows continuation above prepared the explicit scenario from the
+finalized original-source C29 receipt and ran the existing pipeline.
 Use the [exact continuation commands](engineering/VARIABLE_AXIAL_SLICE_20261121.md#continue-the-actual-c29-from-its-sealed-original-source).
 This continuation reuses the current selected TS 500 inputs; it does not require
 another ETABS solve or replace the matched-EI experiment below. Preserve any
-newer local basis and use its actual receipt. Record C29's own result rather than
-prescribing a closure count. Private current C29 inputs were unavailable in this
-environment, and original-building replay and live ETABS are `NOT_RUN` here.
+newer local basis and use its actual receipt. The published implementation's
+public fixture record covers the remote environment. The Windows replay above
+records the original-building result.
 
-GAP-009 remains `PARTIAL`: this milestone implements a declared numerical
-idealization, not proof that the constant-axial clause applies or that the
-idealization is conservative. The last private original-building count remains
-0/87. See `EV-VARIABLE-AXIAL-NUMERICAL-SLICE-20261121`.
+GAP-009 remains `PARTIAL`. The numerical idealization awaits acceptance for
+variable axial force. The public fixture checkpoint predates the Windows
+calculation above. See `EV-VARIABLE-AXIAL-NUMERICAL-SLICE-20261121`.
 
 ## C29 matched effective stiffness and mesh refinement
 
@@ -74,7 +99,8 @@ On the revised models, finish the local shape comparison on a denser common
 physical grid or with independently verified within-element displacement.
 Supply the same-run, simultaneous column and wall compression, supported
 critical-load scope and axis-specific effective length factors to run the
-revised TS 500 PMM at the exact same cuts. R14 remains 0/87 numerically closed.
+revised TS 500 PMM at the exact same cuts. That matched-EI scenario recorded
+0/87 numerically closed.
 See `EV-C29-MATCHED-EI-REFINEMENT-20261121` for the native and sealed run IDs.
 
 ## C29 matched ETABS gravity solutions

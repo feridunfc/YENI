@@ -6213,7 +6213,62 @@
       "original_building_replay": "NOT_RUN",
       "live_etabs": "NOT_RUN",
       "limit": "This is an explicit numerical idealization, not a qualified TS 500 variable-axial method or original-building acceptance. The original C29 matched-EI experiment, same-model story inputs, coupled C104 and alpha-below-one qualification retain their existing scopes.",
-      "next_action": "On the current Windows integration tree, recover the latest finalized original-source C29 scenario with prepare_axial_idealization_scenario.py, then run the existing pipeline with the new explicit request. Preserve current K/EI/Rm/global decisions and joint 40; record actual C29 outcomes without prescribing closure."
+      "next_action": "See EV-C29-SELF-WEIGHT-NMAX-LOCAL-20261121 for the completed Windows original-source replay."
+    },
+    {
+      "id": "EV-C29-SELF-WEIGHT-NMAX-LOCAL-20261121",
+      "observed_at": "2026-11-21",
+      "status": "ORIGINAL_SOURCE_R14_CONDITIONAL_NUMERICAL_CLOSURE",
+      "gap_ids": ["GAP-009"],
+      "implementation_commit": "6464d4d7a8f31e331c46e6e6736a8f574118efbd",
+      "verified_implementation_tree_sha": "995d25a49b3d069ea16ac8dd06efaa93fcd26dde",
+      "parent_evidence": ["EV-VARIABLE-AXIAL-NUMERICAL-SLICE-20261121", "EV-C29-MATCHED-EI-REFINEMENT-20261121"],
+      "parent_run_id": "RUN-464231f1e18f465f88da868f7306a753",
+      "parent_run_path_private": ".receipts/R08_C29_EI_MESH/live-replay/RUN-464231f1e18f465f88da868f7306a753",
+      "verified_run_id": "RUN-be9d8258796f4dfca1a3609453e94e53",
+      "original_source_sha256": "703e202fc8b08f60043c571d9970945b6307e5cee99e8a45e6377c8446da56fc",
+      "scenario_request_sha256": "cb3cf74a3155900c18d9adc616846acb28f9c40e5916600527be884d50f07176",
+      "verified_input_sha256": "0c722cc8925b8cecbfd13334396f3b8886404b293d6fcdeda029c16fff9d8c62",
+      "results_sha256": "ffac4b84f681835fa22ffb32571a34c32f3adb527bb95dfaa64eec960fc1cc3f",
+      "report_sha256": "3232023a1b292fc2bd403c27db98f99d8cef3b26bf7dae67ece22d813efe7831",
+      "private_summary": ".receipts/c29-self-weight-nmax/verification.json",
+      "commands": [
+        "python -X utf8 -B tools/prepare_axial_idealization_scenario.py --from-run <private parent run path> --member 225 --member 142 --combination Grav_Ult --combination Grav_TempNeg --combination Grav_TempPos --decision-reference 'C29 explicit self-weight Nmax calculation idealization; engineering acceptance pending' --scenario-id c29-self-weight-nmax --out .receipts/c29-self-weight-nmax/request.json",
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --source <private parent run path>/parent.source --design-scenario .receipts/c29-self-weight-nmax/request.json --case Modal --out .receipts/c29-self-weight-nmax",
+        "python -X utf8 -B .receipts/c29-self-weight-nmax/verify.py",
+        "python -X utf8 -B tools/test_offline.py"
+      ],
+      "member_ids": ["225", "142"],
+      "signed_case_cuts": {"expected": 18, "evaluated": 18},
+      "maximum_primitive_superposition_residual_kn": 5.084e-13,
+      "grav_ult_nmax_kn": {"225": 3240.4657836269826, "142": 2158.045264325103},
+      "static_pmm_max_utilization": {"225": 0.21346890100317067, "142": 0.2954701269355598},
+      "spectral_pmm_max_bounding_utilization": {"225": 0.3569079182765889, "142": 0.35390614507784507},
+      "capacity_shear_ts500_utilization": {"225": 0.5386019571834569, "142": 0.5783017413770299},
+      "connected_beams_with_design_shear": 8,
+      "joint_40": {
+        "X": {"seismic_interval_checks": 16, "minimum_sampled_normalized_scwb_ratio": 2.1879439308413313},
+        "Y": {"seismic_interval_checks": 16, "minimum_sampled_normalized_scwb_ratio": 3.26383295035283}
+      },
+      "r14_previous_numerically_closed_columns": 0,
+      "r14_conditionally_numerically_closed_columns": 2,
+      "r14_expected_columns": 87,
+      "tests": {
+        "environment": "Windows x64, Python 3.12.10, Node v24.22.1",
+        "status": "PASS",
+        "python_tests": 1671,
+        "python_skipped": 1,
+        "javascript_test_files_passed": 11,
+        "golden_numerical_insufficient_interpretation": [33, 7, 4],
+        "log_private": ".receipts/c29-self-weight-nmax/offline.log",
+        "log_sha256": "faf4b520793f342270a7be078825612e06d199e86f1f98e29ca426758a7e2127"
+      },
+      "engineering_acceptance": "NOT_GRANTED",
+      "engineering_release": "NOT_READY",
+      "live_etabs": "NOT_RUN",
+      "scope": "The two original C29 members consume explicit source-reconciled Nmax for coefficient calculation and local cut N for eccentricity and PMM. Windows ran the existing engine from a frozen native source and verified the resulting conditional R14 calculation, connected beams, joint 40 and sealed report.",
+      "limit": "Variable-axial method acceptance, the revised-stiffness peak local deformation, and qualified concurrent same-model TS 500 story inputs remain open.",
+      "next_action": "Independently qualify the varying-axial calculation and resolve the matched-EI local deformation peak and concurrent story inputs before comparing both methods at the same physical cuts."
     }
   ],
   "new_record_template": {
