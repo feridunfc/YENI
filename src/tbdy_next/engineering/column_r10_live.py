@@ -34,7 +34,7 @@ from ..column_engine.source_bank import native_frame_force_rows
 from ..column_engine.story_alpha import evaluate_story_alpha_reference
 from ..column_engine.transverse_kernel import confinement_reference, shear_reference
 from ..column_engine.ts500_column import apply_minimum_eccentricity
-from ..etabs_geometry import PHYSICAL_FACE_TABLES
+from ..etabs_geometry import PHYSICAL_FACE_TABLES, capture_point_restraints
 from ..etabs_source_gateway_windows import field_schema, read_table, return_code
 from ..frame_force_capture import ForceSelectionRestoreError, capture_frame_forces
 
@@ -116,6 +116,7 @@ def capture_r10_sources(
     beam_members: tuple[str, ...] = (),
     combinations: tuple[str, ...] = (),
     column_members: tuple[str, ...] = (),
+    column_joint_ids: tuple[str, ...] = (),
 ) -> dict[str, Any]:
     """Read optional R10 and PMM source evidence on the connected SapModel."""
     captured: dict[str, Any] = {
@@ -143,6 +144,8 @@ def capture_r10_sources(
         )
         if coordinates is not None:
             captured["analysis_joint_coordinates"] = coordinates
+        if column_joint_ids:
+            captured["point_restraints"] = capture_point_restraints(sap, column_joint_ids)
         if beam_members and combinations:
             try:
                 captured["beam_force_source"] = capture_frame_forces(

@@ -1,10 +1,47 @@
-# Original building calculation and local auditor handoff — 2026-11-20
+# Original building calculation and local handoff — 2026-11-21
 
 Start each assignment at [AGENTS.md](../AGENTS.md). The
 [worker handoff](context/WORKER_HANDOFF_20261119.md) and
 [project charter and source guide](context/PROJECT_CHARTER.md) are available
 in a GitHub checkout. Follow the [November 18 full recipe](engineering/reference/recipe_20261118/delivery/RECIPE.md)
 and its [six-step calculation sequence](engineering/reference/recipe_20261118/delivery/PRIORITY_CHAIN.json).
+
+## R08 mat horizontal boundary
+
+The existing ETABS gateway read the restraints and local axes of all 119
+column-end joints. R08 matches the point IDs to the native mat mesh and
+the same-source spectral displacement rows. The original model has 32
+mat-supported columns. All 32 restrain global UX and UY at the base.
+R08 calculates all 64 corresponding endpoint differentials because the
+base value is zero in each matching response-spectrum case. For lower
+C29 (225), joint 934 to 40, the values are 1.956 mm in RSX/X and
+1.931 mm in RSY/Y. The normal report and R14 carry the boundary result.
+
+The fresh run reproduced 7,638 assigned native force rows and 1,392 R10
+case/axis shear calculations. R14 still records 11 open conditions for
+59 columns and 12 for 28.
+See `EV-R08-MAT-HORIZONTAL-BOUNDARY-20261121` in the
+[verification ledger](VERIFICATION_LEDGER.json).
+
+## TS 500 sway reference on the private ETABS copy
+
+Under matched vertical loads and signed X/Y lateral loads, ETABS solved
+eight first-order, eight P-Delta and eight linear-control cases. The
+linear controls agreed at all 1,392 column ends across the eight load
+sets. The absolute difference exceeded 5% of the first-order moment in
+105 of 2,784 comparisons, with at least one exceedance in each of the
+six occupied story directions. C29's upper column 142 was within the
+limit in 32 of 32 comparisons. The lower column 225 exceeded it at the
+mat end in M3 for both negative-Y cases.
+
+These results do not qualify the sway-prevented shortcut under TS 500
+§7.6.2.1 for the tested load sets. The reference cases used the original
+`Grav_Service` and `Grav_Ult` factors with signed `LC_EQX` or `LC_EQY`.
+The assigned R08 spectral design demand retains its own approval gate.
+Use `EV-R08-TS500-PAIRED-STATIC-20261121` and carry forward the directional
+sway-permitted effective-length calculation under §7.6.2.2. Qualify its
+end stiffness, including the mat at 934 if used, and establish the
+applicable creep and signed demand before applying magnification.
 
 ## C29 TS 500 effective length reference
 
@@ -25,19 +62,14 @@ in every tested sway-permitted case. In 36 signed case comparisons, both
 Eq. (7.29) length readings give the ordinary branch. The reference scenarios
 leave the adopted sway, restraint and creep inputs open.
 
-The existing physical story scope accounts for all six occupied story
-directions. +14.5 is a verified empty story. Use `UX = UY = 0` at C29 base
-joint 934. The archived restraint and the sealed RSX and RSY joint
-translations agree. The upper end at joint 40 moves 1.956 mm in RSX/X
-and 1.931 mm in RSY/Y in these spectral results. See
-`EV-C29-MAT-HORIZONTAL-SUPPORT-20261121` in the verification ledger.
+The physical story scope accounts for all six occupied story directions.
++14.5 is a verified empty story. The original archive verification is
+indexed by `EV-C29-MAT-HORIZONTAL-SUPPORT-20261121`.
 
-GAP-009 first qualifies TS 500 story sway in each direction. If sway is
-prevented, §7.6.2.2 permits `k = 1.0`, giving 19.269065 and 16.454483
-for C29's two slenderness ratios. If the sway-permitted branch requires an
-explicit foundation restraint model, establish the relevant rotational
-response at 934. The paired analysis route and the uncracked Eq. (7.13)
-route have their own load and stiffness prerequisites.
+If sway is independently qualified as prevented, §7.6.2.2 permits
+`k = 1.0`, giving 19.269065 and 16.454483 for C29's two slenderness
+ratios. Eq. (7.13) has separate uncracked-section and load prerequisites
+for a first-order stability analysis.
 
 ## Column support faces, local slenderness and shear
 

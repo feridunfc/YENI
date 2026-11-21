@@ -5,6 +5,7 @@ There are no setters, analysis runs, model writes, or unit changes.
 """
 from __future__ import annotations
 
+from math import isfinite
 from typing import Any
 
 TABLES = {
@@ -21,6 +22,30 @@ SLAB_PROPERTIES = "Slab Property Definitions"
 FLOOR_CONNECTIVITY = "Floor Object Connectivity"
 AREA_ELEMENTS = "Objects and Elements - Areas"
 PHYSICAL_FACE_TABLES = (FRAME_INSERTION, AREA_INSERTION, SLAB_PROPERTIES, FLOOR_CONNECTIVITY, AREA_ELEMENTS)
+POINT_RESTRAINT_SCHEMA = "tbdy.next.etabs.point-restraints.v1"
+
+
+def capture_point_restraints(sap: Any, joint_ids: tuple[str, ...]) -> dict:
+    """Read restraint assignments and their point-local axis definitions together."""
+    result: dict[str, Any] = {"schema": POINT_RESTRAINT_SCHEMA, "point_ids": list(joint_ids),
+                              "observations": {}, "errors": {}}
+    for uid in joint_ids:
+        try:
+            point = sap.PointObj
+            restraint, restraint_ret = point.GetRestraint(uid, [])
+            a, b, c, advanced, axes_ret = point.GetLocalAxes(uid, 0.0, 0.0, 0.0, False)
+            if (type(restraint_ret) is not int or restraint_ret != 0
+                    or type(axes_ret) is not int or axes_ret != 0):
+                raise ValueError("Native point restraint or axes returned an error")
+            if (len(restraint) != 6 or any(type(value) is not bool for value in restraint)
+                    or type(advanced) is not bool
+                    or any(type(angle) not in (int, float) or not isfinite(angle) for angle in (a, b, c))):
+                raise ValueError("Native point restraint or axes returned an unrecognized shape")
+            result["observations"][uid] = {"local_dof": list(restraint), "axes_angles_deg": [a, b, c],
+                                           "advanced_axes": advanced}
+        except Exception as exc:
+            result["errors"][uid] = f"{type(exc).__name__}: {exc}"[:300]
+    return result
 
 
 def _metadata(db: Any, key: str) -> dict:

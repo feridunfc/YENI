@@ -41,11 +41,17 @@ Read the shared length in R08 and R10 and the open R14 gates. Fifty-nine
 columns use physical model faces. Twenty-eight have unbound wall contacts.
 For C29 effective lengths use `EV-C29-TS500-EFFECTIVE-LENGTH-20261121`.
 Trace the axis-length frame terms and the two clear spans into R08. Use
-`EV-C29-MAT-HORIZONTAL-SUPPORT-20261121` for `UX = UY = 0` at joint 934.
-Qualify the TS 500 sway classes first. Section 7.6.2.2 permits `k = 1.0`
-for sway-prevented columns. Resolve the mat rotational response if the
-sway-permitted effective-length method needs it. The existing physical
-scope accounts for six occupied story directions and the empty +14.5 story.
+`EV-R08-MAT-HORIZONTAL-BOUNDARY-20261121` for the production mat restraint
+and displacement calculation. Reconstruct the 32-column base roster
+from native connectivity and verify both directions against the matching
+RSX/RSY point rows. At joint 934, both global horizontal DOFs are restrained.
+Use `EV-R08-TS500-PAIRED-STATIC-20261121` for the completed matched
+ETABS first- and second-order comparison. Each occupied story direction
+has an exceedance of the 5% threshold with the original signed static
+reference loads. Carry forward the sway-permitted effective-length
+method and resolve the mat rotational response if needed. The existing
+physical scope accounts for six occupied story directions and the
+empty +14.5 story.
 
 For assigned C29 shear use `EV-C29-SPECTRAL-SHEAR-20261120`. Both C29 segments
 have eight assigned cases for V2 and V3 inside the selected R10 capacity shear

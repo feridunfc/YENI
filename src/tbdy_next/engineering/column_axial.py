@@ -138,11 +138,16 @@ def capture_column_axial(sap, snapshot: dict, request: dict) -> dict:
         from .column_pmm_section import capture_pmm_section
         from .column_r10_live import capture_r10_sources
 
+        member_ids = targets if pmm_member == "ALL" else (pmm_member,)
+        column_rows = snapshot["geometry_capture"]["tables"]["COLUMN_CONNECTIVITY"].get("rows") or ()
+        joint_ids = {row.get(end) for row in column_rows if row.get("UniqueName") in member_ids
+                     for end in ("UniquePtI", "UniquePtJ")}
         captured["pmm_section_source"] = capture_pmm_section(sap)
         captured["r10_source"] = capture_r10_sources(
             sap,
             beam_members=_beam_targets_for_r10(snapshot, pmm_member),
-            column_members=targets if pmm_member == "ALL" else (pmm_member,),
+            column_members=member_ids,
+            column_joint_ids=tuple(sorted(uid for uid in joint_ids if isinstance(uid, str) and uid)),
             combinations=tuple(row["name"] for row in plan["combinations"]),
         )
     if not targets:

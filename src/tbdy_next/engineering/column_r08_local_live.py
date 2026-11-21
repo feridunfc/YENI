@@ -30,6 +30,7 @@ from ..column_engine.ts500_column import (
 )
 from .column_clear_length import FACE_BASIS, proven_clear_length_m
 from .column_effective_length import effective_length_reference, reference_end_ratios
+from .column_mat_support import project_mat_horizontal_supports
 from .column_r10_live import SelectedColumnCage
 from .live_column import project_column_slenderness_evidence
 
@@ -681,6 +682,7 @@ def project_column_r08_local_live(
         raise ValueError("ALPHA_R08_REUSE_SCOPE_REQUIRED")
     physical_lengths = ((r10_live or {}).get("physical_clear_lengths") or {}).get("per_member", {})
     end_ratios = reference_end_ratios(source, physical_lengths)
+    mat_supports = project_mat_horizontal_supports(source, physical_lengths)
 
     def _reported_selection(uid: str) -> Mapping[str, Any] | None:
         if not r10_live:
@@ -722,14 +724,17 @@ def project_column_r08_local_live(
     def _project_member(member: Mapping[str, Any]) -> dict[str, Any]:
         uid = member.get("member_id")
         physical_length = physical_lengths.get(uid)
+        boundary = {"mat_horizontal_support": mat_supports[uid]} if uid in mat_supports else {}
         if dependency_plan is not None:
             from .design_dependencies import blocked_member_result
             dep = dependency_plan["members"].get(uid) or {}
             if not dep.get("source_execution_allowed"):
-                return blocked_member_result(uid, list(dep.get("reason_codes") or ["DESIGN_MEMBER_INPUT_UNAVAILABLE"]), schema=SCHEMA)
+                return {**blocked_member_result(
+                    uid, list(dep.get("reason_codes") or ["DESIGN_MEMBER_INPUT_UNAVAILABLE"]), schema=SCHEMA),
+                    **boundary}
         e_res, e_sec = _eng_section_for(uid) if uid else (None, None)
         if dependency_plan is not None and col_selection_enabled and e_sec is None:
-            return blocked_member_result(uid, [_SELECTED_CAGE_UNAVAILABLE], schema=SCHEMA)
+            return {**blocked_member_result(uid, [_SELECTED_CAGE_UNAVAILABLE], schema=SCHEMA), **boundary}
         binding = None
         if dependency_plan is not None:
             from .design_scenario import _digest
@@ -756,6 +761,7 @@ def project_column_r08_local_live(
             result["effective_length_reference"] = effective_length_reference(
                 end_ratios[uid], result, revised_member["section_evidence"],
             )
+        result.update(boundary)
         if binding is not None:
             result["input_binding_sha256"] = binding
         if demand_revision is not None:

@@ -440,6 +440,8 @@ def _evaluate_single_r14_column(
                 "governing_static_station": mag_pmm.get("governing_station"),
                 "max_reference_beta_sway_prevented": (r08_local_col or {}).get("max_reference_beta_sway_prevented"),
                 "global_pdelta_within_limit": global_pdelta_ok,
+                **({"mat_horizontal_support_status": r08_local_col["mat_horizontal_support"]["status"]}
+                   if r08_local_col and "mat_horizontal_support" in r08_local_col else {}),
                 "cracked_stiffness_tbdy_4_2_verified": cracked_verified,
                 "spectral_envelope_pmm_status": spec_pmm.get("status"),
                 "spectral_envelope_max_utilization": spec_pmm.get("max_bounding_utilization"),

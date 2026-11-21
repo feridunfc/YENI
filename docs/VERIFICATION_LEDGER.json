@@ -1,7 +1,7 @@
 {
   "schema": "yeni.project-memory.verification-ledger.v2",
   "repository": "feridunfc/YENI",
-  "updated_on": "2026-11-20",
+  "updated_on": "2026-11-21",
   "purpose": "Durable evidence index. It is not a source receipt or formal engineering acceptance.",
   "workflow": {
     "primary_workspace": "LOCAL_CODEX",
@@ -19,27 +19,28 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "C29_TS500_EFFECTIVE_LENGTH_SCENARIOS",
-    "work_branch": "work/c29-effective-length",
+    "status": "R08_MAT_BOUNDARY_AND_TS500_PAIRED_STATIC_REFERENCE",
+    "work_branch": "work/r08-mat-horizontal-boundary",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "c1f2eda2e282298bb39c5f57437b619260695530",
-    "source_run_id": "RUN-7b6c79ccc46c47c0a8e8d15344a22e2e",
-    "source_sha256": "28fbbe15aeb94e42a989c7b3a13545c86919b482ef377a5a46112907edd8ecfb",
-    "production_run_id": "RUN-d3178de6fc6c495c9c2e93b3289c870c",
-    "results_sha256": "883786aeae5c75963a344f61b7e52813a18858ff0a644c5c0c26ccf8b71b30cd",
+    "inspected_base_commit": "a850816d8d376a6ce5239417a692fb8ce9b96e6c",
+    "source_run_id": "RUN-ec213e8622d2404ca2cd39ca5b392d7a",
+    "source_sha256": "dcaa231263607e6ea71d1282b597542480dbc2f90f845889e27ad9c2000e059d",
+    "production_run_id": "RUN-8ff05dc6b0814df59654e5b8e0bfbe2c",
+    "results_sha256": "e8097f03d14812d3de906fed4515141df605ec7b029ccaa83b8a0d5553aaed84",
     "evidence_refs": [
-      "EV-C29-TS500-EFFECTIVE-LENGTH-20261121",
-      "EV-C29-MAT-HORIZONTAL-SUPPORT-20261121"
+      "EV-R08-MAT-HORIZONTAL-BOUNDARY-20261121",
+      "EV-R08-TS500-PAIRED-STATIC-20261121",
+      "EV-C29-TS500-EFFECTIVE-LENGTH-20261121"
     ],
     "engineering_release": "NOT_READY",
-    "next_action": "Use UX=UY=0 at C29 base joint 934 and qualify the applicable TS 500 story sway classifications first. Use the k=1.0 provision where sway is prevented. For a sway-permitted branch, qualify the effective-length model and obtain the rotational response at 934 if needed. Bind the resulting R08 effects under GAP-009."
+    "next_action": "Carry forward the TS 500 sway-permitted effective-length calculation at C29. Bind directional end stiffness, including the mat at 934 if used, the applicable creep and signed demand under GAP-009. The paired static reference load sets do not qualify k=1.0."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
-    "commit_sha": "c1f2eda2e282298bb39c5f57437b619260695530",
-    "git_tree_sha": "b6cadb8c4b38e58331cb1f94bd968a8fa30b882b",
+    "commit_sha": "a850816d8d376a6ce5239417a692fb8ce9b96e6c",
+    "git_tree_sha": "e270e003a5d13073290493722cb205d3ad7ddd20",
     "observed_on": "2026-11-21",
-    "scope": "Verified integration base of this checkpoint. Resolve the published ref with git ls-remote."
+    "scope": "Verified parent of this checkpoint. Resolve the current published ref with git ls-remote."
   },
   "record_policy": {
     "append_new_ids": true,
@@ -5183,6 +5184,103 @@
       "engineering_release": "NOT_READY",
       "next_action": "Use UX=UY=0 at C29 base joint 934 and qualify the applicable TS 500 story sway classifications first. Use the k=1.0 provision where sway is prevented. For a sway-permitted branch, qualify the effective-length model and obtain the rotational response at 934 if needed. Bind the resulting R08 effects under GAP-009.",
       "source_check_sha256": "bfd995bfffa6334c215e3cc8232d1a951cd072775138e9587c1e9a318acb4b9d"
+    },
+    {
+      "id": "EV-R08-MAT-HORIZONTAL-BOUNDARY-20261121",
+      "date": "2026-11-21",
+      "gaps": [
+        "GAP-009"
+      ],
+      "classification": "LIVE_NATIVE_BOUNDARY_AND_PRODUCTION_RESULT_VERIFIED",
+      "base_commit": "a850816d8d376a6ce5239417a692fb8ce9b96e6c",
+      "source_run": "RUN-ec213e8622d2404ca2cd39ca5b392d7a",
+      "input_sha256": "dcaa231263607e6ea71d1282b597542480dbc2f90f845889e27ad9c2000e059d",
+      "parent_sha256": "703e202fc8b08f60043c571d9970945b6307e5cee99e8a45e6377c8446da56fc",
+      "production_run": "RUN-8ff05dc6b0814df59654e5b8e0bfbe2c",
+      "results_sha256": "e8097f03d14812d3de906fed4515141df605ec7b029ccaa83b8a0d5553aaed84",
+      "snapshot_sha256": "8d2112bf8c776993ed28a5719c69280706e042b374a5bcdf0716f0ffcb084c58",
+      "verification_sha256": "c759eab83637e6ab4941df2fe3096c9810803440b8c66c06b0d2bd4c049cf9d3",
+      "normal_report_sha256": "bf26b42a30206f9273a56a90bcf12ac5f9d8c4f72d775c31f674019612f8c781",
+      "commands": [
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --source .receipts/RUN-ec213e8622d2404ca2cd39ca5b392d7a/input.source --case Modal --out .receipts/verification/r08-mat-boundary-20261121/final",
+        "python -X utf8 -B .receipts/verification/r08-mat-boundary-20261121/verify.py",
+        "python -X utf8 -B tools/test_offline.py",
+        "python -X utf8 -B tools/test_installed_wheel.py .receipts/verification/r08-mat-boundary-20261121/wheel-final"
+      ],
+      "observed": {
+        "etabs": "23.2.0",
+        "point_restraints_verified": 119,
+        "mat_supported_columns_verified": 32,
+        "same_case_directional_endpoint_differentials": 64,
+        "r10_assigned_spectral_shear_calculations_unchanged": 1392,
+        "assigned_native_force_rows_unchanged": 7638,
+        "r14_open_gates_histogram": {
+          "12": 28,
+          "11": 59
+        },
+        "c29_lower": {
+          "native_id": "225",
+          "base_joint": "934",
+          "upper_joint": "40",
+          "RSX_Ux_mm": 1.956,
+          "RSY_Uy_mm": 1.931
+        }
+      },
+      "verification": {
+        "offline_python_passed": 1560,
+        "offline_python_skipped": 1,
+        "offline_js_passed": 11,
+        "wheel_python_passed": 409,
+        "offline_log_sha256": "4d304e09fd2ad2b2ba2d286c670ebe432007e9dfd5ab767e5e91b1fb5373cf78",
+        "wheel_log_sha256": "2240624d0f181275bf97a5cceb5ee2aed950de719d87db01981c2369386dea50",
+        "wheel_sha256": "279e6bfcadfa6dc1d1eb7b30f333e9e4ac34a8d73967f51e7ea423c2e7cd8788",
+        "tested_files": ".receipts/verification/r08-mat-boundary-20261121/tested-files.json"
+      },
+      "private_receipt": ".receipts/verification/r08-mat-boundary-20261121",
+      "limit": "The base zero enables a same-case end differential without subtracting two independent spectral maxima. The boundary subcheck supplies no TS 500 story sway or mat rotational classification.",
+      "engineering_release": "NOT_READY"
+    },
+    {
+      "id": "EV-R08-TS500-PAIRED-STATIC-20261121",
+      "date": "2026-11-21",
+      "gaps": [
+        "GAP-009"
+      ],
+      "classification": "PAIRED_STATIC_REFERENCE_5_PERCENT_EXCEEDANCES",
+      "base_commit": "a850816d8d376a6ce5239417a692fb8ce9b96e6c",
+      "standard": "TS 500 §7.6.2.1 paired linear-material first- and second-order option.",
+      "method": "On the private Save As, use the six original gravity patterns with Grav_Service or Grav_Ult factors, one original LC_EQX or LC_EQY pattern with either sign, and identical nonlinear static case settings apart from P-Delta. Check the first order against an independent linear static case. Compare both native signed end moment components at identical original ObjectElm cut keys.",
+      "commands": [
+        "python -X utf8 -B .receipts/R08_TS500_PAIR/run_ts500_pair.py --pid <desktop ETABS PID>",
+        "python -X utf8 -B .receipts/R08_TS500_PAIR/evaluate_ts500_pair.py .receipts/R08_TS500_PAIR/runs/20261121T053205468068Z"
+      ],
+      "source_sha256": "dcaa231263607e6ea71d1282b597542480dbc2f90f845889e27ad9c2000e059d",
+      "frame_forces_sha256": "03e6e5bd0f915f79acc83a3c084d725d087d6fc9fc2f8c43cdcbccf2d2e222db",
+      "comparison_sha256": "70a82d2ffd722f6bff413b500e1d44ca333d146ead154faf61fb7e3d8a5a3d06",
+      "definitions_sha256": "c9b0f4e528008849ee04c6fe815f185195d046012b7232c476f41bad1d516fc8",
+      "original_edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+      "private_copy_edb_sha256": "72b61f91447831b55a21016073f924b77f1d6b2c4caaf3a6e201b801713f5d43",
+      "observed": {
+        "status": "24 of 24 ETABS cases finished; RunAnalysis returned zero",
+        "matched_linear_control_end_rows": 1392,
+        "moment_comparisons": 2784,
+        "within_threshold": 2679,
+        "exceeds_threshold": 105,
+        "story_direction_exceedances": {
+          "+0.00/X": 19,
+          "+0.00/Y": 28,
+          "+4.50/X": 19,
+          "+4.50/Y": 24,
+          "+9.00/X": 6,
+          "+9.00/Y": 9
+        },
+        "c29_225_within_5pct": "30 of 32",
+        "c29_142_within_5pct": "32 of 32"
+      },
+      "private_receipt": ".receipts/R08_TS500_PAIR/runs/20261121T053205468068Z",
+      "limit": "All six tested story directions have exceedances. The signed reference scope is distinct from the spectral design combinations. No sway-prevented shortcut or final design acceptance is issued.",
+      "engineering_release": "NOT_READY",
+      "next_action": "Carry forward the TS 500 sway-permitted effective-length calculation at C29. Bind directional end stiffness, including the mat at 934 if used, the applicable creep and signed demand under GAP-009. The paired static reference load sets do not qualify k=1.0."
     }
   ],
   "new_record_template": {

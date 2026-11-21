@@ -1332,9 +1332,28 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
         vs04_sections.append(_column_slenderness_html(report["column_slenderness_evidence"],
                                                       report.get("r08_local_slenderness")))
     local_order = report.get("r08_local_slenderness") or {}
+    local_members = (local_order.get("per_member") or {"single": local_order}).values()
+    mat_rows = []
+    for member in local_members:
+        support = member.get("mat_horizontal_support")
+        if support:
+            flags = support.get("global_dof_restrained") or {}
+            drift = support.get("spectral_joint_reference") or {}
+            mat_rows.append({"member": member.get("member_id"), **support,
+                             "dof": ", ".join(dof for dof, fixed in flags.items() if fixed),
+                             "x_m": drift.get("X", {}).get("relative_m"),
+                             "y_m": drift.get("Y", {}).get("relative_m")})
+    if mat_rows:
+        vs04_sections.append(
+            '<section class="percheck"><h2>R08 · Mat horizontal support</h2>'
+            + _table((("member", "Column"), ("base_joint_id", "Base joint"), ("upper_joint_id", "Upper joint"),
+                      ("dof", "Restrained global DOFs"), ("x_m", "RSX relative Ux (m)"),
+                      ("y_m", "RSY relative Uy (m)"), ("status", "Boundary status"), ("reason", "Open reason")), mat_rows)
+            + '</section>'
+        )
     restraint_rows = [
         {"member": row.get("member_id"), "axis": axis, **case}
-        for row in (local_order.get("per_member") or {"single": local_order}).values()
+        for row in local_members
         for axis, branch in ((row.get("effective_length_reference") or {}).get("axes") or {}).items()
         for case in branch["cases"]
     ]

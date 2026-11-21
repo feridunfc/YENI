@@ -172,14 +172,34 @@ def project_column_clear_lengths(source, frames, adjacency, members, pmm_scope):
     except (KeyError, TypeError, ValueError) as exc:
         return {**plan, "source_error": str(exc)}
 
-    def support_at(joint_id):
+    def matching_model_joint(joint_id):
         point = points[joint_id]
         xyz = _xyz(point, "XYZ")
         native = native_joints[joint_id]
         if (native["ObjType"] != "Joint" or native["ObjName"] != joint_id or native["Story"] != point["Story"]
                 or not all(_close(a, b) for a, b in zip(xyz, _xyz(native, ("GlobalX", "GlobalY", "GlobalZ"))))):
             raise ValueError(f"Model and analysis joint {joint_id} differ")
+        return point, xyz
 
+    def mat_contact(pi, pj):
+        point, xyz_i = matching_model_joint(pi)
+        _, xyz_j = matching_model_joint(pj)
+        if xyz_i[2] >= xyz_j[2]:
+            return None
+        mats = {}
+        for (kind, uid, story, label), elements in sorted(floor_mesh.get(pi, {}).items()):
+            assignment = assignments.get(uid, {})
+            if (kind == "Floor" and story == point["Story"] == assignment.get("Story")
+                    and label == assignment.get("Label") and assignment.get("PropType") == "Slab"
+                    and slabs.get(assignment.get("SectProp"), {}).get("PropType") == "Mat"
+                    and any(r.get("Story") == story and r.get("FloorBay") == label for r in floors.get(uid, ()))):
+                mats[uid] = sorted(elements)
+        if mats:
+            return {"base_joint_id": pi, "upper_joint_id": pj, "mat_analysis_elements": mats}
+        return None
+
+    def support_at(joint_id):
+        point, xyz = matching_model_joint(joint_id)
         beams = [_beam_face(end, frames[end["frame_id"]], point, xyz, points, insertions, frame_fields)
                  for end in adjacency.get(joint_id, ()) if end["type"] == "Beam"]
         slab_faces = []
@@ -218,6 +238,14 @@ def project_column_clear_lengths(source, frames, adjacency, members, pmm_scope):
 
     for uid in members:
         row = results[uid] = {"member_id": uid, "status": "MODEL_CLEAR_LENGTH_UNRESOLVED"}
+        if "point_restraints" in r10 and uid in frames:
+            try:
+                frame = frames[uid]
+                contact = mat_contact(frame["point_i"], frame["point_j"])
+                if contact is not None:
+                    row["mat_contact"] = contact
+            except (KeyError, TypeError, ValueError):
+                pass  # Clear-length evaluation records the independent member outcome below.
         try:
             frame = frames[uid]
             pi, pj = frame["point_i"], frame["point_j"]

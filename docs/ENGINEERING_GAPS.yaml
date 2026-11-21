@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-21T05:08:34.205885Z",
+  "updated_at_utc": "2026-11-21T05:36:34.336687Z",
   "repository": "feridunfc/YENI",
-  "baseline_implementation_commit": "c1f2eda2e282298bb39c5f57437b619260695530",
+  "baseline_implementation_commit": "a850816d8d376a6ce5239417a692fb8ce9b96e6c",
   "local_reconciled": true,
-  "scope_note": "18 stable GAPs. The original assigned R10/R08 calculation uses model clear lengths at 59 aligned columns. Wall contacts leave 28 open. The source, independent audit and repeat are indexed by EV-C29-PHYSICAL-CLEAR-LENGTH-20261120.",
+  "scope_note": "18 stable GAPs. The original R08/R10 calculation uses model clear lengths at 59 aligned columns. R08 verifies the native horizontal boundary at all 32 mat-supported columns. Paired TS 500 static references exceed the 5% shortcut threshold in all six occupied story directions.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -29,7 +29,7 @@
     "GAP-013",
     "GAP-016"
   ],
-  "active_task": "Use UX=UY=0 at C29 base joint 934 and qualify the applicable TS 500 story sway classifications first. Use the k=1.0 provision where sway is prevented. For a sway-permitted branch, qualify the effective-length model and obtain the rotational response at 934 if needed. Bind the resulting R08 effects under GAP-009.",
+  "active_task": "Carry forward the TS 500 sway-permitted effective-length calculation at C29. Bind directional end stiffness, including the mat at 934 if used, the applicable creep and signed demand under GAP-009. The paired static reference load sets do not qualify k=1.0.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -218,15 +218,16 @@
       "title": "Global and local second-order effects",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Selected candidates can bind same-run R08 inputs; EI/Nk and second-order reference calculations exist. Same-run selected sections now carry both first-order and magnified design moments with the local/global factors and fixed-N radial reserve. R08 applies the existing minimum-eccentricity owner before local/global magnification for static and spectral-box references. Raw, floored and final moments are recorded and projected in the normal report. The two GOLDEN-01 theta scalars now call the existing global P-delta owner. R08 consumes the verified 4.45 m and 3.80 m C29 model clear lengths and the corresponding verified clear lengths of 57 more columns. R08 evaluates conditional TS 500 effective lengths and Euler loads at 59 columns using native directional framing. C29 has 36 aligned Eq. (7.29) comparisons across the stated scenarios. The accepted C29 base boundary at joint 934 restrains UX and UY, consistent with 14 sealed displacement rows.",
-      "blocker": "Qualify each TS 500 story sway class using an applicable §7.6.2.1 method. If an explicit sway-permitted effective-length model relies on foundation rotation, bind its rotational response at 934. The applicable magnification inputs include end continuity, flange, creep and actual analysis order.",
+      "achieved_scope": "Selected candidates can bind same-run R08 inputs; EI/Nk and second-order reference calculations exist. Same-run selected sections now carry both first-order and magnified design moments with the local/global factors and fixed-N radial reserve. R08 applies the existing minimum-eccentricity owner before local/global magnification for static and spectral-box references. Raw, floored and final moments are recorded and projected in the normal report. The two GOLDEN-01 theta scalars now call the existing global P-delta owner. R08 consumes the verified 4.45 m and 3.80 m C29 model clear lengths and the corresponding verified clear lengths of 57 more columns. R08 evaluates conditional TS 500 effective lengths and Euler loads at 59 columns using native directional framing. C29 has 36 aligned Eq. (7.29) comparisons across the stated scenarios. The accepted C29 base boundary at joint 934 restrains UX and UY, consistent with 14 sealed displacement rows. R08 and R14 now bind all 32 mat-connected column boundary conditions from 119 native point reads and R08 computes 64 same-case spectral endpoint differentials. The private ETABS copy supplied 2,784 paired signed end-moment comparisons across all 87 columns. 105 exceed the 5% TS 500 threshold across the six occupied story directions.",
+      "blocker": "The eight checked signed static reference load sets do not qualify the sway-prevented shortcut. Qualify the applicable effective length with directional end stiffness, flange and creep, then bind the correct analysis order and approved demand. Obtain the rotational response at 934 if relied on by the sway-permitted model.",
       "closure_criteria": "Independently verify both-axis clear/effective lengths and EI, prevent double counting, and prove consumption of the qualified demands.",
       "owner_paths": [
         "src/tbdy_next/column_engine/ts500_column.py",
         "src/tbdy_next/engineering/column_r08_local_live.py",
         "src/tbdy_next/engineering/story_pdelta.py",
         "src/tbdy_next/engineering/column_clear_length.py",
-        "src/tbdy_next/engineering/column_effective_length.py"
+        "src/tbdy_next/engineering/column_effective_length.py",
+        "src/tbdy_next/engineering/column_mat_support.py"
       ],
       "evidence_refs": [
         "EV-D1",
@@ -237,7 +238,9 @@
         "EV-AUDIT-FIXES-20261120",
         "EV-C29-PHYSICAL-CLEAR-LENGTH-20261120",
         "EV-C29-TS500-EFFECTIVE-LENGTH-20261121",
-        "EV-C29-MAT-HORIZONTAL-SUPPORT-20261121"
+        "EV-C29-MAT-HORIZONTAL-SUPPORT-20261121",
+        "EV-R08-MAT-HORIZONTAL-BOUNDARY-20261121",
+        "EV-R08-TS500-PAIRED-STATIC-20261121"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false
