@@ -1,5 +1,45 @@
 # Original building calculation and local handoff — 2026-11-21
 
+## C29 matched effective stiffness and mesh refinement
+
+The private ETABS study finished 18 cases. Each 2, 4 and 8 part mesh used
+the same three full-vector first-order/P–Delta pairs at C29 members 225 and
+142. Both local bending axes used the existing selected TS 500 EI of
+2.2683142345e14 N·mm². The native material modulus, section inertia and
+section modifier give an object modifier of 0.2792206663. The experiment
+uses the original stiffness basis for neighboring frames, slabs, walls and
+the foundation. The original support joints, frame releases, axes and end
+offsets preserve clear lengths of 4.45 m and 3.80 m. The final SHA-256
+readback verifies the original EDB.
+
+The normal R08 → R14 comparison retains the original 18-cut control and
+separately keeps every signed refined cut, including both sides of internal
+junctions. The 2, 4 and 8 part levels have 30, 60 and 120 paired cuts per
+member. First-order control, failed PMM assessments and unresolved cuts are
+reported separately. Original selected TS 500 design demand is reproduced.
+
+At eight parts, Grav_Ult governs both members on the I physical face.
+ETABS P–Delta PMM is 0.118455 for 225 and 0.169611 for 142. All 420 refined
+cut assessments resolve within the selected section capacity surface.
+
+Common signed forces, full-mesh force extrema and PMM meet the preset
+numerical tolerances from four to eight parts. The comparison uses 1%
+relative tolerance and absolute tolerances of 0.1 kN, 0.1 kN·m, 0.001 PMM
+and 0.01 mm. The sampled peak node-chord
+bow under Grav_Ult changes from 0.9912 to 1.0204 mm (225) and from 0.5430
+to 0.5693 mm (142). This exceeds the preset bow tolerance. At the shared
+nodes the transverse chord-relative vector changes by at most 4.73e-6 mm
+and 8.04e-7 mm respectively. Both peak sample locations move to joints
+added in the eight part mesh. The numerical mesh outcome remains
+`OUTSIDE_NUMERICAL_TOLERANCE`.
+
+On the revised models, finish the local shape comparison on a denser common
+physical grid or with independently verified within-element displacement.
+Supply the same-run, simultaneous column and wall compression, supported
+critical-load scope and axis-specific effective length factors to run the
+revised TS 500 PMM at the exact same cuts. R14 remains 0/87 numerically closed.
+See `EV-C29-MATCHED-EI-REFINEMENT-20261121` for the native and sealed run IDs.
+
 ## C29 matched ETABS gravity solutions
 
 The selected calculation remains the existing TS 500 magnification path.

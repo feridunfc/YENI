@@ -25,9 +25,16 @@ self-weight for both members. See `EV-C29-R03-ORDER-AXIAL-BALANCE-20261121`.
 The subsequent private ETABS run solves the three exact gravity combinations
 at both orders and compares the 18 C29 cuts through R08 and the same selected
 cages. R14 projects that comparison and retains the variable-axial method
-gate. Continue with matched effective stiffness, local P–delta convergence
-and the TS 500 story compression and critical-load basis. Retain joint 40.
-See `EV-C29-PAIRED-GRAVITY-20261121`. For C104, obtain
+gate. See `EV-C29-PAIRED-GRAVITY-20261121`.
+The live matched-EI continuation completed all 18 cases, retaining each
+mesh's native elements and mapping them to the original physical member.
+R08 and R14 consume 30/60/120 paired cuts per C29 member. Four-to-eight part
+force and PMM tolerances pass. The sampled node-chord peak still exceeds its
+displacement tolerance. Continue from the same EI and load vectors, verify
+the continuous local deformation peak, then supply revised same-run story
+compression, critical loads and effective lengths for the same-cut TS 500
+comparison. See `EV-C29-MATCHED-EI-REFINEMENT-20261121`. Retain joint 40.
+For C104, obtain
 C104/W21/W22 reinforcement and connection details at the wall transition before
 qualifying the coupled section. The actual-owner alpha-below-one example is open.
 

@@ -6077,7 +6077,69 @@
       "acquisition_recovery": "All six cases finished and the native force capture restored the results selection and nonlinear output option. Subsequent private case-flag cleanup failed at the solver-managed ~StaticRSX case. The corrected private script restores editable flags without a new analysis. The complete force capture passed the independent control checks.",
       "scope": "Compare full original gravity vectors at both analysis orders. R08 applies minimum eccentricity and unit amplification to the direct P-Delta vector on the same selected cage as the TS 500 calculation. R14 carries the comparison alongside the verified repeat of the selected TS 500 demand, spectral envelope results, shear and joint 40 SCWB.",
       "limit": "ETABS used its original stiffness and one frame element per member. Effective stiffness compatibility, local P-delta mesh convergence, variable-axial design qualification and engineering release remain open.",
-      "next_action": "Qualify matched effective stiffness and local P-delta mesh convergence. Complete the coincident story compression and critical-load scope required by the selected TS 500 method."
+      "next_action": "Continue with EV-C29-MATCHED-EI-REFINEMENT-20261121 for the matched effective stiffness and mesh study."
+    },
+    {
+      "id": "EV-C29-MATCHED-EI-REFINEMENT-20261121",
+      "observed_at": "2026-11-21",
+      "status": "MATCHED_EI_GRAVITY_18_SOLUTIONS",
+      "gap_ids": ["GAP-009"],
+      "baseline": "4aaaf6de5b3263c088635d3febfabe878c0d2f89",
+      "local_implementation_commit": "4a0b1c6cfe952cc59ada5d32588b84db056d8909",
+      "published_implementation_commit": "18d3da93b6396faea9f0eb62ab2671081edd060b",
+      "verified_implementation_tree_sha": "414fd218c7ca2ab7ef8e3c28ac08f6dc4e27fe99",
+      "commands": [
+        "python -X utf8 -B .receipts/R08_C29_EI_MESH/run_matched_ei.py --pid <active private ETABS PID>",
+        "python -X utf8 -B .receipts/R08_C29_EI_MESH/prepare_scenario.py --run <private native run>",
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --source <original frozen input.source> --design-scenario <private scenario-through-8.json> --case Modal --out <private live replay>",
+        "python -X utf8 -B .receipts/R08_C29_EI_MESH/verify_refinement.py",
+        "python -X utf8 -B tools/test_offline.py"
+      ],
+      "prior_calculation": "EV-C29-PAIRED-GRAVITY-20261121",
+      "native_private_run": "20261121T122030033420Z",
+      "source_original_edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+      "native_level_sha256": {
+        "2": "fa858cfe0e0fdc79b70be1d68a20e663d36b519336eaac00ec00413b657e4757",
+        "4": "d17443e9394692b7175eb75b5b9fd9dec3a83192d24ee3250a7ff4610371027a",
+        "8": "6df69fc4a59f24ce277ddca23f8a38d029caed1628dc94cd38ababe87eda29a5"
+      },
+      "scenario_request_sha256": "f1fa8511b0cf79e8f1482ba2dfdf7f3ae639f8f4bb51d84d6a98cfb317cec62f",
+      "verified_run_id": "RUN-464231f1e18f465f88da868f7306a753",
+      "results_sha256": "b29f8f3c65e4def6be3be24ab3845ad804905d3b17204127c0ea3dacfc2ceccd",
+      "report_sha256": "a4fb39573d67ac3b771b289891cf639360d9b61eb562a7ef41b204687b975af4",
+      "private_summary": ".receipts/R08_C29_EI_MESH/verification.json",
+      "native_cases_finished": 18,
+      "matched_original_control_cuts": 18,
+      "refined_cut_counts_each_member": [30, 60, 120],
+      "refined_pmm_failed_cuts": 0,
+      "refined_pmm_unresolved_cuts": 0,
+      "matched_ei_nmm2_each_axis": 226831423454370.16,
+      "revised_object_modifier_each_axis": 0.2792206663451577,
+      "governing_eight_part_pmm_grav_ult_at_i_face": {"225": 0.11845476844843528, "142": 0.169610765223168},
+      "mesh_convergence_status_each_member": "OUTSIDE_NUMERICAL_TOLERANCE",
+      "four_to_eight_part_grav_ult_peak_node_chord_bow_mm": {
+        "225": [0.9911565578637125, 1.0203768762083902],
+        "142": [0.5430083274539975, 0.5692911903273933]
+      },
+      "revised_ts500_status": "REVISED_TS500_STORY_BASIS_UNAVAILABLE",
+      "r14_numerically_closed_columns": 0,
+      "r14_expected_columns": 87,
+      "original_replay_run_id": "RUN-5c2e7fc98f354ab0b344b66c21ab4298",
+      "original_replay_results_sha256": "5805250924cf31ea5389751fdbb9575d187d78b9a59c12eff40dd34a2a88b654",
+      "synthetic_revised_ts500_run_id": "RUN-afdb2916b0044f4a9e2cc6ba62772744",
+      "synthetic_revised_ts500_results_sha256": "1426200319c56d7351e588c881221a06db526e375f9750e63cee0f2baa6b2295",
+      "tests": {
+        "status": "PASS",
+        "python_tests": 1646,
+        "python_skipped": 1,
+        "javascript_test_files_passed": 11,
+        "golden_numerical_insufficient_interpretation": [33, 7, 4],
+        "log_private": ".receipts/R08_C29_EI_MESH/offline.log",
+        "log_sha256": "cad3ce095d1fc7ae30d80d9001a155dd531a4af61b07bed25627fb30e8e7d1a9"
+      },
+      "scope": "C29 matches each private ETABS mesh to verified original member axes, joint endpoints and physical cuts. R08 uses revised signed first- and second-order vectors from each mesh and R14 carries PMM status and mesh comparisons. The normal synthetic replay independently exercises revised first-order PMM with supplied same-level story inputs.",
+      "limit": "At the finest pair the common signed forces, full-mesh force extrema and PMM meet preset tolerances, while the sampled node-chord deformation peak does not. The actual building requires revised same-run story compression, qualified critical loads and effective lengths for the TS 500 comparison. R14 engineering release and variable-axial applicability are open. Editable flag recovery on the earlier original-stiffness private copy is still unverified.",
+      "next_action": "Evaluate the continuous local deformation peak on a common physical grid. Supply concurrent column and wall compression, supported critical-load population and directional effective lengths on the revised stiffness basis before the same-cut TS 500 comparison."
     }
   ],
   "new_record_template": {
