@@ -45,10 +45,14 @@ can start with the bundled report fixtures and the source IDs above.
 
 Run `python -B -m tbdy_next.cli inspect-golden-regression --require-complete`
 from the checkout with the project interpreter. The current gate returns
-exit 3 with 33 numerical matches, seven insufficient-source or method records,
-and four interpretation differences across the same 44 comparisons. The
-November 21 production adapters add 13 matches using the existing calculation
-owners. See [the implementation verification](../engineering/vertical_slice_20261121/VERIFICATION_RESULTS.json).
+exit 3 with 36 numerical matches, four insufficient-source records and four
+interpretation differences across the same 44 comparisons. The latest three
+matches bind the GOLDEN-01/02 sway scalars to the existing TS 500 owner;
+source population qualification and automatic sway assignment remain false.
+See [the current reconstruction](../engineering/REPORT_SWAY_RECONSTRUCTION_20261121.md)
+and `EV-REPORT-SWAY-RECONSTRUCTION-20261121`. The earlier 33/7/4 checkpoint
+and its 13 added owner matches remain recorded in
+[the earlier implementation verification](../engineering/vertical_slice_20261121/VERIFICATION_RESULTS.json).
 
 The existing `G01_THETA_GROUND` and `G01_THETA_UPPER` records now call
 `engineering.story_pdelta.theta_ii_reference`, the same scalar operation used
@@ -64,21 +68,25 @@ wrapper retains its complete source and limit checks.
 
 | Open group | Count | Next calculation or input |
 | --- | ---: | --- |
-| GOLDEN-01 sway phi | 2 | Bind `G01_SWAY_PHI_GROUND` and `G01_SWAY_PHI_UPPER` to a supported calculation with the report's full story populations and explicit method. The printed scalar inputs are available. |
-| GOLDEN-02 sway change | 1 | `G02_SWAY_BRANCH_CHANGED` needs both story populations and the same method binding. Page 185 gives the revised displacement, sum of axial force over length and storey shear. |
 | Biaxial PMM and capacity shear | 2 | `PMM_REPORT_GATE` needs bar coordinates, axes, concurrent N/M2/M3 and independent fixed-N, fixed-direction capacity. `CAPACITY_SHEAR_REPORT_GATE` needs both end moments, physical clear length, D and the design shear lower bound. |
 | GOLDEN-03 and GOLDEN-04 | 2 | `GOLDEN03_REPORT_GATE` and `GOLDEN04_REPORT_GATE` need one independently calculated, page-bound second-order case per report and the same inputs in the production owner. |
 
-The historical sway phi uses `1.5 × drift × sum(N/L) / story shear`. The
-existing `column_engine.ts500_column` sway classifier uses paired first- and
-second-order displacements. A future comparison needs explicit method and
-population alignment. The separately implemented TBDY theta checks continue
-to use the production story-P-delta owner.
+The report sway phi uses `1.5 × drift × sum(N/L) / story shear` and now calls
+`column_engine.ts500_column.sway_phi_reference` with explicit m/kN inputs.
+The GOLDEN-01 ground/upper rows and GOLDEN-02 threshold-change record have
+independent arithmetic and hash-bound source excerpts. This is numerical
+scalar binding; complete populations, uncracked stiffness, required load
+combinations and engineering classification remain unqualified. The separate
+paired-analysis criterion concerns column end moments. The TBDY theta checks
+continue to use their distinct production story-P-delta owner.
 
 The four separately classified interpretation rows ask how the final moment
 magnification factor was chosen. On GOLDEN-02 page 186 the reported factors
-round to the member and storey factor products. The method still needs the
-applicable length, selection rule and transfer to the final moment.
+round to the member and storey factor products. The independent 36-row
+reconstruction matches that product in all rows and MAX in none, while the
+displayed-lk product condition triggers in none. The method still needs the
+applicable length, selection rule and transfer to the final moment; these
+four interpretation differences remain open.
 
 The registered GOLDEN-01 cases on page 192 call the production section owner
 and compare 1,920 kN (TBDY) and 2,880 kN (TS 500). The page 27 case calls the

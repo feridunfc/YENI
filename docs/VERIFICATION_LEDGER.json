@@ -41,10 +41,10 @@
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
-    "commit_sha": "987f4de27e7f3256e7385b2d7952de53d846054b",
-    "git_tree_sha": "f3fbe6fcc2db7d3fdc9f40b430f057295b41c0c0",
+    "commit_sha": "35fd32326f9014e77a31080ee69591eea8775378",
+    "git_tree_sha": "bf222ec63e8d41579adfd68a9caca97d84d5d13f",
     "observed_on": "2026-11-21",
-    "scope": "Verified parent of this checkpoint. Resolve the current published ref with git ls-remote."
+    "scope": "Verified integration base of the report-reconstruction milestone. Resolve the current published ref with git ls-remote."
   },
   "record_policy": {
     "append_new_ids": true,
@@ -7277,6 +7277,130 @@
       "numeric_tables_private": ".receipts/c29-method-native-20261121/final/method-verification.json",
       "software_regression_evidence": "EV-C29-NATIVE-EIGHT-SPAN-20261121",
       "previous_native_checkpoint": "EV-C29-NATIVE-EIGHT-SPAN-20261121"
+    },
+    {
+      "id": "EV-REPORT-SWAY-RECONSTRUCTION-20261121",
+      "observed_at": "2026-11-21",
+      "gap_ids": [
+        "GAP-009",
+        "GAP-016"
+      ],
+      "status": "REAL_REPORT_ARITHMETIC_RECONSTRUCTED_PHI_OWNER_BOUND_ENGINEERING_GATES_RETAINED",
+      "base_commit": "35fd32326f9014e77a31080ee69591eea8775378",
+      "tested_file_manifest": {
+        "src/tbdy_next/column_engine/ts500_column.py": "f02ca8634751a0d459a67b42f6c952933feddbe697991fda68668ca0be827883",
+        "src/tbdy_next/verification/golden_gate.py": "ab4b0e9ef30e331b84dbc01a3959aef48f49b6a990883d848dc1d5f1ce23f03d",
+        "src/tbdy_next/verification/report_oracles.py": "a4222c618d70c8b624d69b91a1252aec4a998248ce97ff9156c1fc88c42a6080",
+        "tests/test_golden_scalar_adapters.py": "b8d355fa4e0965de10ccf3ad083e29521dceba7bea00163ec3c0c38742fba094",
+        "tests/test_vs26_golden_gate.py": "7f9e9b8fe08a85d57bc697d15140a82c350aea2adf2ab0605f19c95469b37958"
+      },
+      "tested_source_and_test_diff_sha256": "3abcd8a6454fff2a1946318b9bac78c4e56d7b1c205bd96062c6c6518b20f388",
+      "source_scope": {
+        "source": "User example_reports folder; original report bytes, not generated building examples",
+        "files": 26,
+        "docx": 20,
+        "pdf": 6,
+        "pdf_page_inventory": 1256,
+        "all_pdf_pages_numerically_validated": false,
+        "raw_private_sources_published": false,
+        "private_companion": "Raporlardan_Kolon_Sway_Kanit_Paketi.zip",
+        "independent_analysis_artifact_sha256": {
+          "source_inventory.json": "0a3a9dc186657aceb5a8528d073728b9b96d08c3d4a36599580967531272a27e",
+          "analysis/sway_reconstruction.json": "13ca52a53042a3cc11f7d0eaea77ea1e037cf1c611a3c1a4620d3b458a67a87a",
+          "analysis/column_reference_results.json": "f70e1f7013dbe4f64000da802468b8b26aa2497d1c7a5714807a7be2b69783c4",
+          "analysis/column_summary.json": "afd56a59b63b94f9503b8d47efa609f448532544006e793d7824e836ddc3a12b",
+          "analysis/pdf_reference_checks.json": "58f6e1b72428fdd63ee9e579bdb7c7115196dc8b65d906ea8419cd5b78f2919e",
+          "analysis/golden02_magnification_36rows.json": "f930608e6a2514debe9c69023e659ec0ccdd905cde139130acf4e0f4049b28e4",
+          "analysis/c29_published_ledger_audit.json": "9bd48a744eca813b36f6cf5ff5bbde7f72df646e80c976cda50e48ce4646c90f",
+          "analysis/full_validation.json": "810f4fd664cf44bfb9e7bc623f84c95022707fef14e14ddb554325f8066f41a9"
+        }
+      },
+      "drive_report_reconstruction": {
+        "sway_reports": 9,
+        "story_direction_q_and_beta_s_rounding_compatible": 54,
+        "column_axis_k_rounding_compatible": 864,
+        "wall_axis_k_compatible_with_frame_formula": 40,
+        "wall_axis_k_different_from_frame_formula": 8,
+        "story_nk_member_sum_rounding_compatible": 53,
+        "story_nk_member_sum_unresolved": 1,
+        "member_story_designs": 132,
+        "frame_column_designs": 124,
+        "wall_designs": 8,
+        "concurrent_signed_end_vectors": 5016,
+        "exact_unique_critical_end_bindings": 126,
+        "all_frame_column_bindings_match": true,
+        "wall_m22_transformation_unresolved": 6,
+        "printed_input_arithmetic_matches": 572,
+        "minimum_eccentricity_convention_matches": 264,
+        "joint_panel_material_hypothesis_matches_not_material_qualified": 240,
+        "global_tbdy_theta_rows": 172,
+        "theta_direct_printed_matches": 138,
+        "theta_rounding_interval_only": 34,
+        "column_shear_cases": 12,
+        "column_shear_direct_printed_matches": 11,
+        "column_shear_rounding_interval_only": 1,
+        "independent_full_pmm_surface_reconstructed": false
+      },
+      "golden_reference": {
+        "source": "Existing immutable hash-bound report excerpts and compact archives, not a fresh full-PDF reread",
+        "comparison_ids": 44,
+        "before": {
+          "NUMERICAL_MATCH": 33,
+          "ENGINEERING_INTERPRETATION_DIFFERENCE": 4,
+          "INSUFFICIENT_SOURCE": 7
+        },
+        "after": {
+          "record_count": 44,
+          "NUMERICAL_MATCH": 36,
+          "ENGINEERING_INTERPRETATION_DIFFERENCE": 4,
+          "INSUFFICIENT_SOURCE": 4,
+          "engineering_release": "NOT_READY",
+          "acceptance_eligible": false
+        },
+        "changed_ids": [
+          "G01_SWAY_PHI_GROUND",
+          "G01_SWAY_PHI_UPPER",
+          "G02_SWAY_BRANCH_CHANGED"
+        ],
+        "production_owner": "tbdy_next.column_engine.ts500_column.sway_phi_reference",
+        "source_population_qualified": false,
+        "automatic_sway_assignment_authorized": false,
+        "golden02_printed_member_rows": 36,
+        "golden02_member_axis_pairs": 12,
+        "golden02_distinct_lk_nk_nd_tuples": 10,
+        "golden02_product_matches": 36,
+        "golden02_max_matches": 0,
+        "golden02_displayed_lk_product_triggers": 0,
+        "normative_disagreement_resolved": false
+      },
+      "published_c29_cross_check": {
+        "source_commit": "35fd32326f9014e77a31080ee69591eea8775378",
+        "record_id": "EV-C29-NATIVE-CONDITIONAL-TS500-20261121",
+        "published_factor_arithmetic_checked": 12,
+        "published_error_budget_arithmetic_checked": 6,
+        "private_native_receipts_read_in_this_session": false,
+        "live_etabs_repeated_in_this_session": false,
+        "full_story_equilibrium": "UNRESOLVED"
+      },
+      "offline_tests": {
+        "command": "python -B tools/test_offline.py",
+        "python_total": 1690,
+        "python_passed": 1690,
+        "python_skipped": 0,
+        "javascript_files_passed": 11,
+        "elapsed_python_seconds": 187.621,
+        "status": "PASS",
+        "log_sha256": "54f25007edabd4f0aab157e8a8a4428deae900f5c5f337c64da7adb40b4a8491",
+        "environment": {
+          "platform": "Linux",
+          "python_version": "3.12.14",
+          "node_version": "v24.22.3",
+          "installation": "Editable isolated worktree; no Windows COM runtime"
+        }
+      },
+      "engineering_acceptance": "NOT_GRANTED",
+      "whole_building_gap_closure": "NOT_GRANTED",
+      "documentation_scope": "Superseded C29 NOT_RUN and sampled-peak claims are labeled as historical; native conditional completion remains current. Report reconstruction does not alter the sealed native C29 result."
     }
   ],
   "new_record_template": {

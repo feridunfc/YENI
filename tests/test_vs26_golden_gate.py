@@ -52,7 +52,7 @@ class GoldenReportGateTests(unittest.TestCase):
     def test_three_classifications_and_missing_coverage_stay_visible(self):
         r=gate.build_golden_gate()
         self.assertEqual(r['record_count'],44)
-        self.assertEqual(r['classification_counts'],{'NUMERICAL_MATCH':33,'ENGINEERING_INTERPRETATION_DIFFERENCE':4,'INSUFFICIENT_SOURCE':7})
+        self.assertEqual(r['classification_counts'],{'NUMERICAL_MATCH':36,'ENGINEERING_INTERPRETATION_DIFFERENCE':4,'INSUFFICIENT_SOURCE':4})
         self.assertEqual(len(r['legacy_reference_bank']['golden02_replayed_test_groups']),7)
         self.assertFalse(r['acceptance_eligible']);self.assertEqual(r['engineering_release'],'NOT_READY')
         self.assertEqual({d['domain'] for d in r['required_domains']},set(gate.REQUIRED_DOMAINS))

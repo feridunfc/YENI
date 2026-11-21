@@ -36,6 +36,11 @@ def member_beta(nd, nk):
     return 1 / (1 - 1.3 * nd / nk)
 
 
+def sway_phi(delta_mm, sum_nd_over_length_kn_per_m, story_shear_kn):
+    """Independent report scalar; no production function or source approval."""
+    return 1.5 * (delta_mm / 1000) * sum_nd_over_length_kn_per_m / story_shear_kn
+
+
 def story_alpha(vis, vik):
     return vis / vik
 

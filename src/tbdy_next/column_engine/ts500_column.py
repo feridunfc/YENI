@@ -17,6 +17,7 @@ TS500_REFERENCE = "https://staff.emu.edu.tr/cemalgenes/Documents/courses/INSA471
 SWAY_PREVENTED = "SWAY_PREVENTED"
 SWAY_PERMITTED = "SWAY_PERMITTED"
 STORY_LOAD_RATIO_LIMIT = Decimal(".45")
+SWAY_PHI_LIMIT = 0.05
 
 
 def positive(value, label):
@@ -30,6 +31,28 @@ def _sway(value):
     if value not in (SWAY_PREVENTED, SWAY_PERMITTED):
         raise BankError("SWAY_BASIS_REQUIRED")
     return value
+
+
+def sway_phi_reference(*, drift_m, sum_nd_over_length_kn_per_m, story_shear_kn):
+    """Return the dimensionless TS 500 Eq.7.13 scalar from explicit m/kN inputs.
+
+    Drift is a displacement magnitude in metres, not a drift ratio. The supplied
+    sum is already sum(Ndi/Li), in kN/m; it is neither summed again nor replaced
+    by seismic weight divided by one assumed height. Values must be nonnegative
+    and the story shear magnitude strictly positive.
+
+    This numerical operation does not qualify the whole-system population,
+    directions, uncracked stiffness or the load combinations required by
+    7.6.2.1. A value <= SWAY_PHI_LIMIT is only the numerical threshold outcome;
+    engineering sway classification requires those source and method bindings.
+    The separate paired-analysis criterion concerns column end moments.
+    """
+    drift = finite(drift_m, "drift_m")
+    total = finite(sum_nd_over_length_kn_per_m, "sum_nd_over_length_kn_per_m")
+    shear = positive(story_shear_kn, "story_shear_kn")
+    if drift < 0 or total < 0:
+        raise BankError("SWAY_PHI_NONNEGATIVE_INPUT_REQUIRED")
+    return finite(1.5 * drift * total / shear, "sway_phi_reference")
 
 
 def _ratio(value):

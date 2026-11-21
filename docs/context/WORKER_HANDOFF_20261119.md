@@ -16,7 +16,36 @@ Use each refined level's independent same-generation modifier census and
 the existing [acquisition contracts](../engineering/C29_STORY_INPUT_FIX_20261121.md).
 The private resource index locates the sealed report and native packets.
 
-## Current calculation: original-source C29 with explicit axial idealization
+## Report reconstruction and current comparison scope
+
+Read [the report reconstruction](../engineering/REPORT_SWAY_RECONSTRUCTION_20261121.md)
+and `EV-REPORT-SWAY-RECONSTRUCTION-20261121`. The private companion bundle
+contains 26 genuine Drive reports: 20 DOCX and six PDFs totalling 1,256
+PDF pages. Inventory and text extraction do not imply complete checking.
+The reviewed scope includes 54 story Q/beta-s rows, 864 frame-column k
+rows, 53/54 reconstructed story Nk sums, 124 exact frame-column critical-end
+bindings, eight wall designs with six unresolved M22 transformations,
+172 PDF theta rows and 12 selected PDF column-shear cases.
+
+GOLDEN-01 ground/upper phi and the GOLDEN-02 numerical threshold change
+now call the existing TS 500 owner's `sway_phi_reference` scalar. Preserve
+the 44 IDs: 36 numerical matches, four interpretation differences and four
+insufficient-source records. Source population qualification and automatic
+sway assignment remain false. The 36-row GOLDEN-02 reconstruction matches
+beta times beta-s in every row and MAX in none; the displayed-lk product
+condition also triggers in none. Resolve the length/selection interpretation
+before changing the adopted-factor owner or transferring those factors to PMM.
+
+Use the bundle's source hashes, exact XML/page locators and independent
+arithmetic when resolving the remaining cases. Keep raw reports, Drive
+identities and complete rows private. The report work made no new live
+ETABS calculation and does not alter the native C29 result above, the
+original conditional result, or the open column-wall free-body gate.
+Fresh verification on baseline `35fd32326f9014e77a31080ee69591eea8775378`
+plus the recorded patch passed 1,690 Python tests with zero skips and
+11 JavaScript test files; the ledger pins the tested files and commands.
+
+## Earlier original-source C29 calculation with explicit axial idealization
 
 Windows ran the actual original-source C29 vertical slice from
 `RUN-464231f1e18f465f88da868f7306a753` into
@@ -44,9 +73,9 @@ execution-console behavior. The separate [15 November status report](../engineer
 is preserved from `4bbf7b4` as a dated record of the earlier 44-row
 comparison and its original run locator.
 
-## Published implementation and replay method
+## Earlier published implementation and replay method
 
-The current remote software milestone starts at full baseline commit
+This historical remote software milestone started at full baseline commit
 `eb6328290a66484c8ddbc8ba37158be270b8fc5d`. Read
 [the method and exact commands](../engineering/VARIABLE_AXIAL_SLICE_20261121.md)
 before the historical steps below. The existing selected TS 500 path now consumes
@@ -63,9 +92,11 @@ column and beam shear and joint outcomes. Preserve every remaining condition.
 Do not substitute the synthetic 2/2 result for C29 or the building's 87 members.
 
 This declared idealization is not an approved variable-axial TS 500 method.
-Method qualification, the refined-model story inputs, coupled C104 design and
-alpha-below-one acceptance remain separate work. The private local capture and
-Windows working tree were not inspected here. Never overwrite newer local work
+Method qualification, coupled C104 design and alpha-below-one acceptance
+remain separate work. The refined frame-model story inputs were subsequently
+bound by the native METHOD checkpoint above; full column-wall inputs remain
+open. The private local capture and Windows working tree were not inspected
+at this earlier remote checkpoint. Never overwrite newer local work
 to match the published baseline. Fresh verification is
 `EV-VARIABLE-AXIAL-NUMERICAL-SLICE-20261121`.
 
@@ -98,11 +129,12 @@ gate. See `EV-C29-PAIRED-GRAVITY-20261121`.
 The live matched-EI continuation completed all 18 cases, retaining each
 mesh's native elements and mapping them to the original physical member.
 R08 and R14 consume 30/60/120 paired cuts per C29 member. Four-to-eight part
-force and PMM tolerances pass. The sampled node-chord peak still exceeds its
-displacement tolerance. Continue from the same EI and load vectors, verify
-the continuous local deformation peak, then supply revised same-run story
-compression, critical loads and effective lengths for the same-cut TS 500
-comparison. See `EV-C29-MATCHED-EI-REFINEMENT-20261121`. Retain joint 40.
+force and PMM tolerances passed. That earlier sampled node-chord peak exceeded
+its displacement tolerance. The later METHOD checkpoint above recovered the
+continuous local deformation and supplied the adopted same-run frame story
+inputs for the same-cut TS 500 comparison. Preserve the earlier measurements
+under `EV-C29-MATCHED-EI-REFINEMENT-20261121`; do not describe them as a pending
+full-span task. The full wall-frame method remains open. Retain joint 40.
 For C104, obtain
 C104/W21/W22 reinforcement and connection details at the wall transition before
 qualifying the coupled section. The actual-owner alpha-below-one example is open.
@@ -303,8 +335,10 @@ and [candidate acceptance](../engineering/COLUMN_CAGE_SELECTION_ACCEPTANCE_20261
 for commands, environment, tested-file manifests, failures/retries and provenance.
 Do not retarget their test results to an untested version.
 
-R14 remains **0 closed / 87 partial**, with 17 unresolved gates. Spectral alpha
-iteration remains **0 / BLOCKED_INPUTS**. Formal compliance is **NOT_PROVEN** and
+At this earlier candidate-selection checkpoint, R14 was **0 closed / 87 partial**,
+with 17 unresolved gates, and spectral alpha iteration was **0 / BLOCKED_INPUTS**.
+Use the later C29 and story checkpoints for their distinct current scopes.
+Formal compliance remains **NOT_PROVEN** and
 engineering release is **NOT_READY**. Selection and low numerical utilization
 do not approve physical lengths, effective-length factors, sway/creep, hooks,
 anchorage, analysis generation, SCWB or spectral alpha policy.

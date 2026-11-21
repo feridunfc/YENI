@@ -45,6 +45,37 @@ resultant and upper-body balance and resolve the wall-frame critical-load
 basis. `STORY_WALL_CRITICAL_LOAD_METHOD_UNSUPPORTED` stays open.
 See `EV-C29-NATIVE-CONDITIONAL-TS500-20261121` for the same-generation numerical scope and tests.
 
+## Report reconstruction and production sway-scalar binding
+
+The private reference inventory now contains 26 actual Drive files: 20 DOCX
+and six PDFs with 1,256 PDF pages. This is an inventory, not 26 fully verified
+reports. Source-linked arithmetic reproduces 54 story Q and beta-s rows,
+864 frame-column k rows and 53/54 story Nk sums. All 124 frame-column
+critical tuples bind to a same-case end; of eight wall designs, six retain
+an unidentified M22 transformation. The PDF review reproduces 172 theta
+rows and 12 selected column-shear cases. See the
+[reconstruction note](engineering/REPORT_SWAY_RECONSTRUCTION_20261121.md)
+and `EV-REPORT-SWAY-RECONSTRUCTION-20261121` for scope and unresolved cases.
+
+Three existing GOLDEN-01/02 sway comparisons now call the production
+`ts500_column.sway_phi_reference` scalar with hash-bound printed inputs.
+The unchanged 44-record population has **36 numerical matches, four
+interpretation differences and four insufficient-source records**. This
+does not authorize automatic sway classification or close GAP-016.
+All 36 recovered GOLDEN-02 adopted-factor rows match beta times beta-s;
+zero match MAX, while the displayed-lk product condition triggers in zero
+rows. The selection interpretation remains open. Raw reports, identities
+and complete row datasets stay in the private companion bundle.
+
+Fresh verification on baseline `35fd32326f9014e77a31080ee69591eea8775378`
+plus the recorded patch passed 1,690 Python tests with zero skips and all
+11 JavaScript test files. The ledger records commands and tested-file hashes.
+This report milestone does not rerun ETABS or change the native C29 result
+above. The original conditional result, wall free-body gate and engineering
+acceptance limits remain in force. The dated checkpoints below preserve
+their historical measurements; later native evidence supersedes their
+then-open C29 replay and full-span tasks.
+
 ## Fixed story-source execution defects
 
 The [story-input patch](engineering/C29_STORY_INPUT_FIX_20261121.md) separates
@@ -55,9 +86,11 @@ generated Shell identifiers with Frame identifiers. R08's method is v14.
 The normal-runner regression consumes the additional column's actual EI/Nk
 through the revised factor and PMM owners. See `EV-C29-STORY-CONTRIBUTOR-FIX-20261121`.
 
-Continue native deformation recovery independently of the unresolved story
-critical-load method. Preserve the original C29 2/87 conditional checkpoint;
-the original revised-model replay has not been run in this Linux environment.
+At this earlier Linux patch checkpoint, the original revised-model replay
+was not run and native deformation recovery was the next task. The later
+native METHOD result above completes that recovery and the conditional
+frame comparison. Preserve the original C29 2/87 result and the unresolved
+full column-wall critical-load method.
 
 ## Revised C29 calculation and next original-model inputs
 
@@ -69,14 +102,16 @@ and finds a 0.8999996 mm interior peak. The explicit replay matches all 12
 fixture stages. See [numerical results](engineering/C29_QUALIFIED_GRAVITY_COMPARISON_20261121.md) and
 `EV-C29-QUALIFIED-GRAVITY-COMPARISON-20261121`.
 
-The original revised-model replay remains **NOT_RUN**. The 8-part METHOD
-clone solved 6/6 cases. Recover its in-session six-component results and
-complete the remaining native readbacks. Bind same-generation column and wall
-cut resultants, upper free-body equilibrium, and per-axis contributor K/EI/Nk
-before consuming the revised story totals. The supported wall or coupled
-wall–frame critical-load method remains open. Keep the original C29 2/87
-conditional result and its beam and joint inputs. The [calculation task](engineering/C29_CALCULATION_COMPLETION_TASK_20261121.md)
-sets the completion criteria.
+At this historical fixture checkpoint, the original revised-model replay
+was **NOT_RUN** and the 8-part METHOD clone had solved 6/6 cases. The native
+checkpoint above subsequently completed all 2/4/8 readbacks, full-span
+recovery and the conditional same-generation frame comparison. Its 12
+factors and 24 PMM sides supersede this earlier execution status. Concurrent
+column-wall resultants, upper free-body equilibrium and a supported wall
+or coupled wall-frame critical-load method remain open. Keep the original
+C29 2/87 conditional result and its beam and joint inputs. The
+[calculation task](engineering/C29_CALCULATION_COMPLETION_TASK_20261121.md)
+preserves the original completion criteria.
 
 ## Archived C29 common cuts and native-node samples
 
@@ -96,12 +131,15 @@ vector difference is 4.7224e-6 mm (225) and 8.0358e-7 mm (142). The
 0.01 mm common-node criterion passes for both members. The observed
 peak under Grav_Ult shifts from 3.3375 m to 2.78125 m for 225 and
 0.950 m to 1.425 m for 142, measured from the I face. These are samples
-at different native joints. The full-span peak between joints is unverified.
+at different native joints. The full-span peak between joints was unverified
+at this archived checkpoint; the later METHOD recovery above resolves that
+numerical scope without changing these earlier native-node samples.
 
-The original-source result is 2/87 conditional numerical closures. GAP-009
-still requires qualified per-axis critical load and effective-length data
-and concurrent column–wall compression from the revised model. The
-source-qualified inter-node deformation result is also pending.
+The original-source result is 2/87 conditional numerical closures. The later
+METHOD checkpoint supplies the adopted frame-column critical-load scope and
+source-qualified inter-node deformation. GAP-009 still requires the full
+concurrent column-wall compression and qualified wall-frame critical-load
+method, together with the remaining engineering acceptance.
 See `EV-C29-COMMON-CUT-COMPARISON-20261121`.
 
 ## Original C29 with explicit self-weight Nmax
@@ -126,9 +164,10 @@ conditionally numerically closed, with both C29 members carrying the
 explicit axial idealization acceptance gate.
 
 GAP-009 remains partial. The Nmax idealization requires engineering
-acceptance. The revised-stiffness gravity comparison still needs qualified
-same-run story inputs and peak local deformation. Recover the exact private
-run and the next calculation from `EV-C29-SELF-WEIGHT-NMAX-LOCAL-20261121`.
+acceptance. Same-run frame inputs and peak local deformation, which were
+the next tasks at this checkpoint, are supplied by the later native METHOD
+comparison above. Recover this earlier private run from
+`EV-C29-SELF-WEIGHT-NMAX-LOCAL-20261121`; retain its separate source and scope.
 
 ## Executable variable-axial design slice
 
@@ -196,15 +235,15 @@ bow under Grav_Ult changes from 0.9912 to 1.0204 mm (225) and from 0.5430
 to 0.5693 mm (142). This exceeds the preset bow tolerance. At the shared
 nodes the transverse chord-relative vector changes by at most 4.73e-6 mm
 and 8.04e-7 mm respectively. Both peak sample locations move to joints
-added in the eight part mesh. The numerical mesh outcome remains
-`OUTSIDE_NUMERICAL_TOLERANCE`.
+added in the eight part mesh. This historical sampled-peak outcome was
+`OUTSIDE_NUMERICAL_TOLERANCE`; it is not the later recovered full-span result.
 
-On the revised models, finish the local shape comparison on a denser common
-physical grid or with independently verified within-element displacement.
-Supply the same-run, simultaneous column and wall compression, supported
-critical-load scope and axis-specific effective length factors to run the
-revised TS 500 PMM at the exact same cuts. That matched-EI scenario recorded
-0/87 numerically closed.
+The next tasks at this checkpoint were within-element displacement recovery
+and revised same-cut TS 500 PMM. The native METHOD result above completes
+both under the adopted frame-column scope. Simultaneous full column-wall
+compression and a supported wall-frame critical-load method remain open.
+This earlier matched-EI scenario recorded 0/87 numerically closed; retain
+that run-specific result rather than relabeling it with later outcomes.
 See `EV-C29-MATCHED-EI-REFINEMENT-20261121` for the native and sealed run IDs.
 
 ## C29 matched ETABS gravity solutions
@@ -235,7 +274,9 @@ residual was below 7.2e-8 kN and 3.9e-8 kN·m in all six components.
 
 The largest native moment changes were 1.250076 kN·m in M2 and 0.288289
 kN·m in M3, both at the 225 base under Grav_Ult. Local P–delta mesh
-convergence and the variable-axial method stay open in R14. The spectral
+convergence and the variable-axial method were open in this earlier R14 run.
+The later METHOD full-span result addresses the numerical mesh scope;
+method acceptance remains separate. The spectral
 scope and joint 40 SCWB remain as recorded in the prior calculation. See
 `EV-C29-PAIRED-GRAVITY-20261121`.
 
@@ -778,15 +819,18 @@ population and apply the existing alpha iteration.
 
 ## GAP-016 report comparisons
 
-The 44 GAP-016 records now contain **20 production numerical matches,
-20 insufficient-source labels and four adopted-factor interpretation differences**.
+At this earlier checkpoint, the 44 GAP-016 records contained **20 production
+numerical matches, 20 insufficient-source labels and four adopted-factor
+interpretation differences**. Subsequent owner bindings raised the current
+inventory to 36 numerical matches, four insufficient-source records and four
+interpretation differences; see `EV-REPORT-SWAY-RECONSTRUCTION-20261121`.
 The GOLDEN-01 ground and upper storey theta scalars on PDF page 28 call the
 existing global P-delta owner. The reference values are 0.007516853605560383
 and 0.005997760967498111; cumulative weight and the mm-to-m drift conversion
 are each applied once. These two scalar matches do not approve the story
-source, theta limit or global magnification policy. Of the remaining 20
-insufficient-source records, 16 already have independent/reference values and
-need the stated adapter or method work. See the
+source, theta limit or global magnification policy. At that checkpoint, 16
+of the 20 insufficient-source records already had independent/reference
+values and needed adapter or method work. See the
 [current comparison tasks](context/PROJECT_CHARTER.md#resume-the-44-report-comparisons-gap-016).
 The 73 recipe labels, 44 production comparison records and historical 333
 arithmetic assertions remain separate populations.

@@ -12,6 +12,7 @@ import io
 import json
 import math
 from pathlib import Path
+import re
 from zipfile import ZipFile
 
 from .. import basis_linkage, normative_basis, spectrum_reconstruction
@@ -203,6 +204,13 @@ def _first_adapters(first, manifest):
     scalar["LOCAL_BETA_NON_DIAGNOSTIC"] = ts500_column.member_magnification_coefficient(
         nd_kn=printed_beta["Nd_kN"], nk_kn=printed_beta["Nk_kN"], cm=printed_beta["Cm"],
     )
+    for key in ("SWAY_PHI_GROUND", "SWAY_PHI_UPPER"):
+        values = inputs[key]
+        scalar[key] = ts500_column.sway_phi_reference(
+            drift_m=values["delta_mm"] / 1000,
+            sum_nd_over_length_kn_per_m=values["sum_N_over_L_kN_per_m"],
+            story_shear_kn=values["story_shear_kN"],
+        )
     for key in ("JOINT_VE_ONE_BEAM_APPROX", "JOINT_VE_TWO_BEAM_APPROX"):
         values = inputs[key]
         tension = sum(joint_kernel.beam_steel_tension_kn(
@@ -252,7 +260,57 @@ def _beta(case, story):
         sway=ts500_column.SWAY_PERMITTED, story_nd_kn=story["Nd"], story_nk_kn=story["Nk"])
 
 
-def _second_comparisons(second, manifest, material):
+def _sway_page_inputs(excerpts, report_id, page_number):
+    """Read the four actual X/Y story rows from one already hash-checked excerpt."""
+    pages = [p for p in excerpts if p["report_id"] == report_id and p["pdf_page_1_based"] == page_number]
+    if len(pages) != 1:
+        raise GoldenRegressionError("GOLDEN_SWAY_SOURCE_PAGE_UNAVAILABLE")
+    page = pages[0]
+    pattern = re.compile(r"^\s*(1\.\s+KAT|ZEMİN\s+KAT)\s+([0-9.]+)\s+([0-9.]+)\s+"
+                         r"([0-9.]+)\s+([0-9.]+)\s+(Önlenmiş|Önlenmemiş)\s*$")
+    rows, direction = {}, None
+    for line in page["text"].splitlines():
+        if line.strip() in ("X Yönü", "Y Yönü"):
+            direction = line.strip()[0]
+        match = pattern.fullmatch(line)
+        if match is None:
+            continue
+        story, phi, drift, total, shear, classification = match.groups()
+        key = direction, "ground" if story.startswith("ZEMİN") else "upper"
+        if direction not in ("X", "Y") or key in rows:
+            raise GoldenRegressionError("GOLDEN_SWAY_SOURCE_ROWS_AMBIGUOUS")
+        rows[key] = {"inputs": {"delta_mm": float(drift), "sum_N_over_L_kN_per_m": float(total),
+                                "story_shear_kN": float(shear)},
+                     "report": float(phi), "printed_classification": classification,
+                     "report_rounding_tolerance": .5 * 10 ** -len(phi.partition(".")[2])}
+    if set(rows) != {(axis, story) for axis in ("X", "Y") for story in ("ground", "upper")}:
+        raise GoldenRegressionError("GOLDEN_SWAY_SOURCE_ROWS_INCOMPLETE")
+    result = {}
+    for story in ("ground", "upper"):
+        if rows["X", story] != rows["Y", story]:
+            raise GoldenRegressionError("GOLDEN_SWAY_DIRECTION_VALUES_DIFFER")
+        result[story] = {**rows["X", story], "source_directions": ["X", "Y"],
+            "source_binding": {key: page[key] for key in
+                ("report_id", "source_pdf_sha256", "pdf_page_1_based", "printed_page", "text_sha256")}}
+    return result
+
+
+def _bound_sway_reports(first, second, excerpts):
+    """Preserve the original fixtures and cross-check their printed source rows."""
+    reports = {"reference": _sway_page_inputs(excerpts, "GOLDEN-01", 186),
+               "revised": _sway_page_inputs(excerpts, "GOLDEN-02", 185)}
+    for story, suffix in (("ground", "GROUND"), ("upper", "UPPER")):
+        case = next(c for c in first["arithmetic_cases"] if c["id"] == "SWAY_PHI_" + suffix)
+        row = reports["reference"][story]
+        fixture_name = "ground" if story == "ground" else "top"
+        if (row["inputs"] != case["inputs"] or row["report"] != case["expected"] or
+                row["report"] != second["reference"][fixture_name + "_phi"] or
+                reports["revised"][story]["report"] != second["revised"]["phi"][fixture_name]):
+            raise GoldenRegressionError("GOLDEN_SWAY_FIXTURE_EXCERPT_CONFLICT")
+    return reports
+
+
+def _second_comparisons(second, manifest, material, sway_reports):
     data = second["revised"]
     side_mm = data["section_cm"] * 10
     section = ts500_column.rectangle_properties(side_mm, side_mm)
@@ -276,7 +334,7 @@ def _second_comparisons(second, manifest, material):
             "independent": product, "report": case["reported_used"], "report_quantity": "Adopted member β",
             "oracle_report_difference": abs(product-case["reported_used"]), "report_rounding_tolerance": .012,
             "printed_symbol_probe": report_oracles.printed_eq729(case["lk"],case["Nd"]),
-            "explanation": "The reported adopted value matches β×βs. The final multiplier requires verified clear length, Eq. 7.29 policy and transfer to PMM. Individual and adopted β are distinct quantities.",
+            "explanation": "The reported adopted value matches β×βs, although the displayed lk reading does not trigger the product condition. This source-specific discrepancy remains open. The final design multiplier requires verified clear length, Eq. 7.29 policy and transfer to PMM. Individual and adopted β are distinct quantities.",
             "normative_disagreement_resolved": False, "engineering_acceptance": False})
         probe = report_oracles.printed_eq729(case["lk"],case["Nd"])
         printed = ts500_column.eq729_single_reading(
@@ -314,13 +372,26 @@ def _second_comparisons(second, manifest, material):
             "automatic_inverse_alpha_magnification_authorized":False,
             "explanation":"YENI verified story α against the printed Vis and Vik totals. "
                           "The real story column population and SCWB evidence at both ends require separate source links."})
-    changed = second["reference"]["ground_phi"] < .05 < data["phi"]["ground"]
+    sway_values = {}
+    for name in ("reference", "revised"):
+        source_row = sway_reports[name]["ground"]
+        values = source_row["inputs"]
+        actual = ts500_column.sway_phi_reference(drift_m=values["delta_mm"] / 1000,
+            sum_nd_over_length_kn_per_m=values["sum_N_over_L_kN_per_m"], story_shear_kn=values["story_shear_kN"])
+        independent = report_oracles.sway_phi(values["delta_mm"], values["sum_N_over_L_kN_per_m"], values["story_shear_kN"])
+        sway_values[name] = {**source_row, **compare_values(actual, independent, source_row["report"],
+                                                           source_row["report_rounding_tolerance"])}
+    changed = sway_values["reference"]["yeni"] <= ts500_column.SWAY_PHI_LIMIT < sway_values["revised"]["yeni"]
+    independent_changed = sway_values["reference"]["independent"] <= .05 < sway_values["revised"]["independent"]
+    printed_changed = second["reference"]["ground_phi"] <= .05 < data["phi"]["ground"]
     rows.append({"id":"G02_SWAY_BRANCH_CHANGED","domain":"SECOND_ORDER", "legacy_group":"test_sway_branch_changed",
         **_source(manifest,"GOLDEN-02",[185]),"inputs":{"old_phi":second["reference"]["ground_phi"],"new_phi":data["phi"]["ground"]},
-        **compare_values(None,changed,True,0),
-        "unresolved_kind":"METHOD_AND_SOURCE_BINDING_PENDING",
-        "source_inputs_available":"PRINTED_OLD_AND_NEW_PHI_ONLY",
-        "explanation":"The historical audit verifies the printed phi values crossing 0.05. The production TS 500 sway classifier uses first- and second-order displacement comparison, not this reported scalar phi. Reproducing both phi values requires their story populations and an explicit supported method binding; comparing the printed booleans alone does not qualify the physical branch."})
+        **compare_values(changed,independent_changed,printed_changed,0),
+        "yeni_kernel":"ts500_column.sway_phi_reference", "quantity_unit":"boolean",
+        "source_inputs_available":True, "intermediate_comparisons":sway_values,
+        "source_population_qualified":False, "automatic_sway_assignment_authorized":False,
+        "engineering_acceptance":False,
+        "explanation":"The TS 500 scalar now recomputes both ground-story phi values from the hash-bound printed drift, sum(N/L) and shear rows before comparing the 0.05 threshold. GOLDEN-01 page 186 and GOLDEN-02 page 185 supply the inputs. This proves the numerical report branch change; full story populations, required load combinations, uncracked stiffness and engineering classification remain unqualified. The separate paired-analysis criterion compares column end moments, not displacements."})
     return rows
 
 
@@ -366,6 +437,7 @@ def reference_comparison_coverage(rows, expected_ids):
 def build_golden_gate(*, source_dir=None):
     manifest, first, second, excerpts = load_bank(source_dir=source_dir)
     material = _material_binding(manifest)
+    sway_reports = _bound_sway_reports(first, second, excerpts)
     expected_ids = _required_comparison_ids(first, second)
     adapters = _first_adapters(first,manifest)
     rows = []
@@ -377,9 +449,6 @@ def build_golden_gate(*, source_dir=None):
         production = {}
         if key not in adapters:
             explanation += " The historical independent report calculation is preserved. A link to the production YENI calculation remains pending."
-            if key in ("SWAY_PHI_GROUND", "SWAY_PHI_UPPER"):
-                production.update(unresolved_kind="METHOD_BINDING_PENDING", source_inputs_available=True)
-                explanation += " All printed scalar inputs are available. The report uses 1.5 times drift times sum(N/L) divided by story shear; the current TS 500 owner instead classifies sway using first- and second-order displacement change. This quantity must not be silently substituted for the separate TBDY theta calculation."
         elif key in ("SDS", "SD1"):
             production.update(yeni_kernel="basis_linkage.spectral_design_coefficients", quantity_unit="dimensionless")
             explanation += " This compares the supplied coefficient multiplication only. Site-class selection and system applicability remain separate."
@@ -414,6 +483,17 @@ def build_golden_gate(*, source_dir=None):
             explanation += (" This compares the page-28 theta scalar, printed identically for X and Y. "
                             "The cumulative weight is used once and the printed average drift is converted from mm to m once. "
                             "Story/source qualification, the theta limit, beta and the report's system acceptance are separate.")
+        elif key in ("SWAY_PHI_GROUND", "SWAY_PHI_UPPER"):
+            source_row = sway_reports["reference"]["ground" if key.endswith("GROUND") else "upper"]
+            production.update(yeni_kernel="ts500_column.sway_phi_reference", quantity_unit="dimensionless",
+                source_inputs_available=True, source_directions=source_row["source_directions"],
+                source_binding=source_row["source_binding"], source_population_qualified=False,
+                numerical_threshold_prevented=adapters[key] <= ts500_column.SWAY_PHI_LIMIT,
+                automatic_sway_assignment_authorized=False, engineering_acceptance=False)
+            explanation += (" The TS 500 Eq.7.13 scalar consumes the printed page-186 displacement, sum(N/L) and shear; "
+                            "mm is converted to m once. This is a numerical report comparison. Complete story population, "
+                            "uncracked stiffness, specified load combinations and engineering classification remain separate. "
+                            "The value is not substituted for TBDY theta.")
         elif key=="PROVIDED_AS":
             explanation += " The check covers the area of 12 bars. Coordinates represent two test layouts. Report-linked PMM geometry requires independent evidence."
         elif domain=="SCWB":
@@ -422,7 +502,7 @@ def build_golden_gate(*, source_dir=None):
             "inputs":case["inputs"],"formula":case["formula"], **production,
             **compare_values(adapters.get(key),report_oracles.calculate(case),case["expected"],case["absolute_tolerance"]),
             "explanation":explanation.strip()})
-    rows.extend(_second_comparisons(second,manifest,material))
+    rows.extend(_second_comparisons(second,manifest,material,sway_reports))
     for name, report, domain, pages, reason in (
         ("PMM_REPORT_GATE","GOLDEN-01","PMM",[183,196,197],"The 3D PMM reference requires full bar coordinates, material and axis policies, concurrent demand and independent fixed-N, fixed-direction results. The two axis references cover uniaxial capacity."),
         ("CAPACITY_SHEAR_REPORT_GATE","GOLDEN-01","CAPACITY_SHEAR",[188,189],"Linking YENI column capacity shear Ve to the report requires verified Ma/Mu, physical ln, the D branch and the Vd lower bound. The source V and joint Ve checks cover separate quantities."),
