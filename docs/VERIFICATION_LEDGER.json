@@ -19,26 +19,26 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "C104_NATIVE_AUTO_EDGE_ASSIGNMENTS_VERIFIED",
-    "work_branch": "work/gap006-c104-edge-readback",
+    "status": "C104_COMMON_JOINT_TRANSFER_AND_ASSIGNED_SPECTRAL_SWAY_VERIFIED",
+    "work_branch": "work/gap006-009-matched-mesh",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "77db25a9eeda52ce801f98c1deb42a6e16fb5022",
+    "inspected_base_commit": "79fa56ae78c89f5e5790cffc90daad14ad6c1836",
     "source_run_id": "RUN-ec213e8622d2404ca2cd39ca5b392d7a",
     "source_sha256": "dcaa231263607e6ea71d1282b597542480dbc2f90f845889e27ad9c2000e059d",
-    "production_run_id": "RUN-ad31d3a7be684247a622444aa06475c4",
-    "results_sha256": "e0770352d18bda5a2ab2e3dd6d36688110fff5e82513e077984a2b28dc685c7a",
+    "production_run_id": "RUN-b52de9fc8acf4ca5a1f6dbcf10c44f87",
+    "results_sha256": "11727e0f6de402eaaeb5ff0199f27ee96e3f7d239b66bc028bd4b1330518c2bb",
     "evidence_refs": [
-      "EV-GAP006-C104-AUTO-EDGE-20261121",
-      "EV-GAP006-WALL-MESH-AND-CUTS-20261121",
-      "EV-GAP009-SIGNED-STORY-MAGNIFICATION-20261121"
+      "EV-GAP006-C104-MATCHED-MESH-20261121",
+      "EV-GAP009-ASSIGNED-SPECTRAL-SWAY-20261121",
+      "EV-R08-WALL-COUPLED-ISOLATED-GUARD-20261121"
     ],
     "engineering_release": "NOT_READY",
-    "next_action": "Qualify local wall-frame force transfer at C104 and the coupled stiffness and compression basis. Adopt the applicable creep convention and assigned design demand before using the R08 factors in design."
+    "next_action": "Solve the prepared 25 mm private mesh, compare the same physical sides and establish the local demand basis before binding the adopted mesh to R08 and R10. Calculate the coupled second-order demand, then qualify stiffness, creep and analysis-order inputs."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
-    "commit_sha": "77db25a9eeda52ce801f98c1deb42a6e16fb5022",
-    "git_tree_sha": "b3b18d53a0d526835956602e4540a42be54ae969",
+    "commit_sha": "79fa56ae78c89f5e5790cffc90daad14ad6c1836",
+    "git_tree_sha": "d15c913db2876c40a7951f602fee943e5db1f590",
     "observed_on": "2026-11-21",
     "scope": "Verified parent of this checkpoint. Resolve the current published ref with git ls-remote."
   },
@@ -5562,6 +5562,144 @@
       "limit": "The live setting and collinear containing edges are verified. Straight-line translation residuals do not check the solver's internal interpolation equation, and no local joint-force or stress acceptance is implied.",
       "engineering_release": "NOT_READY",
       "next_action": "Qualify local wall-frame force transfer at C104 and the coupled stiffness and compression basis. Adopt the applicable creep convention and assigned design demand before using the R08 factors in design."
+    },
+    {
+      "id": "EV-GAP006-C104-MATCHED-MESH-20261121",
+      "observed_at_utc": "2026-11-21T06:56:42+00:00",
+      "gaps": [
+        "GAP-006",
+        "GAP-009"
+      ],
+      "base_commit": "79fa56ae78c89f5e5790cffc90daad14ad6c1836",
+      "classification": "PRIVATE_COMMON_JOINT_FORCE_TRANSFER_VERIFIED",
+      "method": "Solve the original load definitions in the approved C104 Save As. Read exact frame and shell analysis point IDs, independently rebuild each shell edge and reconcile signed shell joint forces with adjacent frame cut actions. Compare the same physical cuts and load steps with the sealed original.",
+      "original_edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+      "input_source_sha256": "dcaa231263607e6ea71d1282b597542480dbc2f90f845889e27ad9c2000e059d",
+      "private_receipt": ".receipts/R08_C104_MESH/runs/20261121T063930812557Z",
+      "mesh_verification_sha256": "ea8bc1f76e293dd38ee8149b705ebc2a313dee872ac84b8641c37f3b6b13677c",
+      "capacity_sample_sha256": "13519972a53fbe7f4da993031aa8025d5a1549d49b27eb9f6a9be6fc82216cac",
+      "commands": [
+        "python -X utf8 -B .receipts/R08_C104_MESH/solve_mesh.py --pid <live ETABS PID>",
+        "python -X utf8 -B .receipts/R08_C104_MESH/verify_matched_mesh.py",
+        "python -X utf8 -B .receipts/R08_C104_MESH/c104_cut_capacity.py"
+      ],
+      "observed": {
+        "physical_cases_finished": 15,
+        "wall_frame_segments_with_exact_edges": 103,
+        "signed_joint_balances": 330,
+        "max_force_balance_residual_kn": 1.13544729174464e-09,
+        "max_moment_balance_residual_knm": 2.8355984227346198e-11,
+        "original_vs_50mm_component_comparisons": 900,
+        "matched_cut_example": {
+          "station_m": 4.4,
+          "side": "below",
+          "load": [
+            "Duct_SeisX",
+            "Min",
+            0.0
+          ],
+          "component": "V2",
+          "before": -4.079141862710353,
+          "after": -256.19297413239605,
+          "delta": -252.1138322696857,
+          "relative_to_larger_or_one": 0.9840778542950896
+        },
+        "c104_original_and_50mm_max_sampled_spectral_pmm_utilization": {
+          "original": 0.3309403533831976,
+          "mesh-1": 0.3274736919510891
+        },
+        "refinement_status": "SAVED_AWAITING_ETABS_SOLVE"
+      },
+      "references": [
+        "https://docs.csiamerica.com/help-files/etabs/Menus/Assign/Shell/Auto_Edge_Constraints.htm",
+        "https://docs.csiamerica.com/help-files/etabs-api-2016/html/e6826614-bf6b-d3cd-a0e5-5d70e06cbc07.htm",
+        "https://docs.csiamerica.com/help-files/sap/Output/Frame_Element_Internal_Forces_Output_Conventions.htm"
+      ],
+      "scope_limit": "Equilibrium is verified at internal generated points under signed static loads. The two private mesh assignment changes are combined in this test. The PMM samples are first-order comparisons for an unchanged cage. The original model is the production source.",
+      "engineering_release": "NOT_READY",
+      "next_action": "Solve the prepared 25 mm private mesh, compare the same physical sides and establish the local demand basis before binding the adopted mesh to R08 and R10."
+    },
+    {
+      "id": "EV-GAP009-ASSIGNED-SPECTRAL-SWAY-20261121",
+      "observed_at_utc": "2026-11-21T06:56:42+00:00",
+      "gaps": [
+        "GAP-009"
+      ],
+      "base_commit": "79fa56ae78c89f5e5790cffc90daad14ad6c1836",
+      "classification": "ASSIGNED_SPECTRAL_SWAY_DEMAND_REFERENCE",
+      "method": "Use the sealed native cut and Min/Max steps for the eight assigned spectral combinations. Sum upper frame-column compression by story. Use the conditional Euler loads and both TS 500 Eq. (7.29) readings to calculate two-axis upper moment boxes after the Eq. (6.16) floor. Resolve selected-cage C29 PMM samples at axial endpoints and midpoints.",
+      "input_source_sha256": "dcaa231263607e6ea71d1282b597542480dbc2f90f845889e27ad9c2000e059d",
+      "verification_sha256": "cae19fb45ecf137ad3a3fc93b34ff2da70b83d145d9b736e84bfa8db0e820f7f",
+      "command": "python -X utf8 -B .receipts/verification/gap009-spectral-orders-20261121/assigned_sway_bounds.py",
+      "private_receipt": ".receipts/verification/gap009-spectral-orders-20261121/assigned-spectral-sway.json",
+      "story_axis_cases": 48,
+      "cut_boxes": 1752,
+      "wall_coupled_member_cases_blocked": 112,
+      "nonpositive_denominator_axis_cases": 0,
+      "c29_sampled_capacity_comparisons": 576,
+      "c29_max_sampled_utilization": {
+        "225": 0.36234560917541353,
+        "142": 0.35588936686023837
+      },
+      "maximum_story_beta_under_reference": {
+        "+0.00": 1.500479437490426,
+        "+4.50": 1.0535596723701626,
+        "+9.00": 1.0243594102740274
+      },
+      "scope_limit": "The creep endpoint Rm=1 and member restraints are sensitivity inputs. The story sum currently bounds frame-column compression only. The PMM checks sample axial endpoints and midpoints. The TS 500 factors are kept separate from the TBDY global factor.",
+      "engineering_release": "NOT_READY"
+    },
+    {
+      "id": "EV-R08-WALL-COUPLED-ISOLATED-GUARD-20261121",
+      "observed_at_utc": "2026-11-21T06:56:42+00:00",
+      "gaps": [
+        "GAP-006",
+        "GAP-009"
+      ],
+      "base_commit": "79fa56ae78c89f5e5790cffc90daad14ad6c1836",
+      "classification": "PRODUCTION_R08_ISOLATED_METHOD_GUARD_VERIFIED",
+      "method": "Skip isolated-column second-order calculations for ETABS members with verified interior wall mesh coupling. Preserve native cut and face data. Replay the original source through the production pipeline and compare every member record.",
+      "formula_reference": "TS 500 §7.6.1 / §7.6.2",
+      "normative_reference": "https://abs.cu.edu.tr/Dokumanlar/2016/IMZ312/363439620_ts_500_-_betonarme_yapilarin_tasarimi_ve_yapim_kurallari.pdf#page=30",
+      "input_source_sha256": "dcaa231263607e6ea71d1282b597542480dbc2f90f845889e27ad9c2000e059d",
+      "prior_run_id": "RUN-ad31d3a7be684247a622444aa06475c4",
+      "replay_run_id": "RUN-b52de9fc8acf4ca5a1f6dbcf10c44f87",
+      "results_sha256": "11727e0f6de402eaaeb5ff0199f27ee96e3f7d239b66bc028bd4b1330518c2bb",
+      "verification_sha256": "f0a4f4417eb92e5c2a65a7ea5e5359fd17184346a692439b66a3b0cbb659c346",
+      "private_receipt": ".receipts/verification/gap009-spectral-orders-20261121",
+      "replay_cli_sha256": "196dd7a64dab4513504aaa1d961894daf2495b1def8ac70617b53e3e9e7c8e85",
+      "tested_file_manifest_sha256": "52d6ceb6dfd94f97fd46f47f24d06673c056898750b168c0c06e9ed22d519fdd",
+      "code_diff_sha256": "42b7c86ec8eb8da393d8d6cfcdc4d0f34ee3bb121f92dac4fa20318a906e6977",
+      "software_tests": [
+        {
+          "command": "python -X utf8 -B -m unittest -v test_column_clear_length test_r08_local_live test_audit_hardening test_vs14_column_stability (PYTHONPATH=tests)",
+          "count": 92,
+          "status": "PASS",
+          "log_sha256": "279f2922760a8d214af0d4cff98878cafd9215dc2da67a642237be9c52576ce0"
+        },
+        {
+          "command": "python -X utf8 -B -m unittest discover -s tests -q",
+          "count": 1565,
+          "skipped": 1,
+          "status": "PASS",
+          "log_sha256": "457435d7c0d86641e6cff8eb131bd014c7460e2a392a0040c7de886d34597826"
+        }
+      ],
+      "commands": [
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --source <sealed input.source> --case Modal --out .receipts/verification/gap009-spectral-orders-20261121/production-replay",
+        "python -X utf8 -B .receipts/verification/gap009-spectral-orders-20261121/verify_production_replay.py"
+      ],
+      "wall_coupled_r08_members_withheld": 14,
+      "other_r08_members_unchanged": 73,
+      "unchanged_prior_stage_payloads": 14,
+      "alpha_feasibility_before_and_after": [
+        "FEASIBLE_REFERENCE",
+        "NUMERIC_OR_DEPENDENCY_UNRESOLVED"
+      ],
+      "r14_status_counts": {
+        "R14_PARTIAL_OR_UNBOUND": 87
+      },
+      "engineering_release": "NOT_READY"
     }
   ],
   "new_record_template": {
@@ -5586,7 +5724,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-21T05:08:34.205885Z",
+  "updated_at_utc": "2026-11-21T06:56:42+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",

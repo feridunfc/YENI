@@ -6,6 +6,42 @@ Start each assignment at [AGENTS.md](../AGENTS.md). The
 in a GitHub checkout. Follow the [November 18 full recipe](engineering/reference/recipe_20261118/delivery/RECIPE.md)
 and its [six-step calculation sequence](engineering/reference/recipe_20261118/delivery/PRIORITY_CHAIN.json).
 
+## C104 common-joint mesh and assigned spectral sway
+
+The authorized C104 Save As solved all 15 original load cases on a 50 mm
+vertical mesh. The two wall assignments use explicit subdivisions and
+share analysis nodes with C104 along all 103 frame segments. The signed
+force and moment balance closes at 55 interior nodes across six loads.
+The largest residual is 1.14 × 10⁻⁹ kN or 2.84 × 10⁻¹¹ kN·m by component.
+The model edits cover W21 and W22 only. At elevation −0.75 m, on the lower
+side of the cut, the Duct_SeisX Min V2 changes from −4.08 kN in the original
+to −256.19 kN in the common-joint model. A separate check of the original
+32Φ16 cage puts the maximum sampled first-order PMM utilization at 0.331
+and 0.327 respectively. Use the matched-mesh checkpoint to qualify local
+demand before selecting a production model.
+
+R08 retains the native cut evidence for the 14 wall-coupled columns and
+withholds isolated Euler loads, moment magnification and magnified PMM
+for those members. C104's signed axial force changes across interior
+nodes where load transfers to the wall. TS 500 §7.6.2 limits the
+approximate method to columns with invariant section and axial force
+along the height. The normal pipeline replay evaluates the other 73
+members and carries the coupled-model requirement into R14.
+The alpha design feasibility check now flags those same 14 missing
+second-order references.
+
+The eight original assigned seismic combinations now have 48 story/axis
+sway references and 1,752 local magnified moment boxes for 73 columns.
+The sensitivity uses `Rm = 1`, conditional restraint scenarios and upper
+frame-column compression. It gives no wall-frame critical-load credit.
+Both readings of Eq. (7.29) use the ordinary maximum branch in the 3,504
+member-axis evaluations. C29 utilization reaches 0.362 for 225 and 0.356
+for 142 over 576 capacity samples. The samples use axial endpoints and
+midpoints. The factors remain separate from TBDY global amplification.
+GAP-009 requires a qualified coupled second-order analysis for the 14
+wall-frame members, and adopted stiffness, creep and analysis order for
+using the assigned demands in design.
+
 ## Wall contacts, complete cut census and C29 story magnification reference
 
 The original mesh, output assignments and offsets independently define

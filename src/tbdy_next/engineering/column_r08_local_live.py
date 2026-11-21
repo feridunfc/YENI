@@ -172,13 +172,19 @@ def _project_single_r08_local(
         else "SPAN_UNAVAILABLE"
     )
     ln = proven_clear_length_m(physical_length, uid)
+    wall_coupled = (physical_length is not None and physical_length.get("member_id") == uid
+                    and physical_length.get("status") == WALL_COUPLED)
     open_gates = list(OPEN_GATES)
     if ln is not None:
         candidate_span_mm = ln * 1000.0
         span_basis = FACE_BASIS
         open_gates.remove(PHYSICAL_CLEAR_LENGTH_GATE)
         evidence["unverified_inputs"].remove("Physical support faces and clear length")
-    elif (physical_length or {}).get("status") == WALL_COUPLED:
+    elif wall_coupled:
+        # A native cut span cannot represent the isolated buckling length of a
+        # column exchanging forces with a wall inside that span.
+        candidate_span_mm = None
+        span_basis = WALL_COUPLED
         open_gates[open_gates.index(PHYSICAL_CLEAR_LENGTH_GATE)] = WALL_COUPLED_LENGTH_GATE
 
     out: dict[str, Any] = {
@@ -199,6 +205,7 @@ def _project_single_r08_local(
         "max_reference_beta_sway_prevented": None,
         "open_gates": open_gates,
         "status": "OBSERVED_EVIDENCE_ONLY",
+        **({"execution_status": "NOT_RUN"} if wall_coupled else {}),
         "formal_compliance": "NOT_PROVEN",
         "engineering_release": "NOT_READY",
     }

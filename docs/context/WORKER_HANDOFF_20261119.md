@@ -43,8 +43,12 @@ census, 73 standalone clear lengths and 14 wall-coupled mesh records.
 Compare the distinct element sides and all load steps. For member 211,
 `EV-GAP006-C104-AUTO-EDGE-20261121` verifies the original model's
 automatic edge assignments and shell edge coverage at the three
-nonmatching segments. Qualify local force transfer if the coupled
-wall-frame design uses those results.
+nonmatching segments. Start the next C104 calculation at
+`EV-GAP006-C104-MATCHED-MESH-20261121`. The original eight-segment result
+and the private common-joint result have materially different V2 at the
+same physical cut. Compare both sides of a cut independently. Finish
+mesh refinement and qualify local demand in the adopted model before
+using it in R08 or C104 shear design.
 For C29 effective lengths use `EV-C29-TS500-EFFECTIVE-LENGTH-20261121`.
 Trace the axis-length frame terms and the two clear spans into R08. Use
 `EV-R08-MAT-HORIZONTAL-BOUNDARY-20261121` for the production mat restraint
@@ -65,6 +69,14 @@ story/axis checks and 48 C29 signed PMM checks under the specified
 creep convention and assigned design demand before applying the
 factors to design. The physical scope accounts for six
 occupied story directions and the empty +14.5 story.
+`EV-GAP009-ASSIGNED-SPECTRAL-SWAY-20261121` extends the same calculation
+to the eight inlet seismic combinations. Sum the upper column compression
+for each story and keep source cut and step identity. Use the two Eq. (7.29)
+readings to bound the local factor, then apply the minimum eccentricity
+before magnification. For the 14 coupled columns continue from
+`EV-R08-WALL-COUPLED-ISOLATED-GUARD-20261121`. R08 returns the native cut
+evidence and the coupled-model requirement. Use a coupled second-order
+analysis for their interior force transfer.
 
 For assigned C29 shear use `EV-C29-SPECTRAL-SHEAR-20261120`. Both C29 segments
 have eight assigned cases for V2 and V3 inside the selected R10 capacity shear

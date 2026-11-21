@@ -3,9 +3,11 @@ from unittest import TestCase
 
 from tbdy_next.column_engine.native_archive import digest
 from tbdy_next.engineering.column_clear_length import (
-    FACE_BASIS, WALL_CONNECTIVITY, WALL_PROPERTIES, project_column_clear_lengths,
+    FACE_BASIS, WALL_CONNECTIVITY, WALL_COUPLED, WALL_PROPERTIES, project_column_clear_lengths,
 )
-from tbdy_next.engineering.column_r08_local_live import PHYSICAL_CLEAR_LENGTH_GATE, project_column_r08_local_live
+from tbdy_next.engineering.column_r08_local_live import (
+    PHYSICAL_CLEAR_LENGTH_GATE, WALL_COUPLED_LENGTH_GATE, project_column_r08_local_live,
+)
 from tbdy_next.engineering.column_r10_live import _build_frame_catalog
 from tbdy_next.etabs_geometry import AREA_ELEMENTS, AREA_INSERTION, FLOOR_CONNECTIVITY, FRAME_INSERTION, SLAB_PROPERTIES
 from test_r08_local_live import _r08_local_fixture
@@ -197,3 +199,20 @@ class ColumnClearLengthTests(TestCase):
         self.assertEqual(output["span_basis"], FACE_BASIS)
         self.assertNotIn(PHYSICAL_CLEAR_LENGTH_GATE, output["open_gates"])
         self.assertIn("END_RESTRAINTS_K_AND_SWAY_CLASSIFICATION_NOT_APPROVED", output["open_gates"])
+
+    def test_r08_does_not_magnify_a_wall_coupled_column_using_the_native_cut_span(self):
+        source, geometry, axial, pmm = _r08_local_fixture()
+        coupled = {"member_id": "127", "status": WALL_COUPLED}
+        r10 = {"member_id": "127", "physical_clear_lengths": {"per_member": {"127": coupled}}}
+
+        output = project_column_r08_local_live(source, geometry, axial, pmm, r10_live=r10)
+
+        self.assertGreater(output["observed_reduced_span_mm"], 0)
+        self.assertEqual(output["span_basis"], WALL_COUPLED)
+        self.assertEqual(output["execution_status"], "NOT_RUN")
+        self.assertIsNone(output["candidate_span_mm"])
+        self.assertIsNone(output["stiffness_and_euler"])
+        self.assertFalse(output["combination_scenarios"])
+        self.assertNotIn("magnified_selected_pmm", output)
+        self.assertNotIn("spectral_envelope_pmm_scenario", output)
+        self.assertIn(WALL_COUPLED_LENGTH_GATE, output["open_gates"])
