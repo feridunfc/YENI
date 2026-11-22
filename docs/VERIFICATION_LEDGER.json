@@ -27,13 +27,14 @@
     "evidence_refs": [
       "EV-BUILDING-PIER-SECTIONS-20261122",
       "EV-ETEX-PIER-AXIAL-CRACK-X-SOIL-20261122",
-      "EV-ETEX-PIER-SHEAR-WORKBOOK-20261122"
+      "EV-ETEX-PIER-SHEAR-WORKBOOK-20261122",
+      "EV-ETEX-WALL-QUICK-SECTION-LIMIT-20261122"
     ],
     "production_run_id": "RUN-c85705a8cb9a48b1a190d24d10198e66",
     "results_sha256": "9955b53c0a5ad4f79caf5c544c73138f9d48ef9fccf5019346e4fd37088442e3",
     "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
     "engineering_release": "NOT_READY",
-    "next_action": "Use the same original P2–P5 pier cuts and cages in the whole-building runner. Construct the TBDY 7.6.6.1 seismic design moment diagram for the two model-base assumptions and bound PMM across the local axial interval at all 192 native seismic assignment cuts. Carry the 7.6.6.2 strong-direction check and detailing dependencies. Construct the heightwise shear diagram under Fig. 7.12(c) on its applicable branch. Keep the completed local shear bounds and signed gravity checks. The ETEX workbook comparison with the proposed cage is complete. Keep the Quick Result Vr source and the provided steel schedule as separate questions. Slab, punching and C104 convergence are deferred."
+    "next_action": "Use the same original P2–P5 pier cuts and cages in the whole-building runner. Construct the TBDY 7.6.6.1 seismic design moment diagram for the two model-base assumptions and bound PMM across the local axial interval at all 192 native seismic assignment cuts. Carry the 7.6.6.2 strong-direction check and detailing dependencies. Construct the heightwise shear diagram under Fig. 7.12(c) on its applicable branch. Keep the completed local shear bounds and signed gravity checks. The ETEX workbook comparison with the proposed cage is complete. The Quick Result area limit is reconstructed. Retain the commercial selector discrepancy and the unknown installed cage as separate qualifications. Slab, punching and C104 convergence are deferred."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
@@ -10138,6 +10139,72 @@
         "docs/context/WORKER_HANDOFF_20261119.md",
         "docs/ENGINEERING_GAPS.yaml"
       ]
+    },
+    {
+      "id": "EV-ETEX-WALL-QUICK-SECTION-LIMIT-20261122",
+      "status": "ETEX_QUICK_SECTION_LIMIT_REPRODUCED_AT_PRINTED_PRECISION",
+      "checked_at_utc": "2026-11-22T18:09:17.957645+00:00",
+      "baseline": "535a26ad28d52d07c8553fe6e77a4a7ddaab2d6d",
+      "clarifies": "EV-ETEX-PIER-SHEAR-WORKBOOK-20261122",
+      "source": "Filled A/B Block ETEX wall exports and parameter snapshots, plus the ten visible original compact-building Quick Result rows. A/B use ENVE_PerdeUst_1.2D (Top). The compact comparison uses the archived Cap_SeisX_Soil lower-cut shear values.",
+      "formula_from_values": "DATA!AU = 0.65 * WidthBot * ThicknessBot * DATA!AW. AV=3569 and AW=609.192027772 at C35. AU contains stored values.",
+      "rows_A": 47,
+      "rows_B": 32,
+      "maximum_residual_tf": 4.547473508864641e-13,
+      "compact_screen_rows_reproduced": 10,
+      "p2_quick_tf": 633.559708882879,
+      "p2_compact_quick_utilization_percent": 25.359043412403324,
+      "b_p2_same_section": [
+        {
+          "storey": "+4.50",
+          "horizontal_mm": [
+            2,
+            10,
+            150
+          ],
+          "quick_tf": 633.559708882879,
+          "reinforced_tf": 332.0629599489034,
+          "demand_tf": 328.0973626879401
+        },
+        {
+          "storey": "+9.00",
+          "horizontal_mm": [
+            2,
+            10,
+            200
+          ],
+          "quick_tf": 633.559708882879,
+          "reinforced_tf": 285.63477356167755,
+          "demand_tf": 187.4373715091721
+        }
+      ],
+      "scope": "Numerical reconstruction for the observed C35 exports. Both saved settings indicate a solid wall, whose workbook section-limit coefficient is 0.85. Program branch selection and applicability remain unresolved. No installed steel or design approval for the compact building follows.",
+      "private_directory": ".receipts/verification/pier-section-design-20261122/drive-etex-walls",
+      "verification_command": "python -X utf8 -B .receipts/verification/pier-section-design-20261122/drive-etex-walls/inspect_etex_walls.py",
+      "runtime": "Windows-11-10.0.26200-SP0, Python 3.12.14",
+      "review_script_sha256": "aa5a84060ec019f9a1e7dddc312b6b4dd03f8c2de138df3731356993c9baff69",
+      "private_observations_sha256": "22b4d1be47569b6267f8df31e41051fe1359ed48e8ecaf3312f409e332ea427b",
+      "reference_sha256": {
+        "A/03_PERDE_KESME_KONTROL1.xlsx": "c827fa36be7f439bce4af7fc38e2e561e0db20559e6ccd9c4f73d8f7b81b4fea",
+        "A/13_PERDE_SURTUNME_KESMESI_KONTROL.xlsx": "e66d047c402d7bae1154a9db85e682df674dacc263c4a584e44aea31ec1ea11e",
+        "A/14_PERDE_DEVRILME_MOMENT_KONTROLU.xlsx": "54821e59cc4b8b9cf2f70ae698b6e6827bf0da3867f5e6f2b9bf68418167c182",
+        "A/18_PERDE_EKSENEL_KAPASITE_KONTROL.xlsx": "8720fc1cf081a19c518fb93feb0f374ef1aa8d793c41cbab65fe75c5b15780fc",
+        "A/A_Blok_Parametreler.etex.bin": "c6f63488037c2a0c1281aec2d6afd26720c562a47d867c400d3497bfff86f5ab",
+        "B/03_PERDE_KESME_KONTROL.xlsx": "36a08d9f0b1ca797d3824a1df78fdadf8040b33f14c417af71b2ce74e70c5e8d",
+        "B/13_PERDE_SURTUNME_KESMESI_KONTROL.xlsx": "5cc9b1ac2c49c98bfc5fd7f76d4b2a642dc7c7cd4636f4e380d529ee6dffa26e",
+        "B/14_PERDE_DEVRILME_MOMENT_KONTROLU.xlsx": "aeecc15fa9c22694db31b35f61ac28fac60aa1cccaf17fc77aec6b04342354dd",
+        "B/18_PERDE_EKSENEL_KAPASITE_KONTROL.xlsx": "99cd64cbcb716683235f871db7a03666bfc11550bd43082888e7909a77caa83c",
+        "B/19_PERDE_DUSEY_DONATI_SECIMI.xlsx": "4648383071ab368cef7d0631003dc71dc634a4b9017e5b3fb6227e62ceb7c6ac",
+        "B/B_Blok_Parametreler.etex.bin": "c0c1e67e6dd8de4564317f4d6eeb25634b0589af280407762d33d844f5b93374"
+      },
+      "engine_suite": "NOT_RUN_REFERENCE_COMPARISON_ONLY",
+      "engineering_release": "NOT_READY",
+      "public_reference_paths": [
+        "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
+        "docs/CURRENT_STATE.md",
+        "docs/context/WORKER_HANDOFF_20261119.md",
+        "docs/ENGINEERING_GAPS.yaml"
+      ]
     }
   ],
   "new_record_template": {
@@ -10162,7 +10229,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-22T17:14:53.978643+00:00",
+  "updated_at_utc": "2026-11-22T18:09:17.957645+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",

@@ -1,7 +1,7 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-22T17:14:53.978643+00:00",
+  "updated_at_utc": "2026-11-22T18:09:17.957645+00:00",
   "repository": "feridunfc/YENI",
   "baseline_implementation_commit": "123bdf0b275d2f301ede628de5a86b13fb813dce",
   "local_reconciled": true,
@@ -33,7 +33,7 @@
     "GAP-018",
     "GAP-006"
   ],
-  "active_task": "Use the same original P2–P5 pier cuts and cages in the whole-building runner. Construct the TBDY 7.6.6.1 seismic design moment diagram for the two model-base assumptions and bound PMM across the local axial interval at all 192 native seismic assignment cuts. Carry the 7.6.6.2 strong-direction check and detailing dependencies. Construct the heightwise shear diagram under Fig. 7.12(c) on its applicable branch. Keep the completed local shear bounds and signed gravity checks. The ETEX workbook comparison with the proposed cage is complete. Keep the Quick Result Vr source and the provided steel schedule as separate questions. Slab, punching and C104 convergence are deferred.",
+  "active_task": "Use the same original P2–P5 pier cuts and cages in the whole-building runner. Construct the TBDY 7.6.6.1 seismic design moment diagram for the two model-base assumptions and bound PMM across the local axial interval at all 192 native seismic assignment cuts. Carry the 7.6.6.2 strong-direction check and detailing dependencies. Construct the heightwise shear diagram under Fig. 7.12(c) on its applicable branch. Keep the completed local shear bounds and signed gravity checks. The ETEX workbook comparison with the proposed cage is complete. The Quick Result area limit is reconstructed. Retain the commercial selector discrepancy and the unknown installed cage as separate qualifications. Slab, punching and C104 convergence are deferred.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -877,7 +877,8 @@
         "EV-BUILDING-CONFINEMENT-20261122",
         "EV-BUILDING-PIER-SECTIONS-20261122",
         "EV-ETEX-PIER-AXIAL-CRACK-X-SOIL-20261122",
-        "EV-ETEX-PIER-SHEAR-WORKBOOK-20261122"
+        "EV-ETEX-PIER-SHEAR-WORKBOOK-20261122",
+        "EV-ETEX-WALL-QUICK-SECTION-LIMIT-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,

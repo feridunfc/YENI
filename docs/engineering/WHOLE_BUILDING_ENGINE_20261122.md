@@ -110,10 +110,10 @@ Use the original P2/W6 wall 472, lower face of storey +0.00 m at (69.00, 18.60, 
 | Compression under Crack_SeisX_Soil | 213.6947 tf | 213.69 tf (10.69% of the axial limit) |
 | Axial limit with ETEX displayed inputs | 1,998.64 tf | 1,998.64 tf |
 | Maximum absolute local V2 under Cap_SeisX_Soil | 160.6647 tf | Ve = 160.66 tf |
-| In-plane shear resistance Vr | 346.96 tf for proposed two-face Ø12/200 horizontal steel | 633.56 tf |
+| Displayed resistance | 346.96 tf for proposed two-face Ø12/200 horizontal steel | 633.56 tf exported section limit |
 | Utilization at that same native shear | 46.31% | 25.36% |
 
-The axial view evaluates concrete area under compression. For the high-ductility branch the applicable storeys, basement-wall classification, project G+Q+E combinations and live-load reductions govern the full 7.6.1.1 check. The axial limit uses concrete area and strength. The shear view shows βv = 1.5 in its list and 1.0 in the adjoining field, and displays Ve1 as blank. The effective βv, steel stresses and actual horizontal steel are unavailable from these summaries. The calculation behind the Quick Result and the reinforcement physically provided at P2 still require their own source. The user reported no defined section cuts for overturning. These comparisons used native Pier Forces. [TBDY 2018, §§7.6.1.1, 7.6.6.3 and 7.6.7.1](https://www.afad.gov.tr/kurumlar/afad.gov.tr/2309/files/TBDY_2018.pdf)
+The axial view evaluates concrete area under compression. For the high-ductility branch the applicable storeys, basement-wall classification, project G+Q+E combinations and live-load reductions govern the full 7.6.1.1 check. The axial limit uses concrete area and strength. The shear view shows βv = 1.5 in its list and 1.0 in the adjoining field, and displays Ve1 as blank. The effective βv, steel stresses and actual horizontal steel are unavailable from these summaries. The paired reference exports below explain the Quick Result arithmetic. The installed steel at the compact P2 remains unverified. The user reported no defined section cuts for overturning. These comparisons used native Pier Forces. [TBDY 2018, §§7.6.1.1, 7.6.6.3 and 7.6.7.1](https://www.afad.gov.tr/kurumlar/afad.gov.tr/2309/files/TBDY_2018.pdf)
 
 #### ETEX shear workbook at the same lower cuts
 
@@ -131,7 +131,22 @@ At P2/W6 (472), the lower face of storey +0.00 m carries 160.6647 tf of in-plane
 | Engine resistance, proposed Ø12/200 | Sealed original building calculation | 346.9631 |
 | Quick Result Vr | Screen value, copied into the previously empty `DATA!AU2` input | 633.56 |
 
-The like-cage P2 difference is 0.0431 tf (0.0124%). The workbook uses tabulated fctd and a rounded MPa-to-tf/m² conversion. With the original formulas exercised on the proposed cage at all 12 rectangular cuts, the largest absolute difference from the engine is 0.04742 tf. The delivered workbook retains its default Ø10/200, giving a P2 utilization of 56.25%. Neither the section limit nor the reinforced resistance reads `DATA!AU2`. Resolving the Quick Result value requires its upstream formula and inputs. The template and the proposed cage give no evidence of the actual installed steel. These comparisons cover the selected raw shear envelope. The heightwise design shear and seismic PMM remain open. [Workbook comparison record](../VERIFICATION_LEDGER.json)
+The like-cage P2 difference is 0.0431 tf (0.0124%). The workbook uses tabulated fctd and a rounded MPa-to-tf/m² conversion. With the original formulas exercised on the proposed cage at all 12 rectangular cuts, the largest absolute difference from the engine is 0.04742 tf. The delivered workbook retains its default Ø10/200, giving a P2 utilization of 56.25%. Neither the section limit nor the reinforced resistance reads `DATA!AU2`. The filled A/B exports below supply the missing inputs for reconstructing the Quick Result value. The template and the proposed cage give no evidence of the actual installed steel. These comparisons cover the selected raw shear envelope. The heightwise design shear and seismic PMM remain open. [Workbook comparison record](../VERIFICATION_LEDGER.json)
+
+#### Filled ETEX A and B Block wall files
+
+In the A and B Block exports, `DATA!AU` (“Vr”) holds values written by the postprocessor. For **47/47 A Block** and **32/32 B Block** rows, the ratio AU divided by width, thickness and `DATA!AW` is 0.65. All 79 rows use C35 with AV = 3569 and AW = 609.192027772, numerically equal to 10.1972 × √3569. The workbook's separate C35 material lookup gives 603.274487642. For the compact P2 section, 0.65 × 4.00 × 0.40 × 609.192027772 = **633.559709 tf**. The ten visible compact-building Quick Result capacities, paired native demands and displayed percentages agree at printed precision. The maximum source-row residual for the reconstructed AU value is below 0.000000001 tf.
+
+B Block P2 has two 4.00 m × 0.40 m sections with different selected horizontal reinforcement. Both export 633.559709 tf in `DATA!AU15:AU16`. The same workbook shows the following values in `PERDE_KESME!O20:AA21`.
+
+| B Block P2 | Horizontal steel per face | Demand (tf) | Reinforced resistance (tf) | Utilization |
+| --- | --- | ---: | ---: | ---: |
+| +4.50 m | Ø10/150 | 328.097 | 332.063 | 98.81% |
+| +9.00 m | Ø10/200 | 187.437 | 285.635 | 65.62% |
+
+Both archived configurations select a solid wall, and `PERDE_KESME` applies 0.85 to its solid-wall section limit. Its value at the same dimensions is 820.4533 tf. The source did not reveal why the exported AU has an effective factor of 0.65. The original building’s proposed Ø12/200 cage is assessed against 346.9631 tf in the engine. The A/B examples use a different model and `ENVE_PerdeUst_1.2D` rows marked `Top`. Their forces and selected reinforcement belong to those projects. [TBDY 2018, §7.6.7.1, Eqs. 7.17–7.18](https://muhendis.web.tr/dosyalar/standartlar_yonetmelikler/turkiye_bina_deprem_yonetmeligi.pdf#page=152)
+
+The companion B Block vertical schedule at P2/+4.50 m gives two 0.80 m end zones of 16Ø20 each, a 2.40 m web of 24Ø12 and 127.67 cm² of total vertical steel. A Block P12/+14.5 m provides a heightwise shear comparison with a visible effect of the adjustment, 132.787 tf in `AS` and 223.661 tf in `AT`. The adjusted value is half the stored governing shear at the comparison level. In both overturning sheets, the displayed Y numerator in D8 selects `DATA_MDev!I2` from the X spectrum even though the Y spectrum is on row 3. Verify case, moment axis and cut before using these external ratios. [Calculation records](../VERIFICATION_LEDGER.json)
 
 ## Result identity
 
