@@ -1357,6 +1357,9 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
     local_members = (local_order.get("per_member") or {"single": local_order}).values()
     mat_rows = []
     for member in local_members:
+        transition = member.get("coupled_wall_transition")
+        if transition:
+            vs04_sections.append(_coupled_transition_html(transition))
         support = member.get("mat_horizontal_support")
         if support:
             flags = support.get("global_dof_restrained") or {}
@@ -2565,6 +2568,33 @@ def _beam_r10_html(beam_r10: Mapping[str, Any]) -> str:
                    ("status", "Status")), rows) if rows else '<p>No bound beam design ends in capture.</p>')
         + '</section>'
     )
+
+
+def _coupled_transition_html(result: Mapping[str, Any]) -> str:
+    components = (("N", "N (kN)"), ("V2", "V2 (kN)"), ("V3", "V3 (kN)"),
+                  ("T", "T (kN·m)"), ("M2", "M2 (kN·m)"), ("M3", "M3 (kN·m)"))
+    rows, balance = [], []
+    for model in result["models"]:
+        for case, record in model["cases"].items():
+            identity = {"mesh": model["pitch_m"], "case": case}
+            for cut, actions in record["cuts"].items():
+                rows.append({**identity, "cut": cut, **actions})
+            for field in ("lateral_and_soffit_transfer", "applied_body_load", "signed_residual"):
+                balance.append({**identity, "term": field, "status": record["balance_status"], **record[field]})
+    keys = (("mesh", "Vertical mesh pitch (m)"), ("case", "Signed static case"))
+    return ('<section class="percheck"><h2>R08 · Coupled wall transition</h2>'
+            + '<p>Column ' + _val(result["member_id"]) + '. Common global origin (m) '
+            + _val(result["origin_global_m"]) + '. Bracketing elevations (m) '
+            + _val(result["bracketing_cuts_m"]) + '. ' + _val(result["axes"]) + '</p>'
+            + _table((*keys, ("cut", "Cut side"), *components), rows)
+            + '<h3>Thin-body equilibrium</h3>'
+            + _table((*keys, ("term", "Boundary or load"), *components, ("status", "Balance")), balance)
+            + '<h3>Component convergence</h3>'
+            + _table((("case", "Case"), ("face", "Cut side"), ("component", "Component"),
+                      ("coarse", "50 mm"), ("fine", "25 mm"), ("delta", "Signed difference"),
+                      ("tolerance", "Tolerance"), ("within_tolerance", "Within budget")), result["convergence"])
+            + '<p>' + _val(result["second_order_status"]) + '. ' + _val(result["reinforcement_status"])
+            + '.</p></section>')
 
 
 def _column_slenderness_html(evidence: Mapping[str, Any], local: Mapping[str, Any] | None = None) -> str:

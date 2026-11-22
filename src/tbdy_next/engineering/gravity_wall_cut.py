@@ -36,6 +36,16 @@ def _global_force(local_force, matrix):
     return [fsum(a * b for a, b in zip(axis, local_force)) for axis in rows]
 
 
+def joint_action_at_origin(components, matrix, location, origin):
+    """Rotate force and moment from the same point axes and translate to a common origin."""
+    _check(_vector(components, 6) and _vector(location, 3) and _vector(origin, 3),
+           "CUT_ACTION_OR_LOCATION_INVALID")
+    fx, fy, fz = _global_force(components[:3], matrix)
+    mx, my, mz = _global_force(components[3:], matrix)
+    dx, dy, dz = (a - b for a, b in zip(location, origin))
+    return (fx, fy, fz, mx + dy*fz - dz*fy, my + dz*fx - dx*fz, mz + dx*fy - dy*fx)
+
+
 def project_upper_wall_forces(source, level, cut_z_m, case_names, *, model_sha256, analysis_generation,
                               area_mesh, joint_xyz, shell_forces, joint_transformations):
     """Return one global resultant per physical wall and explicit first-order case.

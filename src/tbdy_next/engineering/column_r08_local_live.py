@@ -940,6 +940,14 @@ def project_column_r08_local_live(
     physical_lengths = ((r10_live or {}).get("physical_clear_lengths") or {}).get("per_member", {})
     end_ratios = reference_end_ratios(source, physical_lengths)
     mat_supports = project_mat_horizontal_supports(source, physical_lengths)
+    transition = source.get("coupled_wall_transition")
+    if transition is not None:
+        from .coupled_wall_transition import normalize_transition, project_transition
+        from .design_scenario import _digest, _source_data
+
+        normalize_transition(transition, source_data_sha256=_digest(_source_data(source)))
+        if transition["member_id"] not in physical_lengths:
+            raise ValueError("TRANSITION_MEMBER_OUTSIDE_PHYSICAL_ROSTER")
 
     def _reported_selection(uid: str) -> Mapping[str, Any] | None:
         if not r10_live:
@@ -982,6 +990,8 @@ def project_column_r08_local_live(
         uid = member.get("member_id")
         physical_length = physical_lengths.get(uid)
         boundary = {"mat_horizontal_support": mat_supports[uid]} if uid in mat_supports else {}
+        if transition is not None and uid == transition["member_id"]:
+            boundary["coupled_wall_transition"] = project_transition(transition, physical_length, source)
         adopted_basis = None
         basis_error = None
         if basis_document is not None:
