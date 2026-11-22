@@ -1,20 +1,12 @@
 # Local development and GitHub worker handoff
 
-## Current assignment after S00 and S02 — 22 November 2026
+## Current assignment after the C104 transition calculation
 
-Start with the [signed six-case-cut results and before/after design table](../engineering/C29_S00_S02_20261122.md). The eight-part C29 METHOD source has complete upper-body equilibrium at both story cuts for U_F, TN_F and TP_F. The same-input native replay preserved 12 factors, 18 physical case-cuts, 24 PMM sides and six full-span comparisons. The source and verification hashes are in `EV-S00-NATIVE-C29-IMPACT-20261122` and `EV-S02-C29-SIGNED-STORY-BALANCE-20261122`.
+Start with the [C104 component table and 24 C29 capacity checks](../engineering/C104_TRANSITION_AND_C29_CAPACITY_20261122.md). Use the sealed S03 free bodies, the six S02 story balances and the complete C29 24-face verification as inputs. The active calculation is the W22/W23 interface at x = 77.40 m. The controlling upper-face LC_EQX moment difference across the two meshes is −219.533 kN·m. W22 accounts for −194.297 kN·m. [Current engineering gaps](../ENGINEERING_GAPS.yaml)
 
-Use the current [GAP-009 calculation](#next-gap-009-calculation) and the [canonical sprint cards](../supervisor/ROADMAP_20261121.md). In the independent capacity lane, one real column 142 face has a fixed-N check on the exact selected 32Φ16 cage. Continue S06 on the remaining 23 faces. The S08 reference still needs joint force/capacity identities and low-axial exemption evidence.
+The first-order model and bar detailing have separate source roles. The user confirmed that the archived model view is the only available connection detail. Record any future physical detailing assumption with its project authority. The 14 wall-coupled columns retain the second-order gate. C29's selected-cage R14 closure remains 2/87 conditional. S08 still requires the same-generation joint force/capacity identities and low-axial exemption evidence.
 
-The [second-audit cross-review](../supervisor/EXTERNAL_AUDIT_REVIEW_20261122.md)
-accepts the recorded S00/S02 scope and corrects the earlier attachment's source
-map, temperature totals, C104 free-column claim and eight-corner invariance rule.
-Its next-delivery recipe requires six actions about a common origin, transition
-free-body balance and component-specific 50/25 mm convergence. The new S02 wall
-projector currently returns force resultants; it must not be described as a
-complete force-and-moment section integrator. Use the
-[current worker checkpoint](../supervisor/audit_20261122/WORKER_CHECKPOINT.json)
-alongside the dated canonical plan. No need to restart completed S00/S02.
+The [S00 and S02 calculation](../engineering/C29_S00_S02_20261122.md) and [dated second-audit checkpoint](../supervisor/audit_20261122/WORKER_CHECKPOINT.json) preserve earlier milestones. The current evidence identifiers are `EV-S03-C104-TRANSITION-20261122`, `EV-S06-C29-24-FACES-20261122` and `EV-WINDOWS-C104-TRANSITION-20261122`.
 
 ## Assignment issued with the system audit on 21 November 2026
 
@@ -67,9 +59,9 @@ Linux run; neither test count substitutes for original-building evidence.
 
 ## Next GAP-009 calculation
 
-1. Use S01 to identify the physical roles, assigned cases and adopted stiffness assumptions needed for C104 and W21/W22. Bind the reinforcement continuity and connection details across −1.50 m to drawings or an explicit project assumption.
-2. For the available 50 mm and 25 mm meshes, assemble the six signed actions of the coupled section at the same physical cuts immediately above and below the transition. Transport forces and moments to a common origin and quantify convergence by component. The observed maximum change in the local frame V3 is 50.459 kN.
-3. Feed a qualified direct second-order demand or a justified directional system stability model to the existing R08 consumers. Keep the 14 wall-coupled columns in scope. A whole-system TS 500 critical-load sum needs an explicit derivation and limiting checks before use.
+1. Read `release-summary.json` and `w22-transfer.json` under the private verification directory `.receipts/verification/c104-transition-20261122`. The archived face arrays are already consumed in R08. The fixed budget is 1% with a 0.05 kN or kN·m floor. The 12 thin-body balances passed.
+2. At the W22/W23 junction, establish node sharing and edge constraints at x = 77.40 m. Collect W23-side tractions on the same section and signed step. Separate vertical and horizontal refinements to test the end-load redistribution. Compare section M3 and the global vertical-force moment arm using the same point and budget.
+3. Once a first-order demand has the required convergence, compare a direct coupled second-order demand under compatible load, stiffness, creep and boundary conditions. Keep the full set of 14 coupled columns visible. A whole-system critical-load estimate requires a separately qualified mapping.
 
 S02 closed the six first-order force balances. The existing conditional frame-column scenario supplies the 12 C29 factors and 24 side-specific PMM values. Its governing values and the two physical free bodies are in the [calculation record](../engineering/C29_S00_S02_20261122.md). The full-system stiffness branch retains `STORY_WALL_CRITICAL_LOAD_METHOD_UNSUPPORTED`.
 

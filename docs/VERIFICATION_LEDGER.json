@@ -19,23 +19,21 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "S00_NATIVE_REPLAY_AND_S02_SIX_SIGNED_BALANCES_VERIFIED",
-    "work_branch": "work/gap-009-c29-story-balance",
+    "status": "C104_SIGNED_SECTION_AND_C29_24_FACE_SCOPE_VERIFIED",
+    "work_branch": "work/c104-transition-actions",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "9e486f7a7294e3dc892b836cbb7b7447c9392c28",
-    "tested_implementation_commit": "60fd80303b7e101673d65dde5e1edf75a6caa6cf",
-    "source_run_id": "RUN-56f3f5ea4a8947dab3c25676c448a81e",
-    "production_run_id": "RUN-90175fcafc26485f9ff72179346e7263",
-    "source_sha256": "bf60497e87550d3165d5578dd4c978363076e7c12a41f6bc829aeb8354c42cab",
-    "results_sha256": "e55b1cf31c8f75290bf83fb4722f5bd98d7bf5b999bb96b8934c18c7813f50cf",
+    "inspected_base_commit": "f06cc020287fac1e77566b3e6d2fd6cb66657fd5",
+    "tested_implementation_commit": "983571a2920fc4698c6b390d27964bae28c13bb2",
+    "production_run_id": "RUN-7dc0634b19e44a1c8286fb6368f5721d",
+    "source_sha256": "e50f40e8f25148170609939cf7d5f63155decad71efb1a0c93990214bdebfd03",
+    "results_sha256": "9a17508e2a1b22f9f22f5215d0dbf68214b1cf468c60db7992903cabc4e3e11b",
     "evidence_refs": [
-      "EV-S00-NATIVE-C29-IMPACT-20261122",
-      "EV-S02-C29-SIGNED-STORY-BALANCE-20261122",
-      "EV-S06-C29-FIXED-N-ONE-FACE-20261122",
-      "EV-WINDOWS-S00-S02-20261122"
+      "EV-S03-C104-TRANSITION-20261122",
+      "EV-S06-C29-24-FACES-20261122",
+      "EV-WINDOWS-C104-TRANSITION-20261122"
     ],
     "engineering_release": "NOT_READY",
-    "next_action": "S01/S03 bind the two C104/W21/W22 sections and compare six coupled actions at common signed cuts. S04 qualifies a coupled second-order method, S06 continues on 23 outstanding selected-cage faces."
+    "next_action": "Inspect the x=77.40 m W22/W23 contact and constraint transfer for LC_EQX. Compare both-side vertical force, its 3.40 m moment arm and common-origin M3 with independently varied horizontal and vertical mesh pitches. Carry the measured convergence into the S04 coupled second-order candidate. The only available drawing evidence is the gross model view."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
@@ -8085,6 +8083,318 @@
       "engineering_release_granted": false,
       "engineering_release": "NOT_READY",
       "next_action": "C104/W21/W22 six-component matched-cut transfer and coupled-system method; independently check the remaining 23 PMM faces; use actual owners and exact golden IDs."
+    },
+    {
+      "id": "EV-S03-C104-TRANSITION-20261122",
+      "observed_at": "2026-11-22T05:52:05.719618+00:00",
+      "implementation_commit": "983571a2920fc4698c6b390d27964bae28c13bb2",
+      "inspected_base_commit": "f06cc020287fac1e77566b3e6d2fd6cb66657fd5",
+      "scope": "First-order C104/W21/W22 native actions on both sides of the discontinuity and independent thin-body balances. The registered convergence failure is a measured engineering result.",
+      "dirty_worktree": true,
+      "tested_file_manifest_sha256": "1ab6fe57f0c55f9dfed5e3c84bc790f5c26b1ca62d999930bf639abf6ef94a87",
+      "environment": "Windows, Python 3.12.10, ETABS 23.2 native archive",
+      "public_reference_paths": [
+        "docs/engineering/C104_TRANSITION_AND_C29_CAPACITY_20261122.md"
+      ],
+      "status": "VERIFIED_IN_RECORDED_SCOPE",
+      "engineering_release_granted": false,
+      "gap_ids": [
+        "GAP-006",
+        "GAP-009"
+      ],
+      "commands": [
+        "python tools/prepare_c104_transition.py --mesh-run <retained mesh run> --deck <solved export> --original-edb <original> --solved-edb <private> --geometry <verified gross geometry> --seed-run <retained parent run> --out <request>",
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --source <original parent.source> --case Modal --design-scenario <request> --out <private release-run>",
+        "python -X utf8 -B .receipts/verification/c104-transition-20261122/verify_release.py",
+        "python -X utf8 -B .receipts/verification/c104-transition-20261122/perturb.py",
+        "python -X utf8 -B .receipts/verification/c104-transition-20261122/w22_transfer.py"
+      ],
+      "evidence": {
+        "run_id": "RUN-7dc0634b19e44a1c8286fb6368f5721d",
+        "input_sha256": "e50f40e8f25148170609939cf7d5f63155decad71efb1a0c93990214bdebfd03",
+        "parent_sha256": "703e202fc8b08f60043c571d9970945b6307e5cee99e8a45e6377c8446da56fc",
+        "results_sha256": "9a17508e2a1b22f9f22f5215d0dbf68214b1cf468c60db7992903cabc4e3e11b",
+        "html_sha256": "3afd31a6b82e815b6a229e36b27a4743f0a1332666bd4c8bc0ec14214c3686a6",
+        "source_basis_sha256": "cfad67a6cfc53bc2dd03ba54515f7a7eec01b45b875b00bf9338b0bd6038b147",
+        "fixed_budget_sha256": "1629f0eac4c4ee618ed9e51c1f0c9c1f2edeba330cfba16817446492add86e54",
+        "independent_section_scalars": 288,
+        "max_section_delta": 0.0,
+        "balance_case_meshes": 12,
+        "geometry_meshes": [
+          [
+            18,
+            2
+          ],
+          [
+            72,
+            4
+          ]
+        ],
+        "maximum_balance_force_kn": 1.2769531197776018e-05,
+        "maximum_balance_moment_knm": 4.725281776529755e-05,
+        "counts": {
+          "lower": [
+            13,
+            36
+          ],
+          "below_transition": [
+            13,
+            36
+          ],
+          "above_transition": [
+            3,
+            36
+          ],
+          "upper": [
+            7,
+            36
+          ]
+        },
+        "governing_differences": {
+          "N": {
+            "case": "LC_EQX",
+            "coarse": 95.30559107982135,
+            "component": "N",
+            "delta": 50.2932699207896,
+            "face": "above_transition",
+            "fine": 145.59886100061095,
+            "tolerance": 1.4559886100061095,
+            "within_tolerance": false,
+            "object_delta": {
+              "211": 40.488035589136416,
+              "436": -6.511949533021859,
+              "437": 16.31718386467505
+            }
+          },
+          "V2": {
+            "case": "LC_EQX",
+            "coarse": 603.1735448223387,
+            "component": "V2",
+            "delta": -33.689515864074224,
+            "face": "above_transition",
+            "fine": 569.4840289582645,
+            "tolerance": 6.031735448223388,
+            "within_tolerance": false,
+            "object_delta": {
+              "211": 4.3155250171839725,
+              "436": 6.388370266357015,
+              "437": -44.39341114761518
+            }
+          },
+          "V3": {
+            "case": "LC_H",
+            "coarse": -100.52720146017711,
+            "component": "V3",
+            "delta": -20.834219270381155,
+            "face": "above_transition",
+            "fine": -121.36142073055827,
+            "tolerance": 1.2136142073055827,
+            "within_tolerance": false,
+            "object_delta": {
+              "211": 7.734481850056909,
+              "436": -24.283270781599583,
+              "437": -4.28543033883847
+            }
+          },
+          "T": {
+            "case": "LC_H",
+            "coarse": 320.0315282398019,
+            "component": "T",
+            "delta": 97.848718849416,
+            "face": "above_transition",
+            "fine": 417.8802470892179,
+            "tolerance": 4.178802470892179,
+            "within_tolerance": false,
+            "object_delta": {
+              "211": 11.782501597414353,
+              "436": 114.7315384017823,
+              "437": -28.665321149780667
+            }
+          },
+          "M2": {
+            "case": "LC_H",
+            "coarse": 328.5643693015542,
+            "component": "M2",
+            "delta": -4.977978235012813,
+            "face": "above_transition",
+            "fine": 323.5863910665414,
+            "tolerance": 3.285643693015542,
+            "within_tolerance": false,
+            "object_delta": {
+              "211": 1.1861530336914257,
+              "436": 2.0109596637047957,
+              "437": -8.175090932409056
+            }
+          },
+          "M3": {
+            "case": "LC_EQX",
+            "coarse": 275.4925032793108,
+            "component": "M3",
+            "delta": -219.53327880254565,
+            "face": "above_transition",
+            "fine": 55.95922447676518,
+            "tolerance": 2.7549250327931083,
+            "within_tolerance": false,
+            "object_delta": {
+              "211": 1.38447888542305,
+              "436": -26.620902161065402,
+              "437": -194.2968555269033
+            }
+          }
+        },
+        "level_models": [
+          "a13e4b20a765fb8fd9dfa10c0ce75dc0e453cf9883fd292566513eb612483d27",
+          "b187ace7d7f980334d8955899f428badcc17d650b80c4862086fcbcd15c22d7c"
+        ],
+        "level_generations": [
+          "2e78105b7290d7df021a49e32bcbead69f5e41f8d2868d091778c95c0c2aa44e",
+          "81a0bad8be34c400a5ce04f821caea7915d349f32f1aa8fa243f3deeb5a9ca77"
+        ]
+      },
+      "log_path_private": ".receipts/verification/c104-transition-20261122/release-summary.json",
+      "log_sha256": "8ded3ad5d4f0fd1a9abf88f93de0975270152105a1bccecf23f6229c40aacc71",
+      "supplementary_artifacts": {
+        "w22-transfer.json": "b4350be84d21c69cf370c786703cc35d1cda4d7ebdf708f7e99dd9d35598d2f8",
+        "negative-controls.json": "fd44f1a7e4dd3ffbdee44ac579e3b471ef1d967f10fc460227d5a9551c30f5e7",
+        "verify_release.py": "8a39886362b34ac48a8442cfc0d011c41ba8ddddb99237b3716bd30ab0ced6cf",
+        "perturb.py": "a86ec9a497416d0b99ed83248b2cc09f00ce4f4bfd151c3c7a6eb5c4f8455586",
+        "w22_transfer.py": "8392ba559c23e24569a5e437db1a5d958f1f5b6546ea946f4357f3b8528fc124"
+      },
+      "w22_controlling_moment_change": {
+        "nodal_My_knm": 0.09269842396067195,
+        "lever_My_knm": -194.38955395086396,
+        "total_My_knm": -194.2968555269033,
+        "N_kn": 16.31718386467505
+      },
+      "negative_controls_verified": 12,
+      "model_view_sha256": "e75186bbedb15d618bda5eb59b76da4f43ee157ef3066fad88ab43f8be2903e0",
+      "user_evidence": "The ETABS geometry view is the only available detail. Applied bar continuity is unverified.",
+      "local_csi_manual": {
+        "document": "ETABS 23, Welcome to ETABS, chapter 3, printed page 3-11",
+        "sha256": "2ada9031cd122682ef1c4d3d3275e625e96d44d8cc19371c1312161d378d3d44"
+      },
+      "original_edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+      "new_solver_analysis": false,
+      "next_action": "Inspect the x=77.40 m W22/W23 contact and constraint transfer for LC_EQX. Compare both-side vertical force, its 3.40 m moment arm and common-origin M3 with independently varied horizontal and vertical mesh pitches. Carry the measured convergence into the S04 coupled second-order candidate. The only available drawing evidence is the gross model view."
+    },
+    {
+      "id": "EV-S06-C29-24-FACES-20261122",
+      "observed_at": "2026-11-22T05:52:05.719618+00:00",
+      "implementation_commit": "983571a2920fc4698c6b390d27964bae28c13bb2",
+      "inspected_base_commit": "f06cc020287fac1e77566b3e6d2fd6cb66657fd5",
+      "scope": "All 24 common C29 gravity selected-cage faces independently integrated at the signed same-step axial load and design moment direction.",
+      "dirty_worktree": true,
+      "tested_file_manifest_sha256": "1ab6fe57f0c55f9dfed5e3c84bc790f5c26b1ca62d999930bf639abf6ef94a87",
+      "environment": "Windows, Python 3.12.10, ETABS 23.2 native archive",
+      "public_reference_paths": [
+        "docs/engineering/C104_TRANSITION_AND_C29_CAPACITY_20261122.md"
+      ],
+      "status": "VERIFIED_IN_RECORDED_SCOPE",
+      "engineering_release_granted": false,
+      "gap_ids": [
+        "GAP-010",
+        "GAP-016"
+      ],
+      "source_run_id": "RUN-56f3f5ea4a8947dab3c25676c448a81e",
+      "source_results_sha256": "f592c85aa3451801c6f491e9aa1c1e85dab82fe14f4dec1304e59d1ad6cdc8e3",
+      "checked_against_c29_s02_run": "RUN-90175fcafc26485f9ff72179346e7263",
+      "counts_and_extrema": {
+        "expected_faces": 24,
+        "physical_case_cuts": 18,
+        "numerical_faces": 24,
+        "passed": 24,
+        "failed_or_unavailable": 0,
+        "new_faces_from_prior_one": 23,
+        "old_face_reproduced_before_rounding": true,
+        "maxima": {
+          "capacity_difference_knm": 0.00047127115635703376,
+          "capacity_difference_relative": 3.1041994405997285e-07,
+          "last_spatial_change_knm": 0.001411240637253286,
+          "same_grid_angular_root_change_knm": 3.433342499192804e-11,
+          "signed_axial_residual_n": 9.988434612751007e-08,
+          "perpendicular_residual_nmm": 9.632110595703125e-05,
+          "opposite_ray_symmetry_knm": 1.7053025658242404e-11
+        },
+        "utilization_range": [
+          0.06637419399895743,
+          0.1764730777126651
+        ],
+        "radial_capacity_range_knm": [
+          1303.815270201476,
+          1518.172459866234
+        ],
+        "max_absolute_utilization_difference": 5.062451396975476e-08,
+        "governing_face": {
+          "member": "142",
+          "physical_cut": "I",
+          "station_m": 0.0,
+          "element": "142-1",
+          "side": "UPPER",
+          "combination": "Grav_Ult",
+          "native_first_case": "C29G_U_F"
+        },
+        "max_capacity_difference_face": {
+          "member": "225",
+          "physical_cut": "I",
+          "station_m": 0.0,
+          "element": "225-1",
+          "side": "UPPER",
+          "combination": "Grav_Ult",
+          "native_first_case": "C29G_U_F"
+        }
+      },
+      "budgets": {
+        "capacity_difference_knm": 0.01,
+        "capacity_difference_relative": 1e-05,
+        "last_spatial_change_knm": 0.01,
+        "same_grid_angular_root_change_knm": 1e-06,
+        "signed_axial_residual_n": 0.001,
+        "perpendicular_residual_nmm": 0.001,
+        "opposite_ray_symmetry_knm": 1e-06
+      },
+      "verification_code_sha256": "082e8cd00ce305d2dd2ce63c995b041e4a24c68cad3b686b07d755d764dc6f78",
+      "commands": [
+        "python -X utf8 -B .receipts/verification/s06-c29-all-faces-20261122/check_all_faces.py 2"
+      ],
+      "log_path_private": ".receipts/verification/s06-c29-all-faces-20261122/all-faces.json",
+      "log_sha256": "3e5cd9361b889400502be143931eecb8fe56d1bef50e4c9be27aca8ad9280e3a",
+      "extends": "EV-S06-C29-FIXED-N-ONE-FACE-20261122",
+      "next_action": "Carry the verified 24 real C29 faces as a completed S06 subscope. Next PMM domains are axial limits, other sections and independent full-design evidence."
+    },
+    {
+      "id": "EV-WINDOWS-C104-TRANSITION-20261122",
+      "observed_at": "2026-11-22T05:52:05.719618+00:00",
+      "implementation_commit": "983571a2920fc4698c6b390d27964bae28c13bb2",
+      "inspected_base_commit": "f06cc020287fac1e77566b3e6d2fd6cb66657fd5",
+      "scope": "Full Windows offline regression on the C104 R08 calculation tree and actual-body negative controls.",
+      "dirty_worktree": true,
+      "tested_file_manifest_sha256": "1ab6fe57f0c55f9dfed5e3c84bc790f5c26b1ca62d999930bf639abf6ef94a87",
+      "environment": "Windows, Python 3.12.10, ETABS 23.2 native archive",
+      "public_reference_paths": [
+        "docs/engineering/C104_TRANSITION_AND_C29_CAPACITY_20261122.md"
+      ],
+      "status": "VERIFIED_IN_RECORDED_SCOPE",
+      "engineering_release_granted": false,
+      "command": "python -X utf8 -B tools/test_offline.py --node \"C:/Program Files/nodejs/node.exe\"",
+      "diff_sha256": "7b06381b0483f40a69d90ff1d185153e9f98c486d195cb510aa1b1366cb1de07",
+      "tested_tree": "5fd95144dd613d1920e181aff5ef58002c962a18",
+      "tested_manifest_private": ".receipts/verification/c104-transition-20261122/tested-files.json",
+      "exit_code": 0,
+      "python_total": 1705,
+      "python_passed": 1704,
+      "python_skipped": 1,
+      "skip": "test_wrong_run_and_symlink_cannot_cross_source_boundary: OS disallows creating symlinks",
+      "python_seconds": 350.905,
+      "node": "26.13.1",
+      "javascript_files_passed": 11,
+      "golden": {
+        "total": 44,
+        "numerical": 36,
+        "interpretation": 4,
+        "insufficient": 4
+      },
+      "log_path_private": ".receipts/verification/c104-transition-20261122/tests.log",
+      "log_sha256": "e71b8e17ea557642498494b67c9019ef8d581edaf4337b844de4f3129c2d104d"
     }
   ],
   "new_record_template": {
@@ -8109,7 +8419,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-22T05:19:31.014928+00:00",
+  "updated_at_utc": "2026-11-22T05:52:05.719618+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -8732,6 +9042,25 @@
       ],
       "engineering_release": "NOT_READY",
       "next_action": "Bind the C104/W21/W22 construction reinforcement and connection detail across elevation -1.50 m. Check the component-specific cut actions and use the accepted coupled stiffness and second-order demand."
+    },
+    {
+      "status": "S00_NATIVE_REPLAY_AND_S02_SIX_SIGNED_BALANCES_VERIFIED",
+      "work_branch": "work/gap-009-c29-story-balance",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "9e486f7a7294e3dc892b836cbb7b7447c9392c28",
+      "tested_implementation_commit": "60fd80303b7e101673d65dde5e1edf75a6caa6cf",
+      "source_run_id": "RUN-56f3f5ea4a8947dab3c25676c448a81e",
+      "production_run_id": "RUN-90175fcafc26485f9ff72179346e7263",
+      "source_sha256": "bf60497e87550d3165d5578dd4c978363076e7c12a41f6bc829aeb8354c42cab",
+      "results_sha256": "e55b1cf31c8f75290bf83fb4722f5bd98d7bf5b999bb96b8934c18c7813f50cf",
+      "evidence_refs": [
+        "EV-S00-NATIVE-C29-IMPACT-20261122",
+        "EV-S02-C29-SIGNED-STORY-BALANCE-20261122",
+        "EV-S06-C29-FIXED-N-ONE-FACE-20261122",
+        "EV-WINDOWS-S00-S02-20261122"
+      ],
+      "engineering_release": "NOT_READY",
+      "next_action": "S01/S03 bind the two C104/W21/W22 sections and compare six coupled actions at common signed cuts. S04 qualifies a coupled second-order method, S06 continues on 23 outstanding selected-cage faces."
     }
   ],
   "remote_audit_correction_checkpoint": {

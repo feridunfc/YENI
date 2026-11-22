@@ -1,12 +1,18 @@
 # Original building calculation and local handoff — 2026-11-22
 
+## C104 first-order transition and C29 independent capacities
+
+**C104** now has a signed six-component R08 result and a sealed HTML report for four physical faces. All 12 thin-body balances passed. A separate full-archive integration reproduced 288/288 components. At −1.50 m, 13/36 components below and 3/36 above met the predeclared 50/25 mm comparison. LC_EQX above the transition changed M3 by −219.533 kN·m. W22 contributes −194.297 kN·m, principally from vertical force at its far end. Next inspect the W22/W23 contact at x = 77.40 m. The user supplied the model view as the only detail. Construction bar continuity and the coupled second-order demand remain open. [Calculation, units and next comparison](engineering/C104_TRANSITION_AND_C29_CAPACITY_20261122.md)
+
+**C29** now has 24/24 independently checked selected-cage PMM faces at 18 physical case-cuts. The largest capacity difference was 0.000471272 kN·m. The highest independent utilization was 17.647308% at the lower end of 142 under Grav_Ult. The complete Windows suite ran 1,705 Python tests with 1,704 passing and one symlink-permission skip. All 11 JavaScript files passed. The case counts and engineering scope are indexed in the [verification ledger](VERIFICATION_LEDGER.json).
+
 ## C29 first-order equilibrium and S00 replay
 
 **S02 achieved all six signed upper-body balances** on the native eight-part C29 METHOD solution. At +0.00 the ultimate case gives 71,668.191834 kN from 32 columns and 21 walls. At +4.50 it gives 42,324.723152 kN from 32 columns and four walls. All 267 expected contributor instances are accounted for across the three cases. The greatest absolute difference from the independently assembled external load and self-weight is 0.000004916 kN. [Six-row calculation and design impact](engineering/C29_S00_S02_20261122.md)
 
 **S00 completed the three audit repairs.** The same-input native replay preserved C29's complete factor traces, 18 case-cuts, all 24 PMM sides and six full-span comparisons. A complete-data imbalance now blocks the affected revised design, a signed absolute elevation retains its story-direction census, and receipt readers handle indices past 99.
 
-**Next GAP-009 calculation.** Qualify the C104/W21/W22 combined actions on both sides of the −1.50 m transition, using common signed cuts and checking force transfer and reinforcement continuity. A coupled-system method and demands for 14 wall-coupled columns remain open. C29's conditional R14 result is 2/87 and engineering release is `NOT_READY`. The S06 reference has independently checked one selected-cage PMM face. [Worker handoff](context/WORKER_HANDOFF_20261119.md#next-gap-009-calculation)
+C29's conditional R14 result is 2/87. The coupled method for 14 wall-connected columns and whole-building release remain open. [Next GAP-009 calculation](context/WORKER_HANDOFF_20261119.md#next-gap-009-calculation)
 
 Windows ran 1,701 Python tests on the integrated software tree. 1,700 passed and one Windows symlink-permission test was skipped. All 11 JavaScript files passed. The 44 golden records retain 36 numerical matches, four interpretation differences and four insufficient sources. The tested code commit is `60fd80303b7e101673d65dde5e1edf75a6caa6cf`. [Windows run and source identities](VERIFICATION_LEDGER.json)
 
@@ -22,8 +28,8 @@ conditional factor basis uses positive compression.
 
 The review corrects the source-owner map, the C104 upper region (1.50 m of
 C104/W21/W22 coupling), and the invalid general eight-corner invariance recipe.
-The [current worker checkpoint](supervisor/audit_20261122/WORKER_CHECKPOINT.json)
-records S00/S02 completed, S06 one of 24 faces checked, and the next coupled
+The [audit-time worker checkpoint](supervisor/audit_20261122/WORKER_CHECKPOINT.json)
+recorded S00/S02 completed, the initial S06 face and the then-proposed coupled
 six-component transfer calculation. See `EV-EXTERNAL-AUDIT-REVIEW-20261122`.
 No production changes, new native replay or full suite are claimed by this
 documentation review. The latest 86 ledger records and all GAP statuses are
