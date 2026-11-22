@@ -1,10 +1,16 @@
 # Original building calculation and local handoff — 2026-11-22
 
-## Whole-building engine on the original model
+## Column, beam and pier confinement on the original building
+
+The current whole-building run calculated tie schedules for **73/87 columns** and **180/180 beams**. On 4 columns the modelled mat is too shallow for the required confinement continuation. At +0.00 m, C21–C24 (217–220) have 600 mm available in mat 9A and require 800 mm. R14 now records **42 conditional, 4 failed and 41 held**. The 14 wall-coupled columns still require a coupled detailing basis.
+
+Of 360 beam ends, 254 match a modelled column face. The remaining 106 schedules reference model cuts. The engine also sized both boundary zones and the transverse cages for 12/30 wall objects belonging to P2–P5. These are minimum-detail proposals based on 40 mm cover and 500 MPa tie steel. Wall section force capacity, end-column interaction and construction fit remain open. The next calculation uses the wall section forces and the proposed reinforcement. GAP-015 moved from OPEN to PARTIAL with the four pier cages. Two GAPs are open and sixteen are partial. Slab flexure, punching and C104 local convergence are deferred. [Results and calculation assumptions](engineering/WHOLE_BUILDING_ENGINE_20261122.md#frame-and-wall-confinement)
+
+## Earlier whole-building frame checkpoint
 
 One `run-pipeline --whole-building` invocation now produces the building calculation and its printable report. **42/87 columns have conditional end-to-end R14 designs**, up from 26/87. The storey results are 1/32 at +0.00 m, 18/32 at +4.50 m and 23/23 at +9.00 m. For **180/180 beams**, the engine calculated the selected flexural sections and full capacity shear including gravity. B350 at +0.00 m governs at 64.68% in confinement. Of 45 held columns, 17 need mat rotational stiffness, 14 need supporting-wall rotational stiffness and 14 are wall-coupled.
 
-The same run reports two conditional B2 threshold exceedances at +4.50 m and three unmet wall geometry subconditions. Its inventory includes the 84 slab, two mat and three occupied-storey diaphragm design scopes. The next independent calculation is flexure of slab F116/291 through the same engine. The four-mesh C104 study is held for the convergence and detailing conditions recorded below. Engineering release is `NOT_READY`. [Full results, assumptions and single-command reproduction](engineering/WHOLE_BUILDING_ENGINE_20261122.md)
+The same run reports two conditional B2 threshold exceedances at +4.50 m and three unmet wall geometry subconditions. Its inventory includes the 84 slab, two mat and three occupied-storey diaphragm design scopes. The later confinement sprint deferred slab F116/291 and punching at the project owner’s request. The four-mesh C104 study is held for the convergence and detailing conditions recorded below. Engineering release is `NOT_READY`. [Full results, assumptions and single-command reproduction](engineering/WHOLE_BUILDING_ENGINE_20261122.md)
 
 ## Earlier 26-column frame-design checkpoint
 

@@ -19,19 +19,19 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "42_OF_87_CONDITIONAL_R14_AND_180_OF_180_SELECTED_BEAMS",
-    "work_branch": "work/whole-building-engine",
+    "status": "FRAME_AND_RECTANGULAR_PIER_CONFINEMENT_CALCULATED",
+    "work_branch": "work/building-confinement",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "14fa31960ddafb0e5607bd5c290d1e06d7936df5",
-    "tested_implementation_commit": "e2a1b8ba38bf18e741a78217ae7cefa1710504f4",
+    "inspected_base_commit": "8ced4f043cf308df7eb397622a961fe0bc050b64",
+    "tested_implementation_commit": "847ed93eadc62ed976b6f78a48828afea0d21a95",
     "evidence_refs": [
-      "EV-ORIGINAL-WHOLE-BUILDING-ENGINE-20261122"
+      "EV-BUILDING-CONFINEMENT-20261122"
     ],
-    "production_run_id": "RUN-9b85a9a1dd7b416eab85056c57eae3d5",
-    "results_sha256": "62ea72bdff5ec5792682279504713f0036730f6f4d6d5a846750fafc852ebc6b",
+    "production_run_id": "RUN-9c84d56ca73741ff9318421bf73adf76",
+    "results_sha256": "d8fb6d30e8e314ebc73662b984878e9d1bb6b5485af5b55a404a1bdbcdd4058c",
     "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
     "engineering_release": "NOT_READY",
-    "next_action": "Run the full building from its original all-column source. Preserve 42/87 conditional column designs and all 180 selected beam flexure and capacity-shear checks. Add slab F116/291 at +0.00 m through a signed strip moment, selected reinforcement and flexural utilization in that same engine. Maintain the 84-slab denominator. Resume C104 after the defined local convergence and coupled-method checks."
+    "next_action": "Continue the original whole-building runner with signed pier section demands on P2–P5. Start with P3, reconcile physical cut, side, axes, case and step, then combine the selected end cages with the wall web for section flexure and shear. Carry C21–C24 base-continuation failures to each report. Slab flexure, punching and C104 local mesh work are deferred."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
@@ -9528,6 +9528,211 @@
         "docs/ENGINEERING_GAPS.yaml"
       ],
       "engineering_release": "NOT_READY"
+    },
+    {
+      "id": "EV-BUILDING-CONFINEMENT-20261122",
+      "observed_at": "2026-11-22T14:54:49.311039+00:00",
+      "implementation_commit": "847ed93eadc62ed976b6f78a48828afea0d21a95",
+      "implementation_tree": "126e5c851df8b5e171612a9b4c0e4c381e324b9d",
+      "inspected_base_commit": "8ced4f043cf308df7eb397622a961fe0bc050b64",
+      "scope": "Original ETABS source through EnginePipelineRunner with whole-building selection, high-ductility confinement and pier minimum proposals.",
+      "production_run": "RUN-9c84d56ca73741ff9318421bf73adf76",
+      "local_report": ".receipts/verification/building-confinement-20261122/building/RUN-9c84d56ca73741ff9318421bf73adf76/report.html",
+      "edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+      "parent_input_sha256": "703e202fc8b08f60043c571d9970945b6307e5cee99e8a45e6377c8446da56fc",
+      "scenario_input_sha256": "cb3cf74a3155900c18d9adc616846acb28f9c40e5916600527be884d50f07176",
+      "input_sha256": "eef7c7db170405b941c47fba3db1acb40ef07576e4a532179bb1066690cc00f8",
+      "results_sha256": "d8fb6d30e8e314ebc73662b984878e9d1bb6b5485af5b55a404a1bdbcdd4058c",
+      "report_sha256": "f082dc7b2e21f89a81b3f795a8aed2bb02fc7ac0da258ee0b574edcd1e62b862",
+      "documentation": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
+      "source": "Archived original solved kN/m/C model. No new ETABS analysis.",
+      "checked_against": [
+        "Original native column base joints and supporting floor shell connectivity, assigned foundation section thickness, column section dimensions and support faces",
+        "All schedule stations reconstructed from the interval runs with overlap, pitch and first-tie distance checked",
+        "Native wall corner coordinates, stack heights and rectangular section areas, proposed bars and two independent directional Eq. 7.1(b) substitutions with the §7.6.5.2 two-thirds factor",
+        "180 selected beam effective depths and design-shear demands compared with native clear spans, selected bar centroids and the earlier building run"
+      ],
+      "column_schedules": {
+        "members": 87,
+        "calculated": 73,
+        "stations": 3265,
+        "overlapping": 0
+      },
+      "column_outcomes": {
+        "SCHEDULE_CALCULATED": 69,
+        "HOLD": 14,
+        "NUMERICAL_EXCEEDANCE": 4
+      },
+      "foundation_shortfalls": [
+        {
+          "id": "217",
+          "label": "C21",
+          "mat": "9A",
+          "section": "Foundation_60cm",
+          "gross_depth_sufficient": false,
+          "model_depth_mm": 600.0,
+          "required_mm": 800.0
+        },
+        {
+          "id": "218",
+          "label": "C22",
+          "mat": "9A",
+          "section": "Foundation_60cm",
+          "gross_depth_sufficient": false,
+          "model_depth_mm": 600.0,
+          "required_mm": 800.0
+        },
+        {
+          "id": "219",
+          "label": "C23",
+          "mat": "9A",
+          "section": "Foundation_60cm",
+          "gross_depth_sufficient": false,
+          "model_depth_mm": 600.0,
+          "required_mm": 800.0
+        },
+        {
+          "id": "220",
+          "label": "C24",
+          "mat": "9A",
+          "section": "Foundation_60cm",
+          "gross_depth_sufficient": false,
+          "model_depth_mm": 600.0,
+          "required_mm": 800.0
+        }
+      ],
+      "beam_schedules": {
+        "members": 180,
+        "calculated": 180,
+        "stations": 10588,
+        "overlapping": 29
+      },
+      "beam_face_basis": {
+        "COLUMN_JOINT_AND_NATIVE_FACE_CUT": 254,
+        "MODEL_CUT_ONLY": 106
+      },
+      "wall_objects": {
+        "BOUNDARY_MINIMA_CALCULATED": 12,
+        "HOLD": 18
+      },
+      "piers": {
+        "P2": {
+          "objects": 3,
+          "width_mm": 800.0,
+          "minimum_as_mm2": 3200.0,
+          "provided_as_mm2": 3386.6368805697966,
+          "bars": 22,
+          "tie_diameter": 10,
+          "tie_spacing": 80,
+          "legs": [
+            3,
+            4
+          ],
+          "max_ratio": 0.6328000537333758
+        },
+        "P3": {
+          "objects": 3,
+          "width_mm": 800.0,
+          "minimum_as_mm2": 2240.0,
+          "provided_as_mm2": 2463.0086404143976,
+          "bars": 16,
+          "tie_diameter": 10,
+          "tie_spacing": 80,
+          "legs": [
+            3,
+            4
+          ],
+          "max_ratio": 0.6328000537333758
+        },
+        "P4": {
+          "objects": 3,
+          "width_mm": 879.9999999999997,
+          "minimum_as_mm2": 3520.0,
+          "provided_as_mm2": 3694.5129606215964,
+          "bars": 24,
+          "tie_diameter": 10,
+          "tie_spacing": 80,
+          "legs": [
+            3,
+            5
+          ],
+          "max_ratio": 0.5632811745908359
+        },
+        "P5": {
+          "objects": 3,
+          "width_mm": 879.9999999999997,
+          "minimum_as_mm2": 3520.0,
+          "provided_as_mm2": 3694.5129606215964,
+          "bars": 24,
+          "tie_diameter": 10,
+          "tie_spacing": 80,
+          "legs": [
+            3,
+            5
+          ],
+          "max_ratio": 0.5632811745908359
+        }
+      },
+      "wall_holds": {
+        "MULTIPANEL_OR_VARIABLE_SECTION_PIER": 17,
+        "PIER_ASSIGNMENT_AND_RECONCILED_RECTANGULAR_PANEL_REQUIRED": 1
+      },
+      "largest_wall_tie_line_gap_mm": 240.66666666666674,
+      "r14": {
+        "conditional": 42,
+        "failed": 4,
+        "hold": 41
+      },
+      "governing_beam": {
+        "check": "CONFINEMENT",
+        "full_ve_kn": 628.2099580479276,
+        "label": "B350",
+        "member_id": "981",
+        "resistance_kn": 971.3136706751051,
+        "story": "+0.00",
+        "utilization": 0.6467632207948792
+      },
+      "assumptions": [
+        "High-ductility rectangular frame and in-web pier boundary detailing. Equal-pitch station groups are a proposed layout, with the first tie at no more than 50 mm.",
+        "40 mm cover and the source column catalogue tie steel DefaultRebar_500 (500 MPa) are adopted for the proposed wall cages. The critical detail continues over all three storeys.",
+        "Signed pier section capacity, web selection, end-column interference, anchorage and installed fit are open. The 106 beam ends without a bound column face use model cuts. Slab and punching design are deferred."
+      ],
+      "http_report": {
+        "status": 200,
+        "file_bytes": 6384922,
+        "http_bytes": 6384873,
+        "http_sha256": "e058985bdf9b4cddfe41b8c8ec9c46f9e9425d832605518939e1660a2b3233d4",
+        "saved_sha256": "f082dc7b2e21f89a81b3f795a8aed2bb02fc7ac0da258ee0b574edcd1e62b862",
+        "identical_after_normalizing_newlines": true
+      },
+      "regression": {
+        "windows": "PASS",
+        "python_total": 1719,
+        "python_passed": 1718,
+        "skipped": 1,
+        "skip_reason": "OS disallows creating symlinks",
+        "seconds": 403.061,
+        "javascript_files": 11,
+        "golden": {
+          "golden_record_count": 44,
+          "classification_counts": {
+            "NUMERICAL_MATCH": 36,
+            "ENGINEERING_INTERPRETATION_DIFFERENCE": 4,
+            "INSUFFICIENT_SOURCE": 4
+          },
+          "acceptance_eligible": false,
+          "engineering_release": "NOT_READY"
+        },
+        "private_log": ".receipts/verification/building-confinement-20261122/windows-847ed93.log",
+        "log_sha256": "b33d57ef28415cd95e4631ba550618144e4994206356873699fbb39cce5a0429"
+      },
+      "commands": [
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --whole-building --source .receipts/c29-self-weight-nmax/RUN-be9d8258796f4dfca1a3609453e94e53/parent.source --design-scenario .receipts/c29-self-weight-nmax/request.json --wall-hinge-aggregate-storey +4.50 --case Modal --out .receipts/verification/building-confinement-20261122/building",
+        "GET /report/print?run_id=RUN-9c84d56ca73741ff9318421bf73adf76",
+        "python -X utf8 -B tools/test_offline.py --node \"C:/Program Files/nodejs/node.exe\""
+      ],
+      "engineering_release": "NOT_READY",
+      "engineering_release_granted": false
     }
   ],
   "new_record_template": {
@@ -9552,7 +9757,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-22T14:13:04.829777+00:00",
+  "updated_at_utc": "2026-11-22T14:54:49.311039+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -10302,6 +10507,21 @@
       "report": "docs/engineering/FRAME_DESIGN_MIDDLE_AND_UPPER_20261122.md",
       "engineering_release": "NOT_READY",
       "next_action": "Use the sealed 26-column run and upper-storey anchor C22/57 for +9.00 m C27 through C37. Keep all 23 upper-storey frame contributors, both physical ends and all eleven assigned combinations. Track end-to-end member coverage out of the original 87. Keep wall-supported lower ends and the coupled wall–frame study separate."
+    },
+    {
+      "status": "42_OF_87_CONDITIONAL_R14_AND_180_OF_180_SELECTED_BEAMS",
+      "work_branch": "work/whole-building-engine",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "14fa31960ddafb0e5607bd5c290d1e06d7936df5",
+      "tested_implementation_commit": "e2a1b8ba38bf18e741a78217ae7cefa1710504f4",
+      "evidence_refs": [
+        "EV-ORIGINAL-WHOLE-BUILDING-ENGINE-20261122"
+      ],
+      "production_run_id": "RUN-9b85a9a1dd7b416eab85056c57eae3d5",
+      "results_sha256": "62ea72bdff5ec5792682279504713f0036730f6f4d6d5a846750fafc852ebc6b",
+      "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
+      "engineering_release": "NOT_READY",
+      "next_action": "Run the full building from its original all-column source. Preserve 42/87 conditional column designs and all 180 selected beam flexure and capacity-shear checks. Add slab F116/291 at +0.00 m through a signed strip moment, selected reinforcement and flexural utilization in that same engine. Maintain the 84-slab denominator. Resume C104 after the defined local convergence and coupled-method checks."
     }
   ],
   "remote_audit_correction_checkpoint": {

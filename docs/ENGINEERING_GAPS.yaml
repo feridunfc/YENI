@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-22T14:08:02.827760+00:00",
+  "updated_at_utc": "2026-11-22T14:54:17.196267+00:00",
   "repository": "feridunfc/YENI",
-  "baseline_implementation_commit": "e2a1b8ba38bf18e741a78217ae7cefa1710504f4",
+  "baseline_implementation_commit": "847ed93eadc62ed976b6f78a48828afea0d21a95",
   "local_reconciled": true,
-  "scope_note": "One original-building calculation covers three occupied storeys. It produced 42/87 conditional R14 designs, 180/180 selected beam flexure and full shear evaluations, and physical counts for pending families. Two B2 threshold exceedances and three unmet wall geometry conditions remain visible. Engineering release is NOT_READY.",
+  "scope_note": "Single original-building engine. Current R14 is 42 conditional, four insufficient modelled foundation continuations and 41 held. The current run contains 73 column tie schedules, 180 beam tie schedules and two-direction boundary cage proposals for 12 wall objects in four rectangular piers. Two B2 and three wall geometry exceptions persist.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -23,14 +23,17 @@
     "preserve_verified_subscopes": true
   },
   "priority_focus": [
-    "GAP-009",
+    "GAP-015",
+    "GAP-011",
+    "GAP-012",
     "GAP-014",
+    "GAP-009",
     "GAP-013",
     "GAP-016",
     "GAP-018",
     "GAP-006"
   ],
-  "active_task": "Run the full building from its original all-column source. Preserve 42/87 conditional column designs and all 180 selected beam flexure and capacity-shear checks. Add slab F116/291 at +0.00 m through a signed strip moment, selected reinforcement and flexural utilization in that same engine. Maintain the 84-slab denominator. Resume C104 after the defined local convergence and coupled-method checks.",
+  "active_task": "Continue the original whole-building runner with signed pier section demands on P2–P5. Start with P3, reconcile physical cut, side, axes, case and step, then combine the selected end cages with the wall web for section flexure and shear. Carry C21–C24 base-continuation failures to each report. Slab flexure, punching and C104 local mesh work are deferred.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -658,7 +661,8 @@
       "closure_criteria": "Separately verify cage role, bar/leg geometry, cover, clear spacing, pitch, area and anchorage; retain actual-vs-proposed distinction.",
       "owner_paths": [
         "src/tbdy_next/engineering/rebar_selection.py",
-        "src/tbdy_next/column_engine/transverse_kernel.py"
+        "src/tbdy_next/column_engine/transverse_kernel.py",
+        "src/tbdy_next/engineering/confinement_regions.py"
       ],
       "evidence_refs": [
         "EV-D1",
@@ -668,7 +672,8 @@
         "EV-S06-C29-FIXED-N-ONE-FACE-20261122",
         "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122",
         "EV-FRAME-STORY-PLUS450-R14-20261122",
-        "EV-ORIGINAL-FRAME-STORY-26-R14-20261122"
+        "EV-ORIGINAL-FRAME-STORY-26-R14-20261122",
+        "EV-BUILDING-CONFINEMENT-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -687,6 +692,11 @@
         "plan": "docs/supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json",
         "note": "The C29 selected-cage capacity milestone does not verify construction reinforcement, anchorage or crosstie/detailing acceptance. Track these independently without reopening the completed numerical capacities.",
         "status_changed": false
+      },
+      "confinement_20261122": {
+        "evidence_ref": "EV-BUILDING-CONFINEMENT-20261122",
+        "outcome": "The selected column cages now produce physical end and middle tie station schedules on 73/87 columns, including four insufficient foundation continuations. The 180 beam schedules resolve overlapping end regions and preserve non-column model-cut references.",
+        "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md"
       }
     },
     {
@@ -706,7 +716,8 @@
         "EV-D2",
         "EV-FRAME-STORY-PLUS450-R14-20261122",
         "EV-ORIGINAL-FRAME-STORY-26-R14-20261122",
-        "EV-ORIGINAL-WHOLE-BUILDING-ENGINE-20261122"
+        "EV-ORIGINAL-WHOLE-BUILDING-ENGINE-20261122",
+        "EV-BUILDING-CONFINEMENT-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -719,7 +730,12 @@
           "S10"
         ]
       },
-      "whole_building_engine_update": "The beam owner calculated both selected end capacities, selected span reinforcement and full capacity shear including gravity on 180/180 beams. B350/981 confinement governs at 64.676%. Beam axial-force assumptions, torsion and serviceability remain open."
+      "whole_building_engine_update": "The beam owner calculated both selected end capacities, selected span reinforcement and full capacity shear including gravity on 180/180 beams. B350/981 confinement governs at 64.676%. Beam axial-force assumptions, torsion and serviceability remain open.",
+      "confinement_20261122": {
+        "evidence_ref": "EV-BUILDING-CONFINEMENT-20261122",
+        "outcome": "The selected beam steel centroids feed effective depth in the §7.4.4 pitch limit and shear resistances. All 180 spans have schedules. On 254/360 ends the column half width, native offset and design cut agree.",
+        "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md"
+      }
     },
     {
       "id": "GAP-013",
@@ -807,7 +823,8 @@
         "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
         "EV-FRAME-STORY-PLUS450-R14-20261122",
         "EV-ORIGINAL-FRAME-STORY-26-R14-20261122",
-        "EV-ORIGINAL-WHOLE-BUILDING-ENGINE-20261122"
+        "EV-ORIGINAL-WHOLE-BUILDING-ENGINE-20261122",
+        "EV-BUILDING-CONFINEMENT-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -833,21 +850,28 @@
           "S10"
         ]
       },
-      "whole_building_engine_update": "All 180 selected beam designs consumed full shear for the web and both transverse zones. R14 consumes beam holds and exceedances at connected members."
+      "whole_building_engine_update": "All 180 selected beam designs consumed full shear for the web and both transverse zones. R14 consumes beam holds and exceedances at connected members.",
+      "confinement_20261122": {
+        "evidence_ref": "EV-BUILDING-CONFINEMENT-20261122",
+        "outcome": "For C21–C24 at +0.00 m the modelled 600 mm foundation gross depth is less than the required 800 mm confinement continuation. R14 now records four numerical failures. The selected C29/225 and 142 schedules contain 50 and 43 tie stations.",
+        "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md"
+      }
     },
     {
       "id": "GAP-015",
       "title": "Wall/pier factor and wall design",
-      "status": "OPEN",
+      "status": "PARTIAL",
       "priority": "P1",
-      "achieved_scope": "Existing reference/source work is retained; no new wall acceptance is claimed.",
+      "achieved_scope": "Both ends of 12/30 physical wall objects have conditional rectangular boundary longitudinal and transverse designs in the building run. P2–P5 have continuous shared-edge stacks. Their critical zones are retained over all three storeys in the proposal, with 16 to 24 Ø14 per end, Ø10/80 hoops and crossties checked separately in both directions.",
       "blocker": "Same-cut frame/wall/pier population, double counting and full wall detailing remain open.",
       "closure_criteria": "Complete the real wall topology/forces, normative calculation, independent oracle and sealed-report slice.",
       "owner_paths": [
-        "src/tbdy_next/wall_geometry.py"
+        "src/tbdy_next/wall_geometry.py",
+        "src/tbdy_next/engineering/wall_boundary.py"
       ],
       "evidence_refs": [
-        "EV-RECIPE18-INTAKE"
+        "EV-RECIPE18-INTAKE",
+        "EV-BUILDING-CONFINEMENT-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -866,6 +890,11 @@
           "S03",
           "S11"
         ]
+      },
+      "confinement_20261122": {
+        "evidence_ref": "EV-BUILDING-CONFINEMENT-20261122",
+        "outcome": "Both ends of 12/30 physical wall objects have conditional rectangular boundary longitudinal and transverse designs in the building run. P2–P5 have continuous shared-edge stacks. Their critical zones are retained over all three storeys in the proposal, with 16 to 24 Ø14 per end, Ø10/80 hoops and crossties checked separately in both directions.",
+        "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md"
       }
     },
     {
@@ -1441,5 +1470,52 @@
       "wall": 30
     },
     "engineering_release": "NOT_READY"
+  },
+  "building_confinement_20261122": {
+    "evidence_ref": "EV-BUILDING-CONFINEMENT-20261122",
+    "implementation_commit": "847ed93eadc62ed976b6f78a48828afea0d21a95",
+    "production_run": "RUN-9c84d56ca73741ff9318421bf73adf76",
+    "document": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
+    "columns": {
+      "members": 87,
+      "calculated": 73,
+      "stations": 3265,
+      "overlapping": 0
+    },
+    "beams": {
+      "members": 180,
+      "calculated": 180,
+      "stations": 10588,
+      "overlapping": 29
+    },
+    "column_outcomes": {
+      "SCHEDULE_CALCULATED": 69,
+      "HOLD": 14,
+      "NUMERICAL_EXCEEDANCE": 4
+    },
+    "beam_end_basis": {
+      "COLUMN_JOINT_AND_NATIVE_FACE_CUT": 254,
+      "MODEL_CUT_ONLY": 106
+    },
+    "piers": [
+      "P2",
+      "P3",
+      "P4",
+      "P5"
+    ],
+    "walls": {
+      "BOUNDARY_MINIMA_CALCULATED": 12,
+      "HOLD": 18
+    },
+    "r14": {
+      "conditional": 42,
+      "failed": 4,
+      "hold": 41
+    },
+    "deferred": [
+      "slab flexure",
+      "punching",
+      "C104 local convergence"
+    ]
   }
 }

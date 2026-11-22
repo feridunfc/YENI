@@ -2,11 +2,13 @@
 
 ## Start with the whole-building engine
 
-Use `EnginePipelineRunner` via `run-pipeline --whole-building` or **Run whole building** in the workspace. The [single original-source command and engineering assumptions](../engineering/WHOLE_BUILDING_ENGINE_20261122.md) reproduce the three occupied storeys. No preparer or preselected column cohort is required. `RUN-9b85a9a1dd7b416eab85056c57eae3d5` is the current reference. The CLI and HTTP paths produced the same 16 sealed stage payloads.
+Use `EnginePipelineRunner` via `run-pipeline --whole-building` or **Run whole building** in the workspace. The [single original-source command and engineering assumptions](../engineering/WHOLE_BUILDING_ENGINE_20261122.md) reproduce the three occupied storeys. No preparer or preselected column cohort is required. `RUN-9c84d56ca73741ff9318421bf73adf76` is the current frame and pier reference. The report reads its sealed calculation.
 
 Preserve 42/87 conditional column designs and 180/180 selected beam flexure and capacity-shear evaluations. All 23 upper-storey columns are already included. The two B2 threshold exceedances and three unmet wall geometry subconditions are genuine numerical outcomes of this source scenario. Keep them visible.
 
-Advance slab F116/291 at +0.00 m from its original section assignment to a signed strip moment, reinforcement selection and flexural utilization inside the existing runner. Resolve the physical strip, load combination, axis, face and source-compatible reinforcement before calculating. Publish the result against all 84 slab objects and keep punching distinct. C104/211 can resume when local demand convergence and the coupled method/continuity questions can be resolved. Its hold is independent of this slab.
+The current run contains 73 column schedules, 180 beam schedules and the proposed rectangular boundary cages of piers P2, P3, P4 and P5. The four C21–C24 base continuation shortfalls must propagate to R14. At mat 9A the model provides 600 mm for an 800 mm requirement. Preserve the 106 beam ends referenced to model cuts separately from the 254 column-face ends.
+
+Next, take the signed pier section forces for one of P2–P5 through wall web reinforcement, section flexure and shear in the common runner. Bind the ETABS pier, cut, side, case, step and local axes. Combine its two end cages and web on that same cross section, accounting for any adjacent column concrete or bars once. Use the other three qualifying piers when their inputs support the same method. Slab F116/291, punching and the C104 mesh study are deferred. [Pier details, quantities and remaining inputs](../engineering/WHOLE_BUILDING_ENGINE_20261122.md#frame-and-wall-confinement)
 
 ## Earlier 26-column frame-design checkpoint
 
