@@ -2355,6 +2355,7 @@ def project_column_r10_live(
         dependency_plan = bind_joint_candidates(dependency_plan, eng_col_sections, eng_col_selections, beam_live)
     from .column_spectral_shear import shear_context
     from .column_clear_length import project_column_clear_lengths
+    from .confinement_regions import column_confinement
     spectral_context = shear_context(source, axial, pmm_scope, mixed_components, dependency_plan, input_sha)
     physical_lengths = project_column_clear_lengths(source, frames, adjacency, eval_uids, pmm_scope)
     by_member_length = (physical_lengths or {}).get("per_member", {})
@@ -2396,6 +2397,8 @@ def project_column_r10_live(
             low_axial_by_joint=low_axial_by_joint,
             spectral_context=spectral_context, physical_length=by_member_length.get(uid),
         )
+        if source.get("building_design") is not None:
+            det["confinement_regions"] = column_confinement(uid, det, by_member_length.get(uid))
         per_member[uid] = det
         all_scwb_joints.extend(det["scwb_joints"])
         if det["column_transverse_and_shear"]:

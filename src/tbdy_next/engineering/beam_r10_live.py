@@ -759,9 +759,17 @@ def project_beam_r10_live(
                 eng_mid["midspan_station_count"] = len(interior)
             else:
                 eng_mid = {"selection_status": "MIDSPAN_STATIONS_NOT_IN_SUMMARY"}
+            # A common conservative depth covers both bending signs and all selected stations.
+            selected_stations = [ends[e].get("engineer_selection") or {} for e in ("I", "J")]
+            selected_stations.append(eng_mid or {})
+            centroid_cover = max(
+                [reinf["cover_top_mm"], reinf["cover_bottom_mm"]]
+                + [station[key] for station in selected_stations
+                   for key in ("effective_top_centroid_mm", "effective_bottom_centroid_mm")
+                   if station.get(key) is not None])
             eng_ve = _beam_shear_ve(
                 uid=uid, end_i=ends["I"], end_j=ends["J"], ln_mm=ln_mm, has_end_offsets=off_pair is not None,
-                b_mm=b_mm, h_mm=h_mm, cov_top_mm=reinf["cover_top_mm"], material=material,
+                b_mm=b_mm, h_mm=h_mm, cov_top_mm=centroid_cover, material=material,
                 force_rowsets=force_rowsets, axial=axial, use_engineer_selection=True,
             )
             fywk_conf, _ = _steel_grade_mpa(pmm_sec_source, reinf.get("rebar_material_conf") or reinf.get("rebar_material_long"))
@@ -772,7 +780,7 @@ def project_beam_r10_live(
             ]
             min_long_d = min(sel_diams) if sel_diams else int(beam_policy["top_continuous"]["diameter_mm"])
             eng_stirrups = evaluate_beam_stirrups(
-                b_mm=b_mm, h_mm=h_mm, d_eff_mm=max(1.0, h_mm - reinf["cover_top_mm"]),
+                b_mm=b_mm, h_mm=h_mm, d_eff_mm=h_mm - centroid_cover,
                 min_long_diameter_mm=min_long_d, fctd_mpa=rho_bounds["fctd_mpa"], fcd_mpa=material.fcd,
                 fywk_mpa=fywk_conf, gamma_s=gamma_s,
                 ve_eq_kn=eng_ve.get("earthquake_capacity_shear_term_kn"),
@@ -798,6 +806,7 @@ def project_beam_r10_live(
             "length_mm": len_mm,
             "clear_span_mm": ln_mm,
             "end_offsets_applied": off_pair is not None,
+            "end_offsets_mm": dict(zip(("I", "J"), off_pair)) if off_pair is not None else None,
             "horizontal_local2_up": horizontal_local2_up,
             "tbdy_7_4_1_1_geometry_ok": b_mm >= 250.0 and h_mm >= 300.0 and h_mm <= 3.5 * b_mm,
             "ends": ends,

@@ -344,7 +344,7 @@ def evaluate_beam_stirrups(
         legs = int(zone_cfg["legs"])
         asw = legs * _bar_area(dw)
         s_limit = (
-            min(h_mm / 4.0, 8.0 * float(min_long_diameter_mm), 150.0)
+            min(d_eff_mm / 4.0, 8.0 * float(min_long_diameter_mm), 150.0)
             if is_confinement
             else min(d_eff_mm / 2.0, 300.0)
         )
@@ -399,6 +399,7 @@ def evaluate_beam_stirrups(
     return {
         "fywk_mpa": fywk_mpa,
         "fywd_mpa": fywd_mpa,
+        "effective_depth_mm": d_eff_mm,
         "vr_max_kn": vr_max_kn,
         "confinement": conf,
         "span": span,
@@ -728,6 +729,7 @@ def select_column_rebar(
     return {
         "schema": "tbdy.next.engineer-column-selection.v1",
         "origin": "ENGINEER_SELECTED_COLUMN_REBAR",
+        "section_sides_mm": [t2_mm, t3_mm],
         "status": (
             "ENGINEER_COLUMN_SELECTED_NOT_PROVEN"
             if recommended is not None

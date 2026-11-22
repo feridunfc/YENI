@@ -2,6 +2,8 @@
 from collections import Counter
 
 from ..etabs_geometry import SLAB_PROPERTIES
+from .confinement_regions import frame_confinement
+from .wall_boundary import wall_boundaries
 
 
 def _inventory(table, key):
@@ -111,6 +113,29 @@ def building_results(source, stages, evidence):
     add("End-to-end column design", column_count, states["conditional"] + states["failed"],
         "NUMERICAL_EXCEEDANCE" if states["failed"] else "HOLD" if columns is None or states["hold"] else "CONDITIONAL_DESIGN_CALCULATED")
     areas = _area_population(source)
+    detailing = frame_confinement(source, columns, beams, stages)
+    section_table = (source.get("vs06_b1_geometry_source") or {}).get("table_reads", {})
+    assignments = _inventory(section_table.get("Area Assignments - Section Properties"), "UniqueName")
+    walls = None if assignments is None else {uid: row for uid, row in assignments.items() if row["PropType"] == "Wall"}
+    boundaries = wall_boundaries(source, stages, evidence, walls)
+    for family, population, title in (("columns", column_count, "Column confinement schedules"),
+                                      ("beams", beam_count, "Beam confinement schedules on model cuts")):
+        rows = detailing[family]
+        evaluated = sum(r["status"] in {"SCHEDULE_CALCULATED", "NUMERICAL_EXCEEDANCE"} for r in rows)
+        status = ("NUMERICAL_EXCEEDANCE" if any(r["status"] == "NUMERICAL_EXCEEDANCE" for r in rows)
+                  else "SCHEDULE_CALCULATED" if population is not None and evaluated == population
+                  else "PHYSICAL_FACES_OR_SELECTED_CAGE_REQUIRED")
+        add(title, population, evaluated, status)
+    face_count = sum(f["basis"] == "COLUMN_JOINT_AND_NATIVE_FACE_CUT" for row in detailing["beams"]
+                     if "schedule" in row for f in row["faces"].values())
+    add("Beam confinement ends at a connected column face", 2 * beam_count if beam_count is not None else None,
+        face_count, "Column half width, native offset and selected design cut agree")
+    wall_count = sum(r["status"] == "BOUNDARY_MINIMA_CALCULATED" for r in boundaries["walls"])
+    add("Wall objects with two calculated pier boundary zones", areas["wall"], wall_count,
+        "Constant rectangular pier detail under two model-base scenarios")
+    add("Wall objects with proposed boundary hoops and crossties", areas["wall"],
+        sum(r.get("cage_status") == "CONDITIONAL_TRANSVERSE_CAGE_CALCULATED" for r in boundaries["walls"]),
+        "Two directions at both ends, TBDY 7.6.5.2")
     for name, population, reason in (
             ("Wall and pier reinforcement", areas["wall"], "Wall section design and detailing owner required"),
             ("Diaphragm collectors and chords", areas["diaphragm"], "Force path and design resistance required"),
@@ -122,4 +147,5 @@ def building_results(source, stages, evidence):
     return {"schema": "tbdy.next.building-results.v1", "checks": checks, "column_count": column_count,
             "column_status_counts": dict(states), "columns": column_rows, "storeys": storeys,
             "beam_count": beam_count, "beam_status_counts": dict(beam_counts), "governing_beam": governing,
-            "area_population": areas, "engineering_release": "NOT_READY"}
+            "area_population": areas, "frame_confinement": detailing, "wall_boundaries": boundaries,
+            "engineering_release": "NOT_READY"}

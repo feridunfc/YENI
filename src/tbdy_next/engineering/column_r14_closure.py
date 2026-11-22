@@ -381,6 +381,11 @@ def _evaluate_single_r14_column(
     sel_tr = sel_cage.get("selected_transverse") or {}
     if sel_tr.get("all_tbdy_checks_met") is False:
         normative_failures.append("COLUMN_TRANSVERSE_AND_CROSSTIE_TBDY_RULES_NOT_MET")
+    layout = det.get("confinement_regions")
+    if layout and layout["status"] == "NUMERICAL_EXCEEDANCE":
+        normative_failures.append("COLUMN_CONFINEMENT:" + layout["reason"])
+    elif layout and layout["status"] != "SCHEDULE_CALCULATED":
+        open_gates.append("COLUMN_CONFINEMENT:" + layout["reason"])
     ts_block = det.get("column_transverse_and_shear") or {}
     ve_block = ts_block.get("engineer_capacity_shear_ve")
     spectral_shear = (ve_block or {}).get("assigned_spectral") or {}
@@ -672,6 +677,7 @@ def _evaluate_single_r14_column(
         "story": col_story or None,
         "section": axial_col.get("section") or (pmm_col or {}).get("section"),
         "status": closure_status,
+        **({"column_confinement_status": layout["status"]} if layout else {}),
         "pillars": {
             "combination_approval": {
                 "source": plan.get("source"),

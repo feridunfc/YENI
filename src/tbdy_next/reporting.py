@@ -1168,6 +1168,47 @@ def _with_material_members(items: list[dict], roster: list[dict]) -> list[dict]:
             for group in by_material.get(item.get("material_name"), [{}])]
 
 
+def _confinement_tables(building):
+    frames = building.get("frame_confinement")
+    if not frames:
+        return ""
+    section = ["<h3>Confinement and wall boundary regions</h3><p>", _val(frames["scope"]), "</p>"]
+    for family in ("columns", "beams"):
+        rows = []
+        for member in frames[family]:
+            schedule = member.get("schedule") or {}
+            rows.append({**member, **schedule, "stations": [
+                f"{r['from_mm']:.1f} to {r['to_mm']:.1f}: {r['intervals']} × {r['pitch_mm']:.2f}"
+                for r in schedule.get("runs", [])],
+                "support": [f.get("basis") for f in member.get("faces", {}).values()] or member.get("face_z_m")})
+        section.extend(["<details><summary>", family.capitalize(), " · tie schedules</summary>",
+                        _table((("story", "Storey"), ("label", "Member"), ("member_id", "ETABS ID"),
+                                ("required_end_length_mm", "Zone per end (mm)"), ("end_ties", "End ties"),
+                                ("middle_ties", "Middle ties"), ("tie_count", "Distinct tie stations"),
+                                ("stations", "Station ranges and pitches from I (mm)"),
+                                ("support", "End basis or column face elevations (m)"), ("reason", "Open input")), rows),
+                        "</details>"])
+    wall = building.get("wall_boundaries") or {}
+    section.extend(["<h4>Rectangular pier boundary proposal</h4><p>", _val(wall.get("scope")), "</p>"])
+    pier_rows = [{**p, **p["adopted_constant_detail"]} for p in wall.get("piers", [])]
+    section.append(_table((("pier", "Pier"), ("member_ids", "ETABS wall IDs"), ("bottom_z_m", "Base (m)"),
+                           ("top_z_m", "Top (m)"), ("end_width_mm", "Width per end (mm)"),
+                           ("minimum_as_per_end_mm2", "Minimum As per end (mm²)"),
+                           ("bars_per_end", "Ø14 bars per end"), ("provided_as_per_end_mm2", "Proposed As (mm²)"),
+                           ("pitch_limit_mm", "Maximum critical tie pitch (mm)")), pier_rows))
+    directions = [{"pier": p["pier"], "direction": axis, **p["transverse_cage"], **detail}
+                  for p in wall.get("piers", []) for axis, detail in p["transverse_cage"].get("directions", {}).items()]
+    section.append(_table((("pier", "Pier"), ("direction", "Hoop leg direction"), ("grade", "Proposed steel"),
+                           ("cover_mm", "Cover (mm)"), ("tie_diameter_mm", "Tie Ø (mm)"), ("spacing_mm", "Pitch (mm)"),
+                           ("legs", "Legs"), ("largest_leg_gap_mm", "Max leg gap (mm)"),
+                           ("required_ash_mm2", "Required Ash (mm²)"), ("provided_ash_mm2", "Provided Ash (mm²)")),
+                          directions))
+    section.extend(["<details><summary>Wall object coverage</summary>",
+                    _table((("story", "Storey"), ("label", "Wall"), ("member_id", "ETABS ID"), ("pier", "Pier"),
+                            ("status", "Boundary result"), ("reason", "Open input")), wall.get("walls", [])), "</details>"])
+    return "".join(section)
+
+
 def build_printable_html(report: Mapping[str, Any]) -> str:
     """Self-contained print-ready HTML. All five checks and every member row."""
     checks = report["checks"]
@@ -1185,6 +1226,7 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
             + _table((("story", "Storey"), ("label", "Beam"), ("check", "Check"), ("full_ve_kn", "Ve (kN)"),
                       ("resistance_kn", "Resistance (kN)"), ("utilization", "Utilization")),
                      [building["governing_beam"]] if building["governing_beam"] else [])
+            + _confinement_tables(building)
             + '<details><summary>Columns and reasons for a hold</summary>'
             + _table((("story", "Storey"), ("label", "Column"), ("member_id", "ETABS ID"), ("status", "Result"),
                       ("reason", "Frame basis hold"), ("failures", "Numerical failures"), ("open_gates", "Open checks")),
