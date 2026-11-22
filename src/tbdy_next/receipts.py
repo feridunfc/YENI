@@ -13,6 +13,20 @@ def canonical_bytes(value: Mapping[str, Any]) -> bytes:
     return (json.dumps(value, sort_keys=True, ensure_ascii=False, separators=(",", ":")) + "\n").encode("utf-8")
 
 
+def receipt_paths(directory: Path) -> list[Path]:
+    """Return numbered receipts in append order, rejecting ambiguous ordinals."""
+    by_index = {}
+    for path in directory.glob("[0-9]*-*.json"):
+        prefix = path.stem.partition("-")[0]
+        if not prefix.isascii() or not prefix.isdecimal():
+            continue
+        index = int(prefix)
+        if index in by_index:
+            raise ValueError(f"DUPLICATE_RECEIPT_INDEX:{index}")
+        by_index[index] = path
+    return [by_index[index] for index in sorted(by_index)]
+
+
 class ReceiptRun:
     def __init__(self, root: Path):
         self.run_id = "RUN-" + uuid.uuid4().hex

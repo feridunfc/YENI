@@ -20,10 +20,14 @@ def need(condition: bool, reason: str) -> None:
         raise StorySourceError(reason)
 
 
-def finite(value, name: str, *, positive=False):
+def finite_number(value, name: str):
     need(type(value) in (int, float) and math.isfinite(value),
          "INVALID_STORY_NUMBER:" + name)
-    x = float(value)
+    return float(value)
+
+
+def finite(value, name: str, *, positive=False):
+    x = finite_number(value, name)
     need(x > 0 if positive else x >= 0, "INVALID_STORY_VALUE:" + name)
     return x
 
@@ -104,7 +108,7 @@ def review_story_pdelta(source: dict) -> dict:
     for row in rows:
         need(isinstance(row, dict) and isinstance(row.get("story"), str)
              and row["story"], "INVALID_STORY_ROW")
-        z = finite(row.get("level_m"), "level_m")
+        z = finite_number(row.get("level_m"), "level_m")
         need(z < previous_level, "STORIES_MUST_BE_TOP_TO_BOTTOM")
         previous_level = z
         wi = finite(row.get("individual_w_kN"), "individual_w_kN", positive=True)

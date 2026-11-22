@@ -10,6 +10,7 @@ from decimal import Decimal
 from hashlib import sha256
 from html import escape
 import json
+from math import fsum
 import ntpath
 from pathlib import Path
 import re
@@ -1123,6 +1124,8 @@ def _number_html(value: Any, places: int) -> str:
 
 
 def _cell_html(key: str, value: Any) -> str:
+    if key == "vertical_equilibrium_residual_kn":
+        return _number_html(value, 8)
     if key == "members_by_story" and isinstance(value, list):
         return "<br>".join(f"{_val(row['story'])} · {_val(row['member_ids_text'])}" for row in value)
     if (key.startswith(("theta_", "normalized_", "adjacent_normalized_", "relative_error_"))
@@ -2615,7 +2618,7 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
     refined_rows, refined_levels, mesh_changes = [], [], []
     deformation_rows, method_rows = [], []
     revised_factors, full_span_rows = [], []
-    story_force_rows, story_stiffness_rows = [], []
+    story_force_rows, story_stiffness_rows, story_balance_rows = [], [], []
     idealization_rows, idealization_cases, idealization_cuts = [], [], []
     for member in members:
         basis = member.get("adopted_second_order_basis") or {}
@@ -2701,6 +2704,24 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
                                     "model": level["model_sha256"], "generation": level.get("analysis_generation"), **row}
                                    for row in level.get("revised_axis_factors", ()))
             story = level.get("revised_story_basis") or {}
+            expected = Counter(r["kind"] for r in story.get("expected_contributors", ()))
+            for case, result in story.get("cases", {}).items():
+                external = result.get("free_body")
+                if external is None:
+                    continue
+                forces = defaultdict(list)
+                for contributor in result["contributors"]:
+                    forces[contributor["kind"]].append(contributor["vertical_kn"])
+                story_balance_rows.append({
+                    "story": story.get("story"), "z": story.get("cut_z_m"), "divisions": level["divisions"],
+                    "case": result.get("native_case", case), "count": [result["evaluated_count"], result["expected_count"]],
+                    "column": fsum(forces["COLUMN"]) if len(forces["COLUMN"]) == expected["COLUMN"] else None,
+                    "wall": fsum(forces["WALL"]) if len(forces["WALL"]) == expected["WALL"] else None,
+                    "signed": result["signed_vertical_sum_kn"], "compression": result["supported_compression_kn"],
+                    "applied": external["upper_external_applied_kn"], "weight": external["upper_self_weight_kn"],
+                    "vertical_equilibrium_residual_kn": result["equilibrium_residual_kn"],
+                    "status": {True: "PASS", False: "FAIL", None: "UNVERIFIED"}[result.get("equilibrium_within_tolerance")],
+                })
             conditional = story.get("conditional_frame_basis")
             if conditional is not None:
                 identity = {"member": uid, "divisions": level["divisions"], "story": story.get("story"),
@@ -2785,6 +2806,15 @@ def _adopted_second_order_html(local: Mapping[str, Any]) -> str:
                      ("second_pmm_reason", "P–Delta cut reason"), ("ts500_utilization", "TS 500 PMM")), pair_rows)
            if pair_basis_rows else '')
         + ('<h3>Matched-stiffness gravity mesh comparison</h3>'
+           + ('<h4>Upper free-body vertical equilibrium</h4>'
+              + _table((("story", "Story"), ("z", "Cut elevation (m)"), ("divisions", "Partitions"),
+                        ("case", "First-order case"), ("count", "Contributors [read, expected]"),
+                        ("column", "Signed columns (kN)"), ("wall", "Signed walls (kN)"),
+                        ("signed", "Signed sum read (kN)"), ("compression", "Compression read (kN)"),
+                        ("applied", "Applied gravity, downward (kN)"), ("weight", "Self-weight, downward (kN)"),
+                        ("vertical_equilibrium_residual_kn", "Upward minus downward (kN)"),
+                        ("status", "Balance status")), story_balance_rows)
+              if story_balance_rows else '')
            + ('<h4>Full story free body and conditional frame-column compression</h4>'
               + _table((("member", "Column"), ("story", "Story"), ("divisions", "Partitions"),
                         ("combination", "Combination"), ("full_count", "Full contributor count [read, expected]"),

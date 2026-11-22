@@ -24,6 +24,7 @@ _CONDITIONAL_SUPPORTS = {
 }
 FRAME_FORCE = "NATIVE_FRAME_LOCAL_P_V2_V3"
 WALL_FORCE = "INTEGRATED_WALL_GLOBAL_UPPER_FREE_BODY"
+VERTICAL_IMBALANCE = "STORY_FREE_BODY_VERTICAL_IMBALANCE"
 AXES = ("M2", "M3")
 _CUT_TOL_M = 1e-6
 _BALANCE_TOL_KN = .01
@@ -290,16 +291,19 @@ def _force_results(rows, equilibrium, population, reference, labels, uid, z, *, 
         compression = fsum(row["compression_kn"] for row in forces.values())
         total = {"native_case": name, "expected_count": len(population), "evaluated_count": len(forces),
                  "contributors": [row for _, row in sorted(forces.items())], "signed_vertical_sum_kn": signed,
-                 "supported_compression_kn": compression, "reasons": reasons}
+                 "supported_compression_kn": compression, "equilibrium_within_tolerance": None, "reasons": reasons}
         try:
             eq = _keys(equilibrium.get(name), {"upper_external_applied_kn", "upper_self_weight_kn", "reference"},
                        "STORY_FREE_BODY_EQUILIBRIUM_UNAVAILABLE")
             load, weight = (_number(eq[key]) for key in ("upper_external_applied_kn", "upper_self_weight_kn"))
             _checked(weight >= 0 and _text(eq["reference"]), "STORY_FREE_BODY_EQUILIBRIUM_UNAVAILABLE")
-            expected = load + weight
+            expected = _number(load + weight)
             total.update(free_body=dict(eq), free_body_load_kn=expected, equilibrium_residual_kn=signed - expected)
-            if not isclose(signed, expected, abs_tol=_BALANCE_TOL_KN, rel_tol=_BALANCE_REL_TOL):
-                reasons.append("STORY_FREE_BODY_VERTICAL_IMBALANCE")
+            if not case_issues:
+                total["equilibrium_within_tolerance"] = isclose(
+                    signed, expected, abs_tol=_BALANCE_TOL_KN, rel_tol=_BALANCE_REL_TOL)
+                if not total["equilibrium_within_tolerance"]:
+                    reasons.append(VERTICAL_IMBALANCE)
         except ValueError as exc:
             reasons.append(str(exc))
         if compression <= 0:
@@ -311,9 +315,13 @@ def _force_results(rows, equilibrium, population, reference, labels, uid, z, *, 
             frame_reasons = [reason for kind, reason in case_issues if kind == "COLUMN"]
             if frame_nd <= 0:
                 frame_reasons.append("STORY_FRAME_COLUMN_COMPRESSION_NONPOSITIVE")
+            frame_status = ("STORY_FRAME_COLUMN_COMPRESSION_INCOMPLETE" if frame_reasons
+                            else "STORY_FRAME_COLUMN_COMPRESSION_BOUND")
+            if total["equilibrium_within_tolerance"] is False:
+                frame_status = "STORY_FRAME_BASIS_BLOCKED_BY_EQUILIBRIUM"
+                frame_reasons.append(VERTICAL_IMBALANCE)
             total["frame_column_compression"] = {
-                "status": "STORY_FRAME_COLUMN_COMPRESSION_BOUND" if not frame_reasons
-                          else "STORY_FRAME_COLUMN_COMPRESSION_INCOMPLETE",
+                "status": frame_status,
                 "expected_count": sum(kind == "COLUMN" for kind, _ in population),
                 "evaluated_count": len(frames), "nd_kn": frame_nd, "reasons": frame_reasons,
             }

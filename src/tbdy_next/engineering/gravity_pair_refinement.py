@@ -135,7 +135,7 @@ def _paired_cuts(uid, level, cases, elements, original_z, low, high):
     return cuts
 
 
-def _refined_ts500(local, dims, capacity, cuts, story, cases, *, story_scope=None):
+def _refined_ts500(local, dims, capacity, cuts, story, cases, *, story_scope=None, balance_failures=None):
     # The revised first-order vectors and level-specific story inputs drive the
     # same factor owner. The original selected demand stays on its own branch.
     basis = local["adopted_second_order_basis"]
@@ -168,6 +168,9 @@ def _refined_ts500(local, dims, capacity, cuts, story, cases, *, story_scope=Non
                 nk = euler_load_kn(effective_ei_nmm2=trace["ei_nmm2"], effective_length_lk_mm=lk)
                 trace.update(k=k, lk_mm=lk, nk_kn=nk,
                              member_denominator=float(_magnification_denominator(peaks[name], nk)))
+            if balance_failures and name in balance_failures:
+                trace.update(status="BLOCKED", final_factor=None, **balance_failures[name])
+                continue
             if totals is None:
                 continue
             if (not isinstance(totals, Mapping) or set(totals) != {"nd_kn", "nk_kn"}
@@ -198,7 +201,9 @@ def _refined_ts500(local, dims, capacity, cuts, story, cases, *, story_scope=Non
             "ts500_beta_m2": factors[name, "M2"], "ts500_beta_m3": factors[name, "M3"],
             "ts500_pmm": capacity.assess(nd * 1000.0, m2 * 1e6, m3 * 1e6),
         }
-    if any(trace["status"] == "BLOCKED" for trace in diagnostics):
+    if balance_failures:
+        status = "REVISED_TS500_STORY_EQUILIBRIUM_FAILED"
+    elif any(trace["status"] == "BLOCKED" for trace in diagnostics):
         status = "REVISED_TS500_STABILITY_FAILURE"
     elif len(results) == len(cuts):
         status = ("REVISED_TS500_CONDITIONAL_FRAME_ONLY_CALCULATED" if story_scope is not None
@@ -248,22 +253,27 @@ def compare_level(source, pmm, local, base, level, dims, capacity, *, story_geom
         out["first_order_nmax_kn"] = {name: max(-value["first"][0] for key, value in cuts.items() if key[0] == name)
                                      for name in cases}
         revised = {}
+        balance_failures = {}
         try:
             story = level["story_inputs"].get(uid, {})
             story_scope = None
             if base["schema"] == QUALIFIED_SCHEMA:
                 out["analysis_generation"] = level["analysis_generation"]
-                from .gravity_story_basis import produce_story_basis
+                from .gravity_story_basis import VERTICAL_IMBALANCE, produce_story_basis
 
                 story_basis = produce_story_basis(source, local, level, uid, cases, story_geometry=story_geometry)
                 out["revised_story_basis"] = story_basis
+                balance_failures = {
+                    name: {"reason": VERTICAL_IMBALANCE, "equilibrium_residual_kn": case["equilibrium_residual_kn"]}
+                    for name, case in story_basis["cases"].items() if case["equilibrium_within_tolerance"] is False
+                }
                 story = story_basis["story_inputs"]
                 conditional = story_basis.get("conditional_frame_basis") or {}
                 if story_basis["status"] != "REVISED_STORY_BASIS_CALCULATED" and conditional.get("story_inputs"):
                     story = conditional["story_inputs"]
                     story_scope = out["ts500_story_scope"] = conditional["scope"]
             revised, out["ts500_status"], out["revised_axis_factors"] = _refined_ts500(
-                local, dims, capacity, cuts, story, cases, story_scope=story_scope)
+                local, dims, capacity, cuts, story, cases, story_scope=story_scope, balance_failures=balance_failures)
         except (ArithmeticError, KeyError, TypeError, ValueError) as exc:
             out.update(ts500_status="REVISED_TS500_BASIS_INVALID", ts500_reason=str(exc))
         original_z = local["physical_clear_length"]["end_cuts"]["I"][1]
@@ -285,6 +295,8 @@ def compare_level(source, pmm, local, base, level, dims, capacity, *, story_geom
                            ts500_pmm_status=assessment["status"], ts500_pmm_reason=assessment.get("reason"))
                 if story_scope is not None:
                     row["ts500_story_scope"] = story_scope
+            elif name in balance_failures:
+                row.update(ts500_pmm_status="BLOCKED", ts500_pmm_reason=balance_failures[name]["reason"])
             out["rows"].append(row)
         _summarize_pmm(out, len(cuts), controls_matched=True)
         # The two controls agree in case and mesh identity. Each refined run
@@ -413,6 +425,7 @@ def _method_comparison(original, finest, local):
                             "revised_ts500_beta": [cut["ts500_beta_m2"], cut["ts500_beta_m3"]] if ts else None,
                             "revised_ts500_m2_m3_knm": ts, "revised_ts500_pmm": cut.get("ts500_utilization"),
                             "revised_ts500_pmm_status": cut.get("ts500_pmm_status"),
+                            **({"revised_ts500_pmm_reason": cut["ts500_pmm_reason"]} if cut.get("ts500_pmm_reason") else {}),
                             **({"revised_ts500_story_scope": cut["ts500_story_scope"]} if "ts500_story_scope" in cut else {}),
                             "revised_ts500_minus_direct_design_knm": delta(ts, direct),
                             "direct_minus_original_design_knm": (delta(direct, design)

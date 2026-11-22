@@ -158,6 +158,58 @@ class StorySecondOrderEngineTests(unittest.TestCase):
         self.assertEqual(result["status"], "BLOCKED_SOURCE_INVALID")
         self.assertIn("R08_WGHT_G_PLUS_NQ_COMPONENTS_NOT_AS_DECLARED", result["reason_codes"][0])
 
+    def test_translating_the_datum_preserves_all_four_numerical_checks(self):
+        data = fixture()
+        reference = bind_story_second_order(data)
+        tables = data["spectrum_source"]["table_reads"]
+        tables["Tower and Base Story Definitions"]["rows"][0]["BSElev"] = "-10"
+        data["spectrum_source"] = sealed(tables)
+        translated = bind_story_second_order(data)
+        self.assertEqual(translated["expected_story_direction_count"], 4)
+        self.assertEqual(translated["evaluated_story_direction_count"], 4)
+        self.assertEqual(translated["results"], reference["results"])
+        self.assertEqual(translated["direction_results"], reference["direction_results"])
+
+    def test_invalid_values_keep_the_independently_declared_story_directions(self):
+        for table_name, field, value in (
+            ("Story Definitions", "Height", "0"),
+            ("Tower and Base Story Definitions", "BSElev", "NaN"),
+            ("Story Forces", "VX", "0"),
+        ):
+            with self.subTest(field=field):
+                data = fixture()
+                tables = data["spectrum_source"]["table_reads"]
+                tables[table_name]["rows"][0][field] = value
+                data["spectrum_source"] = sealed(tables)
+                result = bind_story_second_order(data)
+                self.assertEqual(result["status"], "BLOCKED_SOURCE_INVALID")
+                self.assertEqual(result["expected_story_direction_count"], 4)
+                self.assertEqual(result["evaluated_story_direction_count"], 0)
+                self.assertEqual(result["missing_story_direction"], [
+                    {"story": story, "direction": axis, "reason": result["reason_codes"][0]}
+                    for story in ("+9.00", "+4.50") for axis in ("X", "Y")])
+
+    def test_ambiguous_story_roster_cannot_define_the_denominator(self):
+        data = fixture()
+        tables = data["spectrum_source"]["table_reads"]
+        tables["Story Definitions"]["rows"][1]["Story"] = "+9.00"
+        data["spectrum_source"] = sealed(tables)
+        result = bind_story_second_order(data)
+        self.assertEqual(result["status"], "BLOCKED_SOURCE_INVALID")
+        self.assertEqual(result["expected_story_direction_count"], 0)
+        self.assertEqual(result["missing_story_direction"], [])
+
+    def test_a_missing_base_datum_keeps_the_named_story_obligations(self):
+        data = fixture()
+        tables = data["spectrum_source"]["table_reads"]
+        del tables["Tower and Base Story Definitions"]
+        data["spectrum_source"] = sealed(tables)
+        result = bind_story_second_order(data)
+        self.assertEqual(result["status"], "BLOCKED_SOURCE_INVALID")
+        self.assertEqual((result["expected_story_direction_count"], result["evaluated_story_direction_count"]),
+                         (4, 0))
+        self.assertEqual(len(result["missing_story_direction"]), 4)
+
     def test_sha_tamper_rejected(self):
         data = fixture()
         data["weight_source"]["table_reads"]["Base Reactions"]["rows"][0]["FZ"] = "4000"

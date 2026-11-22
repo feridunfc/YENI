@@ -13,7 +13,7 @@ import re
 from typing import Any
 
 from .modal import evaluate_modal_mass
-from .receipts import canonical_bytes
+from .receipts import canonical_bytes, receipt_paths
 from .source import SourceError, parse_modal_capture
 
 _RUN = re.compile(r"RUN-[0-9a-f]{32}\Z")
@@ -23,11 +23,18 @@ _MAX_SOURCE_BYTES = 64 * 1024 * 1024
 
 
 def _read_receipt(directory: Path, stage: str) -> dict[str, Any] | None:
-    paths = sorted(directory.glob(f"[0-9][0-9]-{stage}.json"))
-    if len(paths) != 1 or paths[0].is_symlink():
+    try:
+        paths = [path for path in receipt_paths(directory) if path.stem.partition("-")[2] == stage]
+    except (OSError, ValueError):
+        return None
+    return _read_receipt_file(paths[0], stage) if len(paths) == 1 else None
+
+
+def _read_receipt_file(path: Path, stage: str) -> dict[str, Any] | None:
+    if path.is_symlink():
         return None
     try:
-        record = json.loads(paths[0].read_text(encoding="utf-8"))
+        record = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(record, dict) or record.get("stage") != stage:
             return None
         actual_hash = record.get("receipt_sha256")
@@ -36,7 +43,7 @@ def _read_receipt(directory: Path, stage: str) -> dict[str, Any] | None:
         unsigned = {key: value for key, value in record.items() if key != "receipt_sha256"}
         if sha256(canonical_bytes(unsigned)).hexdigest() != actual_hash:
             return None
-        if record.get("run_id") != directory.name:
+        if record.get("run_id") != path.parent.name:
             return None
         if not isinstance(record.get("payload"), dict):
             return None
@@ -48,11 +55,12 @@ def _read_receipt(directory: Path, stage: str) -> dict[str, Any] | None:
 def _read_finalized_stages(directory: Path, *, input_sha: str) -> dict[str, Any] | None:
     from .engineering.pipeline_snapshot import SCHEMA, STAGE, TERMINAL, read_receipts, read_snapshot
 
+    stages = {path.stem.partition("-")[2] for path in receipt_paths(directory)}
     discovery = _read_receipt(directory, "schema-discovery")
-    if discovery is None and any(directory.glob("[0-9][0-9]-schema-discovery.json")):
+    if discovery is None and "schema-discovery" in stages:
         raise ValueError("PIPELINE_SCHEMA_DISCOVERY_RECEIPT_INVALID")
     if ((discovery or {}).get("receipt_schema") is None
-            and not any(directory.glob(f"[0-9][0-9]-{STAGE}.json"))):
+            and STAGE not in stages):
         final_receipt = _read_receipt(directory, TERMINAL)
         if (final_receipt or {}).get("payload", {}).get("engine_snapshot") is None:
             return None

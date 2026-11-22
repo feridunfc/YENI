@@ -159,8 +159,6 @@ def verified_database(root, run_id):
 def column_bank_history(root):
     result = []
     for directory in sorted(Path(root).glob("RUN-*"), key=lambda p: p.name, reverse=True):
-        if not list(directory.glob("[0-9][0-9]-column-bank.json")):
-            continue
         try:
             _, report = verified_database(root, directory.name)
             result.append({k: report[k] for k in ("run_id", "source_archive_sha256", "selected_column_count",

@@ -525,12 +525,14 @@ class SourceAndNormativeRepairContracts(unittest.TestCase):
 class SnapshotContracts(unittest.TestCase):
     def setUp(self): self.temp=TemporaryDirectory(); self.root=Path(self.temp.name)
     def tearDown(self): self.temp.cleanup()
-    def make_run(self,raw=b'{}',selected=.01,sealed=True):
+    def make_run(self,raw=b'{}',selected=.01,sealed=True,additional_stages=0):
         from hashlib import sha256
         run=ReceiptRun(self.root); h=sha256(raw).hexdigest(); run.archive_input(raw,expected_sha256=h)
         if sealed:
             run.record("schema-discovery", {}, input_sha256=h, receipt_schema=SCHEMA)
         run.record("modal",{"value":1},input_sha256=h)
+        for index in range(additional_stages):
+            run.record(f"observation-{index + 1}", {"value": index}, input_sha256=h)
         if sealed:
             result = dict.fromkeys(REQUIRED_KEYS)
             result.update(r10_live={"selected_min_rho": selected}, report_evidence={})
@@ -540,6 +542,36 @@ class SnapshotContracts(unittest.TestCase):
     def test_identical_complete_recorded_stage_sets_compare_identical(self):
         a,_=self.make_run(); b,_=self.make_run()
         self.assertEqual(compare_runs(a.root,b.root)["status"],"IDENTICAL")
+
+    def test_snapshot_history_and_web_read_all_101_receipts_in_append_order(self):
+        from tbdy_next.engineering.pipeline_snapshot import read_receipts
+        from tbdy_next.history import _read_finalized_stages, _read_receipt
+        from tbdy_next.web import _runs
+
+        run, source_hash = self.make_run(additional_stages=97)
+        records = read_receipts(run.root, input_sha=source_hash)
+        self.assertEqual(len(records), 101)
+        self.assertEqual(list(records)[-3:], ["observation-97", "engine-results", "live-capture"])
+        self.assertEqual(_read_receipt(run.root, "engine-results"), records["engine-results"])
+        snapshot = read_snapshot(run.root, input_sha=source_hash)
+        self.assertEqual(len(snapshot["stage_inventory"]), 99)
+        self.assertEqual(_read_finalized_stages(run.root, input_sha=source_hash), snapshot["results"])
+        self.assertEqual([row["stage"] for row in _runs(self.root)[0]["steps"]], list(records))
+        run.record("after-terminal", {}, input_sha256=source_hash)
+        with self.assertRaisesRegex(ValueError, "PIPELINE_FINALIZATION_MISSING_OR_INVALID"):
+            read_snapshot(run.root, input_sha=source_hash)
+
+    def test_duplicate_numeric_index_is_ambiguous_even_with_different_padding_and_stage(self):
+        from tbdy_next.engineering.pipeline_snapshot import read_receipts
+        from tbdy_next.history import _read_receipt
+        from tbdy_next.web import _runs
+
+        run, source_hash = self.make_run(additional_stages=97)
+        (run.root / "0100-other.json").write_bytes((run.root / "100-engine-results.json").read_bytes())
+        with self.assertRaisesRegex(ValueError, "DUPLICATE_RECEIPT_INDEX:100"):
+            read_receipts(run.root, input_sha=source_hash)
+        self.assertIsNone(_read_receipt(run.root, "modal"))
+        self.assertEqual(_runs(self.root), [])
     def test_changed_selected_cage_result_cannot_compare_identical(self):
         a,_=self.make_run(selected=.01); b,_=self.make_run(selected=.02)
         r=compare_runs(a.root,b.root)

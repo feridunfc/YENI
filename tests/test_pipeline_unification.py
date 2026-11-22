@@ -13,11 +13,33 @@ from unittest.mock import patch
 from tbdy_next.engineering.cli_adapter import _run_pipeline_replay
 from tbdy_next.engineering.column_live_gates import project_column_gates
 from tbdy_next.engineering.pipeline import STAGES, dag_coverage, stage_registry
+from tbdy_next.receipts import ReceiptRun
 import test_column_axial_live as live
 from test_column_axial_live import SPECTRAL, STATIC
+from test_live_modal_web import live_fixture
 
 
 class RegistryContract(unittest.TestCase):
+    def test_cli_stage_listing_keeps_numeric_order_through_three_digits(self):
+        class LongReceiptRun(ReceiptRun):
+            def archive_input(self, payload, *, expected_sha256):
+                target = super().archive_input(payload, expected_sha256=expected_sha256)
+                for index in range(99):
+                    self.record(f"observation-{index + 1}", {}, input_sha256=expected_sha256)
+                return target
+
+        with TemporaryDirectory() as out:
+            source = Path(out) / "input.json"
+            source.write_text(json.dumps(live_fixture("Modal")), encoding="utf-8")
+            args = SimpleNamespace(source=source, case="Modal", out=Path(out), compare_run=None)
+            buffer = io.StringIO()
+            with patch("tbdy_next.receipts.ReceiptRun", LongReceiptRun), redirect_stdout(buffer):
+                self.assertEqual(_run_pipeline_replay(args), 0)
+            stages = json.loads(buffer.getvalue())["stages_recorded"]
+        self.assertGreater(len(stages), 101)
+        self.assertEqual([int(name.partition("-")[0]) for name in stages], list(range(1, len(stages) + 1)))
+        self.assertTrue(stages[-1].endswith("-live-capture.json"))
+
     def test_every_bound_node_exists_and_authority_stays_denied(self):
         coverage = dag_coverage()
         self.assertEqual(coverage["unknown_node_ids"], [])

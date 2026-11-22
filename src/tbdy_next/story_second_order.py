@@ -14,7 +14,7 @@ from typing import Any, Mapping
 
 from .physical_story_scope import verified_excluded_stories
 from .story_delta import dec, tbl, DeltaSourceError
-from .story_geometry import read_story_levels
+from .story_geometry import STORIES, read_source_table, read_story_levels
 from .story_drift_binding import _verify_generic_capture
 from .engineering.story_pdelta import StorySourceError, review_story_pdelta
 
@@ -62,6 +62,8 @@ def _base(error: str | None) -> dict:
 
 
 def _capture_valid(capture: Mapping, model: str) -> None:
+    if not isinstance(capture, Mapping):
+        raise DeltaSourceError("R08_SOURCE_IDENTITY_UNITS_OR_LOCK_INVALID")
     _verify_generic_capture(capture)
     if (capture.get("schema") != "tbdy.next.etabs.generic-source-capture.v1"
             or capture.get("action") != "capture"
@@ -125,6 +127,19 @@ def _combo_terms(source: Mapping) -> dict[str, Decimal]:
     return terms
 
 
+def _declared_story_names(source: Mapping) -> list[str]:
+    """Read the declared single-tower roster independently of elevations and results."""
+    rows = read_source_table(source, STORIES, ("Tower", "Story"), {})
+    towers = {row["Tower"] for row in rows}
+    if len(towers) != 1:
+        raise DeltaSourceError("MULTITOWER_STORY_CONTEXT_NEEDS_EXPLICIT_BINDING")
+    names = [row["Story"] for row in rows]
+    if (any(not name or name != name.strip() or name == "None" for name in (*towers, *names))
+            or len(set(names)) != len(names)):
+        raise DeltaSourceError("R08_DECLARED_STORY_IDENTITY_INVALID")
+    return names
+
+
 def bind_story_second_order(capture: Mapping | None, *,
                             capture_error: str | None = None) -> dict:
     """Bind native ETABS tables to the existing GLOBAL_SECOND_ORDER owner."""
@@ -133,6 +148,7 @@ def bind_story_second_order(capture: Mapping | None, *,
         return out | {"reason_codes": ["LIVE_ETABS_R08_CAPTURE_FAILED"]}
     if not isinstance(capture, Mapping):
         return out | {"reason_codes": ["R08_CAPTURE_ABSENT"]}
+    story_names = []
     try:
         if (capture.get("schema") != CAPTURE_SCHEMA
                 or capture.get("status") != "CAPTURED"
@@ -143,8 +159,10 @@ def bind_story_second_order(capture: Mapping | None, *,
             raise DeltaSourceError("R08_CAPTURE_BUNDLE_NOT_QUALIFIED")
         model = capture["model"]
         rs = capture["spectrum_source"]
-        wsrc = capture["weight_source"]
         _capture_valid(rs, model)
+        story_names = _declared_story_names(rs)
+        out["expected_story_direction_count"] = 2 * len(story_names)
+        wsrc = capture["weight_source"]
         _capture_valid(wsrc, model)
         cfg = capture["configuration"]
         if (not isinstance(cfg, Mapping) or set(cfg) !=
@@ -310,7 +328,6 @@ def bind_story_second_order(capture: Mapping | None, *,
                 "reason": "WGHT_CUMULATIVE_REACTION_NOT_SEISMIC_MASS_PROOF",
             },
             "physical_story_source_scope": story_evidence,
-            "expected_story_direction_count": 2 * len(ordered),
             "evaluated_story_direction_count": len(mapped),
             "missing_story_direction": missing,
             "results": mapped, "direction_results": directions,
@@ -321,7 +338,10 @@ def bind_story_second_order(capture: Mapping | None, *,
         })
     except (StorySourceError, DeltaSourceError, KeyError,
             ValueError, TypeError, ArithmeticError) as exc:
-        out.update(status="BLOCKED_SOURCE_INVALID", reason_codes=[str(exc)])
+        reason = str(exc)
+        out.update(status="BLOCKED_SOURCE_INVALID", reason_codes=[reason],
+                   missing_story_direction=[{"story": story, "direction": axis, "reason": reason}
+                                            for story in story_names for axis in ("X", "Y")])
     return out
 
 

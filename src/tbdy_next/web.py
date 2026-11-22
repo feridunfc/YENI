@@ -31,7 +31,7 @@ from .normative_basis import review_normative_readiness
 from .live_source_pipeline import evaluate_single_run_source_pipeline
 from .member_groups import material_member_groups
 from .reporting import ReportUnavailable, build_complete_report, build_printable_html
-from .receipts import ReceiptRun
+from .receipts import ReceiptRun, receipt_paths
 from .schema import review_modal_schema
 from .source import SourceError, parse_modal_capture, review_preflight
 
@@ -259,7 +259,11 @@ def _runs(root: Path) -> list[dict[str, Any]]:
         if not directory.is_dir() or not _RUN_ID_PATTERN.fullmatch(directory.name):
             continue
         steps: list[dict[str, Any]] = []
-        for file in sorted(directory.glob("[0-9][0-9]-*.json")):
+        try:
+            files = receipt_paths(directory)
+        except (OSError, ValueError):
+            continue
+        for file in files:
             try:
                 data = json.loads(file.read_text(encoding="utf-8"))
             except (OSError, ValueError):

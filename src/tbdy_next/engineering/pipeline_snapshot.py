@@ -7,8 +7,8 @@ from pathlib import Path
 import platform
 from typing import Any, Mapping
 
-from ..history import _MAX_SOURCE_BYTES, _read_receipt
-from ..receipts import ReceiptRun
+from ..history import _MAX_SOURCE_BYTES, _read_receipt_file
+from ..receipts import ReceiptRun, receipt_paths
 
 STAGE = "engine-results"
 LEGACY_SCHEMA = "tbdy.next.pipeline-stage-snapshot.v1"
@@ -51,9 +51,9 @@ def method_fingerprint() -> dict[str, Any]:
 def read_receipts(directory: Path, *, input_sha: str) -> dict[str, dict[str, Any]]:
     """Read the exact on-disk stage inventory, with source and receipt hashes checked."""
     records = {}
-    for path in sorted(directory.glob("[0-9][0-9]-*.json")):
+    for path in receipt_paths(directory):
         stage = path.stem.split("-", 1)[1]
-        record = _read_receipt(directory, stage)
+        record = _read_receipt_file(path, stage)
         if record is None or record.get("input_sha256") != input_sha or stage in records:
             raise ValueError("PIPELINE_STAGE_RECEIPT_INVALID:" + stage)
         records[stage] = record

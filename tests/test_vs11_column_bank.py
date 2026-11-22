@@ -237,6 +237,12 @@ class ColumnStoreTests(unittest.TestCase):
                 with self.assertRaises(ValueError): read_column_bank(self.receipts, run)
                 self.assertNotIn(run, [r["run_id"] for r in column_bank_history(self.receipts)])
 
+    def test_column_history_finds_a_three_digit_bank_receipt(self):
+        saved = save_column_bank(self.archive, self.receipts)
+        directory = self.receipts / saved["run_id"]
+        (directory / "01-column-bank.json").rename(directory / "100-column-bank.json")
+        self.assertEqual([row["run_id"] for row in column_bank_history(self.receipts)], [saved["run_id"]])
+
     def test_wrong_run_and_symlink_cannot_cross_source_boundary(self):
         saved = save_column_bank(self.archive, self.receipts)
         for run in ("../bank", saved["run_id"]+"/..", 'RUN-'+'a'*32):

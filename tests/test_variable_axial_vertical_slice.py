@@ -306,6 +306,58 @@ class VariableAxialVerticalSliceTests(unittest.TestCase):
             self.assertEqual(report["run_id"], run.name)
             self.assertIn("Revised TS 500 coefficients", html)
             self.assertIn("Full-span deformation", html)
+            table = html.split("<h4>Upper free-body vertical equilibrium</h4>", 1)[1].split("</table>", 1)[0]
+            expected = sum(len(level["revised_story_basis"]["cases"]) for level in r08["levels"])
+            self.assertEqual(table.count("<tr>") - 1, expected)
+            self.assertEqual(table.count(">PASS</td>"), expected)
+            self.assertNotIn("SELF_WEIGHT_BALANCED_AT_SIGNED_CUTS", table)
+
+    def test_complete_free_body_imbalance_blocks_revised_factors_and_pmm_in_the_sealed_run(self):
+        from test_gravity_story_basis import add_conditional_frame_basis
+
+        raw, request = completion_fixture()
+        level = request["gravity_order_pair"]["refined_levels"][-1]
+        add_conditional_frame_basis(level, "S1", "C1")
+        cut = level["story_basis_source"]["story_cuts"]["S1"]
+        cut["equilibrium"]["SYN_GRAV_F"]["upper_external_applied_kn"] += 100.
+        _, snapshot = self.calculate(raw, request, "complete-free-body-imbalance")
+        local = snapshot["results"]["r08_local_slenderness"]["per_member"]["C1"]
+        refinement = local["gravity_order_pair"]["refinement"]
+        finest = refinement["levels"][-1]
+        full = finest["revised_story_basis"]
+        case = full["cases"]["G"]
+        self.assertEqual((case["expected_count"], case["evaluated_count"]), (1, 1))
+        self.assertEqual((case["signed_vertical_sum_kn"], case["free_body_load_kn"],
+                          case["equilibrium_residual_kn"]), (2780., 2880., -100.))
+        self.assertFalse(case["equilibrium_within_tolerance"])
+        failure = "STORY_FREE_BODY_VERTICAL_IMBALANCE"
+        conditional = full["conditional_frame_basis"]
+        self.assertEqual(conditional["cases"]["G"]["nd_kn"], 2780.)
+        self.assertIn(failure, conditional["cases"]["G"]["reasons"])
+        self.assertEqual(full["story_inputs"], {})
+        self.assertEqual(conditional["story_inputs"], {})
+        self.assertEqual(finest["ts500_status"], "REVISED_TS500_STORY_EQUILIBRIUM_FAILED")
+        self.assertEqual({factor["axis"] for factor in finest["revised_axis_factors"]}, {"M2", "M3"})
+        for factor in finest["revised_axis_factors"]:
+            self.assertEqual((factor["status"], factor["reason"], factor["equilibrium_residual_kn"]),
+                             ("BLOCKED", failure, -100.))
+            self.assertIsNone(factor["final_factor"])
+        self.assertTrue(all(row.get("ts500_utilization") is None for row in finest["rows"]))
+        self.assertTrue(all(row["ts500_pmm_reason"] == failure for row in finest["rows"]))
+        self.assertTrue(all(row["ts500_utilization"] > 0 for row in refinement["levels"][-2]["rows"]))
+        closure = snapshot["results"]["r14_closure"]
+        member = next(row for row in closure["columns"] if row["member_id"] == "C1")
+        projection = member["pillars"]["second_order_selected_pmm"]["gravity_refinement"]["method_comparison"]
+        self.assertEqual(projection["revised_ts500_status"], finest["ts500_status"])
+        self.assertEqual(projection["matched_physical_cuts"], 3)
+        choices = [choice for row in refinement["method_comparison"]["rows"] for choice in row["refined_cuts"]]
+        self.assertEqual(len(choices), 4)
+        for choice in choices:
+            self.assertGreater(choice["direct_pmm"], 0)
+            self.assertIsNone(choice["revised_ts500_pmm"])
+            self.assertIsNone(choice["revised_ts500_m2_m3_knm"])
+            self.assertEqual(choice["revised_ts500_pmm_reason"], failure)
+            self.assertIsNone(choice["governing_comparison"])
 
     def test_revised_restraint_changes_design_and_a_real_limit_failure_is_retained(self):
         finest_levels = {}

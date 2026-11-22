@@ -7,14 +7,27 @@ import unittest
 from tbdy_next.column_engine.source_bank import native_frame_force_rows
 from tbdy_next.engineering.column_clear_length import FACE_BASIS, WALL_CONNECTIVITY
 from tbdy_next.engineering.gravity_story_basis import (
-    AXES, FRAME_FORCE, STORY_BASIS_SCHEMA, WALL_FORCE,
+    AXES, CONDITIONAL_FRAME_BASIS_SCHEMA, FRAME_FORCE, STORY_BASIS_SCHEMA, WALL_FORCE,
     produce_story_basis, project_native_story_frame_forces,
 )
+from tbdy_next.engineering.gravity_wall_cut import _global_force
 from test_r03_analysis_setup import capture_table
 from test_r10_live import _rowset
 
 
 CONTRIBUTOR_MODIFIER_SCHEMA = "tbdy.next.gravity-story-contributor-modifiers.v1"
+
+
+def add_conditional_frame_basis(level, story, uid):
+    block = level["story_basis_source"]
+    block["contributor_modifiers"] = {
+        "schema": CONTRIBUTOR_MODIFIER_SCHEMA, "model_sha256": level["model_sha256"],
+        "analysis_generation": level["analysis_generation"], "modifiers": deepcopy(level["frame_object_modifiers"]),
+    }
+    block["conditional_frame_basis"] = {
+        "schema": CONDITIONAL_FRAME_BASIS_SCHEMA, "decision_reference": "Conditional frame contract regression",
+        "stories": {story: {"credited_column_ids": [uid], "excluded_coupled_column_ids": []}},
+    }
 
 
 def _register_table(tables, key, fields, rows, units=None):
@@ -111,6 +124,15 @@ def _example():
 
 
 class RevisedStoryBasisTests(unittest.TestCase):
+    def test_shell_joint_force_uses_point_local_to_global_rows(self):
+        # A 90-degree rotation about global Y maps local 1 to negative Z.
+        rotation = [0., 0., 1., 0., 1., 0., -1., 0., 0.]
+        self.assertEqual(_global_force([8., -3., 2.], rotation), [2., -3., -8.])
+        for invalid in ([1., 0., 0., 0., 1., 0., 0., 0., -1.],
+                        [1., 0., 0., 0., 2., 0., 0., 0., 1.]):
+            with self.subTest(invalid=invalid), self.assertRaisesRegex(ValueError, "WALL_JOINT_TRANSFORMATION"):
+                _global_force([8., -3., 2.], invalid)
+
     def test_native_frame_conversion_uses_the_upper_element_once(self):
         source, local, level, uid, cases = _example()
         headers = ("ElmName", "GlobalX", "GlobalY", "GlobalZ")
@@ -199,6 +221,8 @@ class RevisedStoryBasisTests(unittest.TestCase):
 
     def test_missing_wall_stays_in_independent_force_and_stability_population(self):
         source, local, level, uid, cases = _example()
+        add_conditional_frame_basis(level, "S1", uid)
+        geometry = {"physical_lengths": {uid: local["physical_clear_length"]}}
         tables = source["vs06_b1_geometry_source"]["table_reads"]
         fields = tuple(tables["Point Object Connectivity"]["fields"])
         rows = deepcopy(tables["Point Object Connectivity"]["rows"])
@@ -211,20 +235,65 @@ class RevisedStoryBasisTests(unittest.TestCase):
         _register_table(tables, "Area Assignments - Section Properties", ("UniqueName", "Story", "PropType"),
                         [{"UniqueName": "W", "Story": "S1", "PropType": "Wall"}])
         cut = level["story_basis_source"]["story_cuts"]["S1"]
-        result = produce_story_basis(source, local, level, uid, cases)
+        cut["equilibrium"]["F"]["upper_external_applied_kn"] += 100
+        result = produce_story_basis(source, local, level, uid, cases, story_geometry=geometry)
         self.assertEqual(result["cases"]["G"]["expected_count"], 2)
         self.assertIn("STORY_FORCE_MISSING:WALL:W", result["cases"]["G"]["reasons"])
         self.assertIn("STORY_WALL_CRITICAL_LOAD_METHOD_UNSUPPORTED:W", result["axes"]["M2"]["reasons"])
         self.assertGreater(result["axes"]["M2"]["supported_critical_load_sum_kn"], 0)
+        self.assertEqual(result["cases"]["G"]["equilibrium_residual_kn"], -100.)
+        self.assertIsNone(result["cases"]["G"]["equilibrium_within_tolerance"])
+        self.assertNotIn("STORY_FREE_BODY_VERTICAL_IMBALANCE", result["cases"]["G"]["reasons"])
+        conditional = result["conditional_frame_basis"]
+        for axis in AXES:
+            self.assertEqual(conditional["story_inputs"][axis]["story_aggregates"]["G"]["nd_kn"], 950.)
 
         cut["forces"].append({"kind": "WALL", "object_id": "W", "element_id": "INTEGRATED_W",
             "case": "F", "step_type": "Step", "step_number": 1., "z_m": 0., "representation": WALL_FORCE,
             "vector_kn": [0., 0., 100.]})
-        cut["equilibrium"]["F"]["upper_external_applied_kn"] += 100
-        result = produce_story_basis(source, local, level, uid, cases)
+        result = produce_story_basis(source, local, level, uid, cases, story_geometry=geometry)
         self.assertEqual(result["cases"]["G"]["supported_compression_kn"], 1050.)
         self.assertEqual(result["cases"]["G"]["status"], "STORY_COMPRESSION_BOUND")
         self.assertEqual(result["story_inputs"], {})
+        self.assertTrue(result["cases"]["G"]["equilibrium_within_tolerance"])
+        self.assertEqual(result["conditional_frame_basis"]["status"], "REVISED_CONDITIONAL_FRAME_BASIS_CALCULATED")
+
+        cut["equilibrium"]["F"]["upper_external_applied_kn"] += 100
+        cut["forces"][-1]["step_type"] = "Max"
+        mismatched = produce_story_basis(source, local, level, uid, cases, story_geometry=geometry)
+        self.assertEqual(mismatched["cases"]["G"]["evaluated_count"], 1)
+        self.assertIsNone(mismatched["cases"]["G"]["equilibrium_within_tolerance"])
+        self.assertIn("STORY_FORCE_CUT_OR_STEP_MISMATCH:WALL:W", mismatched["cases"]["G"]["reasons"])
+        cut["forces"][-1]["step_type"] = "Step"
+        complete = produce_story_basis(source, local, level, uid, cases, story_geometry=geometry)
+        case = complete["cases"]["G"]
+        self.assertEqual((case["evaluated_count"], case["expected_count"]), (2, 2))
+        self.assertFalse(case["equilibrium_within_tolerance"])
+        self.assertEqual(case["equilibrium_residual_kn"], -100.)
+        self.assertIn("STORY_FREE_BODY_VERTICAL_IMBALANCE", case["frame_column_compression"]["reasons"])
+        self.assertEqual(complete["conditional_frame_basis"]["story_inputs"], {})
+
+    def test_complete_balance_blocks_only_the_contradicted_load_case(self):
+        source, local, level, uid, cases = _example()
+        add_conditional_frame_basis(level, "S1", uid)
+        geometry = {"physical_lengths": {uid: local["physical_clear_length"]}}
+        cases["G2"] = {"first": "F2", "second": "P2"}
+        cut = level["story_basis_source"]["story_cuts"]["S1"]
+        cut["forces"].append({**cut["forces"][0], "case": "F2"})
+        cut["equilibrium"]["F2"] = dict(cut["equilibrium"]["F"])
+        force = level["force_source"]["rowsets"][uid]
+        for field, data in force.items():
+            if isinstance(data, list):
+                data.append("F2" if field == "LoadCase" else data[0])
+        force["NumberResults"] = 2
+        cut["equilibrium"]["F"]["upper_external_applied_kn"] += .009
+        cut["equilibrium"]["F2"]["upper_external_applied_kn"] += .011
+        result = produce_story_basis(source, local, level, uid, cases, story_geometry=geometry)
+        self.assertTrue(result["cases"]["G"]["equilibrium_within_tolerance"])
+        self.assertFalse(result["cases"]["G2"]["equilibrium_within_tolerance"])
+        for scope in (result, result["conditional_frame_basis"]):
+            for axis in AXES:
+                self.assertEqual(set(scope["story_inputs"][axis]["story_aggregates"]), {"G"})
 
     def test_basis_fails_closed_on_source_identity_duplicates_and_mismatched_stiffness(self):
         source, local, level, uid, cases = _example()

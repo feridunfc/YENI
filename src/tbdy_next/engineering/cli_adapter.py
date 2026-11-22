@@ -41,7 +41,7 @@ def _load_selection_arg(value: str | None, kind: str) -> dict | None:
 
 def _run_pipeline_replay(args) -> int:
     from hashlib import sha256
-    from tbdy_next.receipts import ReceiptRun
+    from tbdy_next.receipts import ReceiptRun, receipt_paths
     from .pipeline import EnginePipelineRunner
 
     from .design_scenario import prepare_pipeline_source, validate_design_scenario
@@ -71,7 +71,7 @@ def _run_pipeline_replay(args) -> int:
     stages = EnginePipelineRunner().run(payload, case=args.case, run=run, input_sha=input_sha, suite=suite)
     summary = {"run_dir": str(run.root), "input_sha256": input_sha,
                "engine_snapshot": stages["engine_snapshot"],
-               "stages_recorded": sorted(path.name for path in run.root.glob("[0-9][0-9]-*.json")),
+               "stages_recorded": [path.name for path in receipt_paths(run.root)],
                "column_gates": (stages["column_gates"] or {}).get("status"),
                "beam_r10": (stages.get("beam_r10") or {}).get("status"),
                "r10_joints": (stages.get("r10_live") or {}).get("joint_end_count"),
