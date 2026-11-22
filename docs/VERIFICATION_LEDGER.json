@@ -19,22 +19,20 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "FOUR_RECTANGULAR_PIERS_GRAVITY_AND_LOCAL_SEISMIC_SHEAR_CALCULATED",
-    "work_branch": "work/pier-section-design",
+    "status": "CONDITIONAL_SEISMIC_WALL_DESIGNS_CALCULATED_ON_ORIGINAL_BUILDING",
+    "work_branch": "work/wall-design-checks",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "edc1a7b61ffa0daaf27865fe526b1a3b75732c2f",
-    "tested_implementation_commit": "123bdf0b275d2f301ede628de5a86b13fb813dce",
+    "inspected_base_commit": "f7e0ab0c629a740bda9f8e1fcdba03126ca9c97c",
+    "tested_implementation_commit": "7b8122238b2242d40b61614aaf0d6defc592f9b1",
+    "calculation_commit": "4a72bcaf37f12d33e699eb7becd0d059cc58b9b7",
     "evidence_refs": [
-      "EV-BUILDING-PIER-SECTIONS-20261122",
-      "EV-ETEX-PIER-AXIAL-CRACK-X-SOIL-20261122",
-      "EV-ETEX-PIER-SHEAR-WORKBOOK-20261122",
-      "EV-ETEX-WALL-QUICK-SECTION-LIMIT-20261122"
+      "EV-BUILDING-SEISMIC-WALL-DESIGN-20261122"
     ],
-    "production_run_id": "RUN-c85705a8cb9a48b1a190d24d10198e66",
-    "results_sha256": "9955b53c0a5ad4f79caf5c544c73138f9d48ef9fccf5019346e4fd37088442e3",
+    "production_run_id": "RUN-a5a2859f6b874fcdb6180c8c2fb79da8",
+    "results_sha256": "f14b98cd31aca5c6961f2e8f69cd4d7650dc141ab9f2ba80af5e2b2d486fb2ff",
     "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
     "engineering_release": "NOT_READY",
-    "next_action": "Use the same original P2–P5 pier cuts and cages in the whole-building runner. Construct the TBDY 7.6.6.1 seismic design moment diagram for the two model-base assumptions and bound PMM across the local axial interval at all 192 native seismic assignment cuts. Carry the 7.6.6.2 strong-direction check and detailing dependencies. Construct the heightwise shear diagram under Fig. 7.12(c) on its applicable branch. Keep the completed local shear bounds and signed gravity checks. The ETEX workbook comparison with the proposed cage is complete. The Quick Result area limit is reconstructed. Retain the commercial selector discrepancy and the unknown installed cage as separate qualifications. Slab, punching and C104 convergence are deferred."
+    "next_action": "Design the five original yP1 basement panels as their complete multi-panel pier. Establish the two net physical cross-sections, axes, centroid, wall membership, basement applicability and web/end reinforcement, then evaluate their native pier forces through the whole-building runner. Preserve the four completed rectangular pier calculations, the 42/4/41 column outcomes and the slab, punching and C104 holds."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
@@ -10205,6 +10203,400 @@
         "docs/context/WORKER_HANDOFF_20261119.md",
         "docs/ENGINEERING_GAPS.yaml"
       ]
+    },
+    {
+      "id": "EV-BUILDING-SEISMIC-WALL-DESIGN-20261122",
+      "status": "CONDITIONAL_SEISMIC_WALL_DESIGNS_CALCULATED_ON_ORIGINAL_BUILDING",
+      "observed_at_utc": "2026-11-22T19:34:06.167922+00:00",
+      "inspected_base_commit": "f7e0ab0c629a740bda9f8e1fcdba03126ca9c97c",
+      "calculation_commit": "4a72bcaf37f12d33e699eb7becd0d059cc58b9b7",
+      "tested_implementation_commit": "7b8122238b2242d40b61614aaf0d6defc592f9b1",
+      "basis_refs": [
+        "EV-BUILDING-PIER-SECTIONS-20261122",
+        "EV-ETEX-WALL-QUICK-SECTION-LIMIT-20261122"
+      ],
+      "production_run": "RUN-a5a2859f6b874fcdb6180c8c2fb79da8",
+      "source": {
+        "edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+        "capture_sha256": "11bbd50bec6cee4547ab3f90881545209a208f77f0677499ecc273041bc1a59c",
+        "original_payload_sha256": "de7a843183435acd209bf2c1e3196d002284f435b1630f1829c5255e47689f94",
+        "parent_input_sha256": "703e202fc8b08f60043c571d9970945b6307e5cee99e8a45e6377c8446da56fc",
+        "native_pier_rows": 1950,
+        "combinations_captured": 36,
+        "control_member": "127",
+        "matched_frame_control_rows": 57,
+        "temporary_selection_restored": true
+      },
+      "method_fingerprint": {
+        "configuration_file_count": 9,
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 153,
+        "package_sha256": "3c0be2d952eac4686415caa3c530d152989d2ac718d9b4adbaed022b51811f2f",
+        "python_implementation": "CPython",
+        "python_version": "3.12.10"
+      },
+      "input_sha256": "5b99fbc5229cddb3ddc675befe124916bba48fd2743226705f65a14b290025cf",
+      "snapshot_sha256": "7f2beb2416c79d001fb894f446931de20284938fd5a6aecf2dad36b9f3751628",
+      "results_sha256": "f14b98cd31aca5c6961f2e8f69cd4d7650dc141ab9f2ba80af5e2b2d486fb2ff",
+      "verified_receipts": 16,
+      "physical_population": {
+        "original_wall_panels": 30,
+        "rectangular_piers": [
+          "P2",
+          "P3",
+          "P4",
+          "P5"
+        ],
+        "rectangular_panels": 12,
+        "storeys_per_pier": 3,
+        "wall_strength_combinations": 8,
+        "remaining": {
+          "yP2": 6,
+          "xP2": 6,
+          "yP1": 5,
+          "UNASSIGNED": 1
+        }
+      },
+      "outcomes": {
+        "axial_limit_exceedances": 0,
+        "conditional_piers": 4,
+        "conditional_seismic_sections": 192,
+        "evaluated_axial": 192,
+        "evaluated_detail_panels": 12,
+        "evaluated_gravity": 120,
+        "evaluated_height_cuts": 192,
+        "evaluated_height_shear": 192,
+        "evaluated_joints": 96,
+        "evaluated_pmm_boxes": 192,
+        "evaluated_seismic_design": 0,
+        "evaluated_shear_bounds": 192,
+        "evaluated_strong_wall": 96,
+        "expected_detail_panels": 12,
+        "expected_gravity": 120,
+        "expected_height_cuts": 192,
+        "expected_joints": 96,
+        "expected_seismic": 192,
+        "expected_shear_bounds": 192,
+        "expected_strong_wall": 96,
+        "gravity_exceedances": 0,
+        "observed_seismic_envelopes": 192,
+        "satisfied_detail_panels": 12,
+        "satisfied_height_shear": 192,
+        "satisfied_joints": 96,
+        "satisfied_pmm_boxes": 192,
+        "satisfied_sections": 192,
+        "satisfied_shear_bounds": 192,
+        "satisfied_strong_wall": 96
+      },
+      "per_pier_governing": {
+        "P2": {
+          "governing_pmm": {
+            "member": "472",
+            "story": "+0.00",
+            "z_m": -5.15,
+            "face": "Bottom",
+            "combination": "Crack_SeisX_UpSoil",
+            "ratio": 0.42740457125752546
+          },
+          "governing_height_shear": {
+            "member": "472",
+            "story": "+0.00",
+            "z_m": -5.15,
+            "face": "Bottom",
+            "combination": "Crack_SeisX_Soil",
+            "ratio": 0.5805212155322903
+          },
+          "governing_axial": {
+            "member": "472",
+            "story": "+0.00",
+            "z_m": -5.15,
+            "face": "Bottom",
+            "combination": "Crack_SeisX_Soil",
+            "ratio": 0.10691991836734693
+          },
+          "governing_friction": {
+            "upper_member": "472",
+            "story": "+0.00",
+            "z_m": -5.15,
+            "combination": "Crack_SeisX_Soil",
+            "ratio": 0.31186264076073994
+          },
+          "governing_strength": {
+            "lower_member": "417",
+            "story": "+9.00",
+            "z_m": 9.0,
+            "combination": "Crack_SeisX_UpSoil",
+            "ratio": 0.041520568591304215
+          },
+          "crossties": 864,
+          "cross_ties_min_per_m2": 25,
+          "maximum_reference_sample": 0.4173201493095394
+        },
+        "P3": {
+          "governing_pmm": {
+            "member": "425",
+            "story": "+4.50",
+            "z_m": 0.0,
+            "face": "Bottom",
+            "combination": "Crack_SeisX_UpSoil",
+            "ratio": 0.3080515803960329
+          },
+          "governing_height_shear": {
+            "member": "425",
+            "story": "+4.50",
+            "z_m": 0.0,
+            "face": "Bottom",
+            "combination": "Crack_SeisX_Soil",
+            "ratio": 0.43602117953276415
+          },
+          "governing_axial": {
+            "member": "465",
+            "story": "+0.00",
+            "z_m": -5.15,
+            "face": "Bottom",
+            "combination": "Crack_SeisX",
+            "ratio": 0.09166174927113702
+          },
+          "governing_friction": {
+            "upper_member": "414",
+            "story": "+9.00",
+            "z_m": 4.5,
+            "combination": "Crack_SeisX_Soil",
+            "ratio": 0.2427616645837416
+          },
+          "governing_strength": {
+            "lower_member": "414",
+            "story": "+9.00",
+            "z_m": 9.0,
+            "combination": "Crack_SeisX_UpSoil",
+            "ratio": 0.1264120380782878
+          },
+          "crossties": 432,
+          "cross_ties_min_per_m2": 25,
+          "maximum_reference_sample": 0.2983344513253126
+        },
+        "P4": {
+          "governing_pmm": {
+            "member": "426",
+            "story": "+4.50",
+            "z_m": 0.0,
+            "face": "Bottom",
+            "combination": "Crack_SeisY_Soil",
+            "ratio": 0.3339585142568359
+          },
+          "governing_height_shear": {
+            "member": "426",
+            "story": "+4.50",
+            "z_m": 0.0,
+            "face": "Bottom",
+            "combination": "Crack_SeisY",
+            "ratio": 0.3838025628704553
+          },
+          "governing_axial": {
+            "member": "468",
+            "story": "+0.00",
+            "z_m": -5.15,
+            "face": "Bottom",
+            "combination": "Crack_SeisX_Soil",
+            "ratio": 0.11313731447124306
+          },
+          "governing_friction": {
+            "upper_member": "415",
+            "story": "+9.00",
+            "z_m": 4.5,
+            "combination": "Crack_SeisY",
+            "ratio": 0.20465843096897912
+          },
+          "governing_strength": {
+            "lower_member": "415",
+            "story": "+9.00",
+            "z_m": 9.0,
+            "combination": "Crack_SeisY_Up",
+            "ratio": 0.04675863607602794
+          },
+          "crossties": 1008,
+          "cross_ties_min_per_m2": 25,
+          "maximum_reference_sample": 0.3194810396303452
+        },
+        "P5": {
+          "governing_pmm": {
+            "member": "427",
+            "story": "+4.50",
+            "z_m": 0.0,
+            "face": "Bottom",
+            "combination": "Crack_SeisY_Soil",
+            "ratio": 0.2980958617650144
+          },
+          "governing_height_shear": {
+            "member": "427",
+            "story": "+4.50",
+            "z_m": 0.0,
+            "face": "Bottom",
+            "combination": "Crack_SeisY_UpSoil",
+            "ratio": 0.2996239995665454
+          },
+          "governing_axial": {
+            "member": "469",
+            "story": "+0.00",
+            "z_m": -5.15,
+            "face": "Bottom",
+            "combination": "Crack_SeisY",
+            "ratio": 0.07950957328385899
+          },
+          "governing_friction": {
+            "upper_member": "416",
+            "story": "+9.00",
+            "z_m": 4.5,
+            "combination": "Crack_SeisY_UpSoil",
+            "ratio": 0.1597711520562117
+          },
+          "governing_strength": {
+            "lower_member": "416",
+            "story": "+9.00",
+            "z_m": 9.0,
+            "combination": "Crack_SeisX_Up",
+            "ratio": 0.02405852985826863
+          },
+          "crossties": 1008,
+          "cross_ties_min_per_m2": 25,
+          "maximum_reference_sample": 0.2922115885572109
+        }
+      },
+      "assumptions": [
+        "Proposed constant two-curtain web and boundary cages at 40 mm cover",
+        "Lowest wall base and rigid first basement, within-panel linear shear interpolation",
+        "Native MODEL live load and eight Crack wall strength assignments with separate amplified Cap shear controls",
+        "Roughness ≥5 mm with anchored joint reinforcement, friction coefficient 1.0, tension steel reserved",
+        "Beam capacity at the physical wall face on the selected rectangular beam section at N=0, both signs"
+      ],
+      "checks": {
+        "distinct_beam_ends": 17,
+        "independent_pmm_axial_and_end_samples": 576,
+        "independent_strong_axis_wall_face_axial_samples": 480,
+        "independent_oracle": "Separately assembled bar coordinates, strip integration and root inversion compared with sufficient upper PMM and lower strong-axis moment bounds. Original ETABS forces, geometric membership, elevations, both height branches and joint calculations were also checked.",
+        "web_crossties": 3312,
+        "previous_column_R14": {
+          "conditional": 42,
+          "failed": 4,
+          "held": 41
+        },
+        "selected_beams": 180,
+        "signed_gravity_cuts": 120
+      },
+      "commercial_controls": {
+        "reference": "ETEX A/B workbooks on different buildings",
+        "friction_rows": [
+          47,
+          32
+        ],
+        "axial_rows": [
+          47,
+          32
+        ],
+        "vertical_limbs": 32,
+        "vertical_pier_storeys": 23,
+        "axial_case": "1.4G+1.6Q",
+        "friction_steel_assumption": "0.75%",
+        "cap_effect": "The commercial factor of 100 for the second concrete cap differs from SI conversion. The TS 500 concrete cap changes no governing ratio in the 79 examples.",
+        "overturning": "Both saved files select the X row in the Y numerator. The original lacks a compatible directional section cut."
+      },
+      "workspace": {
+        "source": "Saved-run HTTP history, exported report, production workspace data mapper and table renderer in a Node DOM",
+        "views": {
+          "4.8": {
+            "title": "Strong column–weak beam · SCWB",
+            "rows": 252,
+            "status": "252 column end–direction records"
+          },
+          "7.1": {
+            "title": "Wall dimensions · Hw / lw",
+            "rows": 30,
+            "status": "SOURCE_NUMERICAL"
+          },
+          "7.2": {
+            "title": "Critical wall height · Hcr",
+            "rows": 8,
+            "status": "Recorded base scenarios"
+          },
+          "7.3": {
+            "title": "Boundary and web reinforcement",
+            "rows": 30,
+            "status": "30 physical wall panels"
+          },
+          "7.4": {
+            "title": "Wall web shear · Ve",
+            "rows": 192,
+            "status": "192/192 within shear bound"
+          },
+          "7.5": {
+            "title": "Wall shear friction",
+            "rows": 96,
+            "status": "96/96 within joint resistance"
+          },
+          "7.6": {
+            "title": "Wall axial capacity",
+            "rows": 192,
+            "status": "192/192 evaluated"
+          },
+          "7.8": {
+            "title": "Seismic wall section design · PMM",
+            "rows": 192,
+            "status": "192/192 conditional face designs"
+          },
+          "7.9": {
+            "title": "Wall strong direction · Eq. 7.3",
+            "rows": 96,
+            "status": "96/96 within moment strength"
+          },
+          "7.10": {
+            "title": "Gravity wall section design",
+            "rows": 120,
+            "status": "120/120 evaluated"
+          }
+        },
+        "column_scwb": "4.8 retains 252 column-end/direction records including shared physical joints. 168 low-axial exemptions, 20 sufficient interval decisions and 64 open scenario decisions.",
+        "wall_eq_7_3": "7.9 holds 12 floor–pier connections × 8 combinations, with 17 distinct beam ends.",
+        "saved_html_sha256": "39d482032614a3daeced64a228e6505ac993c455e7f18f2fb2def55a78e7be29",
+        "http_html_sha256": "e6e86ce5b5881383b1f06b5f2aedad1cca17ef1705014f02a9e67dc608df9406",
+        "print_comparison": "Text matches across 49 Windows CRLF versus HTTP LF line endings.",
+        "default_store": "Identical copies of all 19 run files verified in the default local receipts store."
+      },
+      "validation": {
+        "platform": "Windows CPython 3.12.10 and Node 26.13.1",
+        "python_total": 1727,
+        "passed": 1726,
+        "skipped": 1,
+        "skip_reason": "test_wrong_run_and_symlink_cannot_cross_source_boundary: OS disallows creating symlinks",
+        "python_seconds": 318.65,
+        "javascript_files_passed": 11,
+        "offline": "PASS",
+        "golden_44": {
+          "matched": 36,
+          "method_difference": 4,
+          "source_missing": 4
+        }
+      },
+      "commands": [
+        "& '.\\.venv\\Scripts\\python.exe' -X utf8 -B -m tbdy_next.cli run-pipeline --whole-building --source '.receipts/c29-self-weight-nmax/RUN-be9d8258796f4dfca1a3609453e94e53/parent.source' --design-scenario '.receipts/c29-self-weight-nmax/request.json' --wall-hinge-aggregate-storey '+4.50' --case Modal --out '.receipts/verification/wall-design-20261122/qualified' --pier-forces '.receipts/verification/pier-section-design-20261122/original-piers.json'",
+        ".venv/Scripts/python.exe -X utf8 -B .receipts/verification/wall-design-20261122/verify_original.py",
+        ".venv/Scripts/python.exe -X utf8 -B .receipts/verification/wall-design-20261122/verify_workspace.py",
+        "$env:NO_PROXY = '127.0.0.1,localhost,::1'",
+        "& '.\\.venv\\Scripts\\python.exe' -X utf8 -B tools/test_offline.py --node 'C:/Program Files/nodejs/node.exe'"
+      ],
+      "private_file_sha256": {
+        ".receipts/verification/wall-design-20261122/verification.json": "167e79e412b1f4f42b1e8c48e2bf0f6d1ca881c1e51f96df97e7434224f35979",
+        ".receipts/verification/wall-design-20261122/verify_original.py": "65fe02d98454996f1402f7e628e1760250da342f87eb37e3435e7a08546503c3",
+        ".receipts/verification/wall-design-20261122/independent.log": "d638954618478b2faf4ad82e442a4e932bca5459c25ad316cf3574f3b064ae2c",
+        ".receipts/verification/wall-design-20261122/etex-wall-controls.json": "f199adc3b73fa480ef66e06e75ee84a7f32fc4e6da3dd660ae4a3a75e85ebf58",
+        ".receipts/verification/wall-design-20261122/windows-ui.log": "e74865a96b8ee057fc2fc65774f3f8ee32e39c8e145c033eea217deff27b040f",
+        ".receipts/verification/wall-design-20261122/workspace-views.json": "c09edfa04ef300dbc2e0755d24fbd01e534625911f043a3f456d6e4ca0268a28",
+        ".receipts/verification/wall-design-20261122/verify_http.cjs": "bbfe4f1e0a4d8c1d3fba8b55f49179ce812a4033087154f7075595ee1081c5f2",
+        ".receipts/verification/wall-design-20261122/verify_workspace.py": "06d4a420d91309187da72dfd0a62787ee462a1a679fe7cba1045f7ff477a26b5",
+        ".receipts/verification/wall-design-20261122/qualified-cli.log": "9b247d9608cd5ee4504ed742899606ab182dd649fe1a728872e4e5a668732daa"
+      },
+      "limits": "Proposed bar layouts, splice and anchorage details, roughened anchored horizontal joints, project base and load assumptions, and applicability for multi-panel basement piers remain open. Seventeen panels belong to xP2, yP1 and yP2 and one wall lacks a pier label. The original overturning check requires a common-origin directional section cut or equivalent signed modal totals.",
+      "engineering_release": "NOT_READY",
+      "next_action": "Design the five original yP1 basement panels as their complete multi-panel pier. Establish the two net physical cross-sections, axes, centroid, wall membership, basement applicability and web/end reinforcement, then evaluate their native pier forces through the whole-building runner. Preserve the four completed rectangular pier calculations, the 42/4/41 column outcomes and the slab, punching and C104 holds."
     }
   ],
   "new_record_template": {
@@ -10229,7 +10621,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-22T18:09:17.957645+00:00",
+  "updated_at_utc": "2026-11-22T19:34:06.167922+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -11009,6 +11401,24 @@
       "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
       "engineering_release": "NOT_READY",
       "next_action": "Continue the original whole-building runner with signed pier section demands on P2–P5. Start with P3, reconcile physical cut, side, axes, case and step, then combine the selected end cages with the wall web for section flexure and shear. Carry C21–C24 base-continuation failures to each report. Slab flexure, punching and C104 local mesh work are deferred."
+    },
+    {
+      "status": "FOUR_RECTANGULAR_PIERS_GRAVITY_AND_LOCAL_SEISMIC_SHEAR_CALCULATED",
+      "work_branch": "work/pier-section-design",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "edc1a7b61ffa0daaf27865fe526b1a3b75732c2f",
+      "tested_implementation_commit": "123bdf0b275d2f301ede628de5a86b13fb813dce",
+      "evidence_refs": [
+        "EV-BUILDING-PIER-SECTIONS-20261122",
+        "EV-ETEX-PIER-AXIAL-CRACK-X-SOIL-20261122",
+        "EV-ETEX-PIER-SHEAR-WORKBOOK-20261122",
+        "EV-ETEX-WALL-QUICK-SECTION-LIMIT-20261122"
+      ],
+      "production_run_id": "RUN-c85705a8cb9a48b1a190d24d10198e66",
+      "results_sha256": "9955b53c0a5ad4f79caf5c544c73138f9d48ef9fccf5019346e4fd37088442e3",
+      "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
+      "engineering_release": "NOT_READY",
+      "next_action": "Use the same original P2–P5 pier cuts and cages in the whole-building runner. Construct the TBDY 7.6.6.1 seismic design moment diagram for the two model-base assumptions and bound PMM across the local axial interval at all 192 native seismic assignment cuts. Carry the 7.6.6.2 strong-direction check and detailing dependencies. Construct the heightwise shear diagram under Fig. 7.12(c) on its applicable branch. Keep the completed local shear bounds and signed gravity checks. The ETEX workbook comparison with the proposed cage is complete. The Quick Result area limit is reconstructed. Retain the commercial selector discrepancy and the unknown installed cage as separate qualifications. Slab, punching and C104 convergence are deferred."
     }
   ],
   "remote_audit_correction_checkpoint": {

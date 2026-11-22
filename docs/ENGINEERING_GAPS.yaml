@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-22T18:09:17.957645+00:00",
+  "updated_at_utc": "2026-11-22T19:34:06.167922+00:00",
   "repository": "feridunfc/YENI",
-  "baseline_implementation_commit": "123bdf0b275d2f301ede628de5a86b13fb813dce",
+  "baseline_implementation_commit": "7b8122238b2242d40b61614aaf0d6defc592f9b1",
   "local_reconciled": true,
-  "scope_note": "One whole-building engine. R14 has 42 conditional, four failed foundation continuations and 41 held. P2–P5 now have 120 signed original gravity PMM and in-plane shear results plus 192 sufficient conditional seismic shear bounds across 12/30 wall objects. Two B2 and three wall geometry exceptions persist.",
+  "scope_note": "The single building runner carries 12/30 original wall panels to 192/192 conditional seismic face designs, 96/96 rough-joint combinations, 96/96 wall strong-direction Eq. 7.3 comparisons and 120/120 signed gravity cuts. Frame R14 remains 42 conditional, four failed and 41 held. Two B2 and three wall geometry exceptions persist.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -33,7 +33,7 @@
     "GAP-018",
     "GAP-006"
   ],
-  "active_task": "Use the same original P2–P5 pier cuts and cages in the whole-building runner. Construct the TBDY 7.6.6.1 seismic design moment diagram for the two model-base assumptions and bound PMM across the local axial interval at all 192 native seismic assignment cuts. Carry the 7.6.6.2 strong-direction check and detailing dependencies. Construct the heightwise shear diagram under Fig. 7.12(c) on its applicable branch. Keep the completed local shear bounds and signed gravity checks. The ETEX workbook comparison with the proposed cage is complete. The Quick Result area limit is reconstructed. Retain the commercial selector discrepancy and the unknown installed cage as separate qualifications. Slab, punching and C104 convergence are deferred.",
+  "active_task": "Design the five original yP1 basement panels as their complete multi-panel pier. Establish the two net physical cross-sections, axes, centroid, wall membership, basement applicability and web/end reinforcement, then evaluate their native pier forces through the whole-building runner. Preserve the four completed rectangular pier calculations, the 42/4/41 column outcomes and the slab, punching and C104 holds.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -862,15 +862,19 @@
       "title": "Wall/pier factor and wall design",
       "status": "PARTIAL",
       "priority": "P1",
-      "achieved_scope": "Both ends of 12/30 physical wall objects have conditional rectangular boundary longitudinal and transverse designs in the building run. P2–P5 have continuous shared-edge stacks. Their critical zones are retained over all three storeys in the proposal, with 16 to 24 Ø14 per end, Ø10/80 hoops and crossties checked separately in both directions. The same twelve panels now have a calculated double-curtain web and fixed-axial biaxial capacities at both ends for all five native wall static assignments. All eight native wall seismic assignments have sufficient local in-plane shear bounds for both classifications under 7.6.6.3.",
-      "blocker": "Fig. 7.12(c) shear distribution over height, seismic design moment diagram and axial-range PMM, strong-wall capacity at frame joints, development, web crosstie layout, joint friction and the other 18 wall panels. The four rectangular stacks have verified single-area, zero-line sections and clear column footprints.",
+      "achieved_scope": "Both ends of 12/30 physical wall objects have conditional rectangular boundary longitudinal and transverse designs in the building run. P2–P5 have continuous shared-edge stacks. Their critical zones are retained over all three storeys in the proposal, with 16 to 24 Ø14 per end, Ø10/80 hoops and crossties checked separately in both directions. The same twelve panels now have a calculated double-curtain web and fixed-axial biaxial capacities at both ends for all five native wall static assignments. All eight native wall seismic assignments have sufficient local in-plane shear bounds for both classifications under 7.6.6.3. The original eight native wall assignments now produce 192 conditional full-interval PMM, heightwise moment, shear and axial section designs. All 96 construction joint combinations and 96 floor moment-strength combinations under §7.6.6.2 satisfy their bounds. The engine also calculates the physical web crossties on all 12 panels. The saved workspace and printable report expose the same results.",
+      "blocker": "Proposed bar layouts, splice and anchorage details, roughened anchored horizontal joints, project base and load assumptions, and applicability for multi-panel basement piers remain open. Seventeen panels belong to xP2, yP1 and yP2 and one wall lacks a pier label. The original overturning check requires a common-origin directional section cut or equivalent signed modal totals.",
       "closure_criteria": "Complete the real wall topology/forces, normative calculation, independent oracle and sealed-report slice.",
       "owner_paths": [
         "src/tbdy_next/wall_geometry.py",
         "src/tbdy_next/engineering/wall_boundary.py",
         "src/tbdy_next/engineering/wall_section.py",
         "src/tbdy_next/engineering/pier_force_source.py",
-        "src/tbdy_next/engineering/pier_seismic_shear.py"
+        "src/tbdy_next/engineering/pier_seismic_shear.py",
+        "src/tbdy_next/column_engine/section_interval.py",
+        "src/tbdy_next/engineering/pier_height_design.py",
+        "src/tbdy_next/engineering/pier_joint_strength.py",
+        "src/tbdy_next/engineering/building_design.py"
       ],
       "evidence_refs": [
         "EV-RECIPE18-INTAKE",
@@ -878,7 +882,8 @@
         "EV-BUILDING-PIER-SECTIONS-20261122",
         "EV-ETEX-PIER-AXIAL-CRACK-X-SOIL-20261122",
         "EV-ETEX-PIER-SHEAR-WORKBOOK-20261122",
-        "EV-ETEX-WALL-QUICK-SECTION-LIMIT-20261122"
+        "EV-ETEX-WALL-QUICK-SECTION-LIMIT-20261122",
+        "EV-BUILDING-SEISMIC-WALL-DESIGN-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -924,6 +929,31 @@
         },
         "governing_shear": "P2 wall 472 bottom, Crack_SeisX_Soil and Cap_SeisX_Soil, upper utilization 0.5805212155",
         "method8_gravity_cuts": 72
+      },
+      "seismic_sections_20261122": {
+        "evidence_ref": "EV-BUILDING-SEISMIC-WALL-DESIGN-20261122",
+        "run": "RUN-a5a2859f6b874fcdb6180c8c2fb79da8",
+        "conditional": 192,
+        "expected_rectangular_cut_combinations": 192,
+        "panels": 12,
+        "building_panels": 30,
+        "rough_joint_combinations": 96,
+        "wall_strong_direction_combinations": 96,
+        "distinct_selected_beam_ends": 17,
+        "strongest_demand_over_available": {
+          "PMM_upper": 0.42740457125752546,
+          "height_shear_upper": 0.5805212155322903,
+          "joint_friction_upper": 0.31186264076073994,
+          "wall_eq_7_3_upper": 0.1264120380782878
+        },
+        "project_qualified_seismic": 0,
+        "remaining_population": {
+          "yP2": 6,
+          "xP2": 6,
+          "yP1": 5,
+          "UNASSIGNED": 1
+        },
+        "next_task": "Design the five original yP1 basement panels as their complete multi-panel pier. Establish the two net physical cross-sections, axes, centroid, wall membership, basement applicability and web/end reinforcement, then evaluate their native pier forces through the whole-building runner. Preserve the four completed rectangular pier calculations, the 42/4/41 column outcomes and the slab, punching and C104 holds."
       }
     },
     {
