@@ -113,7 +113,25 @@ Use the original P2/W6 wall 472, lower face of storey +0.00 m at (69.00, 18.60, 
 | In-plane shear resistance Vr | 346.96 tf for proposed two-face Ø12/200 horizontal steel | 633.56 tf |
 | Utilization at that same native shear | 46.31% | 25.36% |
 
-The axial view evaluates concrete area under compression. For the high-ductility branch the applicable storeys, basement-wall classification, project G+Q+E combinations and live-load reductions govern the full 7.6.1.1 check. The axial limit uses concrete area and strength. The shear view shows βv = 1.5 in its list and 1.0 in the adjoining field, and displays Ve1 as blank. The effective βv, steel stresses and actual horizontal steel are unavailable from these summaries. A P2 provided-reinforcement schedule and ETEX's Vr formula can resolve the difference without changing the ETABS model. The user reported no defined section cuts for overturning. These comparisons used native Pier Forces. [TBDY 2018, §§7.6.1.1, 7.6.6.3 and 7.6.7.1](https://www.afad.gov.tr/kurumlar/afad.gov.tr/2309/files/TBDY_2018.pdf)
+The axial view evaluates concrete area under compression. For the high-ductility branch the applicable storeys, basement-wall classification, project G+Q+E combinations and live-load reductions govern the full 7.6.1.1 check. The axial limit uses concrete area and strength. The shear view shows βv = 1.5 in its list and 1.0 in the adjoining field, and displays Ve1 as blank. The effective βv, steel stresses and actual horizontal steel are unavailable from these summaries. The calculation behind the Quick Result and the reinforcement physically provided at P2 still require their own source. The user reported no defined section cuts for overturning. These comparisons used native Pier Forces. [TBDY 2018, §§7.6.1.1, 7.6.6.3 and 7.6.7.1](https://www.afad.gov.tr/kurumlar/afad.gov.tr/2309/files/TBDY_2018.pdf)
+
+#### ETEX shear workbook at the same lower cuts
+
+The supplied ETEX file had header-only `DATA` and `DATA_CIROZ` sheets. A private copy now contains the 15 original `Cap_SeisX_Soil` lower pier-storey cuts and seven distinct pier geometry keys. Twelve cuts are single-panel rectangular sections of P2–P5. The three basement-only piers have multiple panels. The copy uses `PERDE_KESME!G4 = Hayır` to compare the native maximum absolute bottom V2 at all 15 cuts. The original Fig. 7.12 selector was on. Ten Quick Result values at displayed precision are available for that branch. The remaining five adjusted inputs are marked unavailable. The envelope components in a row have no simultaneity guarantee.
+
+At P2/W6 (472), the lower face of storey +0.00 m carries 160.6647 tf of in-plane shear under this combination. The section is 4.00 m by 0.40 m. All resistances below are in tf.
+
+| Resistance | Source or calculation | P2 value |
+| --- | --- | ---: |
+| Concrete section limit | `PERDE_KESME!P7`, solid-wall coefficient 0.85 | 820.4533 |
+| Concrete contribution | `X7`, C35 lookup with fctd = 1.38 MPa | 146.3502 |
+| Horizontal-steel contribution, template default | `Y7`, two curtains of Ø10/200, B500C | 139.2846 |
+| Concrete plus horizontal steel, template default | `Z7`, X7 + Y7 | 285.6348 |
+| Concrete plus horizontal steel, proposed Ø12/200 | Same Z7 formula with the two-curtain engine cage | 346.9200 |
+| Engine resistance, proposed Ø12/200 | Sealed original building calculation | 346.9631 |
+| Quick Result Vr | Screen value, copied into the previously empty `DATA!AU2` input | 633.56 |
+
+The like-cage P2 difference is 0.0431 tf (0.0124%). The workbook uses tabulated fctd and a rounded MPa-to-tf/m² conversion. With the original formulas exercised on the proposed cage at all 12 rectangular cuts, the largest absolute difference from the engine is 0.04742 tf. The delivered workbook retains its default Ø10/200, giving a P2 utilization of 56.25%. Neither the section limit nor the reinforced resistance reads `DATA!AU2`. Resolving the Quick Result value requires its upstream formula and inputs. The template and the proposed cage give no evidence of the actual installed steel. These comparisons cover the selected raw shear envelope. The heightwise design shear and seismic PMM remain open. [Workbook comparison record](../VERIFICATION_LEDGER.json)
 
 ## Result identity
 

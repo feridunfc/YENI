@@ -26,13 +26,14 @@
     "tested_implementation_commit": "123bdf0b275d2f301ede628de5a86b13fb813dce",
     "evidence_refs": [
       "EV-BUILDING-PIER-SECTIONS-20261122",
-      "EV-ETEX-PIER-AXIAL-CRACK-X-SOIL-20261122"
+      "EV-ETEX-PIER-AXIAL-CRACK-X-SOIL-20261122",
+      "EV-ETEX-PIER-SHEAR-WORKBOOK-20261122"
     ],
     "production_run_id": "RUN-c85705a8cb9a48b1a190d24d10198e66",
     "results_sha256": "9955b53c0a5ad4f79caf5c544c73138f9d48ef9fccf5019346e4fd37088442e3",
     "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
     "engineering_release": "NOT_READY",
-    "next_action": "Use the same original P2–P5 pier cuts and cages in the whole-building runner. Construct the TBDY 7.6.6.1 seismic design moment diagram for the two model-base assumptions and bound PMM across the local axial interval at all 192 native seismic assignment cuts. Carry the 7.6.6.2 strong-direction check and detailing dependencies. Construct the heightwise shear diagram under Fig. 7.12(c) on its applicable branch. Keep the completed local shear bounds and signed gravity checks. Compare ETEX P2 resistance with the reinforcement actually provided when its schedule is available. Slab, punching and C104 convergence are deferred."
+    "next_action": "Use the same original P2–P5 pier cuts and cages in the whole-building runner. Construct the TBDY 7.6.6.1 seismic design moment diagram for the two model-base assumptions and bound PMM across the local axial interval at all 192 native seismic assignment cuts. Carry the 7.6.6.2 strong-direction check and detailing dependencies. Construct the heightwise shear diagram under Fig. 7.12(c) on its applicable branch. Keep the completed local shear bounds and signed gravity checks. The ETEX workbook comparison with the proposed cage is complete. Keep the Quick Result Vr source and the provided steel schedule as separate questions. Slab, punching and C104 convergence are deferred."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
@@ -10091,6 +10092,52 @@
       "documentation": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md#commercial-cross-check-at-p2",
       "production_regression_this_update": "NOT_RUN_DOCUMENTATION_ONLY",
       "engineering_release_granted": false
+    },
+    {
+      "id": "EV-ETEX-PIER-SHEAR-WORKBOOK-20261122",
+      "status": "ETEX_WORKBOOK_AND_ENGINE_REINFORCED_RESISTANCE_COMPARED",
+      "checked_at_utc": "2026-11-22T17:14:53.978643+00:00",
+      "inspected_baseline": "752931e093ed9017fc0de0e077c8840a86759ad6",
+      "original_building_run": "RUN-c85705a8cb9a48b1a190d24d10198e66",
+      "model_source": "Original archived ETABS Pier Forces, Cap_SeisX_Soil, Bottom, governing absolute native V2",
+      "native_capture_sha256": "11bbd50bec6cee4547ab3f90881545209a208f77f0677499ecc273041bc1a59c",
+      "source_workbook_sha256": "958e043b454648b7a11419d5e859575c3e4f5ecc18967e921adf4a65d158e6a8",
+      "filled_copy_sha256": "42071ffb7f06bd3dd4263e024e129d0caf765a479e5c087d4cfd2dd1b8c594e4",
+      "storey_cuts": 15,
+      "geometry_keys": 7,
+      "single_panel_cuts_with_proposed_cage_compared": 12,
+      "basement_only_multi_panel_cuts": 3,
+      "source_control": "G4=Hayır reads native unmodified shear. Ten printed Quick Result values are available for the G4=Evet branch; five adjusted values are unavailable.",
+      "p2_case": {
+        "pier": "P2 / W6 / 472",
+        "storey": "+0.00",
+        "location": "Bottom",
+        "width_m": 4.0,
+        "thickness_m": 0.4,
+        "native_shear_tf": 160.6646816191054,
+        "concrete_section_limit_p7_tf": 820.4533031934383,
+        "concrete_share_x7_tf": 146.3502144,
+        "steel_share_y7_default_2x10_at_200_tf": 139.28455916167755,
+        "reinforced_z7_default_tf": 285.63477356167755,
+        "utilization_default": 0.562482920464209,
+        "reinforced_z7_2x12_at_200_tf": 346.9199795928157,
+        "engine_same_cage_tf": 346.9630856424904,
+        "quick_result_display_tf": 633.56
+      },
+      "like_cage_max_abs_diff_tf": 0.047416654642177036,
+      "like_cage_max_relative_diff": 0.00012423814364862187,
+      "verification": "Compared all 15 active workbook rows to an independent calculation, substituted and restored the proposed cage at 12 rectangular sections, and recalculated active expressions from the saved file. All 687845 original formulas across the three calculation sheets were preserved. Native Windows desktop Excel automation was unavailable.",
+      "private_validation": ".receipts/verification/pier-section-design-20261122/etex-workbook/validation.json",
+      "private_validation_sha256": "b3ae7ef668685c0ac1a80090f68a1206557711102ecbe724c556165fd32e6cad",
+      "scope": "Supplied workbook formulas and native lower V2 only. The Quick Result Vr calculation, provided reinforcement, heightwise shear and seismic PMM are outstanding.",
+      "engineering_release": "NOT_READY",
+      "software_suite": "NOT_RUN_DOCUMENTATION_AND_WORKBOOK_ONLY",
+      "public_reference_paths": [
+        "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
+        "docs/CURRENT_STATE.md",
+        "docs/context/WORKER_HANDOFF_20261119.md",
+        "docs/ENGINEERING_GAPS.yaml"
+      ]
     }
   ],
   "new_record_template": {
@@ -10115,7 +10162,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-22T16:28:08.646955+00:00",
+  "updated_at_utc": "2026-11-22T17:14:53.978643+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
