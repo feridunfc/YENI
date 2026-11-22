@@ -284,6 +284,16 @@ class VerticalSlicePipelineTests(unittest.TestCase):
         self.assertIn("CAPACITY_SHEAR_EXCEEDS:WEB", result["failures"])
         self.assertIn("RESISTANCE_UNAVAILABLE:SPAN", result["missing"])
 
+    def test_selected_beam_requires_every_assigned_gravity_case_and_both_envelope_extremes(self):
+        from tbdy_next.engineering.beam_r10_live import _beam_gravity_shear_kn
+        forces = json.loads(self.raw)["column_axial"]["r10_source"]["beam_force_source"]["rowsets"]
+        axial = deepcopy(self.stages["column_axial"])
+        self.assertEqual(_beam_gravity_shear_kn(forces, "B1", axial), 20.)
+        axial["combination_plan"]["design_assignment"]["groups"]["gravity"].append("G-other")
+        self.assertIsNone(_beam_gravity_shear_kn(forces, "B1", axial))
+        forces["B1"]["StepType"][0] = "Min"
+        self.assertIsNone(_beam_gravity_shear_kn(forces, "B1", self.stages["column_axial"]))
+
     def test_real_magnified_demand_reselects_cage_without_alpha_or_native_force_change(self):
         # A declared numerical stress example, not a verified restraint model:
         # K=5/Rm=1 deliberately tests the adopted-input calculation consumer.

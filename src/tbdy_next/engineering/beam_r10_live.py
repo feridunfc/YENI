@@ -22,6 +22,7 @@ from ..column_engine.beam_capacity import (
 )
 from ..column_engine.beam_references import AREA_FIELDS, station_budget
 from ..column_engine.section_capacity import Bar, Material, Section
+from ..column_engine.native_archive import BankError
 from ..column_engine.source_bank import native_frame_force_rows
 from ..column_engine.transverse_kernel import max_shear_web_kn
 from ..column_engine.ts500_column import positive
@@ -454,8 +455,21 @@ def _beam_gravity_shear_kn(force_rowsets: Mapping[str, Any], uid: str, axial: Ma
         gravity_names |= set((plan["design_assignment"].get("groups") or {}).get("gravity", ()))
     if not gravity_names:
         return None
-    rows = [r for r in native_frame_force_rows(rowset, uid) if r[4] in gravity_names and r[6] == 0]
-    if not rows:
+    try:
+        rows = [r for r in native_frame_force_rows(rowset, uid) if r[4] in gravity_names]
+    except BankError:
+        return None
+    # A partial gravity case or lone envelope extreme can underestimate the full Ve.
+    by_case = {name: {} for name in gravity_names}
+    for row in rows:
+        if row[6] != 0:
+            return None
+        by_case[row[4]].setdefault(row[:4], set()).add(row[5])
+    cuts = {row[:4] for row in rows}
+    if not cuts or any(case.keys() != cuts for case in by_case.values()):
+        return None
+    if any(steps not in ({"Single Value"}, {""}, {"Min", "Max"})
+           for case in by_case.values() for steps in case.values()):
         return None
     return max(abs(float(r[8])) for r in rows)
 
