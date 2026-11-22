@@ -1,22 +1,15 @@
 # Local development and GitHub worker handoff
 
-## Current assignment after the LC_EQX design-role clarification
+## Four-mesh result for the assigned C104 demands
 
-Start with the [LC_EQX role correction](../supervisor/LC_EQX_ROLE_CORRECTION_20261122.md). The user identifies LC_EQX as the equivalent-static reference for modal beta_tE amplification, not a direct design-action case. Trace actual assigned combinations, equivalent and pre-beta modal base shears, required/applied scale and its single consumption. Compare the actual consumed design quantities before assigning further W22/W23 mesh work. Do not confuse beta_tE with TS 500 beta/beta_s or second-order beta_II.
+Start with the [four-mesh numerical result](../engineering/C104_ASSIGNED_DEMAND_AND_W23_20261122.md) and the [current GAP assignment](../ENGINEERING_GAPS.yaml). The original working model and the solved A/B/C/D private captures are identified in the [verification ledger](../VERIFICATION_LEDGER.json). Local replay uses the existing R08 pipeline and its sealed report. The implementation is `9e070be487be102d54293fd6e19d01831c676d35`. The engineering receipt is `RUN-f21f119300d845d78f27e8345a8bdf54`.
 
-Preserve the [C104 component table and 24 C29 capacity checks](../engineering/C104_TRANSITION_AND_C29_CAPACITY_20261122.md), the sealed S03 free bodies and the six S02 balances. The −219.533 kN·m LC_EQX difference immediately above the transition, including −194.297 kN·m from W22, remains a diagnostic. The code attaches it to the R08 boundary report without direct beta_tE or PMM consumption. Investigate W22/W23 when the actual-consumer comparison shows a relevant discrepancy. [Current engineering gaps](../ENGINEERING_GAPS.yaml)
+- Reuse the four existing mesh solutions, 36 complete W22/W23 balances, 456 assigned frame comparisons and 144 signed coupled section comparisons. A/D has 61/456 assigned fields in the existing budget. Under Duct_SeisX_Soil the axial change immediately above −1.50 m is −44.308 kN, dominated by horizontal refinement.
+- The next mesh comparison holds the D vertical pitch of 25 mm and the W23 mesh and edge policy fixed. Refine W21/W22 horizontally, compare the assigned soil P above and V3 below −1.50 m, and report all 456 components. Track the V2 response in a separate vertical sequence. Keep each load, step, face and sign from the sealed reference.
+- Eleven native assignments establish LC_EQX/LC_EQY as auxiliary cases. The whole-base/0 m scale alternatives have been evaluated. Resolve the applicable basement classification, upper-building mass scope and acceleration normalization before assigning a project beta_tE.
+- C29 retains its six signed story balances, 12 conditional factors, 24 independently checked cage faces and 2/87 conditional R14 result. For the fourteen coupled columns the second-order method and construction continuity still require separate evidence. The user-supplied model view remains the sole detail. [C29 and earlier C104 scope](../engineering/C104_TRANSITION_AND_C29_CAPACITY_20261122.md)
 
-The first-order model and bar detailing have separate source roles. The user confirmed that the archived model view is the only available connection detail. Record any future physical detailing assumption with its project authority. The 14 wall-coupled columns retain the second-order gate. C29's selected-cage R14 closure remains 2/87 conditional. S08 still requires the same-generation joint force/capacity identities and low-axial exemption evidence.
-
-The [S00 and S02 calculation](../engineering/C29_S00_S02_20261122.md) and [dated second-audit checkpoint](../supervisor/audit_20261122/WORKER_CHECKPOINT.json) preserve earlier milestones. The current numerical evidence identifiers are `EV-S03-C104-TRANSITION-20261122`, `EV-S06-C29-24-FACES-20261122` and `EV-WINDOWS-C104-TRANSITION-20261122`.
-
-The [supervisor milestone review](../supervisor/C104_TRANSITION_REVIEW_20261122.md)
-and [W22 transfer plan](../supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json)
-record the earlier assignment after reviewing `a89f70f`. The later LC_EQX role
-correction supersedes the unconditional priority of that experiment. The review passed 14 focused
-tests and checked public arithmetic; it did not rerun private native evidence.
-Preserve C29's completed 24/24 face scope. The dated one-face checkpoint below
-is historical and does not assign the former 23 remaining faces again.
+The evidence IDs are `EV-C104-W22-W23-FOUR-MESH-20261122` and `EV-WINDOWS-C104-FOUR-MESH-20261122`. The [review-time experiment](../supervisor/C104_TRANSITION_REVIEW_20261122.md) and [LC_EQX scope correction](../supervisor/LC_EQX_ROLE_CORRECTION_20261122.md) explain how the current assignment was selected.
 
 ## Assignment issued with the system audit on 21 November 2026
 
@@ -69,16 +62,11 @@ Linux run; neither test count substitutes for original-building evidence.
 
 ## Next GAP-009 calculation
 
-Read the [current scope and next-action record](../supervisor/lc_eqx_role_20261122/SCOPE_AND_NEXT_ACTION.json).
-The first receipt must show actual case roles and combination lineage, VtE,
-pre-beta modal shear, required/applied beta_tE, scale ownership and relevant
-used-demand comparisons. A declared equivalent-static reference must not be
-silently substituted for a spectral design demand. If the actual assigned graph
-conflicts with the declared role, report the conflict. The earlier W22 diagnostic
-steps below remain available only when their effect on used quantities is shown.
-Coupled second-order qualification proceeds on the actual design basis.
+Use the matched physical faces and native case/step populations from the four-mesh C104 result above. The first-order spacing study found a real change in the assigned P, V2 and V3. The next level must quantify the change in the assigned design demand. Verify coupled second-order behavior under explicit stiffness, restraint, creep and axial-load assumptions after identifying a stable first-order result. [Measured effects and open method work](../engineering/C104_ASSIGNED_DEMAND_AND_W23_20261122.md)
 
-### Conditional W22/W23 diagnostic recipe
+### Historical W22/W23 experiment instructions
+
+The 22 November four-mesh receipt completes steps 1–5 below to the scope stated in the current calculation. Step 6 remains open.
 
 1. Read `release-summary.json` and `w22-transfer.json` under the private verification directory `.receipts/verification/c104-transition-20261122`. The archived face arrays are already consumed in R08. Keep the 1% / 0.05 kN or kN·m mesh budget and the separate body-equilibrium budget. Preserve all 12 passed balances. The governing M3 difference belongs to `above_transition` immediately above −1.50 m, not the `upper` cap at −1.45 m.
 2. Inventory actual W22/W23 IDs, planes, points, axes, incident members, shared/coincident nodes, DOFs and constraints at x = 77.40 m. Use the archived models first; acquire missing W23 rows through the existing gateway. Qualify equivalent physical automatic-seismic loading across models: mass, period/scale, base/story forces, torsion and application centres. Different mesh DOF populations do not require literal equality of raw nodal vectors.

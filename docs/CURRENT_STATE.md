@@ -1,18 +1,16 @@
 # Original building calculation and local handoff — 2026-11-22
 
-## Current priority after the LC_EQX role clarification
+## Four-mesh result for the assigned C104 demands
 
-The user identifies LC_EQX as the equivalent-static reference for modal
-**beta_tE scaling**, not a direct project design-action case. The local C104
-LC_EQX M3 discrepancy is a retained diagnostic; it is not by itself a prerequisite
-to PMM or the beta_tE calculation. This corrects the earlier W22-first priority.
-The [role correction and actual-consumer task](supervisor/LC_EQX_ROLE_CORRECTION_20261122.md)
-now govern the next assignment: trace the actual case/combination roles, equivalent
-and pre-beta modal base shears, required/applied scale and its single consumption,
-then compare quantities used by the design. Further W22/W23 experiments depend
-on measured relevance to those quantities. No used design result is declared
-mesh-qualified by this correction. Existing C104/C29 results and GAP statuses
-are preserved; no new native calculation or software test is claimed.
+The signed ETABS results at C104 now include all four meshes. At −1.50 m immediately above the transition, the minimum axial force under Duct_SeisX_Soil changes from −359.497 to −403.805 kN. Changing horizontal spacing alone accounts for −45.906 kN, vertical spacing for +2.640 kN and their interaction for −1.042 kN. Both spacings also affect V2. Of 456 assigned A/D force and moment fields, 61 meet the fixed mesh budget. The six signed global base cases meet it on all 36 components. All 144 storey force comparisons meet it as well.
+
+For each of six static cases on A and D, W22, W23 and their combined free body balance independently (36/36). The four native arrays reproduce all 1,824 assigned C104 fields and 576 signed coupled section fields. The 11 assigned combinations contain zero direct LC_EQX/LC_EQY terms. Under γE = 0.9 at the whole-model base, the fine model's additional RSA factors would be 1.022448 in X and 1.047187 in Y. The applicable project base and the normalization of the ETABS scale remain open. The current Windows suite passed 1,709 Python tests with one skip and all 11 JavaScript files. [Calculation, units and full scope](engineering/C104_ASSIGNED_DEMAND_AND_W23_20261122.md) · [Evidence ledger](VERIFICATION_LEDGER.json)
+
+The next numerical check holds D's vertical spacing and W23 fixed and refines only W21/W22 horizontally, with P and V3 as named outputs. V2 also requires a vertical convergence check. C29's prior conditional R14 result is 2/87. C104 reinforcement continuity and coupled second order remain open. The 18-GAP inventory stands at 3 OPEN and 15 PARTIAL. [Active GAP assignment](ENGINEERING_GAPS.yaml)
+
+### Scope of the preceding LC_EQX correction
+
+The user identified LC_EQX as the equivalent-static reference for modal beta_tE scaling. This assignment led to the eleven-combination trace, the conditional whole-base/0 m comparisons and the measured local-demand investigation above. [Historical role correction](supervisor/LC_EQX_ROLE_CORRECTION_20261122.md)
 
 ## C104 first-order transition and C29 independent capacities
 
@@ -28,15 +26,9 @@ published component sums, capacity budgets and governing-face arithmetic were
 independently checked. Private native captures and the 24-row oracle were not
 replayed by this reviewer. The Windows full suite above remains separate evidence.
 
-The earlier assignment proposed establishing actual W22/W23 interface membership and equivalent physical
-automatic-seismic loading across the retained models. Both vertical and horizontal
-mesh pitches changed; the observed difference has not yet been isolated to one
-cause. Compare both-side six-component actions about the same origin, including
-constraint/load ownership and the spatial first moment of vertical force. If
-needed, complete the two-factor matrix with two cross-direction mesh models.
-The [machine-readable plan](supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json)
-marks those new solves as proposed, not run. The LC_EQX role correction above
-supersedes their unconditional priority. C29's former remaining 23 faces are
+The dated review proposed measuring W22/W23 edge membership and the horizontal and vertical mesh effects. The four-mesh calculation above completes this source and sensitivity experiment. [Review-time plan](supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json)
+
+C29's former remaining 23 faces are
 completed; further S06 work concerns axial limits, other sections and full-design
 evidence. See `EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122`. All 18 GAP statuses
 and the whole-building `NOT_READY` disposition remain unchanged.

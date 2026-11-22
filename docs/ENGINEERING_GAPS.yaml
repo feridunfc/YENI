@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-22T08:54:32.357515+00:00",
+  "updated_at_utc": "2026-11-22T11:41:00.062675+00:00",
   "repository": "feridunfc/YENI",
-  "baseline_implementation_commit": "60fd80303b7e101673d65dde5e1edf75a6caa6cf",
+  "baseline_implementation_commit": "9e070be487be102d54293fd6e19d01831c676d35",
   "local_reconciled": true,
-  "scope_note": "Current native engineering subscopes include C29 six story balances, the 24 common-face capacity comparisons and C104 four-face, six-action first-order section results. Original evidence and all 18 stable GAPs remain indexed.",
+  "scope_note": "C29 has six story balances, 24 selected-cage capacity face checks and two conditional R14 closures. C104 has 36 complete W22/W23 balances and signed two-factor results for 456 assigned and 144 coupled-section fields. Of 456 assigned A/D comparisons, 61 meet the mesh budget.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -30,7 +30,7 @@
     "GAP-018",
     "GAP-006"
   ],
-  "active_task": "Trace the user-declared LC_EQX equivalent-static reference through the actual directional VtE, pre-beta modal shear, required/applied beta_tE and scale ownership into the assigned spectral/design combination graph. Compare quantities actually consumed by design using retained compatible results. Do not require local auxiliary-case C104 M3 convergence as an automatic beta_tE/PMM prerequisite. Activate W22/W23 source or mesh investigation only when its effect on used global quantities or actual design demands is demonstrated; preserve all recorded diagnostic failures and independent coupled-method gates.",
+  "active_task": "Use the four solved C104 meshes as the baseline for the next comparison. At the D vertical spacing, compare the next horizontal refinement with D at the same four faces for the assigned soil P and V3 and the fixed 456-field population. Check the independent vertical sensitivity of V2. Keep W23 geometry and its constraint fixed in the spacing study. Resolve project basement/mass scope, irregularities and acceleration normalization before adopting an additional spectral factor. Qualify coupled second order and construction continuity separately.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -234,8 +234,8 @@
       "title": "Same-cut mesh, offsets and physical faces",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Supported MinStations=3 / zero-I-offset subset: 4422/4422 required cuts, including both sides in 14 meshed columns. Model support elevations and individual native cuts agree for both C29 segments and 59 of 87 columns. The five native face/connectivity tables include polygon continuation rows and the radye foundation mesh contact. Independently derived 402 distinct configured cuts match all 957 member/combination inventories and 7,638 force rows with native steps. Standalone physical lengths and cuts agree for 73 columns. Fourteen basement frame objects have identified wall shell contacts, including one partially coincident shell edge chain. The original ETABS model confirms automatic edge constraints on both C104 walls and geometric shell-edge coverage for all three nonmatching segments. In the private W21/W22 remesh, all 103 C104 frame segments have exact shared shell edges. Six signed cases balance at all 55 sampled internal joints. The original and private models were compared at six matching cut sides with all 11 assigned combinations and six signed component cases. A second 25 mm mesh matched all 206 C104 segments. The six signed static cases balance at 112 interior joints. The comparison covers 900 scalar values on six identical physical cut sides and shows remaining mesh sensitivity. R10 withholds offset-based capacity shear for all 14 wall-coupled columns. The C104 model view and verified native geometry establish a two-stage gross concrete union with a transition at -1.50 m. The sealed C104 R08 run computed 288 signed components on two meshes at four common faces and balanced all 12 thin free bodies. At the transition 16/72 components met the numerical mesh budget. W22 end-force redistribution dominates the upper-face LC_EQX M3 difference.",
-      "blocker": "Qualify physical cut identities and convergence of quantities actually consumed by the adopted design. Retain the C104 auxiliary-case discrepancy; establish its relevance before prioritizing W22/W23 experiments. Substantiate construction connection and reinforcement continuity for the adopted coupled design model.",
+      "achieved_scope": "Supported MinStations=3 / zero-I-offset subset: 4422/4422 required cuts, including both sides in 14 meshed columns. Model support elevations and individual native cuts agree for both C29 segments and 59 of 87 columns. The five native face/connectivity tables include polygon continuation rows and the radye foundation mesh contact. Independently derived 402 distinct configured cuts match all 957 member/combination inventories and 7,638 force rows with native steps. Standalone physical lengths and cuts agree for 73 columns. Fourteen basement frame objects have identified wall shell contacts, including one partially coincident shell edge chain. The original ETABS model confirms automatic edge constraints on both C104 walls and geometric shell-edge coverage for all three nonmatching segments. In the private W21/W22 remesh, all 103 C104 frame segments have exact shared shell edges. Six signed cases balance at all 55 sampled internal joints. The original and private models were compared at six matching cut sides with all 11 assigned combinations and six signed component cases. A second 25 mm mesh matched all 206 C104 segments. The six signed static cases balance at 112 interior joints. The comparison covers 900 scalar values on six identical physical cut sides and shows remaining mesh sensitivity. R10 withholds offset-based capacity shear for all 14 wall-coupled columns. The C104 model view and verified native geometry establish a two-stage gross concrete union with a transition at -1.50 m. The sealed C104 R08 run computed 288 signed components on two meshes at four common faces and balanced all 12 thin free bodies. At the transition 16/72 components met the numerical mesh budget. W22 end-force redistribution dominates the upper-face LC_EQX M3 difference. The paired W22/W23 read closes 36 first-order free-body checks. The crossed A/B/C/D meshes resolve vertical and horizontal effects on all 456 assigned C104 ordinates and 144 coupled resultants.",
+      "blocker": "Only 61/456 assigned C104 A/D components meet the fixed mesh budget. Qualify local design P and V3 at the next horizontal pitch, V2 on both refinement axes, and reinforcement continuity for the adopted connection.",
       "closure_criteria": "Establish all supported cut/face/mesh identities independently of force results; reject missing or ambiguous side matches.",
       "owner_paths": [
         "src/tbdy_next/engineering/column_pmm.py",
@@ -256,7 +256,8 @@
         "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
         "EV-S03-C104-TRANSITION-20261122",
         "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122",
-        "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122"
+        "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122",
+        "EV-C104-W22-W23-FOUR-MESH-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -311,6 +312,11 @@
         "note": "Retain measured C104 discrepancies; first establish which quantities the actual design consumes. W22/W23 experiments are conditional on a used-quantity impact, not automatic prerequisites from auxiliary LC_EQX local M3.",
         "status_changed": false,
         "previous_blocker": "Resolve W22/W23 boundary transfer at x=77.40 m, demonstrate component convergence and substantiate construction connection and reinforcement continuity for the adopted design model."
+      },
+      "assigned_c104_checkpoint_20261122": {
+        "evidence_ref": "EV-C104-W22-W23-FOUR-MESH-20261122",
+        "document": "docs/engineering/C104_ASSIGNED_DEMAND_AND_W23_20261122.md",
+        "status_changed": false
       }
     },
     {
@@ -378,7 +384,7 @@
       "title": "Global and local second-order effects",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Selected candidates can bind same-run R08 inputs; EI/Nk and second-order reference calculations exist. Same-run selected sections now carry both first-order and magnified design moments with the local/global factors and fixed-N radial reserve. R08 applies the existing minimum-eccentricity owner before local/global magnification for static and spectral-box references. Raw, floored and final moments are recorded and projected in the normal report. The two GOLDEN-01 theta scalars now call the existing global P-delta owner. R08 consumes the verified 4.45 m and 3.80 m C29 model clear lengths and the corresponding verified clear lengths of 57 more columns. R08 evaluates conditional TS 500 effective lengths and Euler loads at 59 columns using native directional framing. C29 has 36 aligned Eq. (7.29) comparisons across the stated scenarios. The accepted C29 base boundary at joint 934 restrains UX and UY, consistent with 14 sealed displacement rows. R08 and R14 now bind all 32 mat-connected column boundary conditions from 119 native point reads and R08 computes 64 same-case spectral endpoint differentials. The private ETABS copy supplied 2,784 paired signed end-moment comparisons across all 87 columns. 105 exceed the 5% TS 500 threshold across the six occupied story directions. The isolated ETABS mat gives finite two-axis rotational stiffness at joint 934. Actual floor strips and the mat probe support the two-axis C29 effective-length reference. Signed Eq. (7.23) inputs and column compression subtotals were verified for 24 story references. The 16 C29 Eq. (7.29) signed reference instances give the same branch for both length readings. The 48 signed story/axis references include all frame-column compression. The Rm=1 sensitivity calculation includes complete frame-column critical-load credit at +4.50 and +9.00 and 18 verified-span columns at +0.00. The selected-cage signed C29 PMM reference is evaluated at 48 native cuts. Eight assigned seismic combinations have 48 story-axis references and 1,752 magnified demand boxes for the 73 standalone columns under the Rm=1 sensitivity basis. R08 withholds isolated magnification for the 14 wall-coupled columns and preserves their native cut evidence. The first-order 50 and 25 mm matched-mesh runs show verified interior wall-frame force transfer and unresolved refinement sensitivity at C104. The C104 ideal gross coupled cross section changes geometry at -1.50 m. The existing runner now consumes an explicit, source-validated self-weight Nmax numerical idealization while preserving local N for eccentricity and selected-section PMM. A public two-column/four-beam fixture completes thirty signed cuts and sixteen unique interior-joint SCWB comparisons through conditional R14 closure; this is not original-building or normative acceptance. An independently checked normal-runner source exercises the source-bound revised TS 500 story factors, PMM, six-DOF field recovery, R14 and sealed HTML. The revised story producer now admits a separate same-generation modifier census for non-paired columns and filters Frame/Shell namespaces. A three-column manufactured normal-runner example consumes the additional contributor through actual EI/Nk, story magnification and selected-cage PMM; missing/stale contributors remain unresolved. On the live eight-part METHOD model, six native displacement components yield full-span peaks for both C29 members and three gravity cases each. All three native METHOD meshes now support full-span C29 recovery. The 4-to-8 comparison passes at both members for all three gravity cases. R08 v15 seals 12 adopted frame-column factors and 24 revised PMM sides at 18 physical case-cuts. The actual report reconstruction binds the existing GOLDEN-01 phi values and GOLDEN-02 numerical threshold change to the TS500 scalar owner using hash-bound drift, sum(N/L) and shear. The fixed 44-row bank now has 36 numerical matches, four interpretation differences and four insufficient-source rows. Full source populations and automatic sway assignment remain unqualified. C29's six signed first-order column-wall balances pass against independently calculated upper-body gravity and self-weight. All 267 physical contributor instances are present. The largest absolute residual is 0.000004916 kN. The conditional 12 factors and 24 PMM sides match the original-source replay. The sealed C104 R08 run computed 288 signed components on two meshes at four common faces and balanced all 12 thin free bodies. At the transition 16/72 components met the numerical mesh budget. W22 end-force redistribution dominates the upper-face LC_EQX M3 difference.",
+      "achieved_scope": "Selected candidates can bind same-run R08 inputs; EI/Nk and second-order reference calculations exist. Same-run selected sections now carry both first-order and magnified design moments with the local/global factors and fixed-N radial reserve. R08 applies the existing minimum-eccentricity owner before local/global magnification for static and spectral-box references. Raw, floored and final moments are recorded and projected in the normal report. The two GOLDEN-01 theta scalars now call the existing global P-delta owner. R08 consumes the verified 4.45 m and 3.80 m C29 model clear lengths and the corresponding verified clear lengths of 57 more columns. R08 evaluates conditional TS 500 effective lengths and Euler loads at 59 columns using native directional framing. C29 has 36 aligned Eq. (7.29) comparisons across the stated scenarios. The accepted C29 base boundary at joint 934 restrains UX and UY, consistent with 14 sealed displacement rows. R08 and R14 now bind all 32 mat-connected column boundary conditions from 119 native point reads and R08 computes 64 same-case spectral endpoint differentials. The private ETABS copy supplied 2,784 paired signed end-moment comparisons across all 87 columns. 105 exceed the 5% TS 500 threshold across the six occupied story directions. The isolated ETABS mat gives finite two-axis rotational stiffness at joint 934. Actual floor strips and the mat probe support the two-axis C29 effective-length reference. Signed Eq. (7.23) inputs and column compression subtotals were verified for 24 story references. The 16 C29 Eq. (7.29) signed reference instances give the same branch for both length readings. The 48 signed story/axis references include all frame-column compression. The Rm=1 sensitivity calculation includes complete frame-column critical-load credit at +4.50 and +9.00 and 18 verified-span columns at +0.00. The selected-cage signed C29 PMM reference is evaluated at 48 native cuts. Eight assigned seismic combinations have 48 story-axis references and 1,752 magnified demand boxes for the 73 standalone columns under the Rm=1 sensitivity basis. R08 withholds isolated magnification for the 14 wall-coupled columns and preserves their native cut evidence. The first-order 50 and 25 mm matched-mesh runs show verified interior wall-frame force transfer and unresolved refinement sensitivity at C104. The C104 ideal gross coupled cross section changes geometry at -1.50 m. The existing runner now consumes an explicit, source-validated self-weight Nmax numerical idealization while preserving local N for eccentricity and selected-section PMM. A public two-column/four-beam fixture completes thirty signed cuts and sixteen unique interior-joint SCWB comparisons through conditional R14 closure; this is not original-building or normative acceptance. An independently checked normal-runner source exercises the source-bound revised TS 500 story factors, PMM, six-DOF field recovery, R14 and sealed HTML. The revised story producer now admits a separate same-generation modifier census for non-paired columns and filters Frame/Shell namespaces. A three-column manufactured normal-runner example consumes the additional contributor through actual EI/Nk, story magnification and selected-cage PMM; missing/stale contributors remain unresolved. On the live eight-part METHOD model, six native displacement components yield full-span peaks for both C29 members and three gravity cases each. All three native METHOD meshes now support full-span C29 recovery. The 4-to-8 comparison passes at both members for all three gravity cases. R08 v15 seals 12 adopted frame-column factors and 24 revised PMM sides at 18 physical case-cuts. The actual report reconstruction binds the existing GOLDEN-01 phi values and GOLDEN-02 numerical threshold change to the TS500 scalar owner using hash-bound drift, sum(N/L) and shear. The fixed 44-row bank now has 36 numerical matches, four interpretation differences and four insufficient-source rows. Full source populations and automatic sway assignment remain unqualified. C29's six signed first-order column-wall balances pass against independently calculated upper-body gravity and self-weight. All 267 physical contributor instances are present. The largest absolute residual is 0.000004916 kN. The conditional 12 factors and 24 PMM sides match the original-source replay. The sealed C104 R08 run computed 288 signed components on two meshes at four common faces and balanced all 12 thin free bodies. At the transition 16/72 components met the numerical mesh budget. W22 end-force redistribution dominates the upper-face LC_EQX M3 difference. C104 four-mesh first-order demand sensitivity and complete W22/W23 equilibrium are measured. The comparison supplies an explicit demand qualification boundary to the coupled second-order study.",
       "blocker": "Qualify the two-axis coupled wall-frame critical-load method or a justified direct second-order demand path for the 14 wall-coupled columns. Resolve participating sections, restraint, effective stiffness, creep and varying-axial TS 500 applicability. First-order vertical equilibrium is complete for the two native C29 cuts and three gravity cases.",
       "closure_criteria": "Independently verify both-axis clear/effective lengths and EI, prevent double counting, and prove consumption of the qualified demands.",
       "owner_paths": [
@@ -429,7 +435,8 @@
         "EV-WINDOWS-S00-S02-20261122",
         "EV-S03-C104-TRANSITION-20261122",
         "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122",
-        "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122"
+        "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122",
+        "EV-C104-W22-W23-FOUR-MESH-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -578,6 +585,11 @@
         "report": "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
         "next_action_record": "docs/supervisor/lc_eqx_role_20261122/SCOPE_AND_NEXT_ACTION.json",
         "note": "Keep beta_tE separate from TS500 beta/beta_s and second-order beta_II. The C104 local diagnostic is not directly consumed by either beta_tE or PMM; actual coupled-method and design-demand qualification remain open.",
+        "status_changed": false
+      },
+      "assigned_c104_checkpoint_20261122": {
+        "evidence_ref": "EV-C104-W22-W23-FOUR-MESH-20261122",
+        "document": "docs/engineering/C104_ASSIGNED_DEMAND_AND_W23_20261122.md",
         "status_changed": false
       }
     },
@@ -982,7 +994,7 @@
       "title": "Spectral design demands and simultaneity",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Same-session live v6 source binds 100/100 native modal numeric modes and 2/2 eccentricity definitions. Independent Decimal(80) checks all 500 native numeric relationships with zero outside the unchanged tolerance. Existing 200/200 displayed spectrum mode rows, 1131/1131 supporting member-case pairs and 3216 scalar spectral cuts remain recorded. Repeat receipts are 16/16 IDENTICAL; report projection invokes zero calculators. No physical concurrency or alpha authority is granted. The v7 archived selected scenario independently matches 200 signed amplitude relationships at printed resolution across 100 modes and two directions. All 16 repeat receipt payloads match. The new same-session source readers have synthetic contract coverage. Live v8 binds 26 native function points, two case damping definitions, eight material getter returns and the two area-spring assignments behind 5,579 generated link elements. The independent reference checks 1,000 numbers for 200 case-modes. Conditional dynamic CQC was evaluated for all six force components at 804 case-cuts. Raw and same-policy selected replays each reproduce 16 sealed stage payloads. The private manual analysis yielded 804 signed static eccentricity effects from paired internal static cases. All 4,824 absolute component increments agree with the native spectrum envelope change. Independent conditional CQC on that same analysis reproduces all 4,824 zero-eccentricity maxima. The fresh-acquisition/original-archive comparison matched all 45,828 native scalar components over 7,638 assigned force rows. Original-model componentwise axial intervals now feed the conditional selected-cage R10 check at the five non-exempt physical joints. A fresh original capture adds 402 signed rows per supplementary pure static earthquake case across all 87 columns. Their case identities, selection and signed forces bind to the same source as the assigned gravity rows. The +4.50 principal-direction static references are reproducible at the same cuts. All 87 columns now have conservative selected-cage shear checks for every assigned spectral combination and local axis. A second existing sealed source corroborated every D-control shear extremum.",
+      "achieved_scope": "Same-session live v6 source binds 100/100 native modal numeric modes and 2/2 eccentricity definitions. Independent Decimal(80) checks all 500 native numeric relationships with zero outside the unchanged tolerance. Existing 200/200 displayed spectrum mode rows, 1131/1131 supporting member-case pairs and 3216 scalar spectral cuts remain recorded. Repeat receipts are 16/16 IDENTICAL; report projection invokes zero calculators. No physical concurrency or alpha authority is granted. The v7 archived selected scenario independently matches 200 signed amplitude relationships at printed resolution across 100 modes and two directions. All 16 repeat receipt payloads match. The new same-session source readers have synthetic contract coverage. Live v8 binds 26 native function points, two case damping definitions, eight material getter returns and the two area-spring assignments behind 5,579 generated link elements. The independent reference checks 1,000 numbers for 200 case-modes. Conditional dynamic CQC was evaluated for all six force components at 804 case-cuts. Raw and same-policy selected replays each reproduce 16 sealed stage payloads. The private manual analysis yielded 804 signed static eccentricity effects from paired internal static cases. All 4,824 absolute component increments agree with the native spectrum envelope change. Independent conditional CQC on that same analysis reproduces all 4,824 zero-eccentricity maxima. The fresh-acquisition/original-archive comparison matched all 45,828 native scalar components over 7,638 assigned force rows. Original-model componentwise axial intervals now feed the conditional selected-cage R10 check at the five non-exempt physical joints. A fresh original capture adds 402 signed rows per supplementary pure static earthquake case across all 87 columns. Their case identities, selection and signed forces bind to the same source as the assigned gravity rows. The +4.50 principal-direction static references are reproducible at the same cuts. All 87 columns now have conservative selected-cage shear checks for every assigned spectral combination and local axis. A second existing sealed source corroborated every D-control shear extremum. The eleven assigned combinations exclude direct LC_EQX/LC_EQY. Directional spectral case scale and base/cut sensitivity are quantified on C104 A/D. The project normalization and basement-scope decision remains open.",
       "blocker": "Original full-precision applied amplitudes, effective modal ratios and transferable static eccentricity vectors remain unresolved for 138 of the fixed 4,824 original/private scalar controls. Separately, SCWB/alpha/PMM need an explicit qualified design-envelope/bound or compatible signed-reference policy. Physical dynamic cross-component simultaneity cannot be reconstructed uniquely from RSA Max/Min outputs; it is not a missing field to recover by more report matching.",
       "closure_criteria": "Resolve and account for the fixed scalar residual population through current reconstruction owners. Independently qualify each downstream design-demand policy and its coverage; do not represent scalar intervals or independently maximized spectrum terms as simultaneous vectors. A failed sufficient bound is not alone a physical failure.",
       "owner_paths": [
@@ -1026,7 +1038,8 @@
         "EV-STORY-STATIC-APPLICABILITY-20261120",
         "EV-C29-SPECTRAL-SHEAR-20261120",
         "EV-C29-PHYSICAL-CLEAR-LENGTH-20261120",
-        "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122"
+        "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122",
+        "EV-C104-W22-W23-FOUR-MESH-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -1214,6 +1227,11 @@
         "next_action_record": "docs/supervisor/lc_eqx_role_20261122/SCOPE_AND_NEXT_ACTION.json",
         "note": "Trace actual equivalent/modal case roles, pre-beta shear and source scale through assigned spectral combinations. Ensure scale is consumed once, without inventing simultaneity from Max/Min.",
         "status_changed": false
+      },
+      "assigned_c104_checkpoint_20261122": {
+        "evidence_ref": "EV-C104-W22-W23-FOUR-MESH-20261122",
+        "document": "docs/engineering/C104_ASSIGNED_DEMAND_AND_W23_20261122.md",
+        "status_changed": false
       }
     }
   ],
@@ -1229,7 +1247,7 @@
     "live_ETABS": "NOT_RUN"
   },
   "previous_gap_inventory_base_commit": "7b13877d5ceb823fda4236b8d6df39df678d3229",
-  "baseline_identity": "Inspected parent of this milestone. Git identifies the commit containing the current evidence record.",
+  "baseline_identity": "Tested implementation in the current checkpoint. Repository history identifies its subsequent evidence-only commit.",
   "previous_audit_baseline_implementation_commit": "0f1a809299ed0dbb6e0ecfde77be0642e1771ce3",
   "supervisor_audit": {
     "evidence_ref": "EV-SUPERVISOR-SYSTEM-AUDIT-20261121",
@@ -1277,5 +1295,16 @@
     "supersedes_unconditional_w22_first_priority": true,
     "numerical_evidence_preserved": true,
     "gap_status_changed": false
+  },
+  "assigned_c104_checkpoint_20261122": {
+    "tested_implementation_commit": "9e070be487be102d54293fd6e19d01831c676d35",
+    "evidence_refs": [
+      "EV-C104-W22-W23-FOUR-MESH-20261122",
+      "EV-WINDOWS-C104-FOUR-MESH-20261122"
+    ],
+    "run_id": "RUN-f21f119300d845d78f27e8345a8bdf54",
+    "results_sha256": "cdcd23a1b7d8e95be0def5cd0c721cfd15d5b82158021ada25b25a743781857a",
+    "document": "docs/engineering/C104_ASSIGNED_DEMAND_AND_W23_20261122.md",
+    "status_changed": false
   }
 }

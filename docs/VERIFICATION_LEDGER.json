@@ -19,26 +19,20 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "LC_EQX_ROLE_CORRECTED; ACTUAL_SCALE_AND_DESIGN_CONSUMER_TRACE_NEXT",
-    "work_branch": "work/lc-eqx-design-role-20261122",
+    "status": "C104_FOUR_MESH_DESIGN_DEMAND_AND_W22_W23_EQUILIBRIUM_RECORDED",
+    "work_branch": "work/c104-design-scale-trace",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "388849d4073b60db4dd396bad9b748db538842bf",
-    "tested_implementation_commit": "983571a2920fc4698c6b390d27964bae28c13bb2",
+    "inspected_base_commit": "5d927920c9aa0cd555dda7f76d2d36fceb5cafe4",
+    "tested_implementation_commit": "9e070be487be102d54293fd6e19d01831c676d35",
     "evidence_refs": [
-      "EV-S03-C104-TRANSITION-20261122",
-      "EV-S06-C29-24-FACES-20261122",
-      "EV-WINDOWS-C104-TRANSITION-20261122",
-      "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122",
-      "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122"
+      "EV-C104-W22-W23-FOUR-MESH-20261122",
+      "EV-WINDOWS-C104-FOUR-MESH-20261122"
     ],
-    "production_run_id": "RUN-7dc0634b19e44a1c8286fb6368f5721d",
-    "results_sha256": "9a17508e2a1b22f9f22f5215d0dbf68214b1cf468c60db7992903cabc4e3e11b",
-    "latest_native_result_preserved": true,
-    "review_production_changes": false,
-    "report": "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
-    "worker_plan": "docs/supervisor/lc_eqx_role_20261122/SCOPE_AND_NEXT_ACTION.json",
+    "production_run_id": "RUN-f21f119300d845d78f27e8345a8bdf54",
+    "results_sha256": "cdcd23a1b7d8e95be0def5cd0c721cfd15d5b82158021ada25b25a743781857a",
+    "report": "docs/engineering/C104_ASSIGNED_DEMAND_AND_W23_20261122.md",
     "engineering_release": "NOT_READY",
-    "next_action": "Trace the user-declared LC_EQX equivalent-static reference through the actual directional VtE, pre-beta modal shear, required/applied beta_tE and scale ownership into the assigned spectral/design combination graph. Compare quantities actually consumed by design using retained compatible results. Do not require local auxiliary-case C104 M3 convergence as an automatic beta_tE/PMM prerequisite. Activate W22/W23 source or mesh investigation only when its effect on used global quantities or actual design demands is demonstrated; preserve all recorded diagnostic failures and independent coupled-method gates."
+    "next_action": "Use the four solved C104 meshes as the baseline for the next comparison. At the D vertical spacing, compare the next horizontal refinement with D at the same four faces for the assigned soil P and V3 and the fixed 456-field population. Check the independent vertical sensitivity of V2. Keep W23 geometry and its constraint fixed in the spacing study. Resolve project basement/mass scope, irregularities and acceleration normalization before adopting an additional spectral factor. Qualify coupled second order and construction continuity separately."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
@@ -8544,6 +8538,272 @@
       "gap_status_changed": false,
       "engineering_release_granted": false,
       "next_action": "Trace the user-declared LC_EQX equivalent-static reference through the actual directional VtE, pre-beta modal shear, required/applied beta_tE and scale ownership into the assigned spectral/design combination graph. Compare quantities actually consumed by design using retained compatible results. Do not require local auxiliary-case C104 M3 convergence as an automatic beta_tE/PMM prerequisite. Activate W22/W23 source or mesh investigation only when its effect on used global quantities or actual design demands is demonstrated; preserve all recorded diagnostic failures and independent coupled-method gates."
+    },
+    {
+      "id": "EV-C104-W22-W23-FOUR-MESH-20261122",
+      "observed_at": "2026-11-22T11:41:00.062675+00:00",
+      "implementation_commit": "9e070be487be102d54293fd6e19d01831c676d35",
+      "inspected_base_commit": "5d927920c9aa0cd555dda7f76d2d36fceb5cafe4",
+      "dirty_worktree": true,
+      "tested_file_manifest_sha256": "cde5ba6e87453e0648c6be10de55e933e5d4c9b19f04d145ab13979e96593434",
+      "diff_sha256": "df1985ada3d12d222e30116fbc92d4068f3bd3c0fe3cbc4b3a765b470b39e162",
+      "engineering_release_granted": false,
+      "status": "MEASURED_USED_DEMAND_MESH_SENSITIVITY",
+      "scope": "C104 first-order assigned frame and coupled-section contrast on four real meshes, A/D directional base shears and complete W22/W23 free bodies.",
+      "public_reference_paths": [
+        "docs/engineering/C104_ASSIGNED_DEMAND_AND_W23_20261122.md",
+        "tools/prepare_c104_design_trace.py",
+        "tools/read_c104_design_interface.py",
+        "tools/run_c104_crossed_meshes.py"
+      ],
+      "private_source_root": ".receipts/R08_C104_MESH",
+      "native_pair": ".receipts/R08_C104_MESH/interface-readbacks/20261122T111429185951Z",
+      "native_cross": ".receipts/R08_C104_MESH/crossed-runs/20261122T112307599276Z",
+      "parent_source_private": ".receipts/verification/c104-transition-20261122/release-run/RUN-7dc0634b19e44a1c8286fb6368f5721d/parent.source",
+      "parent_scenario_private": ".receipts/verification/c104-transition-20261122/scenario.json",
+      "original_model_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+      "native_pair_sha256": "7ff5b08867d0ae087de8fcd50015999e5c0118f388e3f885a7014ca94ef06941",
+      "native_cross_sha256": "622030cd08d06728501cffbfe45c33e002d1efabd9274ff1da4704d7bb69816e",
+      "archive_levels_private": ".receipts/R08_C104_MESH/runs/20261121T063930812557Z",
+      "private_receipts": ".receipts/verification/design-scale-20261122/final",
+      "commands": [
+        "tools/prepare_c104_design_trace.py --source <original parent.source> --scenario <retained transition scenario.json> --mesh-run <original A/D run> --deck <verified C104_MESH.$et> --interface-run <native A/D pair> --cross-run <native B/C pair> --out <final/scenario.json>",
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --source <original parent.source> --case Modal --design-scenario <final/scenario.json> --out <final/runs>"
+      ],
+      "executed_live_commands": [
+        "python -X utf8 -B .receipts/R08_C104_MESH/read_design_pair.py --pid <active ETABS PID>",
+        "python -X utf8 -B .receipts/R08_C104_MESH/read_design_cross.py --pid <active ETABS PID>"
+      ],
+      "sealed_output": {
+        "run_id": "RUN-f21f119300d845d78f27e8345a8bdf54",
+        "results_sha256": "cdcd23a1b7d8e95be0def5cd0c721cfd15d5b82158021ada25b25a743781857a",
+        "snapshot_sha256": "6889c7cdd438edf3de9dd03ab9b41fabba723b31bfc0944f1fa3badfb38e86b0",
+        "input_sha256": "1b53a3ebf04b84f8dde31b7eacce9d7982506f2e6ce631e02a40bf1f40d31d8b",
+        "parent_sha256": "703e202fc8b08f60043c571d9970945b6307e5cee99e8a45e6377c8446da56fc",
+        "scenario_sha256": "b6b6b6eb459a5887c3f4879eed9345c7d6918c60596b842e728bc86201d69bcf",
+        "archive_sha256": "2082ea6f736e1229030598d58384f4384522d45f51fbd067fe7758bce374d3e3",
+        "html_sha256": "4a2a8eef6281e0f71e1bc71ce622e6cb10a761185c65f8821ec24fea77304127",
+        "fixed_budget_sha256": "1629f0eac4c4ee618ed9e51c1f0c9c1f2edeba330cfba16817446492add86e54"
+      },
+      "private_file_sha256": {
+        "pipeline.log": "48586308f0c98361f4132401042371069548f9a728c25549798cb31687fa3568",
+        "verification.json": "240cd44e828c65dcb470e4f32f56f3b56bce04f7b2d02bc0d4a16fcd40c9a17c",
+        "extended-verification.json": "387c669e0ec6bcc385e677969bad630d9a7cea094b7ca660a7cf8372fcb27172"
+      },
+      "acquisition": {
+        "A_D_EDB": [
+          "52a2578d5f62810a88f59e5b8dc79bba4d598f20f092df9219e7d877e28086ed",
+          "455ae150ea5aada6bdbb66e97799ca8615690f09c00125927337102ffb54b762"
+        ],
+        "B_C_capture_seals": {
+          "B": "a2fc1d4d01ca3cd8640c03457d30979c69430be47834c7316c88b460b43897da",
+          "C": "16cb8d73894d54feedd6a13cee4834391371e780ad08682e151ab63f88e5246f"
+        },
+        "source_models_touched": [
+          "private copies"
+        ],
+        "named_physical_cases_per_mesh": 15,
+        "archive_static_scalar_matches": [
+          6444,
+          12816
+        ],
+        "assigned_frame_replay_matches_by_mesh": [
+          456,
+          456
+        ],
+        "w23_geometry": {
+          "cell_count": 24,
+          "coordinate_rings_sha256": "52f5c1928dc6e931579bc96880025fa63fabfdf6b02e6b6350d210e648c114c1"
+        }
+      },
+      "counts": {
+        "assigned_combinations": 11,
+        "direct_equivalent_case_occurrences": 0,
+        "signed_base_fields_in_budget": 36,
+        "story_fields_in_budget": 144,
+        "signed_story_fields": 108,
+        "spectrum_story_fields": 36,
+        "complete_wall_free_bodies_passed": 36,
+        "thin_bodies_passed_all_four_meshes": 24,
+        "assigned_components_in_budget": 61,
+        "assigned_components_evaluated": 456,
+        "assigned_components_outside": 395,
+        "within_at_four_faces": {
+          "lower": [
+            18,
+            114
+          ],
+          "below_transition": [
+            22,
+            114
+          ],
+          "above_transition": [
+            10,
+            114
+          ],
+          "upper": [
+            11,
+            114
+          ]
+        },
+        "four_mesh_coupled_section_fields": 144,
+        "signed_native_increment_checks": 432
+      },
+      "independent_raw_checks": {
+        "assigned_frame": {
+          "count": 1824,
+          "max_abs_delta": 0.0
+        },
+        "signed_coupled": {
+          "count": 576,
+          "max_abs_delta": 0.0
+        },
+        "signed_effect": {
+          "count": 1800,
+          "max_abs_delta": 2.842170943040401e-14
+        },
+        "both_side_edge": {
+          "count": 144,
+          "max_abs_delta": 2.2737367544323206e-13
+        },
+        "applied_load": {
+          "count": 144,
+          "max_abs_delta": 5.002220859751105e-12
+        },
+        "wall_residual": {
+          "count": 144,
+          "max_abs_delta": 5.002220859751105e-12
+        },
+        "enclosure_residual": {
+          "count": 72,
+          "max_abs_delta": 4.718003765447065e-12
+        }
+      },
+      "maximum_wall_force_residual_kn": 1.9249362104289958e-09,
+      "maximum_wall_moment_residual_knm": 0.0009425716099826786,
+      "directional_scale": {
+        "as_applied_translational_scale_m_s2": 10,
+        "whole_model_gamma_0_9_additional_factor_D": {
+          "X": 1.0224484190985261,
+          "Y": 1.0471868324577873
+        },
+        "same_solution_cut_0m_gamma_0_9_additional_factor_D": {
+          "X": 1.0,
+          "Y": 1.0
+        },
+        "project_factor_status": "ADOPTED_BASEMENT_SCOPE_AND_NORMALIZATION_UNRESOLVED"
+      },
+      "selected_A_B_C_D_and_signed_effects": [
+        {
+          "case": "Duct_SeisX_Soil",
+          "step": "Min",
+          "face": "above_transition",
+          "component": "P",
+          "a": -359.4972686655453,
+          "b": -356.8573524128478,
+          "c": -405.4029693771723,
+          "d": -403.80522271042616,
+          "b_minus_a_vertical": 2.6399162526975033,
+          "c_minus_a_horizontal": -45.90570071162705,
+          "interaction": -1.042169585951342
+        },
+        {
+          "case": "Duct_SeisY_Soil",
+          "step": "Min",
+          "face": "below_transition",
+          "component": "V3",
+          "a": -80.80705711641664,
+          "b": -81.16394953009444,
+          "c": -59.47751229052065,
+          "d": -58.76982603237988,
+          "b_minus_a_vertical": -0.356892413677798,
+          "c_minus_a_horizontal": 21.329544825895994,
+          "interaction": 1.0645786718185661
+        },
+        {
+          "case": "Duct_SeisX",
+          "step": "Max",
+          "face": "upper",
+          "component": "V2",
+          "a": 126.8471493121089,
+          "b": 101.17437649702714,
+          "c": 106.07932899270013,
+          "d": 81.66875305994515,
+          "b_minus_a_vertical": -25.672772815081757,
+          "c_minus_a_horizontal": -20.76782031940877,
+          "interaction": 1.2621968823267764
+        }
+      ],
+      "tolerances": {
+        "component_absolute_kn_or_knm": 0.05,
+        "component_relative": 0.01,
+        "absolute_body_floor_kn_or_knm": 0.01,
+        "archive_compare_abs": 1e-06,
+        "archive_compare_rel": 1e-08
+      },
+      "interpretation": "Horizontal refinement dominates the selected P and V3 changes. Both spacings influence the selected V2. Separate generated-constraint force partition, mesh-converged coupled demand, project beta, anchorage and second order remain open.",
+      "R14": {
+        "this_transition_scenario_numerically_closed": 0,
+        "separate_C29_selected_cage_conditional": 2,
+        "original_population": 87
+      },
+      "next_action": "Use the four solved C104 meshes as the baseline for the next comparison. At the D vertical spacing, compare the next horizontal refinement with D at the same four faces for the assigned soil P and V3 and the fixed 456-field population. Check the independent vertical sensitivity of V2. Keep W23 geometry and its constraint fixed in the spacing study. Resolve project basement/mass scope, irregularities and acceleration normalization before adopting an additional spectral factor. Qualify coupled second order and construction continuity separately."
+    },
+    {
+      "id": "EV-WINDOWS-C104-FOUR-MESH-20261122",
+      "observed_at": "2026-11-22T11:41:00.062675+00:00",
+      "implementation_commit": "9e070be487be102d54293fd6e19d01831c676d35",
+      "inspected_base_commit": "5d927920c9aa0cd555dda7f76d2d36fceb5cafe4",
+      "dirty_worktree": true,
+      "tested_file_manifest_sha256": "cde5ba6e87453e0648c6be10de55e933e5d4c9b19f04d145ab13979e96593434",
+      "diff_sha256": "df1985ada3d12d222e30116fbc92d4068f3bd3c0fe3cbc4b3a765b470b39e162",
+      "engineering_release_granted": false,
+      "scope": "Final Windows offline suite for the implementation tree running the four-mesh engineering calculation.",
+      "environment": {
+        "os": "Windows",
+        "python": "3.12.10",
+        "node": "v26.13.1"
+      },
+      "commands": [
+        "python -X utf8 -B tools/test_offline.py --node \"C:/Program Files/nodejs/node.exe\""
+      ],
+      "status": "OFFLINE_SOFTWARE_REGRESSIONS=PASS",
+      "exit_code": 0,
+      "python": {
+        "ran": 1710,
+        "passed": 1709,
+        "skipped": 1,
+        "errors": 0,
+        "failures": 0,
+        "seconds": 446.55,
+        "skip_test": "test_vs11_column_bank.ColumnStoreTests.test_wrong_run_and_symlink_cannot_cross_source_boundary",
+        "skip_reason": "OS disallows creating symlinks"
+      },
+      "javascript_test_files_passed": 11,
+      "golden": {
+        "total": 44,
+        "NUMERICAL_MATCH": 36,
+        "ENGINEERING_INTERPRETATION_DIFFERENCE": 4,
+        "INSUFFICIENT_SOURCE": 4
+      },
+      "log_path_private": ".receipts/verification/design-scale-20261122/final/tests.log",
+      "log_sha256": "715ac50e55313b5f732cfd5dd441864f1778719a18e1137893cbb6b0f7105907",
+      "tested_manifest_private": ".receipts/verification/design-scale-20261122/final/tested-files.json",
+      "tested_implementation_tree": "ab1eba0d586197cebcbade40fb64aa02c79a63f4",
+      "untracked_code_included": true,
+      "tested_source_files": 9,
+      "earlier_development_run": {
+        "log": ".receipts/verification/design-scale-20261122/archive/tests.log",
+        "sha256": "b0b6a7cc2daa033c1206884c442924f97aee429b8281ae95e06895a77927ea30",
+        "python_total": 1709,
+        "error": "WinError 10053 on the localhost request in test_body_upload_is_not_allowed_for_live_endpoint",
+        "final_result_for_this_test": "PASS"
+      },
+      "public_reference_paths": [
+        "docs/engineering/C104_ASSIGNED_DEMAND_AND_W23_20261122.md",
+        "tests/test_transition_design_trace.py"
+      ],
+      "engineering_release": "NOT_READY"
     }
   ],
   "new_record_template": {
@@ -8568,7 +8828,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-22T08:54:32.357515+00:00",
+  "updated_at_utc": "2026-11-22T11:41:00.062675+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -9248,6 +9508,28 @@
       "worker_plan": "docs/supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json",
       "engineering_release": "NOT_READY",
       "next_action": "Read actual W22/W23 interface membership and both-side actions at x=77.40 m; qualify equivalent physical automatic-seismic forcing across the retained models; compare six common-origin actions and the spatial first moment of Fz. If needed, add coarse-H/25 mm and fine-H/50 mm cross-direction models, preserving W23 mesh/constraint policy or disclosing its additional effect. Extend the existing narrow transition/R08 contract explicitly. Preserve C104 balance, all 24 C29 capacities and conditional R14 2/87; S04 method qualification and further S06 domains continue separately."
+    },
+    {
+      "status": "LC_EQX_ROLE_CORRECTED; ACTUAL_SCALE_AND_DESIGN_CONSUMER_TRACE_NEXT",
+      "work_branch": "work/lc-eqx-design-role-20261122",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "388849d4073b60db4dd396bad9b748db538842bf",
+      "tested_implementation_commit": "983571a2920fc4698c6b390d27964bae28c13bb2",
+      "evidence_refs": [
+        "EV-S03-C104-TRANSITION-20261122",
+        "EV-S06-C29-24-FACES-20261122",
+        "EV-WINDOWS-C104-TRANSITION-20261122",
+        "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122",
+        "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122"
+      ],
+      "production_run_id": "RUN-7dc0634b19e44a1c8286fb6368f5721d",
+      "results_sha256": "9a17508e2a1b22f9f22f5215d0dbf68214b1cf468c60db7992903cabc4e3e11b",
+      "latest_native_result_preserved": true,
+      "review_production_changes": false,
+      "report": "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
+      "worker_plan": "docs/supervisor/lc_eqx_role_20261122/SCOPE_AND_NEXT_ACTION.json",
+      "engineering_release": "NOT_READY",
+      "next_action": "Trace the user-declared LC_EQX equivalent-static reference through the actual directional VtE, pre-beta modal shear, required/applied beta_tE and scale ownership into the assigned spectral/design combination graph. Compare quantities actually consumed by design using retained compatible results. Do not require local auxiliary-case C104 M3 convergence as an automatic beta_tE/PMM prerequisite. Activate W22/W23 source or mesh investigation only when its effect on used global quantities or actual design demands is demonstrated; preserve all recorded diagnostic failures and independent coupled-method gates."
     }
   ],
   "remote_audit_correction_checkpoint": {
