@@ -988,6 +988,7 @@
     byId('deskResetRebar').disabled = disabled;
     byId('deskApplyRebar').disabled = disabled || !state.bundle?.runId || state.bundle?.runId === 'column-127';
     byId('deskRunBuilding').disabled = byId('deskApplyRebar').disabled || state.bundle?.columnPmmMember !== 'ALL';
+    byId('deskBuildingHingeStoreys').disabled = byId('deskRunBuilding').disabled;
     renderDiameterCheckboxes('deskBeamAllowedDiams', BEAM_DIAMETERS, bs.allowed_additional_diameters_mm, disabled, next => {
       bs.allowed_additional_diameters_mm = next.sort((a, b) => a - b);
       persistSettings();
@@ -1130,6 +1131,7 @@
 
   function setData(input) {
     if (input && (!input.tables || !input.modelName)) throw new TypeError('WORKSPACE_RESULT_REQUIRED');
+    if (input?.runId !== state.bundle?.runId) byId('deskBuildingHingeStoreys').value = '';
     state.bundle = input;
     const choice = state.pmmChoice;
     const rememberedMember = choice && input?.modelKey === choice.modelKey
@@ -1382,11 +1384,13 @@
   });
   function runSelection(wholeBuilding) {
     const working = workingSettings();
+    const storeys = byId('deskBuildingHingeStoreys').value.trim();
     emit('tbdy:apply-rebar-selection', {
       runId: state.bundle?.runId ?? null,
       beamSelection: working.beamSelection,
       columnSelection: working.columnSelection,
       wholeBuilding,
+      wallHingeStoreys: wholeBuilding && storeys ? storeys.split(',').map(name => name.trim()) : undefined,
     });
   }
   byId('deskApplyRebar').addEventListener('click', () => runSelection(false));

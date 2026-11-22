@@ -258,6 +258,9 @@ button:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visi
               <button class="desk-button" type="button" id="deskRunBuilding" title="Use the selected all-column source and frame design assumptions">Run whole building</button>
             </div>
           </header>
+          <label class="desk-label" for="deskBuildingHingeStoreys">Wall-end hinge assumption for storey frame sums</label>
+          <input id="deskBuildingHingeStoreys" type="text" maxlength="320" placeholder="Optional storey names, separated by commas" aria-describedby="deskBuildingHingeHelp">
+          <p class="desk-result-note" id="deskBuildingHingeHelp">Leave blank to use the selected source's assumptions. Member-end stiffness is checked separately.</p>
           <p id="deskRebarStatus" class="desk-inline-status" role="status"></p>
           <section class="desk-card">
             <header class="desk-card-heading"><h2>Beams · TBDY 7.4 / TS 500 (montage, ilave &amp; stirrups)</h2></header>

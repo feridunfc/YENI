@@ -856,7 +856,7 @@
 
   window.addEventListener('tbdy:apply-rebar-selection', async event => {
     if (busy) return;
-    const {runId, beamSelection, columnSelection, wholeBuilding = false} = event.detail ?? {};
+    const {runId, beamSelection, columnSelection, wholeBuilding = false, wallHingeStoreys} = event.detail ?? {};
     const statusEl = byId('deskRebarStatus');
     if (!runIdPattern.test(runId)) {
       if (statusEl) statusEl.textContent = 'Select a verified combined run before applying rebar settings.';
@@ -878,6 +878,7 @@
           beam_selection: beamSelection,
           column_selection: columnSelection,
           ...(wholeBuilding ? {whole_building: true} : {}),
+          ...(wholeBuilding && wallHingeStoreys ? {wall_hinge_aggregate_storeys: wallHingeStoreys} : {}),
         }),
       });
       const entry = {
