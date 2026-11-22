@@ -1,4 +1,14 @@
-# Original building calculation and local handoff — 2026-11-21
+# Original building calculation and local handoff — 2026-11-22
+
+## C29 first-order equilibrium and S00 replay
+
+**S02 achieved all six signed upper-body balances** on the native eight-part C29 METHOD solution. At +0.00 the ultimate case gives 71,668.191834 kN from 32 columns and 21 walls. At +4.50 it gives 42,324.723152 kN from 32 columns and four walls. All 267 expected contributor instances are accounted for across the three cases. The greatest absolute difference from the independently assembled external load and self-weight is 0.000004916 kN. [Six-row calculation and design impact](engineering/C29_S00_S02_20261122.md)
+
+**S00 completed the three audit repairs.** The same-input native replay preserved C29's complete factor traces, 18 case-cuts, all 24 PMM sides and six full-span comparisons. A complete-data imbalance now blocks the affected revised design, a signed absolute elevation retains its story-direction census, and receipt readers handle indices past 99.
+
+**Next GAP-009 calculation.** Qualify the C104/W21/W22 combined actions on both sides of the −1.50 m transition, using common signed cuts and checking force transfer and reinforcement continuity. A coupled-system method and demands for 14 wall-coupled columns remain open. C29's conditional R14 result is 2/87 and engineering release is `NOT_READY`. The S06 reference has independently checked one selected-cage PMM face. [Worker handoff](context/WORKER_HANDOFF_20261119.md#next-gap-009-calculation)
+
+Windows ran 1,701 Python tests on the integrated software tree. 1,700 passed and one Windows symlink-permission test was skipped. All 11 JavaScript files passed. The 44 golden records retain 36 numerical matches, four interpretation differences and four insufficient sources. The tested code commit is `60fd80303b7e101673d65dde5e1edf75a6caa6cf`. [Windows run and source identities](VERIFICATION_LEDGER.json)
 
 ## Supervisor system audit and execution roadmap — 21 November 2026
 
@@ -17,7 +27,7 @@ findings, **not production fixes or proof that native C29 is affected**.
 See `EV-SUPERVISOR-SYSTEM-AUDIT-20261121` and the
 [reproducible audit bundle](supervisor/audit_20261121/README.md).
 
-Start **S00** on the existing owners. In parallel **S02** completes exact-state
+The original assignment started **S00** on the existing owners. In parallel **S02** targeted exact-state
 column-wall balance at the two existing C29 cuts; **S04/S06** prepare method
 comparison and independent section verification. Full-body balance and a
 qualified wall-frame second-order method have separate exits. The native
@@ -45,12 +55,10 @@ insufficient-source records, with `acceptance_eligible=false` and
 
 See `EV-WINDOWS-OFFLINE-31A8B08-20261121`. This is user-supplied Windows
 execution evidence, recorded separately from the independently run Linux
-suite below. The supplied excerpt omits the skipped test's name, full
-command arguments, Python version and complete log hash; those fields
-remain unknown. GitHub's branch was independently observed at the stated
-commit before this documentation update. The next calculation is the
-concurrent column-wall cut balance described in the
-[worker handoff](context/WORKER_HANDOFF_20261119.md#next-gap-009-calculation).
+suite below. The initial excerpt omitted the skipped test's name. A subsequently supplied transcript identifies the Windows symlink-permission skip in `test_vs11_column_bank`. The new ledger entry records the transcript hash. GitHub's branch was independently observed at the stated
+commit before that documentation update. The requested concurrent
+column-wall calculation is now recorded in the
+[six-row C29 balance](engineering/C29_S00_S02_20261122.md).
 
 ## Completed C29 conditional comparison on native METHOD meshes
 

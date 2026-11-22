@@ -1,7 +1,7 @@
 {
   "schema": "yeni.project-memory.verification-ledger.v2",
   "repository": "feridunfc/YENI",
-  "updated_on": "2026-11-21",
+  "updated_on": "2026-11-22",
   "purpose": "Durable evidence index. It is not a source receipt or formal engineering acceptance.",
   "workflow": {
     "primary_workspace": "LOCAL_CODEX",
@@ -19,25 +19,23 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "C104_MATCHED_MESH_AND_GROSS_SECTION_GEOMETRY_VERIFIED",
-    "work_branch": "work/gap006-c104-section",
+    "status": "S00_NATIVE_REPLAY_AND_S02_SIX_SIGNED_BALANCES_VERIFIED",
+    "work_branch": "work/gap-009-c29-story-balance",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "987f4de27e7f3256e7385b2d7952de53d846054b",
-    "source_run_id": "RUN-ec213e8622d2404ca2cd39ca5b392d7a",
-    "source_sha256": "dcaa231263607e6ea71d1282b597542480dbc2f90f845889e27ad9c2000e059d",
-    "production_run_id": "RUN-4b47bcb573344bac9433e877113722d9",
-    "results_sha256": "4d85b045795e7402bcb520013674157f8b1930273395fd8697c87b2c0317dae5",
+    "inspected_base_commit": "9e486f7a7294e3dc892b836cbb7b7447c9392c28",
+    "tested_implementation_commit": "60fd80303b7e101673d65dde5e1edf75a6caa6cf",
+    "source_run_id": "RUN-56f3f5ea4a8947dab3c25676c448a81e",
+    "production_run_id": "RUN-90175fcafc26485f9ff72179346e7263",
+    "source_sha256": "bf60497e87550d3165d5578dd4c978363076e7c12a41f6bc829aeb8354c42cab",
+    "results_sha256": "e55b1cf31c8f75290bf83fb4722f5bd98d7bf5b999bb96b8934c18c7813f50cf",
     "evidence_refs": [
-      "EV-GAP006-C104-MATCHED-MESH-20261121",
-      "EV-GAP009-ASSIGNED-SPECTRAL-SWAY-20261121",
-      "EV-R08-WALL-COUPLED-ISOLATED-GUARD-20261121",
-      "EV-GAP009-ORIGINAL-FIRST-ORDER-20261121",
-      "EV-GAP006-C104-REFINEMENT-20261121",
-      "EV-R10-WALL-COUPLED-CAPACITY-SPAN-20261121",
-      "EV-GAP006-C104-SECTION-PROFILE-20261121"
+      "EV-S00-NATIVE-C29-IMPACT-20261122",
+      "EV-S02-C29-SIGNED-STORY-BALANCE-20261122",
+      "EV-S06-C29-FIXED-N-ONE-FACE-20261122",
+      "EV-WINDOWS-S00-S02-20261122"
     ],
     "engineering_release": "NOT_READY",
-    "next_action": "Bind the C104/W21/W22 construction reinforcement and connection detail across elevation -1.50 m. Check the component-specific cut actions and use the accepted coupled stiffness and second-order demand."
+    "next_action": "S01/S03 bind the two C104/W21/W22 sections and compare six coupled actions at common signed cuts. S04 qualifies a coupled second-order method, S06 continues on 23 outstanding selected-cage faces."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
@@ -7543,6 +7541,476 @@
       "engineering_acceptance": "NOT_GRANTED",
       "whole_building_gap_closure": "NOT_GRANTED",
       "next_action": "S00 actual-owner fixes and archived native impact check; S02 complete two-cut first-order equilibrium in parallel; S04/S06 method/oracle work with explicit applicability. Use S00-S15 worker cards and preserve completed conditional C29 scope."
+    },
+    {
+      "observed_at": "2026-11-22",
+      "tested_implementation_commit": "60fd80303b7e101673d65dde5e1edf75a6caa6cf",
+      "tested_base": "9e486f7a7294e3dc892b836cbb7b7447c9392c28",
+      "tested_git_tree": "99108248dac4252b4d1b8b6fa1531e9b285bc872",
+      "dirty_worktree_at_execution": true,
+      "tested_file_manifest_sha256": "cfc80eecfdeff065a7c10d8077b50471cc86c2073fe39ac6c688b1b4b2b5689e",
+      "diff_sha256": "67e133b19565ad87fb84eed197fdc354847da8c6c132118b657ed5f22ad90506",
+      "public_reference_paths": [
+        "docs/engineering/C29_S00_S02_20261122.md"
+      ],
+      "engineering_release_granted": false,
+      "id": "EV-S00-NATIVE-C29-IMPACT-20261122",
+      "status": "VERIFIED_THREE_REPAIRS_AND_NATIVE_REPLAY",
+      "gap_ids": [
+        "GAP-005",
+        "GAP-009",
+        "GAP-017"
+      ],
+      "original_run": "RUN-56f3f5ea4a8947dab3c25676c448a81e",
+      "same_parent_and_design_scenario_run": {
+        "run_id": "RUN-014eb41eff4341efad10542dbd398e48",
+        "input_sha256": "456b35770d54ad7418ea6f8302cfa5dcd4e8653558788496aa97124b2c452760",
+        "results_sha256": "da36c3861f4e5352b3254df7babe8b990076b98d3e586ea3adcbdc020d3e511a",
+        "report_sha256": "fdac38590e30b2ea641c766f6f2b058d3678d033b90e0d14a8fabf88a0401846",
+        "coverage": {
+          "physical_case_cuts": 18,
+          "native_sides": 24,
+          "revised_factors": 12,
+          "revised_pmm_sides": 24,
+          "members_with_four_to_eight_recovered_fields": 2
+        },
+        "r14": {
+          "status": "R15_ALL_COLUMNS_EVALUATED_PARTIAL_GATES",
+          "expected_column_count": 87,
+          "numerically_closed_count": 2,
+          "partial_or_unbound_count": 85,
+          "normative_fail_count": 0
+        }
+      },
+      "changes": {
+        "absolute_z_m_translation": -10,
+        "theta_x": 0.007407407407407408,
+        "theta_y": 0.007054673721340388,
+        "known_directions_after_invalid_input": {
+          "expected": 4,
+          "unresolved": 4
+        },
+        "fully_qualified_balance_challenge_kn": {
+          "signed_cut": 950,
+          "independent_downward_load": 1050,
+          "residual": -100
+        },
+        "blocked_consumers_on_affected_case": [
+          "conditional story factor",
+          "revised PMM"
+        ],
+        "absent_or_incompatible_wall_source": "conditional column basis available",
+        "actual_writer_reader_before": [
+          100,
+          99
+        ],
+        "actual_writer_reader_after": [
+          100,
+          100
+        ],
+        "tested_ordinals": [
+          99,
+          100,
+          101
+        ]
+      },
+      "replay": {
+        "expected_physical_case_cuts": 18,
+        "matched_physical_case_cuts": 18,
+        "revised_factors": 12,
+        "sides_with_revised_pmm": 24,
+        "accepted_full_span_changes": 6,
+        "connected_beams": 8,
+        "joint_40_checks_by_direction": {
+          "X": 16,
+          "Y": 16
+        },
+        "R14_conditional_closed": 2,
+        "R14_expected": 87
+      },
+      "identical_before_rounding": [
+        "comparison",
+        "four_to_eight_full_span",
+        "reference_design",
+        "revised_axis_factors",
+        "revised_ts500_status",
+        "model_records"
+      ],
+      "global_story_directions_evaluated_expected": [
+        6,
+        6
+      ],
+      "original_impact": "C29 numeric design and complete METHOD comparison are invariant. R08 diagnostics and dependent revision hashes change.",
+      "commands": [
+        "python -B docs/supervisor/audit_20261121/reproduce_engineering_findings.py --repo . --output .receipts/gap009-c29-story-balance-20261121/s00-after-engineering.json",
+        "python -B docs/supervisor/audit_20261121/reproduce_receipt_index.py --repo . --output .receipts/gap009-c29-story-balance-20261121/s00-after-index.json",
+        "python -m tbdy_next.cli run-pipeline --source .receipts/R08_C29_EI_MESH/live-replay/RUN-464231f1e18f465f88da868f7306a753/parent.source --design-scenario .receipts/c29-method-native-20261121/final/method-scenario.json --case Modal --out .receipts/gap009-c29-story-balance-20261121/impact/release-run"
+      ],
+      "probe_hashes": {
+        "s00-before-engineering": "653f704d0ea0d21e98b9c1821affd68cde7d2e58a83d5f51d5640fd70bc6eabb",
+        "s00-before-index": "03720908f9cfcfe2a6469e2e5db1fbcbfa07fabb0fba254a0698d345fa77b1fe",
+        "s00-after-engineering": "437fccce09639378aa6e94ae364ced04001c29617ee0e6d7fd86c601d03cac1e",
+        "s00-after-index": "39d5ac01b3eddadf545e0968d1d4740e2fe5510d31fc053c09695d78be95e587"
+      },
+      "private_verification": ".receipts/gap009-c29-story-balance-20261121/release-balance-and-impact.json",
+      "verification_sha256": "a4f1d7d16fad07a341d39f882f3148bd106edc79455e4e454b78e51ede2eee9a"
+    },
+    {
+      "observed_at": "2026-11-22",
+      "tested_implementation_commit": "60fd80303b7e101673d65dde5e1edf75a6caa6cf",
+      "tested_base": "9e486f7a7294e3dc892b836cbb7b7447c9392c28",
+      "tested_git_tree": "99108248dac4252b4d1b8b6fa1531e9b285bc872",
+      "dirty_worktree_at_execution": true,
+      "tested_file_manifest_sha256": "cfc80eecfdeff065a7c10d8077b50471cc86c2073fe39ac6c688b1b4b2b5689e",
+      "diff_sha256": "67e133b19565ad87fb84eed197fdc354847da8c6c132118b657ed5f22ad90506",
+      "public_reference_paths": [
+        "docs/engineering/C29_S00_S02_20261122.md"
+      ],
+      "engineering_release_granted": false,
+      "id": "EV-S02-C29-SIGNED-STORY-BALANCE-20261122",
+      "status": "FIRST_ORDER_UPPER_FREE_BODY_6_OF_6",
+      "gap_ids": [
+        "GAP-004",
+        "GAP-008",
+        "GAP-009"
+      ],
+      "original_EDB_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+      "eight_part_METHOD_EDB_sha256": "685f5f45e7448c8c471a2c041c65c681447cc02175846bbf82ae172139a8c283",
+      "analysis_generation": "b207f87b19b6a7b4887102926dbd775907477175a82ef4559714e421d036c11e",
+      "capture_manifest_sha256": "b931db21ddaeef7833c7d6e26b2e2f388b5ef32003b75d304ad3668bdddda795",
+      "native_archive_sha256": "36deeb282ee158d2585dffac03d802191ced6035e75c1f45f36ea6ff926cc929",
+      "native_boundary_read": "20261122T041632943080Z",
+      "native_weight_read": "20261122T042620637623Z",
+      "source": "Solved locked model, kN/m/C, native final Step 1. Output selections and nonlinear output option restored.",
+      "force_source": "Results.FrameForce and Results.AreaJointForceShell transformed in point-element axes. Each column or wall contributes once to the lower cut of the upper body.",
+      "independent_external_source": "Analysis load assignments, unrounded joint geometry, concrete weight, end offsets and source-deck factors. 51 point restraints and both foundation area springs on the bottom plane.",
+      "capture_counts": {
+        "wall_objects": 25,
+        "shell_corner_rows": 726,
+        "unique_boundary_points": 130,
+        "joint_coordinates": 7552,
+        "analysis_frames": 2053,
+        "analysis_shells": 6498
+      },
+      "case_cuts": [
+        {
+          "story": "+0.00",
+          "cut_z_m": -5.15,
+          "first_order_case": "C29G_U_F",
+          "step_type": "Step",
+          "step_number": 1,
+          "evaluated": 53,
+          "expected": 53,
+          "columns": 32,
+          "walls": 21,
+          "column_vertical_kn": 46716.800486811335,
+          "wall_vertical_kn": 24951.39134745225,
+          "signed_total_kn": 71668.19183426358,
+          "supported_compression_kn": 71668.19183426358,
+          "upper_applied_kn": 29892.732853492955,
+          "upper_self_weight_kn": 41775.45898568652,
+          "upper_total_kn": 71668.19183917948,
+          "residual_kn": -4.915898898616433e-06,
+          "equilibrium_within_tolerance": true,
+          "story_display_kn": 71668.1918
+        },
+        {
+          "story": "+0.00",
+          "cut_z_m": -5.15,
+          "first_order_case": "C29G_TN_F",
+          "step_type": "Step",
+          "step_number": 1,
+          "evaluated": 53,
+          "expected": 53,
+          "columns": 32,
+          "walls": 21,
+          "column_vertical_kn": 35214.68936177995,
+          "wall_vertical_kn": 16542.772089790105,
+          "signed_total_kn": 51757.46145157005,
+          "supported_compression_kn": 51757.46145157005,
+          "upper_applied_kn": 21917.847893850878,
+          "upper_self_weight_kn": 29839.61356120466,
+          "upper_total_kn": 51757.46145505554,
+          "residual_kn": -3.4854892874136567e-06,
+          "equilibrium_within_tolerance": true,
+          "story_display_kn": 51757.4615
+        },
+        {
+          "story": "+0.00",
+          "cut_z_m": -5.15,
+          "first_order_case": "C29G_TP_F",
+          "step_type": "Step",
+          "step_number": 1,
+          "evaluated": 53,
+          "expected": 53,
+          "columns": 32,
+          "walls": 21,
+          "column_vertical_kn": 32350.434939357503,
+          "wall_vertical_kn": 19407.0265135253,
+          "signed_total_kn": 51757.4614528828,
+          "supported_compression_kn": 51876.79486625772,
+          "upper_applied_kn": 21917.847893850878,
+          "upper_self_weight_kn": 29839.61356120466,
+          "upper_total_kn": 51757.46145505554,
+          "residual_kn": -2.1727391867898405e-06,
+          "equilibrium_within_tolerance": true,
+          "story_display_kn": 51757.4615
+        },
+        {
+          "story": "+4.50",
+          "cut_z_m": 0.0,
+          "first_order_case": "C29G_U_F",
+          "step_type": "Step",
+          "step_number": 1,
+          "evaluated": 36,
+          "expected": 36,
+          "columns": 32,
+          "walls": 4,
+          "column_vertical_kn": 36255.50291266637,
+          "wall_vertical_kn": 6069.220239371362,
+          "signed_total_kn": 42324.72315203774,
+          "supported_compression_kn": 42324.72315203774,
+          "upper_applied_kn": 19337.54298726864,
+          "upper_self_weight_kn": 22987.180167969793,
+          "upper_total_kn": 42324.72315523843,
+          "residual_kn": -3.200693754479289e-06,
+          "equilibrium_within_tolerance": true,
+          "story_display_kn": 42324.7232
+        },
+        {
+          "story": "+4.50",
+          "cut_z_m": 0.0,
+          "first_order_case": "C29G_TN_F",
+          "step_type": "Step",
+          "step_number": 1,
+          "evaluated": 36,
+          "expected": 36,
+          "columns": 32,
+          "walls": 4,
+          "column_vertical_kn": 26251.78717218259,
+          "wall_vertical_kn": 4335.406902868205,
+          "signed_total_kn": 30587.194075050797,
+          "supported_compression_kn": 30587.194075050797,
+          "upper_applied_kn": 14167.77967186984,
+          "upper_self_weight_kn": 16419.41440569271,
+          "upper_total_kn": 30587.194077562548,
+          "residual_kn": -2.511751517886296e-06,
+          "equilibrium_within_tolerance": true,
+          "story_display_kn": 30587.1941
+        },
+        {
+          "story": "+4.50",
+          "cut_z_m": 0.0,
+          "first_order_case": "C29G_TP_F",
+          "step_type": "Step",
+          "step_number": 1,
+          "evaluated": 36,
+          "expected": 36,
+          "columns": 32,
+          "walls": 4,
+          "column_vertical_kn": 26159.95570659246,
+          "wall_vertical_kn": 4427.238368940953,
+          "signed_total_kn": 30587.194075533414,
+          "supported_compression_kn": 30587.194075533414,
+          "upper_applied_kn": 14167.77967186984,
+          "upper_self_weight_kn": 16419.41440569271,
+          "upper_total_kn": 30587.194077562548,
+          "residual_kn": -2.029133611358702e-06,
+          "equilibrium_within_tolerance": true,
+          "story_display_kn": 30587.1941
+        }
+      ],
+      "contributors_evaluated_expected": [
+        267,
+        267
+      ],
+      "tolerance": {
+        "absolute_kn": 0.01,
+        "relative": 1e-06,
+        "rule": "math.isclose"
+      },
+      "peak_absolute_residual_kn": 4.915898898616433e-06,
+      "story_display_max_difference_kn": 4.8429945309180766e-05,
+      "second_extraction": "Six printed Story Forces bottom values agree at the 0.0001 kN display precision. The source has no defined section cut.",
+      "native_negative_checks": {
+        "envelope_rejected": "WALL_CUT_CASE_OR_STEP_MISMATCH",
+        "duplicate_rejected": "WALL_CUT_DUPLICATE_FORCE",
+        "missing_rejected": "WALL_CUT_NATIVE_FORCE_MISSING",
+        "axes_required": "WALL_JOINT_TRANSFORMATION_UNAVAILABLE",
+        "different_generation_rejected": "WALL_CUT_MODEL_GENERATION_MISMATCH"
+      },
+      "runs": {
+        "first_two_ultimate_cuts": {
+          "run_id": "RUN-9964230a38f14be2abc5208e8017eb95",
+          "input_sha256": "ddd656728f4915b6edf71b6738c539fa8d9b3d07893817ada6a40762244126ed",
+          "results_sha256": "96a9691e78aec05001ad1bfa9de9dd85b811e5217fd7eafd8fffe0a29995978e",
+          "report_sha256": "87b1fb35877a65ad6265d6bdd9d764184bfbaaa9a3e741354def98f313e93c0b",
+          "coverage": {
+            "physical_case_cuts": 18,
+            "native_sides": 24,
+            "revised_factors": 12,
+            "revised_pmm_sides": 24,
+            "members_with_four_to_eight_recovered_fields": 2
+          },
+          "r14": {
+            "status": "R15_ALL_COLUMNS_EVALUATED_PARTIAL_GATES",
+            "expected_column_count": 87,
+            "numerically_closed_count": 2,
+            "partial_or_unbound_count": 85,
+            "normative_fail_count": 0
+          }
+        },
+        "three_cases_six_cuts": {
+          "run_id": "RUN-90175fcafc26485f9ff72179346e7263",
+          "input_sha256": "bf60497e87550d3165d5578dd4c978363076e7c12a41f6bc829aeb8354c42cab",
+          "results_sha256": "e55b1cf31c8f75290bf83fb4722f5bd98d7bf5b999bb96b8934c18c7813f50cf",
+          "report_sha256": "c434afc3fe4c9b5b8d12c7ebeede3b6f1e59c50c897f39631a2d774cd586d46c",
+          "coverage": {
+            "physical_case_cuts": 18,
+            "native_sides": 24,
+            "revised_factors": 12,
+            "revised_pmm_sides": 24,
+            "members_with_four_to_eight_recovered_fields": 2
+          },
+          "r14": {
+            "status": "R15_ALL_COLUMNS_EVALUATED_PARTIAL_GATES",
+            "expected_column_count": 87,
+            "numerically_closed_count": 2,
+            "partial_or_unbound_count": 85,
+            "normative_fail_count": 0
+          }
+        }
+      },
+      "printable_report": ".receipts/gap009-c29-story-balance-20261121/all/release/c29-method-report.html",
+      "balance_calculation_owner": "tbdy_next.engineering.gravity_story_basis.produce_story_basis via EnginePipelineRunner R08",
+      "source_preparation": "tools/prepare_c29_story_balance.py",
+      "acceptance_boundary": "Signed first-order vertical balance for these cuts. Both full-system axes retain STORY_WALL_CRITICAL_LOAD_METHOD_UNSUPPORTED. Fourteen wall-coupled columns require method and demands.",
+      "conditional_c29_output": {
+        "expected_physical_case_cuts": 18,
+        "matched_physical_case_cuts": 18,
+        "revised_factors": 12,
+        "sides_with_revised_pmm": 24,
+        "accepted_full_span_changes": 6,
+        "connected_beams": 8,
+        "joint_40_checks_by_direction": {
+          "X": 16,
+          "Y": 16
+        },
+        "R14_conditional_closed": 2,
+        "R14_expected": 87
+      },
+      "new_ETABS_analysis": false
+    },
+    {
+      "id": "EV-S06-C29-FIXED-N-ONE-FACE-20261122",
+      "observed_at": "2026-11-22",
+      "status": "ONE_SELECTED_CAGE_FACE_NUMERICALLY_CHECKED",
+      "gap_ids": [
+        "GAP-010",
+        "GAP-011",
+        "GAP-016"
+      ],
+      "source_run": "RUN-56f3f5ea4a8947dab3c25676c448a81e",
+      "source_member": "142",
+      "source_face": "Grav_Ult, 142-1, upper side at physical station 0 m",
+      "fixed_n_kn": 2159.888730635459,
+      "m2_m3_knm": [
+        240.56604162576903,
+        87.66321064811387
+      ],
+      "selected_cage": "32Φ16 + Φ10/90",
+      "selected_cage_sha256": "3742ec3ca9b3279292c723588734dd95ccce3bca960b1e20f7302ae33a1576ca",
+      "experiment": "Independent rectangle/partial bar disk integration, axial equilibrium bisection and directional capacity root on the same selected bar coordinates and constitutive law.",
+      "result": {
+        "radial_capacity_knm": 1450.8770407730078,
+        "utilization": 0.1764730777126651,
+        "capacity_difference_oracle_minus_sealed_knm": -0.00041621060290708556,
+        "utilization_difference_oracle_minus_sealed": 5.062451396975476e-08,
+        "numeric_comparison_pass": true,
+        "axial_range_kn": [
+          -2797.383371544303,
+          15363.109400079024
+        ],
+        "symmetric_axis_capacities_knm": [
+          1524.1330629566507,
+          1524.133062956651
+        ],
+        "convergence": {
+          "last_spatial_change_knm": 0.001037618798591211,
+          "richardson_second_order_estimate_knm": 0.00034587293286373705,
+          "maximum_sampled_axial_residual_n": 9.96515154838562e-08,
+          "perpendicular_residual_nmm": 4.380941390991211e-05,
+          "independent_numeric_comparison_tolerance_knm": 0.01,
+          "basis_of_tolerance": "Declared check on this actual demand face; not a code acceptance threshold or global proof."
+        }
+      },
+      "private_path": ".receipts/verification/s06-c29-20261122",
+      "hashes": {
+        "result.json": "d4522078f0cd8b17af025c2504c205972e1445f2ba145ed883bd0532fc95916b",
+        "fixed_n_oracle.py": "29cd48dc9687e05d674c7fa70e83b1b2b7a972d030734d4dd2ed8a2bdfaa92c5",
+        "method-readiness.json": "00e6999e9f66186df3c026c0f53d678db6c1b269895b383ad6115897e71a36f2"
+      },
+      "checked_faces": 1,
+      "common_faces": 24,
+      "engineering_release_granted": false,
+      "public_reference_paths": [
+        "docs/engineering/C29_S00_S02_20261122.md"
+      ],
+      "next_action": "Check the other 23 common faces on the same cage and identify construction reinforcement independently."
+    },
+    {
+      "observed_at": "2026-11-22",
+      "tested_implementation_commit": "60fd80303b7e101673d65dde5e1edf75a6caa6cf",
+      "tested_base": "9e486f7a7294e3dc892b836cbb7b7447c9392c28",
+      "tested_git_tree": "99108248dac4252b4d1b8b6fa1531e9b285bc872",
+      "dirty_worktree_at_execution": true,
+      "tested_file_manifest_sha256": "cfc80eecfdeff065a7c10d8077b50471cc86c2073fe39ac6c688b1b4b2b5689e",
+      "diff_sha256": "67e133b19565ad87fb84eed197fdc354847da8c6c132118b657ed5f22ad90506",
+      "public_reference_paths": [
+        "docs/engineering/C29_S00_S02_20261122.md"
+      ],
+      "engineering_release_granted": false,
+      "id": "EV-WINDOWS-S00-S02-20261122",
+      "status": "OFFLINE_SOFTWARE_REGRESSIONS_PASS",
+      "gap_ids": [
+        "GAP-005",
+        "GAP-009",
+        "GAP-017"
+      ],
+      "environment": {
+        "system": "Windows 11 build 26200 x64",
+        "python": "3.12.10",
+        "node": "26.13.1"
+      },
+      "command": "python -X utf8 -B tools/test_offline.py --node <installed node executable>",
+      "python_tests": {
+        "total": 1701,
+        "passed": 1700,
+        "skipped": 1,
+        "failures": 0,
+        "errors": 0,
+        "duration_seconds": 459.063,
+        "skip_name": "test_vs11_column_bank.ColumnStoreTests.test_wrong_run_and_symlink_cannot_cross_source_boundary",
+        "skip_reason": "OS disallows creating symlinks"
+      },
+      "js_test_files": 11,
+      "golden": {
+        "expected": 44,
+        "numerical_match": 36,
+        "interpretation_difference": 4,
+        "insufficient_source": 4,
+        "engineering_release": "NOT_READY"
+      },
+      "exit_code": 0,
+      "private_log": ".receipts/gap009-c29-story-balance-20261121/windows-release.log",
+      "log_sha256": "cd2e13eaf3c7dbb2d4b8eecbe6c9dd09b64be60c84c52e92d787e92321caac9e",
+      "historical_transcript": {
+        "evidence_id": "EV-WINDOWS-OFFLINE-31A8B08-20261121",
+        "sha256_of_full_pasted_transcript": "b4c2e299c930852f0ff659f233c33cf49c80a27f204b5cb91619a8dc2e8436c1",
+        "line": 1263,
+        "previously_unidentified_skip": "test_vs11_column_bank.ColumnStoreTests.test_wrong_run_and_symlink_cannot_cross_source_boundary",
+        "reported_reason": "OS disallows creating symlinks"
+      }
     }
   ],
   "new_record_template": {
@@ -7567,7 +8035,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-21T20:37:12.876694+00:00",
+  "updated_at_utc": "2026-11-22T05:08:42.995069+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -8169,6 +8637,27 @@
       ],
       "engineering_release": "NOT_READY",
       "next_action": "Calculate C29 axis-specific end rotational restraints and TS 500 story sway classification. Establish effective length k and the Eq. (7.29) length basis in local R08. GAP-009. Resolve wall-interrupted clear spans in GAP-006."
+    },
+    {
+      "status": "C104_MATCHED_MESH_AND_GROSS_SECTION_GEOMETRY_VERIFIED",
+      "work_branch": "work/gap006-c104-section",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "987f4de27e7f3256e7385b2d7952de53d846054b",
+      "source_run_id": "RUN-ec213e8622d2404ca2cd39ca5b392d7a",
+      "source_sha256": "dcaa231263607e6ea71d1282b597542480dbc2f90f845889e27ad9c2000e059d",
+      "production_run_id": "RUN-4b47bcb573344bac9433e877113722d9",
+      "results_sha256": "4d85b045795e7402bcb520013674157f8b1930273395fd8697c87b2c0317dae5",
+      "evidence_refs": [
+        "EV-GAP006-C104-MATCHED-MESH-20261121",
+        "EV-GAP009-ASSIGNED-SPECTRAL-SWAY-20261121",
+        "EV-R08-WALL-COUPLED-ISOLATED-GUARD-20261121",
+        "EV-GAP009-ORIGINAL-FIRST-ORDER-20261121",
+        "EV-GAP006-C104-REFINEMENT-20261121",
+        "EV-R10-WALL-COUPLED-CAPACITY-SPAN-20261121",
+        "EV-GAP006-C104-SECTION-PROFILE-20261121"
+      ],
+      "engineering_release": "NOT_READY",
+      "next_action": "Bind the C104/W21/W22 construction reinforcement and connection detail across elevation -1.50 m. Check the component-specific cut actions and use the accepted coupled stiffness and second-order demand."
     }
   ],
   "remote_audit_correction_checkpoint": {

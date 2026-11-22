@@ -1,12 +1,18 @@
 # Local development and GitHub worker handoff
 
-## Active supervisor assignment — system audit 21 November 2026
+## Current assignment after S00 and S02 — 22 November 2026
+
+Start with the [signed six-case-cut results and before/after design table](../engineering/C29_S00_S02_20261122.md). The eight-part C29 METHOD source has complete upper-body equilibrium at both story cuts for U_F, TN_F and TP_F. The same-input native replay preserved 12 factors, 18 physical case-cuts, 24 PMM sides and six full-span comparisons. The source and verification hashes are in `EV-S00-NATIVE-C29-IMPACT-20261122` and `EV-S02-C29-SIGNED-STORY-BALANCE-20261122`.
+
+Use the current [GAP-009 calculation](#next-gap-009-calculation) and the [canonical sprint cards](../supervisor/ROADMAP_20261121.md). In the independent capacity lane, one real column 142 face has a fixed-N check on the exact selected 32Φ16 cage. Continue S06 on the remaining 23 faces. The S08 reference still needs joint force/capacity identities and low-axial exemption evidence.
+
+## Assignment issued with the system audit on 21 November 2026
 
 Read the [system audit](../supervisor/SYSTEM_AUDIT_20261121.md) and
 [canonical roadmap](../supervisor/ROADMAP_20261121.md). The inspected base is
 `c71a4dda4ab9453f428a38b3ed79931f8e6eeea3`; inspect the current remote before
 starting new code work. The audit changes documentation and adds bounded
-diagnostics only. All S00–S15 implementation packages remain proposed.
+diagnostics only. All S00–S15 packages were proposals when the audit was issued. The 22 November checkpoint above supersedes the work assignment in this section.
 
 **Offline worker: S00.** Reproduce the signed-datum/expected-count defect,
 the complete-data balance/conditional-consumer defect and the receipt
@@ -46,44 +52,16 @@ offline suite against reported clean tracked commit
 1,689 passed, one skipped, no failures or errors, 304.503 seconds,
 11 JavaScript files passed, Node.js `v26.13.1`, and
 `OFFLINE_SOFTWARE_REGRESSIONS=PASS`. Golden counts remain 36/4/4 across
-44 records and engineering release remains `NOT_READY`. The full log,
-skipped-test identity, exact command arguments and Python version were
-not supplied. Keep this user-reported evidence separate from the recorded
+44 records and engineering release remains `NOT_READY`. The original excerpt omitted the skip identity. The subsequently supplied full transcript names the Windows symlink-permission test. Its hash is recorded with the 22 November Windows checkpoint. Keep this user-reported evidence separate from the recorded
 Linux run; neither test count substitutes for original-building evidence.
 
 ## Next GAP-009 calculation
 
-Start with the already solved eight-part METHOD source and first-order
-case `C29G_U_F`. Freeze each physical cut's expected population before
-assembling forces: +0.00 has 32 columns and 21 wall objects (53 contributors),
-and +4.50 has 32 columns and four wall objects (36 contributors). Read the
-private source using the existing acquisition owner and preserve the
-model, analysis generation, case, step, cut plane, side, units and axes.
+1. Use S01 to identify the physical roles, assigned cases and adopted stiffness assumptions needed for C104 and W21/W22. Bind the reinforcement continuity and connection details across −1.50 m to drawings or an explicit project assumption.
+2. For the available 50 mm and 25 mm meshes, assemble the six signed actions of the coupled section at the same physical cuts immediately above and below the transition. Transport forces and moments to a common origin and quantify convergence by component. The observed maximum change in the local frame V3 is 50.459 kN.
+3. Feed a qualified direct second-order demand or a justified directional system stability model to the existing R08 consumers. Keep the 14 wall-coupled columns in scope. A whole-system TS 500 critical-load sum needs an explicit derivation and limiting checks before use.
 
-The native ledger records 154,770 shell-joint rows per mesh with `Max`/`Min`
-step types, while the first-order frame force inputs carry exact `Step 1`
-identity. Establish a compatible concurrent wall state before integrating
-the upper-side wall forces in global coordinates. If the existing private
-rows cannot establish that state, acquire only the missing exact-step
-boundary forces. Count each physical contributor once; shell and pier
-representations must not duplicate each other or their frame contribution.
-
-Produce one table per cut with signed column and wall vertical resultants,
-independently derived upper-body external gravity and self weight, the
-signed equilibrium residual, and the acceptance result. Use
-`gravity_story_basis._force_results` through the existing runner; its
-current balance comparison is `isclose` with `abs_tol=0.01 kN` and
-`rel_tol=1e-6`. Extend a successful source binding to `C29G_TN_F` and
-`C29G_TP_F`. This first task qualifies the force balance only.
-
-Full `story_inputs` still require a supported per-axis wall-frame
-critical-load method. `produce_story_basis` deliberately retains
-`STORY_WALL_CRITICAL_LOAD_METHOD_UNSUPPORTED` even when wall forces balance.
-Bind the justified system stiffness, supports, coupling, creep and method
-provenance through the current owners before consuming revised factors.
-The broader GAP also retains coupled second-order demands for 14 columns
-and varying-axial method qualification. The completed C29 full-span and
-conditional frame comparison is the preserved starting result.
+S02 closed the six first-order force balances. The existing conditional frame-column scenario supplies the 12 C29 factors and 24 side-specific PMM values. Its governing values and the two physical free bodies are in the [calculation record](../engineering/C29_S00_S02_20261122.md). The full-system stiffness branch retains `STORY_WALL_CRITICAL_LOAD_METHOD_UNSUPPORTED`.
 
 ## Verified native C29 conditional method result
 

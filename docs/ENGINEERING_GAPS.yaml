@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-21T20:37:12.876694+00:00",
+  "updated_at_utc": "2026-11-22T05:08:42.995069+00:00",
   "repository": "feridunfc/YENI",
-  "baseline_implementation_commit": "c71a4dda4ab9453f428a38b3ed79931f8e6eeea3",
-  "local_reconciled": false,
-  "scope_note": "18 stable GAPs inspected at the named public implementation. Current code, versioned native-result ledger, 26 retained reference report hashes, selected historical constitutions and primary method sources were audited. Private Windows captures were not reread and ETABS was not run. Bounded existing-fixture diagnostics are code findings, not new building evidence. Statuses and verified subscopes are preserved.",
+  "baseline_implementation_commit": "60fd80303b7e101673d65dde5e1edf75a6caa6cf",
+  "local_reconciled": true,
+  "scope_note": "Windows local reconciliation of S00 and S02 on the native C29 archive, the eight-part solved METHOD source and the tested implementation. The scope of S06 is one fixed-N selected-cage face. The dated supervisor audit and all 18 stable GAPs remain indexed.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -30,7 +30,7 @@
     "GAP-018",
     "GAP-006"
   ],
-  "active_task": "S00 repairs reproduced datum/failure-eligibility/receipt defects; S02 completes native C29 full column-wall first-order balance in parallel; S04/S06 qualify coupled method and independent section evidence. Preserve completed conditional C29 full-span, 12 factors and 24 PMM sides. Follow the canonical supervisor roadmap, including separate whole-building domain milestones.",
+  "active_task": "S00 and S02 are complete for the documented scope. S01/S03 establish the C104/W21/W22 reinforcement and connection basis, then assemble all six coupled actions at common cuts on both sides of -1.50 m. S04 qualifies compatible wall-frame second-order demands for 14 columns. S06 can check the 23 remaining C29 faces. Preserve the six upper-body balances, 12 conditional factors and 24 revised side PMM results.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -139,7 +139,7 @@
       "title": "Native schema, units and selection transactions",
       "status": "PARTIAL",
       "priority": "P1",
-      "achieved_scope": "Existing gateway and selection transactions capture both native modal getters and eccentricity definitions in the same locked-model live read at units 6. The observed null/zero participation identity binds only through a complete valid companion mode inventory and unique exact same-case period; raw returns remain intact. 100/100 modes and 2/2 spectrum definitions bind, with output/mode restoration verified. Error/ambiguity boundaries and clean wheel contracts are tested.",
+      "achieved_scope": "Existing gateway and selection transactions capture both native modal getters and eccentricity definitions in the same locked-model live read at units 6. The observed null/zero participation identity binds only through a complete valid companion mode inventory and unique exact same-case period; raw returns remain intact. 100/100 modes and 2/2 spectrum definitions bind, with output/mode restoration verified. Error/ambiguity boundaries and clean wheel contracts are tested. The eight-part C29 shell read uses the exact first-order case and Step 1, native point-element transformations and restored results selection.",
       "blocker": "Complete supported-version/schema matrix acceptance remains open.",
       "closure_criteria": "Verify supported native schemas and unit conversions. Restore temporary output/pattern/mode selections and fail on restoration errors. Do not restore the old tonf units contrary to the explicit kN/m/C user instruction.",
       "owner_paths": [
@@ -157,7 +157,8 @@
         "EV-LIVE-MODAL-IDENTITY",
         "EV-LIVE-MODAL-NUMERIC-ORACLE",
         "EV-LIVE-MODAL-ACCEPTANCE-TESTS",
-        "EV-LIVE-MODAL-REPLAY-REPORT"
+        "EV-LIVE-MODAL-REPLAY-REPORT",
+        "EV-S02-C29-SIGNED-STORY-BALANCE-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -183,8 +184,8 @@
       "title": "Complete expected check population",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "87 columns / 957 design pairs and expected supporting cut/mode populations remain in their ledgers. Fresh sources with embedded selection policies now enter the same prepared-scenario member/cut dependency checks as explicit selection. Missing native Vd combinations and element-side cuts remain in the capacity-shear result rather than disappearing from its maximum.",
-      "blocker": "A general ExpectedCheckInstance census and execution for every check family are not implemented. The audit also reproduces loss of four known story-direction obligations after a signed-elevation source rejection; repair the local denominator as S00.",
+      "achieved_scope": "87 columns / 957 design pairs and expected supporting cut/mode populations remain in their ledgers. Fresh sources with embedded selection policies now enter the same prepared-scenario member/cut dependency checks as explicit selection. Missing native Vd combinations and element-side cuts remain in the capacity-shear result rather than disappearing from its maximum. Global R08 preserves the known single-tower story-direction census on a translated datum and subsequent numerical input failure.",
+      "blocker": "A general ExpectedCheckInstance census and execution for every check family remain open.",
       "closure_criteria": "Freeze each rule population at the correct grain before calculation; account for missing data and proven exceptions explicitly.",
       "owner_paths": [
         "src/tbdy_next/engineering/pipeline.py",
@@ -195,7 +196,9 @@
         "EV-D2",
         "EV-LOCAL-NATIVE",
         "EV-RECIPE18-INTAKE",
-        "EV-AUDIT-FIXES-20261120"
+        "EV-AUDIT-FIXES-20261120",
+        "EV-S00-NATIVE-C29-IMPACT-20261122",
+        "EV-WINDOWS-S00-S02-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -295,7 +298,7 @@
       "title": "Design demand in the same generation",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Parent/scenario/result identities, native case GUIDs and exact cut/side/step lineage are retained.",
+      "achieved_scope": "Parent/scenario/result identities, native case GUIDs and exact cut/side/step lineage are retained. Six native C29 first-order story cuts bind every column and wall on the same upper face and generation.",
       "blocker": "Full analysis-generation proof and applicable seismic design policy are not approved.",
       "closure_criteria": "Bind every consumed design vector to the same generation/cut/step/role without equating similar case names or load patterns.",
       "owner_paths": [
@@ -305,7 +308,8 @@
       "evidence_refs": [
         "EV-D1",
         "EV-D3B-REPLAY",
-        "EV-LOCAL-SPECTRAL"
+        "EV-LOCAL-SPECTRAL",
+        "EV-S02-C29-SIGNED-STORY-BALANCE-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -325,8 +329,8 @@
       "title": "Global and local second-order effects",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Selected candidates can bind same-run R08 inputs; EI/Nk and second-order reference calculations exist. Same-run selected sections now carry both first-order and magnified design moments with the local/global factors and fixed-N radial reserve. R08 applies the existing minimum-eccentricity owner before local/global magnification for static and spectral-box references. Raw, floored and final moments are recorded and projected in the normal report. The two GOLDEN-01 theta scalars now call the existing global P-delta owner. R08 consumes the verified 4.45 m and 3.80 m C29 model clear lengths and the corresponding verified clear lengths of 57 more columns. R08 evaluates conditional TS 500 effective lengths and Euler loads at 59 columns using native directional framing. C29 has 36 aligned Eq. (7.29) comparisons across the stated scenarios. The accepted C29 base boundary at joint 934 restrains UX and UY, consistent with 14 sealed displacement rows. R08 and R14 now bind all 32 mat-connected column boundary conditions from 119 native point reads and R08 computes 64 same-case spectral endpoint differentials. The private ETABS copy supplied 2,784 paired signed end-moment comparisons across all 87 columns. 105 exceed the 5% TS 500 threshold across the six occupied story directions. The isolated ETABS mat gives finite two-axis rotational stiffness at joint 934. Actual floor strips and the mat probe support the two-axis C29 effective-length reference. Signed Eq. (7.23) inputs and column compression subtotals were verified for 24 story references. The 16 C29 Eq. (7.29) signed reference instances give the same branch for both length readings. The 48 signed story/axis references include all frame-column compression. The Rm=1 sensitivity calculation includes complete frame-column critical-load credit at +4.50 and +9.00 and 18 verified-span columns at +0.00. The selected-cage signed C29 PMM reference is evaluated at 48 native cuts. Eight assigned seismic combinations have 48 story-axis references and 1,752 magnified demand boxes for the 73 standalone columns under the Rm=1 sensitivity basis. R08 withholds isolated magnification for the 14 wall-coupled columns and preserves their native cut evidence. The first-order 50 and 25 mm matched-mesh runs show verified interior wall-frame force transfer and unresolved refinement sensitivity at C104. The C104 ideal gross coupled cross section changes geometry at -1.50 m. The existing runner now consumes an explicit, source-validated self-weight Nmax numerical idealization while preserving local N for eccentricity and selected-section PMM. A public two-column/four-beam fixture completes thirty signed cuts and sixteen unique interior-joint SCWB comparisons through conditional R14 closure; this is not original-building or normative acceptance. An independently checked normal-runner source exercises the source-bound revised TS 500 story factors, PMM, six-DOF field recovery, R14 and sealed HTML. The revised story producer now admits a separate same-generation modifier census for non-paired columns and filters Frame/Shell namespaces. A three-column manufactured normal-runner example consumes the additional contributor through actual EI/Nk, story magnification and selected-cage PMM; missing/stale contributors remain unresolved. On the live eight-part METHOD model, six native displacement components yield full-span peaks for both C29 members and three gravity cases each. All three native METHOD meshes now support full-span C29 recovery. The 4-to-8 comparison passes at both members for all three gravity cases. R08 v15 seals 12 adopted frame-column factors and 24 revised PMM sides at 18 physical case-cuts. The actual report reconstruction binds the existing GOLDEN-01 phi values and GOLDEN-02 numerical threshold change to the TS500 scalar owner using hash-bound drift, sum(N/L) and shear. The fixed 44-row bank now has 36 numerical matches, four interpretation differences and four insufficient-source rows. Full source populations and automatic sway assignment remain unqualified.",
-      "blocker": "Provide coupled second-order demands for the 14 wall-frame columns and qualify full concurrent column-wall resultants, signed upper-body equilibrium, and supported per-axis wall-frame critical-load contributions. Resolve stiffness and creep choices and varying-axial TS 500 applicability. The completed C29 conditional frame scenario retains these gates.",
+      "achieved_scope": "Selected candidates can bind same-run R08 inputs; EI/Nk and second-order reference calculations exist. Same-run selected sections now carry both first-order and magnified design moments with the local/global factors and fixed-N radial reserve. R08 applies the existing minimum-eccentricity owner before local/global magnification for static and spectral-box references. Raw, floored and final moments are recorded and projected in the normal report. The two GOLDEN-01 theta scalars now call the existing global P-delta owner. R08 consumes the verified 4.45 m and 3.80 m C29 model clear lengths and the corresponding verified clear lengths of 57 more columns. R08 evaluates conditional TS 500 effective lengths and Euler loads at 59 columns using native directional framing. C29 has 36 aligned Eq. (7.29) comparisons across the stated scenarios. The accepted C29 base boundary at joint 934 restrains UX and UY, consistent with 14 sealed displacement rows. R08 and R14 now bind all 32 mat-connected column boundary conditions from 119 native point reads and R08 computes 64 same-case spectral endpoint differentials. The private ETABS copy supplied 2,784 paired signed end-moment comparisons across all 87 columns. 105 exceed the 5% TS 500 threshold across the six occupied story directions. The isolated ETABS mat gives finite two-axis rotational stiffness at joint 934. Actual floor strips and the mat probe support the two-axis C29 effective-length reference. Signed Eq. (7.23) inputs and column compression subtotals were verified for 24 story references. The 16 C29 Eq. (7.29) signed reference instances give the same branch for both length readings. The 48 signed story/axis references include all frame-column compression. The Rm=1 sensitivity calculation includes complete frame-column critical-load credit at +4.50 and +9.00 and 18 verified-span columns at +0.00. The selected-cage signed C29 PMM reference is evaluated at 48 native cuts. Eight assigned seismic combinations have 48 story-axis references and 1,752 magnified demand boxes for the 73 standalone columns under the Rm=1 sensitivity basis. R08 withholds isolated magnification for the 14 wall-coupled columns and preserves their native cut evidence. The first-order 50 and 25 mm matched-mesh runs show verified interior wall-frame force transfer and unresolved refinement sensitivity at C104. The C104 ideal gross coupled cross section changes geometry at -1.50 m. The existing runner now consumes an explicit, source-validated self-weight Nmax numerical idealization while preserving local N for eccentricity and selected-section PMM. A public two-column/four-beam fixture completes thirty signed cuts and sixteen unique interior-joint SCWB comparisons through conditional R14 closure; this is not original-building or normative acceptance. An independently checked normal-runner source exercises the source-bound revised TS 500 story factors, PMM, six-DOF field recovery, R14 and sealed HTML. The revised story producer now admits a separate same-generation modifier census for non-paired columns and filters Frame/Shell namespaces. A three-column manufactured normal-runner example consumes the additional contributor through actual EI/Nk, story magnification and selected-cage PMM; missing/stale contributors remain unresolved. On the live eight-part METHOD model, six native displacement components yield full-span peaks for both C29 members and three gravity cases each. All three native METHOD meshes now support full-span C29 recovery. The 4-to-8 comparison passes at both members for all three gravity cases. R08 v15 seals 12 adopted frame-column factors and 24 revised PMM sides at 18 physical case-cuts. The actual report reconstruction binds the existing GOLDEN-01 phi values and GOLDEN-02 numerical threshold change to the TS500 scalar owner using hash-bound drift, sum(N/L) and shear. The fixed 44-row bank now has 36 numerical matches, four interpretation differences and four insufficient-source rows. Full source populations and automatic sway assignment remain unqualified. C29's six signed first-order column-wall balances pass against independently calculated upper-body gravity and self-weight. All 267 physical contributor instances are present. The largest absolute residual is 0.000004916 kN. The conditional 12 factors and 24 PMM sides match the original-source replay.",
+      "blocker": "Qualify the two-axis coupled wall-frame critical-load method or a justified direct second-order demand path for the 14 wall-coupled columns. Resolve participating sections, restraint, effective stiffness, creep and varying-axial TS 500 applicability. First-order vertical equilibrium is complete for the two native C29 cuts and three gravity cases.",
       "closure_criteria": "Independently verify both-axis clear/effective lengths and EI, prevent double counting, and prove consumption of the qualified demands.",
       "owner_paths": [
         "src/tbdy_next/column_engine/ts500_column.py",
@@ -370,7 +374,10 @@
         "EV-C29-STORY-CONTRIBUTOR-FIX-20261121",
         "EV-C29-NATIVE-EIGHT-SPAN-20261121",
         "EV-C29-NATIVE-CONDITIONAL-TS500-20261121",
-        "EV-REPORT-SWAY-RECONSTRUCTION-20261121"
+        "EV-REPORT-SWAY-RECONSTRUCTION-20261121",
+        "EV-S00-NATIVE-C29-IMPACT-20261122",
+        "EV-S02-C29-SIGNED-STORY-BALANCE-20261122",
+        "EV-WINDOWS-S00-S02-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -453,6 +460,36 @@
           "Qualify per-domain second-order method or supported direct-demand alternative"
         ],
         "conditional_guard": "Missing wall evidence differs from a demonstrated complete-population, same-state, independently loaded imbalance. Preserve diagnostic numerical values without making known failed evidence eligible."
+      },
+      "s02_checkpoint_20261122": {
+        "evidence": "EV-S02-C29-SIGNED-STORY-BALANCE-20261122",
+        "case_cuts_balanced_expected": [
+          6,
+          6
+        ],
+        "physical_contributors_read_expected": [
+          267,
+          267
+        ],
+        "cut_census": {
+          "+0.00": {
+            "z_m": -5.15,
+            "columns": 32,
+            "walls": 21
+          },
+          "+4.50": {
+            "z_m": 0.0,
+            "columns": 32,
+            "walls": 4
+          }
+        },
+        "full_wall_frame_critical_load": "STORY_WALL_CRITICAL_LOAD_METHOD_UNSUPPORTED",
+        "conditional_factors_and_pmm_faces": [
+          12,
+          24
+        ],
+        "engineering_release": "NOT_READY",
+        "next_action": "S01/S03 C104 signed combined actions and connection basis at the -1.50 m transition, followed by the S04 applicability decision."
       }
     },
     {
@@ -460,7 +497,7 @@
       "title": "Independent PMM capacity acceptance",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "PMM solver and required-cut checks remain active; latest plain replay evaluates 1206 signed-static station rows with zero observed exceedances. The selected-cage run returns a verified governing static station for 87/87 members, with fixed-N radial capacity and signed reserve at each of 1,206 cuts.",
+      "achieved_scope": "PMM solver and required-cut checks remain active; latest plain replay evaluates 1206 signed-static station rows with zero observed exceedances. The selected-cage run returns a verified governing static station for 87/87 members, with fixed-N radial capacity and signed reserve at each of 1,206 cuts. An independent fixed-N section integration checks the original governing C29 Grav_Ult selected-cage face of column 142. It gives 1450.877041 kN m radial capacity and utilization 0.176473078.",
       "blocker": "Full normative load/cut/axis/cage scope and independent complete-design oracle acceptance remain open.",
       "closure_criteria": "Use independent capacity solutions and normative prerequisite evidence with explicit source identities and tolerances.",
       "owner_paths": [
@@ -471,7 +508,8 @@
         "EV-PMM6",
         "EV-D3",
         "EV-LOCAL-REPORT",
-        "EV-COLUMN-JOINT-SLICE-20261119"
+        "EV-COLUMN-JOINT-SLICE-20261119",
+        "EV-S06-C29-FIXED-N-ONE-FACE-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -490,7 +528,7 @@
       "title": "Reinforcement selection and detailing",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "87 same-run candidates on the verified live source: 32Phi16, As/Ac 1.0053%, Phi10/90 ties and three crossties per direction. Both confinement and shear reference branches verified; selected cages feed local R08/PMM and the recorded report. Original source preserved.",
+      "achieved_scope": "87 same-run candidates on the verified live source: 32Phi16, As/Ac 1.0053%, Phi10/90 ties and three crossties per direction. Both confinement and shear reference branches verified; selected cages feed local R08/PMM and the recorded report. Original source preserved. The one-face independent C29 check rebuilt the recorded selected cage with the same 32 bar coordinates and transverse cover.",
       "blocker": "Candidates are not engineer-approved or as-built. Complete crosstie, anchorage and detailing acceptance remains open.",
       "closure_criteria": "Separately verify cage role, bar/leg geometry, cover, clear spacing, pitch, area and anchorage; retain actual-vs-proposed distinction.",
       "owner_paths": [
@@ -501,7 +539,8 @@
         "EV-D1",
         "EV-D2",
         "EV-COLUMN-CAGE-TIE10",
-        "EV-COLUMN-CAGE-REPORT-TESTS"
+        "EV-COLUMN-CAGE-REPORT-TESTS",
+        "EV-S06-C29-FIXED-N-ONE-FACE-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -689,7 +728,7 @@
       "title": "Golden coverage and complete independent example",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Historical 467-fixture bank, 10 alpha targets and 115776 separate-bank scalar comparisons are retained; new same-source oracle matches 38592 native comparisons and 45024 derived values. A separate source-binding audit matches 1600 native modal fields and 200 periods; this is not a new building arithmetic oracle. Separate recipe intake reproduced 333 frozen assertions, 1294 assertions in one proportional-modal synthetic chain, and three current-owner primitive values. The fixed 44-ID report comparison now has 36 numerical matches, four insufficient-source records and four engineering-interpretation differences. Three real GOLDEN-01/02 phi records now call the production TS500 scalar with hash-bound inputs, in addition to the preceding 13 owner bindings. Source IDs, expected values and tolerances are preserved. Independent actual-report reconstruction covers 54 DOCX story Q/beta-s rows, 864 column k rows, all 124 column critical-end bindings, 172 PDF theta rows and 12 PDF capacity-shear arithmetic cases; raw private sources and unresolved wall transformations remain separate. Public normal-pipeline one- and two-story synthetic fixtures execute actual selection, second order, PMM, shear and joint owners through sealed R14/report results.",
+      "achieved_scope": "Historical 467-fixture bank, 10 alpha targets and 115776 separate-bank scalar comparisons are retained; new same-source oracle matches 38592 native comparisons and 45024 derived values. A separate source-binding audit matches 1600 native modal fields and 200 periods; this is not a new building arithmetic oracle. Separate recipe intake reproduced 333 frozen assertions, 1294 assertions in one proportional-modal synthetic chain, and three current-owner primitive values. The fixed 44-ID report comparison now has 36 numerical matches, four insufficient-source records and four engineering-interpretation differences. Three real GOLDEN-01/02 phi records now call the production TS500 scalar with hash-bound inputs, in addition to the preceding 13 owner bindings. Source IDs, expected values and tolerances are preserved. Independent actual-report reconstruction covers 54 DOCX story Q/beta-s rows, 864 column k rows, all 124 column critical-end bindings, 172 PDF theta rows and 12 PDF capacity-shear arithmetic cases; raw private sources and unresolved wall transformations remain separate. Public normal-pipeline one- and two-story synthetic fixtures execute actual selection, second order, PMM, shear and joint owners through sealed R14/report results. One original C29 selected-cage fixed-N PMM face has a numerical comparison with independently integrated capacity.",
       "blocker": "The four insufficient-source rows are the PMM, capacity-shear, GOLDEN-03 and GOLDEN-04 report gates. Four adopted second-order factors retain their length/maximum-product interpretation differences: all 36 printed GOLDEN-02 rows match the product but none trigger that branch using displayed lk. Numerical phi matches do not qualify complete story populations, stiffness, load combinations or automatic engineering sway assignment. A complete independently validated actual-owner alpha-below-one building example remains open.",
       "closure_criteria": "Run the production owner on a complete independent example with inputs, intermediate values, tolerances, identities and a sealed result chain.",
       "owner_paths": [
@@ -712,7 +751,8 @@
         "EV-AUDIT-FIXES-20261120",
         "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
         "EV-C29-ADOPTED-BASIS-LOCAL-20261121",
-        "EV-REPORT-SWAY-RECONSTRUCTION-20261121"
+        "EV-REPORT-SWAY-RECONSTRUCTION-20261121",
+        "EV-S06-C29-FIXED-N-ONE-FACE-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -762,8 +802,8 @@
       "title": "One pipeline, dependency graph and sealed reports",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "One runner and finalized v2 remain; current same-source stage repeats 16/16 IDENTICAL, and report projection makes zero calls with 21 entry points disabled. Web and CLI now share scenario preparation and original-parent verification, with complete sealed-result equality checks. Normal single/all-column reports project governing PMM cuts and joint shear/tie details without calculation. The logical baseline is included in CI filters. All declared method versions are exported even when a stage has no consumes contract. New legacy-policy selections are prepared through the single scenario owner; an unprepared direct-run selection is rejected before calculation receipts. New raw/floored/final moment and alpha-population report fields are sealed-result projections.",
-      "blocker": "General catalog-wide topological execution and complete CHECK-instance ledger remain open; legacy compatibility still exists. The registry is descriptive rather than the complete execution scheduler; R14 and report-evidence computations need visibility. Two-digit receipt readers omit index 100; S00 reproduces and scopes this boundary.",
+      "achieved_scope": "One runner and finalized v2 remain; current same-source stage repeats 16/16 IDENTICAL, and report projection makes zero calls with 21 entry points disabled. Web and CLI now share scenario preparation and original-parent verification, with complete sealed-result equality checks. Normal single/all-column reports project governing PMM cuts and joint shear/tie details without calculation. The logical baseline is included in CI filters. All declared method versions are exported even when a stage has no consumes contract. New legacy-policy selections are prepared through the single scenario owner; an unprepared direct-run selection is rejected before calculation receipts. New raw/floored/final moment and alpha-population report fields are sealed-result projections. Numeric receipt ordinals support 99/100/101 across history, snapshot, CLI, web and column store. The new six-row report reads the sealed force balance and its signed residuals.",
+      "blocker": "General catalog-wide topological execution, complete check-instance ledger, R14 ownership and report-evidence visibility remain open. Legacy compatibility remains in use.",
       "closure_criteria": "Execute one registry with typed dependencies and complete expected scope; block missing upstreams and project the same sealed result in UI/CLI/report.",
       "owner_paths": [
         "src/tbdy_next/engineering/pipeline.py",
@@ -777,7 +817,10 @@
         "EV-LOCAL-REPORT",
         "EV-RECIPE18-INTAKE",
         "EV-AUDIT-ADAPTER-FIXES-20261119",
-        "EV-AUDIT-FIXES-20261120"
+        "EV-AUDIT-FIXES-20261120",
+        "EV-S00-NATIVE-C29-IMPACT-20261122",
+        "EV-S02-C29-SIGNED-STORY-BALANCE-20261122",
+        "EV-WINDOWS-S00-S02-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
