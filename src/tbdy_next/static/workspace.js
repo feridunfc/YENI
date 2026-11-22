@@ -987,6 +987,7 @@
     if (byId('deskTightenStirrups')) byId('deskTightenStirrups').disabled = disabled;
     byId('deskResetRebar').disabled = disabled;
     byId('deskApplyRebar').disabled = disabled || !state.bundle?.runId || state.bundle?.runId === 'column-127';
+    byId('deskRunBuilding').disabled = byId('deskApplyRebar').disabled || state.bundle?.columnPmmMember !== 'ALL';
     renderDiameterCheckboxes('deskBeamAllowedDiams', BEAM_DIAMETERS, bs.allowed_additional_diameters_mm, disabled, next => {
       bs.allowed_additional_diameters_mm = next.sort((a, b) => a - b);
       persistSettings();
@@ -1379,14 +1380,17 @@
     persistSettings();
     render();
   });
-  byId('deskApplyRebar').addEventListener('click', () => {
+  function runSelection(wholeBuilding) {
     const working = workingSettings();
     emit('tbdy:apply-rebar-selection', {
       runId: state.bundle?.runId ?? null,
       beamSelection: working.beamSelection,
       columnSelection: working.columnSelection,
+      wholeBuilding,
     });
-  });
+  }
+  byId('deskApplyRebar').addEventListener('click', () => runSelection(false));
+  byId('deskRunBuilding').addEventListener('click', () => runSelection(true));
 
   window.TBDYWorkspace = Object.freeze({
     setData,

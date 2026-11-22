@@ -659,6 +659,7 @@ def run_alpha_design_iteration(*, source, geometry, axial, pmm, extra, scope, de
         plan = next_r10["member_dependencies"]
         next_r08 = project_column_r08_local_live(
             source, geometry, axial, pmm, global_pdelta, r10_live=next_r10, selected_cages=new_cages,
+            **({"configured_cut_scope": scope} if source.get("building_design") is not None else {}),
             dependency_plan=plan, demand_revision=owner_revision, previous_result=state["r08"], recompute_member_ids=changed)
         actions = {**next_r10.get("alpha_recalculation", {}), "r08_member_ids": changed,
                    "beam_owner_reexecuted": False,

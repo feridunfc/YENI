@@ -526,6 +526,54 @@ def _beam_shear_ve(
     return out
 
 
+def _selected_beam_design(beam):
+    """Follow the same selected cage through end capacities, full Ve and both stirrup zones."""
+    missing, failures = [], []
+    for face, selected in (("I", (beam["ends"].get("I") or {}).get("engineer_selection")),
+                           ("J", (beam["ends"].get("J") or {}).get("engineer_selection")),
+                           ("SPAN", beam.get("engineer_midspan"))):
+        if not selected or selected.get("status") != "BEAM_SELECTED_CALCULATED":
+            missing.append("SELECTED_SECTION_UNAVAILABLE:" + face)
+            continue
+        capacity = selected.get("capacity") or {}
+        if (capacity.get("status") != "BEAM_CAPACITY_REFERENCE" or capacity.get("positive_m3_knm") is None
+                or capacity.get("negative_m3_knm") is None):
+            missing.append("SIGNED_CAPACITY_UNAVAILABLE:" + face)
+        for field in ("covers_targets", "rho_bounds_met"):
+            if selected.get(field) is False:
+                failures.append(face + ":" + field)
+            elif selected.get(field) is not True:
+                missing.append(face + ":" + field)
+    stirrups = beam.get("engineer_stirrups") or {}
+    shear = beam.get("engineer_shear_ve") or {}
+    demand = shear.get("scenario_ve_kn")
+    limits = {"WEB": shear.get("ts500_max_shear_vr_max_kn")}
+    for zone in ("confinement", "span"):
+        ties = stirrups.get(zone) or {}
+        limits[zone.upper()] = ties.get("vr_conservative_kn")
+        for field in ("spacing_ok", "min_ratio_ok"):
+            if ties.get(field) is False:
+                failures.append(zone + ":" + field)
+            elif ties.get(field) is not True:
+                missing.append(zone + ":" + field)
+    ratios = {}
+    if demand is None or not math.isfinite(demand) or demand < 0:
+        missing.append("FULL_CAPACITY_SHEAR_UNAVAILABLE")
+    else:
+        for check, resistance in limits.items():
+            if resistance is None or not math.isfinite(resistance) or resistance <= 0:
+                missing.append("RESISTANCE_UNAVAILABLE:" + check)
+            else:
+                ratios[check] = demand / resistance
+                if ratios[check] > 1.0:
+                    failures.append("CAPACITY_SHEAR_EXCEEDS:" + check)
+    if beam.get("tbdy_7_4_1_1_geometry_ok") is False:
+        failures.append("BEAM_SECTION_DIMENSION_SCREEN")
+    status = "NUMERICAL_EXCEEDANCE" if failures else "HOLD" if missing else "CONDITIONAL_DESIGN_CALCULATED"
+    return {"status": status, "full_ve_kn": demand, "resistances_kn": limits, "utilizations": ratios,
+            "failures": failures, "missing": missing}
+
+
 def project_beam_r10_live(
     source: Mapping[str, Any],
     geometry: Mapping[str, Any] | None,
@@ -746,6 +794,9 @@ def project_beam_r10_live(
             "formal_compliance": "NOT_PROVEN",
         })
 
+    if source.get("building_design") is not None:
+        for beam in beam_records:
+            beam["selected_design"] = _selected_beam_design(beam)
     calc_count = sum(b["status"] == "BEAM_CANDIDATES_CALCULATED_NOT_PROVEN" for b in beam_records)
     overall_status = (
         "NO_BEAMS_IN_SCOPE"

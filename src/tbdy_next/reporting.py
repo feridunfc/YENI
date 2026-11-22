@@ -1171,6 +1171,24 @@ def _with_material_members(items: list[dict], roster: list[dict]) -> list[dict]:
 def build_printable_html(report: Mapping[str, Any]) -> str:
     """Self-contained print-ready HTML. All five checks and every member row."""
     checks = report["checks"]
+    building_section = ""
+    building = report.get("building_design")
+    if building:
+        floor_rows = [{"storey": story, **values} for story, values in building["storeys"].items()]
+        building_section = (
+            '<section><h2>Whole-building calculation</h2>'
+            + _table((("storey", "Storey"), ("expected", "Physical columns"), ("conditional", "Conditional designs"),
+                      ("hold", "Open"), ("failed", "Numerical failures")), floor_rows)
+            + _table((("name", "Calculation"), ("expected", "Expected"), ("evaluated", "Calculated"),
+                      ("outcome", "Result or outstanding input")), building["checks"])
+            + '<h3>Governing selected beam</h3>'
+            + _table((("story", "Storey"), ("label", "Beam"), ("check", "Check"), ("full_ve_kn", "Ve (kN)"),
+                      ("resistance_kn", "Resistance (kN)"), ("utilization", "Utilization")),
+                     [building["governing_beam"]] if building["governing_beam"] else [])
+            + '<details><summary>Columns and reasons for a hold</summary>'
+            + _table((("story", "Storey"), ("label", "Column"), ("member_id", "ETABS ID"), ("status", "Result"),
+                      ("reason", "Frame basis hold"), ("failures", "Numerical failures"), ("open_gates", "Open checks")),
+                     building["columns"]) + '</details></section>')
     example = report.get("example_context") or {}
     synthetic_example = (example.get("classification") == "CONTRACT_FIXTURE"
                          and example.get("origin") == "GENERATED_OFFLINE_NOT_ETABS")
@@ -1901,6 +1919,7 @@ th {{background:#e8eff7;font-weight:650}} tr:nth-child(even) td {{background:#f7
 <div class="toolstrip">Press <strong>Ctrl+P</strong> to print or save as PDF.</div>
 <h1>TBDY Next Engine — Engineering Check Report</h1>
 {example_notice}
+{building_section}
 <p class="muted">{_val((report.get('check_inventory') or {}).get('count', len(checks)))} limited-scope checks from {source_description}. The STORY_DRIFT numerical result leaves TBDY compliance NOT_PROVEN.</p>
 <p class="muted">Hover over a rounded value to see the original. The JSON export also includes full precision.</p>
 <div class="warning"><strong>FORMAL COMPLIANCE = NOT_PROVEN · ENGINEERING RELEASE = NOT_READY.</strong>

@@ -60,7 +60,9 @@ def _run_pipeline_replay(args) -> int:
     overrides = {key: value for key, value in (("beam_selection", beam_sel), ("column_selection", col_sel))
                  if value is not None}
     prepared = prepare_pipeline_source(raw, source_directory=args.source.parent, request=request,
-                                       selection_overrides=overrides or None)
+                                       selection_overrides=overrides or None,
+                                       whole_building=getattr(args, "whole_building", False),
+                                       wall_hinge_aggregate_storeys=getattr(args, "wall_hinge_aggregate_storey", None))
     raw, payload = prepared.raw, prepared.payload
     scenario = validate_design_scenario(payload)
     input_sha = sha256(raw).hexdigest()
@@ -87,6 +89,11 @@ def _run_pipeline_replay(args) -> int:
     if args.compare_run is not None:
         from .pipeline_snapshot import compare_runs
         summary["compare"] = compare_runs(args.compare_run, run.root)
+    building = stages["report_evidence"].get("building_design")
+    if building:
+        summary["building_design"] = {k: building[k] for k in
+            ("column_count", "column_status_counts", "beam_count", "beam_status_counts", "storeys", "area_population")}
+        summary["report_path"] = str(run.root / "report.html")
     print(json.dumps(summary, ensure_ascii=False, indent=2))
     return 0 if summary.get("compare", {}).get("status", "IDENTICAL") == "IDENTICAL" else 3
 

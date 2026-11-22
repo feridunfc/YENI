@@ -413,6 +413,11 @@ def _evaluate_single_r14_column(
         if any(any(f is not None for f in (e.get("faces") or {}).values()) for e in det.get("member_joint_ends") or ()):
             open_gates.append("CONNECTED_BEAMS_NOT_EVALUATED")
     for b in conn_beams:
+        selected = b.get("selected_design") or {}
+        if selected.get("failures"):
+            normative_failures.append(f"CONNECTED_BEAM_SELECTED_DESIGN_EXCEEDED:{b['member_id']}")
+        if selected.get("missing"):
+            open_gates.append(f"CONNECTED_BEAM_SELECTED_DESIGN_INCOMPLETE:{b['member_id']}")
         st_b = b.get("engineer_stirrups") or {}
         if st_b:
             conf_b = st_b.get("confinement") or st_b.get("confinement_2h") or {}

@@ -2,102 +2,26 @@
 from __future__ import annotations
 
 import argparse
-from collections import defaultdict
 from copy import deepcopy
 import json
-from math import fsum, isclose
+from math import isclose
 from pathlib import Path
 
 from prepare_axial_idealization_scenario import read_scenario_run
 from tbdy_next.column_engine.native_archive import decode
-from tbdy_next.column_engine.source_bank import native_frame_force_rows
 from tbdy_next.column_engine.ts500_column import (
-    SWAY_PERMITTED, effective_length_factor, effective_stiffness_nmm2, euler_load_kn, rectangle_properties,
+    SWAY_PERMITTED, effective_length_factor,
 )
 from tbdy_next.engineering.column_clear_length import proven_clear_length_m
 from tbdy_next.engineering.column_effective_length import reference_end_ratios
-from tbdy_next.engineering.column_pmm_section import MECHANICAL, _named_row, _rows
+from tbdy_next.engineering.frame_storey_design import (
+    lateral_directions, require, storey_compression, storey_critical_loads,
+)
 from tbdy_next.engineering.column_r10_live import _build_frame_catalog
 from tbdy_next.engineering.design_scenario import create_design_scenario
 from tbdy_next.engineering.second_order_basis import (
     AXIAL_IDEALIZATION_APPLICABILITY, AXIAL_IDEALIZATION_METHOD, SWAY_POLICY,
 )
-
-
-def require(condition, message):
-    if not condition:
-        raise ValueError(message)
-
-
-def lateral_directions(frame):
-    """Map bending about local 2/3 to the orthogonal horizontal storey direction."""
-    axes = frame.get("axes_global")
-    if not axes or abs(axes[0][2] - 1.0) > 1e-8:
-        return {}
-    directions = {}
-    for moment, displacement in (("M2", axes[2]), ("M3", axes[1])):
-        matches = [name for index, name in enumerate(("X", "Y")) if abs(displacement[index]) >= 1 - 1e-8]
-        if len(matches) == 1:
-            directions[moment] = matches[0]
-    return directions if set(directions.values()) == {"X", "Y"} else {}
-
-
-def storey_compression(source, physical, groups):
-    force_source = source["column_axial"]["force_source"]
-    names = set(groups["gravity"]) | set(groups["ductile"])
-    sums = defaultdict(list)
-    for uid, proof in physical.items():
-        require(uid in force_source["rowsets"], f"Missing original storey contributor {uid}")
-        cut_steps = defaultdict(lambda: defaultdict(set))
-        cuts = set()
-        pressures = defaultdict(list)
-        for row in native_frame_force_rows(force_source["rowsets"][uid], uid):
-            case, step, number, p = row[4:8]
-            if case in names:
-                require(number == 0, f"Unsupported output step in {uid}/{case}")
-                cut = (row[1], row[2], row[3])
-                cuts.add(cut)
-                cut_steps[case][cut].add(step)
-                pressures[case].append(-p)
-        ends = proof.get("end_cuts", {})
-        require(set(ends) == {"I", "J"} and all(len(end) == 4 and end[0] == uid and tuple(end[1:]) in cuts
-                                                for end in ends.values()),
-                f"Assigned forces lack a verified physical end cut for {uid}")
-        for case in names:
-            expected = {"Single Value"} if case in groups["gravity"] else {"Max", "Min"}
-            require(cuts and set(cut_steps[case]) == cuts and all(steps == expected for steps in cut_steps[case].values()),
-                    f"Missing assigned case, cut or step in {uid}/{case}")
-            sums[case].append(max(0.0, max(pressures[case])))
-    return {case: fsum(sums[case]) for case in sorted(names)}
-
-
-def storey_critical_loads(source, storey, physical, ratios, *, allow_wall_hinge):
-    """Compute directional Euler sums using the adopted frame-storey assumptions."""
-    material_rows = _rows(source["column_axial"]["pmm_section_source"]["table_reads"],
-                          MECHANICAL, {"Material"}, {"E1": "kN/m2"})
-    loads = defaultdict(list)
-    for uid, frame in storey.items():
-        length = proven_clear_length_m(physical[uid], uid)
-        directions = lateral_directions(frame)
-        require(length and directions, f"Storey contributor geometry is unresolved for {uid}")
-        modulus = float(_named_row(material_rows, "Material", frame["material_name"], MECHANICAL)["E1"]) / 1000
-        dims = frame["dims"]
-        section = rectangle_properties(dims.bending_depth_m2_mm, dims.bending_depth_m3_mm)
-        for axis, direction in directions.items():
-            ends = ratios.get(uid, {}).get(axis, {})
-            require(set(ends) == {"I", "J"}, f"Missing storey frame ends for {uid}/{axis}")
-            supported_i = ends["I"]["basis"] == "FRAME_SECTION_REFERENCE" or (
-                allow_wall_hinge and ends["I"]["basis"] == "WALL_BELOW_ROTATIONAL_STIFFNESS_UNBOUND")
-            require(ends["J"]["basis"] == "FRAME_SECTION_REFERENCE" and supported_i,
-                    f"Unsupported frame-storey reference end for {uid}/{axis}")
-            # The sealed storey calculation assumes a hinge for a wall-supported lower end.
-            # A column using this assumption cannot enter the member design extension.
-            k = effective_length_factor(alpha_i=ends["I"].get("alpha_web"), alpha_j=ends["J"].get("alpha_web"),
-                                        sway=SWAY_PERMITTED)
-            inertia = section["i22_mm4"] if axis == "M2" else section["i33_mm4"]
-            ei = effective_stiffness_nmm2(ec_mpa=modulus, ic_mm4=inertia, creep_ratio=1, method="TS500_7_21")
-            loads[direction].append(euler_load_kn(effective_ei_nmm2=ei, effective_length_lk_mm=1000 * length * k))
-    return {direction: fsum(values) for direction, values in loads.items()}
 
 
 def frame_storey(source, frames, local, story, groups, *, allow_wall_hinge):

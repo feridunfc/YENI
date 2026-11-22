@@ -132,9 +132,9 @@ STAGES: tuple[StageSpec, ...] = (
               ("GLOBAL_SECOND_ORDER",), "TBDY 4.33 story second-order precheck", "R08_SOURCE"),
     StageSpec("column-r08-local", LIVE, "tbdy_next.engineering.column_r08_local_live", (),
               ("COLUMN_SLENDERNESS", "COLUMN_PMM"),
-              "TS500 local slenderness, adopted EI/K/Rm and scoped self-weight axial idealization for selected-section PMM",
+              "TS500 local slenderness, per-storey frame restraints and selected-section PMM",
               "COLUMN_PMM_MEMBER", consumes=(_AXIAL_GEOMETRY, _AXIAL_RESULT, _PMM_RESULT, _PMM_SCOPE),
-              produces=(_R08_LOCAL_RESULT,), method_version="column-r08-local.adopted-basis.v18"),
+              produces=(_R08_LOCAL_RESULT,), method_version="column-r08-local.building-frame.v19"),
     StageSpec("alpha-feedback", LIVE, "tbdy_next.engineering.alpha_iteration", (), (),
               "Bounded qualified signed alpha demand revision and dirty-member rechecks", "EXPLICIT_DESIGN_SCENARIO",
               consumes=(_DESIGN_SCOPE, _PMM_SCOPE, _PMM_RESULT, _R10_RESULT, _R08_LOCAL_RESULT),
@@ -143,8 +143,14 @@ STAGES: tuple[StageSpec, ...] = (
               "Recorded candidate/demand to joint/story/Ve/R14 dependency revisions and consumed alpha feedback; no persistent cache",
               "DESIGN_SCENARIO", consumes=(_DESIGN_SCOPE,), produces=(_DESIGN_REVISIONS,),
               method_version="offline-member-dependencies.d2.v1"),
+    StageSpec("column-r14-closure", LIVE, "tbdy_next.engineering.column_r14_closure", (), (),
+              "Member design and building column census after the final beam, joint and alpha results",
+              "COLUMN_PMM_MEMBER", consumes=(_PMM_RESULT,), method_version="column-r14.building-beams.v3"),
     StageSpec("report-evidence", LIVE, "tbdy_next.engineering.pipeline", (), (),
               "Scoped story checks, source controls, design assignments and member evidence", "SUITE"),
+    StageSpec("building-design", LIVE, "tbdy_next.engineering.building_design", (), (),
+              "Physical building census, selected frame results, known failures and outstanding design scope",
+              "BUILDING_DESIGN_POLICY", method_version="building-design.v1"),
     StageSpec("engine-results", LIVE, "tbdy_next.engineering.pipeline_snapshot", ("engine-results",), (),
               "Sealed returned-stage snapshot with source, method, registry and result hashes"),
     StageSpec("live-capture", LIVE, "tbdy_next.engineering.pipeline", ("live-capture",), (),
@@ -679,14 +685,19 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
         raise ValueError("INVALID_STAGE_OUTPUT:design-dependencies")
     design_allowed = design_dependencies is None or design_dependencies["candidate_execution_allowed"]
     selected_cages = {}
+    from .beam_r10_live import project_beam_r10_live
+    building = payload.get("building_design") is not None
+    if building:
+        # Beam sections use their own forces, not a successful column PMM or joint result.
+        beam_r10 = project_beam_r10_live(payload, geometry, column_axial, column_pmm, extra)
     if axial_ledger is not None and not axial_ledger["dependency_blockers"]:
         from .column_live_gates import project_column_gates
 
         if design_allowed and (pmm_target is None or (column_pmm is not None and column_pmm["evaluated_station_count"] > 0)):
-            from .beam_r10_live import project_beam_r10_live
             from .column_r10_live import project_column_r10_live
 
-            beam_r10 = project_beam_r10_live(payload, geometry, column_axial, column_pmm, extra)
+            if not building:
+                beam_r10 = project_beam_r10_live(payload, geometry, column_axial, column_pmm, extra)
             r10_live = project_column_r10_live(
                 payload, geometry, column_axial, column_pmm, extra, beam_live=beam_r10,
                 selected_cages_out=selected_cages, pmm_scope=pmm_scope, mixed_components=mixed_components, input_sha=input_sha,
@@ -747,6 +758,7 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
             r08_local_slenderness = project_column_r08_local_live(
                 payload, geometry, column_axial, column_pmm, r08_second_order, r10_live=r10_live,
                 selected_cages=selected_cages,
+                **({"configured_cut_scope": pmm_scope} if payload.get("building_design") is not None else {}),
                 **({"dependency_plan": design_dependencies} if scenario else {}),
             )
             if not all(contract.accepts(r08_local_slenderness) for contract in stage.produces):
@@ -809,6 +821,9 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
             r14_closure["design_dependencies"] = design_dependencies
             r14_closure["design_revisions"] = dependency_revisions
             r14_closure["alpha_iteration"] = alpha_iteration
+    if building:
+        from .building_design import building_results
+        out["report_evidence"]["building_design"] = building_results(payload, out, out["report_evidence"])
     snapshot = record_snapshot(run, input_sha=input_sha, results=out, registry=stage_registry())
     meta = payload.get("capture_metadata") or {}
     run.record("live-capture", {
@@ -838,4 +853,12 @@ class EnginePipelineRunner:
 
     def run(self, payload: Mapping[str, Any], *, case: str, run: ReceiptRun,
             input_sha: str, suite: bool) -> dict[str, Any]:
-        return run_source_pipeline(payload, case=case, run=run, input_sha=input_sha, suite=suite, catalog=self.catalog)
+        stages = run_source_pipeline(payload, case=case, run=run, input_sha=input_sha,
+                                     suite=suite or payload.get("building_design") is not None, catalog=self.catalog)
+        if payload.get("building_design") is not None:
+            from ..reporting import build_complete_report, build_printable_html
+            page = build_printable_html(build_complete_report(run.root.parent, run.run_id))
+            temporary = run.root / "report.html.tmp"
+            temporary.write_text(page, encoding="utf-8")
+            temporary.replace(run.root / "report.html")
+        return stages

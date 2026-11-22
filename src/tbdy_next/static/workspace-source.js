@@ -856,7 +856,7 @@
 
   window.addEventListener('tbdy:apply-rebar-selection', async event => {
     if (busy) return;
-    const {runId, beamSelection, columnSelection} = event.detail ?? {};
+    const {runId, beamSelection, columnSelection, wholeBuilding = false} = event.detail ?? {};
     const statusEl = byId('deskRebarStatus');
     if (!runIdPattern.test(runId)) {
       if (statusEl) statusEl.textContent = 'Select a verified combined run before applying rebar settings.';
@@ -868,7 +868,7 @@
     byId('deskLive').disabled = true;
     probe.disabled = true;
     workspace.setLiveBusy(true);
-    if (statusEl) statusEl.textContent = 'Re-evaluating selected run with engineer rebar & stirrup policies…';
+    if (statusEl) statusEl.textContent = wholeBuilding ? 'Calculating the whole building…' : 'Re-evaluating selected run with engineer rebar & stirrup policies…';
     try {
       const body = await json('/api/apply-rebar-selection', {
         method: 'POST',
@@ -877,6 +877,7 @@
           base_run_id: runId,
           beam_selection: beamSelection,
           column_selection: columnSelection,
+          ...(wholeBuilding ? {whole_building: true} : {}),
         }),
       });
       const entry = {
@@ -887,7 +888,12 @@
       entries = [entry, ...entries.filter(row => row.run_id !== entry.run_id)];
       renderPicker(entry.run_id);
       log('success', 'REBAR SELECTION', 'Applied engineer beam/column rebar policy → ' + entry.run_id);
-      if (statusEl) statusEl.textContent = 'Applied policy cleanly. Active run: ' + entry.run_id + ' (NOT_PROVEN).';
+      if (statusEl) {
+        const building = body.building_design;
+        statusEl.textContent = building
+          ? (building.column_status_counts.conditional ?? 0) + ' of ' + building.column_count + ' column designs reached a conditional result. Open the report for all building checks.'
+          : 'Applied policy cleanly. Active run: ' + entry.run_id + ' (NOT_PROVEN).';
+      }
       await activateSource(body.run_id);
     } catch (error) {
       log('error', 'REBAR SELECTION', error.message);

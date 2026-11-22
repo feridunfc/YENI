@@ -41,14 +41,14 @@ class VerticalSlicePipelineTests(unittest.TestCase):
         cls.stages = cls.snapshot["results"]
 
     @classmethod
-    def calculate(cls, raw, request, name):
+    def calculate(cls, raw, request, name, **run_options):
         source_path = cls.root / (name + ".source")
         request_path = cls.root / (name + ".json")
         source_path.write_bytes(raw)
         request_path.write_text(json.dumps(request), encoding="utf-8")
         args = Namespace(action="run-pipeline", source=source_path, design_scenario=request_path,
                          out=cls.root, case="Modal", compare_run=None,
-                         beam_selection=None, column_selection=None)
+                         beam_selection=None, column_selection=None, **run_options)
         stream = io.StringIO()
         with redirect_stdout(stream):
             code = run_cli(args)
@@ -256,6 +256,33 @@ class VerticalSlicePipelineTests(unittest.TestCase):
                         for end in row["ends"] if end["joint_id"] == "P1"]
         self.assertEqual(dispositions, ["EQ_7_3_INTERVAL_SUFFICIENT"] * 4)
         self.assertEqual(stages["r14_closure"]["engineering_release"], "NOT_READY")
+
+    def test_building_run_keeps_beams_and_writes_report_when_column_basis_is_missing(self):
+        request = deepcopy(self.request)
+        request.pop("second_order_basis", None)
+        request.pop("analysis_archive", None)
+        summary, snapshot = self.calculate(self.raw, request, "building", whole_building=True)
+        building = snapshot["results"]["report_evidence"]["building_design"]
+        self.assertEqual(building["column_count"], 1)
+        self.assertEqual(building["column_status_counts"], {"hold": 1})
+        self.assertEqual(building["beam_count"], 2)
+        beams = snapshot["results"]["beam_r10"]["beams"]
+        self.assertEqual(len(beams), 2)
+        self.assertTrue(all("selected_design" in b and b["engineer_shear_ve"]["scenario_ve_kn"] > 0 for b in beams))
+        page = Path(summary["report_path"]).read_text(encoding="utf-8")
+        self.assertIn("Whole-building calculation", page)
+        self.assertIn(snapshot["results_sha256"], page)
+
+    def test_selected_beam_checks_full_shear_and_preserves_exceedance_with_another_zone_missing(self):
+        from tbdy_next.engineering.beam_r10_live import _selected_beam_design
+        beam = deepcopy(self.stages["beam_r10"]["beams"][0])
+        shear = beam["engineer_shear_ve"]
+        shear["ts500_max_shear_vr_max_kn"] = (shear["scenario_ve_kn"] + shear["earthquake_capacity_shear_term_kn"]) / 2
+        beam["engineer_stirrups"].pop("span")
+        result = _selected_beam_design(beam)
+        self.assertEqual(result["status"], "NUMERICAL_EXCEEDANCE")
+        self.assertIn("CAPACITY_SHEAR_EXCEEDS:WEB", result["failures"])
+        self.assertIn("RESISTANCE_UNAVAILABLE:SPAN", result["missing"])
 
     def test_real_magnified_demand_reselects_cage_without_alpha_or_native_force_change(self):
         # A declared numerical stress example, not a verified restraint model:

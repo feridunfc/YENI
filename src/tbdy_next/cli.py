@@ -87,6 +87,10 @@ def main(argv: list[str] | None = None) -> int:
     replay.add_argument("--out", type=Path, required=True, help="Receipt root for the replay run")
     replay.add_argument("--compare-run", type=Path, help="Existing RUN-* directory; every stage payload must match")
     replay.add_argument("--design-scenario", type=Path, help="Explicit source-bound offline design scenario JSON")
+    replay.add_argument("--whole-building", action="store_true",
+                        help="Run all physical members and building checks, then write the sealed HTML report")
+    replay.add_argument("--wall-hinge-aggregate-storey", action="append", metavar="STOREY",
+                        help="Adopt a lower wall hinge only in this storey's frame critical-load sum")
     replay.add_argument("--beam-selection", help="'default' or path to JSON beam selection policy")
     replay.add_argument("--column-selection", help="'default' or path to JSON column selection policy")
     args = parser.parse_args(argv)

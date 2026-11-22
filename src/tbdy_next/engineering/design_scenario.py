@@ -27,7 +27,7 @@ LINEAGE_WITH_BASIS = "tbdy.next.design-scenario-lineage.v2"
 PARENT_FILE = "parent.source"
 POLICIES = ("beam_selection", "column_selection")
 CALCULATION_BASES = ("second_order_basis", "analysis_basis", "analysis_archive", "gravity_order_pair",
-                     "coupled_wall_transition")
+                     "coupled_wall_transition", "building_design")
 
 
 @dataclass(frozen=True)
@@ -60,6 +60,9 @@ def _source_data(payload: Mapping[str, Any]) -> dict[str, Any]:
 def _calculation_basis(key: str, value: Any, source_data_sha256: str) -> dict[str, Any] | None:
     if value is None:
         return None
+    if key == "building_design":
+        from .frame_storey_design import normalize_building_design
+        return normalize_building_design(value, source_data_sha256=source_data_sha256)
     if key == "second_order_basis":
         from .second_order_basis import normalize_second_order_basis
         return normalize_second_order_basis(value, source_data_sha256=source_data_sha256)
@@ -135,6 +138,10 @@ def create_design_scenario(parent_raw: bytes, request: Mapping[str, Any]) -> byt
     if not isinstance(column_request, Mapping) or not column_request.get("pmm_member"):
         raise ValueError("SCENARIO_PMM_REQUEST_REQUIRED")
     policies = {key: _policy(request[key], key) for key in POLICIES}
+    if request.get("building_design") is not None and (
+            column_request.get("pmm_member") != "ALL" or not all(policies.values())
+            or column_request.get("combination_source") != "ASSIGNED_DESIGN"):
+        raise ValueError("BUILDING_DESIGN_REQUIRES_ALL_COLUMNS_ASSIGNED_LOADS_AND_BOTH_SELECTION_POLICIES")
     if all(value is None for value in policies.values()):
         raise ValueError("SCENARIO_SELECTION_REQUIRED")
     native_sha = _digest(_source_data(parent))
@@ -233,6 +240,8 @@ def prepare_pipeline_source(
     source_directory: Path | None = None,
     request: Mapping[str, Any] | None = None,
     selection_overrides: Mapping[str, Any] | None = None,
+    whole_building: bool = False,
+    wall_hinge_aggregate_storeys: list[str] | None = None,
 ) -> PreparedPipelineSource:
     """Prepare replay or selection identically for Web and CLI.
 
@@ -244,8 +253,12 @@ def prepare_pipeline_source(
     """
     if not 0 < len(source_raw) <= _MAX_SOURCE_BYTES:
         raise ValueError("SCENARIO_SOURCE_EXCEEDS_ARCHIVE_LIMIT")
+    if whole_building and selection_overrides == {}:
+        selection_overrides = None
     if request is not None and selection_overrides is not None:
         raise ValueError("SCENARIO_AND_SELECTION_FLAGS_ARE_EXCLUSIVE")
+    if type(whole_building) is not bool or (wall_hinge_aggregate_storeys is not None and not whole_building):
+        raise ValueError("BUILDING_SCOPE_OPTION_INVALID")
     payload = decode(source_raw)
     if not isinstance(payload, dict) or payload.get("source_mode") != "LIVE_ETABS":
         raise ValueError("LIVE_ETABS_ARCHIVED_SOURCE_REQUIRED")
@@ -269,6 +282,24 @@ def prepare_pipeline_source(
             **{key: payload[key] for key in CALCULATION_BASES if payload.get(key) is not None},
         }
     raw = source_raw
+    if whole_building:
+        from .frame_storey_design import BUILDING_SCHEMA, FRAME_METHOD
+        parent = parent_raw if parent_raw is not None else source_raw
+        if request is None:
+            request = {"schema": SCHEMA, "scenario_id": "whole-building", "parent_input_sha256": sha256(parent).hexdigest(),
+                       **{key: payload.get(key) if scenario else payload.get(key, "default") for key in POLICIES},
+                       **{key: payload[key] for key in CALCULATION_BASES if payload.get(key) is not None}}
+        request = dict(request)
+        policy = request.get("building_design")
+        if policy is None:
+            policy = {"schema": BUILDING_SCHEMA, "frame_method": FRAME_METHOD,
+                      "source_data_sha256": _digest(_source_data(payload)),
+                      "wall_hinge_aggregate_storeys": [], "decision_reference":
+                      "Explicit whole-building frame method. Sway permitted, rectangular webs, Rm=1, "
+                      "TS 500 Eq. 7.21, unity Cm, effective length in Eq. 7.29 and the TBDY unity precheck."}
+        if wall_hinge_aggregate_storeys is not None:
+            policy = {**policy, "wall_hinge_aggregate_storeys": wall_hinge_aggregate_storeys}
+        request["building_design"] = policy
     if request is not None:
         parent_raw = parent_raw if parent_raw is not None else source_raw
         raw = create_design_scenario(parent_raw, request)

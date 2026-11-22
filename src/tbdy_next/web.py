@@ -64,6 +64,8 @@ def _execute_and_reply_live_payload(
     source_directory: Path | None = None,
     selection_overrides: Mapping[str, Any] | None = None,
     scenario_request: Mapping[str, Any] | None = None,
+    whole_building: bool = False,
+    wall_hinge_aggregate_storeys: list[str] | None = None,
 ) -> None:
     from .engineering.design_scenario import prepare_pipeline_source
 
@@ -74,7 +76,9 @@ def _execute_and_reply_live_payload(
         return
     try:
         prepared = prepare_pipeline_source(raw, source_directory=source_directory,
-                                           selection_overrides=selection_overrides, request=scenario_request)
+                                           selection_overrides=selection_overrides, request=scenario_request,
+                                           whole_building=whole_building,
+                                           wall_hinge_aggregate_storeys=wall_hinge_aggregate_storeys)
     except (OSError, ValueError, TypeError, KeyError) as exc:
         handler.reply(422, {"status": "REJECTED", "reason": str(exc), "engineering_release": "NOT_READY"})
         return
@@ -102,6 +106,8 @@ def _execute_and_reply_live_payload(
         handler.reply(200, {
             "run_id": run.run_id, "result": result,
             "engine_snapshot": stages["engine_snapshot"],
+            **({"building_design": stages["report_evidence"]["building_design"]}
+               if "building_design" in stages["report_evidence"] else {}),
             "model_name": ntpath.basename(str(meta.get("model_filename", ""))),
             "case_row_count": meta.get("case_row_count"),
             "source_rows": payload["table"]["row_count"],
@@ -678,6 +684,8 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                     source_raw=source_raw, source_directory=source_directory,
                     selection_overrides=selection_overrides,
                     scenario_request=scenario_request,
+                    whole_building=body.get("whole_building", False),
+                    wall_hinge_aggregate_storeys=body.get("wall_hinge_aggregate_storeys"),
                 )
                 return
             if url.path in ("/api/live-modal", "/api/live-suite", "/api/live-vs04", "/api/etabs-session"):
@@ -708,10 +716,19 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                     return
                 capture_options = {}
                 rebar_selection_opts: dict[str, Any] = {}
+                whole_building = False
+                hinge_storeys = None
                 if not session_only and set(query) != {"case"}:
                     try:
                         if url.path != "/api/live-vs04":
                             raise ValueError("Use the combined capture for check-specific options.")
+                        if "whole_building" in query:
+                            if query["whole_building"] not in (["true"], ["false"]):
+                                raise ValueError("BUILDING_SCOPE_OPTION_INVALID")
+                            whole_building = query["whole_building"] == ["true"]
+                        hinge_storeys = query.get("wall_hinge_aggregate_storey")
+                        if hinge_storeys is not None and not whole_building:
+                            raise ValueError("BUILDING_SCOPE_OPTION_INVALID")
                         for sel_key, sel_kind in (("beam_selection", "beam"), ("column_selection", "column")):
                             if sel_key in query:
                                 vals = query[sel_key]
@@ -720,10 +737,12 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                                 rebar_selection_opts[sel_key] = _parse_rebar_selection_spec(vals[0], sel_kind)
                         axial_query = {
                             k: v for k, v in query.items()
-                            if k not in ("beam_selection", "column_selection")
+                            if k not in ("beam_selection", "column_selection", "whole_building", "wall_hinge_aggregate_storey")
                         }
                         if set(axial_query) - {"case"}:
                             capture_options["column_axial_request"] = _column_axial_request(axial_query, output_root)
+                        if whole_building and (capture_options.get("column_axial_request") or {}).get("pmm_member") != "ALL":
+                            raise ValueError("BUILDING_DESIGN_REQUIRES_ALL_COLUMNS")
                     except (ReportUnavailable, ValueError, TypeError) as exc:
                         self.reply(422, {"status": "CAPTURE_REJECTED", "reason": str(exc)})
                         return
@@ -795,6 +814,7 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                     self, output_root, payload, case,
                     suite=url.path in ("/api/live-suite", "/api/live-vs04"),
                     selection_overrides=rebar_selection_opts or None,
+                    whole_building=whole_building, wall_hinge_aggregate_storeys=hinge_storeys,
                 )
                 return
             if url.path not in ("/api/discovery", "/api/modal", "/api/modal-schema"):

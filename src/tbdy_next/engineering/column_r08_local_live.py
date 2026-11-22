@@ -906,6 +906,7 @@ def project_column_r08_local_live(
     demand_revision: Mapping[str, Any] | None = None,
     previous_result: Mapping[str, Any] | None = None,
     recompute_member_ids: list[str] | None = None,
+    configured_cut_scope: Mapping[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     """Project R08 reference scenarios using the same candidate section as R10 when supplied."""
     if pmm is None or axial is None or "column_axial" not in source:
@@ -939,6 +940,19 @@ def project_column_r08_local_live(
         basis_source_payload_sha256 = _digest(source)
     physical_lengths = ((r10_live or {}).get("physical_clear_lengths") or {}).get("per_member", {})
     end_ratios = reference_end_ratios(source, physical_lengths)
+    building_frames = None
+    if source.get("building_design") is not None:
+        from .design_scenario import _digest
+        from .frame_storey_design import building_frame_basis
+        try:
+            basis_document, building_frames = building_frame_basis(source, physical_lengths, end_ratios, pmm,
+                                                                  configured_cut_scope)
+        except (ValueError, KeyError, TypeError) as exc:
+            # Independent beam and global calculations can finish when the frame roster cannot be bound.
+            basis_document = None
+            building_frames = {"schema": "tbdy.next.building-frame-results.v1", "storeys": {},
+                               "bound_columns": 0, "hold": str(exc)}
+        basis_source_payload_sha256 = _digest(source)
     mat_supports = project_mat_horizontal_supports(source, physical_lengths)
     transition = source.get("coupled_wall_transition")
     if transition is not None:
@@ -1079,6 +1093,13 @@ def project_column_r08_local_live(
             if not muid:
                 continue
             per_member[muid] = _project_member(m_pmm)
+            if building_frames is not None:
+                frame = building_frames["storeys"].get(m_pmm.get("story"), {}).get("columns", {}).get(muid, {})
+                if frame.get("basis") not in {"EXPLICIT_MEMBER_BASIS", "ENGINE_FRAME_ENDS_AND_STOREY_LOADS"}:
+                    reason = frame.get("reason") or building_frames.get("hold") or "PHYSICAL_FRAME_BASIS_UNAVAILABLE"
+                    gate = "BUILDING_FRAME_BASIS_HOLD:" + reason
+                    if gate not in per_member[muid]["open_gates"]:
+                        per_member[muid]["open_gates"].append(gate)
         open_gates = list(OPEN_GATES)
         span_issues = [r for r in per_member.values() if r.get("span_basis") != FACE_BASIS]
         if per_member and all(WALL_COUPLED_LENGTH_GATE in r.get("open_gates", ()) for r in span_issues):
@@ -1096,6 +1117,7 @@ def project_column_r08_local_live(
                 "blocked_column_count": sum(r.get("execution_status") == "NOT_RUN" for r in per_member.values())}
                if dependency_plan is not None else {}),
             "per_member": per_member,
+            **({"building_frame_design": building_frames} if building_frames is not None else {}),
             "open_gates": open_gates,
             "status": "REFERENCE_SLENDERNESS_CALCULATED" if per_member else "OBSERVED_EVIDENCE_ONLY",
             "formal_compliance": "NOT_PROVEN",
