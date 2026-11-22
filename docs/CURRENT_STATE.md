@@ -1,6 +1,14 @@
 # Original building calculation and local handoff — 2026-11-22
 
-## Four-mesh result for the assigned C104 demands
+## Original building frame designs at +4.50 m
+
+**14 of 87 columns now have an end-to-end conditional R14 design**, up from 2 of 87 on the same original building. Of the 18 physical columns C20–C37 at +4.50 m, 13 reach R14 and five require lower-end wall stiffness. Twelve designs are new. They use 32Φ16 and Φ10/90. Their signed second-order PMM results cover 108/108 gravity cuts and their assigned seismic corner bounds cover 288/288 cuts. All 48 joint–directions satisfy the panel bound. For strong column / weak beam, 40 are exempt for low axial force and eight satisfy the interval check.
+
+C23 governs the new static PMM at 38.95%. An independent calculation gives 1,373.650116 kN·m radial resistance against 1,373.650349 kN·m in the runner. Across all 87 original columns the assigned axial cap calculations cover 696/696 seismic combinations for TBDY and 957/957 combinations for TS 500. The latter two counts already include the twelve new designs.
+
+The next standalone members on this storey are C1, C2, C5, C77 and C78. The 23 columns at +9.00 m require their own storey inputs. Engineering release remains NOT_READY. [Member results and check counts](engineering/FRAME_STORY_DESIGN_SLICE_20261122.md)
+
+## Prior C104 four-mesh result for the assigned demands
 
 The signed ETABS results at C104 now include all four meshes. At −1.50 m immediately above the transition, the minimum axial force under Duct_SeisX_Soil changes from −359.497 to −403.805 kN. Changing horizontal spacing alone accounts for −45.906 kN, vertical spacing for +2.640 kN and their interaction for −1.042 kN. Both spacings also affect V2. Of 456 assigned A/D force and moment fields, 61 meet the fixed mesh budget. The six signed global base cases meet it on all 36 components. All 144 storey force comparisons meet it as well.
 

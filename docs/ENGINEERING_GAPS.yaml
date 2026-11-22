@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-22T11:41:00.062675+00:00",
+  "updated_at_utc": "2026-11-22T12:10:52.965848+00:00",
   "repository": "feridunfc/YENI",
-  "baseline_implementation_commit": "9e070be487be102d54293fd6e19d01831c676d35",
+  "baseline_implementation_commit": "8de2babba76ee04533af80bc642aafd488f9194c",
   "local_reconciled": true,
-  "scope_note": "C29 has six story balances, 24 selected-cage capacity face checks and two conditional R14 closures. C104 has 36 complete W22/W23 balances and signed two-factor results for 456 assigned and 144 coupled-section fields. Of 456 assigned A/D comparisons, 61 meet the mesh budget.",
+  "scope_note": "On the original building 14/87 columns have conditional R14 designs. At +4.50 m the C20–C37 band has 13/18 completed, including 12 additions. C29 has six story balances, 24 selected-cage capacity face checks and two conditional R14 closures. C104 has 36 complete W22/W23 balances and signed two-factor results for 456 assigned and 144 coupled-section fields. Of 456 assigned A/D comparisons, 61 meet the mesh budget.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -30,7 +30,7 @@
     "GAP-018",
     "GAP-006"
   ],
-  "active_task": "Use the four solved C104 meshes as the baseline for the next comparison. At the D vertical spacing, compare the next horizontal refinement with D at the same four faces for the assigned soil P and V3 and the fixed 456-field population. Check the independent vertical sensitivity of V2. Keep W23 geometry and its constraint fixed in the spacing study. Resolve project basement/mass scope, irregularities and acceleration normalization before adopting an additional spectral factor. Qualify coupled second order and construction continuity separately.",
+  "active_task": "Finish the other five standalone frame columns at +4.50 m (C1, C2, C5, C77 and C78) using the 14-column run and the same-storey anchor 142. Then use the 23-column original +9.00 m storey to derive its own assigned compression, directional critical loads and support conditions before its member designs. Retain original-building R14 coverage out of 87, the five wall-supported C20–C37 rows, and the separate C104 coupled-wall study.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -384,7 +384,7 @@
       "title": "Global and local second-order effects",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Selected candidates can bind same-run R08 inputs; EI/Nk and second-order reference calculations exist. Same-run selected sections now carry both first-order and magnified design moments with the local/global factors and fixed-N radial reserve. R08 applies the existing minimum-eccentricity owner before local/global magnification for static and spectral-box references. Raw, floored and final moments are recorded and projected in the normal report. The two GOLDEN-01 theta scalars now call the existing global P-delta owner. R08 consumes the verified 4.45 m and 3.80 m C29 model clear lengths and the corresponding verified clear lengths of 57 more columns. R08 evaluates conditional TS 500 effective lengths and Euler loads at 59 columns using native directional framing. C29 has 36 aligned Eq. (7.29) comparisons across the stated scenarios. The accepted C29 base boundary at joint 934 restrains UX and UY, consistent with 14 sealed displacement rows. R08 and R14 now bind all 32 mat-connected column boundary conditions from 119 native point reads and R08 computes 64 same-case spectral endpoint differentials. The private ETABS copy supplied 2,784 paired signed end-moment comparisons across all 87 columns. 105 exceed the 5% TS 500 threshold across the six occupied story directions. The isolated ETABS mat gives finite two-axis rotational stiffness at joint 934. Actual floor strips and the mat probe support the two-axis C29 effective-length reference. Signed Eq. (7.23) inputs and column compression subtotals were verified for 24 story references. The 16 C29 Eq. (7.29) signed reference instances give the same branch for both length readings. The 48 signed story/axis references include all frame-column compression. The Rm=1 sensitivity calculation includes complete frame-column critical-load credit at +4.50 and +9.00 and 18 verified-span columns at +0.00. The selected-cage signed C29 PMM reference is evaluated at 48 native cuts. Eight assigned seismic combinations have 48 story-axis references and 1,752 magnified demand boxes for the 73 standalone columns under the Rm=1 sensitivity basis. R08 withholds isolated magnification for the 14 wall-coupled columns and preserves their native cut evidence. The first-order 50 and 25 mm matched-mesh runs show verified interior wall-frame force transfer and unresolved refinement sensitivity at C104. The C104 ideal gross coupled cross section changes geometry at -1.50 m. The existing runner now consumes an explicit, source-validated self-weight Nmax numerical idealization while preserving local N for eccentricity and selected-section PMM. A public two-column/four-beam fixture completes thirty signed cuts and sixteen unique interior-joint SCWB comparisons through conditional R14 closure; this is not original-building or normative acceptance. An independently checked normal-runner source exercises the source-bound revised TS 500 story factors, PMM, six-DOF field recovery, R14 and sealed HTML. The revised story producer now admits a separate same-generation modifier census for non-paired columns and filters Frame/Shell namespaces. A three-column manufactured normal-runner example consumes the additional contributor through actual EI/Nk, story magnification and selected-cage PMM; missing/stale contributors remain unresolved. On the live eight-part METHOD model, six native displacement components yield full-span peaks for both C29 members and three gravity cases each. All three native METHOD meshes now support full-span C29 recovery. The 4-to-8 comparison passes at both members for all three gravity cases. R08 v15 seals 12 adopted frame-column factors and 24 revised PMM sides at 18 physical case-cuts. The actual report reconstruction binds the existing GOLDEN-01 phi values and GOLDEN-02 numerical threshold change to the TS500 scalar owner using hash-bound drift, sum(N/L) and shear. The fixed 44-row bank now has 36 numerical matches, four interpretation differences and four insufficient-source rows. Full source populations and automatic sway assignment remain unqualified. C29's six signed first-order column-wall balances pass against independently calculated upper-body gravity and self-weight. All 267 physical contributor instances are present. The largest absolute residual is 0.000004916 kN. The conditional 12 factors and 24 PMM sides match the original-source replay. The sealed C104 R08 run computed 288 signed components on two meshes at four common faces and balanced all 12 thin free bodies. At the transition 16/72 components met the numerical mesh budget. W22 end-force redistribution dominates the upper-face LC_EQX M3 difference. C104 four-mesh first-order demand sensitivity and complete W22/W23 equilibrium are measured. The comparison supplies an explicit demand qualification boundary to the coupled second-order study.",
+      "achieved_scope": "Selected candidates can bind same-run R08 inputs; EI/Nk and second-order reference calculations exist. Same-run selected sections now carry both first-order and magnified design moments with the local/global factors and fixed-N radial reserve. R08 applies the existing minimum-eccentricity owner before local/global magnification for static and spectral-box references. Raw, floored and final moments are recorded and projected in the normal report. The two GOLDEN-01 theta scalars now call the existing global P-delta owner. R08 consumes the verified 4.45 m and 3.80 m C29 model clear lengths and the corresponding verified clear lengths of 57 more columns. R08 evaluates conditional TS 500 effective lengths and Euler loads at 59 columns using native directional framing. C29 has 36 aligned Eq. (7.29) comparisons across the stated scenarios. The accepted C29 base boundary at joint 934 restrains UX and UY, consistent with 14 sealed displacement rows. R08 and R14 now bind all 32 mat-connected column boundary conditions from 119 native point reads and R08 computes 64 same-case spectral endpoint differentials. The private ETABS copy supplied 2,784 paired signed end-moment comparisons across all 87 columns. 105 exceed the 5% TS 500 threshold across the six occupied story directions. The isolated ETABS mat gives finite two-axis rotational stiffness at joint 934. Actual floor strips and the mat probe support the two-axis C29 effective-length reference. Signed Eq. (7.23) inputs and column compression subtotals were verified for 24 story references. The 16 C29 Eq. (7.29) signed reference instances give the same branch for both length readings. The 48 signed story/axis references include all frame-column compression. The Rm=1 sensitivity calculation includes complete frame-column critical-load credit at +4.50 and +9.00 and 18 verified-span columns at +0.00. The selected-cage signed C29 PMM reference is evaluated at 48 native cuts. Eight assigned seismic combinations have 48 story-axis references and 1,752 magnified demand boxes for the 73 standalone columns under the Rm=1 sensitivity basis. R08 withholds isolated magnification for the 14 wall-coupled columns and preserves their native cut evidence. The first-order 50 and 25 mm matched-mesh runs show verified interior wall-frame force transfer and unresolved refinement sensitivity at C104. The C104 ideal gross coupled cross section changes geometry at -1.50 m. The existing runner now consumes an explicit, source-validated self-weight Nmax numerical idealization while preserving local N for eccentricity and selected-section PMM. A public two-column/four-beam fixture completes thirty signed cuts and sixteen unique interior-joint SCWB comparisons through conditional R14 closure; this is not original-building or normative acceptance. An independently checked normal-runner source exercises the source-bound revised TS 500 story factors, PMM, six-DOF field recovery, R14 and sealed HTML. The revised story producer now admits a separate same-generation modifier census for non-paired columns and filters Frame/Shell namespaces. A three-column manufactured normal-runner example consumes the additional contributor through actual EI/Nk, story magnification and selected-cage PMM; missing/stale contributors remain unresolved. On the live eight-part METHOD model, six native displacement components yield full-span peaks for both C29 members and three gravity cases each. All three native METHOD meshes now support full-span C29 recovery. The 4-to-8 comparison passes at both members for all three gravity cases. R08 v15 seals 12 adopted frame-column factors and 24 revised PMM sides at 18 physical case-cuts. The actual report reconstruction binds the existing GOLDEN-01 phi values and GOLDEN-02 numerical threshold change to the TS500 scalar owner using hash-bound drift, sum(N/L) and shear. The fixed 44-row bank now has 36 numerical matches, four interpretation differences and four insufficient-source rows. Full source populations and automatic sway assignment remain unqualified. C29's six signed first-order column-wall balances pass against independently calculated upper-body gravity and self-weight. All 267 physical contributor instances are present. The largest absolute residual is 0.000004916 kN. The conditional 12 factors and 24 PMM sides match the original-source replay. The sealed C104 R08 run computed 288 signed components on two meshes at four common faces and balanced all 12 thin free bodies. At the transition 16/72 components met the numerical mesh budget. W22 end-force redistribution dominates the upper-face LC_EQX M3 difference. C104 four-mesh first-order demand sensitivity and complete W22/W23 equilibrium are measured. The comparison supplies an explicit demand qualification boundary to the coupled second-order study. On the original +4.50 m storey, 12 new frame columns have 24 source-derived effective lengths, 72 signed TS 500 magnification factors, 108 signed selected-cage PMM results and 288 assigned spectral corner bounds.",
       "blocker": "Qualify the two-axis coupled wall-frame critical-load method or a justified direct second-order demand path for the 14 wall-coupled columns. Resolve participating sections, restraint, effective stiffness, creep and varying-axial TS 500 applicability. First-order vertical equilibrium is complete for the two native C29 cuts and three gravity cases.",
       "closure_criteria": "Independently verify both-axis clear/effective lengths and EI, prevent double counting, and prove consumption of the qualified demands.",
       "owner_paths": [
@@ -436,7 +436,8 @@
         "EV-S03-C104-TRANSITION-20261122",
         "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122",
         "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122",
-        "EV-C104-W22-W23-FOUR-MESH-20261122"
+        "EV-C104-W22-W23-FOUR-MESH-20261122",
+        "EV-FRAME-STORY-PLUS450-R14-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -598,7 +599,7 @@
       "title": "Independent PMM capacity acceptance",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "PMM solver and required-cut checks remain active; latest plain replay evaluates 1206 signed-static station rows with zero observed exceedances. The selected-cage run returns a verified governing static station for 87/87 members, with fixed-N radial capacity and signed reserve at each of 1,206 cuts. An independent fixed-N section integration checks the original governing C29 Grav_Ult selected-cage face of column 142. It gives 1450.877041 kN m radial capacity and utilization 0.176473078. The fixed-N independent check covers all 24 selected-C29 gravity faces on 18 physical case-cuts with a maximum capacity difference of 0.000471272 kN·m.",
+      "achieved_scope": "PMM solver and required-cut checks remain active; latest plain replay evaluates 1206 signed-static station rows with zero observed exceedances. The selected-cage run returns a verified governing static station for 87/87 members, with fixed-N radial capacity and signed reserve at each of 1,206 cuts. An independent fixed-N section integration checks the original governing C29 Grav_Ult selected-cage face of column 142. It gives 1450.877041 kN m radial capacity and utilization 0.176473078. The fixed-N independent check covers all 24 selected-C29 gravity faces on 18 physical case-cuts with a maximum capacity difference of 0.000471272 kN·m. The new cohort governing signed face C23/136 was integrated independently at its local compression and actual cage. Radial resistance agrees within 0.000233 kN·m.",
       "blocker": "Full normative load/cut/axis/cage scope and independent complete-design oracle acceptance remain open.",
       "closure_criteria": "Use independent capacity solutions and normative prerequisite evidence with explicit source identities and tolerances.",
       "owner_paths": [
@@ -612,7 +613,8 @@
         "EV-COLUMN-JOINT-SLICE-20261119",
         "EV-S06-C29-FIXED-N-ONE-FACE-20261122",
         "EV-S06-C29-24-FACES-20261122",
-        "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122"
+        "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122",
+        "EV-FRAME-STORY-PLUS450-R14-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -645,7 +647,7 @@
       "title": "Reinforcement selection and detailing",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "87 same-run candidates on the verified live source: 32Phi16, As/Ac 1.0053%, Phi10/90 ties and three crossties per direction. Both confinement and shear reference branches verified; selected cages feed local R08/PMM and the recorded report. Original source preserved. The one-face independent C29 check rebuilt the recorded selected cage with the same 32 bar coordinates and transverse cover.",
+      "achieved_scope": "87 same-run candidates on the verified live source: 32Phi16, As/Ac 1.0053%, Phi10/90 ties and three crossties per direction. Both confinement and shear reference branches verified; selected cages feed local R08/PMM and the recorded report. Original source preserved. The one-face independent C29 check rebuilt the recorded selected cage with the same 32 bar coordinates and transverse cover. Twelve new original-building columns reach conditional R14 with a selected 32Φ16 and Φ10/90 cage.",
       "blocker": "Candidates are not engineer-approved or as-built. Complete crosstie, anchorage and detailing acceptance remains open.",
       "closure_criteria": "Separately verify cage role, bar/leg geometry, cover, clear spacing, pitch, area and anchorage; retain actual-vs-proposed distinction.",
       "owner_paths": [
@@ -658,7 +660,8 @@
         "EV-COLUMN-CAGE-TIE10",
         "EV-COLUMN-CAGE-REPORT-TESTS",
         "EV-S06-C29-FIXED-N-ONE-FACE-20261122",
-        "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122"
+        "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122",
+        "EV-FRAME-STORY-PLUS450-R14-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -684,7 +687,7 @@
       "title": "Beam capacity and end topology",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "180 beam candidate scenarios and shared-joint dependencies exist in the prior scenario scope.",
+      "achieved_scope": "180 beam candidate scenarios and shared-joint dependencies exist in the prior scenario scope. The twelve new R14 members consume capacity shear and assigned gravity shear from 68 distinct connected beams.",
       "blocker": "Complete selected/constructible end/direction/sign and anchorage scope remains open.",
       "closure_criteria": "Bind every incident beam physical face, selected bars and signed capacities to independent verification.",
       "owner_paths": [
@@ -693,7 +696,8 @@
       ],
       "evidence_refs": [
         "EV-D1",
-        "EV-D2"
+        "EV-D2",
+        "EV-FRAME-STORY-PLUS450-R14-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -712,7 +716,7 @@
       "title": "SCWB and alpha demand feedback",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Bounded signed-reference iteration, mixed signed E partition and scalar spectral replay exist. R10 applies the two-column low-axial exception at qualified ends. On the original 52 two-column joints, 47 qualify and five exceed a seismic threshold. The report records each end and R14 distinguishes exempt joints from actual moment-ratio satisfaction. The supported signed alpha consumer now admits qualified per-column low-N numerator credit, using the existing all-cut axial maxima and both configured-end records. Credit to Vis and eligibility for demand amplification are recorded separately. The independent 60/20/20 consumer example gives alpha=0.8 and amplifies only the actual two-end SCWB column; its SCWB flags are explicit contract fixtures, not a completed actual-owner building slice. The original fresh selected scenario now resolves both global directions for all five non-exempt joints through continuous principal-plane resistance lower bounds over all assigned axial intervals. Both rotations in eight combinations give 160/160 sufficient comparisons. The minimum lower ratio is 2.7298857767624676. The low-axial exemption accounts for the other 47 physical joints. Terminal feasibility preserves a proven joint failure beside an exhausted cage. All 348 directional column ends in the assigned scenario are resolved. The top-level alternative is not required. R14 projects the actual continuous interval ratio for each of the five non-exempt joints. On the full +4.50/X supplemental static reference 32/32 columns qualify for low-axial credit. Vis and Vik both equal 2361.123671142073 kN and the unit factor reproduces all 32 signed shears.",
+      "achieved_scope": "Bounded signed-reference iteration, mixed signed E partition and scalar spectral replay exist. R10 applies the two-column low-axial exception at qualified ends. On the original 52 two-column joints, 47 qualify and five exceed a seismic threshold. The report records each end and R14 distinguishes exempt joints from actual moment-ratio satisfaction. The supported signed alpha consumer now admits qualified per-column low-N numerator credit, using the existing all-cut axial maxima and both configured-end records. Credit to Vis and eligibility for demand amplification are recorded separately. The independent 60/20/20 consumer example gives alpha=0.8 and amplifies only the actual two-end SCWB column; its SCWB flags are explicit contract fixtures, not a completed actual-owner building slice. The original fresh selected scenario now resolves both global directions for all five non-exempt joints through continuous principal-plane resistance lower bounds over all assigned axial intervals. Both rotations in eight combinations give 160/160 sufficient comparisons. The minimum lower ratio is 2.7298857767624676. The low-axial exemption accounts for the other 47 physical joints. Terminal feasibility preserves a proven joint failure beside an exhausted cage. All 348 directional column ends in the assigned scenario are resolved. The top-level alternative is not required. R14 projects the actual continuous interval ratio for each of the five non-exempt joints. On the full +4.50/X supplemental static reference 32/32 columns qualify for low-axial credit. Vis and Vik both equal 2361.123671142073 kN and the unit factor reproduces all 32 signed shears. Of the 48 physical joint–directions for the twelve new frame designs, 40 satisfy the low-axial exemption and eight satisfy the interval check.",
       "blocker": "The selected original scenario requires zero design iterations. A full independent physical example that actually calls for amplification below alpha=1 and changes downstream design is still needed for the broader feedback gap. Selected cages and the beam N=0 scenario bound the result.",
       "closure_criteria": "Prove alpha-to-demand-to-cage-to-PMM/shear/joint feedback at the same story/cut with all neighbors in an independent complete example, including correct nonconvergence states.",
       "owner_paths": [
@@ -737,7 +741,8 @@
         "EV-AUDIT-FIXES-20261120",
         "EV-R10-LIVE-INTERVAL-20261120",
         "EV-STORY-STATIC-APPLICABILITY-20261120",
-        "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121"
+        "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
+        "EV-FRAME-STORY-PLUS450-R14-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -769,7 +774,7 @@
       "title": "Capacity shear, ties and joint panel",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Existing Ve owner can reevaluate revised Vd and retain revision lineage. The worked roof joint sizes its tie pitch from the lower-column Ash/s and actual proposed legs; 252/272 returned joint axes have sizing inputs. The adjacent interior joint also has a conservative demand upper bound. Joint deductions retain expected cases including zero/small shears; missing endpoints/cases use an explicit conditional zero bound. Lower confinement maps by physical axis and coordinate-based topology. R14 distinguishes an exceeded unresolved bound from a proven demand failure. Initial and revised Ve now both retain the original/revised Vd lower bound and its native governing-cut witness. The signed alpha terminal check consumes expected joint-panel and physically mapped tie outcomes. A qualified passing zero bound remains admissible as a reference; exceeded unresolved bounds require refinement, while bound panel/tie failures return JOINT_DESIGN_FAILURE. Both selected C29 segments now complete the 32 assigned spectral member/case/axis checks. All 1,392 building checks pass the full moment bound, ordinary lower floor, applicable conservative resistance and Eq. (7.7) brittle limit. Native D controls corroborate every scalar shear extremum. C29 uses model support faces in the 32 assigned shear rows, and the computed Ve and Ve/Vr agree with the preceding run. Fifty-nine columns use individual matched faces and cuts.",
+      "achieved_scope": "Existing Ve owner can reevaluate revised Vd and retain revision lineage. The worked roof joint sizes its tie pitch from the lower-column Ash/s and actual proposed legs; 252/272 returned joint axes have sizing inputs. The adjacent interior joint also has a conservative demand upper bound. Joint deductions retain expected cases including zero/small shears; missing endpoints/cases use an explicit conditional zero bound. Lower confinement maps by physical axis and coordinate-based topology. R14 distinguishes an exceeded unresolved bound from a proven demand failure. Initial and revised Ve now both retain the original/revised Vd lower bound and its native governing-cut witness. The signed alpha terminal check consumes expected joint-panel and physically mapped tie outcomes. A qualified passing zero bound remains admissible as a reference; exceeded unresolved bounds require refinement, while bound panel/tie failures return JOINT_DESIGN_FAILURE. Both selected C29 segments now complete the 32 assigned spectral member/case/axis checks. All 1,392 building checks pass the full moment bound, ordinary lower floor, applicable conservative resistance and Eq. (7.7) brittle limit. Native D controls corroborate every scalar shear extremum. C29 uses model support faces in the 32 assigned shear rows, and the computed Ve and Ve/Vr agree with the preceding run. Fifty-nine columns use individual matched faces and cuts. The twelve new frame designs have 72/72 gravity and 192/192 seismic case–axis shear outcomes and 48/48 passing joint panel bounds with transverse reinforcement.",
       "blocker": "Wall-interrupted clear spans, anchorage geometry and full detailing acceptance remain open. The assigned capacity shear uses full end moments.",
       "closure_criteria": "Independently accept capacity shear, brittle limits, transverse reinforcement and panel/anchorage for every face/sign/cage.",
       "owner_paths": [
@@ -788,7 +793,8 @@
         "EV-C29-SPECTRAL-SHEAR-20261120",
         "EV-C29-PHYSICAL-CLEAR-LENGTH-20261120",
         "EV-R10-WALL-COUPLED-CAPACITY-SPAN-20261121",
-        "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121"
+        "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
+        "EV-FRAME-STORY-PLUS450-R14-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -1306,5 +1312,39 @@
     "results_sha256": "cdcd23a1b7d8e95be0def5cd0c721cfd15d5b82158021ada25b25a743781857a",
     "document": "docs/engineering/C104_ASSIGNED_DEMAND_AND_W23_20261122.md",
     "status_changed": false
+  },
+  "original_frame_storey_20261122": {
+    "run": "RUN-47067d0f1896415ba5ffc8e61031a024",
+    "evidence_ref": "EV-FRAME-STORY-PLUS450-R14-20261122",
+    "document": "docs/engineering/FRAME_STORY_DESIGN_SLICE_20261122.md",
+    "recipe_engineering_ids_in_slice": 11,
+    "building_columns": 87,
+    "conditional_r14_before": 2,
+    "conditional_r14_after": 14,
+    "band_expected": 18,
+    "band_complete": 13,
+    "new": 12,
+    "building_check_counts": {
+      "CHK-004": {
+        "physical_population": "87 original columns and the assigned design combinations",
+        "expected": 696,
+        "evaluated": 696,
+        "exceeded": 0,
+        "governing_ratio": 0.2833720551653081,
+        "governing_member": "225",
+        "governing_case": "Duct_SeisY",
+        "acceptance": "NUMERICAL_DESIGN_SCENARIO"
+      },
+      "CHK-005": {
+        "physical_population": "87 original columns and the assigned design combinations",
+        "expected": 957,
+        "evaluated": 957,
+        "exceeded": 0,
+        "governing_ratio": 0.24110608509129333,
+        "governing_member": "225",
+        "governing_case": "Grav_Ult",
+        "acceptance": "NUMERICAL_DESIGN_SCENARIO"
+      }
+    }
   }
 }

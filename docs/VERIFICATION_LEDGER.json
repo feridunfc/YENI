@@ -19,20 +19,20 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "C104_FOUR_MESH_DESIGN_DEMAND_AND_W22_W23_EQUILIBRIUM_RECORDED",
-    "work_branch": "work/c104-design-scale-trace",
+    "status": "ORIGINAL_BUILDING_14_OF_87_CONDITIONAL_R14_DESIGNS",
+    "work_branch": "work/standalone-column-design-slice",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "5d927920c9aa0cd555dda7f76d2d36fceb5cafe4",
-    "tested_implementation_commit": "9e070be487be102d54293fd6e19d01831c676d35",
+    "inspected_base_commit": "b7abf93485eb1bfe3cb8502a16ff99c9b07f29c9",
+    "tested_implementation_commit": "8de2babba76ee04533af80bc642aafd488f9194c",
     "evidence_refs": [
-      "EV-C104-W22-W23-FOUR-MESH-20261122",
-      "EV-WINDOWS-C104-FOUR-MESH-20261122"
+      "EV-FRAME-STORY-PLUS450-R14-20261122",
+      "EV-WINDOWS-FRAME-STORY-PLUS450-20261122"
     ],
-    "production_run_id": "RUN-f21f119300d845d78f27e8345a8bdf54",
-    "results_sha256": "cdcd23a1b7d8e95be0def5cd0c721cfd15d5b82158021ada25b25a743781857a",
-    "report": "docs/engineering/C104_ASSIGNED_DEMAND_AND_W23_20261122.md",
+    "production_run_id": "RUN-47067d0f1896415ba5ffc8e61031a024",
+    "results_sha256": "957a5dae5782d9840464d76082cd84bc21be9cf81363ed34e43248aa38bd45bb",
+    "report": "docs/engineering/FRAME_STORY_DESIGN_SLICE_20261122.md",
     "engineering_release": "NOT_READY",
-    "next_action": "Use the four solved C104 meshes as the baseline for the next comparison. At the D vertical spacing, compare the next horizontal refinement with D at the same four faces for the assigned soil P and V3 and the fixed 456-field population. Check the independent vertical sensitivity of V2. Keep W23 geometry and its constraint fixed in the spacing study. Resolve project basement/mass scope, irregularities and acceleration normalization before adopting an additional spectral factor. Qualify coupled second order and construction continuity separately."
+    "next_action": "Finish the other five standalone frame columns at +4.50 m (C1, C2, C5, C77 and C78) using the 14-column run and the same-storey anchor 142. Then use the 23-column original +9.00 m storey to derive its own assigned compression, directional critical loads and support conditions before its member designs. Retain original-building R14 coverage out of 87, the five wall-supported C20–C37 rows, and the separate C104 coupled-wall study."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
@@ -8804,6 +8804,241 @@
         "tests/test_transition_design_trace.py"
       ],
       "engineering_release": "NOT_READY"
+    },
+    {
+      "id": "EV-FRAME-STORY-PLUS450-R14-20261122",
+      "observed_at": "2026-11-22T12:16:08.425771+00:00",
+      "implementation_commit": "8de2babba76ee04533af80bc642aafd488f9194c",
+      "inspected_base_commit": "b7abf93485eb1bfe3cb8502a16ff99c9b07f29c9",
+      "dirty_worktree": true,
+      "untracked_code_included": true,
+      "tested_file_manifest_sha256": "2af21f20a4580bd0e65dbaba41e3d72ea12809489867ef9e884f510d3d9c2a72",
+      "diff_sha256": "b82f3bde3ab69943c0c9746ed128d491afc9fce1c649779b5d255e7f9577ea5c",
+      "engineering_release_granted": false,
+      "scope": "Original +4.50 m C20–C37 column design, from assigned case to selected cage, shear, beams, joint and R14.",
+      "status": "12_NEW_CONDITIONAL_R14_COLUMN_DESIGNS",
+      "run_id": "RUN-47067d0f1896415ba5ffc8e61031a024",
+      "parent_source_sha256": "703e202fc8b08f60043c571d9970945b6307e5cee99e8a45e6377c8446da56fc",
+      "prior_run_id": "RUN-be9d8258796f4dfca1a3609453e94e53",
+      "input_sha256": "07efbb3a4334db8ff490e79ddcbadeec6698187e746cbfcba59f0ab23d8d1007",
+      "results_sha256": "957a5dae5782d9840464d76082cd84bc21be9cf81363ed34e43248aa38bd45bb",
+      "snapshot_sha256": "aa95bc2a9a53687e4fa3872f9fbb40e99bb7f80730c32bcc0c230988bd344afb",
+      "scenario_sha256": "9871ea5b1a06c96cd552afff6e25bf5cb6b2a1f1f5fa386ec8ba646c37c7ad3d",
+      "counts": {
+        "expected": 87,
+        "band_size": 18,
+        "new_columns": 12,
+        "checks": {
+          "static": 108,
+          "spectral": 288,
+          "spectral_corners": 2304,
+          "factors": 72,
+          "end_k": 24,
+          "cages": 12,
+          "static_shear": 72,
+          "spectral_shear": 192
+        },
+        "distinct_beams": 68,
+        "distinct_joint_directions": 48,
+        "scwb": {
+          "SCWB_EQ_7_3_EXEMPT_LOW_AXIAL": 40,
+          "SCWB_EQ_7_3_INTERVAL_SUFFICIENT": 8
+        },
+        "panel_shear_basis": {
+          "CONSERVATIVE_ZERO_VKOL_INCOMPLETE_SEISMIC_SHEAR": 48
+        },
+        "recipe_source_ids": 5,
+        "recipe_engineering_ids": 68,
+        "engineering_ids_traced_for_slice": [
+          4,
+          5,
+          115,
+          116,
+          117,
+          119,
+          120,
+          125,
+          126,
+          127,
+          128
+        ],
+        "conditional_r14_before": 2,
+        "conditional_r14_after": 14,
+        "within_band": 13,
+        "wall_supported_open": 5,
+        "building_axial_combinations": {
+          "TBDY": 696,
+          "TS500": 957
+        }
+      },
+      "new_member_ids": [
+        "134",
+        "135",
+        "136",
+        "137",
+        "140",
+        "141",
+        "143",
+        "146",
+        "147",
+        "148",
+        "149",
+        "157"
+      ],
+      "retained_member_ids": [
+        "142",
+        "225"
+      ],
+      "wall_supported_open_ids": [
+        "133",
+        "138",
+        "139",
+        "144",
+        "151"
+      ],
+      "cage": {
+        "longitudinal": "32Φ16",
+        "confinement": "Φ10/90"
+      },
+      "governing_signed_pmm": {
+        "uid": "136",
+        "combo": "Grav_Ult",
+        "station_m": 0.0,
+        "member_force_local_nd_kn": 1570.6439467664125,
+        "moment_knm": [
+          -530.8663751894975,
+          66.19581432388729
+        ],
+        "production_radial_knm": 1373.6503486531437,
+        "independent_radial_knm": 1373.650115717973,
+        "difference_knm": -0.00023293517074307601,
+        "last_refinement_knm": 0.0002042798143975233,
+        "production_utilization": 0.38945686918924594,
+        "independent_utilization": 0.3894569352309558,
+        "cage": "32Φ16",
+        "tie": "Φ10/90",
+        "strips": [
+          256,
+          512
+        ],
+        "angles": 96,
+        "absolute_budget_knm": 0.01
+      },
+      "building_axial_governing": {
+        "TBDY": {
+          "id": "225",
+          "story": "+0.00",
+          "case": "Duct_SeisY",
+          "demand_kn": 2539.0136142811607,
+          "limit_kn": 8960.0,
+          "utilization": 0.2833720551653081
+        },
+        "TS500": {
+          "id": "225",
+          "story": "+0.00",
+          "case": "Grav_Ult",
+          "demand_kn": 3240.4657836269826,
+          "limit_kn": 13440.0,
+          "utilization": 0.24110608509129333
+        }
+      },
+      "new_governing_utilizations": {
+        "static_pmm": {
+          "member_id": "136",
+          "label": "C23",
+          "utilization": 0.38945686918924594
+        },
+        "spectral_pmm": {
+          "member_id": "134",
+          "label": "C21",
+          "utilization": 0.6473710138922656
+        },
+        "shear_ts": {
+          "member_id": "141",
+          "label": "C28",
+          "utilization": 0.5783171785487936
+        },
+        "shear_zero": {
+          "member_id": "141",
+          "label": "C28",
+          "utilization": 0.7930698502208398
+        },
+        "joint": {
+          "member_id": "157",
+          "label": "C37",
+          "utilization": 0.4646478196159213
+        }
+      },
+      "bounds": "Frame-only original storey totals, sway permitted, Rm=1, self-weight Nmax for factors, local N for PMM, rectangular beam web reference. Spectral PMM uses nonconcurrent corner bounds. All 48 joint panels use zero Vkol deduction. Coupled stability and construction anchorage remain open.",
+      "commands": [
+        "tools/prepare_frame_story_slice.py --from-run <prior C29 receipt> --story +4.50 --anchor 142 --columns C20 through C37 --scenario-id original-450-frame-column-design-c20-c37 --out <new request>",
+        "python -B -m tbdy_next.cli run-pipeline --source <frozen parent.source> --design-scenario <new request> --case Modal --out <new directory>"
+      ],
+      "private_root": ".receipts/verification/frame-column-design-slice-20261122",
+      "private_artifacts": {
+        "cohort.json": "9871ea5b1a06c96cd552afff6e25bf5cb6b2a1f1f5fa386ec8ba646c37c7ad3d",
+        "numerical-results.json": "13b13570e725c25c07eb856896d1b66f775b08bab992949dd95e442a1aad58d7",
+        "governing-section.json": "bd5ea4361407b8dcf964ce643e48990e6787c443d8e84fbea78f40bd95866425",
+        "axial-governing.json": "536cb9e8658d428e14311bde80c481e18bd870b6b4b5f80824d6a05dd9c0ad04",
+        "frame-columns.html": "e92e8082f8b20feab89fe6ba3b93438e23e1e4a7165e69bbb725c170a82c7bb0"
+      },
+      "public_reference_paths": [
+        "docs/engineering/FRAME_STORY_DESIGN_SLICE_20261122.md",
+        "tools/prepare_frame_story_slice.py"
+      ],
+      "engineering_release": "NOT_READY"
+    },
+    {
+      "id": "EV-WINDOWS-FRAME-STORY-PLUS450-20261122",
+      "observed_at": "2026-11-22T12:16:08.425771+00:00",
+      "implementation_commit": "8de2babba76ee04533af80bc642aafd488f9194c",
+      "inspected_base_commit": "b7abf93485eb1bfe3cb8502a16ff99c9b07f29c9",
+      "dirty_worktree": true,
+      "untracked_code_included": true,
+      "tested_file_manifest_sha256": "2af21f20a4580bd0e65dbaba41e3d72ea12809489867ef9e884f510d3d9c2a72",
+      "diff_sha256": "b82f3bde3ab69943c0c9746ed128d491afc9fce1c649779b5d255e7f9577ea5c",
+      "engineering_release_granted": false,
+      "scope": "Windows offline software suite for the original-building frame story slice.",
+      "status": "OFFLINE_SOFTWARE_REGRESSIONS=PASS",
+      "exit_code": 0,
+      "commands": [
+        "python -X utf8 -B tools/test_offline.py --node \"C:/Program Files/nodejs/node.exe\""
+      ],
+      "environment": {
+        "os": "Windows",
+        "python": "3.12.10",
+        "node": "v26.13.1"
+      },
+      "python": {
+        "ran": 1710,
+        "passed": 1709,
+        "skipped": 1,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 461.391,
+        "skip": "test_wrong_run_and_symlink_cannot_cross_source_boundary (test_vs11_column_bank.ColumnStoreTests.test_wrong_run_and_symlink_cannot_cross_source_boundary) ... skipped 'OS disallows creating symlinks'"
+      },
+      "javascript_test_files_passed": 11,
+      "golden": {
+        "golden_record_count": 44,
+        "classification_counts": {
+          "NUMERICAL_MATCH": 36,
+          "ENGINEERING_INTERPRETATION_DIFFERENCE": 4,
+          "INSUFFICIENT_SOURCE": 4
+        },
+        "acceptance_eligible": false,
+        "engineering_release": "NOT_READY"
+      },
+      "tested_implementation_tree": "08234bb82b863925b2e11f43cdc5bd6037f4c960",
+      "private_log": ".receipts/verification/frame-column-design-slice-20261122/windows-final.log",
+      "log_sha256": "f5ed6d719c5efc3da29d0f7f3340b4310279d662ebcbfcc02cbaa2da0aac5502",
+      "first_attempt": {
+        "reason": "Windows localhost request aborted (10053) in test_body_upload_is_not_allowed_for_live_endpoint. The full repeat passed this same test.",
+        "log_sha256": "0d777221aaa095601419705af03cb4404d59b7dd8205ab4a6bbe110c7481fc08"
+      },
+      "public_reference_paths": [
+        "docs/engineering/FRAME_STORY_DESIGN_SLICE_20261122.md"
+      ]
     }
   ],
   "new_record_template": {
@@ -8828,7 +9063,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-22T11:41:00.062675+00:00",
+  "updated_at_utc": "2026-11-22T12:16:08.425771+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -9530,6 +9765,22 @@
       "worker_plan": "docs/supervisor/lc_eqx_role_20261122/SCOPE_AND_NEXT_ACTION.json",
       "engineering_release": "NOT_READY",
       "next_action": "Trace the user-declared LC_EQX equivalent-static reference through the actual directional VtE, pre-beta modal shear, required/applied beta_tE and scale ownership into the assigned spectral/design combination graph. Compare quantities actually consumed by design using retained compatible results. Do not require local auxiliary-case C104 M3 convergence as an automatic beta_tE/PMM prerequisite. Activate W22/W23 source or mesh investigation only when its effect on used global quantities or actual design demands is demonstrated; preserve all recorded diagnostic failures and independent coupled-method gates."
+    },
+    {
+      "status": "C104_FOUR_MESH_DESIGN_DEMAND_AND_W22_W23_EQUILIBRIUM_RECORDED",
+      "work_branch": "work/c104-design-scale-trace",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "5d927920c9aa0cd555dda7f76d2d36fceb5cafe4",
+      "tested_implementation_commit": "9e070be487be102d54293fd6e19d01831c676d35",
+      "evidence_refs": [
+        "EV-C104-W22-W23-FOUR-MESH-20261122",
+        "EV-WINDOWS-C104-FOUR-MESH-20261122"
+      ],
+      "production_run_id": "RUN-f21f119300d845d78f27e8345a8bdf54",
+      "results_sha256": "cdcd23a1b7d8e95be0def5cd0c721cfd15d5b82158021ada25b25a743781857a",
+      "report": "docs/engineering/C104_ASSIGNED_DEMAND_AND_W23_20261122.md",
+      "engineering_release": "NOT_READY",
+      "next_action": "Use the four solved C104 meshes as the baseline for the next comparison. At the D vertical spacing, compare the next horizontal refinement with D at the same four faces for the assigned soil P and V3 and the fixed 456-field population. Check the independent vertical sensitivity of V2. Keep W23 geometry and its constraint fixed in the spacing study. Resolve project basement/mass scope, irregularities and acceleration normalization before adopting an additional spectral factor. Qualify coupled second order and construction continuity separately."
     }
   ],
   "remote_audit_correction_checkpoint": {

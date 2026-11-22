@@ -1,6 +1,12 @@
 # Local development and GitHub worker handoff
 
-## Four-mesh result for the assigned C104 demands
+## Original building frame designs at +4.50 m
+
+Resume the standalone design from `RUN-47067d0f1896415ba5ffc8e61031a024`. Its frozen parent matches the original C29 run. R14 now covers 14/87 columns under the stated frame assumptions. The newly completed members are 134, 135, 136, 137, 140, 141, 143, 146, 147, 148, 149 and 157. C29 members 142 and 225 retain their previous results. [Full population, assumptions, source and reproduction commands](../engineering/FRAME_STORY_DESIGN_SLICE_20261122.md)
+
+Finish the other five standalone frame columns at +4.50 m (C1, C2, C5, C77 and C78) using the 14-column run and the same-storey anchor 142. Then use the 23-column original +9.00 m storey to derive its own assigned compression, directional critical loads and support conditions before its member designs. Retain original-building R14 coverage out of 87, the five wall-supported C20–C37 rows, and the separate C104 coupled-wall study. The source and selected-cage gates are enforced by the existing runner. A different storey needs its own source-bound sums. Construction anchorage and the full coupled-wall method remain open. The C104 work below remains available when its independent refinement is resumed.
+
+## Prior C104 four-mesh result for the assigned demands
 
 Start with the [four-mesh numerical result](../engineering/C104_ASSIGNED_DEMAND_AND_W23_20261122.md) and the [current GAP assignment](../ENGINEERING_GAPS.yaml). The original working model and the solved A/B/C/D private captures are identified in the [verification ledger](../VERIFICATION_LEDGER.json). Local replay uses the existing R08 pipeline and its sealed report. The implementation is `9e070be487be102d54293fd6e19d01831c676d35`. The engineering receipt is `RUN-f21f119300d845d78f27e8345a8bdf54`.
 
