@@ -1,4 +1,4 @@
-"""Extend a sealed original-building frame design on the same storey and load basis."""
+"""Extend a sealed original-building frame design using the target storey and its original assigned loads."""
 from __future__ import annotations
 
 import argparse
@@ -42,33 +42,37 @@ def lateral_directions(frame):
     return directions if set(directions.values()) == {"X", "Y"} else {}
 
 
-def verify_storey_compression(source, storey_ids, reference, groups):
+def storey_compression(source, physical, groups):
     force_source = source["column_axial"]["force_source"]
     names = set(groups["gravity"]) | set(groups["ductile"])
     sums = defaultdict(list)
-    for uid in storey_ids:
+    for uid, proof in physical.items():
         require(uid in force_source["rowsets"], f"Missing original storey contributor {uid}")
-        steps = defaultdict(set)
+        cut_steps = defaultdict(lambda: defaultdict(set))
+        cuts = set()
         pressures = defaultdict(list)
         for row in native_frame_force_rows(force_source["rowsets"][uid], uid):
             case, step, number, p = row[4:8]
             if case in names:
                 require(number == 0, f"Unsupported output step in {uid}/{case}")
-                steps[case].add(step)
+                cut = (row[1], row[2], row[3])
+                cuts.add(cut)
+                cut_steps[case][cut].add(step)
                 pressures[case].append(-p)
+        ends = proof.get("end_cuts", {})
+        require(set(ends) == {"I", "J"} and all(len(end) == 4 and end[0] == uid and tuple(end[1:]) in cuts
+                                                for end in ends.values()),
+                f"Assigned forces lack a verified physical end cut for {uid}")
         for case in names:
             expected = {"Single Value"} if case in groups["gravity"] else {"Max", "Min"}
-            require(steps[case] == expected, f"Missing assigned case or step in {uid}/{case}")
+            require(cuts and set(cut_steps[case]) == cuts and all(steps == expected for steps in cut_steps[case].values()),
+                    f"Missing assigned case, cut or step in {uid}/{case}")
             sums[case].append(max(0.0, max(pressures[case])))
-    for axis in reference["axes"].values():
-        require(set(axis["story_aggregates"]) == names, "Anchor storey cases differ from the native assignment")
-        for case, aggregate in axis["story_aggregates"].items():
-            require(isclose(aggregate["nd_kn"], fsum(sums[case]), rel_tol=1e-12, abs_tol=1e-8),
-                    f"Anchor storey compression differs from original frame forces in {case}")
+    return {case: fsum(sums[case]) for case in sorted(names)}
 
 
-def verify_storey_critical_loads(source, storey, physical, ratios, story_axes):
-    """Rebuild the anchor's frame-only Euler sums with the original storey assumptions."""
+def storey_critical_loads(source, storey, physical, ratios, *, allow_wall_hinge):
+    """Compute directional Euler sums using the adopted frame-storey assumptions."""
     material_rows = _rows(source["column_axial"]["pmm_section_source"]["table_reads"],
                           MECHANICAL, {"Material"}, {"E1": "kN/m2"})
     loads = defaultdict(list)
@@ -80,9 +84,11 @@ def verify_storey_critical_loads(source, storey, physical, ratios, story_axes):
         dims = frame["dims"]
         section = rectangle_properties(dims.bending_depth_m2_mm, dims.bending_depth_m3_mm)
         for axis, direction in directions.items():
-            ends = ratios[uid][axis]
-            require(ends["J"]["basis"] == "FRAME_SECTION_REFERENCE" and ends["I"]["basis"] in
-                    {"FRAME_SECTION_REFERENCE", "WALL_BELOW_ROTATIONAL_STIFFNESS_UNBOUND"},
+            ends = ratios.get(uid, {}).get(axis, {})
+            require(set(ends) == {"I", "J"}, f"Missing storey frame ends for {uid}/{axis}")
+            supported_i = ends["I"]["basis"] == "FRAME_SECTION_REFERENCE" or (
+                allow_wall_hinge and ends["I"]["basis"] == "WALL_BELOW_ROTATIONAL_STIFFNESS_UNBOUND")
+            require(ends["J"]["basis"] == "FRAME_SECTION_REFERENCE" and supported_i,
                     f"Unsupported frame-storey reference end for {uid}/{axis}")
             # The sealed storey calculation assumes a hinge for a wall-supported lower end.
             # A column using this assumption cannot enter the member design extension.
@@ -91,21 +97,28 @@ def verify_storey_critical_loads(source, storey, physical, ratios, story_axes):
             inertia = section["i22_mm4"] if axis == "M2" else section["i33_mm4"]
             ei = effective_stiffness_nmm2(ec_mpa=modulus, ic_mm4=inertia, creep_ratio=1, method="TS500_7_21")
             loads[direction].append(euler_load_kn(effective_ei_nmm2=ei, effective_length_lk_mm=1000 * length * k))
-    for direction, config in story_axes.items():
-        total = fsum(loads[direction])
-        require(all(isclose(row["nk_kn"], total, rel_tol=1e-12, abs_tol=1e-8)
-                    for row in config["story_aggregates"].values()),
-                f"Anchor critical load differs from the original frame-storey sum in {direction}")
+    return {direction: fsum(values) for direction, values in loads.items()}
 
 
-def prepare(parent, prior, results, *, anchor, story, labels, scenario_id):
+def frame_storey(source, frames, local, story, groups, *, allow_wall_hinge):
+    storey = {uid: frame for uid, frame in frames.items() if frame["type"] == "Column" and frame["story"] == story}
+    rows = source["geometry_capture"]["tables"]["COLUMN_CONNECTIVITY"]["rows"]
+    expected = [r["UniqueName"] for r in rows if r["Story"] == story]
+    require(storey and len(expected) == len(storey) and set(expected) == storey.keys() and storey.keys() <= local.keys(),
+            f"Incomplete physical column census on storey {story}")
+    physical = {uid: local[uid]["physical_clear_length"] for uid in storey}
+    ratios = reference_end_ratios(source, physical)
+    nd = storey_compression(source, physical, groups)
+    nk = storey_critical_loads(source, storey, physical, ratios, allow_wall_hinge=allow_wall_hinge)
+    return storey, physical, ratios, nd, nk
+
+
+def prepare(parent, prior, results, *, anchor, story, labels, scenario_id, derive_storey=False):
     source = decode(parent)
     frames, _, _ = _build_frame_catalog(source)
-    storey = {uid: f for uid, f in frames.items() if f["type"] == "Column" and f["story"] == story}
-    scope = {f["label"]: uid for uid, f in storey.items()}
-    require(len(scope) == len(storey) and labels and len(set(labels)) == len(labels)
-            and set(labels) <= set(scope), "Supply distinct physical column labels on the requested storey")
-    require(anchor in storey, "The anchor and requested columns must share a storey")
+    require(anchor in frames and frames[anchor]["type"] == "Column", "Anchor must be a physical column")
+    anchor_story = frames[anchor]["story"]
+    require(derive_storey or anchor_story == story, "The anchor and requested columns must share a storey")
     members = prior["second_order_basis"]["members"]
     require(anchor in members, "Anchor column has no recorded second-order basis")
     anchor_row = next((row for row in results["r14_closure"]["columns"] if row["member_id"] == anchor), {})
@@ -120,18 +133,37 @@ def prepare(parent, prior, results, *, anchor, story, labels, scenario_id):
             and reference["axial_idealization"]["method"] == AXIAL_IDEALIZATION_METHOD
             and set(reference["axial_idealization"]["combinations"]) == set(groups["gravity"]),
             "The source must carry the first-order self-weight Nmax frame scenario")
-    anchor_dirs = lateral_directions(storey[anchor])
+    anchor_dirs = lateral_directions(frames[anchor])
     require(set(anchor_dirs) == {"M2", "M3"}, "Anchor requires identifiable horizontal bending directions")
     story_axes = {direction: reference["axes"][axis] for axis, direction in anchor_dirs.items()}
     require(all((a["sway"], a["creep_ratio_rm"], a["ei_method"], a["cm_policy"], a["eq729_length_reading"])
                 == (SWAY_PERMITTED, 1.0, "TS500_7_21", "UNITY", "EFFECTIVE_LENGTH") for a in story_axes.values()),
             "Anchor calculation assumptions differ from the supported frame slice")
-    verify_storey_compression(source, storey, reference, groups)
     local = results["r08_local_slenderness"]["per_member"]
-    require(set(storey) <= set(local), "Incomplete R08 physical storey census")
-    physical = {uid: local[uid]["physical_clear_length"] for uid in storey}
-    ratios = reference_end_ratios(source, physical)
-    verify_storey_critical_loads(source, storey, physical, ratios, story_axes)
+    storey, physical, ratios, nd, nk = frame_storey(source, frames, local, anchor_story, groups, allow_wall_hinge=True)
+    for direction, config in story_axes.items():
+        totals = config["story_aggregates"]
+        require(totals.keys() == nd.keys(), "Anchor storey cases differ from the native assignment")
+        for case, aggregate in totals.items():
+            require(isclose(aggregate["nd_kn"], nd[case], rel_tol=1e-12, abs_tol=1e-8),
+                    f"Anchor storey compression differs from original frame forces in {case}")
+            require(isclose(aggregate["nk_kn"], nk[direction], rel_tol=1e-12, abs_tol=1e-8),
+                    f"Anchor critical load differs from the original frame-storey sum in {direction}")
+    if anchor_story != story:
+        storey, physical, ratios, nd, nk = frame_storey(source, frames, local, story, groups, allow_wall_hinge=False)
+        # Carry the adopted method only. Replace all load and stiffness totals for both target directions.
+        story_axes = {
+            direction: {**config, "story_aggregates": {
+                case: {"nd_kn": load, "nk_kn": nk[direction],
+                       "reference": f"Conditional frame-only TS500 (7.27), {story}, {direction}, {case}. "
+                                    f"All {len(storey)} original columns; same-case upper compression; "
+                                    "two model-derived web-reference ends, Eq. 7.21, Rm=1."}
+                for case, load in nd.items()}}
+            for direction, config in story_axes.items()
+        }
+    scope = {f["label"]: uid for uid, f in storey.items()}
+    require(len(scope) == len(storey) and labels and len(set(labels)) == len(labels)
+            and set(labels) <= set(scope), "Supply distinct physical column labels on the requested storey")
     new = deepcopy(prior)
     new["scenario_id"] = scenario_id
     basis = new["second_order_basis"]
@@ -183,6 +215,8 @@ def main():
     parser.add_argument("--from-run", type=Path, required=True)
     parser.add_argument("--anchor", required=True, help="ETABS unique ID of the existing conditional design")
     parser.add_argument("--story", required=True)
+    parser.add_argument("--derive-storey", action="store_true",
+                        help="Use the anchor method on another storey and derive all its forces and critical loads")
     parser.add_argument("--columns", nargs="+", required=True, help="Physical labels on the requested storey")
     parser.add_argument("--scenario-id", required=True)
     parser.add_argument("--out", required=True, type=Path)
@@ -190,7 +224,7 @@ def main():
     try:
         parent, prior, _, snapshot = read_scenario_run(args.from_run)
         request, roster = prepare(parent, prior, snapshot["results"], anchor=args.anchor, story=args.story,
-                                  labels=args.columns, scenario_id=args.scenario_id)
+                                  labels=args.columns, scenario_id=args.scenario_id, derive_storey=args.derive_storey)
         args.out.parent.mkdir(parents=True, exist_ok=True)
         with args.out.open("x", encoding="utf8") as stream:
             json.dump(request, stream, ensure_ascii=False, allow_nan=False, separators=(",", ":"))
