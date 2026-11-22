@@ -1,0 +1,158 @@
+{
+  "schema": "yeni.project-load-role-and-consumer-correction.v1",
+  "recorded_at_utc": "2026-11-22T08:54:32.357515+00:00",
+  "evidence_id": "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122",
+  "inspected_commit": "388849d4073b60db4dd396bad9b748db538842bf",
+  "report": "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
+  "authority": {
+    "kind": "USER_PROJECT_ROLE_CLARIFICATION",
+    "date": "2026-11-22",
+    "declared_case": "LC_EQX",
+    "declared_role": "EQUIVALENT_STATIC_REFERENCE_FOR_MODAL_BETA_SCALING",
+    "direct_project_design_action": false,
+    "directional_case_mapping": "Verify actual X/Y equivalents and response-spectrum case identities from the project source."
+  },
+  "status": "ROLE_AND_CODE_TRACE_RECONCILED; PRIVATE_SCALE_AND_DESIGN_GRAPH_NOT_REPLAYED",
+  "supersedes_assignment_priority": {
+    "evidence_id": "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122",
+    "report": "docs/supervisor/C104_TRANSITION_REVIEW_20261122.md",
+    "plan": "docs/supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json",
+    "scope": "Withdraw unconditional W22-first/direct-PMM prerequisite; retain numerical findings and conditional diagnostic recipe."
+  },
+  "factor_roles": [
+    {
+      "factor": "beta_tE",
+      "owner": "src/tbdy_next/normative_basis.py::eq_4_31_base_scale",
+      "formula": "max(1, gamma_E * VtE / Vtx_pre_beta)",
+      "local_c104_M3_input": false,
+      "reference": "TBDY 2018 4.8.4.1, Eq.4.31; applicable basement boundary per 4.8.4.2"
+    },
+    {
+      "factor": "TS500 beta / beta_story",
+      "owner": "src/tbdy_next/column_engine/ts500_column.py::moment_magnification_factors",
+      "role": "Separate column/story second-order magnification"
+    },
+    {
+      "factor": "beta_II",
+      "role": "Separate global second-order factor; not interchangeable with beta_tE"
+    }
+  ],
+  "consumer_trace": [
+    {
+      "owner": "src/tbdy_next/normative_checks.py::directional_base_shear_check",
+      "observed": "Computes required beta using pre-beta modal shear and checks applied_beta; no transition local M3 input. Private numerical qualification is not established by existence of this function."
+    },
+    {
+      "owner": "src/tbdy_next/engineering/coupled_wall_transition.py::project_transition",
+      "observed": "Returns signed-linear-static section resultants, balances and mesh comparisons with explicit unqualified second-order/reinforcement statuses."
+    },
+    {
+      "owner": "src/tbdy_next/engineering/column_r08_local_live.py::_project_member",
+      "observed": "Adds project_transition output to boundary[coupled_wall_transition]; no direct transition-M3 consumption by beta_tE or PMM in the inspected path."
+    },
+    {
+      "owner": "src/tbdy_next/engineering/mixed_demands.py::spectral_component_evidence",
+      "observed": "Resolves actual assigned spectral combination definitions and source evidence."
+    },
+    {
+      "owner": "src/tbdy_next/column_engine/spectral_envelope.py and spectral_design.py",
+      "observed": "Keep spectrum_scale_reapplied=False. Actual project source scale and application history still need qualification."
+    },
+    {
+      "owner": "src/tbdy_next/engineering/story_static_reference.py::supplementary_story_reference",
+      "observed": "Supplementary signed-static source reports assigned_to_design=False; historical diagnostic use is not adopted design action."
+    }
+  ],
+  "next_action": "Trace the user-declared LC_EQX equivalent-static reference through the actual directional VtE, pre-beta modal shear, required/applied beta_tE and scale ownership into the assigned spectral/design combination graph. Compare quantities actually consumed by design using retained compatible results. Do not require local auxiliary-case C104 M3 convergence as an automatic beta_tE/PMM prerequisite. Activate W22/W23 source or mesh investigation only when its effect on used global quantities or actual design demands is demonstrated; preserve all recorded diagnostic failures and independent coupled-method gates.",
+  "first_delivery_required_fields": [
+    "source/model/generation identity",
+    "equivalent-static and response-spectrum case roles",
+    "assigned design combination graph including nested terms",
+    "direction and applicable basement boundary",
+    "VtE_kN",
+    "Vtx_pre_beta_kN",
+    "gamma_E and evidence",
+    "required_beta_tE",
+    "applied_beta_tE and other case-scale factors",
+    "scale application owner and once-only consumption",
+    "same-cut actually used demand comparisons",
+    "W22 relevance decision"
+  ],
+  "tasks": [
+    {
+      "id": "ROLE-01",
+      "status": "PROPOSED_NOT_RUN",
+      "task": "Recover actual project case-role and assigned combination graph from retained source; expose any conflict with the user-declared LC_EQX role."
+    },
+    {
+      "id": "SCALE-02",
+      "status": "PROPOSED_NOT_RUN",
+      "task": "Bind equivalent and pre-beta modal base shears, required/applied beta, applicable boundary and scale ownership. Do not assume a total ETABS case-scale field equals beta alone."
+    },
+    {
+      "id": "DEMAND-03",
+      "status": "PROPOSED_NOT_RUN",
+      "task": "Compare used global and actual design quantities at matching physical cuts across compatible retained results; preserve source identity and spectral-bound semantics."
+    },
+    {
+      "id": "W22-04",
+      "status": "CONDITIONAL_DIAGNOSTIC; NO_NEW_SOLVE_ORDERED",
+      "task": "Apply the earlier interface/H-V recipe only if a used-quantity discrepancy or an explicit model-qualification objective justifies it."
+    }
+  ],
+  "decision_branches": [
+    {
+      "when": "Used quantities meet declared budgets; only auxiliary LC_EQX local M3 differs",
+      "then": "Continue the qualified design slice and retain/localize the diagnostic without automatic PMM blockade."
+    },
+    {
+      "when": "Used base-shear/scale quantity or actual design demand fails its budget",
+      "then": "Investigate the relevant source, connection or mesh mechanism and carry the measured issue into the real consumer."
+    },
+    {
+      "when": "Source rows or generation/combination mapping are missing",
+      "then": "Acquire the bounded missing evidence; do not infer a pass, direct LC_EQX design action or a stable actual demand."
+    }
+  ],
+  "other_cases": "The transition archive also includes gravity and LC_H/LC_HE/LC_T; determine actual assignment before dismissing or prioritizing their recorded discrepancies.",
+  "preserved": [
+    "C104 twelve free-body balances and 288 independent reintegrations",
+    "C104 recorded mesh discrepancies",
+    "C29 six first-order story balances",
+    "C29 twenty-four selected-cage capacity faces and full-span recovery",
+    "Conditional C29 R14 2/87",
+    "Independent coupled-method and construction-continuity gates"
+  ],
+  "source_sha256": {
+    "src/tbdy_next/normative_basis.py": "f1beb403e6008eb2ba56de3e32999ca2a415f8701d7f0e82dca2817ce5032955",
+    "src/tbdy_next/normative_checks.py": "759d11b72524985e611af374e5eb86522da387914f6e8af5280cfdb8ff0dc5fe",
+    "src/tbdy_next/base_shear_screening.py": "c56e93d5fb215a4149c4e42670843626570c1bfc86687677fe345e1a1be303ca",
+    "src/tbdy_next/engineering/coupled_wall_transition.py": "cdeba423d29b89f4828ac2f3fa9c7c92f25701b294a656aed8b5ff372e84cccd",
+    "src/tbdy_next/engineering/column_r08_local_live.py": "ce6341a44326d07cf703a543a7e3967a0a9492b84671660d1a46adbea8f53658",
+    "src/tbdy_next/engineering/column_r14_closure.py": "6fb2430956688d234ceee8478f88dc3177f5e2c7e5e32d8bfcf7432ce5325e1a",
+    "src/tbdy_next/engineering/mixed_demands.py": "d6fb9c1c0f72b320a8bbf776da5f35ae042b307060cff677eb93c7312330fd69",
+    "src/tbdy_next/engineering/story_static_reference.py": "012789c12e18250d9d368f99263dbd02a7cd5390df64466c4d646c43d02b26f1",
+    "src/tbdy_next/column_engine/spectral_envelope.py": "9768ef96dc415317d8cb9356f1860a4db3c73b91b1389aa16b2deae8f34c1f86",
+    "src/tbdy_next/column_engine/spectral_design.py": "aff832eceef729c8f9f17622929a69cd61333ac8cdb4c3ebbd4073195ae88bbc",
+    "src/tbdy_next/column_engine/ts500_column.py": "f02ca8634751a0d459a67b42f6c952933feddbe697991fda68668ca0be827883"
+  },
+  "primary_reference": {
+    "url": "https://www.imo.org.tr/Eklenti/89,depremyonetmeligipdf.pdf?0=",
+    "title": "TBDY 2018 published regulation",
+    "clauses": [
+      "4.8.4.1 / Eq.4.31",
+      "4.8.4.2"
+    ],
+    "pdf_page_1_based": 76
+  },
+  "verification_boundary": {
+    "code_read_only": true,
+    "production_changes": false,
+    "new_tests": false,
+    "new_native_solve": false,
+    "private_scale_replay": false,
+    "private_design_graph_replay": false,
+    "gap_status_changed": false,
+    "engineering_release_granted": false
+  }
+}

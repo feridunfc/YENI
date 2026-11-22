@@ -1,8 +1,10 @@
 # Local development and GitHub worker handoff
 
-## Current assignment after the C104 transition calculation
+## Current assignment after the LC_EQX design-role clarification
 
-Start with the [C104 component table and 24 C29 capacity checks](../engineering/C104_TRANSITION_AND_C29_CAPACITY_20261122.md). Use the sealed S03 free bodies, the six S02 story balances and the complete C29 24-face verification as inputs. The active calculation is the W22/W23 interface at x = 77.40 m. The controlling upper-face LC_EQX moment difference across the two meshes is −219.533 kN·m. W22 accounts for −194.297 kN·m. [Current engineering gaps](../ENGINEERING_GAPS.yaml)
+Start with the [LC_EQX role correction](../supervisor/LC_EQX_ROLE_CORRECTION_20261122.md). The user identifies LC_EQX as the equivalent-static reference for modal beta_tE amplification, not a direct design-action case. Trace actual assigned combinations, equivalent and pre-beta modal base shears, required/applied scale and its single consumption. Compare the actual consumed design quantities before assigning further W22/W23 mesh work. Do not confuse beta_tE with TS 500 beta/beta_s or second-order beta_II.
+
+Preserve the [C104 component table and 24 C29 capacity checks](../engineering/C104_TRANSITION_AND_C29_CAPACITY_20261122.md), the sealed S03 free bodies and the six S02 balances. The −219.533 kN·m LC_EQX difference immediately above the transition, including −194.297 kN·m from W22, remains a diagnostic. The code attaches it to the R08 boundary report without direct beta_tE or PMM consumption. Investigate W22/W23 when the actual-consumer comparison shows a relevant discrepancy. [Current engineering gaps](../ENGINEERING_GAPS.yaml)
 
 The first-order model and bar detailing have separate source roles. The user confirmed that the archived model view is the only available connection detail. Record any future physical detailing assumption with its project authority. The 14 wall-coupled columns retain the second-order gate. C29's selected-cage R14 closure remains 2/87 conditional. S08 still requires the same-generation joint force/capacity identities and low-axial exemption evidence.
 
@@ -10,7 +12,8 @@ The [S00 and S02 calculation](../engineering/C29_S00_S02_20261122.md) and [dated
 
 The [supervisor milestone review](../supervisor/C104_TRANSITION_REVIEW_20261122.md)
 and [W22 transfer plan](../supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json)
-refine this assignment after reviewing `a89f70f`. The review passed 14 focused
+record the earlier assignment after reviewing `a89f70f`. The later LC_EQX role
+correction supersedes the unconditional priority of that experiment. The review passed 14 focused
 tests and checked public arithmetic; it did not rerun private native evidence.
 Preserve C29's completed 24/24 face scope. The dated one-face checkpoint below
 is historical and does not assign the former 23 remaining faces again.
@@ -65,6 +68,17 @@ offline suite against reported clean tracked commit
 Linux run; neither test count substitutes for original-building evidence.
 
 ## Next GAP-009 calculation
+
+Read the [current scope and next-action record](../supervisor/lc_eqx_role_20261122/SCOPE_AND_NEXT_ACTION.json).
+The first receipt must show actual case roles and combination lineage, VtE,
+pre-beta modal shear, required/applied beta_tE, scale ownership and relevant
+used-demand comparisons. A declared equivalent-static reference must not be
+silently substituted for a spectral design demand. If the actual assigned graph
+conflicts with the declared role, report the conflict. The earlier W22 diagnostic
+steps below remain available only when their effect on used quantities is shown.
+Coupled second-order qualification proceeds on the actual design basis.
+
+### Conditional W22/W23 diagnostic recipe
 
 1. Read `release-summary.json` and `w22-transfer.json` under the private verification directory `.receipts/verification/c104-transition-20261122`. The archived face arrays are already consumed in R08. Keep the 1% / 0.05 kN or kN·m mesh budget and the separate body-equilibrium budget. Preserve all 12 passed balances. The governing M3 difference belongs to `above_transition` immediately above −1.50 m, not the `upper` cap at −1.45 m.
 2. Inventory actual W22/W23 IDs, planes, points, axes, incident members, shared/coincident nodes, DOFs and constraints at x = 77.40 m. Use the archived models first; acquire missing W23 rows through the existing gateway. Qualify equivalent physical automatic-seismic loading across models: mass, period/scale, base/story forces, torsion and application centres. Different mesh DOF populations do not require literal equality of raw nodal vectors.

@@ -52,6 +52,20 @@ visible in the full-product acceptance population.
   [verification ledger](../VERIFICATION_LEDGER.json) for current implementation
   and acceptance status.
 
+## Project load-case role clarification — 22 November 2026
+
+The user identifies LC_EQX as an equivalent-static reference for modal beta_tE
+scaling, not a direct design-action case. Bind actual directional case names and
+assigned combinations from the project source. Keep this scale distinct from
+TS 500 beta/beta_s and second-order beta_II. Existing signed-static diagnostics
+and research cases do not automatically gain design authority.
+
+Prioritize discrepancies in quantities actually consumed by the design. A local
+LC_EQX C104 moment difference is preserved as a diagnostic and does not by itself
+block beta_tE or PMM. The [role correction](../supervisor/LC_EQX_ROLE_CORRECTION_20261122.md)
+defines the source/consumer trace and conditional follow-up. No result is declared
+mesh-qualified solely because its diagnostic case is not assigned to design.
+
 ## Where to look before requesting a source
 
 | Source | What a worker can use |

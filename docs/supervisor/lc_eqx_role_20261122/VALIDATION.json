@@ -1,0 +1,162 @@
+{
+  "schema": "yeni.load-role-correction-document-validation.v1",
+  "recorded_at_utc": "2026-11-22T08:55:49.368410+00:00",
+  "inspected_base_commit": "388849d4073b60db4dd396bad9b748db538842bf",
+  "result": "PASS",
+  "checks": {
+    "91_prior_records_preserved": true,
+    "92_unique_current_records": true,
+    "prior_record_array_bytes_preserved": true,
+    "previous_checkpoint_preserved": true,
+    "18_gap_statuses_unchanged": true,
+    "prior_gap_evidence_preserved_with_explicit_blocker_replacement": true,
+    "production_tools_tests_unchanged": true,
+    "dated_prior_review_and_plan_unchanged": true,
+    "inspected_source_hashes_match_pinned_commit": true,
+    "new_artifact_hashes_match": true,
+    "no_tests_or_native_execution_claimed": true,
+    "no_release_promotion": true,
+    "new_relative_links_resolve": true,
+    "git_diff_check": true
+  },
+  "ledger_before": 91,
+  "ledger_after": 92,
+  "gap_status_counts": {
+    "OPEN": 3,
+    "PARTIAL": 15
+  },
+  "source_hash_checks": {
+    "src/tbdy_next/normative_basis.py": true,
+    "src/tbdy_next/normative_checks.py": true,
+    "src/tbdy_next/base_shear_screening.py": true,
+    "src/tbdy_next/engineering/coupled_wall_transition.py": true,
+    "src/tbdy_next/engineering/column_r08_local_live.py": true,
+    "src/tbdy_next/engineering/column_r14_closure.py": true,
+    "src/tbdy_next/engineering/mixed_demands.py": true,
+    "src/tbdy_next/engineering/story_static_reference.py": true,
+    "src/tbdy_next/column_engine/spectral_envelope.py": true,
+    "src/tbdy_next/column_engine/spectral_design.py": true,
+    "src/tbdy_next/column_engine/ts500_column.py": true
+  },
+  "relative_links": [
+    {
+      "source": "docs/CURRENT_STATE.md",
+      "target": "supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
+      "exists": true
+    },
+    {
+      "source": "docs/CURRENT_STATE.md",
+      "target": "engineering/C104_TRANSITION_AND_C29_CAPACITY_20261122.md",
+      "exists": true
+    },
+    {
+      "source": "docs/context/WORKER_HANDOFF_20261119.md",
+      "target": "../supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
+      "exists": true
+    },
+    {
+      "source": "docs/context/WORKER_HANDOFF_20261119.md",
+      "target": "../engineering/C104_TRANSITION_AND_C29_CAPACITY_20261122.md",
+      "exists": true
+    },
+    {
+      "source": "docs/context/WORKER_HANDOFF_20261119.md",
+      "target": "../ENGINEERING_GAPS.yaml",
+      "exists": true
+    },
+    {
+      "source": "docs/context/WORKER_HANDOFF_20261119.md",
+      "target": "../supervisor/lc_eqx_role_20261122/SCOPE_AND_NEXT_ACTION.json",
+      "exists": true
+    },
+    {
+      "source": "docs/context/PROJECT_CHARTER.md",
+      "target": "../supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
+      "exists": true
+    },
+    {
+      "source": "docs/supervisor/ROADMAP_20261121.md",
+      "target": "LC_EQX_ROLE_CORRECTION_20261122.md",
+      "exists": true
+    },
+    {
+      "source": "docs/supervisor/ROADMAP_20261121.md",
+      "target": "C104_TRANSITION_REVIEW_20261122.md",
+      "exists": true
+    },
+    {
+      "source": "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
+      "target": "C104_TRANSITION_REVIEW_20261122.md",
+      "exists": true
+    },
+    {
+      "source": "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
+      "target": "c104_review_20261122/W22_TRANSFER_PLAN.json",
+      "exists": true
+    },
+    {
+      "source": "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
+      "target": "../../src/tbdy_next/normative_basis.py",
+      "exists": true
+    },
+    {
+      "source": "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
+      "target": "../../src/tbdy_next/normative_checks.py",
+      "exists": true
+    },
+    {
+      "source": "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
+      "target": "../../src/tbdy_next/engineering/mixed_demands.py",
+      "exists": true
+    },
+    {
+      "source": "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
+      "target": "../../src/tbdy_next/column_engine/spectral_envelope.py",
+      "exists": true
+    },
+    {
+      "source": "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
+      "target": "../../src/tbdy_next/column_engine/spectral_design.py",
+      "exists": true
+    },
+    {
+      "source": "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
+      "target": "../../src/tbdy_next/column_engine/ts500_column.py",
+      "exists": true
+    },
+    {
+      "source": "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
+      "target": "../../src/tbdy_next/engineering/coupled_wall_transition.py",
+      "exists": true
+    },
+    {
+      "source": "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
+      "target": "../../src/tbdy_next/engineering/story_static_reference.py",
+      "exists": true
+    },
+    {
+      "source": "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
+      "target": "lc_eqx_role_20261122/SCOPE_AND_NEXT_ACTION.json",
+      "exists": true
+    },
+    {
+      "source": "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
+      "target": "lc_eqx_role_20261122/VALIDATION.json",
+      "exists": true
+    }
+  ],
+  "manifest_sha256": {
+    "docs/CURRENT_STATE.md": "6596aa0e9c528d37afebe1b758bf66d482dbb01be842452341138ed474718424",
+    "docs/ENGINEERING_GAPS.yaml": "ac87951131c0aa64d051464a1469b09932110a8373f556f130dfa635e054a878",
+    "docs/VERIFICATION_LEDGER.json": "7d327c8afe4f584cdbcbc3085b9fc750a3d47b5699d7c01fb6e28eff42cf5ad6",
+    "docs/context/WORKER_HANDOFF_20261119.md": "b2f8bf497143db6357f35ff2a82ad42999fbbaabe57e7c561693e885e38b310c",
+    "docs/context/PROJECT_CHARTER.md": "278538c6bffc11942fa2de3bac77f2c0a85105333370a74b23b44fd16827473f",
+    "docs/supervisor/ROADMAP_20261121.md": "43d624b1a8f4c8ab01b1cdf2180de73e1999f31e11c76989a75b02eee1da9c1c",
+    "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md": "d7e328a609d06624471d56112acc23b42bb4580e90c612f429517e8aec91741c",
+    "docs/supervisor/lc_eqx_role_20261122/SCOPE_AND_NEXT_ACTION.json": "acee1500784a6dc4250d4ecdc32059fb7f333f0cf74a899e1abccf87f25368fc"
+  },
+  "manifest_excludes_self": true,
+  "verification_scope": "Documentation/source identity and historical preservation, not engineering calculation or software test execution.",
+  "tests_run": false,
+  "native_analysis_run": false
+}

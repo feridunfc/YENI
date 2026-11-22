@@ -19,25 +19,26 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "C104_MILESTONE_SUPERVISOR_REVIEW_AND_W22_PLAN_RECORDED",
-    "work_branch": "work/c104-transition-review-20261122",
+    "status": "LC_EQX_ROLE_CORRECTED; ACTUAL_SCALE_AND_DESIGN_CONSUMER_TRACE_NEXT",
+    "work_branch": "work/lc-eqx-design-role-20261122",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "a89f70f01d39bd2c88cdbcea3efb7292ff7c7f01",
+    "inspected_base_commit": "388849d4073b60db4dd396bad9b748db538842bf",
     "tested_implementation_commit": "983571a2920fc4698c6b390d27964bae28c13bb2",
     "evidence_refs": [
       "EV-S03-C104-TRANSITION-20261122",
       "EV-S06-C29-24-FACES-20261122",
       "EV-WINDOWS-C104-TRANSITION-20261122",
-      "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122"
+      "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122",
+      "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122"
     ],
     "production_run_id": "RUN-7dc0634b19e44a1c8286fb6368f5721d",
     "results_sha256": "9a17508e2a1b22f9f22f5215d0dbf68214b1cf468c60db7992903cabc4e3e11b",
     "latest_native_result_preserved": true,
     "review_production_changes": false,
-    "report": "docs/supervisor/C104_TRANSITION_REVIEW_20261122.md",
-    "worker_plan": "docs/supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json",
+    "report": "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
+    "worker_plan": "docs/supervisor/lc_eqx_role_20261122/SCOPE_AND_NEXT_ACTION.json",
     "engineering_release": "NOT_READY",
-    "next_action": "Read actual W22/W23 interface membership and both-side actions at x=77.40 m; qualify equivalent physical automatic-seismic forcing across the retained models; compare six common-origin actions and the spatial first moment of Fz. If needed, add coarse-H/25 mm and fine-H/50 mm cross-direction models, preserving W23 mesh/constraint policy or disclosing its additional effect. Extend the existing narrow transition/R08 contract explicitly. Preserve C104 balance, all 24 C29 capacities and conditional R14 2/87; S04 method qualification and further S06 domains continue separately."
+    "next_action": "Trace the user-declared LC_EQX equivalent-static reference through the actual directional VtE, pre-beta modal shear, required/applied beta_tE and scale ownership into the assigned spectral/design combination graph. Compare quantities actually consumed by design using retained compatible results. Do not require local auxiliary-case C104 M3 convergence as an automatic beta_tE/PMM prerequisite. Activate W22/W23 source or mesh investigation only when its effect on used global quantities or actual design demands is demonstrated; preserve all recorded diagnostic failures and independent coupled-method gates."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
@@ -8496,6 +8497,53 @@
       "fresh_full_suite": false,
       "engineering_release_granted": false,
       "next_action": "Read actual W22/W23 interface membership and both-side actions at x=77.40 m; qualify equivalent physical automatic-seismic forcing across the retained models; compare six common-origin actions and the spatial first moment of Fz. If needed, add coarse-H/25 mm and fine-H/50 mm cross-direction models, preserving W23 mesh/constraint policy or disclosing its additional effect. Extend the existing narrow transition/R08 contract explicitly. Preserve C104 balance, all 24 C29 capacities and conditional R14 2/87; S04 method qualification and further S06 domains continue separately."
+    },
+    {
+      "id": "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122",
+      "observed_at": "2026-11-22T08:54:32.357515+00:00",
+      "inspected_base_commit": "388849d4073b60db4dd396bad9b748db538842bf",
+      "status": "USER_PROJECT_ROLE_RECONCILED_WITH_EXISTING_CODE_OWNERS",
+      "scope": "User clarification of LC_EQX equivalent-static beta_tE role; read-only source-consumer trace and correction of worker priority. No new private model calculation.",
+      "public_reference_paths": [
+        "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
+        "docs/supervisor/lc_eqx_role_20261122/SCOPE_AND_NEXT_ACTION.json",
+        "docs/supervisor/lc_eqx_role_20261122/VALIDATION.json"
+      ],
+      "artifact_sha256": {
+        "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md": "d7e328a609d06624471d56112acc23b42bb4580e90c612f429517e8aec91741c",
+        "docs/supervisor/lc_eqx_role_20261122/SCOPE_AND_NEXT_ACTION.json": "acee1500784a6dc4250d4ecdc32059fb7f333f0cf74a899e1abccf87f25368fc"
+      },
+      "user_declared_role": {
+        "kind": "USER_PROJECT_ROLE_CLARIFICATION",
+        "date": "2026-11-22",
+        "declared_case": "LC_EQX",
+        "declared_role": "EQUIVALENT_STATIC_REFERENCE_FOR_MODAL_BETA_SCALING",
+        "direct_project_design_action": false,
+        "directional_case_mapping": "Verify actual X/Y equivalents and response-spectrum case identities from the project source."
+      },
+      "supersedes_assignment_priority": {
+        "evidence_id": "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122",
+        "report": "docs/supervisor/C104_TRANSITION_REVIEW_20261122.md",
+        "plan": "docs/supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json",
+        "scope": "Withdraw unconditional W22-first/direct-PMM prerequisite; retain numerical findings and conditional diagnostic recipe."
+      },
+      "findings": [
+        "beta_tE depends on directional equivalent/pre-beta modal base shears; local C104 M3 is not an input",
+        "R08 transition output is attached as a boundary diagnostic with no direct beta_tE or PMM consumption in the inspected path",
+        "Historical signed-static research can read LC_EQX without adopting it as direct design demand",
+        "Actual project scale and combination graph were not replayed in this review"
+      ],
+      "source_trace_artifact": "docs/supervisor/lc_eqx_role_20261122/SCOPE_AND_NEXT_ACTION.json",
+      "previous_record_count": 91,
+      "previous_records_preserved": true,
+      "new_record_count": 92,
+      "production_changes": false,
+      "tests_run": false,
+      "native_analysis_run": false,
+      "private_model_scale_verified": false,
+      "gap_status_changed": false,
+      "engineering_release_granted": false,
+      "next_action": "Trace the user-declared LC_EQX equivalent-static reference through the actual directional VtE, pre-beta modal shear, required/applied beta_tE and scale ownership into the assigned spectral/design combination graph. Compare quantities actually consumed by design using retained compatible results. Do not require local auxiliary-case C104 M3 convergence as an automatic beta_tE/PMM prerequisite. Activate W22/W23 source or mesh investigation only when its effect on used global quantities or actual design demands is demonstrated; preserve all recorded diagnostic failures and independent coupled-method gates."
     }
   ],
   "new_record_template": {
@@ -8520,7 +8568,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-22T06:15:40.222655+00:00",
+  "updated_at_utc": "2026-11-22T08:54:32.357515+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -9179,6 +9227,27 @@
       ],
       "engineering_release": "NOT_READY",
       "next_action": "Inspect the x=77.40 m W22/W23 contact and constraint transfer for LC_EQX. Compare both-side vertical force, its 3.40 m moment arm and common-origin M3 with independently varied horizontal and vertical mesh pitches. Carry the measured convergence into the S04 coupled second-order candidate. The only available drawing evidence is the gross model view."
+    },
+    {
+      "status": "C104_MILESTONE_SUPERVISOR_REVIEW_AND_W22_PLAN_RECORDED",
+      "work_branch": "work/c104-transition-review-20261122",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "a89f70f01d39bd2c88cdbcea3efb7292ff7c7f01",
+      "tested_implementation_commit": "983571a2920fc4698c6b390d27964bae28c13bb2",
+      "evidence_refs": [
+        "EV-S03-C104-TRANSITION-20261122",
+        "EV-S06-C29-24-FACES-20261122",
+        "EV-WINDOWS-C104-TRANSITION-20261122",
+        "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122"
+      ],
+      "production_run_id": "RUN-7dc0634b19e44a1c8286fb6368f5721d",
+      "results_sha256": "9a17508e2a1b22f9f22f5215d0dbf68214b1cf468c60db7992903cabc4e3e11b",
+      "latest_native_result_preserved": true,
+      "review_production_changes": false,
+      "report": "docs/supervisor/C104_TRANSITION_REVIEW_20261122.md",
+      "worker_plan": "docs/supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json",
+      "engineering_release": "NOT_READY",
+      "next_action": "Read actual W22/W23 interface membership and both-side actions at x=77.40 m; qualify equivalent physical automatic-seismic forcing across the retained models; compare six common-origin actions and the spatial first moment of Fz. If needed, add coarse-H/25 mm and fine-H/50 mm cross-direction models, preserving W23 mesh/constraint policy or disclosing its additional effect. Extend the existing narrow transition/R08 contract explicitly. Preserve C104 balance, all 24 C29 capacities and conditional R14 2/87; S04 method qualification and further S06 domains continue separately."
     }
   ],
   "remote_audit_correction_checkpoint": {
@@ -9249,5 +9318,14 @@
     "reviewer_focused_tests_passed": 14,
     "private_native_and_full_windows_replay": false,
     "gap_status_changed": false
+  },
+  "lc_eqx_role_correction_checkpoint": {
+    "evidence_ref": "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122",
+    "report": "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
+    "plan": "docs/supervisor/lc_eqx_role_20261122/SCOPE_AND_NEXT_ACTION.json",
+    "supersedes_unconditional_w22_priority": true,
+    "previous_records_preserved": 91,
+    "production_changes": false,
+    "tests_run": false
   }
 }

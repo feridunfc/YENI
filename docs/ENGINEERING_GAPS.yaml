@@ -1,7 +1,7 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-22T06:15:40.222655+00:00",
+  "updated_at_utc": "2026-11-22T08:54:32.357515+00:00",
   "repository": "feridunfc/YENI",
   "baseline_implementation_commit": "60fd80303b7e101673d65dde5e1edf75a6caa6cf",
   "local_reconciled": true,
@@ -30,7 +30,7 @@
     "GAP-018",
     "GAP-006"
   ],
-  "active_task": "Read actual W22/W23 interface membership and both-side actions at x=77.40 m; qualify equivalent physical automatic-seismic forcing across the retained models; compare six common-origin actions and the spatial first moment of Fz. If needed, add coarse-H/25 mm and fine-H/50 mm cross-direction models, preserving W23 mesh/constraint policy or disclosing its additional effect. Extend the existing narrow transition/R08 contract explicitly. Preserve C104 balance, all 24 C29 capacities and conditional R14 2/87; S04 method qualification and further S06 domains continue separately.",
+  "active_task": "Trace the user-declared LC_EQX equivalent-static reference through the actual directional VtE, pre-beta modal shear, required/applied beta_tE and scale ownership into the assigned spectral/design combination graph. Compare quantities actually consumed by design using retained compatible results. Do not require local auxiliary-case C104 M3 convergence as an automatic beta_tE/PMM prerequisite. Activate W22/W23 source or mesh investigation only when its effect on used global quantities or actual design demands is demonstrated; preserve all recorded diagnostic failures and independent coupled-method gates.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -81,7 +81,8 @@
       "evidence_refs": [
         "EV-D3B",
         "EV-LOCAL-SPECTRAL",
-        "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121"
+        "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
+        "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -98,6 +99,13 @@
         "work_packages": [
           "S01"
         ]
+      },
+      "lc_eqx_role_correction_20261122": {
+        "evidence_ref": "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122",
+        "report": "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
+        "next_action_record": "docs/supervisor/lc_eqx_role_20261122/SCOPE_AND_NEXT_ACTION.json",
+        "note": "User-declared LC_EQX role is equivalent-static beta_tE reference. Verify actual assigned combinations and expose any conflicting direct design term; do not infer assignment from case name.",
+        "status_changed": false
       }
     },
     {
@@ -227,7 +235,7 @@
       "status": "PARTIAL",
       "priority": "P0",
       "achieved_scope": "Supported MinStations=3 / zero-I-offset subset: 4422/4422 required cuts, including both sides in 14 meshed columns. Model support elevations and individual native cuts agree for both C29 segments and 59 of 87 columns. The five native face/connectivity tables include polygon continuation rows and the radye foundation mesh contact. Independently derived 402 distinct configured cuts match all 957 member/combination inventories and 7,638 force rows with native steps. Standalone physical lengths and cuts agree for 73 columns. Fourteen basement frame objects have identified wall shell contacts, including one partially coincident shell edge chain. The original ETABS model confirms automatic edge constraints on both C104 walls and geometric shell-edge coverage for all three nonmatching segments. In the private W21/W22 remesh, all 103 C104 frame segments have exact shared shell edges. Six signed cases balance at all 55 sampled internal joints. The original and private models were compared at six matching cut sides with all 11 assigned combinations and six signed component cases. A second 25 mm mesh matched all 206 C104 segments. The six signed static cases balance at 112 interior joints. The comparison covers 900 scalar values on six identical physical cut sides and shows remaining mesh sensitivity. R10 withholds offset-based capacity shear for all 14 wall-coupled columns. The C104 model view and verified native geometry establish a two-stage gross concrete union with a transition at -1.50 m. The sealed C104 R08 run computed 288 signed components on two meshes at four common faces and balanced all 12 thin free bodies. At the transition 16/72 components met the numerical mesh budget. W22 end-force redistribution dominates the upper-face LC_EQX M3 difference.",
-      "blocker": "Resolve W22/W23 boundary transfer at x=77.40 m, demonstrate component convergence and substantiate construction connection and reinforcement continuity for the adopted design model.",
+      "blocker": "Qualify physical cut identities and convergence of quantities actually consumed by the adopted design. Retain the C104 auxiliary-case discrepancy; establish its relevance before prioritizing W22/W23 experiments. Substantiate construction connection and reinforcement continuity for the adopted coupled design model.",
       "closure_criteria": "Establish all supported cut/face/mesh identities independently of force results; reject missing or ambiguous side matches.",
       "owner_paths": [
         "src/tbdy_next/engineering/column_pmm.py",
@@ -247,7 +255,8 @@
         "EV-GAP006-C104-SECTION-PROFILE-20261121",
         "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
         "EV-S03-C104-TRANSITION-20261122",
-        "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122"
+        "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122",
+        "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -294,6 +303,14 @@
         "plan": "docs/supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json",
         "note": "Preserve completed same-cut first-order C104 integration and balance. Qualify actual W22/W23 transfer, physical load equivalence and separated H/V sensitivity. Construction continuity remains a distinct design premise.",
         "status_changed": false
+      },
+      "lc_eqx_role_correction_20261122": {
+        "evidence_ref": "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122",
+        "report": "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
+        "next_action_record": "docs/supervisor/lc_eqx_role_20261122/SCOPE_AND_NEXT_ACTION.json",
+        "note": "Retain measured C104 discrepancies; first establish which quantities the actual design consumes. W22/W23 experiments are conditional on a used-quantity impact, not automatic prerequisites from auxiliary LC_EQX local M3.",
+        "status_changed": false,
+        "previous_blocker": "Resolve W22/W23 boundary transfer at x=77.40 m, demonstrate component convergence and substantiate construction connection and reinforcement continuity for the adopted design model."
       }
     },
     {
@@ -411,7 +428,8 @@
         "EV-S02-C29-SIGNED-STORY-BALANCE-20261122",
         "EV-WINDOWS-S00-S02-20261122",
         "EV-S03-C104-TRANSITION-20261122",
-        "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122"
+        "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122",
+        "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -553,6 +571,13 @@
         "report": "docs/supervisor/C104_TRANSITION_REVIEW_20261122.md",
         "plan": "docs/supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json",
         "note": "The numerical demand has not converged; the two-model difference has not been isolated to discretization alone. Effective coupled stiffness, restraint, creep, axial-variation applicability and demand/method qualification remain separate exits. S02 and conditional C29 are completed in their recorded scopes.",
+        "status_changed": false
+      },
+      "lc_eqx_role_correction_20261122": {
+        "evidence_ref": "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122",
+        "report": "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
+        "next_action_record": "docs/supervisor/lc_eqx_role_20261122/SCOPE_AND_NEXT_ACTION.json",
+        "note": "Keep beta_tE separate from TS500 beta/beta_s and second-order beta_II. The C104 local diagnostic is not directly consumed by either beta_tE or PMM; actual coupled-method and design-demand qualification remain open.",
         "status_changed": false
       }
     },
@@ -1000,7 +1025,8 @@
         "EV-R10-LIVE-INTERVAL-20261120",
         "EV-STORY-STATIC-APPLICABILITY-20261120",
         "EV-C29-SPECTRAL-SHEAR-20261120",
-        "EV-C29-PHYSICAL-CLEAR-LENGTH-20261120"
+        "EV-C29-PHYSICAL-CLEAR-LENGTH-20261120",
+        "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -1181,6 +1207,13 @@
         "report": "docs/supervisor/EXTERNAL_AUDIT_REVIEW_20261122.md",
         "note": "The older audit corner-invariance rule is invalid in general. Preserve finite-candidate limits and require a whole-domain sufficient-bound proof where applicable.",
         "status_changed": false
+      },
+      "lc_eqx_role_correction_20261122": {
+        "evidence_ref": "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122",
+        "report": "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
+        "next_action_record": "docs/supervisor/lc_eqx_role_20261122/SCOPE_AND_NEXT_ACTION.json",
+        "note": "Trace actual equivalent/modal case roles, pre-beta shear and source scale through assigned spectral combinations. Ensure scale is consumed once, without inventing simultaneity from Max/Min.",
+        "status_changed": false
       }
     }
   ],
@@ -1235,6 +1268,14 @@
     "plan": "docs/supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json",
     "completed_scopes_preserved": true,
     "new_native_solve": false,
+    "gap_status_changed": false
+  },
+  "lc_eqx_role_correction_20261122": {
+    "evidence_ref": "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122",
+    "report": "docs/supervisor/LC_EQX_ROLE_CORRECTION_20261122.md",
+    "next_action_record": "docs/supervisor/lc_eqx_role_20261122/SCOPE_AND_NEXT_ACTION.json",
+    "supersedes_unconditional_w22_first_priority": true,
+    "numerical_evidence_preserved": true,
     "gap_status_changed": false
   }
 }

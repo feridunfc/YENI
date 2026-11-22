@@ -1,8 +1,22 @@
 # Original building calculation and local handoff — 2026-11-22
 
+## Current priority after the LC_EQX role clarification
+
+The user identifies LC_EQX as the equivalent-static reference for modal
+**beta_tE scaling**, not a direct project design-action case. The local C104
+LC_EQX M3 discrepancy is a retained diagnostic; it is not by itself a prerequisite
+to PMM or the beta_tE calculation. This corrects the earlier W22-first priority.
+The [role correction and actual-consumer task](supervisor/LC_EQX_ROLE_CORRECTION_20261122.md)
+now govern the next assignment: trace the actual case/combination roles, equivalent
+and pre-beta modal base shears, required/applied scale and its single consumption,
+then compare quantities used by the design. Further W22/W23 experiments depend
+on measured relevance to those quantities. No used design result is declared
+mesh-qualified by this correction. Existing C104/C29 results and GAP statuses
+are preserved; no new native calculation or software test is claimed.
+
 ## C104 first-order transition and C29 independent capacities
 
-**C104** now has a signed six-component R08 result and a sealed HTML report for four physical faces. All 12 thin-body balances passed. A separate full-archive integration reproduced 288/288 components. At −1.50 m, 13/36 components below and 3/36 above met the predeclared 50/25 mm comparison. LC_EQX immediately above the transition changed M3 by −219.533 kN·m. W22 contributes −194.297 kN·m, principally from vertical-force moment arms. Next inspect the W22/W23 contact at x = 77.40 m. The user supplied the model view as the only detail. Construction bar continuity and the coupled second-order demand remain open. [Calculation, units and next comparison](engineering/C104_TRANSITION_AND_C29_CAPACITY_20261122.md)
+**C104** now has a signed six-component R08 result and a sealed HTML report for four physical faces. All 12 thin-body balances passed. A separate full-archive integration reproduced 288/288 components. At −1.50 m, 13/36 components below and 3/36 above met the predeclared 50/25 mm comparison. LC_EQX immediately above the transition changed M3 by −219.533 kN·m. W22 contributes −194.297 kN·m, principally from vertical-force moment arms. The W22/W23 contact at x = 77.40 m is the localized diagnostic candidate; its current priority depends on the actual-consumer trace above. The user supplied the model view as the only detail. Construction bar continuity and the coupled second-order demand remain open. [Calculation and units](engineering/C104_TRANSITION_AND_C29_CAPACITY_20261122.md)
 
 **C29** now has 24/24 independently checked selected-cage PMM faces at 18 physical case-cuts. The largest capacity difference was 0.000471272 kN·m. The highest independent utilization was 17.647308% at the lower end of 142 under Grav_Ult. The complete Windows suite ran 1,705 Python tests with 1,704 passing and one symlink-permission skip. All 11 JavaScript files passed. The case counts and engineering scope are indexed in the [verification ledger](VERIFICATION_LEDGER.json).
 
@@ -14,14 +28,15 @@ published component sums, capacity budgets and governing-face arithmetic were
 independently checked. Private native captures and the 24-row oracle were not
 replayed by this reviewer. The Windows full suite above remains separate evidence.
 
-Next establish actual W22/W23 interface membership and equivalent physical
+The earlier assignment proposed establishing actual W22/W23 interface membership and equivalent physical
 automatic-seismic loading across the retained models. Both vertical and horizontal
 mesh pitches changed; the observed difference has not yet been isolated to one
 cause. Compare both-side six-component actions about the same origin, including
 constraint/load ownership and the spatial first moment of vertical force. If
 needed, complete the two-factor matrix with two cross-direction mesh models.
 The [machine-readable plan](supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json)
-marks those new solves as proposed, not run. C29's former remaining 23 faces are
+marks those new solves as proposed, not run. The LC_EQX role correction above
+supersedes their unconditional priority. C29's former remaining 23 faces are
 completed; further S06 work concerns axial limits, other sections and full-design
 evidence. See `EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122`. All 18 GAP statuses
 and the whole-building `NOT_READY` disposition remain unchanged.
