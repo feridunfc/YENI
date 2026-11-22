@@ -1,10 +1,18 @@
 # Original building calculation and local handoff — 2026-11-22
 
-## Column, beam and pier confinement on the original building
+## Pier gravity design and seismic shear
+
+The original locked ETABS model now has calculated web reinforcement, signed gravity PMM and in-plane seismic shear checks for P2–P5. These four piers comprise 12 of the 30 physical wall panels. The building engine evaluated both ends of every panel for all five native static wall combinations, **120/120**. P4 governs gravity PMM at **17.76%**. For all eight native seismic wall assignments the local 7.6.6.3 shear upper bound satisfies both wall-type resistance limits, **192/192**. P2 governs at **58.05%**. The separately solved METHOD model has its own **72/72** gravity results.
+
+The next calculation is the seismic design moment diagram and axial-range PMM check for the same 192 original cuts. The heightwise shear distribution in Fig. 7.12(c) also remains open. Both calculations can use the recorded pier forces, physical axes and proposed cage. C21–C24 retain their four mat-continuation failures. [Pier results and reproduction](engineering/WHOLE_BUILDING_ENGINE_20261122.md#pier-web-gravity-capacity-and-seismic-shear)
+
+A commercial ETEX readback reproduced the original Cap_SeisX_Soil forces on all ten fully visible pier-storey rows in each view. At P2/+0.00 m the native axial compression is 314.39 tf for Cap_SeisX_Soil and 213.69 tf for Crack_SeisX_Soil. The displayed shear resistance is 633.56 tf, while the engine proposal gives 346.96 tf. The comparison needs the horizontal reinforcement used by ETEX and its resistance formula. [Detailed comparison](engineering/WHOLE_BUILDING_ENGINE_20261122.md#commercial-cross-check-at-p2)
+
+## Earlier column, beam and pier confinement on the original building
 
 The current whole-building run calculated tie schedules for **73/87 columns** and **180/180 beams**. On 4 columns the modelled mat is too shallow for the required confinement continuation. At +0.00 m, C21–C24 (217–220) have 600 mm available in mat 9A and require 800 mm. R14 now records **42 conditional, 4 failed and 41 held**. The 14 wall-coupled columns still require a coupled detailing basis.
 
-Of 360 beam ends, 254 match a modelled column face. The remaining 106 schedules reference model cuts. The engine also sized both boundary zones and the transverse cages for 12/30 wall objects belonging to P2–P5. These are minimum-detail proposals based on 40 mm cover and 500 MPa tie steel. Wall section force capacity, end-column interaction and construction fit remain open. The next calculation uses the wall section forces and the proposed reinforcement. GAP-015 moved from OPEN to PARTIAL with the four pier cages. Two GAPs are open and sixteen are partial. Slab flexure, punching and C104 local convergence are deferred. [Results and calculation assumptions](engineering/WHOLE_BUILDING_ENGINE_20261122.md#frame-and-wall-confinement)
+Of 360 beam ends, 254 match a modelled column face. The remaining 106 schedules reference model cuts. The engine also sized both boundary zones and the transverse cages for 12/30 wall objects belonging to P2–P5. These are minimum-detail proposals based on 40 mm cover and 500 MPa tie steel. At that checkpoint the proposed web and end cages still needed a section demand and capacity check. GAP-015 moved from OPEN to PARTIAL with the four pier cages. Two GAPs are open and sixteen are partial. Slab flexure, punching and C104 local convergence are deferred. [Results and calculation assumptions](engineering/WHOLE_BUILDING_ENGINE_20261122.md#frame-and-wall-confinement)
 
 ## Earlier whole-building frame checkpoint
 

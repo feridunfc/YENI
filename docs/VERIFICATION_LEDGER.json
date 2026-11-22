@@ -19,19 +19,19 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "FRAME_AND_RECTANGULAR_PIER_CONFINEMENT_CALCULATED",
-    "work_branch": "work/building-confinement",
+    "status": "FOUR_RECTANGULAR_PIERS_GRAVITY_AND_LOCAL_SEISMIC_SHEAR_CALCULATED",
+    "work_branch": "work/pier-section-design",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "8ced4f043cf308df7eb397622a961fe0bc050b64",
-    "tested_implementation_commit": "847ed93eadc62ed976b6f78a48828afea0d21a95",
+    "inspected_base_commit": "edc1a7b61ffa0daaf27865fe526b1a3b75732c2f",
+    "tested_implementation_commit": "123bdf0b275d2f301ede628de5a86b13fb813dce",
     "evidence_refs": [
-      "EV-BUILDING-CONFINEMENT-20261122"
+      "EV-BUILDING-PIER-SECTIONS-20261122"
     ],
-    "production_run_id": "RUN-9c84d56ca73741ff9318421bf73adf76",
-    "results_sha256": "d8fb6d30e8e314ebc73662b984878e9d1bb6b5485af5b55a404a1bdbcdd4058c",
+    "production_run_id": "RUN-c85705a8cb9a48b1a190d24d10198e66",
+    "results_sha256": "9955b53c0a5ad4f79caf5c544c73138f9d48ef9fccf5019346e4fd37088442e3",
     "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
     "engineering_release": "NOT_READY",
-    "next_action": "Continue the original whole-building runner with signed pier section demands on P2–P5. Start with P3, reconcile physical cut, side, axes, case and step, then combine the selected end cages with the wall web for section flexure and shear. Carry C21–C24 base-continuation failures to each report. Slab flexure, punching and C104 local mesh work are deferred."
+    "next_action": "Use the same original P2–P5 pier cuts and cages in the whole-building runner. Construct the TBDY 7.6.6.1 seismic design moment diagram for the two model-base assumptions and bound PMM across the local axial interval at all 192 native seismic assignment cuts. Carry the 7.6.6.2 strong-direction check and detailing dependencies. Construct the heightwise shear diagram under Fig. 7.12(c) on its applicable branch. Keep the completed local shear bounds and signed gravity checks. Compare ETEX P2 resistance with the reinforcement actually provided when its schedule is available. Slab, punching and C104 convergence are deferred."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
@@ -9733,6 +9733,306 @@
       ],
       "engineering_release": "NOT_READY",
       "engineering_release_granted": false
+    },
+    {
+      "id": "EV-BUILDING-PIER-SECTIONS-20261122",
+      "observed_at": "2026-11-22T16:13:29.032268+00:00",
+      "implementation_commit": "123bdf0b275d2f301ede628de5a86b13fb813dce",
+      "implementation_tree": "211d3ebfaae3583ff23c1961181cb44e90cf3365",
+      "inspected_base_commit": "edc1a7b61ffa0daaf27865fe526b1a3b75732c2f",
+      "scope": "Real original building P2–P5 proposed web and boundary reinforcement, gravity fixed-axial biaxial section capacity and local seismic shear limits through the common building engine. Independent METHOD and commercial comparisons retain their own result identities.",
+      "status": "CALCULATED_CONDITIONAL",
+      "production_run": {
+        "run": "RUN-c85705a8cb9a48b1a190d24d10198e66",
+        "source_basis": "ORIGINAL_ASSIGNED_COMBINATIONS",
+        "model_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+        "solution_reference": "de7a843183435acd209bf2c1e3196d002284f435b1630f1829c5255e47689f94",
+        "input_sha256": "5b99fbc5229cddb3ddc675befe124916bba48fd2743226705f65a14b290025cf",
+        "results_sha256": "9955b53c0a5ad4f79caf5c544c73138f9d48ef9fccf5019346e4fd37088442e3",
+        "report_sha256": "9d6de131671a5b14313a4ccaeab24016a0f2402eb650d6c530af1afc970baf0d"
+      },
+      "local_report": ".receipts/verification/pier-section-design-20261122/original-building/RUN-c85705a8cb9a48b1a190d24d10198e66/report.html",
+      "documentation": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
+      "source": {
+        "edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+        "capture_sha256": "11bbd50bec6cee4547ab3f90881545209a208f77f0677499ecc273041bc1a59c",
+        "original_payload_sha256": "de7a843183435acd209bf2c1e3196d002284f435b1630f1829c5255e47689f94",
+        "parent_input_sha256": "703e202fc8b08f60043c571d9970945b6307e5cee99e8a45e6377c8446da56fc",
+        "native_pier_rows": 1950,
+        "combinations_captured": 36,
+        "control_member": "127",
+        "matched_frame_control_rows": 57,
+        "temporary_selection_restored": true
+      },
+      "coverage": {
+        "building_wall_objects": 30,
+        "section_qualified_wall_objects": 12,
+        "storey_end_faces": 24,
+        "original_assigned_static_combinations": 5,
+        "original_signed_gravity_cut_combinations": 120,
+        "original_gravity_exceedances": 0,
+        "original_native_seismic_assignments": 8,
+        "local_seismic_shear_calculated_and_sufficient": 192,
+        "full_seismic_design_moment_and_pmm": {
+          "evaluated": 0,
+          "expected": 192
+        },
+        "heightwise_figure_7_12c_shear_distribution": "OPEN",
+        "column_r14": {
+          "conditional": 42,
+          "failed": 4,
+          "held": 41
+        },
+        "beams_selected": 180
+      },
+      "piers": {
+        "P2": {
+          "members": [
+            "417",
+            "428",
+            "472"
+          ],
+          "vertical_web_bars_per_face": 12,
+          "vertical_spacing_mm": 200.0,
+          "Vr_kn": 3402.5455438159283,
+          "governing_gravity": {
+            "member": "472",
+            "face": "Bottom",
+            "story": "+0.00",
+            "combination": "Grav_Ult",
+            "compression_kn": 1719.71,
+            "radial_capacity_knm": 9602.78203203635,
+            "pmm_ratio": 0.13668530592050723,
+            "forces_kn_knm": {
+              "M2": 47.1934,
+              "M3": 1311.7105,
+              "P": -1719.71,
+              "T": -29.4373,
+              "V2": 167.2114,
+              "V3": 30.1553
+            }
+          },
+          "governing_local_shear_ratio": 0.5805212155322903
+        },
+        "P3": {
+          "members": [
+            "414",
+            "425",
+            "465"
+          ],
+          "vertical_web_bars_per_face": 6,
+          "vertical_spacing_mm": 200.0,
+          "Vr_kn": 2381.7818806711502,
+          "governing_gravity": {
+            "member": "465",
+            "face": "Bottom",
+            "story": "+0.00",
+            "combination": "Grav_TempPos",
+            "compression_kn": 1069.2474,
+            "radial_capacity_knm": 4579.107624671657,
+            "pmm_ratio": 0.16174896026190974,
+            "forces_kn_knm": {
+              "M2": 8.1823,
+              "M3": -740.6207,
+              "P": -1069.2474,
+              "T": -0.4864,
+              "V2": -237.8094,
+              "V3": 3.9977
+            }
+          },
+          "governing_local_shear_ratio": 0.43602117953276415
+        },
+        "P4": {
+          "members": [
+            "415",
+            "426",
+            "468"
+          ],
+          "vertical_web_bars_per_face": 14,
+          "vertical_spacing_mm": 188.57142857142858,
+          "Vr_kn": 3742.800098197521,
+          "governing_gravity": {
+            "member": "415",
+            "face": "Top",
+            "story": "+9.00",
+            "combination": "Grav_Ult",
+            "compression_kn": 821.7609,
+            "radial_capacity_knm": 2044.99329419076,
+            "pmm_ratio": 0.17760373504472785,
+            "forces_kn_knm": {
+              "M2": 159.227,
+              "M3": -326.4351,
+              "P": -821.7609,
+              "T": 41.2737,
+              "V2": 67.1299,
+              "V3": -64.2546
+            }
+          },
+          "governing_local_shear_ratio": 0.3838025628704553
+        },
+        "P5": {
+          "members": [
+            "416",
+            "427",
+            "469"
+          ],
+          "vertical_web_bars_per_face": 14,
+          "vertical_spacing_mm": 188.57142857142858,
+          "Vr_kn": 3742.800098197521,
+          "governing_gravity": {
+            "member": "469",
+            "face": "Bottom",
+            "story": "+0.00",
+            "combination": "Grav_Ult",
+            "compression_kn": 2152.2872,
+            "radial_capacity_knm": 11848.351161846376,
+            "pmm_ratio": 0.06905900927919874,
+            "forces_kn_knm": {
+              "M2": -31.6562,
+              "M3": 817.6228,
+              "P": -2152.2872,
+              "T": -6.6099,
+              "V2": 165.618,
+              "V3": -6.9573
+            }
+          },
+          "governing_local_shear_ratio": 0.2996239995665454
+        }
+      },
+      "governing_shear_P2_472_bottom": {
+        "combination": "Crack_SeisX_Soil",
+        "native_control": "Cap_SeisX_Soil",
+        "solid_upper_kn": 1784.8081,
+        "coupled_upper_kn": 1975.249875,
+        "solid_ratio": 0.524550833197181,
+        "coupled_ratio": 0.5805212155322903
+      },
+      "assumptions": [
+        "C35/45, 500 MPa reinforcement, 40 mm cover; complete web and boundary cage is a design proposal.",
+        "Two horizontal Ø12/200 web curtains. Candidate boundary widths and hoop pitches from the previous frame and wall confinement sprint.",
+        "Local alternate-limit shear envelope from original Crack_Seis and matched Cap_Seis control combinations, D = 2.5. Result bounds are evaluated for both solid and coupled alternatives."
+      ],
+      "method_eight": {
+        "run": "RUN-d0d7d1dda11f4cef8852bf013c9c0f04",
+        "source_basis": "MATCHED_EI_FINAL_STEP",
+        "model_sha256": "685f5f45e7448c8c471a2c041c65c681447cc02175846bbf82ae172139a8c283",
+        "solution_reference": "b207f87b19b6a7b4887102926dbd775907477175a82ef4559714e421d036c11e",
+        "input_sha256": "e851afabdd3a17e89749f937d2b388af0bca66898173fb9a5604e0c9ffd6ac49",
+        "results_sha256": "d07c05b8638bccfea0d11b175fd248af2ae7001e41a2421de1b57d6b4f9c1f8e",
+        "report_sha256": "5afcfd0799f957b828e9d77906bf699544f0c71360f40494f326d11d358561c6",
+        "gravity_cuts_evaluated": 72,
+        "shell_to_pier_bottom_cut_force_moment_comparisons": 24,
+        "max_component_residual_kn_or_knm": 4.9999356869889766e-05
+      },
+      "independent_checks": {
+        "original_radial_sections": 7,
+        "method_radial_sections": 4,
+        "original_max_capacity_residual_knm": 0.002285333594045369,
+        "method_max_capacity_residual_knm": 0.0032733107127569383,
+        "shear_branch_checks": 384,
+        "max_branch_arithmetic_residual_kn": 0.00019642500001282315,
+        "signed_edz_checks": 24,
+        "max_signed_0_3_EDZ_residual_kn": 9.173999998690618e-05
+      },
+      "commercial_comparison": {
+        "evidence": "Two ETEX user-provided screenshots; comparison with the original native force export, at displayed precision.",
+        "rows_displayed_as_passed_per_view": 15,
+        "fully_visible_rows_checked_per_view": 10,
+        "cap_axial_demand_native_matches": 10,
+        "axial_capacity_from_displayed_inputs_matches": 10,
+        "native_cap_v2_and_displayed_Ve_matches": 10,
+        "force_tolerance_tf": 0.005,
+        "axial_selectors": "Crack_SeisX_Soil",
+        "axial_results_label_and_numeric_match": "Cap_SeisX_Soil",
+        "P2_472_bottom": {
+          "pier": "P2",
+          "story": "+0.00",
+          "face_checked": "Bottom",
+          "shear": {
+            "etex_Ve1": null,
+            "etex_Ve2_tf": 321.33,
+            "etex_Ve_tf": 160.66,
+            "etex_Vr_tf": 633.56,
+            "etex_percent": 25.36,
+            "cap_native_abs_V2_kn": 1575.5823,
+            "cap_native_tf": 160.6646816191054,
+            "same_demand_engine_cage_percent": 46.30598708262981,
+            "engine_cage_Vr_tf": 346.9630856424904
+          },
+          "axial": {
+            "etex_P_tf": 314.39,
+            "etex_capacity_tf": 1998.64,
+            "etex_percent": 15.73,
+            "cap_compression_kn": 3083.0681,
+            "cap_tf": 314.3854527285057,
+            "crack_compression_kn": 2095.6294,
+            "crack_tf": 213.6947275573208,
+            "crack_percent_same_capacity": 10.692006942587,
+            "capacity_from_displayed_inputs_tf": 1998.6399999999999,
+            "capacity_exact_C35_kn": 19599.999999999996
+          }
+        },
+        "difference": "Displayed P2 Vr is 633.56 tf. The proposed two-face Ø12/200 gives 346.96 tf. The ETEX adopted web steel, design stresses and calculation detail are outstanding.",
+        "overturning": "User reported no defined ETABS section cuts. No overturning design was inferred from Pier Forces."
+      },
+      "web_cli": {
+        "endpoint": "POST /api/apply-rebar-selection",
+        "web_run": "RUN-1969db9805de45a28ecc0d50ab514931",
+        "cli_run": "RUN-c85705a8cb9a48b1a190d24d10198e66",
+        "identical_sealed_input_sha256": "5b99fbc5229cddb3ddc675befe124916bba48fd2743226705f65a14b290025cf",
+        "identical_sealed_results_sha256": "9955b53c0a5ad4f79caf5c544c73138f9d48ef9fccf5019346e4fd37088442e3"
+      },
+      "regression": {
+        "platform": "Windows",
+        "status": "PASS",
+        "python_total": 1721,
+        "python_passed": 1720,
+        "python_skipped": 1,
+        "skip": "test_wrong_run_and_symlink_cannot_cross_source_boundary: OS disallows creating symlinks",
+        "seconds": 478.253,
+        "javascript_files_passed": 11,
+        "golden": {
+          "total": 44,
+          "numerical": 36,
+          "interpretation_differences": 4,
+          "insufficient_source": 4
+        },
+        "dirty_worktree_during_test": true,
+        "tested_paths": {
+          "src/tbdy_next/cli.py": "c83d507322abc5783cbd30b8ce8ed3e3d6d3c1bd004d013c0bec4c968db8d9cb",
+          "src/tbdy_next/column_engine/section_capacity.py": "f86ce5b1e3887b712570a121e26f2b09a75576e6ac529f591869f828b052a602",
+          "src/tbdy_next/engineering/building_design.py": "9601bcf83bd969b681d54f7c16fc3b9bff3292259d2191a046c688cd1a4307cc",
+          "src/tbdy_next/engineering/cli_adapter.py": "515834e15ca0cf6248b0530192066333276abd30c47e55a09d18d41b99cdf793",
+          "src/tbdy_next/engineering/design_scenario.py": "adf1c00395570150c2cef9c9dbe470b457f951978d4ec014651a4954a4aabca9",
+          "src/tbdy_next/engineering/pier_force_source.py": "de83b567f9c2d32d8fcf1a8399a2fb716924370f67c9d8d3d19a6168813eaec4",
+          "src/tbdy_next/engineering/pier_seismic_shear.py": "652b2cef4fb4cd2f542e1c5ba5bc46b35b24d5e62d35fc39bbcd1a7b22ace5ec",
+          "src/tbdy_next/engineering/wall_boundary.py": "c3d058c531b4e9df2f167067d44b9c6b45bff97089dd1dabeb56234f745b22d0",
+          "src/tbdy_next/engineering/wall_section.py": "5f5a3ddb939c26ade5382213581081812fbb453f5452bba53fd4799a7a4165fa",
+          "src/tbdy_next/etabs_source_gateway_windows.py": "163cf79ca6ff6d83e079860ebe37147ad761faff27be34518b6ccbe8218b7f7a",
+          "src/tbdy_next/reporting.py": "bc1ebd49d6cce9330c285d6ec3c2ee2b4cebce6618c80aa2d6e0176a0c1a4d19",
+          "src/tbdy_next/web.py": "d348599c37aac4f2e3ab3676fcd1b8a3484cf55fb9f380feb4f3eb64903486db",
+          "tests/test_pier_section.py": "60db7812ec7f44b4311472032ea2fb00389ed4c09d836c9f47b421ac9bdbd21b"
+        },
+        "tracked_change_sha256": "b5510064276d20d49552a26e956f29d6ad22a0c62baaff1d907e14c7361a177a",
+        "implementation_matches_manifest": true
+      },
+      "private_file_sha256": {
+        ".receipts/verification/pier-section-design-20261122/original-piers.json": "11bbd50bec6cee4547ab3f90881545209a208f77f0677499ecc273041bc1a59c",
+        ".receipts/verification/pier-section-design-20261122/verification.json": "7df9280caa5a43e5e2c1b6ad48d2506fdf5cc4f144c9e4c5c0ad6445923e07c4",
+        ".receipts/verification/pier-section-design-20261122/native-cut-check.json": "c0bae59685b1d49d32f90e8aaacc2374c9bb7e1157628c584c1f694dc77a3825",
+        ".receipts/verification/pier-section-design-20261122/vertical-earthquake-crosscheck.json": "3c312e9a154377131f514659e8e0e9a8a8dd7f74816b6534b2bf6aa3a04ab015",
+        ".receipts/verification/pier-section-design-20261122/web-check.json": "d00856df9e461a148f0e4b911476b4de37b3222b15761da33aedfc6888ccd540",
+        ".receipts/verification/pier-section-design-20261122/etex-crosscheck.json": "66b583db4cc58b3b73efec73393a1e8b673dae3d7d0050201a9f6a1d80925c8a",
+        ".receipts/verification/pier-section-design-20261122/windows-full.log": "819d5402ed32368f2f1c66a680a7be8a92a521149f19c98063c0e3b862fc70fb",
+        ".receipts/verification/pier-section-design-20261122/tested-code.json": "4bb2696c0c1bdf17f20f30abfe557f606ff3d3a728e041d60cd99cf344d7a27e"
+      },
+      "commands": [
+        "& '.\\.venv\\Scripts\\python.exe' -X utf8 -B -m tbdy_next.cli run-pipeline --whole-building --source '.receipts/c29-self-weight-nmax/RUN-be9d8258796f4dfca1a3609453e94e53/parent.source' --design-scenario '.receipts/c29-self-weight-nmax/request.json' --wall-hinge-aggregate-storey '+4.50' --case Modal --out '.receipts/verification/pier-section-design-20261122/original-building' --pier-forces '.receipts/verification/pier-section-design-20261122/original-piers.json'",
+        "& '.\\.venv\\Scripts\\python.exe' -X utf8 -B -m tbdy_next.cli run-pipeline --whole-building --source '.receipts/c29-self-weight-nmax/RUN-be9d8258796f4dfca1a3609453e94e53/parent.source' --design-scenario '.receipts/verification/pier-section-design-20261122/method-request.json' --wall-hinge-aggregate-storey '+4.50' --case Modal --out '.receipts/verification/pier-section-design-20261122/method-final'",
+        ".venv/Scripts/python.exe -X utf8 -B tools/test_offline.py"
+      ],
+      "engineering_release": "NOT_READY",
+      "engineering_release_granted": false
     }
   ],
   "new_record_template": {
@@ -9757,7 +10057,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-22T14:54:49.311039+00:00",
+  "updated_at_utc": "2026-11-22T16:13:29.032268+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -10522,6 +10822,21 @@
       "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
       "engineering_release": "NOT_READY",
       "next_action": "Run the full building from its original all-column source. Preserve 42/87 conditional column designs and all 180 selected beam flexure and capacity-shear checks. Add slab F116/291 at +0.00 m through a signed strip moment, selected reinforcement and flexural utilization in that same engine. Maintain the 84-slab denominator. Resume C104 after the defined local convergence and coupled-method checks."
+    },
+    {
+      "status": "FRAME_AND_RECTANGULAR_PIER_CONFINEMENT_CALCULATED",
+      "work_branch": "work/building-confinement",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "8ced4f043cf308df7eb397622a961fe0bc050b64",
+      "tested_implementation_commit": "847ed93eadc62ed976b6f78a48828afea0d21a95",
+      "evidence_refs": [
+        "EV-BUILDING-CONFINEMENT-20261122"
+      ],
+      "production_run_id": "RUN-9c84d56ca73741ff9318421bf73adf76",
+      "results_sha256": "d8fb6d30e8e314ebc73662b984878e9d1bb6b5485af5b55a404a1bdbcdd4058c",
+      "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
+      "engineering_release": "NOT_READY",
+      "next_action": "Continue the original whole-building runner with signed pier section demands on P2–P5. Start with P3, reconcile physical cut, side, axes, case and step, then combine the selected end cages with the wall web for section flexure and shear. Carry C21–C24 base-continuation failures to each report. Slab flexure, punching and C104 local mesh work are deferred."
     }
   ],
   "remote_audit_correction_checkpoint": {

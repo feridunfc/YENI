@@ -70,7 +70,50 @@ The 45 holds comprise 17 ground-storey members with unresolved mat rotational st
 
 The same report inventories 30 wall objects pending reinforcement design, three occupied-storey diaphragms pending collector/chord design, 84 slab objects pending flexure/punching, two mat objects pending contact and structural design, and 180 beams pending torsion/serviceability. Coupling-beam classification has an unknown denominator.
 
-The active scope is the force-based design of the four named rectangular piers and their connected frames. Keep slab F116/291, punching and local C104 convergence deferred.
+The following pier calculation consumes these four boundary cages. Slab F116/291, punching and local C104 convergence are deferred.
+
+## Pier web, gravity capacity and seismic shear
+
+Both ends of 12 panels in four continuous piers were checked on the original locked ETABS solution. The native section properties give one area and zero lines per pier and storey. Each centroid, material, width, thickness and major-axis orientation matches the physical panel. The nearest column footprints have a positive clearance on all twelve panels. The entire rectangular concrete section enters the calculation once.
+
+The design proposal uses C35/45, 500 MPa reinforcing steel and 40 mm cover. Both web curtains use Ø12 vertical bars and Ø12 horizontal bars at 200 mm. P2 and P3 have vertical bars at 200 mm. P4 and P5 have vertical bars at 188.57 mm. The existing constant-width end cages and Ø10/80 boundary hoops continue through all three storeys. Gravity ratios below use simultaneous signed P, M2 and M3 and the radial capacity of the selected cage at that axial force. The shear column gives the governing upper utilization across both wall classifications.
+
+| Pier | Gravity PMM and shear cut combinations | Governing gravity PMM | Gravity member and face | Seismic shear cut combinations | Governing seismic shear bound |
+| --- | ---: | ---: | --- | ---: | ---: |
+| P2 | 30/30 | 13.67% | 472 bottom, Grav_Ult | 48/48 | 58.05% |
+| P3 | 30/30 | 16.17% | 465 bottom, Grav_TempPos | 48/48 | 43.60% |
+| P4 | 30/30 | 17.76% | 415 top, Grav_Ult | 48/48 | 38.38% |
+| P5 | 30/30 | 6.91% | 469 bottom, Grav_Ult | 48/48 | 29.96% |
+| **Four piers** | **120/120** | **17.76%** | **415 top, Grav_Ult** | **192/192 local bounds** | **58.05%** |
+
+For P3 the governing gravity cut has 1,069.2474 kN compression, M2 = 8.1823 kN·m and M3 = −740.6207 kN·m. Its capacity along that moment direction is 4,579.1076 kN·m. For P2 the governing Crack_SeisX_Soil cut has a 1,975.2499 kN conditional upper shear and 3,402.5455 kN resistance. Structural results are in the sealed run and the printable report.
+
+The original export assigns Grav_Service, Grav_Ult, Grav_TempNeg, Grav_TempPos and WGHT to Wall strength design. It also assigns eight Crack_Seis combinations. Their horizontal spectral coefficients match the eight project Cap_Seis controls after one multiplication by the model D = 2.5. The engine compares the signed centre and width of each native V2 interval with its amplified control. It then uses the alternate shear limit in 7.6.6.3 to bound demand, checking the 1.2 and 1.4 branches against Vr and the corresponding concrete limits. For each branch it takes the larger result with the signed vertical earthquake contribution held fixed or amplified. This is a sufficient bound for the local cut comparison. Heightwise shear redistribution under Fig. 7.12(c), probable-base-moment shear and seismic flexural design remain open. [TBDY 2018, §§7.6.3, 7.6.6 and 7.6.7](https://www.afad.gov.tr/kurumlar/afad.gov.tr/2309/files/TBDY_2018.pdf)
+
+The matched-EI eight-part solution is a different analysis revision. It supplies three final-step gravity load sets at the same 24 wall ends. All 72 cut combinations have their own PMM and shear results. At 24 bottom cuts the six pier components were checked against the signed shell corner forces, including moment transport to the section centroid. The largest absolute discrepancies were below 0.000051 kN or kN·m.
+
+The original capture and analysis receipts are local. Replay the entire original building and its report from the repository using the existing engine.
+
+```powershell
+& '.\.venv\Scripts\python.exe' -X utf8 -B -m tbdy_next.cli run-pipeline --whole-building --case Modal --source '.receipts/c29-self-weight-nmax/RUN-be9d8258796f4dfca1a3609453e94e53/parent.source' --design-scenario '.receipts/c29-self-weight-nmax/request.json' --wall-hinge-aggregate-storey '+4.50' --pier-forces '.receipts/verification/pier-section-design-20261122/original-piers.json' --out '.receipts/verification/pier-section-design-20261122/original-building'
+```
+
+The next wall check is the seismic flexural envelope at critical height and above, with axial-force bounds and the same cage. Web anchorage, splice and crosstie placement, construction-joint shear friction, and the other 18 panels also remain open.
+
+### Commercial cross-check at P2
+
+Use the original P2/W6 wall 472, lower face of storey +0.00 m at (69.00, 18.60, −5.15) m. Under Crack_SeisX_Soil its native local V2 endpoints are +286.3160 and +1,023.0396 kN. Under Cap_SeisX_Soil they are −266.2267 and +1,575.5823 kN. With the stated double Ø12/200 horizontal reinforcement, the solid and coupled shear upper bounds are 1,784.8081 and 1,975.2499 kN respectively, and Vr is 3,402.5455 kN. The user provided two ETEX result views, with 15 pier-storey checks reported in each. Ten rows were fully legible in each view. For **10/10** common rows, ETEX's axial compression and displayed Ve match the bottom-cut native Cap_SeisX_Soil compression and maximum absolute V2, respectively, to 0.005 tf (1 tf = 9.80665 kN). The axial capacity also reproduces for all ten rows using the displayed C35 value of 3,569 tf/m², net area and coefficient 0.35. The axial selectors show Crack_SeisX_Soil while the result rows show Cap_SeisX_Soil. The reason for this UI state is unknown.
+
+| P2 at the lower face of +0.00 m | Original ETABS or engine | ETEX result |
+| --- | ---: | ---: |
+| Compression under Cap_SeisX_Soil | 314.3855 tf | 314.39 tf |
+| Compression under Crack_SeisX_Soil | 213.6947 tf | Result rows identify Cap_SeisX_Soil |
+| Axial limit with ETEX displayed inputs | 1,998.64 tf | 1,998.64 tf |
+| Maximum absolute local V2 under Cap_SeisX_Soil | 160.6647 tf | Ve = 160.66 tf |
+| In-plane shear resistance Vr | 346.96 tf for proposed two-face Ø12/200 horizontal steel | 633.56 tf |
+| Utilization at that same native shear | 46.31% | 25.36% |
+
+The axial view evaluates concrete area under compression. For the high-ductility branch the applicable storeys, basement-wall classification, project G+Q+E combinations and live-load reductions govern the full 7.6.1.1 check. The axial limit uses concrete area and strength. The shear view shows βv = 1.5 in its list and 1.0 in the adjoining field, and displays Ve1 as blank. The effective βv, steel stresses and actual horizontal steel are unavailable from these summaries. A P2 provided-reinforcement schedule and ETEX's Vr formula can resolve the difference without changing the ETABS model. The user reported no defined section cuts for overturning. These comparisons used native Pier Forces. [TBDY 2018, §§7.6.1.1, 7.6.6.3 and 7.6.7.1](https://www.afad.gov.tr/kurumlar/afad.gov.tr/2309/files/TBDY_2018.pdf)
 
 ## Result identity
 

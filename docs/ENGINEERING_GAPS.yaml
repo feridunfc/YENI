@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-22T14:54:17.196267+00:00",
+  "updated_at_utc": "2026-11-22T15:56:17.159279+00:00",
   "repository": "feridunfc/YENI",
-  "baseline_implementation_commit": "847ed93eadc62ed976b6f78a48828afea0d21a95",
+  "baseline_implementation_commit": "123bdf0b275d2f301ede628de5a86b13fb813dce",
   "local_reconciled": true,
-  "scope_note": "Single original-building engine. Current R14 is 42 conditional, four insufficient modelled foundation continuations and 41 held. The current run contains 73 column tie schedules, 180 beam tie schedules and two-direction boundary cage proposals for 12 wall objects in four rectangular piers. Two B2 and three wall geometry exceptions persist.",
+  "scope_note": "One whole-building engine. R14 has 42 conditional, four failed foundation continuations and 41 held. P2–P5 now have 120 signed original gravity PMM and in-plane shear results plus 192 sufficient conditional seismic shear bounds across 12/30 wall objects. Two B2 and three wall geometry exceptions persist.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -33,7 +33,7 @@
     "GAP-018",
     "GAP-006"
   ],
-  "active_task": "Continue the original whole-building runner with signed pier section demands on P2–P5. Start with P3, reconcile physical cut, side, axes, case and step, then combine the selected end cages with the wall web for section flexure and shear. Carry C21–C24 base-continuation failures to each report. Slab flexure, punching and C104 local mesh work are deferred.",
+  "active_task": "Use the same original P2–P5 pier cuts and cages in the whole-building runner. Construct the TBDY 7.6.6.1 seismic design moment diagram for the two model-base assumptions and bound PMM across the local axial interval at all 192 native seismic assignment cuts. Carry the 7.6.6.2 strong-direction check and detailing dependencies. Construct the heightwise shear diagram under Fig. 7.12(c) on its applicable branch. Keep the completed local shear bounds and signed gravity checks. Compare ETEX P2 resistance with the reinforcement actually provided when its schedule is available. Slab, punching and C104 convergence are deferred.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -862,16 +862,20 @@
       "title": "Wall/pier factor and wall design",
       "status": "PARTIAL",
       "priority": "P1",
-      "achieved_scope": "Both ends of 12/30 physical wall objects have conditional rectangular boundary longitudinal and transverse designs in the building run. P2–P5 have continuous shared-edge stacks. Their critical zones are retained over all three storeys in the proposal, with 16 to 24 Ø14 per end, Ø10/80 hoops and crossties checked separately in both directions.",
-      "blocker": "Same-cut frame/wall/pier population, double counting and full wall detailing remain open.",
+      "achieved_scope": "Both ends of 12/30 physical wall objects have conditional rectangular boundary longitudinal and transverse designs in the building run. P2–P5 have continuous shared-edge stacks. Their critical zones are retained over all three storeys in the proposal, with 16 to 24 Ø14 per end, Ø10/80 hoops and crossties checked separately in both directions. The same twelve panels now have a calculated double-curtain web and fixed-axial biaxial capacities at both ends for all five native wall static assignments. All eight native wall seismic assignments have sufficient local in-plane shear bounds for both classifications under 7.6.6.3.",
+      "blocker": "Fig. 7.12(c) shear distribution over height, seismic design moment diagram and axial-range PMM, strong-wall capacity at frame joints, development, web crosstie layout, joint friction and the other 18 wall panels. The four rectangular stacks have verified single-area, zero-line sections and clear column footprints.",
       "closure_criteria": "Complete the real wall topology/forces, normative calculation, independent oracle and sealed-report slice.",
       "owner_paths": [
         "src/tbdy_next/wall_geometry.py",
-        "src/tbdy_next/engineering/wall_boundary.py"
+        "src/tbdy_next/engineering/wall_boundary.py",
+        "src/tbdy_next/engineering/wall_section.py",
+        "src/tbdy_next/engineering/pier_force_source.py",
+        "src/tbdy_next/engineering/pier_seismic_shear.py"
       ],
       "evidence_refs": [
         "EV-RECIPE18-INTAKE",
-        "EV-BUILDING-CONFINEMENT-20261122"
+        "EV-BUILDING-CONFINEMENT-20261122",
+        "EV-BUILDING-PIER-SECTIONS-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -895,6 +899,28 @@
         "evidence_ref": "EV-BUILDING-CONFINEMENT-20261122",
         "outcome": "Both ends of 12/30 physical wall objects have conditional rectangular boundary longitudinal and transverse designs in the building run. P2–P5 have continuous shared-edge stacks. Their critical zones are retained over all three storeys in the proposal, with 16 to 24 Ø14 per end, Ø10/80 hoops and crossties checked separately in both directions.",
         "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md"
+      },
+      "pier_section_design_20261122": {
+        "evidence": "EV-BUILDING-PIER-SECTIONS-20261122",
+        "original_run": "RUN-c85705a8cb9a48b1a190d24d10198e66",
+        "rectangular_panels": 12,
+        "building_wall_population": 30,
+        "gravity_cuts": {
+          "expected": 120,
+          "calculated": 120,
+          "exceeded": 0
+        },
+        "seismic_shear_cut_combinations": {
+          "expected": 192,
+          "calculated": 192,
+          "sufficient_bounds": 192
+        },
+        "seismic_flexure_cut_combinations": {
+          "expected": 192,
+          "full_design": 0
+        },
+        "governing_shear": "P2 wall 472 bottom, Crack_SeisX_Soil and Cap_SeisX_Soil, upper utilization 0.5805212155",
+        "method8_gravity_cuts": 72
       }
     },
     {
