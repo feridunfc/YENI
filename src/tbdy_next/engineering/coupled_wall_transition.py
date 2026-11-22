@@ -9,6 +9,7 @@ from .design_scenario import _digest
 from .gravity_wall_cut import _check, _real, _vector, joint_action_at_origin
 
 SCHEMA = "tbdy.next.coupled-wall-transition.v1"
+DESIGN_SCHEMA = "tbdy.next.coupled-wall-transition.v2"
 COMPONENTS = ("N", "V2", "V3", "T", "M2", "M3")
 SIGNED_CASES = ("LC_DL", "LC_EQX", "LC_EQY", "LC_H", "LC_HE", "LC_T")
 # Common axes are +Z, +X, +Y. All moments follow the right-hand rule.
@@ -20,11 +21,16 @@ BALANCE_ABS, BALANCE_REL = .01, 1e-6
 
 
 def normalize_transition(raw, *, source_data_sha256):
-    _check(isinstance(raw, dict) and raw.get("schema") == SCHEMA
+    _check(isinstance(raw, dict) and raw.get("schema") in (SCHEMA, DESIGN_SCHEMA)
            and raw.get("source_data_sha256") == source_data_sha256, "TRANSITION_SOURCE_MISMATCH")
     _check(isinstance(raw.get("member_id"), str) and raw["member_id"]
            and _vector(raw.get("origin_m"), 3) and _vector(raw.get("bracket_m"), 2)
            and raw["bracket_m"][0] < raw["origin_m"][2] < raw["bracket_m"][1], "TRANSITION_PLANES_INVALID")
+    if raw["schema"] == DESIGN_SCHEMA:
+        from .transition_design_trace import checked_trace
+        checked_trace(raw)
+    else:
+        _check("design_trace" not in raw, "TRANSITION_UNVERSIONED_DESIGN_TRACE")
     cases = raw.get("cases")
     _check(isinstance(cases, dict) and set(cases) == set(SIGNED_CASES) and all(
         isinstance(s, dict) and s.get("type") == "Linear Static"
@@ -58,17 +64,21 @@ def normalize_transition(raw, *, source_data_sha256):
     _check(len(levels) == 2 and [lv["pitch_m"] for lv in levels] == [.05, .025]
            and len({lv["model_sha256"] for lv in levels}) == 2, "TRANSITION_MESH_PAIR_INVALID")
     for lv in levels:
-        _check(set(lv["archives"]) == {"analysis_mesh","frame_forces","static_shell_forces","case_statuses"}
-               and all(re.fullmatch(r"[0-9a-f]{64}", h) for h in [lv["model_sha256"], *lv["archives"].values()])
-               and lv["generation_sha256"] == _digest([lv["model_sha256"], lv["archives"]])
-               and lv["units_code"] == 6 and lv["case_statuses"] == dict.fromkeys(cases, 4),
-               "TRANSITION_GENERATION_INVALID")
-        _check(lv.get("slice_sha256") == _digest({k:v for k,v in lv.items() if k != "slice_sha256"}),
-               "TRANSITION_SOURCE_SLICE_CHANGED")
-        # R maps local frame 1,2,3 to global. The supported frame runs I→J upward.
-        m = lv["frame_matrix"]
-        _check(_vector(m, 9) and [m[i] for i in (0,3,6)] == [0,0,1], "TRANSITION_FRAME_AXES_INVALID")
+        check_transition_level(lv,cases)
     return raw
+
+
+def check_transition_level(lv, cases):
+    _check(set(lv["archives"]) == {"analysis_mesh","frame_forces","static_shell_forces","case_statuses"}
+           and all(re.fullmatch(r"[0-9a-f]{64}", h) for h in [lv["model_sha256"], *lv["archives"].values()])
+           and lv["generation_sha256"] == _digest([lv["model_sha256"], lv["archives"]])
+           and lv["units_code"] == 6 and lv["case_statuses"] == dict.fromkeys(cases, 4),
+           "TRANSITION_GENERATION_INVALID")
+    _check(lv.get("slice_sha256") == _digest({k:v for k,v in lv.items() if k != "slice_sha256"}),
+           "TRANSITION_SOURCE_SLICE_CHANGED")
+    # R maps local frame 1,2,3 to global. The supported frame runs I→J upward.
+    m = lv["frame_matrix"]
+    _check(_vector(m, 9) and [m[i] for i in (0,3,6)] == [0,0,1], "TRANSITION_FRAME_AXES_INVALID")
 
 
 def _six(rows):
@@ -307,7 +317,11 @@ def project_transition(raw, physical_length, source):
                 limit = max(MESH_ABS, MESH_REL*max(abs(a),abs(b)))
                 comparison.append({"case":case,"face":face,"component":name,"coarse":a,"fine":b,
                                    "delta":b-a,"tolerance":limit,"within_tolerance":abs(b-a)<=limit})
-    return {"member_id":raw["member_id"],"scope":"SIGNED_LINEAR_STATIC_COUPLED_SECTION",
+    design = {}
+    if raw["schema"] == DESIGN_SCHEMA:
+        from .transition_design_trace import project_design_trace
+        design["design_trace"] = project_design_trace(raw, source, (coarse,fine))
+    return {**design,"member_id":raw["member_id"],"scope":"SIGNED_LINEAR_STATIC_COUPLED_SECTION",
             "origin_global_m":raw["origin_m"],"bracketing_cuts_m":raw["bracket_m"],
             "axes":"N along +Z, V2 along +X, V3 along +Y. T, M2 and M3 use right-hand moments about those axes. Positive face upward.",
             "units":["kN","kN","kN","kN m","kN m","kN m"],

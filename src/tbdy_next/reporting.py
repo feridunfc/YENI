@@ -2570,6 +2570,82 @@ def _beam_r10_html(beam_r10: Mapping[str, Any]) -> str:
     )
 
 
+def _transition_design_html(trace: Mapping[str, Any]) -> str:
+    case_rows = [{"case":case,"count":len(names),"assigned":", ".join(names)} for case,names in trace["case_roles"].items()]
+    pairs = [{"from":r["from_combination"],"to":r["to_combination"],"cases":r["isolated_cases"],
+              "matched":r["matched"],"expected":r["expected"]} for r in trace["signed_design_increments"]]
+    directions = []
+    for row in trace["scale"]:
+        for idx,level in enumerate(("A","D")):
+            current=row.get(level,{})
+            directions.append({"axis":row["axis"],"mesh":level,"equivalent":row["equivalent_case"],"rs":row["spectrum_case"],
+                               "vte":row["model_reference_shear_kn"][idx],"sf":row["scale_m_s2"],
+                               "vrs":current.get("as_applied_spectrum_kn"),"status":row["qualification"]})
+    soil_curves, edge = [], []
+    for model in trace["models"]:
+        for case,group in model["soffit"].items():
+            for pos in group["stations"]:
+                soil_curves.append({"pitch":model["pitch_m"],"case":case,**pos})
+        live=model["native_interface"]
+        if live:
+            for case,owners in live["edge_cases"].items():
+                for owner,action in owners.items():
+                    edge.append({"pitch":model["pitch_m"],"case":case,"owner":owner,**action["global_at_origin"]})
+    shared=(("pitch","Vertical pitch (m)"),("case","Case"))
+    html=('<section class="percheck"><h2>Assigned C104 design demands and W22/W23 transfer</h2><p>'
+          + _val(trace["within_budget"]) + ' of ' + _val(trace["expected"])
+          + ' native component comparisons meet the fixed mesh budget. ' + _val(trace["decision"]) + '.</p>'
+          + _table((("case","Case"),("count","Assigned combinations"),("assigned","Combination names")),case_rows)
+          + '<h3>Directional modal scaling</h3><p>The ETABS case scale is in m/s². The native design rows carry that scale once.</p>'
+          + _table((("mesh","Mesh"),("axis","Direction"),("equivalent","Reference case"),("vte","Global reference (kN)"),
+                    ("rs","Spectrum case"),("sf","Case scale (m/s²)"),("vrs","As-applied shear (kN)"),("status","Project scale status")),directions)
+          + '<h3>Signed increments isolated in assigned combinations</h3>'
+          + _table((("from","From"),("to","To"),("cases","Signed case factors"),("matched","Both meshes matched"),("expected","Expected")),pairs)
+          + '<h3>C104 frame at four common faces</h3><p>Frame P, V2 and V3 are in kN. T, M2 and M3 are in kN·m. Each spectral extremum retains its native step.</p>'
+          + _table((("face","Face"),("case","Assigned combination"),("step","Step"),("component","Component"),("a","Mesh A"),
+                    ("d","Mesh D"),("difference","D − A"),("limit","Budget"),("within_budget","Within budget")),trace["assigned_comparison"])
+          + '<h3>W22 lower edge at the transition</h3>'
+          + _table((*shared,("x_m","Global x (m)"),("cumulative_fz_kn","Cumulative Fz (kN)"),
+                    ("cumulative_x_fz_knm","Cumulative (x − xO) Fz (kN·m)")),soil_curves))
+    if edge:
+        html += ('<h3>Measured point actions along the W22/W23 vertical edge</h3>'
+                 + _table((*shared,("owner","Area object"),("FX","Fx (kN)"),("FY","Fy (kN)"),("FZ","Fz (kN)"),
+                           ("MX","Mx (kN·m)"),("MY","My (kN·m)"),("MZ","Mz (kN·m)")),edge))
+    scales=[]
+    checks=[]
+    for row in trace["scale"]:
+        for name in ("A","D"):
+            observed=row.get(name) or {}
+            for cut,measurement in (("Whole model",observed),("Story cut at +0.00 m in the same solution",observed.get("same_solution_story_cut_at_0m") or {})):
+                for choice in measurement.get("conditional_on_this_cut",[]):
+                    scales.append({"mesh":name,"axis":row["axis"],"cut":cut,"eq":measurement["reference_kn"],
+                                   "rs":measurement["as_applied_spectrum_kn"],**choice})
+    for model in trace["models"]:
+        data=model["native_interface"]
+        balance=data["whole_wall_balance"] if data else model["retained_w22"]["whole_wall_balance"]
+        for row in balance["cases"]:
+            checks.append({"pitch":model["pitch_m"],"case":row["case"],"owner":row["owner"],"balanced":row["balanced"],
+                           "force":max(abs(v) for v in row["residual"][:3]),"moment":max(abs(v) for v in row["residual"][3:])})
+    if scales:
+        html+=('<h3>Directional scale by load and cut</h3><p>The factors below multiply the as-applied response under each stated hypothesis. '
+               'The story cut uses the full model mass source. An adopted upper-building analysis requires its own mass and boundary qualification.</p>'
+               +_table((("mesh","Mesh"),("axis","Axis"),("cut","Physical boundary"),("eq","Static reference (kN)"),
+                        ("rs","As-applied modal (kN)"),("gamma","Assumed gamma"),("additional_factor_on_observed","Additional factor")),scales))
+    html+=('<h3>Complete wall free bodies</h3>'
+           +_table((*shared,("owner","Physical wall"),("force","Max absolute force residual (kN)"),
+                    ("moment","Max absolute moment residual (kN·m)"),("balanced","Within fixed budget")),checks))
+    crossed=trace.get("crossed_meshes")
+    if crossed:
+        columns=(("face","Physical face"),("case","Case or combination"),("component","Component"),
+                 ("a","A"),("b","B"),("c","C"),("d","D"),("b_minus_a_vertical","Vertical B − A"),
+                 ("c_minus_a_horizontal","Horizontal C − A"),("interaction","Interaction D − B − C + A"))
+        html+=('<details><summary>Four-mesh signed effects on assigned frame forces and moments</summary>'
+               +_table((("step","Native step"),*columns),crossed["assigned_frame_components"])+'</details>'
+               +'<details><summary>Four-mesh signed effects on coupled section resultants</summary>'
+               +_table(columns,crossed["signed_coupled_components"])+'</details>')
+    return html+'</section>'
+
+
 def _coupled_transition_html(result: Mapping[str, Any]) -> str:
     components = (("N", "N (kN)"), ("V2", "V2 (kN)"), ("V3", "V3 (kN)"),
                   ("T", "T (kN·m)"), ("M2", "M2 (kN·m)"), ("M3", "M3 (kN·m)"))
@@ -2582,6 +2658,7 @@ def _coupled_transition_html(result: Mapping[str, Any]) -> str:
             for field in ("lateral_and_soffit_transfer", "applied_body_load", "signed_residual"):
                 balance.append({**identity, "term": field, "status": record["balance_status"], **record[field]})
     keys = (("mesh", "Vertical mesh pitch (m)"), ("case", "Signed static case"))
+    trace = result.get("design_trace")
     return ('<section class="percheck"><h2>R08 · Coupled wall transition</h2>'
             + '<p>Column ' + _val(result["member_id"]) + '. Common global origin (m) '
             + _val(result["origin_global_m"]) + '. Bracketing elevations (m) '
@@ -2594,7 +2671,7 @@ def _coupled_transition_html(result: Mapping[str, Any]) -> str:
                       ("coarse", "50 mm"), ("fine", "25 mm"), ("delta", "Signed difference"),
                       ("tolerance", "Tolerance"), ("within_tolerance", "Within budget")), result["convergence"])
             + '<p>' + _val(result["second_order_status"]) + '. ' + _val(result["reinforcement_status"])
-            + '.</p></section>')
+            + '.</p></section>' + (_transition_design_html(trace) if trace else ''))
 
 
 def _column_slenderness_html(evidence: Mapping[str, Any], local: Mapping[str, Any] | None = None) -> str:

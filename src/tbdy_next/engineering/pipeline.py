@@ -134,7 +134,7 @@ STAGES: tuple[StageSpec, ...] = (
               ("COLUMN_SLENDERNESS", "COLUMN_PMM"),
               "TS500 local slenderness, adopted EI/K/Rm and scoped self-weight axial idealization for selected-section PMM",
               "COLUMN_PMM_MEMBER", consumes=(_AXIAL_GEOMETRY, _AXIAL_RESULT, _PMM_RESULT, _PMM_SCOPE),
-              produces=(_R08_LOCAL_RESULT,), method_version="column-r08-local.adopted-basis.v17"),
+              produces=(_R08_LOCAL_RESULT,), method_version="column-r08-local.adopted-basis.v18"),
     StageSpec("alpha-feedback", LIVE, "tbdy_next.engineering.alpha_iteration", (), (),
               "Bounded qualified signed alpha demand revision and dirty-member rechecks", "EXPLICIT_DESIGN_SCENARIO",
               consumes=(_DESIGN_SCOPE, _PMM_SCOPE, _PMM_RESULT, _R10_RESULT, _R08_LOCAL_RESULT),
