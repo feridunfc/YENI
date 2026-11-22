@@ -1211,7 +1211,7 @@ def _confinement_tables(building):
         section.extend(["<h3>Pier section design</h3><p>Signed gravity demand · ",
                         _val(piers.get("basis") or piers.get("source_reason")), " · ",
                         _val(piers["evaluated_gravity"]), " / ", _val(piers["expected_gravity"]),
-                        " cut combinations. Seismic design · ", _val(piers["evaluated_seismic_design"]),
+                        " cut combinations. Full project-qualified seismic design · ", _val(piers["evaluated_seismic_design"]),
                         " / ", _val(piers["expected_seismic"]), ". Native seismic component envelopes · ",
                         _val(piers["observed_seismic_envelopes"]), ".</p>"])
         details = [{"pier": p["pier"], **(p.get("reinforcement") or {}), "reason": p.get("cage_reason")}
@@ -1244,6 +1244,48 @@ def _confinement_tables(building):
                     ("solid_kn", "Solid wall upper Ve (kN)"), ("coupled_kn", "Coupled wall upper Ve (kN)"),
                     ("upper_utilization", "Governing upper ratio"), ("status", "Outcome"), ("reason", "Open input")), shear),
             "</details>"])
+        if "expected_height_cuts" in piers:
+            panel_rows, joint_rows, design_rows, connections = [], [], [], []
+            for p in piers["piers"]:
+                for panel in p.get("panel_details", []):
+                    panel_rows.append({"pier": p["pier"], **panel, **panel.get("dimensions", {}),
+                                       **panel.get("web_crossties", {})})
+                for joint in p.get("construction_joints", []):
+                    joint_rows.append({"pier": p["pier"], **joint})
+                for conn in p.get("strong_wall_connections", []):
+                    connections.append({"pier": p["pier"], **conn, "beams": ", ".join(
+                        term["beam"] + "/" + term["face"] for term in conn.get("selected_beam_ends", []))})
+                for cut in p.get("seismic_sections", []):
+                    design_rows.append({"pier": p["pier"], **cut,
+                        "pmm_bound": cut.get("pmm", {}).get("upper_utilization")})
+            section.extend(["<h4>Seismic wall sections and horizontal joints</h4><p>",
+                _val(piers.get("conditional_seismic_sections")), " / ", _val(piers["expected_height_cuts"]),
+                " assigned cut combinations satisfy the conditional section, connection and detailing checks. ",
+                "Both foundation and rigid-basement reference levels are checked. The shear ordinate at one-third ",
+                "height uses linear interpolation between the two ends of its own panel. Axial demand uses the ",
+                "model live load. The PMM upper utilization includes the full axial interval and both bending signs.</p>",
+                "<details><summary>Heightwise design at physical faces</summary>",
+                _table((("pier","Pier"),("member","Wall ID"),("story","Storey"),("face","Face"),("z_m","z (m)"),
+                        ("combination","Assigned strength combination"),("nd_interval_kn","N interval (kN)"),
+                        ("axial_ratio","Compression / 0.35 fck Ac"),("m2_design_knm","Design |M2| (kN·m)"),
+                        ("m3_design_knm","Design |M3| (kN·m)"),("pmm_bound","PMM upper ratio"),
+                        ("ve_upper_kn","In-plane Ve upper (kN)"),("shear_upper_ratio","Shear upper ratio"),
+                        ("status","Section result"),("chain_status","Conditional design"),("open_section_checks","Open checks"),
+                        ("reason","Open input")), design_rows),
+                "</details><details><summary>Proposed roughened, anchored horizontal joints</summary>",
+                _table((("pier","Pier"),("upper_member","Upper wall ID"),("z_m","z (m)"),("combination","Combination"),
+                        ("ve_in_plane_upper_kn","In-plane Ve upper (kN)"),("available_friction_steel_mm2","Available As (mm²)"),
+                        ("resistance_kn","Joint resistance (kN)"),("upper_utilization","Upper ratio"),("status","Outcome")),
+                       joint_rows), "</details><details><summary>Physical web crosstie layout</summary>",
+                _table((("pier","Pier"),("member","Wall ID"),("story","Storey"),("required_thickness_mm","Required bw (mm)"),
+                        ("provided_thickness_mm","Proposed bw (mm)"),("diameter_mm","Crosstie Ø (mm)"),
+                        ("stations_per_layer","Stations"),("layers","Layers"),("vertical_pitch_mm","Layer spacing (mm)"),
+                        ("count","Crossties"),("minimum_ties_in_full_m2","Minimum in 1 m²"),("status","Outcome")),
+                       panel_rows), "</details><details><summary>Strong-axis wall and selected beam end moments</summary>",
+                _table((("pier","Pier"),("story","Storey"),("combination","Combination"),("beams","Beam ID / end"),
+                        ("mr_wall_lower_knm","Wall Mr lower sum (kN·m)"),("required_mr_knm","1.2 × beam Mr upper sum (kN·m)"),
+                        ("upper_utilization","Upper ratio"),("status","Outcome"),("reason","Open input")), connections),
+                "</details>"])
     return "".join(section)
 
 

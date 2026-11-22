@@ -8,6 +8,8 @@ from ..etabs_geometry import AREA_INSERTION, FRAME_INSERTION
 from .beam_r10_live import _design_factors, _steel_grade_mpa
 from .column_clear_length import _FRAME_TRANSLATION, _SHELL_TRANSLATION, _index, _no_translation, _records, _translation_fields
 from .pier_force_source import METHOD, ORIGINAL, bound_pier_forces, signed_vector
+from .pier_height_design import pier_design_checks
+from .pier_joint_strength import strong_wall_checks
 from .pier_seismic_shear import envelope, upper_shear, vertical_component, wall_load_scope
 
 
@@ -58,7 +60,7 @@ def reinforced_section(pier, feature):
         "steel_area_mm2": sum(b.area for b in bars), "fck_mpa": fc, "fctd_mpa": fctd, "fyd_mpa": material.fyd,
         "ach_mm2": ach, "vr_kn": vr, "solid_strut_limit_kn": 0.85 * ach * sqrt(fc) / 1000,
         "coupled_strut_limit_kn": 0.65 * ach * sqrt(fc) / 1000,
-        "steel_grade": cage["grade"], "clear_cover_mm": cover}
+        "steel_grade": cage["grade"], "fyk_mpa": fy, "fcd_mpa": material.fcd, "clear_cover_mm": cover}
 
 
 def _isolated_panel(member, story, source, bound, pier):
@@ -179,7 +181,20 @@ def wall_sections(source, stages, boundaries):
               "expected_gravity": 0, "evaluated_gravity": 0, "gravity_exceedances": 0,
               "expected_seismic": 0, "observed_seismic_envelopes": 0, "evaluated_seismic_design": 0,
               "expected_shear_bounds": 0, "evaluated_shear_bounds": 0, "satisfied_shear_bounds": 0,
-              "seismic_design_reason": "DESIGN_MOMENT_ENVELOPE_AND_SEISMIC_PMM_REQUIRED"}
+              "expected_height_cuts": 0, "evaluated_height_cuts": 0, "evaluated_height_shear": 0, "satisfied_height_shear": 0,
+              "evaluated_axial": 0, "evaluated_pmm_boxes": 0, "satisfied_pmm_boxes": 0, "satisfied_sections": 0,
+              "expected_joints": 0, "evaluated_joints": 0, "satisfied_joints": 0,
+              "expected_detail_panels": 0, "evaluated_detail_panels": 0,
+              "satisfied_detail_panels": 0, "axial_limit_exceedances": 0,
+              "conditional_seismic_sections": 0, "conditional_piers": 0,
+              "expected_strong_wall": 0, "evaluated_strong_wall": 0, "satisfied_strong_wall": 0,
+              "design_basis": {"reinforcement": "PROPOSED_CONSTANT_WEB_AND_BOUNDARY_CAGES",
+                  "axial": "NATIVE_ASSIGNED_COMBINATIONS_WITH_MODEL_LIVE_LOAD",
+                  "moment": "TBDY_7_6_6_1_TWO_BASE_SCENARIOS_AND_LOCAL_FACE_ENVELOPE",
+                  "shear": "TBDY_FIG_7_12C_PIECEWISE_LINEAR_WITHIN_EACH_PANEL",
+                  "joint_friction": "ROUGHENED_AT_LEAST_5_MM_ANCHORED_PERPENDICULAR_BARS_IN_PLANE",
+                  "beam_strength": "SELECTED_RECTANGULAR_BEAM_ENDS_AT_ZERO_AXIAL_BOTH_SIGNS"},
+              "seismic_design_reason": "PROJECT_BASE_LOAD_POLICY_AND_REINFORCEMENT_DEVELOPMENT_REQUIRED"}
     objects = {row["member_id"]: row for row in boundaries["walls"]}
     for pier in boundaries["piers"]:
         name, members = pier["pier"], pier["member_ids"]
@@ -245,6 +260,50 @@ def wall_sections(source, stages, boundaries):
                             result["satisfied_shear_bounds"] += row["status"] == "SHEAR_BOUND_SATISFIED"
                         except (KeyError, TypeError, ValueError) as exc:
                             row["reason"] = str(exc)
+        if (source.get("pier_section_forces") or {}).get("kind") != METHOD:
+            combos = scope["native_seismic"]
+            result["expected_height_cuts"] += 2*len(members)*len(combos)
+            result["expected_joints"] += len(members)*len(combos)
+            result["expected_detail_panels"] += len(members)
+            designs, panels, joints = pier_design_checks(pier, objects, section, record.get("reinforcement"), bound,
+                combos, record["seismic_shear"], record.get("column_footprint_clearance_lower_bound_m", {}))
+            record.update(seismic_sections=designs, panel_details=panels, construction_joints=joints)
+            connections = strong_wall_checks(source, stages, pier, section, panels, designs, combos)
+            record["strong_wall_connections"] = connections
+            panel_map = {p["member"]: p for p in panels}
+            interfaces = {(j.get("z_m"), j["combination"]): j for j in joints}
+            by_floor = {(c.get("z_m"), c["combination"]): c for c in connections}
+            for r in designs:
+                z, case = r.get("z_m"), r["combination"]
+                panel = panel_map[r["member"]]
+                required = {"section": r["status"] == "SECTION_BOUND_SATISFIED",
+                            "dimensions": panel.get("dimensions", {}).get("status") == "DIMENSIONS_SATISFIED",
+                            "web_ties": panel.get("web_crossties", {}).get("status") == "WEB_CROSSTIES_CALCULATED"}
+                if z != pier["top_z_m"]:
+                    required["horizontal_joint"] = interfaces.get((z, case), {}).get("status") == "ROUGH_JOINT_BOUND_SATISFIED"
+                if z != pier["bottom_z_m"]:
+                    required["strong_wall"] = by_floor.get((z, case), {}).get("status") == "STRONG_WALL_BOUND_SATISFIED"
+                r["open_section_checks"] = [k for k, meets in required.items() if not meets]
+                r["chain_status"] = "CONDITIONAL_SECTION_DESIGN" if all(required.values()) else "SECTION_DESIGN_OPEN"
+            record["conditional_section_count"] = sum(r["chain_status"] == "CONDITIONAL_SECTION_DESIGN" for r in designs)
+            result["conditional_seismic_sections"] += record["conditional_section_count"]
+            result["conditional_piers"] += bool(designs) and record["conditional_section_count"] == 2*len(members)*len(combos)
+            result["expected_strong_wall"] += len(members)*len(combos)
+            result["evaluated_strong_wall"] += sum("upper_utilization" in r for r in connections)
+            result["satisfied_strong_wall"] += sum(r["status"] == "STRONG_WALL_BOUND_SATISFIED" for r in connections)
+            result["evaluated_axial"] += sum("axial_ratio" in r for r in designs)
+            result["axial_limit_exceedances"] += sum(r.get("axial_ratio", 0) > 1 for r in designs)
+            result["evaluated_height_cuts"] += sum("height_branches" in r for r in designs)
+            result["evaluated_height_shear"] += sum("shear_upper_ratio" in r for r in designs)
+            result["satisfied_height_shear"] += sum(r.get("shear_upper_ratio", 2) <= 1 for r in designs)
+            result["evaluated_pmm_boxes"] += sum((r.get("pmm") or {}).get("upper_utilization") is not None for r in designs)
+            result["satisfied_pmm_boxes"] += sum((r.get("pmm") or {}).get("status") == "PMM_BOX_SATISFIED" for r in designs)
+            result["satisfied_sections"] += sum(r["status"] == "SECTION_BOUND_SATISFIED" for r in designs)
+            result["evaluated_joints"] += sum("upper_utilization" in j for j in joints)
+            result["satisfied_joints"] += sum(j["status"] == "ROUGH_JOINT_BOUND_SATISFIED" for j in joints)
+            result["evaluated_detail_panels"] += sum(p["status"] == "PANEL_CALCULATED" for p in panels)
+            result["satisfied_detail_panels"] += sum(p.get("dimensions", {}).get("status") == "DIMENSIONS_SATISFIED"
+                and p.get("web_crossties", {}).get("status") == "WEB_CROSSTIES_CALCULATED" for p in panels)
         shear_rows = [r for r in record["seismic_shear"] if r.get("upper_utilization") is not None]
         record["governing_seismic_shear"] = max(shear_rows, key=lambda r: r["upper_utilization"]) if shear_rows else None
         for field in ("pmm_ratio", "v2_over_vr"):

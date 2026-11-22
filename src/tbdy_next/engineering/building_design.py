@@ -145,7 +145,25 @@ def building_results(source, stages, evidence):
         pier_design["evaluated_gravity"], gravity_status)
     add("Wall in-plane seismic shear upper bounds", pier_design["expected_shear_bounds"],
         pier_design["evaluated_shear_bounds"], f"{pier_design['satisfied_shear_bounds']} below both resistance limits")
-    add("Assigned seismic pier design on rectangular stacks", pier_design["expected_seismic"],
+    for title, evaluated, outcome in (
+            ("Assigned pier axial compression against 0.35 fck Ac", "evaluated_axial",
+             f"{pier_design['axial_limit_exceedances']} exceed the compression limit under native strength combinations"),
+            ("Pier design moment diagrams under both base scenarios", "evaluated_height_cuts",
+             "TBDY 7.6.6.1, local face demand retained"),
+            ("Heightwise in-plane pier shear", "evaluated_height_shear",
+             f"{pier_design['satisfied_height_shear']} satisfy the strength bound under both bases and wall types"),
+            ("Pier PMM over the full assigned axial and moment intervals", "evaluated_pmm_boxes",
+             f"{pier_design['satisfied_pmm_boxes']} boxes bounded inside proposed cage capacity")):
+        add(title, pier_design["expected_height_cuts"], pier_design[evaluated], outcome)
+    add("Pier construction joint in-plane shear friction", pier_design["expected_joints"], pier_design["evaluated_joints"],
+        f"{pier_design['satisfied_joints']} satisfy the anchored rough-joint proposal")
+    add("Rectangular wall dimensions and two-curtain web crossties", pier_design["expected_detail_panels"],
+        pier_design["evaluated_detail_panels"], f"{pier_design['satisfied_detail_panels']} satisfy dimensions and critical web tie density")
+    add("Strong-axis wall and selected beam end moment comparison", pier_design["expected_strong_wall"],
+        pier_design["evaluated_strong_wall"], f"{pier_design['satisfied_strong_wall']} cover both beam rotation signs")
+    add("Conditional seismic wall design on assigned physical cuts", pier_design["expected_height_cuts"],
+        pier_design["conditional_seismic_sections"], f"{pier_design['conditional_piers']} complete rectangular pier stacks")
+    add("Full project-qualified seismic pier design on rectangular stacks", pier_design["expected_seismic"],
         pier_design["evaluated_seismic_design"], pier_design["seismic_design_reason"])
     for name, population, reason in (
             ("Wall and pier reinforcement", areas["wall"], "Full seismic wall design and reinforcement detailing"),
