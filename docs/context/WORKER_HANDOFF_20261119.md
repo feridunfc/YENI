@@ -1,10 +1,18 @@
 # Local development and GitHub worker handoff
 
-## Original frame designs on two storeys
+## Start with the whole-building engine
 
-Start the next original-building calculation from `RUN-2e424431e3ff491087e2359543e9c9dc`. R14 now covers 26/87. The completed +4.50 m C1, C2, C5, C77 and C78 and +9.00 m C20–C26 are already in this run. No new live acquisition is required to consume its parent source.
+Use `EnginePipelineRunner` via `run-pipeline --whole-building` or **Run whole building** in the workspace. The [single original-source command and engineering assumptions](../engineering/WHOLE_BUILDING_ENGINE_20261122.md) reproduce the three occupied storeys. No preparer or preselected column cohort is required. `RUN-9b85a9a1dd7b416eab85056c57eae3d5` is the current reference. The CLI and HTTP paths produced the same 16 sealed stage payloads.
 
-Use the sealed 26-column run and upper-storey anchor C22/57 for +9.00 m C27 through C37. Keep all 23 upper-storey frame contributors, both physical ends and all eleven assigned combinations. Track end-to-end member coverage out of the original 87. Keep wall-supported lower ends and the coupled wall–frame study separate. The 34 low-axial and 14 terminating-column directions have separate SCWB dispositions. Every direction still has a panel shear and transverse outcome. [Member designs and reproduction](../engineering/FRAME_DESIGN_MIDDLE_AND_UPPER_20261122.md)
+Preserve 42/87 conditional column designs and 180/180 selected beam flexure and capacity-shear evaluations. All 23 upper-storey columns are already included. The two B2 threshold exceedances and three unmet wall geometry subconditions are genuine numerical outcomes of this source scenario. Keep them visible.
+
+Advance slab F116/291 at +0.00 m from its original section assignment to a signed strip moment, reinforcement selection and flexural utilization inside the existing runner. Resolve the physical strip, load combination, axis, face and source-compatible reinforcement before calculating. Publish the result against all 84 slab objects and keep punching distinct. C104/211 can resume when local demand convergence and the coupled method/continuity questions can be resolved. Its hold is independent of this slab.
+
+## Earlier 26-column frame-design checkpoint
+
+The previous original-building run `RUN-2e424431e3ff491087e2359543e9c9dc` covered 26/87 at R14. The completed +4.50 m C1, C2, C5, C77 and C78 and +9.00 m C20–C26 are included. The whole-building calculation above consumed the same original source.
+
+The storey totals used all 23 upper-storey frame contributors and eleven assigned combinations. C22/57 provided the earlier upper-storey comparison. The 34 low-axial and 14 terminating-column directions have separate SCWB dispositions. Every direction still has a panel shear and transverse outcome. [Member designs and reproduction](../engineering/FRAME_DESIGN_MIDDLE_AND_UPPER_20261122.md)
 
 ## Previous +4.50 m frame-design checkpoint
 

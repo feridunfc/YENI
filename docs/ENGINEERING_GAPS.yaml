@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-22T12:43:28.867006+00:00",
+  "updated_at_utc": "2026-11-22T14:08:02.827760+00:00",
   "repository": "feridunfc/YENI",
-  "baseline_implementation_commit": "00fc7beace017de182f95b761bb5ab3c849475d9",
+  "baseline_implementation_commit": "e2a1b8ba38bf18e741a78217ae7cefa1710504f4",
   "local_reconciled": true,
-  "scope_note": "The original building has 26/87 conditional R14 designs, including 18/32 columns at +4.50 m and 7/23 at +9.00 m. Twelve additional columns have 108 signed selected-cage PMM cuts, 288 assigned seismic bounds and 48 evaluated joint–directions. C29 and C104 retain their independently documented narrower studies.",
+  "scope_note": "One original-building calculation covers three occupied storeys. It produced 42/87 conditional R14 designs, 180/180 selected beam flexure and full shear evaluations, and physical counts for pending families. Two B2 threshold exceedances and three unmet wall geometry conditions remain visible. Engineering release is NOT_READY.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -30,7 +30,7 @@
     "GAP-018",
     "GAP-006"
   ],
-  "active_task": "Use the sealed 26-column run and upper-storey anchor C22/57 for +9.00 m C27 through C37. Keep all 23 upper-storey frame contributors, both physical ends and all eleven assigned combinations. Track end-to-end member coverage out of the original 87. Keep wall-supported lower ends and the coupled wall–frame study separate.",
+  "active_task": "Run the full building from its original all-column source. Preserve 42/87 conditional column designs and all 180 selected beam flexure and capacity-shear checks. Add slab F116/291 at +0.00 m through a signed strip moment, selected reinforcement and flexural utilization in that same engine. Maintain the 84-slab denominator. Resume C104 after the defined local convergence and coupled-method checks.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -206,7 +206,8 @@
         "EV-RECIPE18-INTAKE",
         "EV-AUDIT-FIXES-20261120",
         "EV-S00-NATIVE-C29-IMPACT-20261122",
-        "EV-WINDOWS-S00-S02-20261122"
+        "EV-WINDOWS-S00-S02-20261122",
+        "EV-ORIGINAL-WHOLE-BUILDING-ENGINE-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -227,7 +228,8 @@
           "S09",
           "S10"
         ]
-      }
+      },
+      "whole_building_engine_update": "The original frame and area inventories supply physical denominators. The report retains every held column and counts unsupported slab, mat, wall and diaphragm families. Coupling-beam applicability remains unclassified."
     },
     {
       "id": "GAP-006",
@@ -438,7 +440,8 @@
         "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122",
         "EV-C104-W22-W23-FOUR-MESH-20261122",
         "EV-FRAME-STORY-PLUS450-R14-20261122",
-        "EV-ORIGINAL-FRAME-STORY-26-R14-20261122"
+        "EV-ORIGINAL-FRAME-STORY-26-R14-20261122",
+        "EV-ORIGINAL-WHOLE-BUILDING-ENGINE-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -593,7 +596,8 @@
         "evidence_ref": "EV-C104-W22-W23-FOUR-MESH-20261122",
         "document": "docs/engineering/C104_ASSIGNED_DEMAND_AND_W23_20261122.md",
         "status_changed": false
-      }
+      },
+      "whole_building_engine_update": "R08 derives first-order storey inputs and eligible member end ratios across all three original storeys. The 42 conditional designs have 378 signed and 1,008 spectral case-cuts. The 45 member holds retain the specific boundary or coupled-model requirement."
     },
     {
       "id": "GAP-010",
@@ -701,7 +705,8 @@
         "EV-D1",
         "EV-D2",
         "EV-FRAME-STORY-PLUS450-R14-20261122",
-        "EV-ORIGINAL-FRAME-STORY-26-R14-20261122"
+        "EV-ORIGINAL-FRAME-STORY-26-R14-20261122",
+        "EV-ORIGINAL-WHOLE-BUILDING-ENGINE-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -713,7 +718,8 @@
           "S07",
           "S10"
         ]
-      }
+      },
+      "whole_building_engine_update": "The beam owner calculated both selected end capacities, selected span reinforcement and full capacity shear including gravity on 180/180 beams. B350/981 confinement governs at 64.676%. Beam axial-force assumptions, torsion and serviceability remain open."
     },
     {
       "id": "GAP-013",
@@ -800,7 +806,8 @@
         "EV-R10-WALL-COUPLED-CAPACITY-SPAN-20261121",
         "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
         "EV-FRAME-STORY-PLUS450-R14-20261122",
-        "EV-ORIGINAL-FRAME-STORY-26-R14-20261122"
+        "EV-ORIGINAL-FRAME-STORY-26-R14-20261122",
+        "EV-ORIGINAL-WHOLE-BUILDING-ENGINE-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -825,7 +832,8 @@
           "S07",
           "S10"
         ]
-      }
+      },
+      "whole_building_engine_update": "All 180 selected beam designs consumed full shear for the web and both transverse zones. R14 consumes beam holds and exceedances at connected members."
     },
     {
       "id": "GAP-015",
@@ -962,7 +970,7 @@
       "status": "PARTIAL",
       "priority": "P0",
       "achieved_scope": "One runner and finalized v2 remain; current same-source stage repeats 16/16 IDENTICAL, and report projection makes zero calls with 21 entry points disabled. Web and CLI now share scenario preparation and original-parent verification, with complete sealed-result equality checks. Normal single/all-column reports project governing PMM cuts and joint shear/tie details without calculation. The logical baseline is included in CI filters. All declared method versions are exported even when a stage has no consumes contract. New legacy-policy selections are prepared through the single scenario owner; an unprepared direct-run selection is rejected before calculation receipts. New raw/floored/final moment and alpha-population report fields are sealed-result projections. Numeric receipt ordinals support 99/100/101 across history, snapshot, CLI, web and column store. The new six-row report reads the sealed force balance and its signed residuals.",
-      "blocker": "General catalog-wide topological execution, complete check-instance ledger, R14 ownership and report-evidence visibility remain open. Legacy compatibility remains in use.",
+      "blocker": "General catalog-wide topological execution and the remaining unimplemented engineering families require additional owners and physical check-instance coverage.",
       "closure_criteria": "Execute one registry with typed dependencies and complete expected scope; block missing upstreams and project the same sealed result in UI/CLI/report.",
       "owner_paths": [
         "src/tbdy_next/engineering/pipeline.py",
@@ -979,7 +987,8 @@
         "EV-AUDIT-FIXES-20261120",
         "EV-S00-NATIVE-C29-IMPACT-20261122",
         "EV-S02-C29-SIGNED-STORY-BALANCE-20261122",
-        "EV-WINDOWS-S00-S02-20261122"
+        "EV-WINDOWS-S00-S02-20261122",
+        "EV-ORIGINAL-WHOLE-BUILDING-ENGINE-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -999,7 +1008,8 @@
           "S09",
           "S10"
         ]
-      }
+      },
+      "whole_building_engine_update": "Whole-building CLI and HTTP call the existing runner. It freezes the original census, executes available owners through R14 and generates the printable report from the sealed numerical result. All 16 stage payloads match on the real source."
     },
     {
       "id": "GAP-018",
@@ -1051,7 +1061,8 @@
         "EV-C29-SPECTRAL-SHEAR-20261120",
         "EV-C29-PHYSICAL-CLEAR-LENGTH-20261120",
         "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122",
-        "EV-C104-W22-W23-FOUR-MESH-20261122"
+        "EV-C104-W22-W23-FOUR-MESH-20261122",
+        "EV-ORIGINAL-WHOLE-BUILDING-ENGINE-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -1244,7 +1255,8 @@
         "evidence_ref": "EV-C104-W22-W23-FOUR-MESH-20261122",
         "document": "docs/engineering/C104_ASSIGNED_DEMAND_AND_W23_20261122.md",
         "status_changed": false
-      }
+      },
+      "whole_building_engine_update": "The 42 conditionally closed columns carry 1,008 assigned seismic case-cut envelope bounds. The 16 upper-storey additions contribute 384. Simultaneity and the existing source/method limits remain open."
     }
   ],
   "remote_audit_correction_base_commit": "1697a968dc30e342b83685bec898bda3109643ca",
@@ -1382,5 +1394,52 @@
     "joint_directions": 48,
     "low_axial_exempt": 34,
     "no_upper_column": 14
+  },
+  "whole_building_engine_20261122": {
+    "evidence_ref": "EV-ORIGINAL-WHOLE-BUILDING-ENGINE-20261122",
+    "document": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
+    "implementation_commit": "e2a1b8ba38bf18e741a78217ae7cefa1710504f4",
+    "production_run": "RUN-9b85a9a1dd7b416eab85056c57eae3d5",
+    "owner": "src/tbdy_next/engineering/pipeline.py::EnginePipelineRunner",
+    "columns_conditional_expected": [
+      42,
+      87
+    ],
+    "member_holds": {
+      "WALL_BELOW_ROTATIONAL_STIFFNESS_UNBOUND": 14,
+      "MAT_ROTATIONAL_STIFFNESS_UNBOUND": 17,
+      "ETABS_WALL_COUPLED_COLUMN_MESH": 14
+    },
+    "storeys": {
+      "+0.00": {
+        "conditional": 1,
+        "expected": 32,
+        "failed": 0,
+        "hold": 31
+      },
+      "+4.50": {
+        "conditional": 18,
+        "expected": 32,
+        "failed": 0,
+        "hold": 14
+      },
+      "+9.00": {
+        "conditional": 23,
+        "expected": 23,
+        "failed": 0,
+        "hold": 0
+      }
+    },
+    "beams_flexure_and_full_capacity_shear": [
+      180,
+      180
+    ],
+    "unsupported_area_population": {
+      "diaphragm": 3,
+      "mat": 2,
+      "slab": 84,
+      "wall": 30
+    },
+    "engineering_release": "NOT_READY"
   }
 }

@@ -1,10 +1,16 @@
 # Original building calculation and local handoff — 2026-11-22
 
-## Original frame designs on two storeys
+## Whole-building engine on the original model
+
+One `run-pipeline --whole-building` invocation now produces the building calculation and its printable report. **42/87 columns have conditional end-to-end R14 designs**, up from 26/87. The storey results are 1/32 at +0.00 m, 18/32 at +4.50 m and 23/23 at +9.00 m. For **180/180 beams**, the engine calculated the selected flexural sections and full capacity shear including gravity. B350 at +0.00 m governs at 64.68% in confinement. Of 45 held columns, 17 need mat rotational stiffness, 14 need supporting-wall rotational stiffness and 14 are wall-coupled.
+
+The same run reports two conditional B2 threshold exceedances at +4.50 m and three unmet wall geometry subconditions. Its inventory includes the 84 slab, two mat and three occupied-storey diaphragm design scopes. The next independent calculation is flexure of slab F116/291 through the same engine. The four-mesh C104 study is held for the convergence and detailing conditions recorded below. Engineering release is `NOT_READY`. [Full results, assumptions and single-command reproduction](engineering/WHOLE_BUILDING_ENGINE_20261122.md)
+
+## Earlier 26-column frame-design checkpoint
 
 **26 of the original 87 columns now have conditional end-to-end R14 designs.** Five new designs at +4.50 m took the count from 14 to 19. Seven new C20–C26 designs at +9.00 m raised it to 26. Coverage is 1/32 at +0.00 m, 18/32 at +4.50 m and 7/23 at +9.00 m. The twelve members retain 32Φ16 and Φ10/90. Their 108 signed PMM cuts, 288 assigned seismic cut bounds and 48 joint–directions reached numerical results. C22/57 at +9.00 m governs their static PMM at 44.00%.
 
-The upper-storey calculation derives the eleven compression sums and both critical loads from all 23 of its frame columns. The next group is +9.00 m C27–C37. Wall–frame stability, construction details and engineering approval remain open. [Member designs and reproduction](engineering/FRAME_DESIGN_MIDDLE_AND_UPPER_20261122.md)
+The upper-storey calculation derived the eleven compression sums and both critical loads from all 23 of its frame columns. The whole-building run above completed the remaining +9.00 m members. Wall–frame stability, construction details and engineering approval remain open. [Member designs and reproduction](engineering/FRAME_DESIGN_MIDDLE_AND_UPPER_20261122.md)
 
 ## Previous +4.50 m frame-design checkpoint
 

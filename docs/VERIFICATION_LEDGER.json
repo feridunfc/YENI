@@ -19,20 +19,19 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "ORIGINAL_BUILDING_26_OF_87_CONDITIONAL_R14_DESIGNS",
-    "work_branch": "work/frame-storey-continuation",
+    "status": "42_OF_87_CONDITIONAL_R14_AND_180_OF_180_SELECTED_BEAMS",
+    "work_branch": "work/whole-building-engine",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "3b6e860fda343186cd39e0328062d436ce87f85f",
-    "tested_implementation_commit": "00fc7beace017de182f95b761bb5ab3c849475d9",
+    "inspected_base_commit": "14fa31960ddafb0e5607bd5c290d1e06d7936df5",
+    "tested_implementation_commit": "e2a1b8ba38bf18e741a78217ae7cefa1710504f4",
     "evidence_refs": [
-      "EV-ORIGINAL-FRAME-STORY-26-R14-20261122",
-      "EV-WINDOWS-FRAME-STORY-26-20261122"
+      "EV-ORIGINAL-WHOLE-BUILDING-ENGINE-20261122"
     ],
-    "production_run_id": "RUN-2e424431e3ff491087e2359543e9c9dc",
-    "results_sha256": "41c8487e69daec322e12705c7f1a0ad9cccbbf24965c17b7851d3e5402ddb903",
-    "report": "docs/engineering/FRAME_DESIGN_MIDDLE_AND_UPPER_20261122.md",
+    "production_run_id": "RUN-9b85a9a1dd7b416eab85056c57eae3d5",
+    "results_sha256": "62ea72bdff5ec5792682279504713f0036730f6f4d6d5a846750fafc852ebc6b",
+    "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
     "engineering_release": "NOT_READY",
-    "next_action": "Use the sealed 26-column run and upper-storey anchor C22/57 for +9.00 m C27 through C37. Keep all 23 upper-storey frame contributors, both physical ends and all eleven assigned combinations. Track end-to-end member coverage out of the original 87. Keep wall-supported lower ends and the coupled wall–frame study separate."
+    "next_action": "Run the full building from its original all-column source. Preserve 42/87 conditional column designs and all 180 selected beam flexure and capacity-shear checks. Add slab F116/291 at +0.00 m through a signed strip moment, selected reinforcement and flexural utilization in that same engine. Maintain the 84-slab denominator. Resume C104 after the defined local convergence and coupled-method checks."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
@@ -9283,6 +9282,252 @@
       "public_reference_paths": [
         "docs/engineering/FRAME_DESIGN_MIDDLE_AND_UPPER_20261122.md"
       ]
+    },
+    {
+      "id": "EV-ORIGINAL-WHOLE-BUILDING-ENGINE-20261122",
+      "observed_at": "2026-11-22T14:13:04.829777+00:00",
+      "implementation_commit": "e2a1b8ba38bf18e741a78217ae7cefa1710504f4",
+      "inspected_base_commit": "14fa31960ddafb0e5607bd5c290d1e06d7936df5",
+      "checked_implementation_tree": "6ab2c2b0becf261497934d20f853e2fd72b2bdb1",
+      "engineering_release_granted": false,
+      "status": "42_OF_87_CONDITIONAL_R14_AND_180_OF_180_SELECTED_BEAMS",
+      "scope": "Original archived ETABS building, entire assigned frame population, three occupied storeys and the existing global owners in one EnginePipelineRunner call.",
+      "private_directory": ".receipts/building-engine-20261122",
+      "source_model_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+      "parent_input_sha256": "703e202fc8b08f60043c571d9970945b6307e5cee99e8a45e6377c8446da56fc",
+      "scenario_input_sha256": "cb3cf74a3155900c18d9adc616846acb28f9c40e5916600527be884d50f07176",
+      "previous_run": "RUN-2e424431e3ff491087e2359543e9c9dc",
+      "cli_run": "RUN-9b85a9a1dd7b416eab85056c57eae3d5",
+      "http_run": "RUN-aa330b3ed2e34b298fe59f3dc57f3e55",
+      "input_sha256": "eef7c7db170405b941c47fba3db1acb40ef07576e4a532179bb1066690cc00f8",
+      "results_sha256": "62ea72bdff5ec5792682279504713f0036730f6f4d6d5a846750fafc852ebc6b",
+      "private_report": ".receipts/building-engine-20261122/original-building/RUN-9b85a9a1dd7b416eab85056c57eae3d5/report.html",
+      "cli_report_sha256": "3506062fa82f40040351211c3fcc065e2aaba0d40333709b1cc7306f97b21363",
+      "http_report_sha256": "f6720a60490da77b76a20c5c3ec95bbe5fdf161e95d3c12ed7a2af5a1213418e",
+      "comparison": {
+        "comparison": {
+          "reference_stages": 16,
+          "current_stages": 16,
+          "mismatched_stages": [],
+          "missing_stages": [],
+          "extra_stages": [],
+          "source_identical": true,
+          "sealed_stage_coverage": true,
+          "comparison_scope": "PIPELINE_RESULTS_REPORT_EVIDENCE_AND_ALL_RECORDED_RECEIPTS",
+          "status": "IDENTICAL"
+        },
+        "cli": "RUN-9b85a9a1dd7b416eab85056c57eae3d5",
+        "http": "RUN-aa330b3ed2e34b298fe59f3dc57f3e55",
+        "current_method_matches_cli": true,
+        "method": {
+          "configuration_file_count": 9,
+          "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+          "file_count": 145,
+          "package_sha256": "fc2ce23839bdf194093dba94ad7810e52889bc72b8f15553fc3d2369d3566b13",
+          "python_implementation": "CPython",
+          "python_version": "3.12.10"
+        },
+        "stored_report_matches_HTTP": true
+      },
+      "project_settings": {
+        "frame_method": "Sway permitted, Rm=1, TS500 Eq. 7.21, unity Cm and rectangular beam webs.",
+        "wall_hinge_aggregate_storeys": [
+          "+4.50"
+        ],
+        "original_member_bases": [
+          "225",
+          "142"
+        ],
+        "beam_capacity_axial_force_kn": 0
+      },
+      "design_counts": {
+        "expected_columns": 87,
+        "previously_closed": 26,
+        "now_conditional": 42,
+        "new": 16,
+        "hold": 45,
+        "preserved_previous_utilizations_and_cages": 26,
+        "storeys": {
+          "+0.00": {
+            "conditional": 1,
+            "expected": 32,
+            "failed": 0,
+            "hold": 31
+          },
+          "+4.50": {
+            "conditional": 18,
+            "expected": 32,
+            "failed": 0,
+            "hold": 14
+          },
+          "+9.00": {
+            "conditional": 23,
+            "expected": 23,
+            "failed": 0,
+            "hold": 0
+          }
+        },
+        "hold_reasons": {
+          "WALL_BELOW_ROTATIONAL_STIFFNESS_UNBOUND": 14,
+          "MAT_ROTATIONAL_STIFFNESS_UNBOUND": 17,
+          "ETABS_WALL_COUPLED_COLUMN_MESH": 14
+        },
+        "selected_beams": 180,
+        "new_case_cuts": {
+          "gravity_signed": 144,
+          "seismic_bounds": 384
+        },
+        "all_conditionally_closed_case_cuts": {
+          "gravity_signed": 378,
+          "seismic_bounds": 1008
+        },
+        "new_member_ids": [
+          "62",
+          "63",
+          "64",
+          "65",
+          "66",
+          "67",
+          "68",
+          "69",
+          "70",
+          "71",
+          "72",
+          "73",
+          "74",
+          "75",
+          "76",
+          "77"
+        ],
+        "area_population": {
+          "diaphragm": 3,
+          "mat": 2,
+          "slab": 84,
+          "wall": 30
+        }
+      },
+      "section_comparison": {
+        "member_id": "73",
+        "label": "C2",
+        "story": "+9.00",
+        "case": "Grav_Ult",
+        "station_m": 3.8,
+        "nd_kn": 780.1791624820563,
+        "coefficient_nd_kn": 865.2740316532564,
+        "moments_knm": [
+          -491.21449360967273,
+          -31.470844249657407
+        ],
+        "engine_radial_capacity_knm": 1188.0210646623127,
+        "independent_radial_capacity_knm": 1188.0210310220161,
+        "capacity_difference_knm": -3.364029657859646e-05,
+        "last_grid_change_knm": 4.7312508286267985e-05,
+        "capacity_tolerance_knm": 0.01,
+        "static_utilization": 0.41432059054750686,
+        "longitudinal": "32Φ16",
+        "transverse": "Φ10/90"
+      },
+      "storey_sum_comparison": {
+        "case_totals": 22,
+        "directional_critical_loads": 4,
+        "max_nd_difference_kn": 0.0,
+        "max_nk_difference_kn": 2.3283064365386963e-10
+      },
+      "beam_shear_comparison": {
+        "number": 180,
+        "resistance_ratios": 540,
+        "max_delta_ve_kn": 1.1368683772161603e-13,
+        "max_delta_ratio": 1.1102230246251565e-16,
+        "governing_resistance_kn": 971.3136706751052
+      },
+      "governing_beam": {
+        "check": "CONFINEMENT",
+        "full_ve_kn": 628.2099580479276,
+        "label": "B350",
+        "member_id": "981",
+        "resistance_kn": 971.3136706751051,
+        "story": "+0.00",
+        "utilization": 0.6467632207948792
+      },
+      "b2_exceedances": [
+        {
+          "story": "+4.50",
+          "adjacent_story": "+0.00",
+          "direction": "X",
+          "eta_ki_candidate": "2.084574837009293938132889443750867",
+          "threshold": "2.0"
+        },
+        {
+          "story": "+4.50",
+          "adjacent_story": "+0.00",
+          "direction": "Y",
+          "eta_ki_candidate": "3.283271897489906968579954361944883",
+          "threshold": "2.0"
+        }
+      ],
+      "wall_geometry_subconditions": {
+        "evaluated": 90,
+        "unmet": 3
+      },
+      "command_reference": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
+      "commands": [
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --whole-building --source .receipts/c29-self-weight-nmax/RUN-be9d8258796f4dfca1a3609453e94e53/parent.source --design-scenario .receipts/c29-self-weight-nmax/request.json --wall-hinge-aggregate-storey +4.50 --case Modal --out .receipts/building-engine-20261122/original-building",
+        "POST /api/apply-rebar-selection with the same project scenario and aggregate assumption, followed by GET /report/print",
+        "python -X utf8 -B tools/test_offline.py --node \"C:/Program Files/nodejs/node.exe\""
+      ],
+      "environment": {
+        "os": "Windows",
+        "python": "3.12.10",
+        "node": "v26.13.1"
+      },
+      "windows_full_suite": {
+        "tested_commit": "e2a1b8ba38bf18e741a78217ae7cefa1710504f4",
+        "tracked_tree_clean_at_start": true,
+        "ran": 1713,
+        "passed": 1712,
+        "skipped": 1,
+        "skip_reason": "Windows disallows creating symlinks for test_wrong_run_and_symlink_cannot_cross_source_boundary",
+        "seconds": 466.24,
+        "failures": 0,
+        "errors": 0,
+        "javascript_files": 11,
+        "golden": {
+          "golden_record_count": 44,
+          "classification_counts": {
+            "NUMERICAL_MATCH": 36,
+            "ENGINEERING_INTERPRETATION_DIFFERENCE": 4,
+            "INSUFFICIENT_SOURCE": 4
+          },
+          "acceptance_eligible": false,
+          "engineering_release": "NOT_READY"
+        },
+        "outcome": "OFFLINE_SOFTWARE_REGRESSIONS=PASS",
+        "private_log": ".receipts/building-engine-20261122/windows-implementation.log",
+        "log_sha256": "b760cbd788b0239e4d9c081fbeab88ffea4d69c77672bc1b7c5663cf3a69b5d3"
+      },
+      "engineering_runs_on_staged_implementation": true,
+      "tested_file_manifest_sha256": "b1ce59516b204b58f4e76f010cbd6cb6229e0dbd0f2fc047e15febe4e7de2d8d",
+      "diff_sha256": "53f5df63ddde636c3b729e0862149a314a92d54c07fb38028c23c79678c390e2",
+      "private_assets_sha256": {
+        "tested-files.json": "b1ce59516b204b58f4e76f010cbd6cb6229e0dbd0f2fc047e15febe4e7de2d8d",
+        "tested.patch": "53f5df63ddde636c3b729e0862149a314a92d54c07fb38028c23c79678c390e2",
+        "validation.json": "788fac741a07002622408a5e5d375a55e9b9b29ba96ba352d680226199c5c9f6",
+        "verify_output.py": "6715f494d9aea0caae55e3fcb9f56fda269ed95cf9b72c8fd2489cdbd355f87c",
+        "entry-point-comparison.json": "d8006ec37532953350c19723001351237a910a747e3b73952e27603c199a64a6",
+        "web-whole-building.json": "b008c9fa1fe02333e4f49c8cb3aea5949a2ee0f33381f294ff2734636c390e7b"
+      },
+      "limits": [
+        "Assigned spectral bounds and frame calculation assumptions remain conditional.",
+        "C104/211 is held for local transfer convergence, a coupled method and reinforcement continuity.",
+        "Wall reinforcement, diaphragm collector and chord design, slab flexure and punching, mat design and beam torsion/serviceability remain open."
+      ],
+      "public_reference_paths": [
+        "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
+        "docs/CURRENT_STATE.md",
+        "docs/context/WORKER_HANDOFF_20261119.md",
+        "docs/ENGINEERING_GAPS.yaml"
+      ],
+      "engineering_release": "NOT_READY"
     }
   ],
   "new_record_template": {
@@ -9307,7 +9552,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-22T12:44:35.637030+00:00",
+  "updated_at_utc": "2026-11-22T14:13:04.829777+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -10041,6 +10286,22 @@
       "report": "docs/engineering/FRAME_STORY_DESIGN_SLICE_20261122.md",
       "engineering_release": "NOT_READY",
       "next_action": "Finish the other five standalone frame columns at +4.50 m (C1, C2, C5, C77 and C78) using the 14-column run and the same-storey anchor 142. Then use the 23-column original +9.00 m storey to derive its own assigned compression, directional critical loads and support conditions before its member designs. Retain original-building R14 coverage out of 87, the five wall-supported C20–C37 rows, and the separate C104 coupled-wall study."
+    },
+    {
+      "status": "ORIGINAL_BUILDING_26_OF_87_CONDITIONAL_R14_DESIGNS",
+      "work_branch": "work/frame-storey-continuation",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "3b6e860fda343186cd39e0328062d436ce87f85f",
+      "tested_implementation_commit": "00fc7beace017de182f95b761bb5ab3c849475d9",
+      "evidence_refs": [
+        "EV-ORIGINAL-FRAME-STORY-26-R14-20261122",
+        "EV-WINDOWS-FRAME-STORY-26-20261122"
+      ],
+      "production_run_id": "RUN-2e424431e3ff491087e2359543e9c9dc",
+      "results_sha256": "41c8487e69daec322e12705c7f1a0ad9cccbbf24965c17b7851d3e5402ddb903",
+      "report": "docs/engineering/FRAME_DESIGN_MIDDLE_AND_UPPER_20261122.md",
+      "engineering_release": "NOT_READY",
+      "next_action": "Use the sealed 26-column run and upper-storey anchor C22/57 for +9.00 m C27 through C37. Keep all 23 upper-storey frame contributors, both physical ends and all eleven assigned combinations. Track end-to-end member coverage out of the original 87. Keep wall-supported lower ends and the coupled wall–frame study separate."
     }
   ],
   "remote_audit_correction_checkpoint": {
