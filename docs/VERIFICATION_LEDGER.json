@@ -25,7 +25,8 @@
     "inspected_base_commit": "edc1a7b61ffa0daaf27865fe526b1a3b75732c2f",
     "tested_implementation_commit": "123bdf0b275d2f301ede628de5a86b13fb813dce",
     "evidence_refs": [
-      "EV-BUILDING-PIER-SECTIONS-20261122"
+      "EV-BUILDING-PIER-SECTIONS-20261122",
+      "EV-ETEX-PIER-AXIAL-CRACK-X-SOIL-20261122"
     ],
     "production_run_id": "RUN-c85705a8cb9a48b1a190d24d10198e66",
     "results_sha256": "9955b53c0a5ad4f79caf5c544c73138f9d48ef9fccf5019346e4fd37088442e3",
@@ -10033,6 +10034,63 @@
       ],
       "engineering_release": "NOT_READY",
       "engineering_release_granted": false
+    },
+    {
+      "id": "EV-ETEX-PIER-AXIAL-CRACK-X-SOIL-20261122",
+      "observed_at": "2026-11-22T16:28:08.646955+00:00",
+      "status": "DISPLAYED_VALUES_MATCHED",
+      "scope": "Refreshed ETEX axial screenshot against the archived original ETABS model and the concrete axial limit using the displayed material inputs.",
+      "inspected_base_commit": "0785cf336eca47fbcc2cd183e6da23b648de4cd2",
+      "source_evidence_ref": "EV-BUILDING-PIER-SECTIONS-20261122",
+      "source_run": "RUN-c85705a8cb9a48b1a190d24d10198e66",
+      "case": "Crack_SeisX_Soil",
+      "source_edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+      "source_capture_sha256": "11bbd50bec6cee4547ab3f90881545209a208f77f0677499ecc273041bc1a59c",
+      "user_screenshot_sha256": "9a999523da365920e7ab625ea7323093d9cd58b8550baa6e0f332d06d357d5fd",
+      "result_rows_reported": {
+        "passed": 15,
+        "failed": 0
+      },
+      "fully_visible_rows_checked": 9,
+      "matched_at_displayed_precision": {
+        "compression_tf": 9,
+        "axial_limit_tf": 9,
+        "percent_utilization": 9
+      },
+      "cuts": {
+        "piers": [
+          "P2",
+          "P3",
+          "P4"
+        ],
+        "storeys": [
+          "+0.00",
+          "+4.50",
+          "+9.00"
+        ],
+        "source_location": "Bottom",
+        "force_selection": "Most compressive P from the two original StepType endpoints for the same pier, storey, combination and lower face."
+      },
+      "calculation": "Use 1 tf = 9.80665 kN and the displayed limit 0.35 times the native net rectangular area in m² times 3569.0 tf/m². Round force, limit and percent independently to 0.01 of their displayed units.",
+      "P2_plus0": {
+        "native_compression_kn": 2095.6294,
+        "compression_tf": 213.69,
+        "limit_tf": 1998.64,
+        "percent": 10.69
+      },
+      "highest_among_visible": {
+        "pier": "P4",
+        "storey": "+0.00",
+        "compression_tf": 248.73,
+        "limit_tf": 2198.5,
+        "percent": 11.31
+      },
+      "limits": "Commercial scalar cross-check for one combination. The other six summary rows were outside the screenshot. The observed data do not determine provided reinforcement or shear resistance.",
+      "private_comparison": ".receipts/verification/pier-section-design-20261122/etex-crack-axial-20261122.json",
+      "private_comparison_sha256": "b5a8532075bec219e7390e1b931b5fc5494a59961f24b8e76b7007524aac1da0",
+      "documentation": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md#commercial-cross-check-at-p2",
+      "production_regression_this_update": "NOT_RUN_DOCUMENTATION_ONLY",
+      "engineering_release_granted": false
     }
   ],
   "new_record_template": {
@@ -10057,7 +10115,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-22T16:13:29.032268+00:00",
+  "updated_at_utc": "2026-11-22T16:28:08.646955+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
