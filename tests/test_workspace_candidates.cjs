@@ -42,4 +42,21 @@ assert.equal(value('4.6', 1, 'Recorded transverse criteria met'), 'Unavailable')
 assert.equal(value('4.4', 1, 'Magnified reference PMM utilization'), '—');
 assert.ok(result['4.4'].note.includes('not simultaneous force vectors'));
 assert.equal(window.projectTables({})['4.6'], undefined, 'No invented selection on a plain capture');
+// Original P2 roof connection and the separate column end 211/J in the same building.
+const floor = {story: '+9.00', z_m: 9, combination: 'Crack_SeisX',
+  selected_beam_ends: [{beam: '378', face: 'I'}], mr_wall_lower_knm: 7942.696524442696,
+  required_mr_knm: 315.86518368575616, upper_utilization: 0.03976800356323812, status: 'STRONG_WALL_BOUND_SATISFIED'};
+const beamColumn = {target_member_id: '211', target_end: 'J', joint_id: '1045', direction: 'Y',
+  column_ids: ['128', '211'], beam_ids: ['768'], low_axial_exception: {status: 'EXEMPT_LOW_AXIAL'},
+  status: 'SCWB_EQ_7_3_EXEMPT_LOW_AXIAL'};
+const wallOnly = {building_design: {wall_sections: {piers: [{pier: 'P2', strong_wall_connections: [floor]}]}}};
+assert.equal(window.projectTables(wallOnly)['4.8'], undefined);
+assert.equal(window.projectTables({r10_live: {scwb_joints: [beamColumn]}})['7.9'], undefined);
+const jointViews = window.projectTables({...wallOnly, r10_live: {scwb_joints: [beamColumn]}});
+assert.deepEqual(Array.from(jointViews['7.9'].rows[0]),
+  ['P2', '+9.00', '9', 'Crack_SeisX', '378/I', '7942.7', '315.87', '3.98', 'STRONG_WALL_BOUND_SATISFIED']);
+assert.equal(jointViews['4.8'].rows[0].at(-1), 'SCWB_EQ_7_3_EXEMPT_LOW_AXIAL');
+assert.equal(jointViews['4.8'].rows[0].at(-2), '—');
+assert.equal(window.projectTables({})['7.8'], undefined, 'Historical captures must not acquire conditional designs');
+assert.equal(window.projectTables({building_design: {wall_sections: {piers: []}}})['7.9'], undefined);
 console.log('Workspace selected-candidate coverage, precision and unresolved-state contracts: PASS');

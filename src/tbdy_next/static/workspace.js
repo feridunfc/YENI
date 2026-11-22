@@ -68,11 +68,14 @@
     ['Shear walls and boundary elements', [
       ['7.1', 'Wall dimensions · Hw / lw', '§7.6.1', 'TBDY 2018 §7.6.1', 13],
       ['7.2', 'Critical wall height · Hcr', '§7.6.2', 'TBDY 2018 §7.6.2', 13],
-      ['7.3', 'Boundary element confinement', '§7.6', 'TBDY 2018 §7.6.5 · Wall boundary reinforcement', 13],
+      ['7.3', 'Boundary and web reinforcement', '§7.6', 'TBDY 2018 §§7.6.3–7.6.5 · Wall reinforcement', 13],
       ['7.4', 'Wall web shear · Ve', '§7.6', 'TBDY 2018 §§7.6.6.3 and 7.6.7.1 · Wall shear demand and strength', 13],
       ['7.5', 'Wall shear friction', 'Shear friction', 'TBDY 2018 §7.6.7.2 · Shear friction at wall construction joints', 13],
       ['7.6', 'Wall axial capacity', 'Axial capacity', 'TBDY 2018 §7.6.1.1 · Wall axial compression limit', 13],
-      ['7.7', 'Wall overturning moment', 'Section cut · X / Y', 'TBDY 2018 §4.3.4.8 · Wall base overturning moments', 13]]],
+      ['7.7', 'Wall overturning moment', 'Section cut · X / Y', 'TBDY 2018 §4.3.4.8 · Wall base overturning moments', 13],
+      ['7.8', 'Seismic wall section design · PMM', 'Physical faces', 'TBDY 2018 §7.6.6.1 · Wall design moments', 13],
+      ['7.9', 'Wall strong direction · Eq. 7.3', '§7.6.6.2', 'TBDY 2018 §7.6.6.2 · Floor moment strength in the strong direction of the wall', 13],
+      ['7.10', 'Gravity wall section design', 'Signed forces', 'TS 500 · Section strength under axial force and bending', 13]]],
     ['Slabs and punching shear', [
       ['8.1', 'Column–slab punching shear', 'TS 500', 'TS 500 §8.3 · Punching shear strength and reinforcement', 10]]]
   ];
@@ -1097,7 +1100,8 @@
   function render() {
     const current = check(), settings = state.view === 'settings';
     const section = state.settingsSection;
-    byId('deskWorkspaceShell').classList.toggle('wide-results', !settings && ['4.2', '4.4', '4.5'].includes(current.id));
+    byId('deskWorkspaceShell').classList.toggle('wide-results', !settings &&
+      (['4.2', '4.4', '4.5', '4.8'].includes(current.id) || current.id.startsWith('7.')));
     byId('deskCheckView').hidden = settings;
     byId('deskSettingsView').hidden = !settings;
     byId('deskGeneralSettings').hidden = section !== 'general';

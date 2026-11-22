@@ -128,6 +128,88 @@
     };
   }
 
+  function addWallTables(tables, building) {
+    const sections = building?.wall_sections;
+    const boundaries = building?.wall_boundaries;
+    const piers = sections?.piers ?? [];
+    const percentage = ratio => Number.isFinite(ratio) ? decimals(100 * ratio, 2) : '—';
+    const limits = interval => Array.isArray(interval) && interval.length === 2
+      ? interval.map(value => decimals(value, 2)).join(' to ') : '—';
+    const rowsFor = (field, format) => piers.flatMap(pier =>
+      (pier[field] ?? []).map(row => [pier.pier, ...format(row, pier)]));
+    const coverage = (value, total, scope) => Number.isInteger(value) && Number.isInteger(total)
+      ? value + '/' + total + ' ' + scope : 'Recorded results';
+    const cut = row => [row.member, row.story, row.face, row.combination];
+    const headers = ['Pier', 'Wall ID', 'Storey', 'Face', 'Combination'];
+    const basis = 'Proposed reinforcement and native assigned combinations. ';
+    const status = row => row.reason || row.status;
+
+    if (boundaries?.piers?.length) {
+      const heightRows = boundaries.piers.flatMap(pier => Object.entries(pier.height_branches ?? {}).map(([name, h]) =>
+        [pier.pier, name, decimals(h.reference_z_m), decimals(h.wall_height_mm), decimals(h.hw_over_lw),
+          decimals(h.minimum_hcr_mm), limits(h.critical_interval_z_m), bool(h.ends_required)]));
+      if (heightRows.length) tables['7.2'] = table(['Pier', 'Base scenario', 'Base (m)', 'Hw (mm)', 'Hw / lw',
+        'Minimum Hcr (mm)', 'Critical elevation range (m)', 'End zones required'], heightRows,
+        'Recorded base scenarios', 'Each row uses the same physical pier and its stated reference level.');
+    }
+    if (boundaries?.walls?.length) {
+      const stacks = new Map((boundaries.piers ?? []).map(p => [p.pier, p]));
+      const panels = new Map(piers.flatMap(p => (p.panel_details ?? []).map(row => [row.member, row])));
+      tables['7.3'] = table(['Pier', 'Wall ID', 'Storey', 'End zone (mm)', 'Bars per end', 'End bar Ø (mm)',
+        'Boundary tie Ø (mm)', 'Tie spacing (mm)', 'Web crosstie Ø (mm)', 'Web crossties', 'Minimum ties in 1 m²', 'Result or open input'],
+        boundaries.walls.map(row => {
+          const pier = stacks.get(row.pier), bars = pier?.adopted_constant_detail, ties = pier?.transverse_cage;
+          const panel = panels.get(row.member_id), web = panel?.web_crossties;
+          return [row.pier, row.member_id, row.story, bars?.end_width_mm, bars?.bars_per_end, bars?.diameter_mm,
+            ties?.tie_diameter_mm, ties?.spacing_mm, web?.diameter_mm, web?.count, web?.minimum_ties_in_full_m2,
+            row.reason || panel?.reason || (panel ? panel.status : row.cage_status || row.status)];
+        }), boundaries.walls.length + ' physical wall panels', 'The proposed schedules keep the unassigned and held panels visible.');
+    }
+    if (!sections) return;
+    const cuts = format => rowsFor('seismic_sections', row => [...cut(row), ...format(row)]);
+    const shear = cuts(row => [decimals(row.ve_upper_kn, 2), percentage(row.shear_upper_ratio), status(row)]);
+    if (shear.length) {
+      tables['7.4'] = table([...headers, 'Heightwise Ve upper (kN)', 'Shear upper (%)', 'Section result or open input'],
+        shear, coverage(sections.satisfied_height_shear, sections.expected_height_cuts, 'within shear bound'),
+        basis + 'Heightwise Ve includes both base scenarios and the local face demand.');
+    } else {
+      const local = rowsFor('seismic_shear', row => [...cut(row), row.control_combination, percentage(row.upper_utilization), status(row)]);
+      if (local.length) tables['7.4'] = table([...headers, 'Amplified control', 'Local shear upper (%)', 'Result or open input'],
+        local, coverage(sections.satisfied_shear_bounds, sections.expected_shear_bounds, 'within local shear bound'),
+        'Local shear at the recorded wall face and combination.');
+    }
+    const joints = rowsFor('construction_joints', row => [row.upper_member, row.story, decimals(row.z_m), row.combination,
+      decimals(row.ve_in_plane_upper_kn, 2), decimals(row.available_friction_steel_mm2, 2), decimals(row.resistance_kn, 2),
+      percentage(row.upper_utilization), status(row)]);
+    if (joints.length) tables['7.5'] = table(['Pier', 'Upper wall ID', 'Storey', 'Elevation (m)', 'Combination',
+      'Ve upper (kN)', 'Available steel (mm²)', 'Resistance (kN)', 'Friction upper (%)', 'Result or open input'],
+      joints, coverage(sections.satisfied_joints, sections.expected_joints, 'within joint resistance'),
+      'Each construction joint is counted once per combination. Resistance assumes ≥5 mm roughening and anchored bars across the joint.');
+    const axial = cuts(row => [limits(row.nd_interval_kn), decimals(row.axial_limit_kn, 2), percentage(row.axial_ratio), status(row)]);
+    if (axial.length) tables['7.6'] = table([...headers, 'Compression interval (kN)', '0.35 fck Ac (kN)',
+      'Compression (%)', 'Section result or open input'], axial, coverage(sections.evaluated_axial, sections.expected_height_cuts, 'evaluated'),
+      'Compression is positive. The combination shown supplies the axial interval.');
+    const design = cuts(row => [decimals(row.z_m), limits(row.nd_interval_kn), decimals(row.m2_design_knm, 2),
+      decimals(row.m3_design_knm, 2), percentage(row.pmm?.upper_utilization), row.chain_status,
+      row.reason || (row.open_section_checks ?? []).join(', ')]);
+    if (design.length) tables['7.8'] = table([...headers, 'Elevation (m)', 'Compression interval (kN)',
+      'Design |M2| (kN·m)', 'Design |M3| (kN·m)', 'PMM upper (%)', 'Section design', 'Open checks'],
+      design, coverage(sections.conditional_seismic_sections, sections.expected_height_cuts, 'conditional face designs'),
+      basis + 'The PMM bound covers the entire axial interval and both moment signs. Each end retains its physical cut.');
+    const connections = rowsFor('strong_wall_connections', row => [row.story, decimals(row.z_m), row.combination,
+      (row.selected_beam_ends ?? []).map(end => end.beam + '/' + end.face).join(', '), decimals(row.mr_wall_lower_knm, 2),
+      decimals(row.required_mr_knm, 2), percentage(row.upper_utilization), status(row)]);
+    if (connections.length) tables['7.9'] = table(['Pier', 'Storey', 'Elevation (m)', 'Combination', 'Beam ID / end',
+      'ΣMr wall lower (kN·m)', '1.2 × ΣMr beam upper (kN·m)', 'Demand / strength upper (%)', 'Result or open input'],
+      connections, coverage(sections.satisfied_strong_wall, sections.expected_strong_wall, 'within moment strength'),
+      'TBDY §7.6.6.2 applies Eq. 7.3 in the strong direction of a slender wall. Each row is one floor–pier connection and combination.');
+    const gravity = rowsFor('gravity_rows', row => [...cut(row), decimals(row.compression_kn, 2), decimals(row.forces_kn_knm?.M2, 2),
+      decimals(row.forces_kn_knm?.M3, 2), percentage(row.pmm_ratio), percentage(row.v2_over_vr), status(row)]);
+    if (gravity.length) tables['7.10'] = table([...headers, 'Compression (kN)', 'M2 (kN·m)', 'M3 (kN·m)', 'PMM (%)',
+      '|V2| / Vr (%)', 'Result or open input'], gravity, coverage(sections.evaluated_gravity, sections.expected_gravity, 'evaluated'),
+      'Signed static forces use a common combination and physical face.');
+  }
+
   function runTables(report) {
     const snapshot = report.source_snapshot, geometry = snapshot?.geometry_capture?.tables ?? {};
     const basis = snapshot?.vs04_basis_probe?.table_reads ?? {};
@@ -466,6 +548,15 @@
       wall.items.map(row => [row.story, row.element_id, row.section, decimals(row.panel_length_m),
         decimals(row.thickness_mm), decimals(row.panel_length_thickness_ratio), row.status]),
       wall.status, 'These dimensions describe ETABS area panels. The complete physical wall or leg length requires verification.');
+    const columnJoints = report.r10_live?.scwb_joints;
+    if (columnJoints?.length) tables['4.8'] = table(['Column ID', 'End', 'Joint', 'Direction', 'Column IDs', 'Beam IDs',
+      'Low axial decision', 'Governing interval combination', 'Strength / required lower bound', 'Column SCWB decision'],
+      columnJoints.map(row => [row.target_member_id, row.target_end, row.joint_id, row.direction,
+        (row.column_ids ?? []).join(', '), (row.beam_ids ?? []).join(', '), row.low_axial_exception?.status,
+        row.seismic_axial_interval_check?.governing_combination, decimals(row.seismic_axial_interval_check?.minimum_ratio_lower),
+        row.status]), columnJoints.length + ' column end–direction records',
+      'TBDY §7.3.5. Each record identifies its target column end. Adjacent columns can share a physical joint. A sufficient lower ratio is at least 1.');
+    addWallTables(tables, report.building_design);
     return tables;
   }
 
@@ -891,8 +982,11 @@
       log('success', 'REBAR SELECTION', 'Applied engineer beam/column rebar policy → ' + entry.run_id);
       if (statusEl) {
         const building = body.building_design;
+        const walls = building?.wall_sections;
+        const wallCount = walls?.expected_height_cuts > 0
+          ? ' Wall sections: ' + walls.conditional_seismic_sections + '/' + walls.expected_height_cuts + ' conditional face designs.' : '';
         statusEl.textContent = building
-          ? (building.column_status_counts.conditional ?? 0) + ' of ' + building.column_count + ' column designs reached a conditional result. Open the report for all building checks.'
+          ? (building.column_status_counts.conditional ?? 0) + ' of ' + building.column_count + ' column designs reached a conditional result.' + wallCount
           : 'Applied policy cleanly. Active run: ' + entry.run_id + ' (NOT_PROVEN).';
       }
       await activateSource(body.run_id);
