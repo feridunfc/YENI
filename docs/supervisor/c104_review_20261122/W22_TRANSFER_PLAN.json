@@ -1,0 +1,229 @@
+{
+  "schema": "yeni.supervisor.w22-transfer-experiment-plan.v1",
+  "recorded_at_utc": "2026-11-22T06:13:17.366031+00:00",
+  "reviewed_commit": "a89f70f01d39bd2c88cdbcea3efb7292ff7c7f01",
+  "status": "PROPOSED_NOT_RUN",
+  "assignment": "Diagnose W22/W23 force transfer at x=77.40 m and isolate the cause of the upper C104 transition demand change.",
+  "report": "docs/supervisor/C104_TRANSITION_REVIEW_20261122.md",
+  "completed_scopes_to_preserve": [
+    "S00 three recorded source/receipt repairs",
+    "S02 six C29 signed story balances",
+    "C104 twelve first-order thin-body balances and 288-component independent reintegration of retained solves",
+    "C29 FULL_SPAN_RECOVERED six comparisons, twelve conditional factors and twenty-four PMM sides",
+    "S06 twenty-four independently checked selected-cage C29 faces at eighteen case-cuts"
+  ],
+  "retained_evidence": {
+    "c104": "EV-S03-C104-TRANSITION-20261122",
+    "c29": "EV-S06-C29-24-FACES-20261122",
+    "full_windows_regression": "EV-WINDOWS-C104-TRANSITION-20261122"
+  },
+  "source_state": {
+    "origin_m": [
+      74.0,
+      0.4,
+      -1.5
+    ],
+    "interface_x_m": 77.4,
+    "first_diagnostic_case": "LC_EQX",
+    "all_required_cases": [
+      "LC_DL",
+      "LC_EQX",
+      "LC_EQY",
+      "LC_H",
+      "LC_HE",
+      "LC_T"
+    ],
+    "step_type": "Single Value",
+    "step_number": 0,
+    "analysis_type": "Linear Static",
+    "force_units": "kN",
+    "moment_units": "kN m",
+    "source_acquisition": "Existing gateway and valid retained generations; rediscover current live session if missing rows need capture."
+  },
+  "recorded_observations": {
+    "origin_m": [
+      74.0,
+      0.4,
+      -1.5
+    ],
+    "interface_x_m": 77.4,
+    "case": "LC_EQX",
+    "step_type": "Single Value",
+    "step_number": 0,
+    "upper_total_delta_M3_knm": -219.53327880254565,
+    "w22_delta_M3_knm": -194.2968555269033,
+    "w22_point_couple_delta_My_knm": 0.09269842396067195,
+    "w22_force_arm_delta_My_knm": -194.38955395086396,
+    "w22_delta_N_kn": 16.31718386467505,
+    "w23_opposing_force": "NOT_AVAILABLE_IN_PUBLISHED_SLICE",
+    "physical_face": "above_transition: immediately above z=-1.50 m; distinct from upper cap at -1.45 m"
+  },
+  "tasks": [
+    {
+      "id": "W22-01",
+      "environment": "Offline retained sources, native acquisition only for missing facts",
+      "task": "Inventory actual W22/W23 geometry, source IDs, shared and coincident points, point-local axes, connected DOFs, constraints, releases, offsets, incident members and external-load ownership. Record W23 plane and neighboring mesh; do not guess its native ID.",
+      "exit": "Complete physical/native contributor census on both sides with deterministic boundary ownership; missing entries explicit.",
+      "prerequisites": []
+    },
+    {
+      "id": "W22-02",
+      "environment": "Source comparison",
+      "task": "Qualify equivalent physical forcing across A and D: mass source, total/story masses, automatic seismic period/scale/distribution, story/base resultants, torsional moments and application centres. Compare load functionals on common physical regions, not literal nodal arrays with different DOF counts.",
+      "exit": "Same physical load basis established, or changed input quantified separately from discretization. Same case name alone is insufficient.",
+      "prerequisites": []
+    },
+    {
+      "id": "W22-03",
+      "environment": "Existing offline R08 owners",
+      "task": "Read unaveraged source-bound forces and point couples on W22/W23 and all incident contributors. Rotate to global and transport to O. Account for constraints and external edge loads; when constraint forces are unavailable, include all relevant tied points inside a complete enclosing free body.",
+      "exit": "Two-sided six-component interface/free-body balance; no inferred W23 force by residual subtraction; cumulative signed Fz and first spatial moment reported alongside direct My and off-plane Fx arm.",
+      "prerequisites": [
+        "W22-01"
+      ]
+    },
+    {
+      "id": "W22-04",
+      "environment": "Controlled native model copies if earlier results require them",
+      "task": "Reuse A/D and add cross-direction B/C only after physical input and connection-policy qualification. Start governing LC_EQX diagnosis, then cover all six required cases before acceptance.",
+      "exit": "Independent vertical/horizontal/interaction effects on the same physical quantities and fixed budgets. Any W23 mesh or connection change is controlled or recorded as a further factor.",
+      "prerequisites": [
+        "W22-01",
+        "W22-02",
+        "W22-03"
+      ]
+    },
+    {
+      "id": "W22-05",
+      "environment": "Existing runner and sealed reporting",
+      "task": "Deliberately extend/version the narrow transition contract for required interface geometry and experimental models; preserve the current scoped calculation. Publish actual sources, decomposition, balances, convergence outcome and unresolved cases.",
+      "exit": "Numerical evidence consumed by R08 and projected from sealed results. No inferred second-order qualification or construction approval.",
+      "prerequisites": [
+        "W22-01",
+        "W22-02",
+        "W22-03"
+      ]
+    }
+  ],
+  "minimum_mesh_matrix": [
+    {
+      "id": "A",
+      "vertical_pitch_m": 0.05,
+      "w21_horizontal_pitch_m": 1.0,
+      "w22_horizontal_pitch_m": 0.85,
+      "status": "RETAINED_SOLVED_EVIDENCE"
+    },
+    {
+      "id": "B",
+      "vertical_pitch_m": 0.025,
+      "w21_horizontal_pitch_m": 1.0,
+      "w22_horizontal_pitch_m": 0.85,
+      "status": "PROPOSED_NOT_RUN"
+    },
+    {
+      "id": "C",
+      "vertical_pitch_m": 0.05,
+      "w21_horizontal_pitch_m": 0.5,
+      "w22_horizontal_pitch_m": 0.425,
+      "status": "PROPOSED_NOT_RUN"
+    },
+    {
+      "id": "D",
+      "vertical_pitch_m": 0.025,
+      "w21_horizontal_pitch_m": 0.5,
+      "w22_horizontal_pitch_m": 0.425,
+      "status": "RETAINED_SOLVED_EVIDENCE"
+    }
+  ],
+  "effects": {
+    "vertical": [
+      "B-A",
+      "D-C"
+    ],
+    "horizontal": [
+      "C-A",
+      "D-B"
+    ],
+    "interaction": "D-B-C+A"
+  },
+  "matrix_interpretation": "A two-factor sensitivity experiment, not proof of asymptotic convergence. Qualify W23 mesh and constraint policy explicitly; add a targeted finer level only if a remaining measured risk calls for it.",
+  "transport": {
+    "force": "F_global = R * F_point_local",
+    "moment": "M_at_O = R * M_point_local + (r-O) cross F_global",
+    "My": "sum(My_point + (z-zO)*Fx - (x-xO)*Fz)",
+    "near_transition_caution": "Only the (z-zO)*Fx arm vanishes exactly on z=zO; retain it elsewhere."
+  },
+  "numerical_budgets": {
+    "body_equilibrium": "max(0.01, 1e-6 * largest absolute same-component term), kN or kN m",
+    "mesh_comparison": "max(0.05, 0.01 * max(abs(coarse),abs(fine))), kN or kN m",
+    "classification": "Declared numerical study criteria; not normative acceptance limits. Freeze before comparing results."
+  },
+  "current_contract": {
+    "schema": "tbdy.next.coupled-wall-transition.v1",
+    "supports": "One upward frame, two coplanar rectangular walls, two fixed 50/25 mm vertical meshes",
+    "extension_needed": "W23 orientation/incident-member interface and four-model experiment; assertions must not simply be removed."
+  },
+  "existing_owners": [
+    "tools/prepare_c104_transition.py",
+    "src/tbdy_next/engineering/coupled_wall_transition.py",
+    "src/tbdy_next/engineering/gravity_wall_cut.py::joint_action_at_origin",
+    "src/tbdy_next/engineering/design_scenario.py",
+    "src/tbdy_next/engineering/column_r08_local_live.py",
+    "src/tbdy_next/engineering/pipeline.py::EnginePipelineRunner",
+    "src/tbdy_next/reporting.py"
+  ],
+  "parallel_work": [
+    {
+      "scope": "S04 coupled method",
+      "next": "Compare qualified direct second-order demand and coupled critical-load alternatives using explicit effective stiffness, restraint, creep and axial-variation assumptions. Do not transfer a global eigenvalue to story Nk without a qualified mapping."
+    },
+    {
+      "scope": "S06 after C29 face completion",
+      "next": "Axial limits, other member/section domains and full-design independent evidence. The former remaining twenty-three C29 faces are completed."
+    },
+    {
+      "scope": "Geometry and construction",
+      "next": "Preserve user-adopted image identity and numerical model geometry. Track unverified bar continuity/anchorage as separate design applicability; do not repeatedly block first-order model diagnosis on an unavailable detail."
+    }
+  ],
+  "must_not_claim": [
+    "Mesh change alone identified as unique cause before load/topology controls",
+    "Two-factor matrix alone proves convergence",
+    "Balanced modeled connection proves as-built reinforcement/anchorage",
+    "Twenty-four C29 capacity checks close all PMM/design domains",
+    "New W23 extraction, new solves or private replay completed by this review"
+  ],
+  "retained_gates": [
+    "CONSTRUCTION_CONTINUITY_UNVERIFIED",
+    "COUPLED_SECOND_ORDER_DEMAND_UNQUALIFIED",
+    "STORY_WALL_CRITICAL_LOAD_METHOD_UNSUPPORTED"
+  ],
+  "engineering_release": "NOT_READY",
+  "gap_status_changed": false,
+  "primary_sources": [
+    {
+      "id": "P1",
+      "title": "Auto Edge Constraints",
+      "url": "https://docs.csiamerica.com/help-files/etabs/Menus/Assign/Shell/Auto_Edge_Constraints.htm",
+      "supports": "Nonmatching edge connection, intermediate-to-corner force transfer; does not prove actual assignment."
+    },
+    {
+      "id": "P2",
+      "title": "AreaJointForceShell",
+      "url": "https://docs.csiamerica.com/help-files/etabs-api-2016/html/e6826614-bf6b-d3cd-a0e5-5d70e06cbc07.htm",
+      "supports": "Element point-local force/couple and case/state fields; documentation API version 2016, bind actual ETABS 23.2 return semantics."
+    },
+    {
+      "id": "P3",
+      "title": "Section cut FAQ",
+      "url": "https://web.wiki.csiamerica.com/wiki/spaces/kb/pages/2004950/Section%2Bcut%2BFAQ",
+      "supports": "Cut-side/group/free-body semantics; some specific cutting-plane descriptions are SAP2000-specific."
+    },
+    {
+      "id": "P4",
+      "title": "Shell Forces/Stresses Form",
+      "url": "https://docs.csiamerica.com/help-files/etabs/Menus/Display/Show_Member_Force_and_Stress_Diagrams/Shell_Forces_Stresses_Form.htm",
+      "supports": "Forces per length versus discrete actions, averaging and display dependence."
+    }
+  ]
+}

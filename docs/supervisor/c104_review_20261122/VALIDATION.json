@@ -1,0 +1,146 @@
+{
+  "schema": "yeni.supervisor.c104-milestone-document-validation.v1",
+  "recorded_at_utc": "2026-11-22T06:16:50.849998+00:00",
+  "inspected_base_commit": "a89f70f01d39bd2c88cdbcea3efb7292ff7c7f01",
+  "result": "PASS",
+  "checks": {
+    "90_prior_ledger_records_preserved": true,
+    "91_unique_current_ledger_records": true,
+    "previous_native_checkpoint_retained": true,
+    "prior_record_array_bytes_preserved": true,
+    "18_gap_id_status_pairs_unchanged": true,
+    "all_prior_gap_content_preserved_beyond_appended_review": true,
+    "production_tools_tests_unchanged": true,
+    "reviewed_implementation_matches_recorded_windows_tree": true,
+    "implementation_src_tools_tests_equal_reviewed_milestone": true,
+    "review_source_hashes_match_inspected_base": true,
+    "new_record_artifact_hashes_match": true,
+    "focused_tests_attributed_14_only": true,
+    "proposed_cross_models_not_claimed_run": true,
+    "c29_completed_24_scope_preserved": true,
+    "recorded_capacity_maxima_within_declared_budgets": true,
+    "no_release_promotion": true,
+    "new_relative_document_links_resolve": true,
+    "public_owner_paths_resolve": true,
+    "all_explicit_changed_paths_documentation": true,
+    "git_diff_check_pass": true
+  },
+  "ledger_records_before": 90,
+  "ledger_records_after": 91,
+  "gap_status_counts": {
+    "OPEN": 3,
+    "PARTIAL": 15
+  },
+  "source_hash_checks": {
+    "src/tbdy_next/engineering/coupled_wall_transition.py": true,
+    "src/tbdy_next/engineering/gravity_wall_cut.py": true,
+    "src/tbdy_next/engineering/column_r08_local_live.py": true,
+    "src/tbdy_next/engineering/design_scenario.py": true,
+    "src/tbdy_next/engineering/pipeline.py": true,
+    "src/tbdy_next/reporting.py": true,
+    "tools/prepare_c104_transition.py": true,
+    "tests/test_coupled_wall_transition.py": true,
+    "tests/test_gravity_story_basis.py": true,
+    "tests/test_pipeline_unification.py": true,
+    "docs/engineering/C104_TRANSITION_AND_C29_CAPACITY_20261122.md": true,
+    "docs/VERIFICATION_LEDGER.json": true,
+    "docs/ENGINEERING_GAPS.yaml": true,
+    "src/tbdy_next/column_engine/section_capacity.py": true
+  },
+  "relative_link_checks": [
+    {
+      "source": "docs/CURRENT_STATE.md",
+      "target": "engineering/C104_TRANSITION_AND_C29_CAPACITY_20261122.md",
+      "exists": true
+    },
+    {
+      "source": "docs/CURRENT_STATE.md",
+      "target": "supervisor/C104_TRANSITION_REVIEW_20261122.md",
+      "exists": true
+    },
+    {
+      "source": "docs/CURRENT_STATE.md",
+      "target": "supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json",
+      "exists": true
+    },
+    {
+      "source": "docs/context/WORKER_HANDOFF_20261119.md",
+      "target": "../engineering/C29_S00_S02_20261122.md",
+      "exists": true
+    },
+    {
+      "source": "docs/context/WORKER_HANDOFF_20261119.md",
+      "target": "../supervisor/audit_20261122/WORKER_CHECKPOINT.json",
+      "exists": true
+    },
+    {
+      "source": "docs/context/WORKER_HANDOFF_20261119.md",
+      "target": "../supervisor/C104_TRANSITION_REVIEW_20261122.md",
+      "exists": true
+    },
+    {
+      "source": "docs/context/WORKER_HANDOFF_20261119.md",
+      "target": "../supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json",
+      "exists": true
+    },
+    {
+      "source": "docs/supervisor/ROADMAP_20261121.md",
+      "target": "C104_TRANSITION_REVIEW_20261122.md",
+      "exists": true
+    },
+    {
+      "source": "docs/supervisor/ROADMAP_20261121.md",
+      "target": "c104_review_20261122/W22_TRANSFER_PLAN.json",
+      "exists": true
+    },
+    {
+      "source": "docs/supervisor/C104_TRANSITION_REVIEW_20261122.md",
+      "target": "../engineering/C104_TRANSITION_AND_C29_CAPACITY_20261122.md",
+      "exists": true
+    },
+    {
+      "source": "docs/supervisor/C104_TRANSITION_REVIEW_20261122.md",
+      "target": "../VERIFICATION_LEDGER.json",
+      "exists": true
+    },
+    {
+      "source": "docs/supervisor/C104_TRANSITION_REVIEW_20261122.md",
+      "target": "c104_review_20261122/W22_TRANSFER_PLAN.json",
+      "exists": true
+    },
+    {
+      "source": "docs/supervisor/C104_TRANSITION_REVIEW_20261122.md",
+      "target": "../../src/tbdy_next/engineering/gravity_wall_cut.py",
+      "exists": true
+    },
+    {
+      "source": "docs/supervisor/C104_TRANSITION_REVIEW_20261122.md",
+      "target": "../../src/tbdy_next/engineering/coupled_wall_transition.py",
+      "exists": true
+    },
+    {
+      "source": "docs/supervisor/C104_TRANSITION_REVIEW_20261122.md",
+      "target": "c104_review_20261122/REVIEW_EVIDENCE.json",
+      "exists": true
+    },
+    {
+      "source": "docs/supervisor/C104_TRANSITION_REVIEW_20261122.md",
+      "target": "c104_review_20261122/VALIDATION.json",
+      "exists": true
+    }
+  ],
+  "manifest_sha256": {
+    "docs/CURRENT_STATE.md": "042a0f73eea4180c7c029c96ddae2cba1e0efe15f23be93c6b2aad60ef2431ec",
+    "docs/ENGINEERING_GAPS.yaml": "d8ec6b214f8d7e614dce60ad4a9599384f2ab97dda49bf583bc69ea1b0450d13",
+    "docs/VERIFICATION_LEDGER.json": "ef8a50e924651ce677621c2a0285e462dab0af5c586479c2ce1e756e3a6ba182",
+    "docs/context/WORKER_HANDOFF_20261119.md": "ebbcf4e036ce584e598d802a09cf182fa056c329e9ae8a871612847408635703",
+    "docs/supervisor/ROADMAP_20261121.md": "6fc75aa50eaede1513f22f2a427eba1670f7d46ce710cc35cd85a34fcc7483a1",
+    "docs/supervisor/C104_TRANSITION_REVIEW_20261122.md": "a32ab381321521307a624da9fb0d83cf8501ff5b7940c7d9e4067d591971a4ee",
+    "docs/supervisor/c104_review_20261122/REVIEW_EVIDENCE.json": "f516067bc8a654d20000a450bb0eb7203a737a7013a4287b417fad1e3fb8ed5c",
+    "docs/supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json": "d1cdceca9ecf22efc73d371b54659ec52cdd8e11a81bc43118d95a38abb5959b"
+  },
+  "manifest_excludes_self": true,
+  "scope": "Documentation preservation, provenance, link and file identity checks. Not a new engineering calculation or test-suite run.",
+  "native_run": "NOT_RUN",
+  "full_suite": "NOT_RUN"
+}

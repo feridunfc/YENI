@@ -6,7 +6,14 @@ Start with the [C104 component table and 24 C29 capacity checks](../engineering/
 
 The first-order model and bar detailing have separate source roles. The user confirmed that the archived model view is the only available connection detail. Record any future physical detailing assumption with its project authority. The 14 wall-coupled columns retain the second-order gate. C29's selected-cage R14 closure remains 2/87 conditional. S08 still requires the same-generation joint force/capacity identities and low-axial exemption evidence.
 
-The [S00 and S02 calculation](../engineering/C29_S00_S02_20261122.md) and [dated second-audit checkpoint](../supervisor/audit_20261122/WORKER_CHECKPOINT.json) preserve earlier milestones. The current evidence identifiers are `EV-S03-C104-TRANSITION-20261122`, `EV-S06-C29-24-FACES-20261122` and `EV-WINDOWS-C104-TRANSITION-20261122`.
+The [S00 and S02 calculation](../engineering/C29_S00_S02_20261122.md) and [dated second-audit checkpoint](../supervisor/audit_20261122/WORKER_CHECKPOINT.json) preserve earlier milestones. The current numerical evidence identifiers are `EV-S03-C104-TRANSITION-20261122`, `EV-S06-C29-24-FACES-20261122` and `EV-WINDOWS-C104-TRANSITION-20261122`.
+
+The [supervisor milestone review](../supervisor/C104_TRANSITION_REVIEW_20261122.md)
+and [W22 transfer plan](../supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json)
+refine this assignment after reviewing `a89f70f`. The review passed 14 focused
+tests and checked public arithmetic; it did not rerun private native evidence.
+Preserve C29's completed 24/24 face scope. The dated one-face checkpoint below
+is historical and does not assign the former 23 remaining faces again.
 
 ## Assignment issued with the system audit on 21 November 2026
 
@@ -59,9 +66,12 @@ Linux run; neither test count substitutes for original-building evidence.
 
 ## Next GAP-009 calculation
 
-1. Read `release-summary.json` and `w22-transfer.json` under the private verification directory `.receipts/verification/c104-transition-20261122`. The archived face arrays are already consumed in R08. The fixed budget is 1% with a 0.05 kN or kN·m floor. The 12 thin-body balances passed.
-2. At the W22/W23 junction, establish node sharing and edge constraints at x = 77.40 m. Collect W23-side tractions on the same section and signed step. Separate vertical and horizontal refinements to test the end-load redistribution. Compare section M3 and the global vertical-force moment arm using the same point and budget.
-3. Once a first-order demand has the required convergence, compare a direct coupled second-order demand under compatible load, stiffness, creep and boundary conditions. Keep the full set of 14 coupled columns visible. A whole-system critical-load estimate requires a separately qualified mapping.
+1. Read `release-summary.json` and `w22-transfer.json` under the private verification directory `.receipts/verification/c104-transition-20261122`. The archived face arrays are already consumed in R08. Keep the 1% / 0.05 kN or kN·m mesh budget and the separate body-equilibrium budget. Preserve all 12 passed balances. The governing M3 difference belongs to `above_transition` immediately above −1.50 m, not the `upper` cap at −1.45 m.
+2. Inventory actual W22/W23 IDs, planes, points, axes, incident members, shared/coincident nodes, DOFs and constraints at x = 77.40 m. Use the archived models first; acquire missing W23 rows through the existing gateway. Qualify equivalent physical automatic-seismic loading across models: mass, period/scale, base/story forces, torsion and application centres. Different mesh DOF populations do not require literal equality of raw nodal vectors.
+3. Assemble both-side unaveraged actions about O=(74.00, 0.40, −1.50) m with all incident members, edge loads and constraint transfer. If constraint forces are unavailable, enclose the tied points in a complete free body. Preserve `Single Value`, step 0, for the six C104 linear-static cases. Separate direct My, `(z-zO)*Fx` and `−(x-xO)*Fz`; net vertical force alone cannot explain the moment change. Begin diagnosis with LC_EQX and include all six cases before acceptance.
+4. If needed after those controls, reuse the existing coarse-H/50 mm and fine-H/25 mm models and add coarse-H/25 mm plus fine-H/50 mm. W21/W22 coarse horizontal pitches are 1.00/0.85 m; fine pitches are 0.50/0.425 m. Record and control W23's mesh and connection policy. These two proposed analyses separate H/V effects and interaction; they do not alone prove convergence.
+5. Extend/version `tbdy.next.coupled-wall-transition.v1` explicitly where the additional interface or four-model experiment requires it. The current contract is one upward frame, two coplanar rectangular walls and a fixed two-mesh pair. Reuse `gravity_wall_cut.joint_action_at_origin`, the existing preparer, R08 and sealed reporting; do not merely remove the scope assertions. Publish the source census, physical loading comparison, both-side tables, first moments and governing numerical outcome.
+6. After qualifying first-order demand, compare coupled second-order alternatives under explicit effective stiffness, restraint, creep and axial variation. Method preparation can proceed in parallel. Keep all 14 coupled columns visible, and qualify any mapping from whole-system critical load to story Nk separately. Construction continuity/anchorage remains a distinct open design premise; the sole available model view does not block model-based transfer diagnosis.
 
 S02 closed the six first-order force balances. The existing conditional frame-column scenario supplies the 12 C29 factors and 24 side-specific PMM values. Its governing values and the two physical free bodies are in the [calculation record](../engineering/C29_S00_S02_20261122.md). The full-system stiffness branch retains `STORY_WALL_CRITICAL_LOAD_METHOD_UNSUPPORTED`.
 
@@ -104,8 +114,9 @@ before changing the adopted-factor owner or transferring those factors to PMM.
 Use the bundle's source hashes, exact XML/page locators and independent
 arithmetic when resolving the remaining cases. Keep raw reports, Drive
 identities and complete rows private. The report work made no new live
-ETABS calculation and does not alter the native C29 result above, the
-original conditional result, or the open column-wall free-body gate.
+ETABS calculation and did not alter the then-recorded native C29 conditional
+result or free-body gate. The later S02 checkpoint above closes those six
+first-order balances while retaining the coupled critical-load method gate.
 Fresh verification on baseline `35fd32326f9014e77a31080ee69591eea8775378`
 plus the recorded patch passed 1,690 Python tests with zero skips and
 11 JavaScript test files; the ledger pins the tested files and commands.

@@ -2,9 +2,29 @@
 
 ## C104 first-order transition and C29 independent capacities
 
-**C104** now has a signed six-component R08 result and a sealed HTML report for four physical faces. All 12 thin-body balances passed. A separate full-archive integration reproduced 288/288 components. At −1.50 m, 13/36 components below and 3/36 above met the predeclared 50/25 mm comparison. LC_EQX above the transition changed M3 by −219.533 kN·m. W22 contributes −194.297 kN·m, principally from vertical force at its far end. Next inspect the W22/W23 contact at x = 77.40 m. The user supplied the model view as the only detail. Construction bar continuity and the coupled second-order demand remain open. [Calculation, units and next comparison](engineering/C104_TRANSITION_AND_C29_CAPACITY_20261122.md)
+**C104** now has a signed six-component R08 result and a sealed HTML report for four physical faces. All 12 thin-body balances passed. A separate full-archive integration reproduced 288/288 components. At −1.50 m, 13/36 components below and 3/36 above met the predeclared 50/25 mm comparison. LC_EQX immediately above the transition changed M3 by −219.533 kN·m. W22 contributes −194.297 kN·m, principally from vertical-force moment arms. Next inspect the W22/W23 contact at x = 77.40 m. The user supplied the model view as the only detail. Construction bar continuity and the coupled second-order demand remain open. [Calculation, units and next comparison](engineering/C104_TRANSITION_AND_C29_CAPACITY_20261122.md)
 
 **C29** now has 24/24 independently checked selected-cage PMM faces at 18 physical case-cuts. The largest capacity difference was 0.000471272 kN·m. The highest independent utilization was 17.647308% at the lower end of 142 under Grav_Ult. The complete Windows suite ran 1,705 Python tests with 1,704 passing and one symlink-permission skip. All 11 JavaScript files passed. The case counts and engineering scope are indexed in the [verification ledger](VERIFICATION_LEDGER.json).
+
+### Supervisor review of a89f70f and next controlled comparison
+
+The [milestone review and W22/W23 recipe](supervisor/C104_TRANSITION_REVIEW_20261122.md)
+preserve those completed subscopes. Fourteen existing focused tests passed;
+published component sums, capacity budgets and governing-face arithmetic were
+independently checked. Private native captures and the 24-row oracle were not
+replayed by this reviewer. The Windows full suite above remains separate evidence.
+
+Next establish actual W22/W23 interface membership and equivalent physical
+automatic-seismic loading across the retained models. Both vertical and horizontal
+mesh pitches changed; the observed difference has not yet been isolated to one
+cause. Compare both-side six-component actions about the same origin, including
+constraint/load ownership and the spatial first moment of vertical force. If
+needed, complete the two-factor matrix with two cross-direction mesh models.
+The [machine-readable plan](supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json)
+marks those new solves as proposed, not run. C29's former remaining 23 faces are
+completed; further S06 work concerns axial limits, other sections and full-design
+evidence. See `EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122`. All 18 GAP statuses
+and the whole-building `NOT_READY` disposition remain unchanged.
 
 ## C29 first-order equilibrium and S00 replay
 
@@ -123,11 +143,10 @@ mm @ m from the I face and the 4-to-8 comparison budget in mm.
 All six 4-to-8 comparisons meet the 0.01 mm limit. The original, direct
 P-Delta and revised signed moment/PMM columns are in the sealed report.
 
-The full column–wall free body remains unresolved at +0.00 (32 columns,
-21 wall objects) and +4.50 (32 columns, four wall objects). The live
-display retains shell nodal Max/Min forces. Complete the signed wall
-resultant and upper-body balance and resolve the wall-frame critical-load
-basis. `STORY_WALL_CRITICAL_LOAD_METHOD_UNSUPPORTED` stays open.
+At that historical checkpoint, the full column–wall free body was unresolved at
++0.00 (32 columns, 21 walls) and +4.50 (32 columns, four walls). S02 subsequently
+completed the six signed upper-body balances, as recorded above. The wall-frame
+critical-load basis and `STORY_WALL_CRITICAL_LOAD_METHOD_UNSUPPORTED` remain open.
 See `EV-C29-NATIVE-CONDITIONAL-TS500-20261121` for the same-generation numerical scope and tests.
 
 ## Report reconstruction and production sway-scalar binding
@@ -156,8 +175,9 @@ Fresh verification on baseline `35fd32326f9014e77a31080ee69591eea8775378`
 plus the recorded patch passed 1,690 Python tests with zero skips and all
 11 JavaScript test files. The ledger records commands and tested-file hashes.
 This report milestone does not rerun ETABS or change the native C29 result
-above. The original conditional result, wall free-body gate and engineering
-acceptance limits remain in force. The dated checkpoints below preserve
+at that date. The subsequent S02 result completes its six first-order balances;
+the conditional method and engineering acceptance limits remain in force.
+The dated checkpoints below preserve
 their historical measurements; later native evidence supersedes their
 then-open C29 replay and full-span tasks.
 

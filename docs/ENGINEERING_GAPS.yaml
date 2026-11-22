@@ -1,7 +1,7 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-22T05:19:31.014928+00:00",
+  "updated_at_utc": "2026-11-22T06:15:40.222655+00:00",
   "repository": "feridunfc/YENI",
   "baseline_implementation_commit": "60fd80303b7e101673d65dde5e1edf75a6caa6cf",
   "local_reconciled": true,
@@ -30,7 +30,7 @@
     "GAP-018",
     "GAP-006"
   ],
-  "active_task": "Inspect the x=77.40 m W22/W23 contact and constraint transfer for LC_EQX. Compare both-side vertical force, its 3.40 m moment arm and common-origin M3 with independently varied horizontal and vertical mesh pitches. Carry the measured convergence into the S04 coupled second-order candidate. The only available drawing evidence is the gross model view. Carry the verified 24 real C29 faces as a completed S06 subscope. Next PMM domains are axial limits, other sections and independent full-design evidence.",
+  "active_task": "Read actual W22/W23 interface membership and both-side actions at x=77.40 m; qualify equivalent physical automatic-seismic forcing across the retained models; compare six common-origin actions and the spatial first moment of Fz. If needed, add coarse-H/25 mm and fine-H/50 mm cross-direction models, preserving W23 mesh/constraint policy or disclosing its additional effect. Extend the existing narrow transition/R08 contract explicitly. Preserve C104 balance, all 24 C29 capacities and conditional R14 2/87; S04 method qualification and further S06 domains continue separately.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -246,7 +246,8 @@
         "EV-R10-WALL-COUPLED-CAPACITY-SPAN-20261121",
         "EV-GAP006-C104-SECTION-PROFILE-20261121",
         "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
-        "EV-S03-C104-TRANSITION-20261122"
+        "EV-S03-C104-TRANSITION-20261122",
+        "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -286,6 +287,13 @@
         ],
         "next": "Inspect the x=77.40 m W22/W23 contact and constraint transfer for LC_EQX. Compare both-side vertical force, its 3.40 m moment arm and common-origin M3 with independently varied horizontal and vertical mesh pitches. Carry the measured convergence into the S04 coupled second-order candidate. The only available drawing evidence is the gross model view.",
         "engineering_approval": false
+      },
+      "supervisor_transition_review_20261122": {
+        "evidence_ref": "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122",
+        "report": "docs/supervisor/C104_TRANSITION_REVIEW_20261122.md",
+        "plan": "docs/supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json",
+        "note": "Preserve completed same-cut first-order C104 integration and balance. Qualify actual W22/W23 transfer, physical load equivalence and separated H/V sensitivity. Construction continuity remains a distinct design premise.",
+        "status_changed": false
       }
     },
     {
@@ -402,7 +410,8 @@
         "EV-S00-NATIVE-C29-IMPACT-20261122",
         "EV-S02-C29-SIGNED-STORY-BALANCE-20261122",
         "EV-WINDOWS-S00-S02-20261122",
-        "EV-S03-C104-TRANSITION-20261122"
+        "EV-S03-C104-TRANSITION-20261122",
+        "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -538,6 +547,13 @@
         ],
         "next": "Inspect the x=77.40 m W22/W23 contact and constraint transfer for LC_EQX. Compare both-side vertical force, its 3.40 m moment arm and common-origin M3 with independently varied horizontal and vertical mesh pitches. Carry the measured convergence into the S04 coupled second-order candidate. The only available drawing evidence is the gross model view.",
         "engineering_approval": false
+      },
+      "supervisor_transition_review_20261122": {
+        "evidence_ref": "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122",
+        "report": "docs/supervisor/C104_TRANSITION_REVIEW_20261122.md",
+        "plan": "docs/supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json",
+        "note": "The numerical demand has not converged; the two-model difference has not been isolated to discretization alone. Effective coupled stiffness, restraint, creep, axial-variation applicability and demand/method qualification remain separate exits. S02 and conditional C29 are completed in their recorded scopes.",
+        "status_changed": false
       }
     },
     {
@@ -558,7 +574,8 @@
         "EV-LOCAL-REPORT",
         "EV-COLUMN-JOINT-SLICE-20261119",
         "EV-S06-C29-FIXED-N-ONE-FACE-20261122",
-        "EV-S06-C29-24-FACES-20261122"
+        "EV-S06-C29-24-FACES-20261122",
+        "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -577,6 +594,13 @@
         "expected_faces": 24,
         "maximum_utilization": 0.1764730777126651,
         "next": "Carry the verified 24 real C29 faces as a completed S06 subscope. Next PMM domains are axial limits, other sections and independent full-design evidence."
+      },
+      "supervisor_transition_review_20261122": {
+        "evidence_ref": "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122",
+        "report": "docs/supervisor/C104_TRANSITION_REVIEW_20261122.md",
+        "plan": "docs/supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json",
+        "note": "Preserve the completed C29 24-face selected-cage capacity subscope. Next independent domains are axial limits, other member/section types and full-design evidence; do not reassign the former remaining 23 faces.",
+        "status_changed": false
       }
     },
     {
@@ -596,7 +620,8 @@
         "EV-D2",
         "EV-COLUMN-CAGE-TIE10",
         "EV-COLUMN-CAGE-REPORT-TESTS",
-        "EV-S06-C29-FIXED-N-ONE-FACE-20261122"
+        "EV-S06-C29-FIXED-N-ONE-FACE-20261122",
+        "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -608,6 +633,13 @@
           "S06",
           "S10"
         ]
+      },
+      "supervisor_transition_review_20261122": {
+        "evidence_ref": "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122",
+        "report": "docs/supervisor/C104_TRANSITION_REVIEW_20261122.md",
+        "plan": "docs/supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json",
+        "note": "The C29 selected-cage capacity milestone does not verify construction reinforcement, anchorage or crosstie/detailing acceptance. Track these independently without reopening the completed numerical capacities.",
+        "status_changed": false
       }
     },
     {
@@ -809,7 +841,8 @@
         "EV-C29-ADOPTED-BASIS-LOCAL-20261121",
         "EV-REPORT-SWAY-RECONSTRUCTION-20261121",
         "EV-S06-C29-FIXED-N-ONE-FACE-20261122",
-        "EV-S06-C29-24-FACES-20261122"
+        "EV-S06-C29-24-FACES-20261122",
+        "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -865,6 +898,13 @@
         "expected_faces": 24,
         "maximum_utilization": 0.1764730777126651,
         "next": "Carry the verified 24 real C29 faces as a completed S06 subscope. Next PMM domains are axial limits, other sections and independent full-design evidence."
+      },
+      "supervisor_transition_review_20261122": {
+        "evidence_ref": "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122",
+        "report": "docs/supervisor/C104_TRANSITION_REVIEW_20261122.md",
+        "plan": "docs/supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json",
+        "note": "Preserve 24/24 C29 face verification and the unchanged 44-record golden classification. The dated earlier one-face task is superseded for current assignments; broader independent/full-building examples remain open.",
+        "status_changed": false
       }
     },
     {
@@ -1186,5 +1226,15 @@
     "run_id": "RUN-7dc0634b19e44a1c8286fb6368f5721d",
     "results_sha256": "9a17508e2a1b22f9f22f5215d0dbf68214b1cf468c60db7992903cabc4e3e11b",
     "document": "docs/engineering/C104_TRANSITION_AND_C29_CAPACITY_20261122.md"
+  },
+  "supervisor_transition_review_20261122": {
+    "evidence_ref": "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122",
+    "reviewed_commit": "a89f70f01d39bd2c88cdbcea3efb7292ff7c7f01",
+    "implementation_commit": "983571a2920fc4698c6b390d27964bae28c13bb2",
+    "report": "docs/supervisor/C104_TRANSITION_REVIEW_20261122.md",
+    "plan": "docs/supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json",
+    "completed_scopes_preserved": true,
+    "new_native_solve": false,
+    "gap_status_changed": false
   }
 }

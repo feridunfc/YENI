@@ -1,0 +1,458 @@
+{
+  "schema": "yeni.supervisor.c104-milestone-review.v1",
+  "recorded_at_utc": "2026-11-22T06:13:17.366031+00:00",
+  "repository": "feridunfc/YENI",
+  "evidence_id": "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122",
+  "reviewed_commit": "a89f70f01d39bd2c88cdbcea3efb7292ff7c7f01",
+  "reviewed_implementation_commit": "983571a2920fc4698c6b390d27964bae28c13bb2",
+  "disposition": "PRESERVE_COMPLETED_NATIVE_SUBSCOPES; QUALIFY_W22_W23_CAUSE_AND_DEMAND",
+  "published_source_records": [
+    "EV-S03-C104-TRANSITION-20261122",
+    "EV-S06-C29-24-FACES-20261122",
+    "EV-WINDOWS-C104-TRANSITION-20261122"
+  ],
+  "review_scope": "Public code and recorded evidence review, fourteen existing focused tests, independent aggregate arithmetic, and primary-source method research. Private native/24-face/Windows evidence remains separately attributed.",
+  "c104_review": {
+    "recorded_at_utc": "2026-11-22T06:03:55.242564+00:00",
+    "inspected_commit": "a89f70f01d39bd2c88cdbcea3efb7292ff7c7f01",
+    "worktree": "/workspace/scratch/3fb33a0b2afa/report_reverse/yeni_latest_review",
+    "branch": "work/c104-transition-review-20261122",
+    "working_status_at_verification": "",
+    "python_executable": "/workspace/scratch/3fb33a0b2afa/report_reverse/testenv/bin/python",
+    "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "package_import": "/workspace/scratch/3fb33a0b2afa/report_reverse/yeni_latest_review/src/tbdy_next/__init__.py",
+    "cwd": "/workspace/scratch/3fb33a0b2afa/report_reverse/yeni_latest_review",
+    "environment": {
+      "PYTHONPATH": "src:tests"
+    },
+    "argv": [
+      "/workspace/scratch/3fb33a0b2afa/report_reverse/testenv/bin/python",
+      "-B",
+      "/workspace/scratch/3fb33a0b2afa/c104_review_20261122/analysis/run_c104_review.py"
+    ],
+    "source_sha256": {
+      "src/tbdy_next/engineering/coupled_wall_transition.py": "cdeba423d29b89f4828ac2f3fa9c7c92f25701b294a656aed8b5ff372e84cccd",
+      "src/tbdy_next/engineering/gravity_wall_cut.py": "4478a9653806ca547379f9da5fa321ad3f646cb7e1eafea85af58b8ae131aee3",
+      "src/tbdy_next/engineering/column_r08_local_live.py": "ce6341a44326d07cf703a543a7e3967a0a9492b84671660d1a46adbea8f53658",
+      "src/tbdy_next/engineering/design_scenario.py": "dfb97a86a57421619bab64848dfbd55c1e32d7b478b949ecf407598cc00572cd",
+      "src/tbdy_next/engineering/pipeline.py": "136547756e9bb0c730de550e9e6f7b8b2390d2e37d667c0d37c80e6799a0397f",
+      "src/tbdy_next/reporting.py": "fcf0461f71fd457a28fc93edda8d26d647da37e7774e0c809e87a1e7624fad28",
+      "tools/prepare_c104_transition.py": "746409f83fbde0a3bc7b4eb5741423332bc3199afc4237aec8333b88221e7a31",
+      "tests/test_coupled_wall_transition.py": "a27e3650674dcfd9b2972a3a7179162a5faf3a1979d28617e8c2da2deb56e71a",
+      "tests/test_gravity_story_basis.py": "b3beab2f2e3defe809ebfcc32b168421d77b766a942c0f95b5203b0ade0bca19",
+      "tests/test_pipeline_unification.py": "5a3ca304cb4cd00880d6c9329d2c6b89f9af94c48dade6dc119f4dfdf9aa86bc",
+      "docs/engineering/C104_TRANSITION_AND_C29_CAPACITY_20261122.md": "56d5dbfb5a8a25ae02e304ee3db32c47d71ec241a46f3aa2e37779c567b6acc2",
+      "docs/VERIFICATION_LEDGER.json": "4564ddea2042b26dee6df79d1039a31433fa1e4830e6f9a300fc3f9d6fee72a5"
+    },
+    "files_match_pinned_git_blobs": true,
+    "code_tests_tools_equal_windows_tested_commit": "983571a2920fc4698c6b390d27964bae28c13bb2",
+    "focused_tests": {
+      "test_names_requested": [
+        "test_coupled_wall_transition",
+        "test_gravity_story_basis",
+        "test_pipeline_unification.LiveGatesAndCli.test_acknowledgement_report_and_html_share_one_gate_projection",
+        "test_pipeline_unification.LiveGatesAndCli.test_new_report_reads_sealed_design_results_without_running_design_solvers"
+      ],
+      "test_ids": [
+        "test_coupled_wall_transition.CutTransportTests.test_automatic_load_requires_a_single_tower_and_excludes_both_cut_planes",
+        "test_coupled_wall_transition.CutTransportTests.test_changing_origin_leaves_a_pure_couple_unchanged",
+        "test_coupled_wall_transition.CutTransportTests.test_rejects_reflected_axes_and_nonfinite_moment",
+        "test_coupled_wall_transition.CutTransportTests.test_rotates_both_vectors_before_moving_the_moment",
+        "test_gravity_story_basis.RevisedStoryBasisTests.test_basis_fails_closed_on_source_identity_duplicates_and_mismatched_stiffness",
+        "test_gravity_story_basis.RevisedStoryBasisTests.test_changed_measured_end_spring_changes_k_and_nk",
+        "test_gravity_story_basis.RevisedStoryBasisTests.test_complete_balance_blocks_only_the_contradicted_load_case",
+        "test_gravity_story_basis.RevisedStoryBasisTests.test_missing_wall_stays_in_independent_force_and_stability_population",
+        "test_gravity_story_basis.RevisedStoryBasisTests.test_native_frame_conversion_uses_the_upper_element_once",
+        "test_gravity_story_basis.RevisedStoryBasisTests.test_separate_contributor_modifiers_bind_generation_and_agree_with_paired_member",
+        "test_gravity_story_basis.RevisedStoryBasisTests.test_shell_joint_force_uses_point_local_to_global_rows",
+        "test_gravity_story_basis.RevisedStoryBasisTests.test_symmetric_springs_and_free_body_use_existing_owners",
+        "test_pipeline_unification.LiveGatesAndCli.test_acknowledgement_report_and_html_share_one_gate_projection",
+        "test_pipeline_unification.LiveGatesAndCli.test_new_report_reads_sealed_design_results_without_running_design_solvers"
+      ],
+      "total": 14,
+      "passed": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "elapsed_seconds": 1.3558027439999023,
+      "successful": true,
+      "log_sha256": "fd16bdecb99db6eb5421e9f9c70264da6f3849c0591b1efbdb44ed8bd44b7803"
+    },
+    "focused_test_scope": "Four new transport/automatic-seismic-scope tests, eight existing story-source tests, two existing sealed-report tests. No full native transition integration was executed because its source is private.",
+    "published_counts": {
+      "native_component_values": 288,
+      "case_mesh_free_bodies": 12,
+      "converged_all_faces": [
+        36,
+        144
+      ],
+      "converged_immediate_faces": [
+        16,
+        72
+      ]
+    },
+    "published_source_record_id": "EV-S03-C104-TRANSITION-20261122",
+    "governing_component_arithmetic": [
+      {
+        "component": "N",
+        "recomputed_delta": "50.29326992078960",
+        "sum_of_object_deltas": "50.293269920789607",
+        "recomputed_tolerance": "1.4559886100061095",
+        "absolute_delta_over_limit": "34.54235120738929647622618084",
+        "published_within_tolerance": false
+      },
+      {
+        "component": "V2",
+        "recomputed_delta": "-33.6895158640742",
+        "sum_of_object_deltas": "-33.6895158640741925",
+        "recomputed_tolerance": "6.031735448223387",
+        "absolute_delta_over_limit": "5.585376904087737007381851720",
+        "published_within_tolerance": false
+      },
+      {
+        "component": "V3",
+        "recomputed_delta": "-20.83421927038116",
+        "sum_of_object_deltas": "-20.834219270381144",
+        "recomputed_tolerance": "1.2136142073055827",
+        "absolute_delta_over_limit": "17.16708583746432325561585235",
+        "published_within_tolerance": false
+      },
+      {
+        "component": "T",
+        "recomputed_delta": "97.8487188494160",
+        "sum_of_object_deltas": "97.848718849415986",
+        "recomputed_tolerance": "4.178802470892179",
+        "absolute_delta_over_limit": "23.41549272333161732758110507",
+        "published_within_tolerance": false
+      },
+      {
+        "component": "M2",
+        "recomputed_delta": "-4.9779782350128",
+        "sum_of_object_deltas": "-4.9779782350128346",
+        "recomputed_tolerance": "3.285643693015542",
+        "absolute_delta_over_limit": "1.515069404998094780116962491",
+        "published_within_tolerance": false
+      },
+      {
+        "component": "M3",
+        "recomputed_delta": "-219.53327880254562",
+        "sum_of_object_deltas": "-219.533278802545652",
+        "recomputed_tolerance": "2.754925032793108",
+        "absolute_delta_over_limit": "79.68756905881015330616270539",
+        "published_within_tolerance": false
+      }
+    ],
+    "w22_m3_share_of_total_change_percent": "88.50451129172962769428745248",
+    "w22_couple_plus_lever_arithmetic_matches": true,
+    "limits": {
+      "private_native_rows_available": false,
+      "reviewer_native_replay": false,
+      "fresh_full_suite": false,
+      "construction_continuity": "UNVERIFIED",
+      "coupled_second_order_method": "UNQUALIFIED",
+      "independent_288_same_solve_integration_not_independent_solver": true
+    },
+    "conclusion": "No concrete blocker found to the recorded first-order equilibrium/resultant milestone. The six-component demand is not mesh-qualified. Mesh sensitivity is not the sole remaining GAP-006/009 condition; construction continuity and coupled-method qualification remain explicit.",
+    "production_or_repository_files_changed_by_reviewer": false,
+    "causal_scope": {
+      "same_physical_auto_lateral_forcing_across_models": "NOT_INDEPENDENTLY_COMPARED_BY_CURRENT_PUBLIC_PREPARATION",
+      "current_checks": [
+        "single pinned deck",
+        "Linear Static scale1",
+        "named TSC-2018 load pattern",
+        "single tower and story roster",
+        "no direct auto story load inside retained strip",
+        "per-level completed status and archive/model identity"
+      ],
+      "missing_paired_control": [
+        "native total/base shear",
+        "story and joint distribution with torque/application centre",
+        "any period-dependent load scaling basis"
+      ],
+      "interpretation": "Measured two-model difference is valid; an exclusively discretization-based cause has not been isolated. Compare physical load functionals across differing DOFs, not literal equality of nodal vectors.",
+      "both_horizontal_and_vertical_pitches_changed": true
+    }
+  },
+  "c29_capacity_review": {
+    "recorded_at_utc": "2026-11-22T06:04:08.857139+00:00",
+    "reviewed_commit": "a89f70f01d39bd2c88cdbcea3efb7292ff7c7f01",
+    "repository": "feridunfc/YENI",
+    "working_branch": "work/c104-transition-review-20261122",
+    "working_status_at_execution": "",
+    "review_disposition": "RECORDED_24_FACE_SELECTED_C29_SUBSCOPE_SUPPORTED_NO_CONCRETE_BLOCKER_FOUND",
+    "review_type": "Published evidence/source identity and independent summary arithmetic; not private oracle or native replay.",
+    "command_argv": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+      "-B",
+      "/workspace/scratch/3fb33a0b2afa/c104_review_20261122/analysis/reproduce_capacity_review.py"
+    ],
+    "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "source_sha256": {
+      "docs/VERIFICATION_LEDGER.json": "4564ddea2042b26dee6df79d1039a31433fa1e4830e6f9a300fc3f9d6fee72a5",
+      "docs/ENGINEERING_GAPS.yaml": "d22ccc846ef835565239ee781ef2c55eb6c9b317f25f74c855baa03934465d50",
+      "docs/engineering/C104_TRANSITION_AND_C29_CAPACITY_20261122.md": "56d5dbfb5a8a25ae02e304ee3db32c47d71ec241a46f3aa2e37779c567b6acc2",
+      "src/tbdy_next/column_engine/section_capacity.py": "e0974a869c85330c4bf782d9a7d8c32e1f4adc71f4553256cb3d440f34389435"
+    },
+    "script_sha256": "101b25cbdd152d89aba6f14cbe995fc43e3fae52605887405f71e40e9d4dc462",
+    "scope_counts": {
+      "expected_faces": 24,
+      "physical_case_cuts": 18,
+      "numerical_faces": 24,
+      "passed": 24,
+      "failed_or_unavailable": 0,
+      "new_faces_from_prior_one": 23,
+      "old_face_reproduced_before_rounding": true
+    },
+    "all_24_unique_face_rows_available": false,
+    "full_face_roster_reverified": false,
+    "published_identity_matches_prior_governing_face": true,
+    "governing_face": {
+      "member": "142",
+      "physical_cut": "I",
+      "station_m": 0.0,
+      "element": "142-1",
+      "side": "UPPER",
+      "combination": "Grav_Ult",
+      "native_first_case": "C29G_U_F"
+    },
+    "max_capacity_difference_face": {
+      "member": "225",
+      "physical_cut": "I",
+      "station_m": 0.0,
+      "element": "225-1",
+      "side": "UPPER",
+      "combination": "Grav_Ult",
+      "native_first_case": "C29G_U_F"
+    },
+    "source_run_and_hash": {
+      "source_run": "RUN-56f3f5ea4a8947dab3c25676c448a81e",
+      "results_sha256": "f592c85aa3451801c6f491e9aa1c1e85dab82fe14f4dec1304e59d1ad6cdc8e3",
+      "s02_run": "RUN-90175fcafc26485f9ff72179346e7263"
+    },
+    "private_oracle_log_sha256": "3e5cd9361b889400502be143931eecb8fe56d1bef50e4c9be27aca8ad9280e3a",
+    "private_oracle_code_sha256": "082e8cd00ce305d2dd2ce63c995b041e4a24c68cad3b686b07d755d764dc6f78",
+    "private_artifacts_available": {
+      ".receipts/verification/s06-c29-all-faces-20261122/all-faces.json": false,
+      ".receipts/verification/s06-c29-all-faces-20261122/check_all_faces.py": false,
+      ".receipts/verification/c104-transition-20261122/tested-files.json": false,
+      ".receipts/verification/c104-transition-20261122/tests.log": false
+    },
+    "budget_checks": [
+      {
+        "quantity": "capacity_difference_knm",
+        "published_maximum": "0.00047127115635703376",
+        "published_budget": "0.01",
+        "maximum_over_budget": "0.047127115635703376",
+        "within_budget": true
+      },
+      {
+        "quantity": "capacity_difference_relative",
+        "published_maximum": "3.1041994405997285e-07",
+        "published_budget": "0.00001",
+        "maximum_over_budget": "0.031041994405997285",
+        "within_budget": true
+      },
+      {
+        "quantity": "last_spatial_change_knm",
+        "published_maximum": "0.001411240637253286",
+        "published_budget": "0.01",
+        "maximum_over_budget": "0.1411240637253286",
+        "within_budget": true
+      },
+      {
+        "quantity": "same_grid_angular_root_change_knm",
+        "published_maximum": "3.433342499192804e-11",
+        "published_budget": "0.000001",
+        "maximum_over_budget": "0.00003433342499192804",
+        "within_budget": true
+      },
+      {
+        "quantity": "signed_axial_residual_n",
+        "published_maximum": "9.988434612751007e-08",
+        "published_budget": "0.001",
+        "maximum_over_budget": "0.00009988434612751007",
+        "within_budget": true
+      },
+      {
+        "quantity": "perpendicular_residual_nmm",
+        "published_maximum": "9.632110595703125e-05",
+        "published_budget": "0.001",
+        "maximum_over_budget": "0.09632110595703125",
+        "within_budget": true
+      },
+      {
+        "quantity": "opposite_ray_symmetry_knm",
+        "published_maximum": "1.7053025658242404e-11",
+        "published_budget": "0.000001",
+        "maximum_over_budget": "0.000017053025658242404",
+        "within_budget": true
+      }
+    ],
+    "governing_utilization_arithmetic": {
+      "origin_record": "EV-S06-C29-FIXED-N-ONE-FACE-20261122",
+      "m2_m3_knm": [
+        240.56604162576903,
+        87.66321064811387
+      ],
+      "moment_norm_knm": "256.0407367678565766513430993394696761371715331145955963375473338343821",
+      "independent_radial_capacity_knm": "1450.8770407730078",
+      "recomputed_utilization": "0.1764730777126651001999775377912834567977687819768360972015613475942917",
+      "recorded_utilization": "0.1764730777126651",
+      "difference": "1.999775377912834567977687819768360972015613475942917E-19",
+      "scope": "Arithmetic identity using an already recorded capacity; not an independent section-capacity solution."
+    },
+    "six_document_percent_checks": [
+      {
+        "member": "225",
+        "case": "Grav_Ult",
+        "printed_independent_percent": "12.794845",
+        "recorded_production_percent": "12.7948407704078700",
+        "difference_percentage_points": "0.0000042295921300",
+        "allowance_for_reported_max_difference_and_display_rounding": "0.00000556245139697547600",
+        "consistent_with_published_summary": true
+      },
+      {
+        "member": "225",
+        "case": "Grav_TempNeg",
+        "printed_independent_percent": "9.734882",
+        "recorded_production_percent": "9.73487979488433200",
+        "difference_percentage_points": "0.00000220511566800",
+        "allowance_for_reported_max_difference_and_display_rounding": "0.00000556245139697547600",
+        "consistent_with_published_summary": true
+      },
+      {
+        "member": "225",
+        "case": "Grav_TempPos",
+        "printed_independent_percent": "9.590256",
+        "recorded_production_percent": "9.59025385368192800",
+        "difference_percentage_points": "0.00000214631807200",
+        "allowance_for_reported_max_difference_and_display_rounding": "0.00000556245139697547600",
+        "consistent_with_published_summary": true
+      },
+      {
+        "member": "142",
+        "case": "Grav_Ult",
+        "printed_independent_percent": "17.647308",
+        "recorded_production_percent": "17.64730270881511300",
+        "difference_percentage_points": "0.00000529118488700",
+        "allowance_for_reported_max_difference_and_display_rounding": "0.00000556245139697547600",
+        "consistent_with_published_summary": true
+      },
+      {
+        "member": "142",
+        "case": "Grav_TempNeg",
+        "printed_independent_percent": "13.621418",
+        "recorded_production_percent": "13.6214160817341300",
+        "difference_percentage_points": "0.0000019182658700",
+        "allowance_for_reported_max_difference_and_display_rounding": "0.00000556245139697547600",
+        "consistent_with_published_summary": true
+      },
+      {
+        "member": "142",
+        "case": "Grav_TempPos",
+        "printed_independent_percent": "13.746236",
+        "recorded_production_percent": "13.7462344739079300",
+        "difference_percentage_points": "0.0000015260920700",
+        "allowance_for_reported_max_difference_and_display_rounding": "0.00000556245139697547600",
+        "consistent_with_published_summary": true
+      }
+    ],
+    "test_record_consistency": {
+      "record": "EV-WINDOWS-C104-TRANSITION-20261122",
+      "python_total": 1705,
+      "python_passed": 1704,
+      "python_skipped": 1,
+      "javascript_files": 11,
+      "tested_commit": "983571a2920fc4698c6b390d27964bae28c13bb2",
+      "tested_tree": "5fd95144dd613d1920e181aff5ef58002c962a18",
+      "tested_tree_matches_commit": true,
+      "code_tests_tools_diff_to_reviewed_commit": "",
+      "private_tested_manifest_sha256": "1ab6fe57f0c55f9dfed5e3c84bc790f5c26b1ca62d999930bf639abf6ef94a87",
+      "private_log_sha256": "e71b8e17ea557642498494b67c9019ef8d581edaf4337b844de4f3129c2d104d",
+      "dirty_tree_manifest_reverified": false,
+      "full_suite_rerun_by_this_review": false
+    },
+    "production_kernel_changed_since_previous_review": false,
+    "reported_independent_method": "Independent rectangle/partial bar disk integration, axial equilibrium bisection and directional capacity root using the same selected bars and constitutive law; extended from previous one-face record.",
+    "oracle_implementation_independence_reverified_from_private_code": false,
+    "completed_scope": "Two selected C29 cages, three gravity combinations, 18 physical case-cuts and 24 element faces at their signed fixed-N/direction demands.",
+    "remaining_scope": [
+      "Axial limit and broader section/material/angle domains",
+      "Other columns/cases and complete independent design chain",
+      "Construction reinforcement, anchorage and detailing",
+      "Normative acceptance and whole-building release"
+    ],
+    "gap010_status": "PARTIAL",
+    "gap011_status": "PARTIAL",
+    "gap016_status": "PARTIAL",
+    "engineering_release_granted": false,
+    "c29_r14_conditional": [
+      2,
+      87
+    ],
+    "production_files_changed": false,
+    "production_capacity_solver_called": false,
+    "live_etabs": "NOT_RUN",
+    "private_capacity_replay": "NOT_RUN",
+    "full_regression": "NOT_RUN"
+  },
+  "portable_focused_test_repeat": {
+    "cwd": "repository root",
+    "environment": {
+      "PYTHONPATH": "src:tests"
+    },
+    "argv": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "-v",
+      "test_coupled_wall_transition",
+      "test_gravity_story_basis",
+      "test_pipeline_unification.LiveGatesAndCli.test_acknowledgement_report_and_html_share_one_gate_projection",
+      "test_pipeline_unification.LiveGatesAndCli.test_new_report_reads_sealed_design_results_without_running_design_solvers"
+    ],
+    "execution_note": "The recorded run used the separate inspection harness at the absolute argv in c104_review. This portable equivalent selects the same existing 14 tests; it is not an additional run."
+  },
+  "review_workpaper_hashes": {
+    "c104_review_evidence.json": "66c14cb6ace55248522a2e7be846923f96b38357205c41d943f8a458ceac1e5d",
+    "c29_capacity24_review.json": "6cbdd66d71031c98c559e9808fd954d30ed33650c462edd0f626e2cf2e14effb",
+    "w22_transfer_recipe.json": "a488ab3cb8dcb7103a6b81595af679e3cd869634e16289e08f329c60603daffa",
+    "run_c104_review.py": "2f48dd8223398d69c3ec43b0d848e254546bd30811b206d90b3646906e4aeed4",
+    "reproduce_capacity_review.py": "101b25cbdd152d89aba6f14cbe995fc43e3fae52605887405f71e40e9d4dc462",
+    "focused_tests.log": "fd16bdecb99db6eb5421e9f9c70264da6f3849c0591b1efbdb44ed8bd44b7803"
+  },
+  "primary_sources": [
+    {
+      "id": "P1",
+      "title": "Auto Edge Constraints",
+      "url": "https://docs.csiamerica.com/help-files/etabs/Menus/Assign/Shell/Auto_Edge_Constraints.htm",
+      "supports": "Nonmatching edge connection, intermediate-to-corner force transfer; does not prove actual assignment."
+    },
+    {
+      "id": "P2",
+      "title": "AreaJointForceShell",
+      "url": "https://docs.csiamerica.com/help-files/etabs-api-2016/html/e6826614-bf6b-d3cd-a0e5-5d70e06cbc07.htm",
+      "supports": "Element point-local force/couple and case/state fields; documentation API version 2016, bind actual ETABS 23.2 return semantics."
+    },
+    {
+      "id": "P3",
+      "title": "Section cut FAQ",
+      "url": "https://web.wiki.csiamerica.com/wiki/spaces/kb/pages/2004950/Section%2Bcut%2BFAQ",
+      "supports": "Cut-side/group/free-body semantics; some specific cutting-plane descriptions are SAP2000-specific."
+    },
+    {
+      "id": "P4",
+      "title": "Shell Forces/Stresses Form",
+      "url": "https://docs.csiamerica.com/help-files/etabs/Menus/Display/Show_Member_Force_and_Stress_Diagrams/Shell_Forces_Stresses_Form.htm",
+      "supports": "Forces per length versus discrete actions, averaging and display dependence."
+    }
+  ],
+  "next_plan": "docs/supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json",
+  "private_artifact_policy": "No private native rows, model, image, oracle implementation or full Windows log copied to this bundle. Published record locators/hashes are identity evidence only.",
+  "production_files_changed": false,
+  "new_full_suite": false,
+  "new_native_solve": false,
+  "engineering_release_granted": false
+}
