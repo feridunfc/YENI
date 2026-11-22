@@ -4,6 +4,7 @@ from collections import Counter
 from ..etabs_geometry import SLAB_PROPERTIES
 from .confinement_regions import frame_confinement
 from .wall_boundary import wall_boundaries
+from .wall_section import wall_sections
 
 
 def _inventory(table, key):
@@ -118,6 +119,7 @@ def building_results(source, stages, evidence):
     assignments = _inventory(section_table.get("Area Assignments - Section Properties"), "UniqueName")
     walls = None if assignments is None else {uid: row for uid, row in assignments.items() if row["PropType"] == "Wall"}
     boundaries = wall_boundaries(source, stages, evidence, walls)
+    pier_design = wall_sections(source, stages, boundaries)
     for family, population, title in (("columns", column_count, "Column confinement schedules"),
                                       ("beams", beam_count, "Beam confinement schedules on model cuts")):
         rows = detailing[family]
@@ -136,8 +138,17 @@ def building_results(source, stages, evidence):
     add("Wall objects with proposed boundary hoops and crossties", areas["wall"],
         sum(r.get("cage_status") == "CONDITIONAL_TRANSVERSE_CAGE_CALCULATED" for r in boundaries["walls"]),
         "Two directions at both ends, TBDY 7.6.5.2")
+    gravity_status = ("NUMERICAL_EXCEEDANCE" if pier_design["gravity_exceedances"] else "GRAVITY_CUTS_CALCULATED"
+                      if pier_design["expected_gravity"] and pier_design["expected_gravity"] == pier_design["evaluated_gravity"]
+                      else pier_design["source_reason"] or "SIGNED_CASE_OR_PIER_SECTION_INCOMPLETE")
+    add("Pier gravity PMM and in-plane shear on rectangular stacks", pier_design["expected_gravity"],
+        pier_design["evaluated_gravity"], gravity_status)
+    add("Wall in-plane seismic shear upper bounds", pier_design["expected_shear_bounds"],
+        pier_design["evaluated_shear_bounds"], f"{pier_design['satisfied_shear_bounds']} below both resistance limits")
+    add("Assigned seismic pier design on rectangular stacks", pier_design["expected_seismic"],
+        pier_design["evaluated_seismic_design"], pier_design["seismic_design_reason"])
     for name, population, reason in (
-            ("Wall and pier reinforcement", areas["wall"], "Wall section design and detailing owner required"),
+            ("Wall and pier reinforcement", areas["wall"], "Full seismic wall design and reinforcement detailing"),
             ("Diaphragm collectors and chords", areas["diaphragm"], "Force path and design resistance required"),
             ("Slab flexure and punching", areas["slab"], "Slab design-strip and punching calculations required"),
             ("Mat contact and reinforced concrete design", areas["mat"], "Soil contact and mat design required"),
@@ -148,4 +159,5 @@ def building_results(source, stages, evidence):
             "column_status_counts": dict(states), "columns": column_rows, "storeys": storeys,
             "beam_count": beam_count, "beam_status_counts": dict(beam_counts), "governing_beam": governing,
             "area_population": areas, "frame_confinement": detailing, "wall_boundaries": boundaries,
+            "wall_sections": pier_design,
             "engineering_release": "NOT_READY"}

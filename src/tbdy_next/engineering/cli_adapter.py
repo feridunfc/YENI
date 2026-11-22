@@ -62,6 +62,7 @@ def _run_pipeline_replay(args) -> int:
     prepared = prepare_pipeline_source(raw, source_directory=args.source.parent, request=request,
                                        selection_overrides=overrides or None,
                                        whole_building=getattr(args, "whole_building", False),
+                                       pier_forces=_read(args.pier_forces) if getattr(args, "pier_forces", None) else None,
                                        wall_hinge_aggregate_storeys=getattr(args, "wall_hinge_aggregate_storey", None))
     raw, payload = prepared.raw, prepared.payload
     scenario = validate_design_scenario(payload)
@@ -93,6 +94,10 @@ def _run_pipeline_replay(args) -> int:
     if building:
         summary["building_design"] = {k: building[k] for k in
             ("column_count", "column_status_counts", "beam_count", "beam_status_counts", "storeys", "area_population")}
+        if building.get("wall_sections"):
+            summary["building_design"]["pier_checks"] = {k: building["wall_sections"][k] for k in
+                ("basis", "expected_gravity", "evaluated_gravity", "gravity_exceedances",
+                 "expected_shear_bounds", "evaluated_shear_bounds", "satisfied_shear_bounds")}
         summary["report_path"] = str(run.root / "report.html")
     print(json.dumps(summary, ensure_ascii=False, indent=2))
     return 0 if summary.get("compare", {}).get("status", "IDENTICAL") == "IDENTICAL" else 3

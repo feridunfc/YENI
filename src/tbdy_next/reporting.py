@@ -1206,6 +1206,44 @@ def _confinement_tables(building):
     section.extend(["<details><summary>Wall object coverage</summary>",
                     _table((("story", "Storey"), ("label", "Wall"), ("member_id", "ETABS ID"), ("pier", "Pier"),
                             ("status", "Boundary result"), ("reason", "Open input")), wall.get("walls", [])), "</details>"])
+    piers = building.get("wall_sections")
+    if piers:
+        section.extend(["<h3>Pier section design</h3><p>Signed gravity demand · ",
+                        _val(piers.get("basis") or piers.get("source_reason")), " · ",
+                        _val(piers["evaluated_gravity"]), " / ", _val(piers["expected_gravity"]),
+                        " cut combinations. Seismic design · ", _val(piers["evaluated_seismic_design"]),
+                        " / ", _val(piers["expected_seismic"]), ". Native seismic component envelopes · ",
+                        _val(piers["observed_seismic_envelopes"]), ".</p>"])
+        details = [{"pier": p["pier"], **(p.get("reinforcement") or {}), "reason": p.get("cage_reason")}
+                   for p in piers["piers"]]
+        section.append(_table((("pier", "Pier"), ("boundary_bars_per_end", "Ø14 per end"),
+            ("web_bar_diameter_mm", "Web Ø (mm)"), ("web_stations_per_face", "Vertical bars per web face"),
+            ("web_vertical_pitch_mm", "Vertical bars at (mm)"), ("web_horizontal_pitch_mm", "Horizontal bars at (mm)"),
+            ("steel_area_mm2", "Full vertical steel (mm²)"), ("vr_kn", "In-plane Vr (kN)"), ("reason", "Open input")), details))
+        rows = [{"pier": p["pier"], **r, **(r.get("forces_kn_knm") or {})}
+                for p in piers["piers"] for r in p["gravity_rows"]]
+        section.extend(["<details><summary>Signed pier section results</summary>",
+            _table((("pier", "Pier"), ("member", "Wall ID"), ("story", "Storey"), ("face", "End"),
+                    ("combination", "Combination"), ("output_case", "ETABS output"), ("step", "State"),
+                    ("compression_kn", "N, compression positive (kN)"), ("M2", "M2 (kN·m)"), ("M3", "M3 (kN·m)"),
+                    ("radial_capacity_knm", "Capacity at N (kN·m)"), ("pmm_ratio", "PMM utilization"),
+                    ("V2", "V2 (kN)"), ("v2_over_vr", "|V2| / Vr"), ("status", "Result"), ("reason", "Open input")),
+                   rows), "</details>"])
+        shear = []
+        for p in piers["piers"]:
+            for r in p.get("seismic_shear", []):
+                bounds = r.get("branches", {})
+                shear.append({"pier": p["pier"], **r, "solid_kn": bounds.get("solid", {}).get("ve_upper_kn"),
+                              "coupled_kn": bounds.get("coupled", {}).get("ve_upper_kn")})
+        section.extend(["<h4>In-plane seismic shear</h4><p>", _val(piers.get("satisfied_shear_bounds")),
+            " / ", _val(piers.get("expected_shear_bounds")), " cut combinations satisfy the upper bound for both wall types. ",
+            "The amplified native horizontal response is used once. Both treatments of the vertical earthquake term are included.</p>",
+            "<details><summary>Seismic shear by wall end and assigned combination</summary>",
+            _table((("pier", "Pier"), ("story", "Storey"), ("member", "Wall ID"), ("face", "End"),
+                    ("combination", "ETABS wall assignment"), ("control_combination", "Amplified control"), ("d", "D"),
+                    ("solid_kn", "Solid wall upper Ve (kN)"), ("coupled_kn", "Coupled wall upper Ve (kN)"),
+                    ("upper_utilization", "Governing upper ratio"), ("status", "Outcome"), ("reason", "Open input")), shear),
+            "</details>"])
     return "".join(section)
 
 

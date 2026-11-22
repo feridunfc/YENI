@@ -144,7 +144,7 @@ def wall_boundaries(source, stages, evidence, wall_inventory):
     result = {"walls": list(rows.values()), "piers": [],
               "scope": "Rectangular in-web end zones, high ductility. The proposal retains the critical width, "
                        "longitudinal bars and transverse steel over the entire stack. Cover and tie steel are a design proposal. "
-                       "Wall flexure, shear demand, end-column interaction, anchorage and construction fit remain open."}
+                       "Signed section demands are evaluated in the pier section results. Anchorage and construction fit require detailing."}
     record = source.get("analysis_archive") or {}
     matched = (stages.get("analysis_setup_reconciliation") or {}).get("archived_analysis_order") or {}
     if matched.get("status") != "ARCHIVED_SOLVER_FIRST_ORDER_MATCHED" or not rows:

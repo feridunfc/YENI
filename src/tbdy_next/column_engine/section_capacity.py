@@ -340,6 +340,34 @@ def _direction_root(section, target_n, u2, u3, ray):
         return result
 
 
+def _refine_crossing(section, axial, u2, u3, hit):
+    """Refine the one crossing isolated by the full-quadrant scans of a long section."""
+    trace = {"capacities_knm": [hit[0]/1e6], "widths_deg": [], "differences_knm": [],
+             "budgets_knm": [], "max_axial_residual_n": 0.0}
+    stable = 0
+    for _ in range(12):
+        left, right = hit[1]["left"], hit[1]["right"]
+        angle = (left["theta_deg"] + right["theta_deg"]) / 2
+        point, reason = _Curve(section, angle).solve(axial, seed_c=(left["c_mm"] + right["c_mm"])/2)
+        if reason:
+            return None, {**trace, "reason": reason}
+        trace["max_axial_residual_n"] = max(trace["max_axial_residual_n"], abs(point["n_n"] - axial))
+        trial = _radial((left, point, right), u2, u3)
+        if trial is None:
+            return None, {**trace, "reason": "LOCAL_CROSSING_AMBIGUOUS"}
+        difference = abs(trial[0] - hit[0])
+        budget = MOMENT_ABS_TOL_NMM + MOMENT_REL_TOL * max(trial[0], hit[0])
+        trace["capacities_knm"].append(trial[0]/1e6)
+        trace["widths_deg"].append(trial[1]["right"]["theta_deg"] - trial[1]["left"]["theta_deg"])
+        trace["differences_knm"].append(difference/1e6)
+        trace["budgets_knm"].append(budget/1e6)
+        stable = stable + 1 if difference <= budget else 0
+        hit = trial
+        if stable >= 2:
+            return hit, trace
+    return None, {**trace, "reason": "LOCAL_CAPACITY_REFINEMENT_NOT_STABLE"}
+
+
 class RadialSolver:
     def __init__(self, section):
         if not section.symmetric:
@@ -351,7 +379,7 @@ class RadialSolver:
         self.tension = -steel_area*m.fyd
         self.compression = .85*m.fcd*(section.t2*section.t3-steel_area)+steel_area*min(m.fyd,m.es*m.ecu)
 
-    def assess(self, n_n, m2_nmm, m3_nmm):
+    def assess(self, n_n, m2_nmm, m3_nmm, *, refine_crossing=False):
         n, m2, m3 = (number(v,k) for v,k in ((n_n,"N"),(m2_nmm,"M2"),(m3_nmm,"M3")))
         base = {"status": "NUMERIC_UNRESOLVED", "reason": None, "utilization": None,
             "radial_capacity_kNm": None, "axial_range_kN": [self.tension/1000,self.compression/1000],
@@ -394,16 +422,30 @@ class RadialSolver:
                 "status":"OBSERVED_STABLE_AT_BOTH_STEPS" if stable else "OBSERVED_NOT_STABLE"})
             evidence = {**history[-1],"history":history,"max_axial_residual_n":max_residual,"finest_ray":rays[-1][1],
                 "symmetry_used":"VERIFIED_TWO_AXIS_GEOMETRY","continuous_error_bound_proven":False}
+            selected_hit = rays[-1]
             if stable: break
             if counts[-1]>=MAX_ANGLE_COUNT:
-                return {**base,"reason":"ANGULAR_REFINEMENT_NOT_STABLE","refinement":evidence}
+                if not refine_crossing:
+                    return {**base,"reason":"ANGULAR_REFINEMENT_NOT_STABLE","refinement":evidence}
+                selected_hit, trace = _refine_crossing(self.section, n, u2, u3, selected_hit)
+                evidence["local_crossing"] = trace
+                max_residual = max(max_residual, trace["max_axial_residual_n"])
+                if selected_hit is None:
+                    return {**base,"reason":trace["reason"],"refinement":evidence}
+                evidence["status"] = "TWO_LOCAL_REFINEMENTS_STABLE_AFTER_GLOBAL_BRACKETING"
+                evidence["finest_ray"] = selected_hit[1]
+                break
             counts = tuple(2*c for c in counts)
-        root=_direction_root(self.section,n,u2,u3,rays[-1][1])
+        root=_direction_root(self.section,n,u2,u3,selected_hit[1])
         evidence.update(capacity_basis=RADIAL_BASIS,direction_root=root,
             max_axial_residual_n=max(max_residual,root["max_axial_residual_n"]))
         if root["status"]!="MOMENT_DIRECTION_ROOT_RESOLVED":
             return {**base,"reason":root["reason"],"refinement":evidence}
         capacity = root["capacity_nmm"]
+        if "local_crossing" in evidence:
+            budget = MOMENT_ABS_TOL_NMM + MOMENT_REL_TOL * max(capacity, selected_hit[0])
+            if abs(capacity - selected_hit[0]) > budget:
+                return {**base,"reason":"LOCAL_CAPACITY_AND_DIRECTION_ROOT_DIFFER","refinement":evidence}
         evidence.update(selected_capacity_kNm=capacity/1e6,
             coarse_minimum_capacity_kNm=min(capacities)/1e6,
             root_minus_coarse_minimum_kNm=(capacity-min(capacities))/1e6,

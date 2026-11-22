@@ -91,6 +91,7 @@ def main(argv: list[str] | None = None) -> int:
                         help="Run all physical members and building checks, then write the sealed HTML report")
     replay.add_argument("--wall-hinge-aggregate-storey", action="append", metavar="STOREY",
                         help="Adopt a lower wall hinge only in this storey's frame critical-load sum")
+    replay.add_argument("--pier-forces", type=Path, help="Original pier-forces gateway capture for the whole-building run")
     replay.add_argument("--beam-selection", help="'default' or path to JSON beam selection policy")
     replay.add_argument("--column-selection", help="'default' or path to JSON column selection policy")
     args = parser.parse_args(argv)

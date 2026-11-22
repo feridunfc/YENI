@@ -65,6 +65,7 @@ def _execute_and_reply_live_payload(
     selection_overrides: Mapping[str, Any] | None = None,
     scenario_request: Mapping[str, Any] | None = None,
     whole_building: bool = False,
+    pier_forces: Mapping[str, Any] | None = None,
     wall_hinge_aggregate_storeys: list[str] | None = None,
 ) -> None:
     from .engineering.design_scenario import prepare_pipeline_source
@@ -78,6 +79,7 @@ def _execute_and_reply_live_payload(
         prepared = prepare_pipeline_source(raw, source_directory=source_directory,
                                            selection_overrides=selection_overrides, request=scenario_request,
                                            whole_building=whole_building,
+                                           pier_forces=pier_forces,
                                            wall_hinge_aggregate_storeys=wall_hinge_aggregate_storeys)
     except (OSError, ValueError, TypeError, KeyError) as exc:
         handler.reply(422, {"status": "REJECTED", "reason": str(exc), "engineering_release": "NOT_READY"})
@@ -685,6 +687,7 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                     selection_overrides=selection_overrides,
                     scenario_request=scenario_request,
                     whole_building=body.get("whole_building", False),
+                    pier_forces=body.get("pier_forces"),
                     wall_hinge_aggregate_storeys=body.get("wall_hinge_aggregate_storeys"),
                 )
                 return

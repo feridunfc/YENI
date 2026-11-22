@@ -812,6 +812,54 @@ def attach_live(action: str, **kwargs: Any) -> dict[str, Any]:
         comtypes.CoUninitialize()
 
 
+def capture_assigned_pier_forces(sap, process_id, parent, parent_sha):
+    """Read native pier resultants and section properties for the original locked model."""
+    from .column_engine.source_bank import native_frame_force_rows
+    from .frame_force_capture import _catalog_names, capture_frame_forces
+    from .live_etabs import _prepare_etabs_session, _verify_connection
+    from math import isclose
+
+    expected = Path(parent["capture_metadata"]["model_filename"]).with_suffix(".EDB").resolve(strict=True)
+    opened = Path(model_file(sap)).resolve(strict=True)
+    if opened not in (expected, expected.with_suffix(".$et")):
+        raise SourceError(f"Open the solved original {expected}. Active file: {opened}")
+    filename, _, _ = _prepare_etabs_session(sap, process_id)
+    file_sha = sha256(expected.read_bytes()).hexdigest()
+    source = parent["column_axial"]["force_source"]["rowsets"]
+    member = min(source)
+    original = list(native_frame_force_rows(source[member], member))
+    combos = _catalog_names(sap.RespCombo.GetNameList(0, []))
+    wanted = sorted({row[4] for row in original})
+    control = capture_frame_forces(sap, members=(member,), combinations=tuple(wanted))
+    observed = list(native_frame_force_rows(control["rowsets"].get(member, {}), member))
+    archived = {row[:7]: row[7:] for row in original}
+    if (control["errors"] or len(observed) != len(original)
+            or any(row[:7] not in archived or any(not isclose(a, b, rel_tol=1e-8, abs_tol=1e-6)
+                   for a, b in zip(row[7:], archived[row[:7]])) for row in observed)):
+        raise SourceError("PIER_SOLVED_GENERATION_FRAME_CONTROL_MISMATCH")
+    db = sap.DatabaseTables
+    before = selected_combinations(db)
+    try:
+        if set(before) != set(combos):
+            set_combinations(db, combos)
+        if set(selected_combinations(db)) != set(combos):
+            raise SourceError("PIER_COMBINATIONS_NOT_SELECTED")
+        receipt = capture(sap, action="capture", exact=("Pier Forces", "Pier Section Properties",
+                                                        "Area Assignments - Pier Labels"))
+    finally:
+        if set(before) != set(combos):
+            set_combinations(db, before)
+        if selected_combinations(db) != before:
+            raise DisplaySelectionRestoreError("PIER_COMBINATION_DISPLAY_RESTORE_FAILED")
+    _verify_connection(sap, filename, {"model_locked": sap.GetModelIsLocked() is True})
+    if (receipt["status"] != "CAPTURED" or sap.GetPresentUnits() != 6
+            or sha256(expected.read_bytes()).hexdigest() != file_sha):
+        raise SourceError("PIER_TABLES_OR_MODEL_IDENTITY_INCOMPLETE")
+    return seal({"schema": "tbdy.next.original-pier-read.v1", "parent_input_sha256": parent_sha,
+                 "model_sha256": file_sha, "control_member": member, "frame_control": control,
+                 "combinations": list(combos), "tables": receipt})
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__)
     sub = p.add_subparsers(dest="command", required=True)
@@ -825,6 +873,10 @@ def main(argv: list[str] | None = None) -> int:
         q.add_argument("--max-rows", type=int, default=500000)
         q.add_argument("--case", action="append", default=[], help="Select a case temporarily; repeat e.g. Modal RSX RSY")
         q.add_argument("--frame-load-probe", action="store_true", help="Read-only FrameObj.GetLoadDistributed fallback on captured beam objects")
+    q = sub.add_parser("pier-forces", help="Read assigned original-model pier resultants and section properties")
+    q.add_argument("--pid", type=int, required=True)
+    q.add_argument("--source", type=Path, required=True, help="Original archived engine input")
+    q.add_argument("--out", type=Path, required=True)
     q = sub.add_parser("template")
     q.add_argument("--input", type=Path, required=True)
     q.add_argument("--out", type=Path, required=True)
@@ -833,7 +885,13 @@ def main(argv: list[str] | None = None) -> int:
     q.add_argument("--map", type=Path, required=True)
     q.add_argument("--out", type=Path, required=True)
     args = p.parse_args(argv)
-    if args.command == "template":
+    if args.command == "pier-forces":
+        from .live_etabs import _with_etabs
+        raw = args.source.read_bytes()
+        parent = json.loads(raw)
+        data = _with_etabs(args.pid, lambda sap: capture_assigned_pier_forces(
+            sap, args.pid, parent, sha256(raw).hexdigest()))
+    elif args.command == "template":
         data = make_template(read_json(args.input))
     elif args.command == "bind":
         data = bind(read_json(args.input), read_json(args.map))
