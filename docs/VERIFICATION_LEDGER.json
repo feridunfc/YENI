@@ -19,20 +19,20 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "ORIGINAL_BUILDING_14_OF_87_CONDITIONAL_R14_DESIGNS",
-    "work_branch": "work/standalone-column-design-slice",
+    "status": "ORIGINAL_BUILDING_26_OF_87_CONDITIONAL_R14_DESIGNS",
+    "work_branch": "work/frame-storey-continuation",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "b7abf93485eb1bfe3cb8502a16ff99c9b07f29c9",
-    "tested_implementation_commit": "8de2babba76ee04533af80bc642aafd488f9194c",
+    "inspected_base_commit": "3b6e860fda343186cd39e0328062d436ce87f85f",
+    "tested_implementation_commit": "00fc7beace017de182f95b761bb5ab3c849475d9",
     "evidence_refs": [
-      "EV-FRAME-STORY-PLUS450-R14-20261122",
-      "EV-WINDOWS-FRAME-STORY-PLUS450-20261122"
+      "EV-ORIGINAL-FRAME-STORY-26-R14-20261122",
+      "EV-WINDOWS-FRAME-STORY-26-20261122"
     ],
-    "production_run_id": "RUN-47067d0f1896415ba5ffc8e61031a024",
-    "results_sha256": "957a5dae5782d9840464d76082cd84bc21be9cf81363ed34e43248aa38bd45bb",
-    "report": "docs/engineering/FRAME_STORY_DESIGN_SLICE_20261122.md",
+    "production_run_id": "RUN-2e424431e3ff491087e2359543e9c9dc",
+    "results_sha256": "41c8487e69daec322e12705c7f1a0ad9cccbbf24965c17b7851d3e5402ddb903",
+    "report": "docs/engineering/FRAME_DESIGN_MIDDLE_AND_UPPER_20261122.md",
     "engineering_release": "NOT_READY",
-    "next_action": "Finish the other five standalone frame columns at +4.50 m (C1, C2, C5, C77 and C78) using the 14-column run and the same-storey anchor 142. Then use the 23-column original +9.00 m storey to derive its own assigned compression, directional critical loads and support conditions before its member designs. Retain original-building R14 coverage out of 87, the five wall-supported C20–C37 rows, and the separate C104 coupled-wall study."
+    "next_action": "Use the sealed 26-column run and upper-storey anchor C22/57 for +9.00 m C27 through C37. Keep all 23 upper-storey frame contributors, both physical ends and all eleven assigned combinations. Track end-to-end member coverage out of the original 87. Keep wall-supported lower ends and the coupled wall–frame study separate."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
@@ -9039,6 +9039,250 @@
       "public_reference_paths": [
         "docs/engineering/FRAME_STORY_DESIGN_SLICE_20261122.md"
       ]
+    },
+    {
+      "id": "EV-ORIGINAL-FRAME-STORY-26-R14-20261122",
+      "observed_at": "2026-11-22T12:44:35.637030+00:00",
+      "implementation_commit": "00fc7beace017de182f95b761bb5ab3c849475d9",
+      "inspected_base_commit": "3b6e860fda343186cd39e0328062d436ce87f85f",
+      "dirty_worktree": true,
+      "untracked_code_included": false,
+      "tested_file_manifest_sha256": "e8d4642ffb2efe0eb1e9247d54077efbb359fa0d79f205b4b0f95b8019252ba7",
+      "diff_sha256": "916078a51f978610e9eb5160ed7cc33fcd35f349161e72d95bf148c169c50f87",
+      "engineering_release_granted": false,
+      "status": "12_NEW_CONDITIONAL_R14_COLUMN_DESIGNS_ON_TWO_STOREYS",
+      "scope": "Five remaining supported original frame columns at +4.50 m and upper-storey C20–C26 from its own 23 frame contributors.",
+      "prior_run": {
+        "run": "RUN-47067d0f1896415ba5ffc8e61031a024",
+        "input_sha256": "07efbb3a4334db8ff490e79ddcbadeec6698187e746cbfcba59f0ab23d8d1007",
+        "results_sha256": "957a5dae5782d9840464d76082cd84bc21be9cf81363ed34e43248aa38bd45bb",
+        "closed": 14,
+        "failures": 0,
+        "partial": 73,
+        "by_story": {
+          "+0.00": 1,
+          "+4.50": 13
+        }
+      },
+      "parent_input_sha256": "703e202fc8b08f60043c571d9970945b6307e5cee99e8a45e6377c8446da56fc",
+      "runs": {
+        "middle": {
+          "run": "RUN-81c4226a75aa44cb8c1612672bca211d",
+          "input_sha256": "6828729ee7b402d5c9bd47dcf64fecabfb3aa27c96caff3583cb5686a3502008",
+          "results_sha256": "fd00834bb7b832bc3b6c1d80294a0a7c51f8616315667cca30def40ac9544de6",
+          "closed": 19,
+          "failures": 0,
+          "partial": 68,
+          "by_story": {
+            "+0.00": 1,
+            "+4.50": 18
+          },
+          "new": [
+            "152",
+            "153",
+            "154",
+            "155",
+            "156"
+          ],
+          "missing": [],
+          "snapshot_sha256": "ef74a017d43d41f1d3f127131d2ddef545d75c2132dcefbb4db83a2499d00dee",
+          "scenario_sha256": "de39f7d04c2ac897230e035b406f838cf65cd64ad0f8a440cf5a21e870737e3e"
+        },
+        "upper": {
+          "run": "RUN-2e424431e3ff491087e2359543e9c9dc",
+          "input_sha256": "0ebc6777b93bbf686475a19c8ee63f279a84bdf883a9391fa64b867c1f6a1eb9",
+          "results_sha256": "41c8487e69daec322e12705c7f1a0ad9cccbbf24965c17b7851d3e5402ddb903",
+          "closed": 26,
+          "failures": 0,
+          "partial": 61,
+          "by_story": {
+            "+0.00": 1,
+            "+4.50": 18,
+            "+9.00": 7
+          },
+          "new": [
+            "55",
+            "56",
+            "57",
+            "58",
+            "59",
+            "60",
+            "61"
+          ],
+          "missing": [],
+          "snapshot_sha256": "ae8c8f37aaca94b5232a80e57188c08c53768c8d7483ee22b6f142a9cd8efcc6",
+          "scenario_sha256": "75c509b20795387ce442f8effccdf643830dfe8e01a90603393cdf2b8e99253f"
+        }
+      },
+      "counts": {
+        "cages": 12,
+        "member_axes": 24,
+        "assigned_seismic_axial": 96,
+        "assigned_all_axial": 132,
+        "gravity_factors": 72,
+        "signed_gravity_pmm": 108,
+        "envelope_cuts": 288,
+        "static_shear": 72,
+        "spectral_shear": 192
+      },
+      "unique_connected_beams": 55,
+      "joint_panel_dispositions": {
+        "CONSERVATIVE_ZERO_VKOL_INCOMPLETE_SEISMIC_SHEAR": 34,
+        "ROOF_JOINT_NO_UPPER_COLUMN_VKOL_ZERO": 14
+      },
+      "scwb_applicability": {
+        "EXEMPT_LOW_AXIAL": 34,
+        "COLUMN_DOES_NOT_CONTINUE_ABOVE_7_3_5_3_B": 14
+      },
+      "storey_heads": {
+        "+4.50": {
+          "contributors": 32,
+          "gravity_ultimate_compression_kn": 36250.28827689361,
+          "critical_loads_kn": {
+            "X": 777505.5611556392,
+            "Y": 799874.5706315491
+          },
+          "gravity_ultimate_sway_factors": {
+            "X": 1.0645217047747677,
+            "Y": 1.0626043508494174
+          }
+        },
+        "+9.00": {
+          "contributors": 23,
+          "gravity_ultimate_compression_kn": 17537.480693274993,
+          "critical_loads_kn": {
+            "X": 775726.9491156979,
+            "Y": 787291.2160563077
+          },
+          "gravity_ultimate_sway_factors": {
+            "X": 1.03028007739389,
+            "Y": 1.0298220390193913
+          }
+        }
+      },
+      "independent_fixed_n_sections": {
+        "+4.50": {
+          "member": "153",
+          "label": "C2",
+          "case": "Grav_Ult",
+          "station_m": 0.0,
+          "local_nd_kn": 1631.4307675694445,
+          "coefficient_nmax_kn": 1631.4307675694445,
+          "m2_m3_knm": [
+            488.7237448637694,
+            68.16619749376896
+          ],
+          "sealed_capacity_knm": 1384.9707390461058,
+          "independent_capacity_knm": 1384.9705631897189,
+          "difference_knm": -0.00017585638693162764,
+          "last_refinement_knm": 0.00022577707136406389,
+          "signed_utilization": 0.3562925008129097,
+          "independent_utilization": 0.35629254605308563,
+          "cage": "32Φ16",
+          "tie": "Φ10/90",
+          "capacity_tolerance_knm": 0.01
+        },
+        "+9.00": {
+          "member": "57",
+          "label": "C22",
+          "case": "Grav_Ult",
+          "station_m": 3.8,
+          "local_nd_kn": 802.8200591095145,
+          "coefficient_nmax_kn": 887.9149282807147,
+          "m2_m3_knm": [
+            524.4715204065509,
+            -32.413228811370814
+          ],
+          "sealed_capacity_knm": 1194.3215186007553,
+          "independent_capacity_knm": 1194.3214561635673,
+          "difference_knm": -6.243718803489173e-05,
+          "last_refinement_knm": 4.603126922120282e-05,
+          "signed_utilization": 0.4399754621303427,
+          "independent_utilization": 0.43997548513154594,
+          "cage": "32Φ16",
+          "tie": "Φ10/90",
+          "capacity_tolerance_knm": 0.01
+        }
+      },
+      "private_directory": ".receipts/verification/frame-storey-continuation-20261122",
+      "private_assets_sha256": {
+        "numerical.json": "49cdf67c128e04fad44db622ac6df71111e2a9af30a96db9799231fa1bff25c5",
+        "independent-stories.json": "4310742eb550a26be9245e5571769ac453634fdce8c27d47fc8443bb3783596b",
+        "section-controls.json": "40ac7a71e3ae3237a893ea218c65a25bac465ab2b9af8055cee878e0bae48be3",
+        "columns.html": "e98ff6820af4f9907ba46f754933f9e96e912f516acd873f4e46520e8c3aec87"
+      },
+      "command_reference": "docs/engineering/FRAME_DESIGN_MIDDLE_AND_UPPER_20261122.md#replay-and-next-members",
+      "commands": [
+        "prepare_frame_story_slice.py --from-run <14-column run> --anchor 142 --story +4.50 --columns C1 C2 C5 C77 C78",
+        "prepare_frame_story_slice.py --from-run <19-column run> --anchor 142 --story +9.00 --derive-storey --columns C20 C21 C22 C23 C24 C25 C26",
+        "python -B -m tbdy_next.cli run-pipeline --source <parent.source> --design-scenario <prepared request> --case Modal --out <directory>"
+      ],
+      "limits": "Frame-only storey stability, assumed Rm and web stiffness, nonconcurrent spectral bounds, conditional joint shear deduction and construction anchorage. The roof column termination and low-axial exemptions are counted separately.",
+      "public_reference_paths": [
+        "docs/engineering/FRAME_DESIGN_MIDDLE_AND_UPPER_20261122.md",
+        "tools/prepare_frame_story_slice.py"
+      ],
+      "engineering_release": "NOT_READY"
+    },
+    {
+      "id": "EV-WINDOWS-FRAME-STORY-26-20261122",
+      "observed_at": "2026-11-22T12:44:35.637030+00:00",
+      "implementation_commit": "00fc7beace017de182f95b761bb5ab3c849475d9",
+      "inspected_base_commit": "3b6e860fda343186cd39e0328062d436ce87f85f",
+      "dirty_worktree": true,
+      "untracked_code_included": false,
+      "tested_file_manifest_sha256": "e8d4642ffb2efe0eb1e9247d54077efbb359fa0d79f205b4b0f95b8019252ba7",
+      "diff_sha256": "916078a51f978610e9eb5160ed7cc33fcd35f349161e72d95bf148c169c50f87",
+      "engineering_release_granted": false,
+      "status": "OFFLINE_SOFTWARE_REGRESSIONS=PASS",
+      "exit_code": 0,
+      "scope": "Final Windows suite for the source-derived storey preparation change.",
+      "commands": [
+        "python -X utf8 -B tools/test_offline.py --node \"C:/Program Files/nodejs/node.exe\""
+      ],
+      "environment": {
+        "os": "Windows",
+        "python": "3.12.10",
+        "node": "v26.13.1"
+      },
+      "python": {
+        "ran": 1710,
+        "passed": 1709,
+        "skipped": 1,
+        "skip": "test_wrong_run_and_symlink_cannot_cross_source_boundary (test_vs11_column_bank.ColumnStoreTests.test_wrong_run_and_symlink_cannot_cross_source_boundary) ... skipped 'OS disallows creating symlinks'",
+        "seconds": 441.552,
+        "failures": 0,
+        "errors": 0
+      },
+      "javascript_files": 11,
+      "golden": {
+        "golden_record_count": 44,
+        "classification_counts": {
+          "NUMERICAL_MATCH": 36,
+          "ENGINEERING_INTERPRETATION_DIFFERENCE": 4,
+          "INSUFFICIENT_SOURCE": 4
+        },
+        "acceptance_eligible": false,
+        "engineering_release": "NOT_READY"
+      },
+      "checked_implementation_tree": "23e072901acb0101cfd12303b87ad37ae36839ac",
+      "log_private": ".receipts/verification/frame-storey-continuation-20261122/windows-final.log",
+      "log_sha256": "82ed51c6f662cd2e2a2e366cea07d1ede0f6094d598314396bc995d3e711063e",
+      "real_source_preparation_checks": [
+        "Prior same-storey request reproduced",
+        "Independent 23-column sums matched the seven upper member requests and runner outputs",
+        "Cross-storey reuse without explicit derivation rejected",
+        "Changed donor Nd and Nk each rejected",
+        "Unknown label rejected",
+        "Missing physical end across every assigned case rejected"
+      ],
+      "starting_baseline": {
+        "prior_sprint_head": "3b6e860fda343186cd39e0328062d436ce87f85f",
+        "local_branches_with_identical_historical_trees": 9
+      },
+      "public_reference_paths": [
+        "docs/engineering/FRAME_DESIGN_MIDDLE_AND_UPPER_20261122.md"
+      ]
     }
   ],
   "new_record_template": {
@@ -9063,7 +9307,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-22T12:16:08.425771+00:00",
+  "updated_at_utc": "2026-11-22T12:44:35.637030+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -9781,6 +10025,22 @@
       "report": "docs/engineering/C104_ASSIGNED_DEMAND_AND_W23_20261122.md",
       "engineering_release": "NOT_READY",
       "next_action": "Use the four solved C104 meshes as the baseline for the next comparison. At the D vertical spacing, compare the next horizontal refinement with D at the same four faces for the assigned soil P and V3 and the fixed 456-field population. Check the independent vertical sensitivity of V2. Keep W23 geometry and its constraint fixed in the spacing study. Resolve project basement/mass scope, irregularities and acceleration normalization before adopting an additional spectral factor. Qualify coupled second order and construction continuity separately."
+    },
+    {
+      "status": "ORIGINAL_BUILDING_14_OF_87_CONDITIONAL_R14_DESIGNS",
+      "work_branch": "work/standalone-column-design-slice",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "b7abf93485eb1bfe3cb8502a16ff99c9b07f29c9",
+      "tested_implementation_commit": "8de2babba76ee04533af80bc642aafd488f9194c",
+      "evidence_refs": [
+        "EV-FRAME-STORY-PLUS450-R14-20261122",
+        "EV-WINDOWS-FRAME-STORY-PLUS450-20261122"
+      ],
+      "production_run_id": "RUN-47067d0f1896415ba5ffc8e61031a024",
+      "results_sha256": "957a5dae5782d9840464d76082cd84bc21be9cf81363ed34e43248aa38bd45bb",
+      "report": "docs/engineering/FRAME_STORY_DESIGN_SLICE_20261122.md",
+      "engineering_release": "NOT_READY",
+      "next_action": "Finish the other five standalone frame columns at +4.50 m (C1, C2, C5, C77 and C78) using the 14-column run and the same-storey anchor 142. Then use the 23-column original +9.00 m storey to derive its own assigned compression, directional critical loads and support conditions before its member designs. Retain original-building R14 coverage out of 87, the five wall-supported C20–C37 rows, and the separate C104 coupled-wall study."
     }
   ],
   "remote_audit_correction_checkpoint": {

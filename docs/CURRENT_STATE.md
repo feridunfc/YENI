@@ -1,12 +1,18 @@
 # Original building calculation and local handoff — 2026-11-22
 
-## Original building frame designs at +4.50 m
+## Original frame designs on two storeys
 
-**14 of 87 columns now have an end-to-end conditional R14 design**, up from 2 of 87 on the same original building. Of the 18 physical columns C20–C37 at +4.50 m, 13 reach R14 and five require lower-end wall stiffness. Twelve designs are new. They use 32Φ16 and Φ10/90. Their signed second-order PMM results cover 108/108 gravity cuts and their assigned seismic corner bounds cover 288/288 cuts. All 48 joint–directions satisfy the panel bound. For strong column / weak beam, 40 are exempt for low axial force and eight satisfy the interval check.
+**26 of the original 87 columns now have conditional end-to-end R14 designs.** Five new designs at +4.50 m took the count from 14 to 19. Seven new C20–C26 designs at +9.00 m raised it to 26. Coverage is 1/32 at +0.00 m, 18/32 at +4.50 m and 7/23 at +9.00 m. The twelve members retain 32Φ16 and Φ10/90. Their 108 signed PMM cuts, 288 assigned seismic cut bounds and 48 joint–directions reached numerical results. C22/57 at +9.00 m governs their static PMM at 44.00%.
+
+The upper-storey calculation derives the eleven compression sums and both critical loads from all 23 of its frame columns. The next group is +9.00 m C27–C37. Wall–frame stability, construction details and engineering approval remain open. [Member designs and reproduction](engineering/FRAME_DESIGN_MIDDLE_AND_UPPER_20261122.md)
+
+## Previous +4.50 m frame-design checkpoint
+
+At that checkpoint, **14 of 87 columns had an end-to-end conditional R14 design**, up from 2 of 87 on the same original building. Of the 18 physical columns C20–C37 at +4.50 m, 13 reach R14 and five require lower-end wall stiffness. Twelve designs are new. They use 32Φ16 and Φ10/90. Their signed second-order PMM results cover 108/108 gravity cuts and their assigned seismic corner bounds cover 288/288 cuts. All 48 joint–directions satisfy the panel bound. For strong column / weak beam, 40 are exempt for low axial force and eight satisfy the interval check.
 
 C23 governs the new static PMM at 38.95%. An independent calculation gives 1,373.650116 kN·m radial resistance against 1,373.650349 kN·m in the runner. Across all 87 original columns the assigned axial cap calculations cover 696/696 seismic combinations for TBDY and 957/957 combinations for TS 500. The latter two counts already include the twelve new designs.
 
-The next standalone members on this storey are C1, C2, C5, C77 and C78. The 23 columns at +9.00 m require their own storey inputs. Engineering release remains NOT_READY. [Member results and check counts](engineering/FRAME_STORY_DESIGN_SLICE_20261122.md)
+The five members queued after this checkpoint have since completed at +4.50 m. The +9.00 m storey inputs and its first seven designs are recorded above. Engineering release remains NOT_READY. [Member results and check counts](engineering/FRAME_STORY_DESIGN_SLICE_20261122.md)
 
 ## Prior C104 four-mesh result for the assigned demands
 

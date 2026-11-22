@@ -1,10 +1,16 @@
 # Local development and GitHub worker handoff
 
-## Original building frame designs at +4.50 m
+## Original frame designs on two storeys
 
-Resume the standalone design from `RUN-47067d0f1896415ba5ffc8e61031a024`. Its frozen parent matches the original C29 run. R14 now covers 14/87 columns under the stated frame assumptions. The newly completed members are 134, 135, 136, 137, 140, 141, 143, 146, 147, 148, 149 and 157. C29 members 142 and 225 retain their previous results. [Full population, assumptions, source and reproduction commands](../engineering/FRAME_STORY_DESIGN_SLICE_20261122.md)
+Start the next original-building calculation from `RUN-2e424431e3ff491087e2359543e9c9dc`. R14 now covers 26/87. The completed +4.50 m C1, C2, C5, C77 and C78 and +9.00 m C20–C26 are already in this run. No new live acquisition is required to consume its parent source.
 
-Finish the other five standalone frame columns at +4.50 m (C1, C2, C5, C77 and C78) using the 14-column run and the same-storey anchor 142. Then use the 23-column original +9.00 m storey to derive its own assigned compression, directional critical loads and support conditions before its member designs. Retain original-building R14 coverage out of 87, the five wall-supported C20–C37 rows, and the separate C104 coupled-wall study. The source and selected-cage gates are enforced by the existing runner. A different storey needs its own source-bound sums. Construction anchorage and the full coupled-wall method remain open. The C104 work below remains available when its independent refinement is resumed.
+Use the sealed 26-column run and upper-storey anchor C22/57 for +9.00 m C27 through C37. Keep all 23 upper-storey frame contributors, both physical ends and all eleven assigned combinations. Track end-to-end member coverage out of the original 87. Keep wall-supported lower ends and the coupled wall–frame study separate. The 34 low-axial and 14 terminating-column directions have separate SCWB dispositions. Every direction still has a panel shear and transverse outcome. [Member designs and reproduction](../engineering/FRAME_DESIGN_MIDDLE_AND_UPPER_20261122.md)
+
+## Previous +4.50 m frame-design checkpoint
+
+The preceding checkpoint used `RUN-47067d0f1896415ba5ffc8e61031a024`. Its frozen parent matches the original C29 run. At that checkpoint R14 covered 14/87 columns under the stated frame assumptions. The newly completed members are 134, 135, 136, 137, 140, 141, 143, 146, 147, 148, 149 and 157. C29 members 142 and 225 retain their previous results. [Full population, assumptions, source and reproduction commands](../engineering/FRAME_STORY_DESIGN_SLICE_20261122.md)
+
+The two-storey sprint above completed the five queued middle-storey members and derived the upper storey inputs. The listed wall-supported lower ends and construction anchorage still require separate work. The C104 work below remains available when its independent refinement is resumed.
 
 ## Prior C104 four-mesh result for the assigned demands
 
