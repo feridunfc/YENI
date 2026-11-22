@@ -52,8 +52,8 @@ def prepare_request(parent_raw, request, *, members, combinations, decision_refe
     return result
 
 
-def request_from_run(directory):
-    """Recover the exact request from a finalized existing scenario receipt."""
+def read_scenario_run(directory):
+    """Recover the validated input request and the results that consumed it."""
     raw = (directory / "input.source").read_bytes()
     snapshot = read_snapshot(directory, input_sha=sha256(raw).hexdigest())
     if snapshot is None or snapshot.get("schema") != SNAPSHOT_SCHEMA:
@@ -69,6 +69,11 @@ def request_from_run(directory):
                **{key: payload.get(key) for key in POLICIES},
                **{key: payload[key] for key in CALCULATION_BASES if key in payload}}
     create_design_scenario(parent, request)
+    return parent, request, source, snapshot
+
+
+def request_from_run(directory):
+    parent, request, source, _ = read_scenario_run(directory)
     return parent, request, source
 
 
