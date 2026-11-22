@@ -1,0 +1,83 @@
+{
+  "schema": "yeni.supervisor.worker-checkpoint.v1",
+  "date": "2026-11-22",
+  "inspected_commit": "1a8fa44364adcc1b4160310344f2100de5fbcf4c",
+  "canonical_dated_plan": "docs/supervisor/audit_20261121/WORKER_PLAN.json",
+  "canonical_plan_proposal_preserved": true,
+  "scope": "Current progress overlay on the dated canonical plan; not a new runtime scheduler.",
+  "milestones": [
+    {
+      "id": "S00",
+      "status": "COMPLETED_IN_DEFINED_SCOPE",
+      "evidence": [
+        "EV-S00-NATIVE-C29-IMPACT-20261122",
+        "EV-WINDOWS-S00-S02-20261122"
+      ],
+      "scope": "Three correctness repairs, downstream real-owner gates, receipt indexing, native C29 preservation and Windows regressions."
+    },
+    {
+      "id": "S02",
+      "status": "COMPLETED_IN_DEFINED_SCOPE",
+      "evidence": [
+        "EV-S02-C29-SIGNED-STORY-BALANCE-20261122"
+      ],
+      "scope": "Six signed first-order vertical upper-body balances, 267/267 contributors; full-system wall critical load remains unsupported."
+    },
+    {
+      "id": "S06",
+      "status": "PARTIAL",
+      "evidence": [
+        "EV-S06-C29-FIXED-N-ONE-FACE-20261122"
+      ],
+      "checked_faces": 1,
+      "expected_common_faces": 24,
+      "remaining_faces": 23,
+      "construction_reinforcement_approval": false
+    }
+  ],
+  "current_parallel_lanes": [
+    {
+      "work_packages": [
+        "S01",
+        "S03",
+        "S04"
+      ],
+      "deliverable": "C104/W21/W22 source and continuity basis; six signed combined actions at matching cuts above/below -1.50 m; common-origin transport, intervening-load equilibrium and 50/25 mm component convergence; then qualify a coupled second-order candidate.",
+      "existing_owners": [
+        "src/tbdy_next/engineering/gravity_wall_cut.py",
+        "src/tbdy_next/engineering/column_clear_length.py",
+        "src/tbdy_next/engineering/gravity_story_basis.py",
+        "src/tbdy_next/engineering/gravity_pair_refinement.py",
+        "src/tbdy_next/engineering/pipeline.py"
+      ],
+      "qualification_note": "The current wall projector returns forces for S02; moment transport is required new capability, not an existing verified output."
+    },
+    {
+      "work_packages": [
+        "S06"
+      ],
+      "deliverable": "Independent fixed-N/direction verification of the remaining 23 common faces with exact selected cage and numerical error budgets."
+    },
+    {
+      "work_packages": [
+        "S05",
+        "S08"
+      ],
+      "deliverable": "Qualified spectral design-bound policy and alpha-below-one feedback reference; no automatic corner-invariance status."
+    }
+  ],
+  "preserved_results": {
+    "conditional_c29_factors": 12,
+    "physical_case_cuts": 18,
+    "pmm_sides": 24,
+    "full_span_comparisons": 6,
+    "conditional_r14": [
+      2,
+      87
+    ]
+  },
+  "remaining_coupled_columns": 14,
+  "gap009_status": "PARTIAL",
+  "engineering_release": "NOT_READY",
+  "review": "docs/supervisor/EXTERNAL_AUDIT_REVIEW_20261122.md"
+}

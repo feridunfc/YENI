@@ -6,6 +6,16 @@ Start with the [signed six-case-cut results and before/after design table](../en
 
 Use the current [GAP-009 calculation](#next-gap-009-calculation) and the [canonical sprint cards](../supervisor/ROADMAP_20261121.md). In the independent capacity lane, one real column 142 face has a fixed-N check on the exact selected 32Φ16 cage. Continue S06 on the remaining 23 faces. The S08 reference still needs joint force/capacity identities and low-axial exemption evidence.
 
+The [second-audit cross-review](../supervisor/EXTERNAL_AUDIT_REVIEW_20261122.md)
+accepts the recorded S00/S02 scope and corrects the earlier attachment's source
+map, temperature totals, C104 free-column claim and eight-corner invariance rule.
+Its next-delivery recipe requires six actions about a common origin, transition
+free-body balance and component-specific 50/25 mm convergence. The new S02 wall
+projector currently returns force resultants; it must not be described as a
+complete force-and-moment section integrator. Use the
+[current worker checkpoint](../supervisor/audit_20261122/WORKER_CHECKPOINT.json)
+alongside the dated canonical plan. No need to restart completed S00/S02.
+
 ## Assignment issued with the system audit on 21 November 2026
 
 Read the [system audit](../supervisor/SYSTEM_AUDIT_20261121.md) and
@@ -71,10 +81,10 @@ case results. R08 v15 sealed 12 conditional TS 500 axes and 24 revised
 PMM sides across 18 physical case-cuts. Both C29 members meet the
 4-to-8 full-span error limit in all three combinations.
 
-The active GAP-009 work is the full column–wall free body and directional
-wall-frame critical-load method. Bind concurrent upper-side wall forces
-and independently reconcile external gravity and self weight. Preserve
-the existing 2/87 original conditional result, eight beams and joint 40.
+The first-order column–wall free body is now completed by S02. Active GAP-009
+work is the coupled C104 six-component transfer and directional wall-frame
+second-order/critical-load method. Preserve the existing 2/87 original conditional
+result, eight beams and joint 40.
 Use each refined level's independent same-generation modifier census and
 the existing [acquisition contracts](../engineering/C29_STORY_INPUT_FIX_20261121.md).
 The private resource index locates the sealed report and native packets.

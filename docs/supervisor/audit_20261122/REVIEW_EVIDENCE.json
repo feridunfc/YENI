@@ -1,0 +1,1907 @@
+{
+  "schema": "yeni.external-audit-cross-review.v2",
+  "review_date": "2026-11-22",
+  "recorded_at_utc": "2026-11-22T05:19:31.014928+00:00",
+  "repository": "feridunfc/YENI",
+  "disposition": "CHANGES_REQUIRED",
+  "scope": "Initial attachment/code/arithmetic review at 9e486f7, reconciled with completed S00/S02 code, published native evidence and focused tests at 1a8fa44. No reviewer native replay.",
+  "source_attachments": [
+    {
+      "filename": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "sha256": "a6791c0b923b085a25613c64c334c03a67719071740e667e32b30fd312aeff72",
+      "size_bytes": 36704
+    },
+    {
+      "filename": "Yapıştırılan metin(20261122-045852).txt",
+      "sha256": "93d104689b62254465420188e8973685cbf9fde6267fb6e1d80b3953dc18263b",
+      "size_bytes": 21194
+    }
+  ],
+  "private_native_inputs_available": false,
+  "private_native_observations": {
+    "status": "REPORTED_BY_LOCAL_AUDITOR_NOT_REPLAYED_HERE",
+    "shell_rows": 154770,
+    "max_min_pairs": 77385,
+    "reported_unequal_pairs": 0,
+    "reported_physical_contributor_counts": {
+      "+0.00": 53,
+      "+4.50": 36
+    },
+    "point_axes_default": "REPORTED_NOT_INDEPENDENTLY_READ",
+    "saved_state_identity": "NOT_ESTABLISHED_FROM_EQUALITY_ALONE",
+    "independent_external_balance": "NOT_ESTABLISHED_BY_ATTACHMENTS"
+  },
+  "six_supplied_rows": [
+    {
+      "supplied_line": 150,
+      "story": "+0.00",
+      "cut_z_m": "-5.15",
+      "member_reference": "225",
+      "native_case_label": "C29G_U_F",
+      "recorded_design_case_label": "Grav_Ult",
+      "supplied_column_sum_kn": "46716.800144",
+      "supplied_wall_sum_kn": "24951.391700",
+      "computed_total_kn": "71668.191844",
+      "supplied_total_kn": "71668.191844",
+      "supplied_story_force_kn": "71668.1918",
+      "computed_residual_kn": "0.000044",
+      "supplied_residual_kn": "0.000044",
+      "addition_matches_supplied_total": true,
+      "subtraction_matches_supplied_residual": true,
+      "abs_residual_below_0_0001_kn": true,
+      "recorded_conditional_story_nd_kn": "46716.800486811335",
+      "supplied_minus_recorded_column_sum_kn": "-0.000342811335",
+      "difference_percent_of_recorded": "-7.338073914046819165143860660677352145731E-7",
+      "basis_equality_established": false
+    },
+    {
+      "supplied_line": 151,
+      "story": "+0.00",
+      "cut_z_m": "-5.15",
+      "member_reference": "225",
+      "native_case_label": "C29G_TN_F",
+      "recorded_design_case_label": "Grav_TempNeg",
+      "supplied_column_sum_kn": "34475.159719",
+      "supplied_wall_sum_kn": "16542.772100",
+      "computed_total_kn": "51017.931819",
+      "supplied_total_kn": "51017.931819",
+      "supplied_story_force_kn": "51017.9318",
+      "computed_residual_kn": "0.000019",
+      "supplied_residual_kn": "0.000019",
+      "addition_matches_supplied_total": true,
+      "subtraction_matches_supplied_residual": true,
+      "abs_residual_below_0_0001_kn": true,
+      "recorded_conditional_story_nd_kn": "35214.68936177995",
+      "supplied_minus_recorded_column_sum_kn": "-739.52964277995",
+      "difference_percent_of_recorded": "-2.100060106117517034207230773509309172696",
+      "basis_equality_established": false
+    },
+    {
+      "supplied_line": 152,
+      "story": "+0.00",
+      "cut_z_m": "-5.15",
+      "member_reference": "225",
+      "native_case_label": "C29G_TP_F",
+      "recorded_design_case_label": "Grav_TempPos",
+      "supplied_column_sum_kn": "33213.489578",
+      "supplied_wall_sum_kn": "19407.026700",
+      "computed_total_kn": "52620.516278",
+      "supplied_total_kn": "52620.516278",
+      "supplied_story_force_kn": "52620.5163",
+      "computed_residual_kn": "-0.000022",
+      "supplied_residual_kn": "-0.000022",
+      "addition_matches_supplied_total": true,
+      "subtraction_matches_supplied_residual": true,
+      "abs_residual_below_0_0001_kn": true,
+      "recorded_conditional_story_nd_kn": "32469.76835273242",
+      "supplied_minus_recorded_column_sum_kn": "743.72122526758",
+      "difference_percent_of_recorded": "2.290503637686081060393946370392210483960",
+      "basis_equality_established": false
+    },
+    {
+      "supplied_line": 153,
+      "story": "+4.50",
+      "cut_z_m": "0",
+      "member_reference": "142",
+      "native_case_label": "C29G_U_F",
+      "recorded_design_case_label": "Grav_Ult",
+      "supplied_column_sum_kn": "36255.503048",
+      "supplied_wall_sum_kn": "6069.220100",
+      "computed_total_kn": "42324.723148",
+      "supplied_total_kn": "42324.723148",
+      "supplied_story_force_kn": "42324.7232",
+      "computed_residual_kn": "-0.000052",
+      "supplied_residual_kn": "-0.000052",
+      "addition_matches_supplied_total": true,
+      "subtraction_matches_supplied_residual": true,
+      "abs_residual_below_0_0001_kn": true,
+      "recorded_conditional_story_nd_kn": "36255.50291266637",
+      "supplied_minus_recorded_column_sum_kn": "0.00013533363",
+      "difference_percent_of_recorded": "3.732774865266571503820829822254346822598E-7",
+      "basis_equality_established": false
+    },
+    {
+      "supplied_line": 154,
+      "story": "+4.50",
+      "cut_z_m": "0",
+      "member_reference": "142",
+      "native_case_label": "C29G_TN_F",
+      "recorded_design_case_label": "Grav_TempNeg",
+      "supplied_column_sum_kn": "26331.113517",
+      "supplied_wall_sum_kn": "4335.407000",
+      "computed_total_kn": "30666.520517",
+      "supplied_total_kn": "30666.520517",
+      "supplied_story_force_kn": "30666.5206",
+      "computed_residual_kn": "-0.000083",
+      "supplied_residual_kn": "-0.000083",
+      "addition_matches_supplied_total": true,
+      "subtraction_matches_supplied_residual": true,
+      "abs_residual_below_0_0001_kn": true,
+      "recorded_conditional_story_nd_kn": "26251.78717218259",
+      "supplied_minus_recorded_column_sum_kn": "79.32634481741",
+      "difference_percent_of_recorded": "0.3021750263976970909266536730921697076842",
+      "basis_equality_established": false
+    },
+    {
+      "supplied_line": 155,
+      "story": "+4.50",
+      "cut_z_m": "0",
+      "member_reference": "142",
+      "native_case_label": "C29G_TP_F",
+      "recorded_design_case_label": "Grav_TempPos",
+      "supplied_column_sum_kn": "26417.022130",
+      "supplied_wall_sum_kn": "4427.238500",
+      "computed_total_kn": "30844.260630",
+      "supplied_total_kn": "30844.260630",
+      "supplied_story_force_kn": "30844.2606",
+      "computed_residual_kn": "0.000030",
+      "supplied_residual_kn": "0.000030",
+      "addition_matches_supplied_total": true,
+      "subtraction_matches_supplied_residual": true,
+      "abs_residual_below_0_0001_kn": true,
+      "recorded_conditional_story_nd_kn": "26159.95570659246",
+      "supplied_minus_recorded_column_sum_kn": "257.06642340754",
+      "difference_percent_of_recorded": "0.9826714780818905434004331998258842673604",
+      "basis_equality_established": false
+    }
+  ],
+  "largest_internal_result_abs_residual_kn": "0.000083",
+  "independent_upper_load_differences": [
+    {
+      "cut": "+0.00",
+      "reported_uncorrected_upper_load_kn": "73278.809",
+      "reported_internal_story_kn": "71668.1918",
+      "unreconciled_difference_kn": "1610.6172",
+      "percent_of_internal": "2.247325012042511166020516231",
+      "component_correction_ledger_provided": false,
+      "corrected_external_balance": "NOT_PROVEN_FROM_ATTACHMENTS"
+    },
+    {
+      "cut": "+4.50",
+      "reported_uncorrected_upper_load_kn": "43331.689",
+      "reported_internal_story_kn": "42324.7232",
+      "unreconciled_difference_kn": "1006.9658",
+      "percent_of_internal": "2.379143261591371730459420937",
+      "component_correction_ledger_provided": false,
+      "corrected_external_balance": "NOT_PROVEN_FROM_ATTACHMENTS"
+    }
+  ],
+  "published_story_8_json_sha256": "36deeb282ee158d2585dffac03d802191ced6035e75c1f45f36ea6ff926cc929",
+  "published_conditional_record": "EV-C29-NATIVE-CONDITIONAL-TS500-20261121",
+  "conditional_basis_equality_established": false,
+  "geometry_arithmetic": {
+    "lower_interval_m": [
+      "-5.15",
+      "-1.50"
+    ],
+    "lower_length_m": "3.65",
+    "upper_interval_m": [
+      "-1.50",
+      "0.00"
+    ],
+    "upper_length_m": "1.50",
+    "published_wall_geometry": "W21 spans -5.15 to 0; W22 joins from -1.50 to 0. Both intervals have wall coupling."
+  },
+  "published_c104_geometry": {
+    "record": "EV-GAP006-C104-SECTION-PROFILE-20261121",
+    "lower_interval_m": [
+      -5.15,
+      -1.5
+    ],
+    "lower_length_m": 3.65,
+    "lower_union": [
+      "C104",
+      "W21"
+    ],
+    "lower_gross_area_m2": 3.28,
+    "upper_interval_m": [
+      -1.5,
+      0.0
+    ],
+    "upper_length_m": 1.5,
+    "upper_union": [
+      "C104",
+      "W21",
+      "W22"
+    ],
+    "upper_gross_area_m2": 4.48,
+    "upper_isolated_column": false,
+    "effective_coupled_stiffness_and_reinforcement_qualified": false
+  },
+  "mesh_scope": {
+    "c29_max_full_span_bound_mm": "0.0004012824138896662",
+    "c104_partial_section_max_moment_change_knm": "151.3197041876964",
+    "c104_refinement_record": "EV-GAP006-C104-REFINEMENT-20261121",
+    "c29_bound_transferable_to_c104": false
+  },
+  "equal_display_precision_counterexample": {
+    "scope": "Logical example only; not values from the native model",
+    "distinct_exact_values": [
+      "1.000011",
+      "1.000019"
+    ],
+    "both_rounded_to_4_decimals": [
+      "1.0000",
+      "1.0000"
+    ]
+  },
+  "eight_corner_counterexamples": {
+    "scope": "Mathematical counterexamples to an unqualified rule, not a production PMM test",
+    "threshold": 1,
+    "all_corner_pass_does_not_prove_everywhere_pass_without_domain_property": {
+      "function": "0.5 + 0.6*(1-x^2)*(1-y^2)*(1-z^2), box [-1,1]^3",
+      "corner_values": [
+        "0.5",
+        "0.5",
+        "0.5",
+        "0.5",
+        "0.5",
+        "0.5",
+        "0.5",
+        "0.5"
+      ],
+      "center_value": "1.1"
+    },
+    "all_corner_fail_does_not_prove_everywhere_fail_even_for_convex_utilization": {
+      "function": "x^2+y^2+z^2, box [-1,1]^3",
+      "corner_values": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "center_value": 0
+    }
+  },
+  "counterexample_scope": "Logical mathematical examples only; not structural fixtures or acceptance evidence for actual PMM implementation.",
+  "asserted_current_python_tree_summary": {
+    "claimed_python_paths": 49,
+    "classifications": {
+      "EXISTS_AT_ASSERTED_PATH": 10,
+      "ABSENT_FILENAME_IN_PINNED_REPOSITORY": 35,
+      "MISLOCATED_EXISTING_FILENAME": 4
+    }
+  },
+  "asserted_current_python_tree": [
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 72,
+      "token": "cli.py",
+      "normalized": "src/tbdy_next/cli.py",
+      "classification": "EXISTS_AT_ASSERTED_PATH",
+      "same_name_repository_matches": [
+        "src/tbdy_next/cli.py"
+      ],
+      "correct_existing_owners": [],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 72,
+      "token": "server.py",
+      "normalized": "src/tbdy_next/server.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/web.py",
+        "src/tbdy_next/cli.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 72,
+      "token": "web.py",
+      "normalized": "src/tbdy_next/web.py",
+      "classification": "EXISTS_AT_ASSERTED_PATH",
+      "same_name_repository_matches": [
+        "src/tbdy_next/web.py"
+      ],
+      "correct_existing_owners": [],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 73,
+      "token": "live_etabs.py",
+      "normalized": "src/tbdy_next/live_etabs.py",
+      "classification": "EXISTS_AT_ASSERTED_PATH",
+      "same_name_repository_matches": [
+        "src/tbdy_next/live_etabs.py"
+      ],
+      "correct_existing_owners": [],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 73,
+      "token": "etabs_Read_v2.py",
+      "normalized": "src/tbdy_next/etabs_Read_v2.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/live_etabs.py",
+        "src/tbdy_next/etabs_source_gateway_windows.py",
+        "src/tbdy_next/frame_force_capture.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 74,
+      "token": "engine.py",
+      "normalized": "src/tbdy_next/engine.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/engineering/pipeline.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 74,
+      "token": "models.py",
+      "normalized": "src/tbdy_next/models.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/source.py",
+        "src/tbdy_next/column_engine/demand_types.py",
+        "src/tbdy_next/candidate_model_contracts.py",
+        "src/tbdy_next/engineering/design_scenario.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 75,
+      "token": "checks.py",
+      "normalized": "src/tbdy_next/checks.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/engineering/pipeline.py",
+        "src/tbdy_next/next_checks.py",
+        "src/tbdy_next/normative_checks.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 75,
+      "token": "dag.py",
+      "normalized": "src/tbdy_next/dag.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/compiled_dag.py",
+        "src/tbdy_next/config/dag/tbdy_r1c_94_candidate.json"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 76,
+      "token": "provenance.py",
+      "normalized": "src/tbdy_next/provenance.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/source.py",
+        "src/tbdy_next/receipts.py",
+        "src/tbdy_next/engineering/pipeline_snapshot.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 76,
+      "token": "receipts.py",
+      "normalized": "src/tbdy_next/receipts.py",
+      "classification": "EXISTS_AT_ASSERTED_PATH",
+      "same_name_repository_matches": [
+        "src/tbdy_next/receipts.py"
+      ],
+      "correct_existing_owners": [],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 76,
+      "token": "history.py",
+      "normalized": "src/tbdy_next/history.py",
+      "classification": "EXISTS_AT_ASSERTED_PATH",
+      "same_name_repository_matches": [
+        "src/tbdy_next/history.py"
+      ],
+      "correct_existing_owners": [],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 79,
+      "token": "section_capacity.py",
+      "normalized": "src/tbdy_next/column_engine/section_capacity.py",
+      "classification": "EXISTS_AT_ASSERTED_PATH",
+      "same_name_repository_matches": [
+        "src/tbdy_next/column_engine/section_capacity.py"
+      ],
+      "correct_existing_owners": [],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 80,
+      "token": "axial.py",
+      "normalized": "src/tbdy_next/column_engine/axial.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/column_engine/ts500_column.py",
+        "src/tbdy_next/engineering/column_axial.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 81,
+      "token": "shear.py",
+      "normalized": "src/tbdy_next/column_engine/shear.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/column_engine/transverse_kernel.py",
+        "src/tbdy_next/engineering/column_r10_live.py",
+        "src/tbdy_next/engineering/column_spectral_shear.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 82,
+      "token": "joint_shear.py",
+      "normalized": "src/tbdy_next/column_engine/joint_shear.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/column_engine/joint_kernel.py",
+        "src/tbdy_next/engineering/column_r10_live.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 83,
+      "token": "strong_column.py",
+      "normalized": "src/tbdy_next/column_engine/strong_column.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/column_engine/scwb_kernel.py",
+        "src/tbdy_next/engineering/scwb_axial.py",
+        "src/tbdy_next/engineering/column_r10_live.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 84,
+      "token": "detailing.py",
+      "normalized": "src/tbdy_next/column_engine/detailing.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/column_engine/transverse_kernel.py",
+        "src/tbdy_next/engineering/rebar_selection.py",
+        "src/tbdy_next/engineering/column_r10_live.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 85,
+      "token": "slenderness.py",
+      "normalized": "src/tbdy_next/column_engine/slenderness.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/column_engine/ts500_column.py",
+        "src/tbdy_next/engineering/column_effective_length.py",
+        "src/tbdy_next/engineering/column_r08_local_live.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 85,
+      "token": "drift.py",
+      "normalized": "src/tbdy_next/column_engine/drift.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/normative_basis.py",
+        "src/tbdy_next/story_drift_binding.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 85,
+      "token": "regularity.py",
+      "normalized": "src/tbdy_next/column_engine/regularity.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/next_checks.py",
+        "src/tbdy_next/r05_story_irregularity.py",
+        "src/tbdy_next/weak_story_b1.py",
+        "src/tbdy_next/soft_story_b2.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 88,
+      "token": "pipeline.py",
+      "normalized": "src/tbdy_next/engineering/pipeline.py",
+      "classification": "EXISTS_AT_ASSERTED_PATH",
+      "same_name_repository_matches": [
+        "src/tbdy_next/engineering/pipeline.py"
+      ],
+      "correct_existing_owners": [],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 89,
+      "token": "reporting.py",
+      "normalized": "src/tbdy_next/engineering/reporting.py",
+      "classification": "MISLOCATED_EXISTING_FILENAME",
+      "same_name_repository_matches": [
+        "src/tbdy_next/reporting.py"
+      ],
+      "correct_existing_owners": [
+        "src/tbdy_next/reporting.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 90,
+      "token": "etabs_source_gateway_windows.py",
+      "normalized": "src/tbdy_next/engineering/etabs_source_gateway_windows.py",
+      "classification": "MISLOCATED_EXISTING_FILENAME",
+      "same_name_repository_matches": [
+        "src/tbdy_next/etabs_source_gateway_windows.py",
+        "tools/etabs_source_gateway_windows.py"
+      ],
+      "correct_existing_owners": [
+        "src/tbdy_next/etabs_source_gateway_windows.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 91,
+      "token": "source_truth.py",
+      "normalized": "src/tbdy_next/engineering/source_truth.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/engineering/analysis_setup.py",
+        "src/tbdy_next/candidate_model_contracts.py",
+        "src/tbdy_next/engineering/design_scenario.py",
+        "src/tbdy_next/engineering/demand_sources.py",
+        "src/tbdy_next/engineering/mixed_demands.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 92,
+      "token": "physical_column_graph.py",
+      "normalized": "src/tbdy_next/engineering/physical_column_graph.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/engineering/column_clear_length.py",
+        "src/tbdy_next/engineering/column_r10_live.py",
+        "src/tbdy_next/physical_story_scope.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 93,
+      "token": "c29_physical_geometry.py",
+      "normalized": "src/tbdy_next/engineering/c29_physical_geometry.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/engineering/column_clear_length.py",
+        "src/tbdy_next/engineering/column_mat_support.py",
+        "src/tbdy_next/column_engine/csi_geometry.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 94,
+      "token": "c104_coupled_section.py",
+      "normalized": "src/tbdy_next/engineering/c104_coupled_section.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/engineering/column_clear_length.py",
+        "src/tbdy_next/engineering/column_r10_live.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 95,
+      "token": "modal_R01.py",
+      "normalized": "src/tbdy_next/engineering/modal_R01.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/modal.py",
+        "src/tbdy_next/etabs_modal.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 95,
+      "token": "spectrum_R02.py",
+      "normalized": "src/tbdy_next/engineering/spectrum_R02.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/normative_basis.py",
+        "src/tbdy_next/live_source_pipeline.py",
+        "src/tbdy_next/basis_probe.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 95,
+      "token": "base_shear_R03.py",
+      "normalized": "src/tbdy_next/engineering/base_shear_R03.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/base_shear_screening.py",
+        "src/tbdy_next/live_source_pipeline.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 95,
+      "token": "irregularity_R04.py",
+      "normalized": "src/tbdy_next/engineering/irregularity_R04.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/r05_story_irregularity.py",
+        "src/tbdy_next/next_checks.py",
+        "src/tbdy_next/weak_story_b1.py",
+        "src/tbdy_next/soft_story_b2.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 96,
+      "token": "drift_pdelta_R05.py",
+      "normalized": "src/tbdy_next/engineering/drift_pdelta_R05.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/story_drift_binding.py",
+        "src/tbdy_next/story_second_order.py",
+        "src/tbdy_next/engineering/story_pdelta.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 96,
+      "token": "story_pdelta.py",
+      "normalized": "src/tbdy_next/engineering/story_pdelta.py",
+      "classification": "EXISTS_AT_ASSERTED_PATH",
+      "same_name_repository_matches": [
+        "src/tbdy_next/engineering/story_pdelta.py"
+      ],
+      "correct_existing_owners": [],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 97,
+      "token": "frame_wall_share_R06.py",
+      "normalized": "src/tbdy_next/engineering/frame_wall_share_R06.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 98,
+      "token": "ts500_column.py",
+      "normalized": "src/tbdy_next/engineering/ts500_column.py",
+      "classification": "MISLOCATED_EXISTING_FILENAME",
+      "same_name_repository_matches": [
+        "src/tbdy_next/column_engine/ts500_column.py"
+      ],
+      "correct_existing_owners": [
+        "src/tbdy_next/column_engine/ts500_column.py",
+        "src/tbdy_next/engineering/column_effective_length.py",
+        "src/tbdy_next/engineering/column_clear_length.py",
+        "src/tbdy_next/engineering/column_r08_local_live.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 99,
+      "token": "gravity_story_basis.py",
+      "normalized": "src/tbdy_next/engineering/gravity_story_basis.py",
+      "classification": "EXISTS_AT_ASSERTED_PATH",
+      "same_name_repository_matches": [
+        "src/tbdy_next/engineering/gravity_story_basis.py"
+      ],
+      "correct_existing_owners": [],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 100,
+      "token": "gravity_pair_refinement.py",
+      "normalized": "src/tbdy_next/engineering/gravity_pair_refinement.py",
+      "classification": "EXISTS_AT_ASSERTED_PATH",
+      "same_name_repository_matches": [
+        "src/tbdy_next/engineering/gravity_pair_refinement.py"
+      ],
+      "correct_existing_owners": [],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 101,
+      "token": "gravity_self_weight_equilibrium.py",
+      "normalized": "src/tbdy_next/engineering/gravity_self_weight_equilibrium.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/engineering/column_axial_balance.py",
+        "src/tbdy_next/engineering/gravity_story_basis.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 102,
+      "token": "rebar_assignment_basis.py",
+      "normalized": "src/tbdy_next/engineering/rebar_assignment_basis.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/engineering/design_assignments.py",
+        "src/tbdy_next/engineering/rebar_selection.py",
+        "src/tbdy_next/engineering/column_live_gates.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 103,
+      "token": "column_pmm_R09.py",
+      "normalized": "src/tbdy_next/engineering/column_pmm_R09.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/engineering/column_pmm.py",
+        "src/tbdy_next/engineering/column_pmm_section.py",
+        "src/tbdy_next/column_engine/section_capacity.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 103,
+      "token": "column_detailing_R10.py",
+      "normalized": "src/tbdy_next/engineering/column_detailing_R10.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/engineering/column_r10_live.py",
+        "src/tbdy_next/engineering/rebar_selection.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 103,
+      "token": "column_shear_R11.py",
+      "normalized": "src/tbdy_next/engineering/column_shear_R11.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/engineering/column_r10_live.py",
+        "src/tbdy_next/engineering/column_spectral_shear.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 104,
+      "token": "beam_capacity.py",
+      "normalized": "src/tbdy_next/engineering/beam_capacity.py",
+      "classification": "MISLOCATED_EXISTING_FILENAME",
+      "same_name_repository_matches": [
+        "src/tbdy_next/column_engine/beam_capacity.py"
+      ],
+      "correct_existing_owners": [
+        "src/tbdy_next/column_engine/beam_capacity.py",
+        "src/tbdy_next/engineering/beam_r10_live.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 104,
+      "token": "scwb_R12.py",
+      "normalized": "src/tbdy_next/engineering/scwb_R12.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/engineering/column_r10_live.py",
+        "src/tbdy_next/engineering/scwb_axial.py",
+        "src/tbdy_next/column_engine/scwb_kernel.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 104,
+      "token": "joint_shear_R13.py",
+      "normalized": "src/tbdy_next/engineering/joint_shear_R13.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/engineering/column_r10_live.py",
+        "src/tbdy_next/column_engine/joint_kernel.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 105,
+      "token": "r14_closure.py",
+      "normalized": "src/tbdy_next/engineering/r14_closure.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/engineering/column_r14_closure.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 108,
+      "token": "golden_regression.py",
+      "normalized": "src/tbdy_next/verification/golden_regression.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/verification/golden_gate.py"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    },
+    {
+      "source": "YENI_SUPERVISOR_MIMARI_ANAYASA_VE_CIKIS_RECETESI_20261121.md",
+      "line": 109,
+      "token": "report_sway_reconstruction.py",
+      "normalized": "src/tbdy_next/verification/report_sway_reconstruction.py",
+      "classification": "ABSENT_FILENAME_IN_PINNED_REPOSITORY",
+      "same_name_repository_matches": [],
+      "correct_existing_owners": [
+        "src/tbdy_next/verification/golden_gate.py",
+        "src/tbdy_next/verification/report_oracles.py",
+        "docs/engineering/REPORT_SWAY_RECONSTRUCTION_20261121.md"
+      ],
+      "assertion_context": "DECLARED_CURRENT_RUNTIME_TREE"
+    }
+  ],
+  "all_reference_inventory_summary": {
+    "occurrence_count": 230,
+    "unique_reference_count": 105,
+    "classifications": {
+      "EXISTS_AT_ASSERTED_PATH": 22,
+      "UNSCOPED_NAME_FOUND": 26,
+      "PRIVATE_EVIDENCE_NOT_AVAILABLE_IN_PINNED_REPOSITORY": 9,
+      "HISTORICAL_REFERENCE_NAME_NOT_A_CURRENT_RUNTIME_PATH": 4,
+      "MISLOCATED_EXISTING_FILENAME": 4,
+      "ABSENT_FILENAME_IN_PINNED_REPOSITORY": 36,
+      "UNSCOPED_NAME_ABSENT": 2,
+      "SUPPLIED_ATTACHMENT_NOT_A_REPOSITORY_PATH": 1,
+      "LOCAL_EXECUTABLE_NOT_A_REPOSITORY_PATH": 1
+    }
+  },
+  "path_inventory_method": "The Markdown tree is expanded using its displayed parent directories; slash-separated filenames become separate paths. The four prose tree lines in the text attachment use their explicit package parent. Inline file references retain their spelling; unscoped names are resolved separately. Git ls-tree at the pinned commit is the filesystem authority. Private/local/historical references are not counted as nonexistent production files.",
+  "path_mapping_limits": [
+    "Correct owners are responsibility mappings, not guaranteed one-to-one replacements.",
+    "C104 wall-coupled section ownership is incomplete; the proposed project-specific c104_coupled_section.py is absent.",
+    "frame_wall_share_R06.py has no implemented equivalent complete wall/frame overturning share owner.",
+    "report_sway_reconstruction.py is absent: bound scalar adapters are in golden_gate/report_oracles; the private reconstruction is a separate reference study."
+  ],
+  "focused_verification": {
+    "classification": "FOCUSED_ARCHITECTURE_AND_GOLDEN_CLASSIFICATION_NOT_FULL_SUITE",
+    "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "package_import_repo_relative": "src/tbdy_next/__init__.py",
+    "actual_working_branch": "work/external-audit-review-20261122",
+    "working_status_at_probe": "",
+    "invoked_functions": [
+      "tbdy_next.engineering.pipeline.stage_registry()",
+      "tbdy_next.engineering.pipeline.dag_coverage()",
+      "tbdy_next.verification.golden_gate.build_golden_gate()",
+      "tbdy_next.verification.golden_gate.golden_gate_summary(result)"
+    ],
+    "execution_command_with_normalized_paths": "<review-python> -B <review-analysis>/verify_architecture_claims.py --repo <checkout> --markdown <supplied-markdown> --text <supplied-text> --output-dir <review-analysis>",
+    "normalization_note": "Only execution-environment paths are normalized for publication. Original argv/import paths remain in the private review work product identified by SHA-256.",
+    "probe_script_sha256": "d32e69f3128112bb28dc28f5fff519469b600506cb9a99f8cf6c6a3af6cfbf65",
+    "original_output_sha256": "0567856e27cf5f451ea21e0e9141edc878007f3619ff542817421617cbe94777",
+    "inspected_files_equal_pinned_git_blobs": true,
+    "source_file_sha256": {
+      "AGENTS.md": "c95e8528a7c1dc3b5ebde91cd9ed47540b836cabc4e136cb18e7f0e9d21e7ae2",
+      "docs/ARCHITECTURE.md": "730f42e267a928bcab57d37ddd65565cb0cd1e45f0b04f253a6abb07d1ea938e",
+      "docs/context/PROJECT_CHARTER.md": "ec6b024ea40e41dcab2a722ae2e62659b975c60a44bc5804d5fc8cbe2210eee4",
+      "src/tbdy_next/engineering/pipeline.py": "90463943a7d03ad62ae7c3292c3aee3ac73b786f80d3b12c2a0715d0669c65be",
+      "src/tbdy_next/compiled_dag.py": "af6d40194aec3317edf369642b8f37b493229dac226ed25bb4d6ea4b35d0ce9f",
+      "src/tbdy_next/config/dag/tbdy_r1c_94_candidate.json": "a6b4006579cf738e35de57a496cdc0c9507108b6b7fd0d4da4d082d896e8a6e3",
+      "src/tbdy_next/verification/golden_gate.py": "ab4b0e9ef30e331b84dbc01a3959aef48f49b6a990883d848dc1d5f1ce23f03d",
+      "src/tbdy_next/verification/report_oracles.py": "a4222c618d70c8b624d69b91a1252aec4a998248ce97ff9156c1fc88c42a6080",
+      "src/tbdy_next/verification/data/SOURCE_MANIFEST.json": "59dedec19a7e6c3d5f496e8d616b8c708af3c99701e271bd872644e39361bec7",
+      "src/tbdy_next/verification/data/golden01.zip": "8d13a4a76dc9a05d3353446f7e4e331d9801be9182bedb51d630730594934007",
+      "src/tbdy_next/verification/data/golden02.zip": "0648bb0a49c52152c9a015f5cb4f83d1cdb4b33d103fe4e7a62ef04201d591e9",
+      "src/tbdy_next/verification/data/golden02_material_binding.json": "69ce38622d51869d0cf6c09385adc73edd5b54c7e4fe50fe7799f64259d90bda",
+      "src/tbdy_next/verification/data/report_excerpts.json": "b102467f965eb40aeb307e629e683fa48285b58bf3627678a5c66f0769436b46",
+      "src/tbdy_next/column_engine/ts500_column.py": "f02ca8634751a0d459a67b42f6c952933feddbe697991fda68668ca0be827883",
+      "src/tbdy_next/column_engine/section_capacity.py": "e0974a869c85330c4bf782d9a7d8c32e1f4adc71f4553256cb3d440f34389435",
+      "src/tbdy_next/reporting.py": "2663693a4e5852924f0264a5674b686a3d5644a1786c6d519d0a68270c9274e7",
+      "src/tbdy_next/engineering/pipeline_snapshot.py": "12ed0f6b4ac939430f703c4942a5a95ba0de8e5684a86b51b0ff75562b819f21",
+      "src/tbdy_next/engineering/design_scenario.py": "22d990b8721a97e882a8080322f9d82e64da0222e2b57b733225046de4aa2dd8",
+      "src/tbdy_next/engineering/rebar_selection.py": "8fd0d91f326a961b6ef52d5b3765164ce8c1306cff421b9caffc2ba406d84bb9"
+    },
+    "runtime_python_file_count": 139,
+    "registry_counts": {
+      "count": 22,
+      "modes": {
+        "LIVE_SOURCE_RUN": 20,
+        "ARCHIVED_RECEIPT_SCENARIO": 1,
+        "OFFLINE_COLUMN_BANK": 1
+      },
+      "declares_consumes": 7,
+      "declares_produces": 11
+    },
+    "candidate_dag": {
+      "edges_counted_from_node_dependencies": 140,
+      "declared_edge_count": 140,
+      "schema": "tbdy.next.pipeline-dag-coverage.v1",
+      "catalog_node_count": 94,
+      "bound_node_count": 30,
+      "unbound_node_count": 64,
+      "by_node_type": {
+        "DERIVATION": {
+          "total": 10,
+          "bound_to_stage": 6
+        },
+        "DESIGN_CHECK": {
+          "total": 36,
+          "bound_to_stage": 9
+        },
+        "REGULATORY_CHECK": {
+          "total": 32,
+          "bound_to_stage": 7
+        },
+        "SOURCE_GATE": {
+          "total": 16,
+          "bound_to_stage": 8
+        }
+      },
+      "unknown_node_ids": [],
+      "dag_execution_authority": "DENIED",
+      "note": "Bound means a registered stage computes related evidence; no node is promoted to code PASS."
+    },
+    "golden_counts": {
+      "record_count": 44,
+      "classification_counts": {
+        "NUMERICAL_MATCH": 36,
+        "ENGINEERING_INTERPRETATION_DIFFERENCE": 4,
+        "INSUFFICIENT_SOURCE": 4
+      },
+      "acceptance_eligible": false,
+      "engineering_release": "NOT_READY"
+    },
+    "all_golden_record_classifications": [
+      {
+        "id": "G01_SDS",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "REPORT_ARITHMETIC",
+        "report_id": "GOLDEN-01",
+        "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+        "pdf_pages_1_based": [
+          7
+        ]
+      },
+      {
+        "id": "G01_SD1",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "REPORT_ARITHMETIC",
+        "report_id": "GOLDEN-01",
+        "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+        "pdf_pages_1_based": [
+          7
+        ]
+      },
+      {
+        "id": "G01_TA",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "REPORT_ARITHMETIC",
+        "report_id": "GOLDEN-01",
+        "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+        "pdf_pages_1_based": [
+          7
+        ]
+      },
+      {
+        "id": "G01_TB",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "REPORT_ARITHMETIC",
+        "report_id": "GOLDEN-01",
+        "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+        "pdf_pages_1_based": [
+          7
+        ]
+      },
+      {
+        "id": "G01_PROVIDED_AS",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "REINFORCEMENT_AREA",
+        "report_id": "GOLDEN-01",
+        "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+        "pdf_pages_1_based": [
+          183,
+          196
+        ]
+      },
+      {
+        "id": "G01_CONFINEMENT_ASW_OVER_S",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "REPORT_ARITHMETIC",
+        "report_id": "GOLDEN-01",
+        "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+        "pdf_pages_1_based": [
+          184
+        ]
+      },
+      {
+        "id": "G01_AC",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "REPORT_ARITHMETIC",
+        "report_id": "GOLDEN-01",
+        "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+        "pdf_pages_1_based": [
+          184
+        ]
+      },
+      {
+        "id": "G01_CONFINEMENT_AXIAL_BRANCH_THRESHOLD",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "REPORT_ARITHMETIC",
+        "report_id": "GOLDEN-01",
+        "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+        "pdf_pages_1_based": [
+          184
+        ]
+      },
+      {
+        "id": "G01_AXIAL_TBDY_LIMIT",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "REPORT_ARITHMETIC",
+        "report_id": "GOLDEN-01",
+        "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+        "pdf_pages_1_based": [
+          192
+        ]
+      },
+      {
+        "id": "G01_AXIAL_TS500_LIMIT",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "REPORT_ARITHMETIC",
+        "report_id": "GOLDEN-01",
+        "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+        "pdf_pages_1_based": [
+          192
+        ]
+      },
+      {
+        "id": "G01_JOINT_UNCONFINED_LIMIT",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "REPORT_ARITHMETIC",
+        "report_id": "GOLDEN-01",
+        "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+        "pdf_pages_1_based": [
+          194
+        ]
+      },
+      {
+        "id": "G01_JOINT_CONFINED_LIMIT",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "REPORT_ARITHMETIC",
+        "report_id": "GOLDEN-01",
+        "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+        "pdf_pages_1_based": [
+          194
+        ]
+      },
+      {
+        "id": "G01_SCWB_COLUMN_SUM",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "SCWB",
+        "report_id": "GOLDEN-01",
+        "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+        "pdf_pages_1_based": [
+          191
+        ]
+      },
+      {
+        "id": "G01_SCWB_BEAM_1P2_SUM",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "SCWB",
+        "report_id": "GOLDEN-01",
+        "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+        "pdf_pages_1_based": [
+          191
+        ]
+      },
+      {
+        "id": "G01_SCWB_NUMERIC_INEQUALITY",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "SCWB",
+        "report_id": "GOLDEN-01",
+        "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+        "pdf_pages_1_based": [
+          191
+        ]
+      },
+      {
+        "id": "G01_JOINT_VE_ONE_BEAM_APPROX",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "REPORT_ARITHMETIC",
+        "report_id": "GOLDEN-01",
+        "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+        "pdf_pages_1_based": [
+          194
+        ]
+      },
+      {
+        "id": "G01_JOINT_VE_TWO_BEAM_APPROX",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "REPORT_ARITHMETIC",
+        "report_id": "GOLDEN-01",
+        "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+        "pdf_pages_1_based": [
+          194
+        ]
+      },
+      {
+        "id": "G01_THETA_GROUND",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "REPORT_ARITHMETIC",
+        "report_id": "GOLDEN-01",
+        "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+        "pdf_pages_1_based": [
+          28
+        ]
+      },
+      {
+        "id": "G01_THETA_UPPER",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "REPORT_ARITHMETIC",
+        "report_id": "GOLDEN-01",
+        "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+        "pdf_pages_1_based": [
+          28
+        ]
+      },
+      {
+        "id": "G01_SWAY_PHI_GROUND",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "REPORT_ARITHMETIC",
+        "report_id": "GOLDEN-01",
+        "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+        "pdf_pages_1_based": [
+          186
+        ]
+      },
+      {
+        "id": "G01_SWAY_PHI_UPPER",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "REPORT_ARITHMETIC",
+        "report_id": "GOLDEN-01",
+        "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+        "pdf_pages_1_based": [
+          186
+        ]
+      },
+      {
+        "id": "G01_DRIFT_LAMBDA",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "REPORT_ARITHMETIC",
+        "report_id": "GOLDEN-01",
+        "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+        "pdf_pages_1_based": [
+          27
+        ]
+      },
+      {
+        "id": "G01_LOCAL_BETA_NON_DIAGNOSTIC",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "REPORT_ARITHMETIC",
+        "report_id": "GOLDEN-01",
+        "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+        "pdf_pages_1_based": [
+          187
+        ]
+      },
+      {
+        "id": "G02_BETA_S101_top_1",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "SECOND_ORDER",
+        "report_id": "GOLDEN-02",
+        "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "pdf_pages_1_based": [
+          186
+        ]
+      },
+      {
+        "id": "G02_USED_FACTOR_S101_top_1",
+        "classification": "ENGINEERING_INTERPRETATION_DIFFERENCE",
+        "domain": "SECOND_ORDER",
+        "report_id": "GOLDEN-02",
+        "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "pdf_pages_1_based": [
+          186
+        ]
+      },
+      {
+        "id": "G02_EQ729_S101_top_1",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "SECOND_ORDER",
+        "report_id": "GOLDEN-02",
+        "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "pdf_pages_1_based": [
+          186
+        ]
+      },
+      {
+        "id": "G02_BETA_S101_top_2",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "SECOND_ORDER",
+        "report_id": "GOLDEN-02",
+        "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "pdf_pages_1_based": [
+          186
+        ]
+      },
+      {
+        "id": "G02_USED_FACTOR_S101_top_2",
+        "classification": "ENGINEERING_INTERPRETATION_DIFFERENCE",
+        "domain": "SECOND_ORDER",
+        "report_id": "GOLDEN-02",
+        "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "pdf_pages_1_based": [
+          186
+        ]
+      },
+      {
+        "id": "G02_EQ729_S101_top_2",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "SECOND_ORDER",
+        "report_id": "GOLDEN-02",
+        "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "pdf_pages_1_based": [
+          186
+        ]
+      },
+      {
+        "id": "G02_BETA_SZ01_ground",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "SECOND_ORDER",
+        "report_id": "GOLDEN-02",
+        "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "pdf_pages_1_based": [
+          186
+        ]
+      },
+      {
+        "id": "G02_USED_FACTOR_SZ01_ground",
+        "classification": "ENGINEERING_INTERPRETATION_DIFFERENCE",
+        "domain": "SECOND_ORDER",
+        "report_id": "GOLDEN-02",
+        "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "pdf_pages_1_based": [
+          186
+        ]
+      },
+      {
+        "id": "G02_EQ729_SZ01_ground",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "SECOND_ORDER",
+        "report_id": "GOLDEN-02",
+        "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "pdf_pages_1_based": [
+          186
+        ]
+      },
+      {
+        "id": "G02_BETA_SZ03_ground",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "SECOND_ORDER",
+        "report_id": "GOLDEN-02",
+        "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "pdf_pages_1_based": [
+          186
+        ]
+      },
+      {
+        "id": "G02_USED_FACTOR_SZ03_ground",
+        "classification": "ENGINEERING_INTERPRETATION_DIFFERENCE",
+        "domain": "SECOND_ORDER",
+        "report_id": "GOLDEN-02",
+        "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "pdf_pages_1_based": [
+          186
+        ]
+      },
+      {
+        "id": "G02_EQ729_SZ03_ground",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "SECOND_ORDER",
+        "report_id": "GOLDEN-02",
+        "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "pdf_pages_1_based": [
+          186
+        ]
+      },
+      {
+        "id": "G02_STORY_BETA_top",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "SECOND_ORDER",
+        "report_id": "GOLDEN-02",
+        "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "pdf_pages_1_based": [
+          186
+        ]
+      },
+      {
+        "id": "G02_STORY_BETA_ground",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "SECOND_ORDER",
+        "report_id": "GOLDEN-02",
+        "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "pdf_pages_1_based": [
+          186
+        ]
+      },
+      {
+        "id": "G02_ALPHA_top",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "STORY_ALPHA",
+        "report_id": "GOLDEN-02",
+        "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "pdf_pages_1_based": [
+          189
+        ]
+      },
+      {
+        "id": "G02_ALPHA_ground",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "STORY_ALPHA",
+        "report_id": "GOLDEN-02",
+        "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "pdf_pages_1_based": [
+          189
+        ]
+      },
+      {
+        "id": "G02_SWAY_BRANCH_CHANGED",
+        "classification": "NUMERICAL_MATCH",
+        "domain": "SECOND_ORDER",
+        "report_id": "GOLDEN-02",
+        "source_pdf_sha256": "dfd8ea48fbb56a3d4f3525b1e7aae7f8de9f05fec341b1c742951db2738e6a31",
+        "pdf_pages_1_based": [
+          185
+        ]
+      },
+      {
+        "id": "PMM_REPORT_GATE",
+        "classification": "INSUFFICIENT_SOURCE",
+        "domain": "PMM",
+        "report_id": "GOLDEN-01",
+        "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+        "pdf_pages_1_based": [
+          183,
+          196,
+          197
+        ]
+      },
+      {
+        "id": "CAPACITY_SHEAR_REPORT_GATE",
+        "classification": "INSUFFICIENT_SOURCE",
+        "domain": "CAPACITY_SHEAR",
+        "report_id": "GOLDEN-01",
+        "source_pdf_sha256": "189ca7a47fb89b1fb2f720cd4c8a4e0ce3b61f14abe9a698d9fd2b7756aba30c",
+        "pdf_pages_1_based": [
+          188,
+          189
+        ]
+      },
+      {
+        "id": "GOLDEN03_REPORT_GATE",
+        "classification": "INSUFFICIENT_SOURCE",
+        "domain": "SECOND_ORDER",
+        "report_id": "GOLDEN-03",
+        "source_pdf_sha256": "0e5d2841d44f0690509cfe681681a238291bed645e24011424ac37b3c9c5f196",
+        "pdf_pages_1_based": []
+      },
+      {
+        "id": "GOLDEN04_REPORT_GATE",
+        "classification": "INSUFFICIENT_SOURCE",
+        "domain": "SECOND_ORDER",
+        "report_id": "GOLDEN-04",
+        "source_pdf_sha256": "2a21e640a6e4d91ed959abc54050ccaac47debecf08cf9d42c0f9198214fa43d",
+        "pdf_pages_1_based": []
+      }
+    ],
+    "scope_limits": [
+      "No live ETABS",
+      "No private Windows capture reread",
+      "No full Python or JavaScript suite",
+      "No code or repository documentation modified"
+    ]
+  },
+  "independent_arithmetic": {
+    "production_calculators_used": false,
+    "arithmetic": "Python decimal.Decimal on supplied numeric strings; ledger used only as a comparison source.",
+    "script_sha256": "d4ff5adb639e6811f8e3e832d7c2621940f703e24494710af698841590fe7352",
+    "original_output_sha256": "ce3128218f530201fb30853f1a1cbfe95a631702a51efe5dee8a8ce9e271c120",
+    "execution_command_with_normalized_paths": "python -B <review-analysis>/reproduce_supplied_arithmetic.py --repo <checkout> --audit <supplied-markdown> --output <review-analysis>/supplied_arithmetic.json",
+    "source_file_sha256": {
+      "supplied_audit": "a6791c0b923b085a25613c64c334c03a67719071740e667e32b30fd312aeff72",
+      "published_ledger": "70176da5e15cd02fdc0a0419643da665816b8538ca8cfe912600f9acae6093ca",
+      "src/tbdy_next/engineering/gravity_story_basis.py": "13b89297c9c676152f79da8fc8bafd2ba13c9292d30a10109aedd61ad5038e08",
+      "src/tbdy_next/engineering/gravity_pair_refinement.py": "3dda073cc5e04f2600794e6151600fafee788cb8a39c4020896920b72174d7d3",
+      "src/tbdy_next/engineering/gravity_deformation.py": "f58f4c7b95161a73df00a9d80e22fa641e9040aaf74003bf3ed9da036f83a875",
+      "src/tbdy_next/engineering/column_r08_local_live.py": "5b9cd44ddbafb8eb303df4aadef215f5fca4fcb9e9217212007397a494916b72",
+      "src/tbdy_next/column_engine/spectral_pmm.py": "6c302487373258bd71c0ff2663f86dd4d58b0fc74ad92febcdf25066b9735b5a",
+      "src/tbdy_next/column_engine/spectral_design.py": "aff832eceef729c8f9f17622929a69cd61333ac8cdb4c3ebbd4073195ae88bbc"
+    }
+  },
+  "primary_sources": [
+    {
+      "id": "CSI-69133",
+      "url": "https://installs.csiamerica.com/software/ETABS/2013/ReleaseNotesETABS2013v1320.pdf",
+      "supports": "Offset-region self-weight exclusion is a documented mechanism; weight modifiers can cause material/analysis differences.",
+      "limits": "Official indexed incident text retrieved; direct PDF open timed out. Does not quantify C29 deductions or fully define current SelfWtOpt=Auto."
+    },
+    {
+      "id": "CSI-END-OFFSETS",
+      "url": "https://docs.csiamerica.com/help-files/etabs/Menus/Assign/Frame/End_Length_Offset.htm",
+      "supports": "Automatic end offsets and rigid-zone factor have separate meanings."
+    },
+    {
+      "id": "CSI-FINAL-SAVED-STATE",
+      "url": "https://docs.csiamerica.com/help-files/etabs/Menus/Define/Load_Cases/Static_Nonlinear_Pushover_Cases/Results_Saved_for_Nonlinear_Static_Load_Cases_Form.htm",
+      "supports": "Final State Only concerns saved results, not the number of solver increments."
+    },
+    {
+      "id": "CSI-TABLE-OPTIONS",
+      "url": "https://docs.csiamerica.com/help-files/etabs/Keyboard_Commands_and_Special_Features/Table_Options_form.htm",
+      "supports": "Table precision and envelope/step/last-step projection are separate output choices."
+    },
+    {
+      "id": "CSI-SHELL-JOINT-FORCE",
+      "url": "https://docs.csiamerica.com/help-files/etabs-api-2016/html/e6826614-bf6b-d3cd-a0e5-5d70e06cbc07.htm",
+      "supports": "Object/element/point/case/step identity and point-local force/moment components.",
+      "limits": "2016 API documentation; installed-version behavior must be qualified."
+    },
+    {
+      "id": "CSI-MASS-SOURCE",
+      "url": "https://docs.csiamerica.com/help-files/etabs/Menus/Define/Mass_Source.htm",
+      "supports": "Element self mass and load-derived mass are distinct input policies."
+    },
+    {
+      "id": "CSI-CLEAR-LENGTH-MINIMUM",
+      "url": "https://docs.csiamerica.com/manuals/etabs/Analysis%20Reference.pdf",
+      "supports": "Printed p.129: clear length is reduced no further than 1 percent of total length; rigid-zone factor is separate.",
+      "limits": "General manual source; source-specific weight calculations remain bound to captured assignments."
+    }
+  ],
+  "initial_inspected_commit": "9e486f7a7294e3dc892b836cbb7b7447c9392c28",
+  "latest_reviewed_commit": "1a8fa44364adcc1b4160310344f2100de5fbcf4c",
+  "disposition_scope": "CHANGES_REQUIRED applies to the older supplied audit, not rejection of the subsequent completed S00/S02 milestone.",
+  "initial_findings": [
+    {
+      "id": "XAR-01",
+      "disposition": "ARITHMETIC_VERIFIED_EXTERNAL_BALANCE_NOT_PROVEN"
+    },
+    {
+      "id": "XAR-02",
+      "disposition": "SAVED_STATE_BINDING_REQUIRED"
+    },
+    {
+      "id": "XAR-03",
+      "disposition": "GEOMETRY_AND_LENGTH_CLAIM_CONTRADICTED"
+    },
+    {
+      "id": "XAR-04",
+      "disposition": "GENERAL_CORNER_INVARIANCE_RULE_INVALID"
+    },
+    {
+      "id": "XAR-05",
+      "disposition": "CLAIMED_CURRENT_SOURCE_MAP_CONTRADICTED"
+    },
+    {
+      "id": "XAR-06",
+      "disposition": "TEMPERATURE_BASIS_RECONCILIATION_REQUIRED"
+    },
+    {
+      "id": "XAR-07",
+      "disposition": "MESH_ERROR_SCOPE_OVERREACH"
+    },
+    {
+      "id": "XAR-08",
+      "disposition": "COUNTS_VERIFIED_UNRESOLVED_IDS_CORRECTED"
+    },
+    {
+      "id": "XAR-09",
+      "disposition": "GOVERNANCE_AND_PROVENANCE_CLAIMS_CORRECTED"
+    }
+  ],
+  "initial_attachment_only_outcomes": {
+    "s02_closed": false,
+    "gap_status_changes": false,
+    "existing_conditional_c29_results_changed": false,
+    "production_changes": false,
+    "fresh_full_suite": false,
+    "live_etabs": false,
+    "engineering_release": "NOT_READY"
+  },
+  "initial_arithmetic_scope_note": "Original six supplied rows remain arithmetic evidence only; their temperature totals are superseded by the latest qualified native table below.",
+  "latest_milestone": {
+    "commit": "1a8fa44364adcc1b4160310344f2100de5fbcf4c",
+    "review_disposition": "NO_CONCRETE_BLOCKER_FOUND_TO_RECORDED_S00_AND_S02_BOUNDED_COMPLETION",
+    "s00_evidence_id": "EV-S00-NATIVE-C29-IMPACT-20261122",
+    "s02_evidence_id": "EV-S02-C29-SIGNED-STORY-BALANCE-20261122",
+    "s06_evidence_id": "EV-S06-C29-FIXED-N-ONE-FACE-20261122",
+    "windows_evidence_id": "EV-WINDOWS-S00-S02-20261122",
+    "s02_status": "FIRST_ORDER_UPPER_FREE_BODY_6_OF_6",
+    "contributors_evaluated_expected": [
+      267,
+      267
+    ],
+    "peak_absolute_residual_kn": 4.915898898616433e-06,
+    "independent_arithmetic_of_published_ledger": [
+      {
+        "story": "+0.00",
+        "case": "C29G_U_F",
+        "published_case_cut": {
+          "story": "+0.00",
+          "cut_z_m": -5.15,
+          "first_order_case": "C29G_U_F",
+          "step_type": "Step",
+          "step_number": 1,
+          "evaluated": 53,
+          "expected": 53,
+          "columns": 32,
+          "walls": 21,
+          "column_vertical_kn": 46716.800486811335,
+          "wall_vertical_kn": 24951.39134745225,
+          "signed_total_kn": 71668.19183426358,
+          "supported_compression_kn": 71668.19183426358,
+          "upper_applied_kn": 29892.732853492955,
+          "upper_self_weight_kn": 41775.45898568652,
+          "upper_total_kn": 71668.19183917948,
+          "residual_kn": -4.915898898616433e-06,
+          "equilibrium_within_tolerance": true,
+          "story_display_kn": 71668.1918
+        },
+        "recomputed_internal_kn": "71668.191834263585",
+        "recomputed_external_kn": "71668.191839179475",
+        "recomputed_residual_kn": "-0.000004915890",
+        "difference_from_published_residual_kn": "8.898616433E-12",
+        "latest_minus_original_attachment_total_kn": "-0.00000973642",
+        "signed_column_minus_old_conditional_nd_kn": "0E-12",
+        "basis_note": "Five cases match the conditional Nd directly; +0.00 TP differs by the tensile contribution removed in positive-compression summation."
+      },
+      {
+        "story": "+0.00",
+        "case": "C29G_TN_F",
+        "published_case_cut": {
+          "story": "+0.00",
+          "cut_z_m": -5.15,
+          "first_order_case": "C29G_TN_F",
+          "step_type": "Step",
+          "step_number": 1,
+          "evaluated": 53,
+          "expected": 53,
+          "columns": 32,
+          "walls": 21,
+          "column_vertical_kn": 35214.68936177995,
+          "wall_vertical_kn": 16542.772089790105,
+          "signed_total_kn": 51757.46145157005,
+          "supported_compression_kn": 51757.46145157005,
+          "upper_applied_kn": 21917.847893850878,
+          "upper_self_weight_kn": 29839.61356120466,
+          "upper_total_kn": 51757.46145505554,
+          "residual_kn": -3.4854892874136567e-06,
+          "equilibrium_within_tolerance": true,
+          "story_display_kn": 51757.4615
+        },
+        "recomputed_internal_kn": "51757.461451570055",
+        "recomputed_external_kn": "51757.461455055538",
+        "recomputed_residual_kn": "-0.000003485483",
+        "difference_from_published_residual_kn": "6.2874136567E-12",
+        "latest_minus_original_attachment_total_kn": "739.52963257005",
+        "signed_column_minus_old_conditional_nd_kn": "0E-11",
+        "basis_note": "Five cases match the conditional Nd directly; +0.00 TP differs by the tensile contribution removed in positive-compression summation."
+      },
+      {
+        "story": "+0.00",
+        "case": "C29G_TP_F",
+        "published_case_cut": {
+          "story": "+0.00",
+          "cut_z_m": -5.15,
+          "first_order_case": "C29G_TP_F",
+          "step_type": "Step",
+          "step_number": 1,
+          "evaluated": 53,
+          "expected": 53,
+          "columns": 32,
+          "walls": 21,
+          "column_vertical_kn": 32350.434939357503,
+          "wall_vertical_kn": 19407.0265135253,
+          "signed_total_kn": 51757.4614528828,
+          "supported_compression_kn": 51876.79486625772,
+          "upper_applied_kn": 21917.847893850878,
+          "upper_self_weight_kn": 29839.61356120466,
+          "upper_total_kn": 51757.46145505554,
+          "residual_kn": -2.1727391867898405e-06,
+          "equilibrium_within_tolerance": true,
+          "story_display_kn": 51757.4615
+        },
+        "recomputed_internal_kn": "51757.461452882803",
+        "recomputed_external_kn": "51757.461455055538",
+        "recomputed_residual_kn": "-0.000002172735",
+        "difference_from_published_residual_kn": "4.1867898405E-12",
+        "latest_minus_original_attachment_total_kn": "-863.0548251172",
+        "signed_column_minus_old_conditional_nd_kn": "-119.333413374917",
+        "basis_note": "Five cases match the conditional Nd directly; +0.00 TP differs by the tensile contribution removed in positive-compression summation."
+      },
+      {
+        "story": "+4.50",
+        "case": "C29G_U_F",
+        "published_case_cut": {
+          "story": "+4.50",
+          "cut_z_m": 0.0,
+          "first_order_case": "C29G_U_F",
+          "step_type": "Step",
+          "step_number": 1,
+          "evaluated": 36,
+          "expected": 36,
+          "columns": 32,
+          "walls": 4,
+          "column_vertical_kn": 36255.50291266637,
+          "wall_vertical_kn": 6069.220239371362,
+          "signed_total_kn": 42324.72315203774,
+          "supported_compression_kn": 42324.72315203774,
+          "upper_applied_kn": 19337.54298726864,
+          "upper_self_weight_kn": 22987.180167969793,
+          "upper_total_kn": 42324.72315523843,
+          "residual_kn": -3.200693754479289e-06,
+          "equilibrium_within_tolerance": true,
+          "story_display_kn": 42324.7232
+        },
+        "recomputed_internal_kn": "42324.723152037732",
+        "recomputed_external_kn": "42324.723155238433",
+        "recomputed_residual_kn": "-0.000003200701",
+        "difference_from_published_residual_kn": "-7.245520711E-12",
+        "latest_minus_original_attachment_total_kn": "0.00000403774",
+        "signed_column_minus_old_conditional_nd_kn": "0E-11",
+        "basis_note": "Five cases match the conditional Nd directly; +0.00 TP differs by the tensile contribution removed in positive-compression summation."
+      },
+      {
+        "story": "+4.50",
+        "case": "C29G_TN_F",
+        "published_case_cut": {
+          "story": "+4.50",
+          "cut_z_m": 0.0,
+          "first_order_case": "C29G_TN_F",
+          "step_type": "Step",
+          "step_number": 1,
+          "evaluated": 36,
+          "expected": 36,
+          "columns": 32,
+          "walls": 4,
+          "column_vertical_kn": 26251.78717218259,
+          "wall_vertical_kn": 4335.406902868205,
+          "signed_total_kn": 30587.194075050797,
+          "supported_compression_kn": 30587.194075050797,
+          "upper_applied_kn": 14167.77967186984,
+          "upper_self_weight_kn": 16419.41440569271,
+          "upper_total_kn": 30587.194077562548,
+          "residual_kn": -2.511751517886296e-06,
+          "equilibrium_within_tolerance": true,
+          "story_display_kn": 30587.1941
+        },
+        "recomputed_internal_kn": "30587.194075050795",
+        "recomputed_external_kn": "30587.19407756255",
+        "recomputed_residual_kn": "-0.000002511755",
+        "difference_from_published_residual_kn": "-3.482113704E-12",
+        "latest_minus_original_attachment_total_kn": "-79.326441949203",
+        "signed_column_minus_old_conditional_nd_kn": "0E-11",
+        "basis_note": "Five cases match the conditional Nd directly; +0.00 TP differs by the tensile contribution removed in positive-compression summation."
+      },
+      {
+        "story": "+4.50",
+        "case": "C29G_TP_F",
+        "published_case_cut": {
+          "story": "+4.50",
+          "cut_z_m": 0.0,
+          "first_order_case": "C29G_TP_F",
+          "step_type": "Step",
+          "step_number": 1,
+          "evaluated": 36,
+          "expected": 36,
+          "columns": 32,
+          "walls": 4,
+          "column_vertical_kn": 26159.95570659246,
+          "wall_vertical_kn": 4427.238368940953,
+          "signed_total_kn": 30587.194075533414,
+          "supported_compression_kn": 30587.194075533414,
+          "upper_applied_kn": 14167.77967186984,
+          "upper_self_weight_kn": 16419.41440569271,
+          "upper_total_kn": 30587.194077562548,
+          "residual_kn": -2.029133611358702e-06,
+          "equilibrium_within_tolerance": true,
+          "story_display_kn": 30587.1941
+        },
+        "recomputed_internal_kn": "30587.194075533413",
+        "recomputed_external_kn": "30587.19407756255",
+        "recomputed_residual_kn": "-0.000002029137",
+        "difference_from_published_residual_kn": "-3.388641298E-12",
+        "latest_minus_original_attachment_total_kn": "-257.066554466586",
+        "signed_column_minus_old_conditional_nd_kn": "0E-11",
+        "basis_note": "Five cases match the conditional Nd directly; +0.00 TP differs by the tensile contribution removed in positive-compression summation."
+      }
+    ],
+    "native_archive_sha256": "36deeb282ee158d2585dffac03d802191ced6035e75c1f45f36ea6ff926cc929",
+    "analysis_generation": "b207f87b19b6a7b4887102926dbd775907477175a82ef4559714e421d036c11e",
+    "capture_manifest_sha256": "b931db21ddaeef7833c7d6e26b2e2f388b5ef32003b75d304ad3668bdddda795",
+    "native_boundary_read": "20261122T041632943080Z",
+    "native_weight_read": "20261122T042620637623Z",
+    "runs": {
+      "first_two_ultimate_cuts": {
+        "run_id": "RUN-9964230a38f14be2abc5208e8017eb95",
+        "input_sha256": "ddd656728f4915b6edf71b6738c539fa8d9b3d07893817ada6a40762244126ed",
+        "results_sha256": "96a9691e78aec05001ad1bfa9de9dd85b811e5217fd7eafd8fffe0a29995978e",
+        "report_sha256": "87b1fb35877a65ad6265d6bdd9d764184bfbaaa9a3e741354def98f313e93c0b",
+        "coverage": {
+          "physical_case_cuts": 18,
+          "native_sides": 24,
+          "revised_factors": 12,
+          "revised_pmm_sides": 24,
+          "members_with_four_to_eight_recovered_fields": 2
+        },
+        "r14": {
+          "status": "R15_ALL_COLUMNS_EVALUATED_PARTIAL_GATES",
+          "expected_column_count": 87,
+          "numerically_closed_count": 2,
+          "partial_or_unbound_count": 85,
+          "normative_fail_count": 0
+        }
+      },
+      "three_cases_six_cuts": {
+        "run_id": "RUN-90175fcafc26485f9ff72179346e7263",
+        "input_sha256": "bf60497e87550d3165d5578dd4c978363076e7c12a41f6bc829aeb8354c42cab",
+        "results_sha256": "e55b1cf31c8f75290bf83fb4722f5bd98d7bf5b999bb96b8934c18c7813f50cf",
+        "report_sha256": "c434afc3fe4c9b5b8d12c7ebeede3b6f1e59c50c897f39631a2d774cd586d46c",
+        "coverage": {
+          "physical_case_cuts": 18,
+          "native_sides": 24,
+          "revised_factors": 12,
+          "revised_pmm_sides": 24,
+          "members_with_four_to_eight_recovered_fields": 2
+        },
+        "r14": {
+          "status": "R15_ALL_COLUMNS_EVALUATED_PARTIAL_GATES",
+          "expected_column_count": 87,
+          "numerically_closed_count": 2,
+          "partial_or_unbound_count": 85,
+          "normative_fail_count": 0
+        }
+      }
+    },
+    "acceptance_boundary": "Signed first-order vertical balance for these cuts. Both full-system axes retain STORY_WALL_CRITICAL_LOAD_METHOD_UNSUPPORTED. Fourteen wall-coupled columns require method and demands.",
+    "software_path": "Native Step 1 wall rows with point transformations; upper_loads integrates assignments/weight independently of member forces; existing R08 runner consumes both.",
+    "native_rows_independently_replayed_by_reviewer": false,
+    "same_input_design_preserved": [
+      "comparison",
+      "four_to_eight_full_span",
+      "reference_design",
+      "revised_axis_factors",
+      "revised_ts500_status",
+      "model_records"
+    ],
+    "s06_faces_checked_expected": [
+      1,
+      24
+    ],
+    "windows_python": {
+      "total": 1701,
+      "passed": 1700,
+      "skipped": 1,
+      "failures": 0,
+      "errors": 0,
+      "duration_seconds": 459.063,
+      "skip_name": "test_vs11_column_bank.ColumnStoreTests.test_wrong_run_and_symlink_cannot_cross_source_boundary",
+      "skip_reason": "OS disallows creating symlinks"
+    },
+    "windows_js_files": 11
+  },
+  "review_outcomes": {
+    "original_attachment_requires_corrections": true,
+    "recorded_s00_completion_preserved": true,
+    "recorded_s02_six_first_order_vertical_balances_preserved": true,
+    "complete_six_component_section_balance_established_by_s02": false,
+    "gap_status_changes_in_this_review": false,
+    "production_changes_in_this_review": false,
+    "fresh_focused_unique_tests": 55,
+    "overlapping_eight_test_run_not_added_to_unique_total": true,
+    "fresh_full_suite": false,
+    "reviewer_live_etabs": false,
+    "engineering_release": "NOT_READY",
+    "next_delivery": "C104/W21/W22 matched six-component transfer and coupled method; S06 remaining 23 faces in parallel."
+  }
+}

@@ -1,7 +1,7 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-22T05:08:42.995069+00:00",
+  "updated_at_utc": "2026-11-22T05:19:31.014928+00:00",
   "repository": "feridunfc/YENI",
   "baseline_implementation_commit": "60fd80303b7e101673d65dde5e1edf75a6caa6cf",
   "local_reconciled": true,
@@ -262,6 +262,12 @@
         "work_packages": [
           "S03"
         ]
+      },
+      "external_audit_review_20261122": {
+        "evidence_ref": "EV-EXTERNAL-AUDIT-REVIEW-20261122",
+        "report": "docs/supervisor/EXTERNAL_AUDIT_REVIEW_20261122.md",
+        "note": "The older audit reverses C104 coupling. Lower 3.65 m = C104/W21; upper 1.50 m = C104/W21/W22. Next work combines six actions about a common origin across the transition and compares 50/25 mm meshes.",
+        "status_changed": false
       }
     },
     {
@@ -490,6 +496,12 @@
         ],
         "engineering_release": "NOT_READY",
         "next_action": "S01/S03 C104 signed combined actions and connection basis at the -1.50 m transition, followed by the S04 applicability decision."
+      },
+      "external_audit_review_20261122": {
+        "evidence_ref": "EV-EXTERNAL-AUDIT-REVIEW-20261122",
+        "report": "docs/supervisor/EXTERNAL_AUDIT_REVIEW_20261122.md",
+        "note": "Latest S02 six vertical balances are retained completed. The older attachment temperature totals are superseded; the 119.333413 kN signed/compression distinction reconciles the unchanged conditional basis. Full coupled-system critical-load or direct-demand qualification remains open.",
+        "status_changed": false
       }
     },
     {
@@ -795,6 +807,12 @@
           "S08",
           "S10"
         ]
+      },
+      "external_audit_review_20261122": {
+        "evidence_ref": "EV-EXTERNAL-AUDIT-REVIEW-20261122",
+        "report": "docs/supervisor/EXTERNAL_AUDIT_REVIEW_20261122.md",
+        "note": "Initial focused golden call confirms 44 = 36/4/4. Use exact IDs in the review. Latest S06 records one of 24 real selected-cage faces independently checked; 23 remain.",
+        "status_changed": false
       }
     },
     {
@@ -1065,6 +1083,12 @@
           "S05",
           "S10"
         ]
+      },
+      "external_audit_review_20261122": {
+        "evidence_ref": "EV-EXTERNAL-AUDIT-REVIEW-20261122",
+        "report": "docs/supervisor/EXTERNAL_AUDIT_REVIEW_20261122.md",
+        "note": "The older audit corner-invariance rule is invalid in general. Preserve finite-candidate limits and require a whole-domain sufficient-bound proof where applicable.",
+        "status_changed": false
       }
     }
   ],
@@ -1088,5 +1112,16 @@
     "roadmap": "docs/supervisor/ROADMAP_20261121.md",
     "machine_plan": "docs/supervisor/audit_20261121/WORKER_PLAN.json",
     "status_changed": false
+  },
+  "external_audit_review": {
+    "evidence_ref": "EV-EXTERNAL-AUDIT-REVIEW-20261122",
+    "report": "docs/supervisor/EXTERNAL_AUDIT_REVIEW_20261122.md",
+    "latest_reviewed_commit": "1a8fa44364adcc1b4160310344f2100de5fbcf4c",
+    "s00_completed_scope_preserved": true,
+    "s02_six_first_order_vertical_balances_completed_scope_preserved": true,
+    "original_attachment_disposition": "CHANGES_REQUIRED",
+    "gap_status_changed": false,
+    "production_changes_in_review": false,
+    "next_action": "C104/W21/W22 six-component matched-cut transfer and coupled-system method; independently check the remaining 23 PMM faces; use actual owners and exact golden IDs."
   }
 }

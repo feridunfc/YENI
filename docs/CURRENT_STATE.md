@@ -10,6 +10,25 @@
 
 Windows ran 1,701 Python tests on the integrated software tree. 1,700 passed and one Windows symlink-permission test was skipped. All 11 JavaScript files passed. The 44 golden records retain 36 numerical matches, four interpretation differences and four insufficient sources. The tested code commit is `60fd80303b7e101673d65dde5e1edf75a6caa6cf`. [Windows run and source identities](VERIFICATION_LEDGER.json)
 
+## Cross-review of the second audit and completed milestone — 22 November 2026
+
+The [external audit review](supervisor/EXTERNAL_AUDIT_REVIEW_20261122.md)
+reconciles the supplied report with `1a8fa44`. S00 and the six S02 first-order
+balances remain completed. A reviewer run passed 55 existing focused tests;
+the native/Windows runs above remain separately attributed. The older audit's
+temperature totals are superseded. The +0.00 TP signed/compression difference
+of 119.333413 kN explains why equilibrium uses signed forces while the preserved
+conditional factor basis uses positive compression.
+
+The review corrects the source-owner map, the C104 upper region (1.50 m of
+C104/W21/W22 coupling), and the invalid general eight-corner invariance recipe.
+The [current worker checkpoint](supervisor/audit_20261122/WORKER_CHECKPOINT.json)
+records S00/S02 completed, S06 one of 24 faces checked, and the next coupled
+six-component transfer calculation. See `EV-EXTERNAL-AUDIT-REVIEW-20261122`.
+No production changes, new native replay or full suite are claimed by this
+documentation review. The latest 86 ledger records and all GAP statuses are
+preserved before appending its own evidence.
+
 ## Supervisor system audit and execution roadmap — 21 November 2026
 
 The [whole-project audit](supervisor/SYSTEM_AUDIT_20261121.md) inspects
