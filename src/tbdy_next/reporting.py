@@ -1172,7 +1172,7 @@ def _basement_pier_tables(piers):
     groups = piers.get("basement_piers", [])
     if not groups:
         return ""
-    inventory, cuts, layouts, pressure = [], [], [], []
+    inventory, cuts, layouts, pressure, ends = [], [], [], [], []
     for pier in groups:
         name = pier["pier"]
         geom = pier.get("geometry", {})
@@ -1183,6 +1183,14 @@ def _basement_pier_tables(piers):
             cuts.append({"pier": name, **cut, **bounds})
         for panel in geom.get("panels", []):
             h, v = panel.get("horizontal", {}), panel.get("vertical", {})
+            for side, end in panel.get("pressure_connections", {}).get("ends", {}).items():
+                transfer = end["transfer"]
+                ends.append({"pier": name, "wall": panel["wall"], "side": side, "column": end["column"],
+                             "diameter": h["diameter_mm"], "required": end["position_i_mm"],
+                             "available": end["column_available_mm"], "provided": end["specified_embedment_mm"],
+                             "dowel": transfer.get("diameter_mm"), "pitch": transfer.get("pitch_mm"),
+                             "reaction": transfer.get("peak_reaction_kn_m"), "resistance": transfer.get("resistance_kn_m"),
+                             "ratio": transfer.get("peak_ratio"), "status": end["status"]})
             layouts.append({"pier": name, **panel, **v, "h_dia": h.get("diameter_mm"), "h_pitch": h.get("pitch_mm"),
                             "v_dia": v.get("diameter_mm"), "v_pitch": v.get("pitch_mm")})
             for row in h.get("cuts", []):
@@ -1192,8 +1200,8 @@ def _basement_pier_tables(piers):
         "<p>Each pier-end resultant is resolved over the clear webs with an affine vertical stress distribution. "
         "Supporting columns keep their concrete and reinforcement. The proposed two-curtain grids carry vertical "
         "section demand and horizontal bending from the assigned uniform pressure. The one-metre strips span "
-        "between columns with zero relative transverse support displacement. Local shell force distribution, "
-        "combined shear and torsion, joint transfer and reinforcement development remain open.</p>",
+        "between columns with zero relative transverse support displacement. Local shell distribution and combined "
+        "shear and torsion require a separate local demand model.</p>",
         _table((("pier","Pier"),("story","Storey"),("members","Shell IDs"),("reserved_column_ids","Reserved column IDs"),
                 ("nominal_area_m2","ETABS nominal area (m²)"),("shell_footprint_union_m2","Footprint union (m²)"),
                 ("clear_web_area_m2","Clear webs (m²)"),("evaluated_cut_combinations","Satisfied end combinations"),
@@ -1213,7 +1221,54 @@ def _basement_pier_tables(piers):
         _table((("pier","Pier"),("wall","Wall"),("combination","Combination"),("pressure_kn_m2","Pressure (kN/m²)"),
                 ("moment_bound_knm_m","Moment upper (kN·m/m)"),("mr","Moment resistance (kN·m/m)"),
                 ("moment_ratio","Bending ratio"),("reaction_bound_kn_m","Reaction upper (kN/m)"),
-                ("vcr","Diagonal cracking resistance (kN/m)"),("cracking_shear_ratio","Cracking ratio")), pressure), "</details>"))
+                ("vcr","Diagonal cracking resistance (kN/m)"),("cracking_shear_ratio","Cracking ratio")), pressure), "</details>",
+        ("<details><summary>Pressure transfer and straight bar development at columns</summary>" +
+         _table((("pier","Pier"),("wall","Wall"),("side","End"),("column","Support column"),("diameter","Web Ø (mm)"),
+                 ("required","Required bond (mm)"),("available","Available (mm)"),("provided","Proposed embedment (mm)"),
+                 ("dowel","Dowel Ø (mm)"),("pitch","Pitch (mm)"),("reaction","Reaction (kN/m)"),
+                 ("resistance","Resistance (kN/m)"),("ratio","Utilization"),("status","Result")), ends) +
+         "</details>" if ends else "")))
+
+
+def _wall_batch_tables(batch):
+    if not batch:
+        return ""
+    overview, forces, moments = [], [], []
+    for wall in batch["rows"]:
+        key = {"pier": wall.get("pier"), "storey": wall["story"], "members": ", ".join(wall["members"])}
+        design, assigned = wall["design"], wall.get("assigned", {})
+        overview.append({**key, **{k: (design.get(k) or {}).get("ratio") for k in ("shear","horizontal_joint","pmm","wall_beam")},
+                         "compression": (assigned.get("axial") or {}).get("ratio"), "scheduled": design["scheduled_panels"],
+                         "reason": wall.get("reason") or wall.get("area_reason") or wall.get("material_reason") or design.get("reason")
+                         or "Conditional proposed design"})
+        for direction, moment in wall["overturning"].items():
+            moments.append({**key, **moment, "direction": direction, "z": wall["native_bottom_z_m"]})
+        for c in wall["cuts"]:
+            fr = c.get("reference_friction", {})
+            web = c.get("reference_web", {})
+            forces.append({**key, **c, "vr": web.get("vr_kn"), "shear_ratio": web.get("source_v2_ratio"),
+                           "vs": fr.get("resistance_kn"), "friction_ratio": fr.get("upper_utilization"), "joint_result": fr.get("status")})
+    identity = (("pier","Pier"),("storey","Storey"),("members","Wall IDs"))
+    return "".join(("<h3>All wall checks</h3><p>One row per pier and storey. Unassigned wall objects are listed individually. "
+                    "Values in this table are utilization ratios.</p>",
+        _table(identity+(("compression","Net-area compression"),("shear","Design shear"),
+               ("horizontal_joint","Design joint friction"),("pmm","Section PMM"),("wall_beam","Wall–beam strength"),
+               ("scheduled","Scheduled panels"),("reason","Design result or open input")), overview),
+        "<details><summary>Wall forces, reference reinforcement and resistance by combination</summary>"
+        "<p>Two Ø12/200 horizontal curtains on parallel net webs. Horizontal plane reference uses 0.75% anchored vertical steel, "
+        "μ = 1, tension reservation and two shear components. Ratios use the source combination at the indicated face. "
+        "The design table uses its selected reinforcement and design shear.</p>",
+        _table(identity+(("face","Face"),("combination","Combination"),("role","Role"),("compression_kn","Compression (kN)"),
+               ("axial_limit_kn","Axial limit (kN)"),("abs_v2_kn","|V2| (kN)"),("vr","Eq. 7.17 Vr (kN)"),
+               ("shear_ratio","Web ratio incl. strut cap"),("reference_plane_shear_kn","Plane shear bound (kN)"),
+               ("vs","Plane resistance (kN)"),("friction_ratio","Plane ratio"),("joint_result","Joint result"),("reason","Open input")), forces),
+        "</details><details><summary>Directional wall moments and whole-storey references</summary>",
+        _table(identity+(("z","Bottom z (m)"),("direction","Excitation"),("case","Spectrum"),("component","Pier component"),
+               ("magnitude_knm","Centroid moment (kN·m)"),("uncertainty_knm","Rounding bound (kN·m)"),
+               ("combination_controls","Native equations")), moments),
+        _table((("story","Storey"),("direction","Excitation"),("storey_moment_knm","Whole-storey bottom moment (kN·m)"),
+                ("evaluated_groups","Recovered groups"),("expected_groups","Physical groups"),("project_reason","Project decision")),
+               batch["overturning_storeys"]), "</details>"))
 
 
 def _confinement_tables(building):
@@ -1256,6 +1311,7 @@ def _confinement_tables(building):
                             ("status", "Boundary result"), ("reason", "Open input")), wall.get("walls", [])), "</details>"])
     piers = building.get("wall_sections")
     if piers:
+        section.append(_wall_batch_tables(piers.get("batch")))
         section.extend(["<h3>Pier section design</h3><p>Signed gravity demand · ",
                         _val(piers.get("basis") or piers.get("source_reason")), " · ",
                         _val(piers["evaluated_gravity"]), " / ", _val(piers["expected_gravity"]),

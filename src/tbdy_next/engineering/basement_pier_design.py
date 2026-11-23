@@ -5,7 +5,9 @@ from math import fsum, isfinite, pi
 
 from ..column_engine.section_capacity import Material
 from ..column_engine.section_interval import SectionInterval
+from .basement_joint_layout import check_joint_layout
 from .basement_pier_geometry import folded_section, required
+from .basement_wall_connection import pressure_connections
 from .basement_wall_pressure import CAGES, panel_pressure_design, pressure_cases, vertical_section
 from .beam_r10_live import _design_factors, _steel_grade_mpa
 from .column_r10_live import _materials_fck
@@ -120,6 +122,11 @@ def _design(result, source, stages, bound, scope):
         uid = panel["member"]
         try:
             horizontal = panel_pressure_design(panel,combos,cover,mat,height)
+            try:
+                horizontal, panel["pressure_connections"] = pressure_connections(
+                    source, stages, geom, panel, horizontal, combos, cover, mat, height)
+            except (KeyError, TypeError, ValueError) as exc:
+                panel["pressure_connections"] = {"status":"HOLD", "reason": str(exc), "ends":{}}
             panel["horizontal"] = horizontal
             demands = [(r["face"],r["combination"],d) for r in result["cuts"] for d in r.get("web_demands",[]) if d["member"]==uid]
             required(len(demands) == result["expected_cut_combinations"], "COMPLETE_NATIVE_CUT_POPULATION_REQUIRED_FOR_VERTICAL_SELECTION")
@@ -153,6 +160,7 @@ def _design(result, source, stages, bound, scope):
             required("vertical" in panel,"PROPOSED_VERTICAL_CAGES_DID_NOT_ESTABLISH_PMM_BOUND")
         except (KeyError,TypeError,ValueError) as exc:
             panel["reason"] = str(exc)
+    result["pressure_joint_layouts"] = check_joint_layout(geom)
     for row in result["cuts"]:
         checks = row.get("web_demands",[])
         if checks and all("pmm_upper" in d for d in checks):
@@ -187,7 +195,7 @@ def basement_piers(source, stages, bounds, bound, scope):
 
 def basement_coverage(piers):
     assigned_expected = assigned_evaluated = other_evaluated = pressure_expected = pressure_evaluated = 0
-    physical = scheduled = 0
+    physical = scheduled = ends_checked = ends_satisfied = initial_short = transferred = extra_transferred = 0
     for pier in piers:
         names = pier["wall_strength"]
         physical += len(pier["members"])
@@ -202,7 +210,21 @@ def basement_coverage(piers):
         for panel in (pier.get("geometry") or {}).get("panels", []):
             scheduled += "vertical" in panel and "horizontal" in panel
             pressure_evaluated += sum(c["combination"] in names for c in panel.get("horizontal", {}).get("cuts", []))
+            for end in panel.get("pressure_connections", {}).get("ends", {}).values():
+                ends_checked += 1
+                initial_short += end["initial"]["margin_mm"] < 0
+                ends_satisfied += end["status"] == "CONDITIONAL_PRESSURE_END_DESIGN"
+                for cut in end["transfer"].get("combinations", []):
+                    if cut["combination"] in names:
+                        transferred += 1
+                    else:
+                        extra_transferred += 1
     return {"physical_panels":physical,"scheduled_panels":scheduled,"assigned_cuts_expected":assigned_expected,
             "assigned_cuts_evaluated":assigned_evaluated,"additional_static_cuts_evaluated":other_evaluated,
             "assigned_pressure_panel_combinations_expected":pressure_expected,
-            "assigned_pressure_panel_combinations_evaluated":pressure_evaluated}
+            "assigned_pressure_panel_combinations_evaluated":pressure_evaluated,
+            "physical_pressure_ends_expected":2*physical,"physical_pressure_ends_checked":ends_checked,
+            "physical_pressure_ends_satisfied":ends_satisfied,"initial_column_only_shortfalls":initial_short,
+            "assigned_pressure_end_combinations_expected":2*pressure_expected,
+            "assigned_pressure_end_combinations_evaluated":transferred,
+            "additional_static_pressure_end_combinations":extra_transferred}

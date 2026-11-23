@@ -120,6 +120,16 @@ def building_results(source, stages, evidence):
     walls = None if assignments is None else {uid: row for uid, row in assignments.items() if row["PropType"] == "Wall"}
     boundaries = wall_boundaries(source, stages, evidence, walls)
     pier_design = wall_sections(source, stages, boundaries)
+    bulk = pier_design["batch"]["counts"]
+    for family, key in (("Native assigned pier forces", "native_assigned_faces"),
+                        ("Wall compression on concrete clear of columns", "net_area_axial_faces"),
+                        ("Wall web shear with two proposed Ø12/200 curtains", "reference_web_shear_faces"),
+                        ("Rough construction plane with 0.75% proposed crossing steel", "reference_friction_faces")):
+        add(family, bulk["assigned_face_checks_expected"], bulk[key], "Both physical faces and each assigned combination")
+    add("Directional pier bending at bottom-cut centroids", 2*bulk["pier_storeys"], bulk["directional_moments"],
+        "Individual X and Y spectrum bending amplitudes checked against native combination envelopes")
+    add("Wall panels with proposed reinforcement schedules", bulk["physical_walls"], bulk["scheduled_panels"],
+        "Physical rectangular and multi-panel wall objects with calculated reinforcement")
     for family, population, title in (("columns", column_count, "Column confinement schedules"),
                                       ("beams", beam_count, "Beam confinement schedules on model cuts")):
         rows = detailing[family]
@@ -173,8 +183,14 @@ def building_results(source, stages, evidence):
         "Uniform normal load on horizontal strips between column axes")
     add("Multi-panel walls with a proposed web schedule", basement["physical_panels"], basement["scheduled_panels"],
         "Two curtains, physical vertical stations, horizontal layers and crossties")
+    add("Basement pressure bar development at supporting columns", basement["physical_pressure_ends_expected"],
+        basement["physical_pressure_ends_checked"],
+        f"{basement['physical_pressure_ends_satisfied']} ends satisfy the proposed pressure detail; "
+        f"{basement['initial_column_only_shortfalls']} initial straight layouts exceed the column depth allowance")
+    add("Vertical wall-column interface under pressure", basement["assigned_pressure_end_combinations_expected"],
+        basement["assigned_pressure_end_combinations_evaluated"], "Perpendicular dowels under assigned normal pressure")
     for name, population, reason in (
-            ("Wall and pier reinforcement", areas["wall"], "Full seismic wall design and reinforcement detailing"),
+            ("Project-approved wall reinforcement", areas["wall"], "Project reinforcement approval and anchorage detailing"),
             ("Diaphragm collectors and chords", areas["diaphragm"], "Force path and design resistance required"),
             ("Slab flexure and punching", areas["slab"], "Slab design-strip and punching calculations required"),
             ("Mat contact and reinforced concrete design", areas["mat"], "Soil contact and mat design required"),

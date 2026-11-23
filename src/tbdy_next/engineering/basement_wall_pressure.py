@@ -86,7 +86,23 @@ def strip_resistance(thickness, cover, dia, pitch, mat):
     return mr, .65*fctd*1000*d/1000
 
 
-def panel_pressure_design(panel, combos, cover, mat, height):
+def finite_grid(height_mm, diameter, maximum_pitch, cover):
+    """Centred end cover and at least the specified number of bars in every full metre."""
+    if min(diameter, maximum_pitch, cover) <= 0 or height_mm < 1000 or 1000 % maximum_pitch:
+        raise ValueError("ONE_METRE_PERIODIC_GRID_REQUIRED")
+    edge = cover + diameter/2
+    per_metre = 1000 // maximum_pitch
+    required(height_mm > 2*edge and edge < 1000 and per_metre >= 2, "INSUFFICIENT_GRID_HEIGHT")
+    # Interior windows may start just beyond a bar. At the ends the first bar
+    # is fixed by the cover, so (n-1) spaces must also fit after that bar.
+    limit = min(maximum_pitch, (1000-edge)/(per_metre-1))
+    intervals = ceil((height_mm-2*edge)/limit)
+    pitch = (height_mm-2*edge)/intervals
+    return {"layers": intervals+1, "pitch_mm": pitch, "first_and_last_offset_mm": edge,
+            "guaranteed_bars_per_m": per_metre, "clear_spacing_mm": pitch-diameter}
+
+
+def panel_pressure_design(panel, combos, cover, mat, height, *, candidates=CAGES, grid_for=None, inset=0.):
     span = panel["span_m"]
     thickness = panel["thickness_m"]*1000
     pressures = {name: spec["pressure_kn_m2"][panel["member"]] for name,spec in combos.items()}
@@ -94,18 +110,20 @@ def panel_pressure_design(panel, combos, cover, mat, height):
     peak = abs(pressures[governing])
     # Pin / fixed limits bracket passive independent rotational restraints with zero relative
     # transverse translation. This bounds both moment signs and both end reactions for uniform q.
-    for dia, pitch in CAGES:
+    for dia, pitch in candidates:
+        grid = grid_for(dia, pitch) if grid_for else {}
         rho = 2*pi*dia**2/4/(pitch*thickness)
-        if rho < .0025 or pitch-dia < max(25., dia) or thickness <= 2*(cover+dia):
+        if (rho < .0025 or grid.get("clear_spacing_mm", pitch-dia) < max(25., dia)
+                or thickness <= 2*(cover+inset+1.5*dia) or (grid_for and not grid)):
             continue
-        mr, vcr = strip_resistance(thickness,cover,dia,pitch,mat)
+        mr, vcr = strip_resistance(thickness,cover+inset,dia,pitch,mat)
         if peak*span**2/8 <= mr and 5*peak*span/8 <= vcr:
             break
     else:
         raise ValueError("NO_PROPOSED_HORIZONTAL_CAGE_MEETS_PRESSURE_BENDING_AND_CRACKING_SHEAR")
     n = ceil(height*1000/pitch)
     return {"diameter_mm":dia, "maximum_pitch_mm":pitch, "layers":n, "pitch_mm":height*1000/n,
-            "provided_ratio_at_maximum_pitch":rho, "cover_mm": cover, "governing":governing,
+            **grid, "curtain_inset_mm":inset, "provided_ratio_at_maximum_pitch":rho, "cover_mm": cover, "governing":governing,
             "design_moment_resistance_knm_m":mr, "diagonal_cracking_kn_m":vcr,
             "cuts": [{"combination":name,"pressure_kn_m2":q,"moment_bound_knm_m":abs(q)*span**2/8,
                       "reaction_bound_kn_m":5*abs(q)*span/8, "moment_ratio":abs(q)*span**2/(8*mr),
@@ -117,7 +135,7 @@ def vertical_section(panel, horizontal, cover, material, diameter, pitch):
     length, thick = 1000*panel["clear_length_m"], 1000*panel["thickness_m"]
     count = max(2, ceil(length/pitch-1e-12))
     spacing = length/count
-    offset = thick/2 - cover - 2*horizontal["diameter_mm"] - diameter/2
+    offset = thick/2 - cover - horizontal.get("curtain_inset_mm",0.) - 2*horizontal["diameter_mm"] - diameter/2
     area = pi*diameter**2/4
     required(min(spacing-diameter, 2*offset-diameter) >= max(25., diameter)
              and spacing/2 >= diameter/2 and 2*area/(spacing*thick) >= .0025,

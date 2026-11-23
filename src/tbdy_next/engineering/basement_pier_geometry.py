@@ -66,18 +66,8 @@ def _context(source):
     return xyz, walls, assignments, props, shape, frames, angles, columns, offset, insert, shell_fields, wall_inserts
 
 
-def folded_section(source, bound, name, story, member_ids):
-    xyz, walls, assignments, props, shape, frames, angles, columns, offsets, insert, sf, shell_insert = _context(source)
-    assigned = bound["assignments"].get((name, story), [])
-    required(sorted(assigned) == sorted(member_ids), "NATIVE_AND_ARCHIVED_PIER_MEMBERSHIP_DIFFER")
-    properties = bound["properties"].get((name, story), [])
-    required(len(properties) == 1, "ONE_NATIVE_PIER_PROPERTY_AT_THE_STOREY_REQUIRED")
-    native = properties[0]
-    required(int(native["NumLineObj"]) == 0 and int(native["NumAreaObj"]) == len(member_ids)
-             and not any(re.search(r'\bPIER\s+"' + re.escape(name) + r'"', line)
-                         for line in bound["deck"].splitlines() if line.lstrip().startswith("LINEASSIGN ")),
-             "SEPARATE_SHELL_AND_FRAME_RESULTANTS_REQUIRED")
-    required(bool(re.search(r'^\s*UNITS\s+"KN"\s+"M"\s+"C"\s*$', bound["deck"], re.M)), "ARCHIVED_DECK_UNITS_REQUIRED")
+def _column_footprints(context, story):
+    xyz, _, _, _, shape, frames, angles, columns, offsets, insert, _, _ = context
     footprints, supports = {}, defaultdict(list)
     for col in columns:
         if col["Story"] != story:
@@ -98,6 +88,74 @@ def folded_section(source, bound, name, story, member_ids):
         required(all(isfinite(n) and n > 0 for n in (wx, wy)), "POSITIVE_COLUMN_DIMENSIONS_REQUIRED")
         footprints[uid] = (a[0]-wx/2, a[0]+wx/2, a[1]-wy/2, a[1]+wy/2)
         supports[a[:2]].append((uid, col["UniquePtI"], col["UniquePtJ"]))
+    return footprints, supports
+
+
+def pier_membership(bound, name, story, member_ids):
+    required(sorted(bound["assignments"].get((name, story), [])) == sorted(member_ids), "NATIVE_AND_ARCHIVED_PIER_MEMBERSHIP_DIFFER")
+    properties = bound["properties"].get((name, story), [])
+    required(len(properties) == 1, "ONE_NATIVE_PIER_PROPERTY_AT_THE_STOREY_REQUIRED")
+    native = properties[0]
+    required(int(native["NumLineObj"]) == 0 and int(native["NumAreaObj"]) == len(member_ids)
+             and not any(re.search(r'\bPIER\s+"' + re.escape(name) + r'"', line)
+                         for line in bound["deck"].splitlines() if line.lstrip().startswith("LINEASSIGN ")),
+             "SEPARATE_SHELL_AND_FRAME_RESULTANTS_REQUIRED")
+    return native
+
+
+def _overlap_area(strips, obstacles):
+    return _union([(max(s[0],r[0]), min(s[1],r[1]), max(s[2],r[2]), min(s[3],r[3]))
+                   for s in strips for r in obstacles if _intersection(s,r) > 0])
+
+
+def cut_web_area(context, columns, native, member_ids, face):
+    """One-sided horizontal shell footprint with overlapping columns reserved once."""
+    xyz, walls, assignments, props, _, _, _, _, _, _, fields, inserts = context
+    z = float(native["CGBotZ" if face == "Bottom" else "CGTopZ"])
+    oriented, thicknesses = defaultdict(list), defaultdict(list)
+    strips, contributing = [], []
+    for uid in member_ids:
+        row = walls[uid]
+        a, b, high_b, high_a = [xyz[row["UniquePt"+str(i)]] for i in (1,2,3,4)]
+        prop = props[assignments[uid]["SectProp"]]
+        required(a[:2] == high_a[:2] and b[:2] == high_b[:2] and a[2] == b[2] < high_a[2] == high_b[2],
+                 "VERTICAL_RECTANGULAR_WALL_REQUIRED")
+        if not (a[2]-1e-7 <= z < high_a[2]-1e-7 if face == "Bottom" else a[2]+1e-7 < z <= high_a[2]+1e-7):
+            continue
+        thick = float(prop["Thickness"])
+        required(isfinite(thick) and thick > 0 and prop["Material"] == native["Material"] and inserts[uid]
+                 and all(r["CardinalPt"] == "Middle" and _no_translation(r, fields) for r in inserts[uid]),
+                 "WALL_MATERIAL_THICKNESS_OR_INSERTION_UNQUALIFIED")
+        strips.append(_bounds(a[:2], b[:2], thick))
+        axis = "X" if close(a[1], b[1]) else "Y"
+        oriented[axis].append(strips[-1])
+        thicknesses[axis].append(thick)
+        contributing.append(uid)
+    reserved = []
+    for uid, rect in columns.items():
+        col = next(r for r in context[7] if r["UniqueName"] == uid)
+        low, high = (xyz[col[k]][2] for k in ("UniquePtI","UniquePtJ"))
+        if not (low-1e-7 <= z < high-1e-7 if face == "Bottom" else low+1e-7 < z <= high+1e-7):
+            continue
+        reserved.append(rect)
+    gross, overlap = _union(strips), _overlap_area(strips, reserved)
+    required(gross > overlap, "POSITIVE_NET_WALL_CUT_AREA_REQUIRED")
+    webs = {}
+    for axis, other in (("X","Y"),("Y","X")):
+        if oriented[axis]:
+            net = _union(oriented[axis]) - _overlap_area(oriented[axis], reserved+oriented[other])
+            if net > 0:
+                webs[axis] = {"net_m2": net, "maximum_thickness_m": max(thicknesses[axis])}
+    return {"z_m": z, "members": contributing, "shell_union_m2": gross, "column_overlap_m2": overlap,
+            "net_m2": gross-overlap, "directional_webs": webs}
+
+
+def folded_section(source, bound, name, story, member_ids):
+    context = _context(source)
+    xyz, walls, assignments, props, shape, frames, angles, _, _, _, sf, shell_insert = context
+    native = pier_membership(bound, name, story, member_ids)
+    required(bool(re.search(r'^\s*UNITS\s+"KN"\s+"M"\s+"C"\s*$', bound["deck"], re.M)), "ARCHIVED_DECK_UNITS_REQUIRED")
+    footprints, supports = _column_footprints(context, story)
     levels = {(xyz[walls[uid]["UniquePt1"]][2], xyz[walls[uid]["UniquePt4"]][2]) for uid in member_ids}
     required(len(levels) == 1, "WALL_BASE_OR_TOP_CHANGES_WITHIN_PIER")
     bottom, top = levels.pop()
@@ -133,7 +191,15 @@ def folded_section(source, bound, name, story, member_ids):
         clear_rect = _bounds(clear_a, clear_b, thick)
         required(all(_intersection(clear_rect, footprint) < 1e-9 for footprint in footprints.values()),
                  "ANOTHER_COLUMN_INTERSECTS_CLEAR_WEB")
+        support_sections = {}
+        for side, col, depth in (("I", left, 2*l), ("J", right, 2*r)):
+            section_name = frames[col]["SectProp"]
+            angle = angles[col]["AxisAngle"]
+            support_sections[side] = {"column": col, "section": section_name,
+                "material": shape[section_name].get("Material"), "depth_mm": depth*1000,
+                "axis_angle_deg": float(angle) if angle not in ("None", None, "") else 0.}
         panels.append({"member": uid, "wall": row["WallBay"], "joint_i": i, "joint_j": j, "column_i": left, "column_j": right,
+            "support_sections": support_sections,
             "span_m": length, "thickness_m": thick, "clear_length_m": length-l-r, "width_direction": [dx, dy],
             "clear_centroid_xy_m": [(u+v)/2 for u,v in zip(clear_a, clear_b)], "clear_bounds_xy_m": list(clear_rect)})
         strips.append(rect)

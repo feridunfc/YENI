@@ -66,18 +66,21 @@
       ['6.2', 'Joint shear · Ve', '§7.5', 'TBDY 2018 §7.5.2.1 · Eq. (7.11) · Joint shear demand', 14],
       ['6.3', 'Joint shear limit · Vmax', '§7.5', 'TBDY 2018 §7.5.2.2 · Eqs. (7.12)–(7.13) · Joint shear limits', 14]]],
     ['Shear walls and boundary elements', [
+      ['7.0', 'All wall checks', 'All piers and storeys', 'TBDY 2018 §§4.3.4 and 7.6 · Whole-building wall results', 13],
       ['7.1', 'Wall dimensions · Hw / lw', '§7.6.1', 'TBDY 2018 §7.6.1', 13],
       ['7.2', 'Critical wall height · Hcr', '§7.6.2', 'TBDY 2018 §7.6.2', 13],
       ['7.3', 'Boundary and web reinforcement', '§7.6', 'TBDY 2018 §§7.6.3–7.6.5 · Wall reinforcement', 13],
       ['7.4', 'Wall web shear · Ve', '§7.6', 'TBDY 2018 §§7.6.6.3 and 7.6.7.1 · Wall shear demand and strength', 13],
       ['7.5', 'Wall shear friction', 'Shear friction', 'TBDY 2018 §7.6.7.2 · Shear friction at wall construction joints', 13],
       ['7.6', 'Wall axial capacity', 'Axial capacity', 'TBDY 2018 §7.6.1.1 · Wall axial compression limit', 13],
-      ['7.7', 'Wall overturning moment', 'Section cut · X / Y', 'TBDY 2018 §4.3.4.8 · Wall base overturning moments', 13],
+      ['7.7', 'Directional wall moments', 'X / Y at pier centroids', 'TBDY 2018 §§4.3.4.8 and 4.5.3.7(d) · Wall overturning', 13],
       ['7.8', 'Seismic wall section design · PMM', 'Physical faces', 'TBDY 2018 §7.6.6.1 · Wall design moments', 13],
       ['7.9', 'Wall strong direction · Eq. 7.3', '§7.6.6.2', 'TBDY 2018 §7.6.6.2 · Floor moment strength in the strong direction of the wall', 13],
       ['7.10', 'Gravity wall section design', 'Signed forces', 'TS 500 · Section strength under axial force and bending', 13],
       ['7.11', 'Basement pier end sections', 'Net web P–M', 'TS 500 §§6–7, 12.1 · Section equilibrium and strength', 13],
-      ['7.12', 'Basement wall pressure and web reinforcement', 'One-metre strips', 'TS 500 §§7–8, 12.2–12.3 · Wall sections and reinforcement', 13]]],
+      ['7.12', 'Basement wall pressure and web reinforcement', 'One-metre strips', 'TS 500 §§7–8, 12.2–12.3 · Wall sections and reinforcement', 13],
+      ['7.13', 'Pressure reinforcement at wall ends', 'Development and transfer', 'TS 500 §§8.1.7 and 9.1.2 · Anchorage and joint shear', 13],
+      ['7.14', 'Wall results by load combination', 'All pier cuts', 'TBDY 2018 §§7.6.1 and 7.6.7 · Section and joint controls', 13]]],
     ['Slabs and punching shear', [
       ['8.1', 'Column–slab punching shear', 'TS 500', 'TS 500 §8.3 · Punching shear strength and reinforcement', 10]]]
   ];
@@ -598,7 +601,8 @@
   }
 
   function renderResult() {
-    const current = check(), table = tableFor(current.id);
+    const current = check();
+    let table = tableFor(current.id);
     const p0 = state.bundle?.p0_gate_report;
     const host = byId('deskResultTable'), inputs = byId('deskInputs');
     inputs.replaceChildren();
@@ -612,6 +616,23 @@
       input.title = input.value;
       field.append(node('span', label), input);
       inputs.append(field);
+    }
+    if (current.id === '7.14' && table?.rows.length) {
+      byId('deskInputCard').hidden = false;
+      const choice = (name, label, options, initial) => {
+        const field = node('label', undefined, 'desk-field'), select = node('select');
+        const selected = state[name] === undefined || !options.some(([key]) => key === state[name]) ? initial : state[name];
+        setOptions(select, options, selected);
+        select.addEventListener('change', () => { state[name] = select.value; render(); });
+        field.append(node('span', label), select);
+        inputs.append(field);
+        return selected;
+      };
+      const cases = [...new Set(table.rows.map(row => row[3]))];
+      const combination = choice('wallCombination', 'Load combination',
+        [['', 'All combinations'], ...cases.map(c => [c,c])], cases.includes('Cap_SeisX') ? 'Cap_SeisX' : cases[0]);
+      const face = choice('wallFace', 'Pier face', [['Bottom','Bottom'], ['Top','Top'], ['', 'Both faces']], 'Bottom');
+      table = {...table, rows: table.rows.filter(row => (!combination || row[3] === combination) && (!face || row[4] === face))};
     }
     state.lastTable = table?.rows?.length ? table : null;
     byId('deskReferenceView').hidden = !reference;
@@ -993,6 +1014,7 @@
     byId('deskResetRebar').disabled = disabled;
     byId('deskApplyRebar').disabled = disabled || !state.bundle?.runId || state.bundle?.runId === 'column-127';
     byId('deskRunBuilding').disabled = byId('deskApplyRebar').disabled || state.bundle?.columnPmmMember !== 'ALL';
+    byId('deskRunWalls').disabled = byId('deskRunBuilding').disabled;
     byId('deskBuildingHingeStoreys').disabled = byId('deskRunBuilding').disabled;
     renderDiameterCheckboxes('deskBeamAllowedDiams', BEAM_DIAMETERS, bs.allowed_additional_diameters_mm, disabled, next => {
       bs.allowed_additional_diameters_mm = next.sort((a, b) => a - b);
@@ -1388,7 +1410,7 @@
     persistSettings();
     render();
   });
-  function runSelection(wholeBuilding) {
+  function runSelection(wholeBuilding, allWalls = false) {
     const working = workingSettings();
     const storeys = byId('deskBuildingHingeStoreys').value.trim();
     emit('tbdy:apply-rebar-selection', {
@@ -1396,11 +1418,13 @@
       beamSelection: working.beamSelection,
       columnSelection: working.columnSelection,
       wholeBuilding,
+      allWalls,
       wallHingeStoreys: wholeBuilding && storeys ? storeys.split(',').map(name => name.trim()) : undefined,
     });
   }
   byId('deskApplyRebar').addEventListener('click', () => runSelection(false));
   byId('deskRunBuilding').addEventListener('click', () => runSelection(true));
+  byId('deskRunWalls').addEventListener('click', () => runSelection(true, true));
 
   window.TBDYWorkspace = Object.freeze({
     setData,

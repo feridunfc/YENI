@@ -139,6 +139,7 @@ button:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visi
   <label>Source run<select id="deskRun" disabled></select></label>
   <label class="modal-case">Modal case<input id="deskModalCase" value="Modal" maxlength="120" required></label>
   <button class="desk-button primary" id="deskLive" type="submit">Read ETABS and calculate</button>
+  <button class="desk-button" id="deskRunWalls" type="button" disabled title="Calculate all wall checks from the selected whole-building source">Run all wall checks</button>
 </form>
 <p id="deskRunStatus" class="desk-run-status" role="status" aria-live="polite">Loading verified runs&hellip;</p>
 <div class="desk-run-status desk-etabs-connection" id="deskEtabsConnection">

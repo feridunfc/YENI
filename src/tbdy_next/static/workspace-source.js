@@ -166,9 +166,53 @@
         }), boundaries.walls.length + ' physical wall panels', 'The proposed schedules keep the unassigned and held panels visible.');
     }
     if (!sections) return;
+    const batch = sections.batch;
+    if (batch?.rows?.length) {
+      const counts = batch.counts;
+      const overview = [], moments = [], combinations = [];
+      const cause = r => r.reason || r.area_reason || r.material_reason || r.design.reason;
+      for (const r of batch.rows) {
+        const label = [r.pier || 'Unassigned', r.story, r.members.join(', ')];
+        const design = r.design, assigned = r.assigned;
+        overview.push([...label, percentage(assigned?.axial?.ratio), percentage(design.shear?.ratio),
+          percentage(design.horizontal_joint?.ratio), percentage(design.pmm?.ratio), percentage(design.wall_beam?.ratio),
+          design.scheduled_panels + '/' + design.panel_count, cause(r) || 'Conditional proposed design']);
+        for (const [direction, m] of Object.entries(r.overturning)) {
+          const ref = batch.overturning_storeys.find(x => x.story === r.story && x.direction === direction);
+          moments.push([...label, decimals(r.native_bottom_z_m), direction, m.case, m.component, decimals(m.magnitude_knm, 3),
+            decimals(m.uncertainty_knm, 5), m.combination_controls, decimals(ref?.storey_moment_knm, 2), ref?.project_reason]);
+        }
+        if (!Object.keys(r.overturning).length) moments.push([...label, null, null, null, null, null, null, null, null,
+          r.overturning_reason || cause(r)]);
+        for (const c of r.cuts) {
+          const fr = c.reference_friction, web = c.reference_web;
+          combinations.push([...label, c.combination, c.face, c.role, decimals(c.compression_kn, 2), percentage(c.axial_ratio),
+            decimals(c.abs_v2_kn, 2), decimals(c.abs_v2_kn / 9.80665, 2), decimals(web?.vr_kn, 2),
+            percentage(web?.source_v2_ratio), decimals(c.reference_plane_shear_kn, 2), decimals(fr?.resistance_kn, 2),
+            percentage(fr?.upper_utilization), fr?.status, c.reason || r.area_reason || r.material_reason || c.force_basis]);
+        }
+      }
+      const id = ['Pier', 'Storey', 'Wall IDs'];
+      tables['7.0'] = table([...id, 'Net-area axial (%)', 'Design shear (%)', 'Design friction (%)', 'PMM (%)',
+        'Wall–beam (%)', 'Scheduled panels', 'Design result or open input'], overview,
+        coverage(counts.native_assigned_faces, counts.assigned_face_checks_expected, 'assigned face results'),
+        'Each row covers the storey and wall IDs shown. Design columns use the proposed cage and its governing combination.',
+        [['Physical walls', counts.physical_walls], ['Pier–storeys', counts.pier_storeys], ['Unassigned wall objects', counts.unassigned_walls],
+         ['Assigned combinations', counts.assigned_combinations], ['Directional pier moments', counts.directional_moments]]);
+      tables['7.7'] = table([...id, 'Bottom z (m)', 'Excitation', 'Case', 'Pier component', 'Centroid moment (kN·m)',
+        'Rounding bound (kN·m)', 'Native equations', 'Total storey moment (kN·m)', 'Project share decision'], moments,
+        coverage(counts.directional_moments, 2 * counts.pier_storeys, 'individual directional moments'),
+        'Each scalar moment acts at its pier centroid. The building share requires the project base, the set of walls, coupling and a compatible total wall moment.');
+      if (combinations.length) {
+        tables['7.14'] = table([...id, 'Combination', 'Face', 'Load role', 'Compression (kN)', 'Net-area axial (%)',
+          '|V2| (kN)', '|V2| (tf)', 'Web Vr (kN)', 'Web incl. strut (%)', 'Plane shear bound (kN)', 'Joint resistance (kN)',
+          'Reference friction (%)', 'Joint check result', 'Source or open input'], combinations,
+          counts.pier_storeys + ' pier–storeys', 'Native source cuts. Reference web uses two Ø12/200 curtains. The rough joint uses 0.75% anchored vertical steel, μ = 1 and both shear components.');
+      }
+    }
     const basement = sections.basement_coverage;
     if (basement && sections.basement_piers?.length) {
-      const cuts = [], pressure = [];
+      const cuts = [], pressure = [], ends = [];
       for (const pier of sections.basement_piers) {
         const geo = pier.geometry, members = pier.members.join(', ');
         for (const r of pier.cuts) cuts.push([pier.pier, pier.story, members, r.face, r.combination, r.role,
@@ -177,6 +221,13 @@
         for (const id of pier.members) {
           const panel = geo?.panels.find(row => row.member === id), h = panel?.horizontal, v = panel?.vertical;
           const detail = [pier.pier, id, panel?.wall, decimals(panel?.span_m), decimals(panel?.clear_length_m)];
+          for (const side of ['I', 'J']) {
+            const e = panel?.pressure_connections?.ends?.[side], v = e?.transfer;
+            ends.push([pier.pier, id, panel?.wall, side, e?.column, h?.diameter_mm, decimals(e?.position_i_mm, 1),
+              decimals(e?.column_available_mm, 1), e?.specified_embedment_mm, v?.diameter_mm, decimals(v?.pitch_mm, 1),
+              decimals(v?.peak_reaction_kn_m, 2), decimals(v?.resistance_kn_m, 2), percentage(v?.peak_ratio),
+              e?.status || panel?.reason || pier.reason]);
+          }
           if (h) {
             for (const r of h.cuts) pressure.push([...detail, r.combination, decimals(r.pressure_kn_m2, 2),
               decimals(r.moment_bound_knm_m, 2), percentage(r.moment_ratio), percentage(r.cracking_shear_ratio),
@@ -194,7 +245,12 @@
         'Bending bound (kN·m/m)', 'Bending (%)', 'Cracking shear (%)', 'Horizontal Ø (mm)', 'Horizontal pitch (mm)',
         'Vertical Ø (mm)', 'Vertical pitch (mm)', 'Crossties', 'Result or open input'], pressure,
         coverage(basement.scheduled_panels, basement.physical_panels, 'panels with proposed webs'),
-        'Horizontal strips span between columns with zero relative transverse translation. The rows cover the archived uniform pressure. Local shell forces, joint transfer and bar development require separate checks.');
+        'Horizontal strips span between columns with zero relative transverse translation under the archived uniform pressure.');
+      if (basement.physical_pressure_ends_expected !== undefined) tables['7.13'] = table(['Pier', 'Wall ID', 'Wall', 'End',
+        'Support column', 'Web Ø (mm)', 'Required bond (mm)', 'Available (mm)', 'Proposed embedment (mm)', 'Dowel Ø (mm)',
+        'Dowel pitch (mm)', 'Line reaction (kN/m)', 'Resistance (kN/m)', 'Utilization (%)', 'End result or open input'],
+        ends, coverage(basement.physical_pressure_ends_satisfied, basement.physical_pressure_ends_expected, 'ends with a proposed pressure detail'),
+        'Separate transverse dowels use μ = 0.6 at the vertical wall–column interface. End development uses the unfavourable bond position.');
     }
     const cuts = format => rowsFor('seismic_sections', row => [...cut(row), ...format(row)]);
     const shear = cuts(row => [decimals(row.ve_upper_kn, 2), percentage(row.shear_upper_ratio), status(row)]);
@@ -977,7 +1033,7 @@
 
   window.addEventListener('tbdy:apply-rebar-selection', async event => {
     if (busy) return;
-    const {runId, beamSelection, columnSelection, wholeBuilding = false, wallHingeStoreys} = event.detail ?? {};
+    const {runId, beamSelection, columnSelection, wholeBuilding = false, allWalls = false, wallHingeStoreys} = event.detail ?? {};
     const statusEl = byId('deskRebarStatus');
     if (!runIdPattern.test(runId)) {
       if (statusEl) statusEl.textContent = 'Select a verified combined run before applying rebar settings.';
@@ -990,16 +1046,17 @@
     probe.disabled = true;
     workspace.setLiveBusy(true);
     if (statusEl) statusEl.textContent = wholeBuilding ? 'Calculating the whole building…' : 'Re-evaluating selected run with engineer rebar & stirrup policies…';
+    if (allWalls) byId('deskRunStatus').textContent = 'Calculating all piers, storeys and wall combinations…';
     try {
       const body = await json('/api/apply-rebar-selection', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
           base_run_id: runId,
-          beam_selection: beamSelection,
-          column_selection: columnSelection,
+          ...(allWalls ? {} : {beam_selection: beamSelection, column_selection: columnSelection}),
           ...(wholeBuilding ? {whole_building: true} : {}),
-          ...(wholeBuilding && wallHingeStoreys ? {wall_hinge_aggregate_storeys: wallHingeStoreys} : {}),
+          ...(allWalls ? {read_missing_wall_forces: true} : {}),
+          ...(wholeBuilding && !allWalls && wallHingeStoreys ? {wall_hinge_aggregate_storeys: wallHingeStoreys} : {}),
         }),
       });
       const entry = {
@@ -1020,8 +1077,15 @@
           : 'Applied policy cleanly. Active run: ' + entry.run_id + ' (NOT_PROVEN).';
       }
       await activateSource(body.run_id);
+      if (allWalls) {
+        workspace.openCheck('7.0');
+        const counts = body.building_design?.wall_sections?.batch?.counts;
+        if (counts) byId('deskRunStatus').textContent = counts.physical_walls + ' physical walls · ' +
+          counts.pier_storeys + ' pier–storeys · ' + counts.native_assigned_faces + '/' + counts.assigned_face_checks_expected + ' assigned face results';
+      }
     } catch (error) {
       log('error', 'REBAR SELECTION', error.message);
+      if (allWalls) byId('deskRunStatus').textContent = 'Wall calculation could not finish. ' + error.message;
       if (statusEl) statusEl.textContent = 'Rebar evaluation failed: ' + error.message;
     } finally {
       busy = false;

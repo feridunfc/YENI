@@ -40,6 +40,26 @@ _RUN_ID_PATTERN = re.compile(r"RUN-[a-f0-9]{32}\Z")
 _LIVE_CAPTURE_LOCK = Lock()
 
 
+def _wall_read_for_batch(payload, raw, directory, pid):
+    """Reuse the selected run. Acquire all native pier tables once if they are absent."""
+    if payload.get("pier_section_forces") or pid is None:
+        return None
+    from .engineering.design_scenario import _read_verified_parent
+    from .etabs_source_gateway_windows import capture_assigned_pier_forces
+    from .live_etabs import _with_etabs
+
+    parent_raw = _read_verified_parent(directory, payload) if payload.get("design_scenario") else raw
+    parent = json.loads(parent_raw)
+    if not (parent.get("column_axial", {}).get("force_source") or {}).get("rowsets"):
+        return None
+    if not _LIVE_CAPTURE_LOCK.acquire(blocking=False):
+        raise ValueError("ETABS_CAPTURE_IN_PROGRESS")
+    try:
+        return _with_etabs(pid, lambda sap: capture_assigned_pier_forces(sap, pid, parent, sha256(parent_raw).hexdigest()))
+    finally:
+        _LIVE_CAPTURE_LOCK.release()
+
+
 def _parse_rebar_selection_spec(raw_value: Any, kind: str) -> dict[str, Any] | None:
     from .engineering.design_scenario import normalize_selection_overrides
 
@@ -675,10 +695,15 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                             raise ValueError("SCENARIO_AND_SELECTION_FLAGS_ARE_EXCLUSIVE")
                         selection_overrides = None
                     case = base_report["modal_case"]
+                    pier_forces = body.get("pier_forces")
+                    if body.get("read_missing_wall_forces") is True:
+                        if body.get("whole_building") is not True or pier_forces is not None or scenario_request is not None:
+                            raise ValueError("WALL_BATCH_REQUIRES_ONE_WHOLE_BUILDING_SOURCE")
+                        pier_forces = _wall_read_for_batch(json.loads(source_raw), source_raw, source_directory, etabs_pid)
                 except ReportUnavailable as exc:
                     self.reply(404, {"status": "REJECTED", "reason": str(exc)})
                     return
-                except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
+                except (OSError, ValueError, TypeError, RuntimeError, KeyError) as exc:
                     self.reply(422, {"status": "REJECTED", "reason": str(exc)})
                     return
                 _execute_and_reply_live_payload(
@@ -687,7 +712,7 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                     selection_overrides=selection_overrides,
                     scenario_request=scenario_request,
                     whole_building=body.get("whole_building", False),
-                    pier_forces=body.get("pier_forces"),
+                    pier_forces=pier_forces,
                     wall_hinge_aggregate_storeys=body.get("wall_hinge_aggregate_storeys"),
                 )
                 return

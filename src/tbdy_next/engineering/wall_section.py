@@ -11,6 +11,7 @@ from .column_clear_length import _FRAME_TRANSLATION, _SHELL_TRANSLATION, _index,
 from .pier_force_source import METHOD, ORIGINAL, bound_pier_forces, signed_vector
 from .pier_height_design import pier_design_checks
 from .pier_joint_strength import strong_wall_checks
+from .wall_batch import wall_batch
 from .pier_seismic_shear import envelope, upper_shear, vertical_component, wall_load_scope, wall_strength_assignments
 
 
@@ -315,4 +316,5 @@ def wall_sections(source, stages, boundaries):
             record["governing_" + field] = max(values, key=lambda row: row[field]) if values else None
     result["basement_piers"] = basement_piers(source, stages, boundaries, bound, scope)
     result["basement_coverage"] = basement_coverage(result["basement_piers"])
+    result["batch"] = wall_batch(source, stages, boundaries, result, bound, scope)
     return result
