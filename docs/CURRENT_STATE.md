@@ -1,10 +1,26 @@
 # Original building calculation and local handoff
 
-## Five basement wall panels reach conditional section and pressure design
+## All wall checks in one building run
 
-The whole-building engine now selects vertical and horizontal grids for **5/5 panels of the original yP1**. At the two ends of this folded pier, 13 assigned combinations and two additional soil combinations yield **30/30 pier-end checks**. The five individual web sections give 150 PMM bounds. All **75/75 panel–combination pressure checks** reach a bending and cracking-shear result. W28 governs at **30.83% vertical PMM**, **94.31% horizontal bending** and **94.68% horizontal cracking shear**. Its proposed steel on each face is Ø12 at 200 mm vertically and Ø22 at 99.04 mm horizontally.
+Select a verified all-column source and choose **Run all wall checks**. The saved result opens at **7.0**. The original building run `RUN-b613c30f60fc40cd956be1913ec09192` contains all **30 wall panels**, **15 assigned pier–storeys** and one additional row for unassigned wall **471**. Using the same source, the CLI and workspace HTTP action produced identical input and sealed result hashes. [Calculation and reference assumptions](engineering/WHOLE_BUILDING_ENGINE_20261122.md#all-wall-checks-in-one-building-run)
 
-Open saved run `RUN-24db21a1705e47b4973757cd6a3a4b96`. Workspace 7.11 shows the section forces and 7.12 shows the web reinforcement. The calculation assumes an equilibrated distribution of pier-end forces over the net webs and horizontally spanning pressure strips with zero relative transverse support movement. Local shell force distribution, combined shear and torsion, joint transfer and bar development remain open. Across the three multi-panel piers the current coverage is **5/17 panels**, **26/78 assigned pier-end checks** and **65/221 assigned pressure checks**. The next check is W28 horizontal bar development and shear transfer at its two supporting columns. [Panel sizes, proposed bars and governing loads](engineering/WHOLE_BUILDING_ENGINE_20261122.md#basement-pier-yp1)
+| Calculated scope | Original building |
+| --- | --- |
+| Axial compression on net concrete, in-plane shear reference and horizontal joint friction reference | 390/390 faces per check, two faces × 13 assigned combinations × 15 pier–storeys |
+| Selected/proposed-cage seismic shear and horizontal joint friction | 12/15 pier–storeys, 192 face–combination results and 96 joint–combination results |
+| Section PMM | 13/15 pier–storeys including yP1 |
+| Panel reinforcement schedules | 17/30 physical panels |
+| Individual directional overturning moments | 30/30 centroid amplitudes at 15 bottom cuts. The system share remains open. |
+
+View **7.14** displays every pier for a load combination and face. It includes eight amplified controls. At P2/+0.00, `Cap_SeisX` gives 1,052.79 kN (107.35 tf) of in-plane shear. All 11 legible ETEX demands agree at print precision. Under the reference rough joint with 0.75% anchored vertical steel, YENI obtains a two-component demand of 1,053.67 kN, 7,091.96 kN resistance and 14.86% utilization. ETEX displays 23.23%. Actual reinforcement and the commercial resistance assumptions govern the interpretation.
+
+At yP1 the batch checked 10/10 pressure ends on the five previously calculated panels and all 130 assigned end–combinations for those ends. The revised W28 bars are Ø14 at 39.5 mm. Both supports provide 750 mm for 745 mm of proposed straight embedment. Separate dowels carry the 277.80 kN/m pressure reaction bound with 295.04 kN/m resistance. View **7.13** reports the two transfer mechanisms and lists the other basement ends.
+
+## Previous yP1 section and pressure design
+
+The preceding yP1 run selected vertical and horizontal grids for **5/5 panels**. At the two ends of this folded pier, 13 assigned combinations and two additional soil combinations yield **30/30 pier-end checks**. The five individual web sections give 150 PMM bounds. All **75/75 panel–combination pressure checks** reach a bending and cracking-shear result. W28 governs at **30.83% vertical PMM**, **94.31% horizontal bending** and **94.68% horizontal cracking shear**. Its proposed steel on each face is Ø12 at 200 mm vertically and Ø22 at 99.04 mm horizontally.
+
+Open saved run `RUN-24db21a1705e47b4973757cd6a3a4b96`. Workspace 7.11 shows the section forces and 7.12 shows the web reinforcement. The calculation assumes an equilibrated distribution of pier-end forces over the net webs and horizontally spanning pressure strips with zero relative transverse support movement. That run left local shell force distribution, combined shear and torsion, joint transfer and bar development open. Across the three multi-panel piers it covered **5/17 panels**, **26/78 assigned pier-end checks** and **65/221 assigned pressure checks**. The subsequent all-wall run above includes development and pressure transfer at both W28 supports. [Panel sizes, proposed bars and governing loads](engineering/WHOLE_BUILDING_ENGINE_20261122.md#basement-pier-yp1)
 
 ## Four original piers with conditional seismic section designs
 

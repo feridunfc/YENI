@@ -19,19 +19,19 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "CONDITIONAL_BASEMENT_WEB_AND_PRESSURE_DESIGN_ON_ORIGINAL_BUILDING",
-    "work_branch": "work/basement-pier-sections",
+    "status": "ORIGINAL_WHOLE_BUILDING_WALL_BATCH_CALCULATED",
+    "work_branch": "work/basement-wall-end-transfer",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "0fbc95c92fe7027cd19277430b878cf47577b5d3",
-    "tested_implementation_commit": "c249ee75a3cdb9601f10896f961c47bece139a2a",
+    "inspected_base_commit": "fb98f185c2932efddbbf811ec1dae4d1fb2f8b37",
+    "tested_implementation_commit": "b6afdbb790c3e2438670632b29747d1de690f81b",
     "evidence_refs": [
-      "EV-BUILDING-BASEMENT-PIER-YP1-20261123"
+      "EV-ALL-WALL-PIER-STOREY-BATCH-20261123"
     ],
-    "production_run_id": "RUN-24db21a1705e47b4973757cd6a3a4b96",
-    "results_sha256": "0e9040e9481c819cbdeed6c8953fc412ce7a146f93822e007833ed6b042d2253",
+    "production_run_id": "RUN-b613c30f60fc40cd956be1913ec09192",
+    "results_sha256": "bb34479aee0da3d7e1cda815156715507c647b5b60b4dd3925e84f85c37e0d11",
     "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
     "engineering_release": "NOT_READY",
-    "next_action": "Check development of the proposed horizontal W28/460 bars and quantify pressure reaction transfer at columns 221 and 227. Return numerical margins at the two ends through the existing building engine and report."
+    "next_action": "Use the same all-wall run to recover signed modal wall totals at the project base and reconcile the unassigned wall 471. Extend the multi-panel design owner to the stepped xP2 and the unsupported yP2 end while retaining the existing 15-row batch."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
@@ -10934,6 +10934,145 @@
       ],
       "engineering_release": "NOT_READY",
       "next_action": "Check development of the proposed horizontal W28/460 bars and quantify pressure reaction transfer at columns 221 and 227. Return numerical margins at the two ends through the existing building engine and report."
+    },
+    {
+      "id": "EV-ALL-WALL-PIER-STOREY-BATCH-20261123",
+      "status": "EXECUTED_VERIFIED_CONDITIONAL_SCOPE",
+      "observed_at_utc": "2026-11-23T04:50:39+00:00",
+      "inspected_base_commit": "fb98f185c2932efddbbf811ec1dae4d1fb2f8b37",
+      "tested_implementation_commit": "b6afdbb790c3e2438670632b29747d1de690f81b",
+      "tested_tree": "f88e348600c2911c556fc85e3dd5dbb95437eec3",
+      "basis_refs": [
+        "EV-BUILDING-BASEMENT-PIER-YP1-20261123"
+      ],
+      "production_run": "RUN-b613c30f60fc40cd956be1913ec09192",
+      "cli_run": "RUN-306fa740f76a4fd2904c4d8929936272",
+      "selected_source_run": "RUN-24db21a1705e47b4973757cd6a3a4b96",
+      "input_sha256": "ae2d5bb0261bef49f81f40aaac237db5bcfcb90c3157520303e51edfebc16f57",
+      "results_sha256": "bb34479aee0da3d7e1cda815156715507c647b5b60b4dd3925e84f85c37e0d11",
+      "report_sha256": "98a285ad29c1a2613f73c04c27f1e4ed5535aac8140e36c0acbb92c4f03c5b4b",
+      "original_edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+      "batch_sha256": "92ee1f693fb4ddeb16d92e1420cd0b21857f93cf1e8c986d041cecde0e9824b9",
+      "outcomes": {
+        "assigned_combinations": 13,
+        "assigned_face_checks_expected": 390,
+        "complete_rectangular_stacks": 4,
+        "design_axial_storeys": 12,
+        "design_friction_storeys": 12,
+        "design_pmm_storeys": 13,
+        "design_shear_storeys": 12,
+        "directional_moments": 30,
+        "native_assigned_faces": 390,
+        "net_area_axial_exceedances": 0,
+        "net_area_axial_faces": 390,
+        "physical_walls": 30,
+        "pier_storeys": 15,
+        "reference_friction_faces": 390,
+        "reference_friction_inconclusive": 0,
+        "reference_web_shear_faces": 390,
+        "reference_web_shear_over_limit": 0,
+        "scheduled_panels": 17,
+        "unassigned_walls": 1
+      },
+      "basement_pressure_ends": {
+        "additional_static_cuts_evaluated": 4,
+        "additional_static_pressure_end_combinations": 20,
+        "assigned_cuts_evaluated": 26,
+        "assigned_cuts_expected": 78,
+        "assigned_pressure_end_combinations_evaluated": 130,
+        "assigned_pressure_end_combinations_expected": 442,
+        "assigned_pressure_panel_combinations_evaluated": 65,
+        "assigned_pressure_panel_combinations_expected": 221,
+        "initial_column_only_shortfalls": 4,
+        "physical_panels": 17,
+        "physical_pressure_ends_checked": 10,
+        "physical_pressure_ends_expected": 34,
+        "physical_pressure_ends_satisfied": 10,
+        "scheduled_panels": 5
+      },
+      "W28": {
+        "horizontal_diameter": 14,
+        "pitch": 39.5,
+        "pmm": 0.3080342093399621,
+        "bending": 0.8872906168716237,
+        "cracking": 0.9132893200956216,
+        "transfer": 0.9415783272142186,
+        "vs_kn_m": 295.0365274675632
+      },
+      "P2_Cap_SeisX_Bottom": {
+        "v2_kn": 1052.7926,
+        "tf": 107.35496831231869,
+        "reference_vs_kn": 7091.961490038324,
+        "reference_plane_ratio": 0.1485717845484169,
+        "reference_plane_upper_kn": 1053.6653745236435,
+        "net_axial_ratio": 0.15088584183673526,
+        "ts500_cap_kn": 7466.666666666641
+      },
+      "checks": {
+        "net_area_checks_independent": 30,
+        "assigned_faces_independent": 390,
+        "etex_legible_of_reported": [
+          11,
+          15
+        ],
+        "etex_matches": {
+          "V2_tf": 11,
+          "Vs2_display_arithmetic": 11,
+          "display_ratio": 11
+        },
+        "original_directional_moments": 30,
+        "independent_equation_max_difference_knm": 4.505494504769558e-05,
+        "single_http_action": {
+          "base_run_id": "RUN-24db21a1705e47b4973757cd6a3a4b96",
+          "whole_building": true,
+          "read_missing_wall_forces": true
+        },
+        "cli_http_input_and_sealed_results_identical": true,
+        "workspace": {
+          "7.0": 16,
+          "7.7": 31,
+          "7.13": 34,
+          "7.14": 15
+        },
+        "interface_verification": "HTTP and production workspace JS executed with a Node DOM",
+        "area_m2": {
+          "xP2": {
+            "Bottom": 11.19999999999998,
+            "Top": 12.39999999999998
+          },
+          "yP1": {
+            "Bottom": 8.360000000000099,
+            "Top": 8.360000000000099
+          },
+          "yP2": {
+            "Bottom": 9.240000000000098,
+            "Top": 9.240000000000098
+          }
+        }
+      },
+      "validation": {
+        "platform": "Windows",
+        "python_total": 1736,
+        "passed": 1735,
+        "skipped": 1,
+        "python_seconds": 504.671,
+        "javascript_files_passed": 11,
+        "offline": "PASS",
+        "golden_44": {
+          "matched": 36,
+          "method_difference": 4,
+          "source_missing": 4
+        }
+      },
+      "private_file_sha256": {
+        "verified-batch.json": "891f3a6577ef8a37b8f2a3e928945d08ede5446eabf319feb79d3233370df35a",
+        "workspace-views.json": "0bb4229964c88addeedfb63644e5fc05855260c0b282d83457fb381e68469d81",
+        "wall-action.json": "bbaf7d9759c1579a0306856b9a20cb6c896ca17575ccb2e7627d36601cd6d37c",
+        "windows.log": "e2c41bb85f999b23c88fd98d3e2bd2bc2dcbe3af73ed9da87279a4d24b117670"
+      },
+      "scope_limits": "The installed reinforcement, joint roughness and bar development need project confirmation. The 0.75% reference is a proposal. The wall-system overturning ratio requires the design base, wall participation, coupling and a compatible modal or cut total. xP2 changes section within the storey, yP2 has an end without a registered column support and wall 471 has no pier assignment.",
+      "engineering_release": "NOT_READY",
+      "next_action": "Use the same all-wall run to recover signed modal wall totals at the project base and reconcile the unassigned wall 471. Extend the multi-panel design owner to the stepped xP2 and the unsupported yP2 end while retaining the existing 15-row batch."
     }
   ],
   "new_record_template": {
@@ -10958,7 +11097,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-23T03:36:18+00:00",
+  "updated_at_utc": "2026-11-23T04:50:39+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -11772,6 +11911,21 @@
       "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
       "engineering_release": "NOT_READY",
       "next_action": "Design the five original yP1 basement panels as their complete multi-panel pier. Establish the two net physical cross-sections, axes, centroid, wall membership, basement applicability and web/end reinforcement, then evaluate their native pier forces through the whole-building runner. Preserve the four completed rectangular pier calculations, the 42/4/41 column outcomes and the slab, punching and C104 holds."
+    },
+    {
+      "status": "CONDITIONAL_BASEMENT_WEB_AND_PRESSURE_DESIGN_ON_ORIGINAL_BUILDING",
+      "work_branch": "work/basement-pier-sections",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "0fbc95c92fe7027cd19277430b878cf47577b5d3",
+      "tested_implementation_commit": "c249ee75a3cdb9601f10896f961c47bece139a2a",
+      "evidence_refs": [
+        "EV-BUILDING-BASEMENT-PIER-YP1-20261123"
+      ],
+      "production_run_id": "RUN-24db21a1705e47b4973757cd6a3a4b96",
+      "results_sha256": "0e9040e9481c819cbdeed6c8953fc412ce7a146f93822e007833ed6b042d2253",
+      "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
+      "engineering_release": "NOT_READY",
+      "next_action": "Check development of the proposed horizontal W28/460 bars and quantify pressure reaction transfer at columns 221 and 227. Return numerical margins at the two ends through the existing building engine and report."
     }
   ],
   "remote_audit_correction_checkpoint": {

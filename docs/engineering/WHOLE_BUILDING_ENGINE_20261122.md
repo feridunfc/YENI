@@ -201,6 +201,29 @@ The five centreline strips have a nominal area of **9.96 m²**. Their physical f
 
 **Building scope.** Of the 17 panels in three multi-panel piers, five now have proposed grids. On the 13 assigned combinations, 26 of 78 pier-end PMM checks and 65 of 221 panel pressure checks are calculated. The additional static cases contribute four pier-end and ten pressure checks at yP1. In yP2 one end lacks a registered column support. In xP2 the base elevation changes within the pier. One further wall has no pier label. The four rectangular piers retain their separate seismic design coverage.
 
+## All wall checks in one building run
+
+The original `RUN-b613c30f60fc40cd956be1913ec09192` is available in the local source picker. One workspace action or `run-pipeline --whole-building` executes the existing rectangular and basement owners and the population-wide checks. The overview shows all named pier–storeys and wall 471. For a missing original pier table the wall action can read all piers once through the configured ETABS PID and the existing gateway. A sealed source with the pier table replays offline. The project-original SHA-256 remains `0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15`.
+
+Both physical faces of the 15 pier–storeys retain five assigned static, eight assigned seismic and eight amplified companion outputs. The 390 assigned faces have a net-area axial ratio, an in-plane web reference ratio, and a horizontal joint reference ratio. For the assigned cases the largest respective values are 14.45% at P4/+0.00 Bottom under Grav_Ult, and 30.07% and 13.80% at P2/+0.00 Bottom under Crack_SeisX_Soil. The three basement-only piers have bottom/top clear areas of 11.20/12.40 m² (xP2), 8.36/8.36 m² (yP1) and 9.24/9.24 m² (yP2). The one-sided physical cut integrates the shell footprint once and reserves column concrete. The directional web uses only concrete parallel to the shear, excluding overlaps and perpendicular returns.
+
+The web reference uses two Ø12/200 horizontal curtains. The rough-joint reference uses 0.75% anchored crossing steel, μ = 1.0, and a steel reservation for net tension. A two-component shear bound is compared with Eq. 7.19 and the TS 500 concrete cap. These reference ratios use native cut forces. The design owner supplies the heightwise design moments, Ve, proposed reinforcement and shared joint-face demands for the twelve rectangular pier–storeys. The basement net-web PMM owner supplies a thirteenth pier–storey. Seventeen of the 30 physical panels have proposed schedules. Basement applicability and the project-approved reinforcement remain separate decisions. [TBDY 2018 §§7.6.1, 7.6.6 and 7.6.7](https://www.afad.gov.tr/kurumlar/afad.gov.tr/2309/files/TBDY_2018.pdf)
+
+| P2/+0.00 Bottom, Cap_SeisX | Value |
+| --- | ---: |
+| Original component envelope, maximum absolute V2 | 1,052.7926 kN / 107.3550 tf |
+| Reference horizontal-plane shear bound | 1,053.6654 kN |
+| Reference resistance, net tension reserved | 7,091.9615 kN |
+| Reference utilization | 14.86% |
+| ETEX displayed Ve / Vs1 / Vs2 | 107.35 / 788.05 / 462.11 tf |
+| ETEX displayed utilization | 23.23% |
+
+The supplied Quick Result reports 15 passes. All 11 visible demands, governing cap values and percentages reproduce to the displayed precision. In those rows `(3.3 + 0.08 × 3569) × Ac` reproduces the displayed Vs2 in tf. Eq. 7.19 takes fck in MPa. In SI its corresponding cap for C35 and 1.60 m² is 9,760 kN. The ETEX quick-screen computation of Vs1 and the four offscreen results remain unverified. The stored ETEX workbook controls belong to their own project and unit conventions.
+
+Individual RSX/RSY pier bending amplitudes are identifiable without adding section cuts. The model’s linear-add combination radii supply two independent directional equations and 16 consistency checks per moment. At P2/+0.00 Bottom, RSX bending about global Y is 1,267.867 kN·m and RSY bending about global X is 22.329 kN·m. Six whole-storey bottom moment references are retained separately. The building ratio requires its design base and wall population, treatment of coupled walls and a compatible system numerator. [TBDY 2018 §§4.3.4.8, 4.5.3.7(d), 4.5.4.3 and Annex 4B](https://www.afad.gov.tr/kurumlar/afad.gov.tr/2309/files/TBDY_2018.pdf)
+
+At yP1 the five panel grids give ten pressure-end developments and 150 end–combination checks including two additional static soil combinations. Four initial straight-bar details exceeded available column depth. The revised W28 Ø14/39.5 mm horizontal grid gives 88.73% bending and 91.33% cracking shear. Both ends have 740.80 mm required bond, 745 mm specified and 750 mm available. Dedicated Ø12 dowels carry 277.80 kN/m with a 295.04 kN/m resistance at μ = 0.6. The pressure strip has zero relative support translation and zero direct normal tension at this vertical joint. The bar families at all six yP1 support columns satisfy the proposed clearances. The as-built cages, hoops, aggregate and continuous detailing require project confirmation. The wall–column pressure check uses its own interface, steel and reaction. The horizontal construction-joint control appears separately in 7.5 and 7.14.
+
 ## Result identity
 
 The earlier frame-only CLI run is `RUN-9b85a9a1dd7b416eab85056c57eae3d5`. The HTTP run is `RUN-aa330b3ed2e34b298fe59f3dc57f3e55`. Their input bytes, full sealed results and all 16 recorded stage payloads match. The printable web view matches the HTML written by its run. The original EDB SHA-256 still begins `0ce0e970988d`. These results use its archived native solution. [Source and results in the verification ledger](../VERIFICATION_LEDGER.json)
