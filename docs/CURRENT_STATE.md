@@ -1,5 +1,11 @@
 # Original building calculation and local handoff
 
+## Original wall sections and signed overturning actions
+
+The latest whole-building run is `RUN-2d5ab7007688458f9d7a2f215e134942`. Workspace **7.15** shows six directional cut results. **7.16** identifies all 30 physical wall panels. Every assigned shell is 0.40 m thick. In xP2 the 3.40 m W22 panel starts at −1.50 m. Across that level the group grows from five panels to six, with gross areas of 12.64 and 14.00 m². W32/471 participates once in the foundation cut. The boundary calculation identifies 17 panels sharing elevations. Its former combined warning also covered a change of shell thickness.
+
+All six actions balance against native ETABS storey results in **300/300 modal cuts** and **6/6 static cuts**. At −5.15 m the periodic wall shear ratios are **72.35% X and 83.50% Y**. At 0.00 m they are **24.81% X and 23.95% Y**. Treating P2–P5 as four separate piers at 0.00 m gives **16.35% X and 16.94% Y** for the sum of native centroid moments divided by the horizontal floor-load moment. The design base, basement coupling and eccentricity treatment govern project acceptance. [Six directional results and assumptions](engineering/WHOLE_BUILDING_ENGINE_20261122.md#original-signed-wall-and-storey-cuts)
+
 ## All wall checks in one building run
 
 Select a verified all-column source and choose **Run all wall checks**. The saved result opens at **7.0**. The original building run `RUN-b613c30f60fc40cd956be1913ec09192` contains all **30 wall panels**, **15 assigned pier–storeys** and one additional row for unassigned wall **471**. Using the same source, the CLI and workspace HTTP action produced identical input and sealed result hashes. [Calculation and reference assumptions](engineering/WHOLE_BUILDING_ENGINE_20261122.md#all-wall-checks-in-one-building-run)

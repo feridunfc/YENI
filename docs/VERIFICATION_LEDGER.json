@@ -19,19 +19,19 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "ORIGINAL_WHOLE_BUILDING_WALL_BATCH_CALCULATED",
-    "work_branch": "work/basement-wall-end-transfer",
+    "status": "ORIGINAL_WALL_SIGNED_CUTS_BALANCED",
+    "work_branch": "work/wall-base-modal-and-panel-profile",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "fb98f185c2932efddbbf811ec1dae4d1fb2f8b37",
-    "tested_implementation_commit": "b6afdbb790c3e2438670632b29747d1de690f81b",
+    "inspected_base_commit": "ac5ffb89be28fa666834ad8505c9d1ec69287dbc",
+    "tested_implementation_commit": "627b417a981ace55b033d5c5f71627e0e6a5769d",
     "evidence_refs": [
-      "EV-ALL-WALL-PIER-STOREY-BATCH-20261123"
+      "EV-ORIGINAL-WALL-MODAL-CUTS-20261123"
     ],
-    "production_run_id": "RUN-b613c30f60fc40cd956be1913ec09192",
-    "results_sha256": "bb34479aee0da3d7e1cda815156715507c647b5b60b4dd3925e84f85c37e0d11",
+    "production_run_id": "RUN-2d5ab7007688458f9d7a2f215e134942",
+    "results_sha256": "71241d76ab3a6880fe73fd61c2317d3d7ee3f6caa6b7e7d2d7c2a87dca858fd9",
     "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
     "engineering_release": "NOT_READY",
-    "next_action": "Use the same all-wall run to recover signed modal wall totals at the project base and reconcile the unassigned wall 471. Extend the multi-panel design owner to the stepped xP2 and the unsupported yP2 end while retaining the existing 15-row batch."
+    "next_action": "Decide the project base using the basement perimeter and the two §3.3.1.1 period ratios. Use the six completed physical cut results. Establish the basement wall groups, W32 end transfer and the design eccentricity before assigning a project overturning ratio. Use xP2's two measured panel populations for its section design."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
@@ -11073,6 +11073,275 @@
       "scope_limits": "The installed reinforcement, joint roughness and bar development need project confirmation. The 0.75% reference is a proposal. The wall-system overturning ratio requires the design base, wall participation, coupling and a compatible modal or cut total. xP2 changes section within the storey, yP2 has an end without a registered column support and wall 471 has no pier assignment.",
       "engineering_release": "NOT_READY",
       "next_action": "Use the same all-wall run to recover signed modal wall totals at the project base and reconcile the unassigned wall 471. Extend the multi-panel design owner to the stepped xP2 and the unsupported yP2 end while retaining the existing 15-row batch."
+    },
+    {
+      "id": "EV-ORIGINAL-WALL-MODAL-CUTS-20261123",
+      "status": "EXECUTED_VERIFIED_ORIGINAL_MODAL_CUTS",
+      "observed_at_utc": "2026-11-23T16:41:50+00:00",
+      "inspected_base_commit": "ac5ffb89be28fa666834ad8505c9d1ec69287dbc",
+      "tested_implementation_commit": "627b417a981ace55b033d5c5f71627e0e6a5769d",
+      "tested_tree": "35fe2d61dfbaebec5381f1220eddacf705f55f27",
+      "basis_refs": [
+        "EV-ALL-WALL-PIER-STOREY-BATCH-20261123"
+      ],
+      "production_run": "RUN-2d5ab7007688458f9d7a2f215e134942",
+      "cli_run": "RUN-8428e753b00e4abb88f5d262c0746e81",
+      "selected_source_run": "RUN-b613c30f60fc40cd956be1913ec09192",
+      "input_sha256": "408d9fe77a8477d67b8f91ae856a640fa5738a2c9cd65c95ff50dc97ab6434c7",
+      "results_sha256": "71241d76ab3a6880fe73fd61c2317d3d7ee3f6caa6b7e7d2d7c2a87dca858fd9",
+      "report_sha256": "6c9ecd96ba5b4be70659b5077f463c625b0dcd046ef8373f0515243032e43846",
+      "original_edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+      "native_read": {
+        "schema": "tbdy.next.original-wall-modal-cuts.v1",
+        "sha256": "fb5d1890c5b8900a4620f380b6edde45c2d1fb1c353148a5e23624469fd7b9ae",
+        "seal": "a512590e9f5443ffee48449863808cb20e955f7aed81d5a758333f49fb141ac3",
+        "read_only": true,
+        "modes": 100,
+        "static_cases": [
+          "LC_EQX",
+          "LC_EQY"
+        ],
+        "spectra": [
+          "RSX",
+          "RSY"
+        ],
+        "cut_shell_panels": 29,
+        "point_axes": 151,
+        "element_corners": 276,
+        "frame_control_rows": 57
+      },
+      "scope": {
+        "shell_properties": {
+          "30_panels_thickness_m": 0.4
+        },
+        "xP2": {
+          "lower_band_m": [
+            -5.15,
+            -1.5
+          ],
+          "upper_band_m": [
+            -1.5,
+            0
+          ],
+          "panel_counts": [
+            5,
+            6
+          ],
+          "gross_shell_m2": [
+            12.64,
+            14.0
+          ],
+          "net_web_m2": [
+            11.2,
+            12.4
+          ],
+          "native_pier_equivalent_thickness_m": [
+            0.36114,
+            0.4
+          ]
+        },
+        "W32": {
+          "object": "471",
+          "assigned_pier": null,
+          "shared_full_edges": [
+            [
+              "470"
+            ],
+            [
+              "464",
+              "472"
+            ]
+          ],
+          "count_in_foundation_cut": 1
+        },
+        "signed_six_component_modal_cuts": [
+          300,
+          300
+        ],
+        "signed_static_cuts": [
+          6,
+          6
+        ],
+        "assigned_pier_six_component_controls": [
+          1530,
+          1530
+        ],
+        "periodic_directions": [
+          6,
+          6
+        ],
+        "full_native_separate_pier_ratios": [
+          4,
+          6
+        ],
+        "columns": {
+          "conditional": 42,
+          "failed": 4,
+          "hold": 41
+        },
+        "previous_wall_face_checks_per_reference_family": 390,
+        "proposed_wall_panels": 17
+      },
+      "directions": [
+        {
+          "cut_z_m": -5.15,
+          "direction": "X",
+          "wall_cqc_shear_kn": 2527.755956,
+          "storey_cqc_shear_kn": 3493.686985,
+          "wall_to_storey_shear": 0.723521,
+          "wall_common_origin_cqc_knm": 34457.198955,
+          "storey_common_origin_cqc_knm": 43357.343647,
+          "wall_to_storey_common_origin": 0.794726,
+          "sum_individual_centroid_cqc_knm": 12614.403531,
+          "horizontal_floor_mo_cqc_knm": 37657.499937,
+          "native_minus_periodic_knm": -0.000147,
+          "individual_centroid_sum_to_floor_mo": 0.334977,
+          "separate_piers_native_to_floor_mo": null
+        },
+        {
+          "cut_z_m": 0.0,
+          "direction": "X",
+          "wall_cqc_shear_kn": 705.996851,
+          "storey_cqc_shear_kn": 2845.980872,
+          "wall_to_storey_shear": 0.248068,
+          "wall_common_origin_cqc_knm": 19679.007586,
+          "storey_common_origin_cqc_knm": 24477.938652,
+          "wall_to_storey_common_origin": 0.803949,
+          "sum_individual_centroid_cqc_knm": 3278.751611,
+          "horizontal_floor_mo_cqc_knm": 20473.577923,
+          "native_minus_periodic_knm": 4.8e-05,
+          "individual_centroid_sum_to_floor_mo": 0.160146,
+          "separate_piers_native_to_floor_mo": 0.16352
+        },
+        {
+          "cut_z_m": 4.5,
+          "direction": "X",
+          "wall_cqc_shear_kn": 412.240857,
+          "storey_cqc_shear_kn": 1798.173789,
+          "wall_to_storey_shear": 0.229255,
+          "wall_common_origin_cqc_knm": 8339.808571,
+          "storey_common_origin_cqc_knm": 10367.259173,
+          "wall_to_storey_common_origin": 0.804437,
+          "sum_individual_centroid_cqc_knm": 1322.440258,
+          "horizontal_floor_mo_cqc_knm": 8091.782051,
+          "native_minus_periodic_knm": -0.000673,
+          "individual_centroid_sum_to_floor_mo": 0.16343,
+          "separate_piers_native_to_floor_mo": 0.166289
+        },
+        {
+          "cut_z_m": -5.15,
+          "direction": "Y",
+          "wall_cqc_shear_kn": 2852.971254,
+          "storey_cqc_shear_kn": 3416.586296,
+          "wall_to_storey_shear": 0.835036,
+          "wall_common_origin_cqc_knm": 13886.7332,
+          "storey_common_origin_cqc_knm": 40170.49331,
+          "wall_to_storey_common_origin": 0.345695,
+          "sum_individual_centroid_cqc_knm": 10659.2269,
+          "horizontal_floor_mo_cqc_knm": 37474.76568,
+          "native_minus_periodic_knm": -1e-05,
+          "individual_centroid_sum_to_floor_mo": 0.284437,
+          "separate_piers_native_to_floor_mo": null
+        },
+        {
+          "cut_z_m": 0.0,
+          "direction": "Y",
+          "wall_cqc_shear_kn": 680.526353,
+          "storey_cqc_shear_kn": 2841.201481,
+          "wall_to_storey_shear": 0.239521,
+          "wall_common_origin_cqc_knm": 1804.295872,
+          "storey_common_origin_cqc_knm": 22141.845683,
+          "wall_to_storey_common_origin": 0.081488,
+          "sum_individual_centroid_cqc_knm": 3328.494035,
+          "horizontal_floor_mo_cqc_knm": 20483.097645,
+          "native_minus_periodic_knm": 1.7e-05,
+          "individual_centroid_sum_to_floor_mo": 0.1625,
+          "separate_piers_native_to_floor_mo": 0.169358
+        },
+        {
+          "cut_z_m": 4.5,
+          "direction": "Y",
+          "wall_cqc_shear_kn": 513.594866,
+          "storey_cqc_shear_kn": 1776.614212,
+          "wall_to_storey_shear": 0.289086,
+          "wall_common_origin_cqc_knm": 1056.03646,
+          "storey_common_origin_cqc_knm": 8847.036178,
+          "wall_to_storey_common_origin": 0.119366,
+          "sum_individual_centroid_cqc_knm": 1595.708324,
+          "horizontal_floor_mo_cqc_knm": 7994.763953,
+          "native_minus_periodic_knm": 2.2e-05,
+          "individual_centroid_sum_to_floor_mo": 0.199594,
+          "separate_piers_native_to_floor_mo": 0.211649
+        }
+      ],
+      "native_base_reactions": [
+        {
+          "case": "RSX",
+          "direction": "X",
+          "native_moment_knm": 43753.8432,
+          "native_shear_kn": 3493.6901,
+          "origin_m": [
+            0.0,
+            0.0,
+            -5.15
+          ],
+          "periodic_moment_knm": 43753.84315092682,
+          "periodic_shear_kn": 3493.6901200439856
+        },
+        {
+          "case": "RSY",
+          "direction": "Y",
+          "native_moment_knm": 40339.5415,
+          "native_shear_kn": 3416.597,
+          "origin_m": [
+            0.0,
+            0.0,
+            -5.15
+          ],
+          "periodic_moment_knm": 40339.5415244625,
+          "periodic_shear_kn": 3416.597008014742
+        }
+      ],
+      "checks": {
+        "independent_panel_sum_and_dense_CQC_including_floor_force_integral": 18,
+        "workspace_signed_action_rows": 6,
+        "workspace_panel_rows": 30,
+        "cli_http_input_and_result_hashes_equal": true,
+        "command": "run-pipeline --whole-building --case Modal --source .receipts/RUN-b613c30f60fc40cd956be1913ec09192/input.source --pier-forces .receipts/verification/wall-base-modal-20261123/original-wall-modes.json --out .receipts",
+        "full_suite": "tools/test_offline.py --node \"C:/Program Files/nodejs/node.exe\""
+      },
+      "gateway_command": "tbdy_next.etabs_source_gateway_windows pier-forces --wall-modes --pid <active-original-pid> --source .receipts/RUN-b613c30f60fc40cd956be1913ec09192/parent.source --out <new-capture.json>",
+      "validation": {
+        "platform": "Windows",
+        "python_total": 1739,
+        "passed": 1738,
+        "skipped": 1,
+        "python_seconds": 454.903,
+        "javascript_files_passed": 11,
+        "offline": "PASS",
+        "golden_44": {
+          "matched": 36,
+          "method_difference": 4,
+          "source_missing": 4
+        },
+        "prior_editing_run": "One source-replay equality check failed during implementation. Its isolated rerun and the complete frozen-commit suite passed."
+      },
+      "private_file_sha256": {
+        ".receipts/verification/wall-base-modal-20261123/original-wall-modes.json": "fb5d1890c5b8900a4620f380b6edde45c2d1fb1c353148a5e23624469fd7b9ae",
+        ".receipts/verification/wall-base-modal-20261123/verified-modal.json": "02a761beccfd6f15893ed435206f7ed5cb221b7afb68bb18f77961ca6c89f791",
+        ".receipts/verification/wall-base-modal-20261123/verify_modal_run.py": "a2af0627c83408fb7b0370985ae25efd9c69e7cd7c70b69179678b6ff95a182c",
+        ".receipts/verification/wall-base-modal-20261123/windows-release.log": "34d6b67eaaa483ad9b586a22195e55152147306364b08985f5d196ee2ee3cd25",
+        ".receipts/verification/wall-base-modal-20261123/wall-action.json": "0293d9f06a1076453a2aa5f925a2334900b79c248a4f0a799c7756ced9eaf361",
+        ".receipts/verification/wall-base-modal-20261123/workspace-views.json": "b1257c01eaf6e8d33d46f1476a47fac88321dad8f9b8018ca8c0ecdab42b61eb"
+      },
+      "scope_limits": [
+        "Periodic signed wall shares depend on the stated origin and selected spectrum scale.",
+        "Four complete separate-pier sums use native spectrum extrema with 5% eccentricity. W32 has signed modes and lacks a labelled native spectrum.",
+        "The full model has one Ritz case. The §3.3.1.1 basement-mass comparison and actual wall coupling remain open.",
+        "Four failed column-to-mat details and 41 held columns retain their recorded dispositions."
+      ],
+      "engineering_release": "NOT_READY",
+      "next_action": "Decide the project base using the basement perimeter and the two §3.3.1.1 period ratios. Use the six completed physical cut results. Establish the basement wall groups, W32 end transfer and the design eccentricity before assigning a project overturning ratio. Use xP2's two measured panel populations for its section design."
     }
   ],
   "new_record_template": {
@@ -11097,7 +11366,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-23T04:50:39+00:00",
+  "updated_at_utc": "2026-11-23T16:41:50+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -11926,6 +12195,21 @@
       "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
       "engineering_release": "NOT_READY",
       "next_action": "Check development of the proposed horizontal W28/460 bars and quantify pressure reaction transfer at columns 221 and 227. Return numerical margins at the two ends through the existing building engine and report."
+    },
+    {
+      "status": "ORIGINAL_WHOLE_BUILDING_WALL_BATCH_CALCULATED",
+      "work_branch": "work/basement-wall-end-transfer",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "fb98f185c2932efddbbf811ec1dae4d1fb2f8b37",
+      "tested_implementation_commit": "b6afdbb790c3e2438670632b29747d1de690f81b",
+      "evidence_refs": [
+        "EV-ALL-WALL-PIER-STOREY-BATCH-20261123"
+      ],
+      "production_run_id": "RUN-b613c30f60fc40cd956be1913ec09192",
+      "results_sha256": "bb34479aee0da3d7e1cda815156715507c647b5b60b4dd3925e84f85c37e0d11",
+      "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
+      "engineering_release": "NOT_READY",
+      "next_action": "Use the same all-wall run to recover signed modal wall totals at the project base and reconcile the unassigned wall 471. Extend the multi-panel design owner to the stepped xP2 and the unsupported yP2 end while retaining the existing 15-row batch."
     }
   ],
   "remote_audit_correction_checkpoint": {

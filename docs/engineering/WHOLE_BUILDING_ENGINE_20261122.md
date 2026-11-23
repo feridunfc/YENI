@@ -10,7 +10,7 @@ The production run `RUN-9c84d56ca73741ff9318421bf73adf76` used the archived orig
 | --- | --- |
 | Column confinement | 73/87 clear members, 3,265 distinct stations. 69 schedules satisfy the evaluated spacing and gross-depth checks, four have insufficient continuation depth, and 14 wall-coupled members lack discrete clear faces. |
 | Beam confinement | 180/180 model spans, 10,588 distinct stations. The two end regions overlap on 29 beams. Of 360 ends, 254 match the connected column half width, native offset and design cut. The other 106 use the ETABS model cut for the proposed schedule. |
-| Pier boundary reinforcement | 4 continuous rectangular piers, 12/30 wall objects, 24 storey-end sections. Seventeen objects belong to multi-panel or varying sections. One has no pier assignment. |
+| Pier boundary reinforcement | 4 continuous rectangular piers, 12/30 wall objects, 24 storey-end sections. Seventeen objects belong to three multi-panel basement piers. One has no pier assignment. |
 | Column R14 | 42 conditional, four numerical failures and 41 held. The four failures were previously held. |
 | Slab flexure and punching | Deferred by the project owner. |
 
@@ -227,3 +227,29 @@ At yP1 the five panel grids give ten pressure-end developments and 150 end–com
 ## Result identity
 
 The earlier frame-only CLI run is `RUN-9b85a9a1dd7b416eab85056c57eae3d5`. The HTTP run is `RUN-aa330b3ed2e34b298fe59f3dc57f3e55`. Their input bytes, full sealed results and all 16 recorded stage payloads match. The printable web view matches the HTML written by its run. The original EDB SHA-256 still begins `0ce0e970988d`. These results use its archived native solution. [Source and results in the verification ledger](../VERIFICATION_LEDGER.json)
+
+
+## Original signed wall and storey cuts
+
+Run `RUN-2d5ab7007688458f9d7a2f215e134942` uses the original locked model and the existing whole-building runner. The physical census at −5.15, 0.00 and +4.50 m contains 21/32, 4/32 and 4/23 walls/columns respectively. The first number counts shell objects crossing the plane immediately above the cut. W22 starts within the bottom storey, so 29 of the 30 panels cross the three lower cut planes. Workspace 7.16 separately identifies every physical panel.
+
+| Cut (m) | Direction | Wall shear (kN) | Storey shear (kN) | Shear ratio | Wall moment (kN·m) | Storey moment (kN·m) | Horizontal floor-load moment (kN·m) |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| -5.15 | X | 2,527.76 | 3,493.69 | 72.35% | 34,457.20 | 43,357.34 | 37,657.50 |
+| -5.15 | Y | 2,852.97 | 3,416.59 | 83.50% | 13,886.73 | 40,170.49 | 37,474.77 |
+| 0.00 | X | 706.00 | 2,845.98 | 24.81% | 19,679.01 | 24,477.94 | 20,473.58 |
+| 0.00 | Y | 680.53 | 2,841.20 | 23.95% | 1,804.30 | 22,141.85 | 20,483.10 |
+| 4.50 | X | 412.24 | 1,798.17 | 22.93% | 8,339.81 | 10,367.26 | 8,091.78 |
+| 4.50 | Y | 513.59 | 1,776.61 | 28.91% | 1,056.04 | 8,847.04 | 7,994.76 |
+
+The equilibrium check uses ETABS upper-side shell edge actions and the coincident lower face of each upward frame. The gateway transforms shell corner forces from the point-element axes into global axes. It transports moments to the panel centre. The engine then transports the wall and column vectors to (0, 0, cut elevation). All six signed components balance at every cut in 100 modes and in LC_EQX and LC_EQY. Assigned pier bottom actions independently read from the same solver agree in 1,530/1,530 six-component comparisons within display and centroid precision. W32 is included through its own shell actions. The original EDB digest matched before and after the read.
+
+The periodic CQC calculation uses the original response function, signed modal participation, scale, periods and uniform 5% modal damping. It sums within each mode before combining the modes. The horizontal floor-load moment uses the difference between adjacent signed storey shears and the height above each candidate cut, under the original floor-mass and support conditions. The largest difference between the six computed total storey moments and the corresponding ETABS spectrum values is 0.00068 kN·m. The absolute moment of the wall subset also depends on the horizontal origin through the vertical-force lever arms. [TBDY 2018, Annex 4B.2.4–4B.2.5](https://fakulte.adu.edu.tr/muhendislik/personel/uploads/eakin/deprem-yonetmeligi-2018-1576678666.pdf) · [CSI shell joint force conventions](https://docs.csiamerica.com/help-files/etabs-api-2016/html/3abebdb5-a279-ddcb-f2de-a058c9468c42.htm)
+
+At the 0.00 m cut the sum of the four separate native pier centroid amplitudes, including the defined 5% eccentricity, divided by the horizontal floor-load moment is 16.35% in X and 16.94% in Y. At +4.50 m the corresponding cross-check is 16.63% and 21.16%. At −5.15 m W32's periodic centroid amplitudes are 3.390 and 4.855 kN·m. Its unassigned shell has no native pier spectrum. At xP2 the original RSX centroid magnitude is 10,577.548 kN·m versus 10,249.218 kN·m for the periodic component. Each is preserved with its load basis. The design share depends on the adopted basement base, wall or coupled-wall classification and design spectrum. For coupled components Eq. 4.13 includes the axial couple. The current calculation evaluates a conditional separate-pier sum wherever all native centroid results exist. [TBDY 2018 §§3.3.1, 4.3.4.8, 4.5.3.7(d) and 4.5.4.3](https://fakulte.adu.edu.tr/muhendislik/personel/uploads/eakin/deprem-yonetmeligi-2018-1576678666.pdf)
+
+### Physical panel geometry
+
+All 30 objects have 400 mm shell properties. W21/436 (7.00 m) and W23/438 (3.60 m) start at −5.15 m. W22/437 (3.40 m) starts at −1.50 m. They all finish at 0.00 m. Five xP2 panels intersect the lower band and six intersect the upper one. Gross shell area increases from 12.64 to 14.00 m². Deducting actual column footprints gives 11.20 and 12.40 m² of net web. ETABS lists the equivalent pier thicknesses as 0.36114 and 0.40000 m over its nominal 35 m width. Individual shell thickness remains 0.400 m throughout. The earlier boundary-stack rule used the same reason for coincident elevation bands, discontinuous edges, unequal thickness and an outline change. The engine now records the observed cause. Its 17 basement entries identify overlapping panel elevations.
+
+Unassigned W32/471 shares its entire I edge with W31/470 and its entire J edge with W55/464 and W6/472. These source point pairs establish wall adjacency. A design model for wall-to-wall force transfer and anchored reinforcement at that connection remains open. The existing 390 face checks in each reference family, 17 proposed wall schedules, 42 conditional columns, four failed column-to-mat details, 41 held columns and 180 selected beams retain their recorded results.

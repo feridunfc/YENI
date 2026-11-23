@@ -1,10 +1,14 @@
 # Local development and GitHub worker handoff
 
-## Start with the whole-building engine
+## Current wall calculation
+
+Start with `RUN-2d5ab7007688458f9d7a2f215e134942` and **Run all wall checks**. The original source already contains the 100 modes, shell forces for W32 and signed actions for each physical cut. Workspace **7.15** shows three cut elevations in X and Y. **7.16** shows the actual section assignments. Read the xP2 bands and the shared W32 edge IDs before extending the basement design. For xP2 check the individual faces on either side of −1.50 m. For yP2 check transfer into the adjacent walls at its uncolumned end.
+
+The first project decision is the basement reference under §3.3.1.1. The archive contains one full-mass Ritz case. The largest directional mass ratios identify mode 1 in X (0.469851 s, 69.74%) and mode 2 in Y (0.440617 s, 64.35%). Qualify the perimeter and the X/Y periods with the same stiffness and the ground-floor and basement masses omitted. Use the saved signed cuts at −5.15 and 0.00 m and qualify the wall groups and design eccentricity. [Calculation and project limits](../engineering/WHOLE_BUILDING_ENGINE_20261122.md#original-signed-wall-and-storey-cuts)
+
+## Previous all-wall batch
 
 Open `RUN-b613c30f60fc40cd956be1913ec09192` or use **Run all wall checks** on a saved all-column run. The button retains the source run’s reinforcement choices and runs the whole building through `EnginePipelineRunner`. The same command is `run-pipeline --whole-building --source .receipts/RUN-24db21a1705e47b4973757cd6a3a4b96/input.source --case Modal`. Deliver future changes through this batch. In **7.0**, 30 physical walls form 15 named pier–storeys and one unassigned wall. **7.14** filters the 630 original force rows by combination and face. The reference design covers 390 assigned face–cases in each of axial, shear and friction. Seventeen panels have proposed layouts from the design owners. In **7.7** the directional pier moments and whole-storey reference are recorded separately. In **7.13** ten verified yP1 pressure ends replace the earlier open W28 bond calculation. [Scope and numerical results](../engineering/WHOLE_BUILDING_ENGINE_20261122.md#all-wall-checks-in-one-building-run)
-
-Use the same all-wall run to recover signed modal wall totals at the project base and reconcile the unassigned wall 471. Extend the multi-panel design owner to the stepped xP2 and the unsupported yP2 end while retaining the existing 15-row batch.
 
 The twelve P2–P5 wall panels retain 192 conditional seismic section results, 96 rough-joint shear-friction results, 96 floor–pier combinations for Eq. 7.3 in the wall strong direction and 120 signed gravity cuts. Open 4.8 for column SCWB (§7.3.5), 7.8 for seismic wall sections and 7.9 for the wall strong-direction application of §7.6.6.2. [Single-command reproduction and calculation basis](../engineering/WHOLE_BUILDING_ENGINE_20261122.md#seismic-pier-design-on-the-original-building)
 
