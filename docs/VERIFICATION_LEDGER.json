@@ -1,7 +1,7 @@
 {
   "schema": "yeni.project-memory.verification-ledger.v2",
   "repository": "feridunfc/YENI",
-  "updated_on": "2026-11-22",
+  "updated_on": "2026-11-23",
   "purpose": "Durable evidence index. It is not a source receipt or formal engineering acceptance.",
   "workflow": {
     "primary_workspace": "LOCAL_CODEX",
@@ -19,20 +19,19 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "CONDITIONAL_SEISMIC_WALL_DESIGNS_CALCULATED_ON_ORIGINAL_BUILDING",
-    "work_branch": "work/wall-design-checks",
+    "status": "CONDITIONAL_BASEMENT_WEB_AND_PRESSURE_DESIGN_ON_ORIGINAL_BUILDING",
+    "work_branch": "work/basement-pier-sections",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "f7e0ab0c629a740bda9f8e1fcdba03126ca9c97c",
-    "tested_implementation_commit": "7b8122238b2242d40b61614aaf0d6defc592f9b1",
-    "calculation_commit": "4a72bcaf37f12d33e699eb7becd0d059cc58b9b7",
+    "inspected_base_commit": "0fbc95c92fe7027cd19277430b878cf47577b5d3",
+    "tested_implementation_commit": "c249ee75a3cdb9601f10896f961c47bece139a2a",
     "evidence_refs": [
-      "EV-BUILDING-SEISMIC-WALL-DESIGN-20261122"
+      "EV-BUILDING-BASEMENT-PIER-YP1-20261123"
     ],
-    "production_run_id": "RUN-a5a2859f6b874fcdb6180c8c2fb79da8",
-    "results_sha256": "f14b98cd31aca5c6961f2e8f69cd4d7650dc141ab9f2ba80af5e2b2d486fb2ff",
+    "production_run_id": "RUN-24db21a1705e47b4973757cd6a3a4b96",
+    "results_sha256": "0e9040e9481c819cbdeed6c8953fc412ce7a146f93822e007833ed6b042d2253",
     "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
     "engineering_release": "NOT_READY",
-    "next_action": "Design the five original yP1 basement panels as their complete multi-panel pier. Establish the two net physical cross-sections, axes, centroid, wall membership, basement applicability and web/end reinforcement, then evaluate their native pier forces through the whole-building runner. Preserve the four completed rectangular pier calculations, the 42/4/41 column outcomes and the slab, punching and C104 holds."
+    "next_action": "Check development of the proposed horizontal W28/460 bars and quantify pressure reaction transfer at columns 221 and 227. Return numerical margins at the two ends through the existing building engine and report."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
@@ -10597,6 +10596,344 @@
       "limits": "Proposed bar layouts, splice and anchorage details, roughened anchored horizontal joints, project base and load assumptions, and applicability for multi-panel basement piers remain open. Seventeen panels belong to xP2, yP1 and yP2 and one wall lacks a pier label. The original overturning check requires a common-origin directional section cut or equivalent signed modal totals.",
       "engineering_release": "NOT_READY",
       "next_action": "Design the five original yP1 basement panels as their complete multi-panel pier. Establish the two net physical cross-sections, axes, centroid, wall membership, basement applicability and web/end reinforcement, then evaluate their native pier forces through the whole-building runner. Preserve the four completed rectangular pier calculations, the 42/4/41 column outcomes and the slab, punching and C104 holds."
+    },
+    {
+      "id": "EV-BUILDING-BASEMENT-PIER-YP1-20261123",
+      "status": "EXECUTED_VERIFIED_CONDITIONAL_SCOPE",
+      "observed_at_utc": "2026-11-23T03:36:18+00:00",
+      "inspected_base_commit": "0fbc95c92fe7027cd19277430b878cf47577b5d3",
+      "tested_implementation_commit": "c249ee75a3cdb9601f10896f961c47bece139a2a",
+      "tested_tree": "aecb405394425b256ef680b9f5813198782547d7",
+      "basis_refs": [
+        "EV-BUILDING-SEISMIC-WALL-DESIGN-20261122",
+        "EV-BUILDING-PIER-SECTIONS-20261122"
+      ],
+      "production_run": "RUN-24db21a1705e47b4973757cd6a3a4b96",
+      "source": {
+        "original_edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+        "qualified_pier_read_sha256": "de7a843183435acd209bf2c1e3196d002284f435b1630f1829c5255e47689f94",
+        "pier_resultant": "yP1 / +0.00 / Bottom and Top",
+        "model_read": "Archived original native solution and input deck",
+        "current_cage_role": "PROPOSED",
+        "reserved_separate_columns": [
+          "215",
+          "221",
+          "227",
+          "228",
+          "233",
+          "241"
+        ]
+      },
+      "method_fingerprint": {
+        "configuration_file_count": 9,
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 156,
+        "package_sha256": "67c0db1e66e5aebb72970eb5d83fd12ff1b65b5ba6adb8c0e42cf13b66545ad6",
+        "python_implementation": "CPython",
+        "python_version": "3.12.10"
+      },
+      "input_sha256": "5b99fbc5229cddb3ddc675befe124916bba48fd2743226705f65a14b290025cf",
+      "results_sha256": "0e9040e9481c819cbdeed6c8953fc412ce7a146f93822e007833ed6b042d2253",
+      "snapshot_sha256": "97d7085d19b33f256dee6864f83f7b81dac7291c52dc83bd57a4003a2dc155f4",
+      "report_sha256": "f1ee00fe8ac25ff600eee3a87b1944239896d99ceecb893a61c1c5908fce5412",
+      "verified_receipts": 16,
+      "compared_default_history_files": 19,
+      "outcomes": {
+        "yP1": {
+          "physical_panels": 5,
+          "native_end_sections": 2,
+          "assigned_wall_combinations": 13,
+          "additional_static_combinations": 2,
+          "end_combinations": 30,
+          "individual_web_section_checks": 150,
+          "panel_pressure_checks": 75,
+          "proposed_grids": 5,
+          "nominal_area_m2": 9.96,
+          "physical_footprint_union_m2": 9.88,
+          "net_web_area_m2": 8.36,
+          "governing_panel": "W28 / 460",
+          "pmm_upper": 0.30829520202085764,
+          "pressure_bending_upper": 0.9431382766917591,
+          "pressure_cracking_shear_upper": 0.9468045245028003
+        },
+        "three_multi_panel_piers": {
+          "additional_static_cuts_evaluated": 4,
+          "assigned_cuts_evaluated": 26,
+          "assigned_cuts_expected": 78,
+          "assigned_pressure_panel_combinations_evaluated": 65,
+          "assigned_pressure_panel_combinations_expected": 221,
+          "physical_panels": 17,
+          "scheduled_panels": 5
+        },
+        "other_multi_panel_piers": {
+          "xP2": "WALL_BASE_OR_TOP_CHANGES_WITHIN_PIER",
+          "yP2": "EACH_PANEL_END_REQUIRES_ONE_REGISTERED_SUPPORT_COLUMN"
+        },
+        "existing_scopes": {
+          "rectangular_seismic_cut_combinations": 192,
+          "rectangular_gravity_cut_combinations": 120,
+          "wall_joint_combinations": 96,
+          "wall_strong_direction_combinations": 96,
+          "columns": {
+            "conditional": 42,
+            "failed": 4,
+            "hold": 41
+          },
+          "selected_beams": 180,
+          "wall_panels_in_model": 30
+        }
+      },
+      "panel_results": [
+        {
+          "member": "443",
+          "label": "W27",
+          "horizontal": [
+            12,
+            198.07692307692307
+          ],
+          "vertical": [
+            12,
+            200.0
+          ],
+          "ties": 286,
+          "horizontal_design": {
+            "combination": "Crack_SeisX_Soil",
+            "cracking_shear_ratio": 0.33947925385133304,
+            "moment_bound_knm_m": 62.505,
+            "moment_ratio": 0.6789315410897795,
+            "pressure_kn_m2": -55.56,
+            "reaction_bound_kn_m": 104.17500000000001
+          },
+          "horizontal_resistance_knm_m": 92.06377405838414,
+          "vcr_kn_m": 306.8670583493771,
+          "reference_horizontal_knm_m": 92.24980978847381,
+          "horizontal_numerical_allowance_knm_m": 0.1860381360576611,
+          "governing_end": "Bottom",
+          "governing_case": "Crack_SeisY_UpSoil",
+          "pmm_upper": 0.15182544799375045,
+          "independent_pmm_samples": [
+            0.13279536360900646,
+            0.06855805448031192,
+            0.04864031679363549
+          ]
+        },
+        {
+          "member": "460",
+          "label": "W28",
+          "horizontal": [
+            22,
+            99.03846153846153
+          ],
+          "vertical": [
+            12,
+            200.0
+          ],
+          "ties": 1872,
+          "horizontal_design": {
+            "combination": "Crack_SeisX_Soil",
+            "cracking_shear_ratio": 0.9468045245028003,
+            "moment_bound_knm_m": 444.48,
+            "moment_ratio": 0.9431382766917591,
+            "pressure_kn_m2": -55.56,
+            "reaction_bound_kn_m": 277.8
+          },
+          "horizontal_resistance_knm_m": 471.277659898504,
+          "vcr_kn_m": 293.40797684282546,
+          "reference_horizontal_knm_m": 472.22361337430846,
+          "horizontal_numerical_allowance_knm_m": 0.9459857432293304,
+          "governing_end": "Bottom",
+          "governing_case": "Crack_SeisY_Soil",
+          "pmm_upper": 0.30829520202085764,
+          "independent_pmm_samples": [
+            0.30101440047700295,
+            0.2007331487844671,
+            0.1534435415333187
+          ]
+        },
+        {
+          "member": "461",
+          "label": "W29",
+          "horizontal": [
+            12,
+            198.07692307692307
+          ],
+          "vertical": [
+            12,
+            200.0
+          ],
+          "ties": 286,
+          "horizontal_design": {
+            "combination": "Crack_SeisX_Soil",
+            "cracking_shear_ratio": 0.33947925385133304,
+            "moment_bound_knm_m": 62.505,
+            "moment_ratio": 0.6789315410897795,
+            "pressure_kn_m2": -55.56,
+            "reaction_bound_kn_m": 104.17500000000001
+          },
+          "horizontal_resistance_knm_m": 92.06377405838414,
+          "vcr_kn_m": 306.8670583493771,
+          "reference_horizontal_knm_m": 92.24980978847381,
+          "horizontal_numerical_allowance_knm_m": 0.1860381360576611,
+          "governing_end": "Bottom",
+          "governing_case": "Crack_SeisY_Soil",
+          "pmm_upper": 0.27910250028447864,
+          "independent_pmm_samples": [
+            0.26681308902972234,
+            0.2563957896065051,
+            0.2468102473287554
+          ]
+        },
+        {
+          "member": "463",
+          "label": "W30",
+          "horizontal": [
+            14,
+            198.07692307692307
+          ],
+          "vertical": [
+            14,
+            199.99999999999994
+          ],
+          "ties": 390,
+          "horizontal_design": {
+            "combination": "Crack_SeisX_Soil",
+            "cracking_shear_ratio": 0.43381242704542006,
+            "moment_bound_knm_m": 100.28579999999995,
+            "moment_ratio": 0.8327256763665074,
+            "pressure_kn_m2": -55.56,
+            "reaction_bound_kn_m": 131.95499999999996
+          },
+          "horizontal_resistance_knm_m": 120.43077672059337,
+          "vcr_kn_m": 304.17524204806676,
+          "reference_horizontal_knm_m": 120.67365349982116,
+          "horizontal_numerical_allowance_knm_m": 0.24288582348035578,
+          "governing_end": "Bottom",
+          "governing_case": "Crack_SeisY_Soil",
+          "pmm_upper": 0.15318882615491602,
+          "independent_pmm_samples": [
+            0.1437185647505776,
+            0.07184209968252515,
+            0.05111741399821996
+          ]
+        },
+        {
+          "member": "473",
+          "label": "W33",
+          "horizontal": [
+            22,
+            122.61904761904762
+          ],
+          "vertical": [
+            12,
+            196.87500000000006
+          ],
+          "ties": 1344,
+          "horizontal_design": {
+            "combination": "Crack_SeisX_Soil",
+            "cracking_shear_ratio": 0.8402890154962355,
+            "moment_bound_knm_m": 350.09745000000015,
+            "moment_ratio": 0.9057131052576824,
+            "pressure_kn_m2": -55.56,
+            "reaction_bound_kn_m": 246.54750000000007
+          },
+          "horizontal_resistance_knm_m": 386.54342966627905,
+          "vcr_kn_m": 293.40797684282546,
+          "reference_horizontal_knm_m": 387.3194822855366,
+          "horizontal_numerical_allowance_knm_m": 0.7761774810517866,
+          "governing_end": "Bottom",
+          "governing_case": "Crack_SeisY_UpSoil",
+          "pmm_upper": 0.21441103544511275,
+          "independent_pmm_samples": [
+            0.21035739470998652,
+            0.17795775745408507,
+            0.15489649191008603
+          ]
+        }
+      ],
+      "independent_checks": {
+        "method": "Two-by-two Gauss integration on each original net rectangle, independent 3x3 elimination for eight force vertices at each cut, independent strain-compatible strip and disk quadrature",
+        "reconstructed_web_demands": 150,
+        "reconstructed_envelope_vertices": 240,
+        "maximum_equilibrium_residual_kn_or_knm": 1.546140993013978e-11,
+        "horizontal_sections_at_zero_axial": 5,
+        "sampled_reference_pmm_at_governing_cut": 15,
+        "full_windows_regression": true
+      },
+      "workspace": {
+        "projected_run": "RUN-24db21a1705e47b4973757cd6a3a4b96",
+        "method": "HTTP saved-run public workspace scripts, source projection and table renderer in Node DOM",
+        "views": {
+          "4.8": {
+            "title": "Strong column–weak beam · SCWB",
+            "rows": 252,
+            "status": "252 column end–direction records"
+          },
+          "7.8": {
+            "title": "Seismic wall section design · PMM",
+            "rows": 192,
+            "status": "192/192 conditional face designs"
+          },
+          "7.9": {
+            "title": "Wall strong direction · Eq. 7.3",
+            "rows": 96,
+            "status": "96/96 within moment strength"
+          },
+          "7.10": {
+            "title": "Gravity wall section design",
+            "rows": 120,
+            "status": "120/120 evaluated"
+          },
+          "7.11": {
+            "title": "Basement pier end sections",
+            "rows": 32,
+            "status": "26/78 assigned cuts across multi-panel piers"
+          },
+          "7.12": {
+            "title": "Basement wall pressure and web reinforcement",
+            "rows": 87,
+            "status": "5/17 panels with proposed webs"
+          }
+        },
+        "printable_view_compared_to_saved_report": true
+      },
+      "validation": {
+        "platform": "Windows CPython 3.12.10 and Node 26.13.1",
+        "python_total": 1731,
+        "passed": 1730,
+        "skipped": 1,
+        "skip_reason": "test_wrong_run_and_symlink_cannot_cross_source_boundary: OS disallows creating symlinks",
+        "python_seconds": 390.457,
+        "javascript_files_passed": 11,
+        "offline": "PASS",
+        "golden_44": {
+          "matched": 36,
+          "method_difference": 4,
+          "source_missing": 4
+        }
+      },
+      "commands": [
+        "& '.\\.venv\\Scripts\\python.exe' -X utf8 -B -m tbdy_next.cli run-pipeline --whole-building --source '.receipts/c29-self-weight-nmax/RUN-be9d8258796f4dfca1a3609453e94e53/parent.source' --design-scenario '.receipts/c29-self-weight-nmax/request.json' --wall-hinge-aggregate-storey '+4.50' --case Modal --pier-forces '.receipts/verification/pier-section-design-20261122/original-piers.json' --out '.receipts/verification/basement-pier-20261123/building'",
+        ".venv/Scripts/python.exe -X utf8 -B .receipts/verification/basement-pier-20261123/verify_original.py RUN-24db21a1705e47b4973757cd6a3a4b96",
+        ".venv/Scripts/python.exe -X utf8 -B .receipts/verification/basement-pier-20261123/verify_workspace.py",
+        "& '.\\.venv\\Scripts\\python.exe' -X utf8 -B tools/test_offline.py --node 'C:/Program Files/nodejs/node.exe'"
+      ],
+      "private_file_sha256": {
+        ".receipts/verification/basement-pier-20261123/verification.json": "d6f7458362da25dbd55d6cc0712a2f023d9b8d52b2d1c62213d255a90c1224a4",
+        ".receipts/verification/basement-pier-20261123/workspace-views.json": "f364182a10e6f5619364d4db790392d04838085c50a2109f489a560885a47768",
+        ".receipts/verification/basement-pier-20261123/crosscheck.log": "600b711bdecbf928f3d31618020fca9aadeaffe2d95664f23975e201e2f0b51e",
+        ".receipts/verification/basement-pier-20261123/final-cli.log": "8ec93e6656b6499b8549c25bf53005ed96159e4c5331f5724a65338252ae71f1",
+        ".receipts/verification/basement-pier-20261123/windows.log": "42aeada825395bddbbea022b41d2f2dea9013d7746fa5b6ed0f0e2e42d073ed6",
+        ".receipts/verification/basement-pier-20261123/verify_original.py": "d9ec93bff0ec071f313767cab13c3b87d87112c1e81b0d6a1ed235b63fdbc613",
+        ".receipts/verification/basement-pier-20261123/verify_http.cjs": "f5bc2c4e9e4111a73db645e6fa8a2549965ed40e8eb085ca75564bd055db31bd",
+        ".receipts/verification/basement-pier-20261123/verify_workspace.py": "ca043a5cb4279c8e531d3329c6d37931782d6f8cc507e6a3a8b370471fe9b7a3"
+      },
+      "limits": [
+        "Affine vertical web stress allocation at native pier ends; local shell force distribution and its compatibility with the columns remain open.",
+        "The horizontal pressure strip uses fixed transverse support positions, passive end rotations and zero horizontal axial force.",
+        "Combined orthogonal stress, V2/V3/T, column interface transfer, bar development and actual reinforcement require separate qualification."
+      ],
+      "engineering_release": "NOT_READY",
+      "next_action": "Check development of the proposed horizontal W28/460 bars and quantify pressure reaction transfer at columns 221 and 227. Return numerical margins at the two ends through the existing building engine and report."
     }
   ],
   "new_record_template": {
@@ -10621,7 +10958,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-22T19:34:06.167922+00:00",
+  "updated_at_utc": "2026-11-23T03:36:18+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -11419,6 +11756,22 @@
       "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
       "engineering_release": "NOT_READY",
       "next_action": "Use the same original P2–P5 pier cuts and cages in the whole-building runner. Construct the TBDY 7.6.6.1 seismic design moment diagram for the two model-base assumptions and bound PMM across the local axial interval at all 192 native seismic assignment cuts. Carry the 7.6.6.2 strong-direction check and detailing dependencies. Construct the heightwise shear diagram under Fig. 7.12(c) on its applicable branch. Keep the completed local shear bounds and signed gravity checks. The ETEX workbook comparison with the proposed cage is complete. The Quick Result area limit is reconstructed. Retain the commercial selector discrepancy and the unknown installed cage as separate qualifications. Slab, punching and C104 convergence are deferred."
+    },
+    {
+      "status": "CONDITIONAL_SEISMIC_WALL_DESIGNS_CALCULATED_ON_ORIGINAL_BUILDING",
+      "work_branch": "work/wall-design-checks",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "f7e0ab0c629a740bda9f8e1fcdba03126ca9c97c",
+      "tested_implementation_commit": "7b8122238b2242d40b61614aaf0d6defc592f9b1",
+      "calculation_commit": "4a72bcaf37f12d33e699eb7becd0d059cc58b9b7",
+      "evidence_refs": [
+        "EV-BUILDING-SEISMIC-WALL-DESIGN-20261122"
+      ],
+      "production_run_id": "RUN-a5a2859f6b874fcdb6180c8c2fb79da8",
+      "results_sha256": "f14b98cd31aca5c6961f2e8f69cd4d7650dc141ab9f2ba80af5e2b2d486fb2ff",
+      "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
+      "engineering_release": "NOT_READY",
+      "next_action": "Design the five original yP1 basement panels as their complete multi-panel pier. Establish the two net physical cross-sections, axes, centroid, wall membership, basement applicability and web/end reinforcement, then evaluate their native pier forces through the whole-building runner. Preserve the four completed rectangular pier calculations, the 42/4/41 column outcomes and the slab, punching and C104 holds."
     }
   ],
   "remote_audit_correction_checkpoint": {
