@@ -6,11 +6,12 @@ from ..column_engine.section_capacity import Bar, Material, Section, perimeter, 
 from ..column_engine.transverse_kernel import bar_area_mm2
 from ..etabs_geometry import AREA_INSERTION, FRAME_INSERTION
 from .beam_r10_live import _design_factors, _steel_grade_mpa
+from .basement_pier_design import basement_coverage, basement_piers
 from .column_clear_length import _FRAME_TRANSLATION, _SHELL_TRANSLATION, _index, _no_translation, _records, _translation_fields
 from .pier_force_source import METHOD, ORIGINAL, bound_pier_forces, signed_vector
 from .pier_height_design import pier_design_checks
 from .pier_joint_strength import strong_wall_checks
-from .pier_seismic_shear import envelope, upper_shear, vertical_component, wall_load_scope
+from .pier_seismic_shear import envelope, upper_shear, vertical_component, wall_load_scope, wall_strength_assignments
 
 
 def reinforced_section(pier, feature):
@@ -160,11 +161,14 @@ def wall_sections(source, stages, boundaries):
     roles = (stages.get("analysis_setup_reconciliation") or {}).get("assigned_design_families") or {}
     seismic = (roles.get("project_role_catalog") or {}).get("available_groups", {}).get("wall", [])
     scope = {"native_static": {}, "native_seismic": {}, "controls": {}, "other": []}
-    if boundaries["piers"]:
+    if boundaries["piers"] or any(row.get("pier") for row in boundaries["walls"]):
         try:
             scope = wall_load_scope(source)
         except (KeyError, TypeError, ValueError):
-            pass
+            try:
+                scope["other"] = wall_strength_assignments(source)
+            except (KeyError, TypeError, ValueError):
+                pass
     if (source.get("pier_section_forces") or {}).get("kind") != METHOD:
         assigned = sorted(scope["native_static"])
         static = set(assigned)
@@ -309,4 +313,6 @@ def wall_sections(source, stages, boundaries):
         for field in ("pmm_ratio", "v2_over_vr"):
             values = [row for row in record["gravity_rows"] if row.get(field) is not None]
             record["governing_" + field] = max(values, key=lambda row: row[field]) if values else None
+    result["basement_piers"] = basement_piers(source, stages, boundaries, bound, scope)
+    result["basement_coverage"] = basement_coverage(result["basement_piers"])
     return result

@@ -166,6 +166,36 @@
         }), boundaries.walls.length + ' physical wall panels', 'The proposed schedules keep the unassigned and held panels visible.');
     }
     if (!sections) return;
+    const basement = sections.basement_coverage;
+    if (basement && sections.basement_piers?.length) {
+      const cuts = [], pressure = [];
+      for (const pier of sections.basement_piers) {
+        const geo = pier.geometry, members = pier.members.join(', ');
+        for (const r of pier.cuts) cuts.push([pier.pier, pier.story, members, r.face, r.combination, r.role,
+          decimals(geo?.clear_web_area_m2, 3), limits(r.nd_kn), percentage(r.pmm_upper), r.reason || r.status]);
+        if (!pier.cuts.length) cuts.push([pier.pier, pier.story, members, null, null, null, null, null, null, pier.reason || pier.status]);
+        for (const id of pier.members) {
+          const panel = geo?.panels.find(row => row.member === id), h = panel?.horizontal, v = panel?.vertical;
+          const detail = [pier.pier, id, panel?.wall, decimals(panel?.span_m), decimals(panel?.clear_length_m)];
+          if (h) {
+            for (const r of h.cuts) pressure.push([...detail, r.combination, decimals(r.pressure_kn_m2, 2),
+              decimals(r.moment_bound_knm_m, 2), percentage(r.moment_ratio), percentage(r.cracking_shear_ratio),
+              h.diameter_mm, decimals(h.pitch_mm, 2), v?.diameter_mm, decimals(v?.pitch_mm, 2), v?.crossties,
+              panel.reason || pier.status]);
+          } else pressure.push([...detail, null, null, null, null, null, null, null, null, null, null,
+            panel?.reason || pier.reason || pier.status]);
+        }
+      }
+      tables['7.11'] = table(['Pier', 'Storey', 'Wall IDs', 'Pier end', 'Combination', 'Load scope', 'Net webs (m²)',
+        'Compression interval (kN)', 'Maximum web PMM upper (%)', 'Result or open input'], cuts,
+        coverage(basement.assigned_cuts_evaluated, basement.assigned_cuts_expected, 'assigned cuts across multi-panel piers'),
+        'Each end uses the native pier origin. An equilibrium distribution allocates axial force and biaxial bending to the clear webs. Supporting column concrete and bars are reserved.');
+      tables['7.12'] = table(['Pier', 'Wall ID', 'Wall', 'Column span (m)', 'Clear web (m)', 'Combination', 'Normal load (kN/m²)',
+        'Bending bound (kN·m/m)', 'Bending (%)', 'Cracking shear (%)', 'Horizontal Ø (mm)', 'Horizontal pitch (mm)',
+        'Vertical Ø (mm)', 'Vertical pitch (mm)', 'Crossties', 'Result or open input'], pressure,
+        coverage(basement.scheduled_panels, basement.physical_panels, 'panels with proposed webs'),
+        'Horizontal strips span between columns with zero relative transverse translation. The rows cover the archived uniform pressure. Local shell forces, joint transfer and bar development require separate checks.');
+    }
     const cuts = format => rowsFor('seismic_sections', row => [...cut(row), ...format(row)]);
     const shear = cuts(row => [decimals(row.ve_upper_kn, 2), percentage(row.shear_upper_ratio), status(row)]);
     if (shear.length) {

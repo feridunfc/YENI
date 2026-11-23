@@ -1168,6 +1168,54 @@ def _with_material_members(items: list[dict], roster: list[dict]) -> list[dict]:
             for group in by_material.get(item.get("material_name"), [{}])]
 
 
+def _basement_pier_tables(piers):
+    groups = piers.get("basement_piers", [])
+    if not groups:
+        return ""
+    inventory, cuts, layouts, pressure = [], [], [], []
+    for pier in groups:
+        name = pier["pier"]
+        geom = pier.get("geometry", {})
+        inventory.append({**pier, **geom})
+        for cut in pier["cuts"]:
+            native = cut.get("native_kn_knm", {})
+            bounds = {key: [native["Min"][key], native["Max"][key]] for key in native.get("Min", {})}
+            cuts.append({"pier": name, **cut, **bounds})
+        for panel in geom.get("panels", []):
+            h, v = panel.get("horizontal", {}), panel.get("vertical", {})
+            layouts.append({"pier": name, **panel, **v, "h_dia": h.get("diameter_mm"), "h_pitch": h.get("pitch_mm"),
+                            "v_dia": v.get("diameter_mm"), "v_pitch": v.get("pitch_mm")})
+            for row in h.get("cuts", []):
+                pressure.append({"pier": name, "wall": panel["wall"], **row,
+                                 "mr": h["design_moment_resistance_knm_m"], "vcr": h["diagonal_cracking_kn_m"]})
+    return "".join(("<h4>Basement pier sections and pressure design</h4>",
+        "<p>Each pier-end resultant is resolved over the clear webs with an affine vertical stress distribution. "
+        "Supporting columns keep their concrete and reinforcement. The proposed two-curtain grids carry vertical "
+        "section demand and horizontal bending from the assigned uniform pressure. The one-metre strips span "
+        "between columns with zero relative transverse support displacement. Local shell force distribution, "
+        "combined shear and torsion, joint transfer and reinforcement development remain open.</p>",
+        _table((("pier","Pier"),("story","Storey"),("members","Shell IDs"),("reserved_column_ids","Reserved column IDs"),
+                ("nominal_area_m2","ETABS nominal area (m²)"),("shell_footprint_union_m2","Footprint union (m²)"),
+                ("clear_web_area_m2","Clear webs (m²)"),("evaluated_cut_combinations","Satisfied end combinations"),
+                ("expected_cut_combinations","Expected end combinations"),("status","Conditional scope"),("reason","Open input")), inventory),
+        "<details><summary>Native forces and net-web PMM at both pier ends</summary>",
+        _table((("pier","Pier"),("face","End"),("combination","Combination"),("basis","Force basis"),
+                ("P","P (kN)"),("V2","V2 (kN)"),("V3","V3 (kN)"),("T","T (kN·m)"),("M2","M2 (kN·m)"),
+                ("M3","M3 (kN·m)"),("pmm_upper","PMM upper ratio"),
+                ("equilibrium_error_kn_knm","Max. N / first moment residuals (kN, kN·m, kN·m)"),("status","Result")), cuts),
+        "</details><details><summary>Proposed reinforcement on each web face</summary>",
+        _table((("pier","Pier"),("wall","Wall"),("member","Shell ID"),("span_m","Column centres (m)"),
+                ("clear_length_m","Column faces (m)"),("h_dia","Horizontal Ø (mm)"),("h_pitch","Horizontal pitch (mm)"),
+                ("v_dia","Vertical Ø (mm)"),("v_pitch","Vertical pitch (mm)"),("stations_per_face","Vertical bars per face"),
+                ("crossties","Crossties"),("governing_face","PMM end"),("governing_combination","PMM combination"),
+                ("pmm_upper","PMM upper ratio"),("reason","Open input")), layouts),
+        "</details><details><summary>Uniform pressure by panel and combination</summary>",
+        _table((("pier","Pier"),("wall","Wall"),("combination","Combination"),("pressure_kn_m2","Pressure (kN/m²)"),
+                ("moment_bound_knm_m","Moment upper (kN·m/m)"),("mr","Moment resistance (kN·m/m)"),
+                ("moment_ratio","Bending ratio"),("reaction_bound_kn_m","Reaction upper (kN/m)"),
+                ("vcr","Diagonal cracking resistance (kN/m)"),("cracking_shear_ratio","Cracking ratio")), pressure), "</details>"))
+
+
 def _confinement_tables(building):
     frames = building.get("frame_confinement")
     if not frames:
@@ -1286,6 +1334,7 @@ def _confinement_tables(building):
                         ("mr_wall_lower_knm","Wall Mr lower sum (kN·m)"),("required_mr_knm","1.2 × beam Mr upper sum (kN·m)"),
                         ("upper_utilization","Upper ratio"),("status","Outcome"),("reason","Open input")), connections),
                 "</details>"])
+        section.append(_basement_pier_tables(piers))
     return "".join(section)
 
 

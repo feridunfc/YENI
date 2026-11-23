@@ -10,9 +10,13 @@ from .pier_force_source import ORIGINAL, force_vector, signed_vector
 DISPLAY_KN = 0.001
 
 
-def wall_load_scope(source):
+def wall_strength_assignments(source):
     text = _archive_bytes(source["analysis_archive"]["model_export_base64"], 2_000_000).decode("latin-1")
-    names = sorted(set(re.findall(r'^\s*COMBO\s+"([^"]+)"\s+DESIGN\s+"Wall"\s+COMBOTYPE\s+"Strength"', text, re.M)))
+    return sorted(set(re.findall(r'^\s*COMBO\s+"([^"]+)"\s+DESIGN\s+"Wall"\s+COMBOTYPE\s+"Strength"', text, re.M)))
+
+
+def wall_load_scope(source):
+    names = wall_strength_assignments(source)
     _, cases, graph = native_graph(source)
     static, seismic, other = {}, {}, []
     for name in names:

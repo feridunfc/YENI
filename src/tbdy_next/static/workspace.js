@@ -75,7 +75,9 @@
       ['7.7', 'Wall overturning moment', 'Section cut · X / Y', 'TBDY 2018 §4.3.4.8 · Wall base overturning moments', 13],
       ['7.8', 'Seismic wall section design · PMM', 'Physical faces', 'TBDY 2018 §7.6.6.1 · Wall design moments', 13],
       ['7.9', 'Wall strong direction · Eq. 7.3', '§7.6.6.2', 'TBDY 2018 §7.6.6.2 · Floor moment strength in the strong direction of the wall', 13],
-      ['7.10', 'Gravity wall section design', 'Signed forces', 'TS 500 · Section strength under axial force and bending', 13]]],
+      ['7.10', 'Gravity wall section design', 'Signed forces', 'TS 500 · Section strength under axial force and bending', 13],
+      ['7.11', 'Basement pier end sections', 'Net web P–M', 'TS 500 §§6–7, 12.1 · Section equilibrium and strength', 13],
+      ['7.12', 'Basement wall pressure and web reinforcement', 'One-metre strips', 'TS 500 §§7–8, 12.2–12.3 · Wall sections and reinforcement', 13]]],
     ['Slabs and punching shear', [
       ['8.1', 'Column–slab punching shear', 'TS 500', 'TS 500 §8.3 · Punching shear strength and reinforcement', 10]]]
   ];

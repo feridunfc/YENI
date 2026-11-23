@@ -103,6 +103,7 @@ def _run_pipeline_replay(args) -> int:
                  "expected_detail_panels", "evaluated_detail_panels", "satisfied_detail_panels",
                  "axial_limit_exceedances", "expected_strong_wall", "evaluated_strong_wall", "satisfied_strong_wall",
                  "conditional_seismic_sections", "conditional_piers")}
+            summary["building_design"]["basement_piers"] = building["wall_sections"].get("basement_coverage")
         summary["report_path"] = str(run.root / "report.html")
     print(json.dumps(summary, ensure_ascii=False, indent=2))
     return 0 if summary.get("compare", {}).get("status", "IDENTICAL") == "IDENTICAL" else 3

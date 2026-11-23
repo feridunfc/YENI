@@ -165,6 +165,14 @@ def building_results(source, stages, evidence):
         pier_design["conditional_seismic_sections"], f"{pier_design['conditional_piers']} complete rectangular pier stacks")
     add("Full project-qualified seismic pier design on rectangular stacks", pier_design["expected_seismic"],
         pier_design["evaluated_seismic_design"], pier_design["seismic_design_reason"])
+    basement = pier_design["basement_coverage"]
+    add("Multi-panel pier net-web P–M checks at native cuts", basement["assigned_cuts_expected"],
+        basement["assigned_cuts_evaluated"], "Assigned wall combinations at two pier ends, concrete in columns reserved")
+    add("Multi-panel wall pressure-strip bending and cracking shear",
+        basement["assigned_pressure_panel_combinations_expected"], basement["assigned_pressure_panel_combinations_evaluated"],
+        "Uniform normal load on horizontal strips between column axes")
+    add("Multi-panel walls with a proposed web schedule", basement["physical_panels"], basement["scheduled_panels"],
+        "Two curtains, physical vertical stations, horizontal layers and crossties")
     for name, population, reason in (
             ("Wall and pier reinforcement", areas["wall"], "Full seismic wall design and reinforcement detailing"),
             ("Diaphragm collectors and chords", areas["diaphragm"], "Force path and design resistance required"),
