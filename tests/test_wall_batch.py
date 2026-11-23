@@ -6,11 +6,20 @@ from tbdy_next.column_engine.section_capacity import Material
 from tbdy_next.engineering.basement_pier_geometry import _bounds, _overlap_area, _union
 from tbdy_next.engineering.basement_wall_connection import tension_development
 from tbdy_next.engineering.wall_batch import _reference_friction, _reference_web, wall_batch
+from tbdy_next.engineering.wall_boundary import _stack
 from tbdy_next.engineering.wall_modal_balance import _translate, cqc, cqc_matrix
 from tbdy_next.engineering.wall_overturning import recover_amplitudes
 
 
 class WallBatchTest(unittest.TestCase):
+    def test_panels_in_one_elevation_band_have_a_distinct_reason_from_a_thickness_change(self):
+        lower = {"bottom_z_m": -5.15, "top_z_m": 0., "thickness_mm": 400., "outline": [(0., 0.), (7., 0.)],
+                 "lower_edge": ["a", "b"], "upper_edge": ["c", "d"]}
+        with self.assertRaisesRegex(ValueError, "^MULTIPLE_WALL_PANELS_AT_SAME_ELEVATION$"):
+            _stack([lower, {**lower, "bottom_z_m": -1.50}])
+        with self.assertRaisesRegex(ValueError, "^STACKED_WALL_PANEL_THICKNESS_CHANGES$"):
+            _stack([lower, {**lower, "bottom_z_m": 0., "top_z_m": 4.50, "lower_edge": ["c", "d"], "thickness_mm": 300.}])
+
     def test_opposed_equal_period_modes_cancel_in_cqc(self):
         correlation = cqc_matrix([1., 1.], .05)
         self.assertAlmostEqual(cqc([7., -7.], correlation), 0.)

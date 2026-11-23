@@ -102,9 +102,16 @@ def _stack(panels):
     if len(panels) < 2:
         raise ValueError("CONTINUOUS_PIER_HEIGHT_AND_BASE_REQUIRED")
     for lower, upper in zip(panels, panels[1:]):
-        if (lower["upper_edge"] != upper["lower_edge"] or lower["top_z_m"] != upper["bottom_z_m"]
-                or lower["thickness_mm"] != upper["thickness_mm"] or lower["outline"] != upper["outline"]):
-            raise ValueError("MULTIPANEL_OR_VARIABLE_SECTION_PIER")
+        if lower["top_z_m"] > upper["bottom_z_m"]:
+            raise ValueError("MULTIPLE_WALL_PANELS_AT_SAME_ELEVATION")
+        if lower["top_z_m"] < upper["bottom_z_m"]:
+            raise ValueError("VERTICAL_GAP_BETWEEN_WALL_PANELS")
+        if lower["thickness_mm"] != upper["thickness_mm"]:
+            raise ValueError("STACKED_WALL_PANEL_THICKNESS_CHANGES")
+        if lower["outline"] != upper["outline"]:
+            raise ValueError("STACKED_WALL_PANEL_PLAN_OUTLINE_CHANGES")
+        if lower["upper_edge"] != upper["lower_edge"]:
+            raise ValueError("STACKED_WALL_PANEL_EDGE_IDS_DIFFER")
     length, thickness = example["length_mm"], example["thickness_mm"]
     bottom, top = example["bottom_z_m"], panels[-1]["top_z_m"]
     branches = {}
