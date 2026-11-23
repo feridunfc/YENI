@@ -202,7 +202,29 @@
       tables['7.7'] = table([...id, 'Bottom z (m)', 'Excitation', 'Case', 'Pier component', 'Centroid moment (kN·m)',
         'Rounding bound (kN·m)', 'Native equations', 'Total storey moment (kN·m)', 'Project share decision'], moments,
         coverage(counts.directional_moments, 2 * counts.pier_storeys, 'individual directional moments'),
-        'Each scalar moment acts at its pier centroid. The building share requires the project base, the set of walls, coupling and a compatible total wall moment.');
+        'Each scalar moment acts at its pier centroid. Check 7.15 reports the signed sum at each physical cut.');
+      const modal = batch.modal_base;
+      if (modal?.storeys?.length) {
+        const actions = modal.storeys.flatMap(st => (st.directions.length ? st.directions : [{}]).map(r => [
+          st.story, st.cut_z_m, st.walls, st.columns, st.modes_balanced + '/' + st.modes_expected, r.direction,
+          decimals(r.wall_cqc_shear_kn, 2), decimals(r.storey_cqc_shear_kn, 2), percentage(r.wall_to_storey_shear),
+          decimals(r.wall_common_origin_cqc_knm, 2), decimals(r.storey_common_origin_cqc_knm, 2),
+          percentage(r.wall_to_storey_common_origin), decimals(r.sum_individual_centroid_cqc_knm, 2),
+          decimals(r.horizontal_floor_mo_cqc_knm, 2), percentage(r.separate_piers_native_to_floor_mo),
+          st.reason || modal.spectrum_reason || st.status
+        ]));
+        tables['7.15'] = table(['Storey', 'Cut z (m)', 'Walls', 'Columns', 'Balanced modes', 'Direction', 'Wall shear (kN)',
+          'Storey shear (kN)', 'Shear ratio (%)', 'Wall moment (kN·m)', 'Storey moment (kN·m)', 'Moment ratio (%)',
+          'Sum of separate centroid CQC (kN·m)', 'Horizontal floor-load moment (kN·m)', 'Separate native piers / floor moment (%)', 'Cut result'], actions,
+          modal.status, 'The signed sum uses (0, 0, cut elevation) before periodic CQC. The project overturning decision requires the adopted base and coupling model.');
+      }
+      const profiles = batch.rows.flatMap(r => (r.physical_profile?.panels ?? []).map(p => [
+        r.pier || 'Unassigned', r.story, p.member, p.label, p.section, decimals(p.thickness_m, 3), decimals(p.length_m, 2),
+        p.bottom_m, p.top_m, p.i_edge_wall_ids.join(', '), p.j_edge_wall_ids.join(', ')
+      ]));
+      if (profiles.length) tables['7.16'] = table(['Pier', 'Storey', 'Wall ID', 'Wall', 'Assigned section', 'Thickness (m)',
+        'Length (m)', 'Bottom (m)', 'Top (m)', 'Shared full edge I', 'Shared full edge J'], profiles,
+        profiles.length + ' physical panels', 'Thickness is the assigned ETABS shell thickness. Connected wall IDs share both end points of the indicated edge.');
       if (combinations.length) {
         tables['7.14'] = table([...id, 'Combination', 'Face', 'Load role', 'Compression (kN)', 'Net-area axial (%)',
           '|V2| (kN)', '|V2| (tf)', 'Web Vr (kN)', 'Web incl. strut (%)', 'Plane shear bound (kN)', 'Joint resistance (kN)',

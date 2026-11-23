@@ -80,7 +80,9 @@
       ['7.11', 'Basement pier end sections', 'Net web P–M', 'TS 500 §§6–7, 12.1 · Section equilibrium and strength', 13],
       ['7.12', 'Basement wall pressure and web reinforcement', 'One-metre strips', 'TS 500 §§7–8, 12.2–12.3 · Wall sections and reinforcement', 13],
       ['7.13', 'Pressure reinforcement at wall ends', 'Development and transfer', 'TS 500 §§8.1.7 and 9.1.2 · Anchorage and joint shear', 13],
-      ['7.14', 'Wall results by load combination', 'All pier cuts', 'TBDY 2018 §§7.6.1 and 7.6.7 · Section and joint controls', 13]]],
+      ['7.14', 'Wall results by load combination', 'All pier cuts', 'TBDY 2018 §§7.6.1 and 7.6.7 · Section and joint controls', 13],
+      ['7.15', 'Signed wall and storey actions', 'Modal equilibrium and load sharing', 'TBDY 2018 Annex 4B · Periodic CQC and horizontal floor loads', 13],
+      ['7.16', 'Wall panel sections by elevation', 'Assigned shell properties', 'ETABS wall objects and physical cut geometry', 13]]],
     ['Slabs and punching shear', [
       ['8.1', 'Column–slab punching shear', 'TS 500', 'TS 500 §8.3 · Punching shear strength and reinforcement', 10]]]
   ];

@@ -78,15 +78,20 @@ def recover_amplitudes(equations, radii):
             "equations": len(radii), "solved_from": [left, right], "max_control_error_knm": max(residuals)}
 
 
-def pier_moments(model, groups, pier, storey, native):
-    cases, equations = model
-    angle = float(native["AxisAngle"])
+def directional_components(angle):
+    angle = float(angle)
     if not isfinite(angle) or not isclose(angle/90, round(angle/90), rel_tol=0, abs_tol=1e-7):
         raise ValueError("OBLIQUE_PIER_NEEDS_PROJECTED_MOMENT_BEFORE_MODAL_COMBINATION")
     along_x = round(angle/90) % 2 == 0
+    return {"X": "M3" if along_x else "M2", "Y": "M2" if along_x else "M3"}
+
+
+def pier_moments(model, groups, pier, storey, native):
+    cases, equations = model
+    components = directional_components(native["AxisAngle"])
     spectra = {k: envelope(groups[pier, storey, "Bottom", k]) for k in equations}
     result = {}
-    for direction, component in (("X", "M3" if along_x else "M2"), ("Y", "M2" if along_x else "M3")):
+    for direction, component in components.items():
         radii = {k: (v["Max"][component]-v["Min"][component])/2 for k, v in spectra.items()}
         calc = recover_amplitudes(equations, radii)
         result[direction] = {"case": cases[direction], "component": component, "global_moment_axis": "Y" if direction=="X" else "X",

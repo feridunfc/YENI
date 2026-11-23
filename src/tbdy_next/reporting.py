@@ -1249,6 +1249,18 @@ def _wall_batch_tables(batch):
             forces.append({**key, **c, "vr": web.get("vr_kn"), "shear_ratio": web.get("source_v2_ratio"),
                            "vs": fr.get("resistance_kn"), "friction_ratio": fr.get("upper_utilization"), "joint_result": fr.get("status")})
     identity = (("pier","Pier"),("storey","Storey"),("members","Wall IDs"))
+    modal = batch.get("modal_base") or {}
+    modal_rows, panels, bands = [], [], []
+    for st in modal.get("storeys", ()):
+        for item in st["directions"] or [{}]:
+            modal_rows.append({**item, "story": st["story"], "z": st["cut_z_m"], "state": st.get("reason") or st["status"],
+                               "modes": f'{st["modes_balanced"]}/{st["modes_expected"]}', "walls": st.get("walls"),
+                               "columns": st.get("columns")})
+    for wall in batch["rows"]:
+        profile = wall.get("physical_profile") or {}
+        group = {"pier": wall.get("pier") or "Unassigned", "storey": wall["story"]}
+        panels.extend({**group, **p} for p in profile.get("panels", ()))
+        bands.extend({**group, **b} for b in profile.get("bands", ()))
     return "".join(("<h3>All wall checks</h3><p>One row per pier and storey. Unassigned wall objects are listed individually. "
                     "Values in this table are utilization ratios.</p>",
         _table(identity+(("compression","Net-area compression"),("shear","Design shear"),
@@ -1268,7 +1280,24 @@ def _wall_batch_tables(batch):
                ("combination_controls","Native equations")), moments),
         _table((("story","Storey"),("direction","Excitation"),("storey_moment_knm","Whole-storey bottom moment (kN·m)"),
                 ("evaluated_groups","Recovered groups"),("expected_groups","Physical groups"),("project_reason","Project decision")),
-               batch["overturning_storeys"]), "</details>"))
+               batch["overturning_storeys"]), "</details>",
+        "<h3>Signed wall and storey actions</h3><p>Six signed components are summed at (0, 0, cut elevation) in every mode. "
+        "Directional ratios use periodic CQC after this sum. The floor-load moment uses horizontal floor forces and their "
+        "heights above the cut. A project overturning classification requires the adopted base and wall coupling model.</p>",
+        _val(modal.get("spectrum_reason") or modal.get("reason") or modal.get("status")),
+        _table((("story","Storey"),("z","Cut z (m)"),("walls","Walls"),("columns","Columns"),("modes","Balanced modes"),
+                ("direction","Direction"),("wall_cqc_shear_kn","Wall shear (kN)"),("storey_cqc_shear_kn","Storey shear (kN)"),
+                ("wall_to_storey_shear","Shear ratio"),("wall_common_origin_cqc_knm","Wall moment (kN·m)"),
+                ("storey_common_origin_cqc_knm","Storey moment (kN·m)"),("wall_to_storey_common_origin","Moment ratio"),
+                ("sum_individual_centroid_cqc_knm","Sum of separate centroid CQC (kN·m)"),
+                ("horizontal_floor_mo_cqc_knm","Horizontal floor-load moment (kN·m)"),
+                ("separate_piers_native_to_floor_mo","Separate native piers / floor moment"),("state","Cut result")), modal_rows),
+        "<details><summary>Assigned shell sections and pier geometry by elevation</summary>",
+        _table((("pier","Pier"),("storey","Storey"),("member","Wall ID"),("label","Wall"),("section","Assigned section"),
+                ("thickness_m","Thickness (m)"),("length_m","Length (m)"),("bottom_m","Bottom (m)"),("top_m","Top (m)"),
+                ("i_edge_wall_ids","Shared full edge I"),("j_edge_wall_ids","Shared full edge J")), panels),
+        _table((("pier","Pier"),("storey","Storey"),("bottom_m","From (m)"),("top_m","To (m)"),("members","Active wall IDs"),
+                ("shell_area_m2","Gross shell area (m²)"),("net_area_m2","Net web area (m²)")), bands), "</details>"))
 
 
 def _confinement_tables(building):

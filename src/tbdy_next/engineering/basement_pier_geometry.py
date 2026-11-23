@@ -110,8 +110,12 @@ def _overlap_area(strips, obstacles):
 
 def cut_web_area(context, columns, native, member_ids, face):
     """One-sided horizontal shell footprint with overlapping columns reserved once."""
-    xyz, walls, assignments, props, _, _, _, _, _, _, fields, inserts = context
     z = float(native["CGBotZ" if face == "Bottom" else "CGTopZ"])
+    return web_area_at(context, columns, member_ids, z, face, native["Material"])
+
+
+def web_area_at(context, columns, member_ids, z, face, material):
+    xyz, walls, assignments, props, _, _, _, _, _, _, fields, inserts = context
     oriented, thicknesses = defaultdict(list), defaultdict(list)
     strips, contributing = [], []
     for uid in member_ids:
@@ -123,7 +127,7 @@ def cut_web_area(context, columns, native, member_ids, face):
         if not (a[2]-1e-7 <= z < high_a[2]-1e-7 if face == "Bottom" else a[2]+1e-7 < z <= high_a[2]+1e-7):
             continue
         thick = float(prop["Thickness"])
-        required(isfinite(thick) and thick > 0 and prop["Material"] == native["Material"] and inserts[uid]
+        required(isfinite(thick) and thick > 0 and prop["Material"] == material and inserts[uid]
                  and all(r["CardinalPt"] == "Middle" and _no_translation(r, fields) for r in inserts[uid]),
                  "WALL_MATERIAL_THICKNESS_OR_INSERTION_UNQUALIFIED")
         strips.append(_bounds(a[:2], b[:2], thick))
@@ -148,6 +152,34 @@ def cut_web_area(context, columns, native, member_ids, face):
                 webs[axis] = {"net_m2": net, "maximum_thickness_m": max(thicknesses[axis])}
     return {"z_m": z, "members": contributing, "shell_union_m2": gross, "column_overlap_m2": overlap,
             "net_m2": gross-overlap, "directional_webs": webs}
+
+
+def panel_profile(context, columns, member_ids):
+    """Separate the assigned shell property from the panels present at each elevation."""
+    xyz, walls, assignments, props = context[:4]
+    ends = defaultdict(set)
+    for uid, r in walls.items():
+        for a,b in ((1,4),(2,3)):
+            ends[frozenset((r["UniquePt"+str(a)],r["UniquePt"+str(b)]))].add(uid)
+    panels = []
+    for uid in member_ids:
+        r = walls[uid]
+        i,j,k,l = [r["UniquePt"+str(n)] for n in range(1,5)]
+        section = assignments[uid]["SectProp"]
+        panels.append({"member":uid, "label":r["WallBay"], "section":section, "material":props[section]["Material"],
+                       "thickness_m":float(props[section]["Thickness"]), "bottom_m":xyz[i][2], "top_m":xyz[l][2],
+                       "length_m":dist(xyz[i],xyz[j]), "point_ids":[i,j,k,l],
+                       "i_edge_wall_ids":sorted(ends[frozenset((i,l))]-{uid}),
+                       "j_edge_wall_ids":sorted(ends[frozenset((j,k))]-{uid})})
+    levels = sorted({z for p in panels for z in (p["bottom_m"],p["top_m"])})
+    materials = {p["material"] for p in panels}
+    required(len(materials)==1,"SINGLE_WEB_MATERIAL_REQUIRED")
+    bands = []
+    for lo,hi in pairwise(levels):
+        cut = web_area_at(context,columns,member_ids,lo,"Bottom",next(iter(materials)))
+        bands.append({"bottom_m":lo,"top_m":hi,"members":cut["members"],"net_area_m2":cut["net_m2"],
+                      "shell_area_m2":cut["shell_union_m2"]})
+    return {"panels":panels,"bands":bands}
 
 
 def folded_section(source, bound, name, story, member_ids):

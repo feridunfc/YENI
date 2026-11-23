@@ -271,6 +271,7 @@ def prepare_pipeline_source(
     if scenario is None and any(payload.get(key) is not None for key in CALCULATION_BASES):
         raise ValueError("CALCULATION_BASIS_REQUIRES_PREPARED_SCENARIO")
     parent_raw = _read_verified_parent(source_directory, payload) if scenario is not None else None
+    explicit_request = request is not None
     if (scenario is None and request is None and selection_overrides is None
             and any(payload.get(key) is not None for key in POLICIES)):
         # Historical input bytes remain the parent. A fresh selection must use
@@ -297,8 +298,14 @@ def prepare_pipeline_source(
         request = dict(request)
         if pier_forces is not None:
             from .pier_force_source import ORIGINAL, SCHEMA as PIER_SCHEMA
-            if request.get("pier_section_forces") is not None:
-                raise ValueError("PIER_FORCE_BASIS_ALREADY_SPECIFIED")
+            inherited = request.get("pier_section_forces")
+            if inherited is not None:
+                previous = inherited.get("read") or {}
+                if (explicit_request or inherited.get("kind") != ORIGINAL or not pier_forces.get("wall_modes")
+                        or pier_forces.get("parent_input_sha256") != sha256(parent).hexdigest()
+                        or pier_forces.get("model_sha256") != previous.get("model_sha256")
+                        or set(pier_forces.get("combinations", ())) != set(previous.get("combinations", ()))):
+                    raise ValueError("PIER_FORCE_BASIS_ALREADY_SPECIFIED")
             request["pier_section_forces"] = {"schema": PIER_SCHEMA, "kind": ORIGINAL, "read": pier_forces,
                                                "source_data_sha256": _digest(_source_data(payload))}
         policy = request.get("building_design")

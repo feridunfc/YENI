@@ -3,12 +3,13 @@ from collections import defaultdict
 from math import hypot, isclose, isfinite, pi, sqrt
 
 from .basement_pier_design import _material
-from .basement_pier_geometry import _column_footprints, _context, cut_web_area, pier_membership
+from .basement_pier_geometry import _column_footprints, _context, cut_web_area, panel_profile, pier_membership
 from .pier_force_source import ORIGINAL, signed_vector
 from .pier_height_design import joint_friction
 from .pier_seismic_shear import envelope
 from .column_r10_live import _materials_fck
 from .wall_boundary import _catalog_proposal
+from .wall_modal_balance import modal_wall_balance
 from .wall_overturning import directional_model, pier_moments, storey_reference
 
 
@@ -143,6 +144,12 @@ def wall_batch(source, stages, boundaries, sections, bound, scope):
         row = {"pier": pier, "story": story, "members": ids, "wall_labels": [w.get("label") for w in walls],
                "faces": {}, "cuts": [], "overturning": {}}
         rows.append(row)
+        if context is not None:
+            try:
+                columns, _ = _column_footprints(context, story)
+                row["physical_profile"] = panel_profile(context, columns, ids)
+            except (KeyError, ValueError, TypeError) as exc:
+                row["profile_reason"] = str(exc)
         try:
             if not pier:
                 raise ValueError("PIER_ASSIGNMENT_REQUIRED")
@@ -182,6 +189,8 @@ def wall_batch(source, stages, boundaries, sections, bound, scope):
         row["assigned"] = {"axial": _governing(assigned_rows, "axial_ratio"),
                            "web": _governing(assigned_rows, "source_v2_ratio", "reference_web"),
                            "friction": _governing(assigned_rows, "upper_utilization", "reference_friction")}
+    modal = modal_wall_balance(source, stages, bound)
+    signed_levels = {r["story"] for r in modal["storeys"] if r["directions"]}
     references = []
     for story in sorted({r["story"] for r in rows}):
         at_level = [r for r in rows if r["story"] == story]
@@ -198,7 +207,8 @@ def wall_batch(source, stages, boundaries, sections, bound, scope):
             except (KeyError, TypeError, ValueError) as exc:
                 ref["reason"] = str(exc)
             ref["project_status"] = "HOLD"
-            ref["project_reason"] = "PROJECT_BASE_WALL_POPULATION_COUPLING_AND_MODAL_WALL_TOTAL_REQUIRED"
+            ref["project_reason"] = ("PROJECT_BASE_COUPLING_AND_DESIGN_SPECTRUM_BASIS_REQUIRED" if story in signed_levels
+                                     else "PROJECT_BASE_WALL_POPULATION_COUPLING_AND_MODAL_WALL_TOTAL_REQUIRED")
     named = [r for r in rows if r["pier"]]
     assigned = [c for r in named for c in r["cuts"] if c["role"].startswith("ASSIGNED_")]
     design = [r["design"] for r in named]
@@ -215,6 +225,8 @@ def wall_batch(source, stages, boundaries, sections, bound, scope):
               "reference_web_shear_over_limit": sum(c["reference_web"]["source_v2_ratio"] > 1
                                                     for c in assigned if "reference_web" in c),
               "directional_moments": sum(len(r["overturning"]) for r in named),
+              "balanced_signed_modes": sum(r["modes_balanced"] for r in modal["storeys"]),
+              "modal_storey_directions": sum(len(r["directions"]) for r in modal["storeys"]),
               "design_axial_storeys": sum(d["axial"] is not None for d in design),
               "design_shear_storeys": sum(d["shear"] is not None for d in design),
               "design_friction_storeys": sum(d["horizontal_joint"] is not None for d in design),
@@ -222,6 +234,7 @@ def wall_batch(source, stages, boundaries, sections, bound, scope):
               "scheduled_panels": sum(d["scheduled_panels"] for d in design),
               "complete_rectangular_stacks": sections["conditional_piers"]}
     return {"schema": "tbdy.next.wall-batch.v1", "counts": counts, "rows": rows, "overturning_storeys": references,
+            "modal_base": modal,
             "combinations": combos, "reference_web": {"curtains": 2, "horizontal_diameter_mm": 12, "pitch_mm": 200},
             "reference_joint": {"vertical_steel_ratio": .0075, "mu": 1.,
              "assumptions": "Anchored perpendicular bars, roughness at least 5 mm, zero compression credit, net direct tension reserved."},

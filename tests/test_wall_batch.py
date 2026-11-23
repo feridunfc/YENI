@@ -6,10 +6,25 @@ from tbdy_next.column_engine.section_capacity import Material
 from tbdy_next.engineering.basement_pier_geometry import _bounds, _overlap_area, _union
 from tbdy_next.engineering.basement_wall_connection import tension_development
 from tbdy_next.engineering.wall_batch import _reference_friction, _reference_web, wall_batch
+from tbdy_next.engineering.wall_modal_balance import _translate, cqc, cqc_matrix
 from tbdy_next.engineering.wall_overturning import recover_amplitudes
 
 
 class WallBatchTest(unittest.TestCase):
+    def test_opposed_equal_period_modes_cancel_in_cqc(self):
+        correlation = cqc_matrix([1., 1.], .05)
+        self.assertAlmostEqual(cqc([7., -7.], correlation), 0.)
+        self.assertAlmostEqual(cqc([7., 7.], correlation), 14.)
+        with self.assertRaisesRegex(ValueError, "POPULATION"):
+            cqc([7.], correlation)
+
+    def test_transporting_wall_axial_force_changes_moment_at_storey_origin(self):
+        force = (8., 12., -100., 0., 0., 0.)
+        centroid, origin = (2., 3., -5.), (0., 0., -5.)
+        moved = _translate(force, centroid, origin)
+        self.assertEqual(moved, (8., 12., -100., -300., 200., 0.))
+        self.assertEqual(_translate(moved, origin, centroid), force)
+
     def test_directional_radii_need_an_independent_control(self):
         equations = {"cx": (1, .3), "cy": (.3, 1), "dx": (2.5, .75), "dy": (.75, 2.5)}
         radii = {name: x*1267.867 + y*547.36 for name, (x,y) in equations.items()}

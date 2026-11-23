@@ -812,7 +812,7 @@ def attach_live(action: str, **kwargs: Any) -> dict[str, Any]:
         comtypes.CoUninitialize()
 
 
-def capture_assigned_pier_forces(sap, process_id, parent, parent_sha):
+def capture_assigned_pier_forces(sap, process_id, parent, parent_sha, *, wall_modes=False):
     """Read native pier resultants and section properties for the original locked model."""
     from .column_engine.source_bank import native_frame_force_rows
     from .frame_force_capture import _catalog_names, capture_frame_forces
@@ -851,13 +851,17 @@ def capture_assigned_pier_forces(sap, process_id, parent, parent_sha):
             set_combinations(db, before)
         if selected_combinations(db) != before:
             raise DisplaySelectionRestoreError("PIER_COMBINATION_DISPLAY_RESTORE_FAILED")
+    extra = {}
+    if wall_modes:
+        from .wall_modal_capture import capture_wall_modes
+        extra["wall_modes"] = capture_wall_modes(sap, parent, file_sha)
     _verify_connection(sap, filename, {"model_locked": sap.GetModelIsLocked() is True})
     if (receipt["status"] != "CAPTURED" or sap.GetPresentUnits() != 6
             or sha256(expected.read_bytes()).hexdigest() != file_sha):
         raise SourceError("PIER_TABLES_OR_MODEL_IDENTITY_INCOMPLETE")
     return seal({"schema": "tbdy.next.original-pier-read.v1", "parent_input_sha256": parent_sha,
                  "model_sha256": file_sha, "control_member": member, "frame_control": control,
-                 "combinations": list(combos), "tables": receipt})
+                 "combinations": list(combos), "tables": receipt, **extra})
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -874,6 +878,7 @@ def main(argv: list[str] | None = None) -> int:
         q.add_argument("--case", action="append", default=[], help="Select a case temporarily; repeat e.g. Modal RSX RSY")
         q.add_argument("--frame-load-probe", action="store_true", help="Read-only FrameObj.GetLoadDistributed fallback on captured beam objects")
     q = sub.add_parser("pier-forces", help="Read assigned original-model pier resultants and section properties")
+    q.add_argument("--wall-modes", action="store_true", help="Include signed modal shell, pier, storey and foundation cuts")
     q.add_argument("--pid", type=int, required=True)
     q.add_argument("--source", type=Path, required=True, help="Original archived engine input")
     q.add_argument("--out", type=Path, required=True)
@@ -890,7 +895,7 @@ def main(argv: list[str] | None = None) -> int:
         raw = args.source.read_bytes()
         parent = json.loads(raw)
         data = _with_etabs(args.pid, lambda sap: capture_assigned_pier_forces(
-            sap, args.pid, parent, sha256(raw).hexdigest()))
+            sap, args.pid, parent, sha256(raw).hexdigest(), wall_modes=args.wall_modes))
     elif args.command == "template":
         data = make_template(read_json(args.input))
     elif args.command == "bind":

@@ -41,8 +41,10 @@ _LIVE_CAPTURE_LOCK = Lock()
 
 
 def _wall_read_for_batch(payload, raw, directory, pid):
-    """Reuse the selected run. Acquire all native pier tables once if they are absent."""
-    if payload.get("pier_section_forces") or pid is None:
+    """Reuse a complete wall read or enrich the original source using the selected ETABS session."""
+    from .engineering.pier_force_source import ORIGINAL
+    basis = payload.get("pier_section_forces") or {}
+    if pid is None or (basis and (basis.get("kind") != ORIGINAL or (basis.get("read") or {}).get("wall_modes"))):
         return None
     from .engineering.design_scenario import _read_verified_parent
     from .etabs_source_gateway_windows import capture_assigned_pier_forces
@@ -52,10 +54,22 @@ def _wall_read_for_batch(payload, raw, directory, pid):
     parent = json.loads(parent_raw)
     if not (parent.get("column_axial", {}).get("force_source") or {}).get("rowsets"):
         return None
+    modal_bank = (parent["column_axial"].get("demand_support") or {}).get("force_source") or {}
+    modal_ready = bool(modal_bank.get("expected_modal_modes") and modal_bank.get("rowsets"))
+    if modal_ready:
+        from .wall_modal_capture import wall_cut_plan
+        try:
+            plans, _ = wall_cut_plan(parent)
+            modal_ready = bool(plans)
+        except (KeyError, ValueError, TypeError):
+            modal_ready = False
+    if basis and not modal_ready:
+        return None
     if not _LIVE_CAPTURE_LOCK.acquire(blocking=False):
         raise ValueError("ETABS_CAPTURE_IN_PROGRESS")
     try:
-        return _with_etabs(pid, lambda sap: capture_assigned_pier_forces(sap, pid, parent, sha256(parent_raw).hexdigest()))
+        return _with_etabs(pid, lambda sap: capture_assigned_pier_forces(
+            sap, pid, parent, sha256(parent_raw).hexdigest(), wall_modes=modal_ready))
     finally:
         _LIVE_CAPTURE_LOCK.release()
 
