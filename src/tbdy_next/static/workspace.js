@@ -84,7 +84,10 @@
       ['7.15', 'Signed wall and storey actions', 'Modal equilibrium and load sharing', 'TBDY 2018 Annex 4B · Periodic CQC and horizontal floor loads', 13],
       ['7.16', 'Wall panel sections by elevation', 'Assigned shell properties', 'ETABS wall objects and physical cut geometry', 13],
       ['7.17', 'Basement periods and design base', 'Dominant modes in X and Y', 'TBDY 2018 §§3.3.1.1–3.3.1.2', 13],
-      ['7.18', 'Basement perimeter walls', 'Ground-floor outline by elevation', 'TBDY 2018 §3.3.1.1(a)', 13]]],
+      ['7.18', 'Basement perimeter walls', 'Ground-floor outline by elevation', 'TBDY 2018 §3.3.1.1(a)', 13],
+      ['7.19', 'Wall sections at openings', 'Upper and lower section', 'ETABS shell actions and TBDY 2018 §7.6.1.1', 13],
+      ['7.20', 'Frame actions at opening jambs', 'One-sided frame forces', 'ETABS frame-element section results', 13],
+      ['7.21', 'Opening panel loads and transfer', 'Loads and connection actions', 'Signed panel equilibrium', 13]]],
     ['Slabs and punching shear', [
       ['8.1', 'Column–slab punching shear', 'TS 500', 'TS 500 §8.3 · Punching shear strength and reinforcement', 10]]]
   ];

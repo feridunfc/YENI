@@ -169,6 +169,10 @@
     const batch = sections.batch;
     if (batch?.rows?.length) {
       const counts = batch.counts;
+      for (const [id, view] of Object.entries(batch.transition_tables || {})) {
+        const rows = view.rows.map(row => row.map(v => typeof v === 'number' ? decimals(v, 4) : v));
+        tables[id] = table(view.columns, rows, view.title, view.note);
+      }
       const overview = [], moments = [], combinations = [];
       const cause = r => r.reason || r.area_reason || r.material_reason || r.design.reason;
       for (const r of batch.rows) {
@@ -1102,6 +1106,7 @@
           ...(allWalls ? {} : {beam_selection: beamSelection, column_selection: columnSelection}),
           ...(wholeBuilding ? {whole_building: true} : {}),
           ...(allWalls ? {read_missing_wall_forces: true} : {}),
+          ...(allWalls && byId('deskPrivateWall')?.checked ? {solve_wall_copy: true} : {}),
           ...(wholeBuilding && !allWalls && wallHingeStoreys ? {wall_hinge_aggregate_storeys: wallHingeStoreys} : {}),
         }),
       });

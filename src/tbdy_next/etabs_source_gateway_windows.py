@@ -812,7 +812,8 @@ def attach_live(action: str, **kwargs: Any) -> dict[str, Any]:
         comtypes.CoUninitialize()
 
 
-def capture_assigned_pier_forces(sap, process_id, parent, parent_sha, *, wall_modes=False):
+def capture_assigned_pier_forces(sap, process_id, parent, parent_sha, *, wall_modes=False, retained_modes=None,
+                                 private_reference=None):
     """Read native pier resultants and section properties for the original locked model."""
     from .column_engine.source_bank import native_frame_force_rows
     from .frame_force_capture import _catalog_names, capture_frame_forces
@@ -820,6 +821,10 @@ def capture_assigned_pier_forces(sap, process_id, parent, parent_sha, *, wall_mo
     from math import isclose
 
     expected = Path(parent["capture_metadata"]["model_filename"]).with_suffix(".EDB").resolve(strict=True)
+    if private_reference is not None:
+        if wall_modes or private_reference.samefile(expected):
+            raise SourceError("INVALID_PRIVATE_CONTROL_READ")
+        expected = private_reference
     opened = Path(model_file(sap)).resolve(strict=True)
     if opened not in (expected, expected.with_suffix(".$et")):
         raise SourceError(f"Open the solved original {expected}. Active file: {opened}")
@@ -854,12 +859,22 @@ def capture_assigned_pier_forces(sap, process_id, parent, parent_sha, *, wall_mo
     extra = {}
     if wall_modes:
         from .wall_modal_capture import capture_wall_modes
-        extra["wall_modes"] = capture_wall_modes(sap, parent, file_sha)
+        from .wall_transition_capture import capture_transition_shells
+        if retained_modes is not None:
+            verify(retained_modes)
+            if retained_modes.get("model_sha256") != file_sha:
+                raise SourceError("RETAINED_WALL_MODES_MODEL_DIFFERS")
+        extra["wall_modes"] = retained_modes or capture_wall_modes(sap, parent, file_sha)
+        labels = receipt["table_reads"]["Area Assignments - Pier Labels"]["rows"]
+        transitions = capture_transition_shells(sap, parent, labels, file_sha)
+        if transitions is not None:
+            extra["transition_shells"] = transitions
     _verify_connection(sap, filename, {"model_locked": sap.GetModelIsLocked() is True})
     if (receipt["status"] != "CAPTURED" or sap.GetPresentUnits() != 6
             or sha256(expected.read_bytes()).hexdigest() != file_sha):
         raise SourceError("PIER_TABLES_OR_MODEL_IDENTITY_INCOMPLETE")
-    return seal({"schema": "tbdy.next.original-pier-read.v1", "parent_input_sha256": parent_sha,
+    schema = "tbdy.next.private-pier-comparison.v1" if private_reference is not None else "tbdy.next.original-pier-read.v1"
+    return seal({"schema": schema, "parent_input_sha256": parent_sha,
                  "model_sha256": file_sha, "control_member": member, "frame_control": control,
                  "combinations": list(combos), "tables": receipt, **extra})
 

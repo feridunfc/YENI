@@ -1274,6 +1274,12 @@ def _wall_batch_tables(batch):
             forces.append({**key, **c, "vr": web.get("vr_kn"), "shear_ratio": web.get("source_v2_ratio"),
                            "vs": fr.get("resistance_kn"), "friction_ratio": fr.get("upper_utilization"), "joint_result": fr.get("status")})
     identity = (("pier","Pier"),("storey","Storey"),("members","Wall IDs"))
+    transition_views = []
+    for view in batch.get("transition_tables", {}).values():
+        columns = view["columns"]
+        transition_views.append("<details><summary>" + _val(view["title"]) + "</summary><p>" + _val(view["note"])
+                                + "</p>" + _table(tuple((key,key) for key in columns),
+                                                  [dict(zip(columns,row,strict=True)) for row in view["rows"]]) + "</details>")
     modal = batch.get("modal_base") or {}
     modal_rows, panels, bands = [], [], []
     for st in modal.get("storeys", ()):
@@ -1318,6 +1324,7 @@ def _wall_batch_tables(batch):
                 ("horizontal_floor_mo_cqc_knm","Horizontal floor-load moment (kN·m)"),
                 ("separate_piers_native_to_floor_mo","Separate native piers / floor moment"),("state","Cut result")), modal_rows),
         _basement_reference_tables(modal.get("basement_reference")),
+        *transition_views,
         "<details><summary>Assigned shell sections and pier geometry by elevation</summary>",
         _table((("pier","Pier"),("storey","Storey"),("member","Wall ID"),("label","Wall"),("section","Assigned section"),
                 ("thickness_m","Thickness (m)"),("length_m","Length (m)"),("bottom_m","Bottom (m)"),("top_m","Top (m)"),

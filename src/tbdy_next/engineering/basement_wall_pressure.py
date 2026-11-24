@@ -17,7 +17,7 @@ _AREA_LOAD = re.compile(r'^\s*AREALOAD\s+"([^"]+)"\s+"([^"]+)"\s+TYPE\s+"([^"]+)
 _NORMAL = re.compile(r'DIR\s+"3"\s+LC\s+"([^"]+)"\s+FVAL\s+([-+\d.eE]+)\s*')
 
 
-def pressure_cases(source, bound, scope, pier, story, panels):
+def pressure_cases(source, bound, scope, pier, story, panels, *, allow_unloaded=False):
     tables, cases, graph = native_graph(source)
     assigned = {**scope["native_static"], **scope["native_seismic"]}
     required(not scope["other"] and assigned, "WALL_ASSIGNMENT_OPERATOR_UNRESOLVED")
@@ -35,7 +35,7 @@ def pressure_cases(source, bound, scope, pier, story, panels):
         pattern, value = normal[1], float(normal[2])
         required(pattern not in patterns[label] and isfinite(value), "AMBIGUOUS_PANEL_NORMAL_PRESSURE")
         patterns[label][pattern] = value
-    required(all(patterns.values()), "NORMAL_PRESSURE_ASSIGNMENT_REQUIRED_ON_EVERY_WEB")
+    required(allow_unloaded or all(patterns.values()), "NORMAL_PRESSURE_ASSIGNMENT_REQUIRED_ON_EVERY_WEB")
     applied = {key for terms in patterns.values() for key in terms}
     # Include captured static pressure design combinations even if they were not assigned to Wall.
     # Native wall assignments are always present in the expected population.

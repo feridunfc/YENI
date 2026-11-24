@@ -24,6 +24,8 @@ def main(argv: list[str] | None = None) -> int:
     service.add_argument("--port", type=int, default=8765)
     service.add_argument("--out", type=Path, default=Path(".receipts"))
     service.add_argument("--etabs-pid", type=int, help="Attach only to this ETABS process ID")
+    service.add_argument("--allow-private-wall-analysis", action="store_true",
+                         help="Enable an explicitly requested wall analysis on a new private copy")
     service.add_argument("--prepare-etabs-units", action="store_true", help=argparse.SUPPRESS)
     units = actions.add_parser("etabs-units", help="Inspect or select the API units of one ETABS process")
     units.add_argument("--etabs-pid", type=int, required=True, help="Running ETABS process ID")
@@ -92,6 +94,11 @@ def main(argv: list[str] | None = None) -> int:
     replay.add_argument("--wall-hinge-aggregate-storey", action="append", metavar="STOREY",
                         help="Adopt a lower wall hinge only in this storey's frame critical-load sum")
     replay.add_argument("--pier-forces", type=Path, help="Original pier-forces gateway capture for the whole-building run")
+    replay.add_argument("--etabs-pid", type=int, help="Read missing wall results from this solved ETABS instance during a whole-building run")
+    replay.add_argument("--solve-wall-copy", action="store_true",
+                        help="Open and solve an input-identical private EDB if wall data are missing")
+    replay.add_argument("--wall-replay-source", type=Path,
+                        help="Process a saved private wall read against the original controls without ETABS")
     replay.add_argument("--basement-matrices", type=Path, metavar="CASE.TXA",
                         help="Attach the private ETABS modal matrix files for the basement period comparison")
     replay.add_argument("--basement-ground-storey", metavar="STOREY", help="Ground-floor storey identity for the imported matrix pair")
@@ -105,7 +112,8 @@ def main(argv: list[str] | None = None) -> int:
         from .web import serve
         if args.etabs_pid is not None and not 1 <= args.etabs_pid <= 2_147_483_647:
             service.error("--etabs-pid requires a positive Windows process ID.")
-        serve(host=args.host, port=args.port, output_root=args.out, etabs_pid=args.etabs_pid)
+        serve(host=args.host, port=args.port, output_root=args.out, etabs_pid=args.etabs_pid,
+              allow_private_wall_analysis=args.allow_private_wall_analysis)
         return 0
     if args.action == "etabs-units":
         from .etabs_modal import ModalCaptureError

@@ -10,6 +10,8 @@ from .pier_seismic_shear import envelope
 from .column_r10_live import _materials_fck
 from .wall_boundary import _catalog_proposal
 from .wall_modal_balance import modal_wall_balance
+from .wall_transition import transition_results
+from ..wall_transition_report import transition_tables
 from .wall_overturning import directional_model, pier_moments, storey_reference
 
 
@@ -174,6 +176,11 @@ def wall_batch(source, stages, boundaries, sections, bound, scope):
         except (KeyError, TypeError, ValueError) as exc:
             material = None
             row["material_reason"] = str(exc)
+        try:
+            row["transitions"] = transition_results(source, context, row, bound, scope, strengths.get(native["Material"]),
+                                                   column_sections=(stages.get("column_pmm") or {}).get("members", ()))
+        except (KeyError, TypeError, ValueError) as exc:
+            row["transition_reason"] = str(exc)
         for face in ("Bottom", "Top"):
             row["cuts"].extend(_cut_rows(row, face, combos, bound, row["faces"].get(face), strengths.get(native["Material"]),
                                        material, float(native["AxisAngle"])))
@@ -242,8 +249,21 @@ def wall_batch(source, stages, boundaries, sections, bound, scope):
               "design_pmm_storeys": sum(d["pmm"] is not None for d in design),
               "scheduled_panels": sum(d["scheduled_panels"] for d in design),
               "complete_rectangular_stacks": sections["conditional_piers"]}
+    transitions = [t for row in rows for t in row.get("transitions", ())]
+    counts.update(transition_planes_expected=sum(max(0,len(r.get("physical_profile",{}).get("bands",()))-1) for r in rows),
+                  transition_planes_evaluated=len(transitions),
+                  transition_section_limits=sum("axial_limit_kn" in s for t in transitions for s in t["sections"]),
+                  transition_signed_frame_combinations=sum("above_minus_below" in c for t in transitions for j in t["jambs"]
+                                                           for c in j.get("combinations", ())),
+                  transition_seismic_frame_bounds=sum("minimum" in c for t in transitions for j in t["jambs"]
+                                                      for c in j.get("seismic_bounds", ())),
+                  transition_native_shell_sections=sum(len(t["shell_actions"]["sections"]) for t in transitions),
+                  transition_recovered_shell_sections=sum(len(t["shell_actions"]["recovered"]) for t in transitions),
+                  transition_native_opening_edges=sum("opening_edge_kn_knm" in p for t in transitions for p in t["shell_actions"]["panel_zones"]),
+                  transition_panel_balances=sum(p.get("balanced") is True for t in transitions for p in t["shell_actions"]["panel_zones"]),
+                  transition_native_panel_transfers=sum(len(t["shell_actions"]["panel_zones"]) for t in transitions))
     return {"schema": "tbdy.next.wall-batch.v1", "counts": counts, "rows": rows, "overturning_storeys": references,
-            "modal_base": modal,
+            "modal_base": modal, "transition_tables": transition_tables(rows),
             "combinations": combos, "reference_web": {"curtains": 2, "horizontal_diameter_mm": 12, "pitch_mm": 200},
             "reference_joint": {"vertical_steel_ratio": .0075, "mu": 1.,
              "assumptions": "Anchored perpendicular bars, roughness at least 5 mm, zero compression credit, net direct tension reserved."},

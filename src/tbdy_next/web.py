@@ -14,10 +14,10 @@ from importlib import resources
 import json
 from pathlib import Path
 import re
-from threading import Lock
 from typing import Any, Mapping
 from urllib.parse import parse_qs, urlsplit
 
+from .wall_batch_source import LIVE_CAPTURE_LOCK as _LIVE_CAPTURE_LOCK, read_missing_wall_forces
 from . import __version__
 from .check_labels import display_check_group
 from .live_etabs import CAPTURE_UNIT_CODE, CAPTURE_UNIT_LABEL, EtabsConnectionError, EtabsUnitsError
@@ -37,41 +37,6 @@ from .source import SourceError, parse_modal_capture, review_preflight
 
 MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 _RUN_ID_PATTERN = re.compile(r"RUN-[a-f0-9]{32}\Z")
-_LIVE_CAPTURE_LOCK = Lock()
-
-
-def _wall_read_for_batch(payload, raw, directory, pid):
-    """Reuse a complete wall read or enrich the original source using the selected ETABS session."""
-    from .engineering.pier_force_source import ORIGINAL
-    basis = payload.get("pier_section_forces") or {}
-    if pid is None or (basis and (basis.get("kind") != ORIGINAL or (basis.get("read") or {}).get("wall_modes"))):
-        return None
-    from .engineering.design_scenario import _read_verified_parent
-    from .etabs_source_gateway_windows import capture_assigned_pier_forces
-    from .live_etabs import _with_etabs
-
-    parent_raw = _read_verified_parent(directory, payload) if payload.get("design_scenario") else raw
-    parent = json.loads(parent_raw)
-    if not (parent.get("column_axial", {}).get("force_source") or {}).get("rowsets"):
-        return None
-    modal_bank = (parent["column_axial"].get("demand_support") or {}).get("force_source") or {}
-    modal_ready = bool(modal_bank.get("expected_modal_modes") and modal_bank.get("rowsets"))
-    if modal_ready:
-        from .wall_modal_capture import wall_cut_plan
-        try:
-            plans, _ = wall_cut_plan(parent)
-            modal_ready = bool(plans)
-        except (KeyError, ValueError, TypeError):
-            modal_ready = False
-    if basis and not modal_ready:
-        return None
-    if not _LIVE_CAPTURE_LOCK.acquire(blocking=False):
-        raise ValueError("ETABS_CAPTURE_IN_PROGRESS")
-    try:
-        return _with_etabs(pid, lambda sap: capture_assigned_pier_forces(
-            sap, pid, parent, sha256(parent_raw).hexdigest(), wall_modes=modal_ready))
-    finally:
-        _LIVE_CAPTURE_LOCK.release()
 
 
 def _parse_rebar_selection_spec(raw_value: Any, kind: str) -> dict[str, Any] | None:
@@ -318,7 +283,7 @@ def _runs(root: Path) -> list[dict[str, Any]]:
 from .engineering.pipeline import calculate_modal as _calculate_modal  # noqa: E402
 
 
-def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None = None):
+def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None = None, allow_private_wall_analysis=False):
     """Injectable capture callback makes endpoint testable without Windows COM."""
     # Each serving process uses the UI assets it started with and its own engine.
     static = resources.files("tbdy_next").joinpath("static")
@@ -330,6 +295,9 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
         name: static.joinpath(name).read_bytes().replace(b'<span class="app-version" hidden></span>', version_label)
         for name in ("workspace.html", "index.html")
     }
+    if allow_private_wall_analysis and etabs_pid:
+        pages["workspace.html"] = pages["workspace.html"].replace(
+            b'id="deskPrivateWallOption" hidden', b'id="deskPrivateWallOption"')
 
     class Handler(BaseHTTPRequestHandler):
         server_version = "TBDYNext/VS04-Partial"
@@ -710,10 +678,14 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                         selection_overrides = None
                     case = base_report["modal_case"]
                     pier_forces = body.get("pier_forces")
+                    solve_copy = body.get("solve_wall_copy") is True
+                    if solve_copy and not (allow_private_wall_analysis and etabs_pid and body.get("read_missing_wall_forces") is True):
+                        raise ValueError("PRIVATE_WALL_ANALYSIS_REQUIRES_ENABLED_SERVER_AND_EXPLICIT_WALL_REQUEST")
                     if body.get("read_missing_wall_forces") is True:
                         if body.get("whole_building") is not True or pier_forces is not None or scenario_request is not None:
                             raise ValueError("WALL_BATCH_REQUIRES_ONE_WHOLE_BUILDING_SOURCE")
-                        pier_forces = _wall_read_for_batch(json.loads(source_raw), source_raw, source_directory, etabs_pid)
+                        pier_forces = read_missing_wall_forces(json.loads(source_raw), source_raw, source_directory, etabs_pid,
+                                                              private_replay_root=output_root if solve_copy else None)
                 except ReportUnavailable as exc:
                     self.reply(404, {"status": "REJECTED", "reason": str(exc)})
                     return
@@ -852,9 +824,20 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                     self.reply(422, {"status": "CAPTURE_REJECTED",
                                      "reason": "VS04_REQUIRED_SAME_SESSION_SOURCES_MISSING"})
                     return
+                source_raw = None
+                pier_forces = None
+                if whole_building and etabs_pid is not None and live_capture is None:
+                    source_raw = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+                    try:
+                        pier_forces = read_missing_wall_forces(payload, source_raw, output_root, etabs_pid)
+                    except (OSError, ValueError, TypeError, RuntimeError, KeyError) as exc:
+                        self.reply(422, {"status": "BLOCKED_ENGINEERING_SOURCE", "reason": str(exc),
+                                         "engineering_release": "NOT_READY"})
+                        return
                 _execute_and_reply_live_payload(
                     self, output_root, payload, case,
                     suite=url.path in ("/api/live-suite", "/api/live-vs04"),
+                    source_raw=source_raw, pier_forces=pier_forces,
                     selection_overrides=rebar_selection_opts or None,
                     whole_building=whole_building, wall_hinge_aggregate_storeys=hinge_storeys,
                 )
@@ -903,11 +886,11 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
 
 
 def serve(*, host: str = "127.0.0.1", port: int = 8765, output_root: Path = Path(".receipts"),
-          etabs_pid: int | None = None) -> None:
+          etabs_pid: int | None = None, allow_private_wall_analysis=False) -> None:
     if host not in ("127.0.0.1", "localhost", "::1"):
         raise ValueError("VS01 web UI accepts localhost only; use a trusted port forward in Codespaces")
     with ThreadingHTTPServer((host, port), make_handler(
-            Path(output_root), etabs_pid=etabs_pid)) as server:
+            Path(output_root), etabs_pid=etabs_pid, allow_private_wall_analysis=allow_private_wall_analysis)) as server:
         target = f"PID {etabs_pid}" if etabs_pid is not None else "active instance"
         print(f"TBDY Next Engine VS01: http://{host}:{server.server_port} | receipts: {output_root} "
               f"| ETABS: {target}, connection sets {CAPTURE_UNIT_LABEL}",

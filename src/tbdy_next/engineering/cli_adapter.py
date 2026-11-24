@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 
 from tbdy_next.column_engine.native_archive import decode
+from tbdy_next.etabs_modal import ModalCaptureError
 from .live_column import review_live_column
 from .story_pdelta import review_story_pdelta
 
@@ -59,12 +60,31 @@ def _run_pipeline_replay(args) -> int:
     request = _read(scenario_path) if scenario_path is not None else None
     overrides = {key: value for key, value in (("beam_selection", beam_sel), ("column_selection", col_sel))
                  if value is not None}
+    pier_forces = _read(args.pier_forces) if getattr(args, "pier_forces", None) else None
+    pid = getattr(args, "etabs_pid", None)
+    solve_copy = getattr(args, "solve_wall_copy", False)
+    capture = getattr(args, "wall_replay_source", None)
+    if capture is not None:
+        from ..wall_analysis_replay import bind_private_wall_result
+        if pid is not None or pier_forces or not args.whole_building or request is not None:
+            raise ValueError("ONE_WHOLE_BUILDING_WALL_SOURCE_REQUIRED")
+        if capture.is_symlink() or not capture.is_file() or not 0 < capture.stat().st_size <= _MAX_SOURCE_BYTES:
+            raise ValueError("PRIVATE_WALL_READ_PATH_MISSING_OR_UNSAFE")
+        pier_forces = bind_private_wall_result(decode(raw)["pier_section_forces"]["read"], decode(capture.read_bytes()))
+    if solve_copy and pid is None:
+        raise ValueError("PRIVATE_WALL_ANALYSIS_REQUIRES_AN_EXPLICIT_ETABS_PID")
+    if pid is not None:
+        if pid < 1 or not args.whole_building or pier_forces is not None or request is not None:
+            raise ValueError("LIVE_WALL_READ_REQUIRES_ONE_WHOLE_BUILDING_SOURCE")
+        from ..wall_batch_source import read_missing_wall_forces
+        pier_forces = read_missing_wall_forces(decode(raw), raw, args.source.parent, pid,
+                                              private_replay_root=args.out if solve_copy else None)
     prepared = prepare_pipeline_source(raw, source_directory=args.source.parent, request=request,
                                        selection_overrides=overrides or None,
                                        whole_building=getattr(args, "whole_building", False),
                                        basement_matrices=getattr(args, "basement_matrices", None),
                                        basement_ground_storey=getattr(args, "basement_ground_storey", None),
-                                       pier_forces=_read(args.pier_forces) if getattr(args, "pier_forces", None) else None,
+                                       pier_forces=pier_forces,
                                        wall_hinge_aggregate_storeys=getattr(args, "wall_hinge_aggregate_storey", None))
     raw, payload = prepared.raw, prepared.payload
     scenario = validate_design_scenario(payload)
@@ -151,7 +171,7 @@ def run_cli(args) -> int:
             "engineering_release": "NOT_READY", "engineering_verdict": "NOT_PROVEN",
         }, ensure_ascii=False))
         return 0
-    except (OSError, ValueError, KeyError, TypeError, OverflowError) as exc:
+    except (OSError, ValueError, KeyError, TypeError, OverflowError, ModalCaptureError) as exc:
         print(json.dumps({
             "status": "BLOCKED_ENGINEERING_SOURCE",
             "reason": type(exc).__name__ + ":" + str(exc),
