@@ -159,15 +159,8 @@ def modal_history(root: Path, *, limit: int = 20) -> list[dict[str, Any]]:
     root = Path(root)
     if not root.is_dir():
         return []
-    results = []
-    for path in _recent_modal_dirs(root):
-        entry = _read_modal_run(path)
-        if entry is not None:
-            results.append(entry)
-            if len(results) == limit:
-                break
-    results.sort(key=lambda x: (x["captured_at_utc"], x["run_id"]), reverse=True)
-    return results[:limit]
+    from .history_catalog import verified_modal_listing
+    return verified_modal_listing(root, limit)
 
 
 def modal_source_table(root: Path, run_id: str) -> dict[str, Any] | None:

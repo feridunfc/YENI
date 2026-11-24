@@ -69,6 +69,7 @@ def _execute_and_reply_live_payload(
     whole_building: bool = False,
     pier_forces: Mapping[str, Any] | None = None,
     wall_hinge_aggregate_storeys: list[str] | None = None,
+    maximum_aggregate_mm: float | None = None,
 ) -> None:
     from .engineering.design_scenario import prepare_pipeline_source
 
@@ -82,7 +83,8 @@ def _execute_and_reply_live_payload(
                                            selection_overrides=selection_overrides, request=scenario_request,
                                            whole_building=whole_building, project_parameters=project_parameters,
                                            confirm_project_profile=confirm_project_profile, pier_forces=pier_forces,
-                                           wall_hinge_aggregate_storeys=wall_hinge_aggregate_storeys)
+                                           wall_hinge_aggregate_storeys=wall_hinge_aggregate_storeys,
+                                           maximum_aggregate_mm=maximum_aggregate_mm)
     except (OSError, ValueError, TypeError, KeyError) as exc:
         handler.reply(422, {"status": "REJECTED", "reason": str(exc), "engineering_release": "NOT_READY"})
         return
@@ -288,6 +290,17 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
         pages["workspace.html"] = pages["workspace.html"].replace(
             b'id="deskPrivateWallOption" hidden', b'id="deskPrivateWallOption"')
 
+    from functools import lru_cache
+    from .history_catalog import verification_key
+
+    @lru_cache(maxsize=1)
+    def verified_export(run_id, key):
+        raw = (json.dumps(build_complete_report(output_root, run_id), ensure_ascii=False,
+                          separators=(",", ":")) + "\n").encode("utf-8")
+        if key != verification_key(output_root / run_id):
+            raise ReportUnavailable("Run changed during report verification")
+        return raw
+
     class Handler(BaseHTTPRequestHandler):
         server_version = "TBDYNext/VS04-Partial"
 
@@ -347,7 +360,6 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                     self.reply(400, {"error": "EXACT_RUN_ID_REQUIRED"})
                     return
                 try:
-                    report = build_complete_report(output_root, ids[0])
                     # C2: optional read-only numerical scenario over a sealed
                     # archived run. Does not start ETABS or edit a receipt.
                     from .vs06_drift_scenario import ALLOWED, evaluate_drift_scenario
@@ -355,6 +367,9 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                     if set(offered) - ALLOWED or any(len(v) != 1 for v in offered.values()):
                         self.reply(400, {"error": "VS06_SCENARIO_QUERY_INVALID"})
                         return
+                    plain_export = url.path == "/api/export-checks" and not offered
+                    if not plain_export:
+                        report = build_complete_report(output_root, ids[0])
                     if url.path == "/api/vs06-drift-scenario" or offered:
                         params = {k: v[0] for k, v in offered.items()}
                         scenario = evaluate_drift_scenario(report, params)
@@ -363,8 +378,8 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                             return
                         report["vs06_drift_scenario"] = scenario
                     if url.path == "/api/export-checks":
-                        data = (json.dumps(report, ensure_ascii=False, indent=2,
-                                           sort_keys=True) + "\n").encode("utf-8")
+                        data = (verified_export(ids[0], verification_key(output_root / ids[0])) if plain_export
+                                else (json.dumps(report, ensure_ascii=False, separators=(",",":")) + "\n").encode("utf-8"))
                         mime = "application/json; charset=utf-8"
                         disposition = f'attachment; filename="TBDY_NEXT_{ids[0]}_all_checks.json"'
                     else:
@@ -714,6 +729,7 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                     whole_building=body.get("whole_building", False),
                     pier_forces=pier_forces,
                     wall_hinge_aggregate_storeys=body.get("wall_hinge_aggregate_storeys"),
+                    maximum_aggregate_mm=body.get("maximum_aggregate_mm"),
                 )
                 return
             if url.path in ("/api/live-modal", "/api/live-suite", "/api/live-vs04", "/api/etabs-session"):

@@ -8,7 +8,7 @@ from ..column_engine.section_interval import SectionInterval
 from .basement_joint_layout import check_joint_layout
 from .basement_pier_geometry import folded_section, required
 from .basement_wall_connection import pressure_connections
-from .basement_wall_pressure import CAGES, panel_pressure_design, pressure_cases, vertical_section
+from .basement_wall_pressure import CAGES, DEFAULT_AGGREGATE_MM, panel_pressure_design, pressure_cases, vertical_section
 from .beam_r10_live import _design_factors, _steel_grade_mpa
 from .column_r10_live import _materials_fck
 from .pier_force_source import ORIGINAL, signed_vector
@@ -117,14 +117,16 @@ def _design(result, source, stages, bound, scope):
             row = {"face":face,"combination":combo,"role":spec["role"],"status":"HOLD","reason":str(exc)}
         result["cuts"].append(row)
     mat, cover = _material(source,stages,geom["material"])
+    aggregate = (source.get("building_design") or {}).get("maximum_aggregate_mm", DEFAULT_AGGREGATE_MM)
+    result["maximum_aggregate_mm"] = aggregate
     height = geom["top_m"]-geom["bottom_m"]
     for panel in geom["panels"]:
         uid = panel["member"]
         try:
-            horizontal = panel_pressure_design(panel,combos,cover,mat,height)
+            horizontal = panel_pressure_design(panel,combos,cover,mat,height,aggregate=aggregate)
             try:
                 horizontal, panel["pressure_connections"] = pressure_connections(
-                    source, stages, geom, panel, horizontal, combos, cover, mat, height)
+                    source, stages, geom, panel, horizontal, combos, cover, mat, height, aggregate=aggregate)
             except (KeyError, TypeError, ValueError) as exc:
                 panel["pressure_connections"] = {"status":"HOLD", "reason": str(exc), "ends":{}}
             panel["horizontal"] = horizontal
@@ -141,7 +143,12 @@ def _design(result, source, stages, bound, scope):
             for dia,pitch in CAGES:
                 if 2*(pi*dia**2/4)/(pitch*panel["thickness_m"]*1000) < .0025:
                     continue
-                section, layout = vertical_section(panel,horizontal,cover,mat,dia,pitch)
+                try:
+                    section, layout = vertical_section(panel,horizontal,cover,mat,dia,pitch,aggregate=aggregate)
+                except ValueError as exc:
+                    if str(exc) == "VERTICAL_WEB_GRID_DOES_NOT_FIT":
+                        continue
+                    raise
                 interval = SectionInterval(section)
                 ratios = []
                 try:
@@ -165,7 +172,41 @@ def _design(result, source, stages, bound, scope):
             required("vertical" in panel,"PROPOSED_VERTICAL_CAGES_DID_NOT_ESTABLISH_PMM_BOUND")
         except (KeyError,TypeError,ValueError) as exc:
             panel["reason"] = str(exc)
-    result["pressure_joint_layouts"] = check_joint_layout(geom)
+    from .wall_pressure_shell import checked_fields, panel_shell_checks, propose_shell_detail
+    try:
+        fields, mesh = checked_fields(source, bound)
+        field_reason = None
+    except (KeyError, TypeError, ValueError) as exc:
+        fields, mesh, field_reason = {}, {}, str(exc)
+    for panel in geom["panels"]:
+        try:
+            required(not field_reason, field_reason)
+            uid = panel["member"]
+            required(uid in fields and uid in mesh, "NATIVE_TWO_WAY_SHELL_PANEL_MISSING")
+            panel["two_way_shell"] = panel_shell_checks(panel,combos,fields[uid],mesh[uid],mat)
+        except (KeyError, TypeError, ValueError) as exc:
+            panel["two_way_shell"] = {"status":"HOLD","reason":str(exc),"expected_checks":4*len(combos),"checks":[]}
+    shell_panels = []
+    for panel in geom["panels"]:
+        shell = panel["two_way_shell"]
+        shadow = {**panel, "pressure_connections":{}}
+        shell_panels.append(shadow)
+        if not shell["checks"]:
+            continue
+        try:
+            detail = propose_shell_detail(source,stages,geom,panel,mat,cover,aggregate,result["cuts"])
+        except (KeyError, TypeError, ValueError) as exc:
+            detail = {"status":"HOLD","reason":str(exc)}
+        shell["proposed_detail"] = detail
+        if detail["status"] == "HOLD":
+            continue
+        shadow.update(horizontal=detail["horizontal"], pressure_connections={"ends":detail["ends"]})
+        for check in shell["checks"]:
+            capacities = detail["resistances"][check["axis"]]
+            capacity = capacities[0 if check["action"] == "Bending" else 1]
+            check.update(proposed_resistance=capacity, proposed_ratio=check["demand"]/capacity)
+    result["two_way_support_layouts"] = check_joint_layout({"panels":shell_panels},aggregate)
+    result["pressure_joint_layouts"] = check_joint_layout(geom,aggregate)
     for row in result["cuts"]:
         checks = row.get("web_demands",[])
         if checks and all("pmm_upper" in d for d in checks):

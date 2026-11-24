@@ -76,7 +76,7 @@ class WallCalculationControls(unittest.TestCase):
                 _shell_fields(api, "w", {("elm", "j")}, ["G"])
 
     def test_anchorage_grid_observes_actual_clear_spacing(self):
-        policy = {"height": 3000., "module": 40., "phase": 0., "start": 48., "inner": False}
+        policy = {"height": 3000., "module": 40., "phase": 0., "start": 48., "inner": False, "aggregate_mm":16.}
         grid = level_grid(policy, 14, 50, 40)
         self.assertEqual((grid["pitch_mm"], grid["clear_spacing_mm"]), (40., 26.))
         self.assertGreaterEqual(grid["minimum_in_any_full_metre"], 20)

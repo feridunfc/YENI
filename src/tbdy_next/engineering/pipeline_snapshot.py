@@ -89,7 +89,7 @@ def record_snapshot(run: ReceiptRun, *, input_sha: str, results: Mapping[str, An
 
 
 def read_snapshot(directory: Path, *, input_sha: str,
-                  receipts: Mapping[str, Mapping[str, Any]] | None = None) -> dict[str, Any] | None:
+                  receipts: Mapping[str, Mapping[str, Any]] | None = None, on_verified_source=None) -> dict[str, Any] | None:
     records = receipts if receipts is not None else read_receipts(Path(directory), input_sha=input_sha)
     record = records.get(STAGE)
     link = (records.get(TERMINAL) or {}).get("payload", {}).get("engine_snapshot")
@@ -138,6 +138,8 @@ def read_snapshot(directory: Path, *, input_sha: str,
                 raise ValueError("BUILDING_STAGE_OWNERSHIP_MISMATCH")
             if building is not None and pointer["payload"].get("results_sha256") != _digest(building):
                 raise ValueError("BUILDING_STAGE_HASH_MISMATCH")
+        if on_verified_source is not None:
+            on_verified_source(source_payload)
     elif link is not None or declared_schema is not None:
         raise ValueError("PIPELINE_FINALIZATION_SCHEMA_MISMATCH")
     return value

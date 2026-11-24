@@ -87,7 +87,8 @@
       ['7.18', 'Basement perimeter walls', 'Ground-floor outline by elevation', 'TBDY 2018 §3.3.1.1(a)', 13],
       ['7.19', 'Wall sections at openings', 'Upper and lower section', 'ETABS shell actions and TBDY 2018 §7.6.1.1', 13],
       ['7.20', 'Frame actions at opening jambs', 'One-sided frame forces', 'ETABS frame-element section results', 13],
-      ['7.21', 'Opening panel loads and transfer', 'Loads and connection actions', 'Signed panel equilibrium', 13]]],
+      ['7.21', 'Opening panel loads and transfer', 'Loads and connection actions', 'Signed panel equilibrium', 13],
+      ['7.22', 'Two-way wall shell bending and shear', 'Element corners', 'Horizontal and vertical plate actions per metre', 13]]],
     ['Slabs and punching shear', [
       ['8.1', 'Column–slab punching shear', 'TS 500', 'TS 500 §8.3 · Punching shear strength and reinforcement', 10]]]
   ];

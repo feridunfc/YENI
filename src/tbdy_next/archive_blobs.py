@@ -83,6 +83,28 @@ def copy_archive(path, target=None, *, limit=MAX_SOURCE_BYTES):
         return _read_blob(blob, target, size, digest)
 
 
+def archive_file_hash(path):
+    """Fingerprint stored bytes (and any referenced blob) before reusing a verified view."""
+    path = Path(path)
+    if not path.is_file() or not _direct(path):
+        raise ValueError("ARCHIVE_INPUT_MISSING_OR_UNSAFE")
+    with path.open("rb") as stream:
+        prefix = stream.read(160)
+        stream.seek(0)
+        from hashlib import file_digest
+        stored = file_digest(stream, "sha256").hexdigest()
+    if not prefix.startswith(_MAGIC):
+        return stored
+    ref = _REFERENCE.fullmatch(prefix)
+    if not ref or path.stat().st_size != len(prefix):
+        raise ValueError("INVALID_ARCHIVE_REFERENCE")
+    blob = _blob_root(path) / (ref[1].decode("ascii") + ".gz")
+    if not blob.is_file() or not _direct(blob):
+        raise ValueError("ARCHIVE_BLOB_UNSAFE")
+    with blob.open("rb") as stream:
+        return stored + ":" + file_digest(stream, "sha256").hexdigest()
+
+
 def archive_bytes(path, *, limit=MAX_SOURCE_BYTES):
     with BytesIO() as output:
         copy_archive(path, output, limit=limit)

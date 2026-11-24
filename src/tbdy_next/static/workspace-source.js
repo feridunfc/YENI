@@ -268,7 +268,7 @@
     }
     const basement = sections.basement_coverage;
     if (basement && sections.basement_piers?.length) {
-      const cuts = [], pressure = [], ends = [];
+      const cuts = [], pressure = [], ends = [], shells = [];
       for (const pier of sections.basement_piers) {
         const geo = pier.geometry, members = pier.members.join(', ');
         for (const r of pier.cuts) cuts.push([pier.pier, pier.story, members, r.face, r.combination, r.role,
@@ -277,11 +277,28 @@
         for (const id of pier.members) {
           const panel = geo?.panels.find(row => row.member === id), h = panel?.horizontal, v = panel?.vertical;
           const detail = [pier.pier, id, panel?.wall, decimals(panel?.span_m), decimals(panel?.clear_length_m)];
+          const shell = panel?.two_way_shell;
+          const proposal = shell?.proposed_detail;
+          const endDetails = Object.values(proposal?.ends || {});
+          const entry = endDetails.length ? endDetails.map(e => e.column + ': ' +
+            decimals(e.template_longitudinal_clearance_mm, 2) + ' / ' + decimals(e.entry_required_mm, 2)).join(' · ') : null;
+          for (const row of shell?.checks ?? []) {
+            const grid = row.axis === 'Horizontal' ? proposal?.horizontal : proposal?.vertical;
+            shells.push([pier.pier, panel.wall, id, row.combination, row.axis, row.action, row.element, row.point, row.basis,
+              decimals(row.demand, 2), row.unit, decimals(row.resistance, 2), percentage(row.ratio),
+              grid ? 'Ø' + grid.diameter_mm + ' @ ' + decimals(grid.pitch_mm, 2) : null,
+              decimals(row.proposed_resistance, 2), percentage(row.proposed_ratio), entry,
+              endDetails.map(e => e.column + ': ' + (e.layout_status || e.status)).join(' · '),
+              proposal?.open_input || proposal?.reason || row.status]);
+          }
+          if (!shell?.checks?.length) shells.push([pier.pier, panel?.wall, id, null, null, null, null, null,
+            null, null, null, null, null, null, null, null, null, null, shell?.reason || panel?.reason || pier.reason || 'Shell result required']);
           for (const side of ['I', 'J']) {
             const e = panel?.pressure_connections?.ends?.[side], v = e?.transfer;
             ends.push([pier.pier, id, panel?.wall, side, e?.column, h?.diameter_mm, decimals(e?.position_i_mm, 1),
               decimals(e?.column_available_mm, 1), e?.specified_embedment_mm, v?.diameter_mm, decimals(v?.pitch_mm, 1),
               decimals(v?.peak_reaction_kn_m, 2), decimals(v?.resistance_kn_m, 2), percentage(v?.peak_ratio),
+              decimals(e?.maximum_aggregate_mm, 2), decimals(e?.template_longitudinal_clearance_mm, 2), decimals(e?.entry_required_mm, 2),
               e?.status || panel?.reason || pier.reason]);
           }
           if (h) {
@@ -293,6 +310,11 @@
             panel?.reason || pier.reason || pier.status]);
         }
       }
+      tables['7.22'] = table(['Pier', 'Wall', 'Wall ID', 'Combination', 'Direction', 'Check',
+        'Element', 'Point', 'Demand basis', 'Demand', 'Unit', 'Original strip cage resistance', 'Strip cage ratio (%)',
+        'Two-way cage per face (mm)', 'Two-way cage resistance', 'Two-way cage ratio (%)', 'Support entry clear / required (mm)',
+        'Shared support layout', 'Open design input'], shells, 'Two-way shell actions',
+        'Each bending demand includes twisting at the same corner. Both cage comparisons use zero membrane force. The proposed two-way cage also receives the pier-cut PMM calculation.');
       tables['7.11'] = table(['Pier', 'Storey', 'Wall IDs', 'Pier end', 'Combination', 'Load scope', 'Net webs (m²)',
         'Compression interval (kN)', 'Maximum web PMM upper (%)', 'Result or open input'], cuts,
         coverage(basement.assigned_cuts_evaluated, basement.assigned_cuts_expected, 'assigned cuts across multi-panel piers'),
@@ -304,7 +326,7 @@
         'Horizontal strips span between columns with zero relative transverse translation under the archived uniform pressure.');
       if (basement.physical_pressure_ends_expected !== undefined) tables['7.13'] = table(['Pier', 'Wall ID', 'Wall', 'End',
         'Support column', 'Web Ø (mm)', 'Required bond (mm)', 'Available (mm)', 'Proposed embedment (mm)', 'Dowel Ø (mm)',
-        'Dowel pitch (mm)', 'Line reaction (kN/m)', 'Resistance (kN/m)', 'Utilization (%)', 'End result or open input'],
+        'Dowel pitch (mm)', 'Line reaction (kN/m)', 'Resistance (kN/m)', 'Utilization (%)', 'Dmax (mm)', 'Entry clear (mm)', 'Required (mm)', 'End result or open input'],
         ends, coverage(basement.physical_pressure_ends_satisfied, basement.physical_pressure_ends_expected, 'ends with a proposed pressure detail'),
         'Separate transverse dowels use μ = 0.6 at the vertical wall–column interface. End development uses the unfavourable bond position.');
     }
@@ -736,6 +758,7 @@
       resultSha: report.design_stage_provenance?.snapshot_results_sha256,
       sourceLabel: fullCase(report.modal_case, report.source_mode === 'LIVE_ETABS' ? 'Saved live capture' : 'Saved source run'),
       reportUrl: sourceUrl('/report/print', runId), jsonUrl: sourceUrl('/api/export-checks', runId),
+      maximumAggregate: report.source_snapshot?.building_design?.maximum_aggregate_mm ?? 20,
       analysisSetup: report.analysis_setup,
       analysisSetupReconciliation: report.analysis_setup_reconciliation,
       designAssignments: report.design_assignments,
@@ -909,6 +932,8 @@
       const result = await fetchSource(id);
       if (version !== requestVersion) return;
       workspace.setData(result);
+      const aggregateField = byId('deskWallAggregate');
+      if (aggregateField) aggregateField.value = String(result.maximumAggregate ?? 20);
       if (id === archivedColumn) workspace.openCheck('4.3');
       const entry = entries.find(row => row.run_id === id);
       if (entry?.case) byId('deskModalCase').value = entry.case;
@@ -1135,13 +1160,17 @@
     if (statusEl) statusEl.textContent = wholeBuilding ? 'Calculating the whole building…' : 'Re-evaluating selected run with engineer rebar & stirrup policies…';
     if (allWalls) byId('deskRunStatus').textContent = 'Calculating all piers, storeys and wall combinations…';
     try {
+      const aggregateField = byId('deskWallAggregate');
+      const aggregate = aggregateField?.valueAsNumber;
+      if (wholeBuilding && aggregateField && !(Number.isFinite(aggregate) && aggregate > 0))
+        throw new Error('Enter a positive maximum aggregate size in millimetres.');
       const body = await json('/api/apply-rebar-selection', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
           base_run_id: runId,
           ...(allWalls ? {} : {beam_selection: beamSelection, column_selection: columnSelection}),
-          ...(wholeBuilding ? {whole_building: true} : {}),
+          ...(wholeBuilding ? {whole_building: true, ...(aggregateField ? {maximum_aggregate_mm: aggregate} : {})} : {}),
           ...(allWalls ? {read_missing_wall_forces: true} : {}),
           ...(allWalls && byId('deskPrivateWall')?.checked ? {solve_wall_copy: true} : {}),
           ...(wholeBuilding && !allWalls && wallHingeStoreys ? {wall_hinge_aggregate_storeys: wallHingeStoreys} : {}),

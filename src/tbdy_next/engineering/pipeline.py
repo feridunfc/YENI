@@ -856,7 +856,8 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
     }, input_sha256=input_sha)
     out["engine_snapshot"] = snapshot
     from ..history_catalog import record_listing
-    record_listing(run, meta.get("model_filename"), case, (out.get("column_pmm") or {}).get("member_id"), suite)
+    record_listing(run, meta.get("model_filename"), case, (out.get("column_pmm") or {}).get("member_id"), suite,
+                   modal_result=out["result"], source_rows=payload["table"]["row_count"])
     return out
 
 

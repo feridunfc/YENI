@@ -8,6 +8,16 @@ from ..column_engine.section_capacity import Bar, Section
 from .basement_pier_geometry import required
 from .mixed_demands import _static_pattern_loads, linear_coefficients, native_graph
 
+DEFAULT_AGGREGATE_MM = 20.0
+
+
+def clear_limit(aggregate, *diameters):
+    """TS 500 §9.5.2 same-row clearance, also adopted for entry into a support cage."""
+    if not all(type(v) in (int, float) and isfinite(v) and v > 0 for v in (aggregate, *diameters)):
+        raise ValueError("POSITIVE_AGGREGATE_AND_BAR_DIAMETER_REQUIRED")
+    return max(25., *diameters, 4*aggregate/3)
+
+
 # A constant two-face proposal, in increasing steel area per metre.
 PITCHES = (200, 125, 100)
 DIAMETERS = (12, 14, 16, 18, 20, 22, 25)
@@ -70,10 +80,15 @@ def strip_resistance(thickness, cover, dia, pitch, mat):
     # A periodic one-metre strip has an integer number of bars in each face.
     count = 1000 // pitch
     required(count*pitch == 1000, "STRIP_REQUIRES_PERIODIC_REINFORCEMENT")
+    return layer_resistance(thickness, thickness/2-cover-1.5*dia, dia, count, mat)
+
+
+@lru_cache(maxsize=512)
+def layer_resistance(thickness, offset, dia, count, mat):
+    """Symmetric face layers per metre at the actual depth, with zero membrane force."""
+    required(count > 0 and 0 < offset < thickness/2, "STRIP_LAYER_GEOMETRY_INVALID")
     area = pi * dia**2/4
-    # Reserve a diameter outside the outer horizontal layer for the proposed crosstie.
-    offset = thickness/2-cover-dia-dia/2
-    bars = tuple(Bar(s*offset, (2*i-count+1)*pitch/2, area) for s in (-1,1) for i in range(count))
+    bars = tuple(Bar(s*offset, (2*i-count+1)*500/count, area) for s in (-1,1) for i in range(count))
     section = Section(thickness, 1000., bars, mat)
     result = signed_beam_capacity(section)
     required(result["status"] == "BEAM_CAPACITY_REFERENCE" and
@@ -81,7 +96,7 @@ def strip_resistance(thickness, cover, dia, pitch, mat):
     mr = min(abs(result[field])-point["tolerance_knm"] for field,point in
              zip(("positive_m3_knm","negative_m3_knm"), result["points"]))
     # TS 500 Eq. 8.1 with zero axial force in the horizontal pressure strip.
-    d = thickness-cover-dia-dia/2
+    d = thickness/2+offset
     fctd = .35*sqrt(mat.fck)*mat.fcd/mat.fck
     return mr, .65*fctd*1000*d/1000
 
@@ -102,7 +117,8 @@ def finite_grid(height_mm, diameter, maximum_pitch, cover):
             "guaranteed_bars_per_m": per_metre, "clear_spacing_mm": pitch-diameter}
 
 
-def panel_pressure_design(panel, combos, cover, mat, height, *, candidates=CAGES, grid_for=None, inset=0.):
+def panel_pressure_design(panel, combos, cover, mat, height, *, candidates=CAGES, grid_for=None, inset=0.,
+                          aggregate=DEFAULT_AGGREGATE_MM):
     span = panel["span_m"]
     thickness = panel["thickness_m"]*1000
     pressures = {name: spec["pressure_kn_m2"][panel["member"]] for name,spec in combos.items()}
@@ -113,7 +129,8 @@ def panel_pressure_design(panel, combos, cover, mat, height, *, candidates=CAGES
     for dia, pitch in candidates:
         grid = grid_for(dia, pitch) if grid_for else {}
         rho = 2*pi*dia**2/4/(pitch*thickness)
-        if (rho < .0025 or grid.get("clear_spacing_mm", pitch-dia) < max(25., dia)
+        actual_pitch = height*1000/ceil(height*1000/pitch)
+        if (rho < .0025 or grid.get("clear_spacing_mm", actual_pitch-dia) < clear_limit(aggregate, dia)
                 or thickness <= 2*(cover+inset+1.5*dia) or (grid_for and not grid)):
             continue
         mr, vcr = strip_resistance(thickness,cover+inset,dia,pitch,mat)
@@ -132,13 +149,13 @@ def panel_pressure_design(panel, combos, cover, mat, height, *, candidates=CAGES
                      for name,q in pressures.items()]}
 
 
-def vertical_section(panel, horizontal, cover, material, diameter, pitch):
+def vertical_section(panel, horizontal, cover, material, diameter, pitch, *, aggregate=DEFAULT_AGGREGATE_MM):
     length, thick = 1000*panel["clear_length_m"], 1000*panel["thickness_m"]
     count = max(2, ceil(length/pitch-1e-12))
     spacing = length/count
     offset = thick/2 - cover - horizontal.get("curtain_inset_mm",0.) - 2*horizontal["diameter_mm"] - diameter/2
     area = pi*diameter**2/4
-    required(min(spacing-diameter, 2*offset-diameter) >= max(25., diameter)
+    required(min(spacing-diameter, 2*offset-diameter) >= clear_limit(aggregate, diameter)
              and spacing/2 >= diameter/2 and 2*area/(spacing*thick) >= .0025,
              "VERTICAL_WEB_GRID_DOES_NOT_FIT")
     bars = tuple(Bar((2*i-count+1)*spacing/2, sign*offset, area) for i in range(count) for sign in (-1,1))

@@ -575,14 +575,14 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         raise ReportUnavailable("Modal receipt unavailable")
     try:
         input_sha = modal["input_sha256"]
-        source = _load_source(directory, input_sha)
+        verified_source = []
         receipts = read_receipts(directory, input_sha=input_sha)
-        snapshot = read_snapshot(directory, input_sha=input_sha, receipts=receipts)
+        snapshot = read_snapshot(directory, input_sha=input_sha, receipts=receipts, on_verified_source=verified_source.append)
         if snapshot is not None and snapshot["schema"] in SEALED_SCHEMAS:
             stages = snapshot["results"]
             evidence = stages["report_evidence"]
-            return _assemble_complete_report(run_id, source, receipts, stages, evidence, snapshot)
-        return _build_legacy_report(directory, source, receipts, snapshot)
+            return _assemble_complete_report(run_id, verified_source[0], receipts, stages, evidence, snapshot)
+        return _build_legacy_report(directory, _load_source(directory, input_sha), receipts, snapshot)
     except (OSError, TypeError, ValueError, KeyError) as exc:
         if isinstance(exc, ReportUnavailable):
             raise
@@ -1185,7 +1185,7 @@ def _basement_pier_tables(piers):
     groups = piers.get("basement_piers", [])
     if not groups:
         return ""
-    inventory, cuts, layouts, pressure, ends = [], [], [], [], []
+    inventory, cuts, layouts, pressure, ends, shells, alternatives = [], [], [], [], [], [], []
     for pier in groups:
         name = pier["pier"]
         geom = pier.get("geometry", {})
@@ -1196,9 +1196,27 @@ def _basement_pier_tables(piers):
             cuts.append({"pier": name, **cut, **bounds})
         for panel in geom.get("panels", []):
             h, v = panel.get("horizontal", {}), panel.get("vertical", {})
+            field = panel.get("two_way_shell") or {}
+            for check in field.get("checks") or ([{"status": field.get("reason")}] if field else []):
+                shells.append({"pier":name,"wall":panel["wall"], **check})
+            proposal = field.get("proposed_detail") or {}
+            if proposal:
+                for side, end in (proposal.get("ends") or {"":{}}).items():
+                    bar = proposal.get("horizontal", {})
+                    upright = proposal.get("vertical", {})
+                    pmms = proposal.get("cut_pmm", [])
+                    alternatives.append({"wall":panel["wall"],"side":side,"column":end.get("column"),
+                        "h":bar.get("diameter_mm"),"hp":bar.get("pitch_mm"),"v":upright.get("diameter_mm"),
+                        "vp":upright.get("pitch_mm"),"pmm_count":len(pmms),
+                        "pmm":max((c["upper_utilization"] for c in pmms),default=None),
+                        "provided":end.get("specified_embedment_mm"),"available":end.get("column_available_mm"),
+                        "clear":end.get("template_longitudinal_clearance_mm"),"limit":end.get("entry_required_mm"),
+                        "joint":end.get("layout_status") or end.get("status"),"open":proposal.get("open_input") or proposal.get("reason")})
             for side, end in panel.get("pressure_connections", {}).get("ends", {}).items():
                 transfer = end["transfer"]
                 ends.append({"pier": name, "wall": panel["wall"], "side": side, "column": end["column"],
+                             "aggregate":end.get("maximum_aggregate_mm"), "clear":end.get("template_longitudinal_clearance_mm"),
+                             "limit":end.get("entry_required_mm"),
                              "diameter": h["diameter_mm"], "required": end["position_i_mm"],
                              "available": end["column_available_mm"], "provided": end["specified_embedment_mm"],
                              "dowel": transfer.get("diameter_mm"), "pitch": transfer.get("pitch_mm"),
@@ -1213,8 +1231,8 @@ def _basement_pier_tables(piers):
         "<p>Each pier-end resultant is resolved over the clear webs with an affine vertical stress distribution. "
         "Supporting columns keep their concrete and reinforcement. The proposed two-curtain grids carry vertical "
         "section demand and horizontal bending from the assigned uniform pressure. The one-metre strips span "
-        "between columns with zero relative transverse support displacement. Local shell distribution and combined "
-        "shear and torsion require a separate local demand model.</p>",
+        "between columns with zero relative transverse support displacement. The two-way comparison uses the native "
+        "shell bending and transverse shear where available. Combined membrane actions and interface transfer remain open.</p>",
         _table((("pier","Pier"),("story","Storey"),("members","Shell IDs"),("reserved_column_ids","Reserved column IDs"),
                 ("nominal_area_m2","ETABS nominal area (m²)"),("shell_footprint_union_m2","Footprint union (m²)"),
                 ("clear_web_area_m2","Clear webs (m²)"),("evaluated_cut_combinations","Satisfied end combinations"),
@@ -1235,11 +1253,23 @@ def _basement_pier_tables(piers):
                 ("moment_bound_knm_m","Moment upper (kN·m/m)"),("mr","Moment resistance (kN·m/m)"),
                 ("moment_ratio","Bending ratio"),("reaction_bound_kn_m","Reaction upper (kN/m)"),
                 ("vcr","Diagonal cracking resistance (kN/m)"),("cracking_shear_ratio","Cracking ratio")), pressure), "</details>",
+        ("<details><summary>Two-way shell bending and transverse shear per metre</summary>" +
+         _table((("pier","Pier"),("wall","Wall"),("combination","Combination"),("axis","Direction"),("action","Check"),
+                 ("element","Element"),("point","Point"),("basis","Demand basis"),("demand","Demand"),("resistance","Section resistance"),
+                 ("unit","Unit"),("ratio","Original cage ratio"),("proposed_resistance","Two-way cage resistance"),
+                 ("proposed_ratio","Two-way cage ratio"),("status","Original cage result")), shells) +
+         "<p>Symmetric layers at zero membrane force. Bending includes twisting at the same corner.</p>" +
+         _table((("wall","Wall"),("side","End"),("column","Column ID"),("h","Horizontal Ø (mm)"),("hp","Pitch (mm)"),
+                 ("v","Vertical Ø (mm)"),("vp","Pitch (mm)"),("pmm_count","Pier PMM cuts"),("pmm","Highest PMM ratio"),
+                 ("provided","Straight embedment (mm)"),("available","Available (mm)"),("clear","Entry clear (mm)"),
+                 ("limit","Required (mm)"),("joint","Shared support layout"),("open","Open design input")), alternatives) +
+         "</details>" if shells else ""),
         ("<details><summary>Pressure transfer and straight bar development at columns</summary>" +
          _table((("pier","Pier"),("wall","Wall"),("side","End"),("column","Support column"),("diameter","Web Ø (mm)"),
                  ("required","Required bond (mm)"),("available","Available (mm)"),("provided","Proposed embedment (mm)"),
                  ("dowel","Dowel Ø (mm)"),("pitch","Pitch (mm)"),("reaction","Reaction (kN/m)"),
-                 ("resistance","Resistance (kN/m)"),("ratio","Utilization"),("status","Result")), ends) +
+                 ("resistance","Resistance (kN/m)"),("ratio","Utilization"),("aggregate","Dmax (mm)"),("clear","Entry clear (mm)"),
+                 ("limit","Required clear (mm)"),("status","Result")), ends) +
          "</details>" if ends else "")))
 
 

@@ -87,6 +87,7 @@ def _run_pipeline_replay(args) -> int:
                                        basement_matrices=getattr(args, "basement_matrices", None),
                                        basement_ground_storey=getattr(args, "basement_ground_storey", None),
                                        pier_forces=pier_forces,
+                                       maximum_aggregate_mm=getattr(args, "maximum_aggregate_mm", None),
                                        wall_hinge_aggregate_storeys=getattr(args, "wall_hinge_aggregate_storey", None))
     raw, payload = prepared.raw, prepared.payload
     scenario = validate_design_scenario(payload)

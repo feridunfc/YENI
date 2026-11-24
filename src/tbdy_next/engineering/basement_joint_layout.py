@@ -3,10 +3,10 @@ from collections import defaultdict
 from itertools import combinations
 from math import ceil, floor, hypot
 
-from .basement_wall_pressure import finite_grid
+from .basement_wall_pressure import DEFAULT_AGGREGATE_MM, clear_limit, finite_grid
 
 
-def layout_policy(geometry, panel, cover):
+def layout_policy(geometry, panel, cover, aggregate=DEFAULT_AGGREGATE_MM):
     """Use a shared elevation lattice; give the shorter collinear web the inner curtain."""
     direction = panel["width_direction"]
     joints = {panel["joint_i"], panel["joint_j"]}
@@ -14,9 +14,10 @@ def layout_policy(geometry, panel, cover):
                   and abs(sum(a*b for a,b in zip(direction,p["width_direction"]))) > 1-1e-9
                   for p in geometry["panels"])
     height = (geometry["top_m"]-geometry["bottom_m"])*1000
-    # Ø14 at 40 mm is the densest straight-bar option with 25 mm minimum clearance.
-    fine = finite_grid(height,14,40,cover)
-    return {"height":height, "module":fine["pitch_mm"], "start":fine["first_and_last_offset_mm"],
+    # Keep all panels on one elevation lattice. Choose its densest feasible catalogue spacing.
+    pitch = 40 if finite_grid(height,14,40,cover)["clear_spacing_mm"] >= clear_limit(aggregate,14) else 50
+    fine = finite_grid(height,14,pitch,cover)
+    return {"aggregate_mm":aggregate, "height":height, "module":fine["pitch_mm"], "start":fine["first_and_last_offset_mm"],
             "phase":.5 if abs(direction[0]) > .5 else 0., "inner":shorter}
 
 
@@ -26,7 +27,7 @@ def level_grid(policy, diameter, nominal, cover, *, dowel=False):
     required_count = 1000//nominal
     for stride in range(min(4,floor(nominal/module+1e-9)),0,-1):
         spacing = stride*module
-        if spacing-diameter < max(25.,diameter):
+        if spacing-diameter < clear_limit(policy.get("aggregate_mm", DEFAULT_AGGREGATE_MM),diameter):
             continue
         offset = policy["phase"] + (stride//2 if dowel and policy["inner"] else 0.)
         seed = policy["start"] + offset*module
@@ -72,20 +73,20 @@ def _closest_levels(left, right):
     return best
 
 
-def _separation(a,b):
+def _separation(a,b, aggregate=DEFAULT_AGGREGATE_MM):
     a0,a1,a2,a3 = a["bounds"]; b0,b1,b2,b3 = b["bounds"]
     dx = max(0.,a0-b1,b0-a1)
     dy = max(0.,a2-b3,b2-a3)
     dz, za, zb = _closest_levels(a["heights"],b["heights"])
     clear = hypot(dx,dy,dz)-(a["diameter"]+b["diameter"])/2
     parallel = a["horizontal"]==b["horizontal"]
-    limit = max(25.,a["diameter"],b["diameter"]) if parallel else 0.
+    limit = clear_limit(aggregate,a["diameter"],b["diameter"]) if parallel else 0.
     return {"members":[a["member"],b["member"]],"roles":[a["role"],b["role"]],"faces":[a["face"],b["face"]],
             "levels_above_base_mm":[za,zb],"parallel":parallel,"clear_mm":clear,"required_mm":limit,
             "margin_mm":clear-limit, "fits": clear >= limit-1e-8 if parallel else clear > 0.}
 
 
-def check_joint_layout(geometry):
+def check_joint_layout(geometry, aggregate=DEFAULT_AGGREGATE_MM):
     by_column = defaultdict(list)
     for panel in geometry["panels"]:
         for side in ("I","J"):
@@ -97,9 +98,14 @@ def check_joint_layout(geometry):
         result.append(row)
         if not all(end and end["status"]=="CONDITIONAL_PRESSURE_END_DESIGN" for _,_,end in incident):
             row["reason"] = "ALL_INCIDENT_PRESSURE_END_DETAILS_REQUIRED"
+            for _, _, end in incident:
+                if end:
+                    end["layout_status"] = row["reason"]
+                    if end["status"] == "CONDITIONAL_PRESSURE_END_DESIGN":
+                        end["status"] = "HOLD_INCIDENT_PRESSURE_END_DETAILS_REQUIRED"
             continue
         families = [bar for panel,side,end in incident for bar in _families(panel,side,end)]
-        checks = [_separation(a,b) for a,b in combinations(families,2)]
+        checks = [_separation(a,b,aggregate) for a,b in combinations(families,2)]
         row.update(family_pairs=len(checks), minimum_parallel_clear_mm=min(q["clear_mm"] for q in checks if q["parallel"]),
                    governing=min(checks,key=lambda q:q["margin_mm"]),
                    status="PROPOSED_PRESSURE_BARS_FIT" if all(q["fits"] for q in checks) else "PROPOSED_PRESSURE_BARS_CLASH")

@@ -217,7 +217,10 @@ def validate_design_scenario(payload: Mapping[str, Any]) -> dict[str, Any] | Non
 
 
 def verify_parent(payload: Mapping[str, Any], parent_raw: bytes) -> None:
-    item = validate_design_scenario(payload)
+    _verify_parent_bytes(validate_design_scenario(payload), parent_raw)
+
+
+def _verify_parent_bytes(item, parent_raw):
     if item is None:
         raise ValueError("SCENARIO_LINEAGE_REQUIRED")
     if sha256(parent_raw).hexdigest() != item["parent_input_sha256"]:
@@ -232,19 +235,23 @@ def verify_parent(payload: Mapping[str, Any], parent_raw: bytes) -> None:
 def verify_archived_scenario(directory: Path, payload: Mapping[str, Any]) -> dict[str, Any] | None:
     item = validate_design_scenario(payload)
     if item is not None:
-        _read_verified_parent(directory, payload)
+        _verify_parent_bytes(item, _parent_bytes(directory))
     return item
 
 
 def _read_verified_parent(directory: Path | None, payload: Mapping[str, Any]) -> bytes:
+    raw = _parent_bytes(directory)
+    verify_parent(payload, raw)
+    return raw
+
+
+def _parent_bytes(directory):
     if directory is None:
         raise ValueError("SCENARIO_PARENT_SOURCE_MISSING_OR_UNSAFE")
     parent = directory / PARENT_FILE
     if parent.is_symlink() or not parent.is_file() or not 0 < parent.stat().st_size <= _MAX_SOURCE_BYTES:
         raise ValueError("SCENARIO_PARENT_SOURCE_MISSING_OR_UNSAFE")
-    raw = archive_bytes(parent)
-    verify_parent(payload, raw)
-    return raw
+    return archive_bytes(parent)
 
 
 def prepare_pipeline_source(
@@ -260,6 +267,7 @@ def prepare_pipeline_source(
     basement_matrices: Path | None = None,
     basement_ground_storey: str | None = None,
     wall_hinge_aggregate_storeys: list[str] | None = None,
+    maximum_aggregate_mm: float | None = None,
 ) -> PreparedPipelineSource:
     """Prepare replay or selection identically for Web and CLI.
 
@@ -276,7 +284,8 @@ def prepare_pipeline_source(
     if request is not None and selection_overrides is not None:
         raise ValueError("SCENARIO_AND_SELECTION_FLAGS_ARE_EXCLUSIVE")
     if type(whole_building) is not bool or (not whole_building and
-            (wall_hinge_aggregate_storeys is not None or pier_forces is not None or basement_matrices is not None)):
+            (wall_hinge_aggregate_storeys is not None or pier_forces is not None or basement_matrices is not None
+             or maximum_aggregate_mm is not None)):
         raise ValueError("BUILDING_SCOPE_OPTION_INVALID")
     if (basement_matrices is None) != (basement_ground_storey is None):
         raise ValueError("BASEMENT_MATRIX_IMPORT_REQUIRES_GROUND_STOREY")
@@ -338,6 +347,9 @@ def prepare_pipeline_source(
                       "TS 500 Eq. 7.21, unity Cm, effective length in Eq. 7.29 and the TBDY unity precheck."}
         if wall_hinge_aggregate_storeys is not None:
             policy = {**policy, "wall_hinge_aggregate_storeys": wall_hinge_aggregate_storeys}
+        if maximum_aggregate_mm is not None or "maximum_aggregate_mm" not in policy:
+            from .basement_wall_pressure import DEFAULT_AGGREGATE_MM
+            policy = {**policy, "maximum_aggregate_mm": DEFAULT_AGGREGATE_MM if maximum_aggregate_mm is None else maximum_aggregate_mm}
         request["building_design"] = policy
     if project_parameters is not None or confirm_project_profile is not None:
         from .seismic_profile import INPUT_SCHEMA, normalize_values

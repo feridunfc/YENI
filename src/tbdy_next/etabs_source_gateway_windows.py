@@ -838,10 +838,15 @@ def capture_assigned_pier_forces(sap, process_id, parent, parent_sha, *, wall_mo
     control = capture_frame_forces(sap, members=(member,), combinations=tuple(wanted))
     observed = list(native_frame_force_rows(control["rowsets"].get(member, {}), member))
     archived = {row[:7]: row[7:] for row in original}
-    if (control["errors"] or len(observed) != len(original)
-            or any(row[:7] not in archived or any(not isclose(a, b, rel_tol=1e-8, abs_tol=1e-6)
-                   for a, b in zip(row[7:], archived[row[:7]])) for row in observed)):
-        raise SourceError("PIER_SOLVED_GENERATION_FRAME_CONTROL_MISMATCH")
+    observed_keys = {r[:7] for r in observed}
+    bad = [(r[:7], max(abs(a-b) for a,b in zip(r[7:], archived[r[:7]]))) for r in observed
+           if r[:7] in archived and any(not isclose(a,b,rel_tol=1e-8,abs_tol=1e-6)
+                                        for a,b in zip(r[7:],archived[r[:7]]))]
+    if control["errors"] or len(observed) != len(original) or archived.keys() != observed_keys or bad:
+        raise SourceError(f"PIER_SOLVED_GENERATION_FRAME_CONTROL_MISMATCH: member {member}, "
+                          f"{len(observed)}/{len(original)} rows, missing cases {sorted({k[4] for k in archived.keys()-observed_keys})}, "
+                          f"unmatched keys {len(observed_keys-archived.keys())}, differing rows {len(bad)}, "
+                          f"largest difference {max(bad,key=lambda r:r[1],default=None)}, getter errors {control['errors']}")
     db = sap.DatabaseTables
     before = selected_combinations(db)
     try:

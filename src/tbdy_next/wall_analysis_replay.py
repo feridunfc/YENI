@@ -130,7 +130,7 @@ def _private_session(sap, original, target, original_sha, switch):
                        {"before": before, "after": final, "status": status})
 
 
-def solve_private_wall_source(sap, pid, parent, parent_sha, previous, output_root):
+def solve_private_wall_source(sap, pid, parent, parent_sha, previous, output_root, *, pressure_plan=None):
     verify(previous)
     _check(
         previous["parent_input_sha256"] == parent_sha and previous.get("wall_modes"),
@@ -143,7 +143,15 @@ def solve_private_wall_source(sap, pid, parent, parent_sha, previous, output_roo
     _check(_safe(root), "PRIVATE_WALL_DIRECTORY_MUST_BE_LOCAL_AND_DIRECT")
     root.mkdir(parents=True, exist_ok=True)
     active = Path(model_file(sap)).with_suffix(".EDB").resolve(strict=True)
-    if active == base:
+    if pressure_plan and active != base:
+        proof = (previous.get("transition_shells") or {}).get("solution") or {}
+        manifest = active.parent / "source.json"
+        _check(active.parent.parent == root and active.name == base.name and _safe(manifest) and _safe(active)
+               and manifest.is_file() and json.loads(manifest.read_bytes()) ==
+               {"original":str(base),"parent_sha256":parent_sha,"input_sha256":initial_sha}
+               and proof.get("input_sha256") == initial_sha and _digest(active) == proof.get("solved_sha256"),
+               "OPEN_ORIGINAL_OR_IDENTIFIED_PRIVATE_PRESSURE_MODEL")
+    if active == base or pressure_plan:
         folder = root / uuid4().hex
         folder.mkdir()
         target = folder / base.name
@@ -170,8 +178,13 @@ def solve_private_wall_source(sap, pid, parent, parent_sha, previous, output_roo
             "PRIVATE_WALL_COPY_PARENT_DIFFERS",
         )
 
-    with _private_session(sap, base, target, initial_sha, switch=active == base):
-        return _read_or_solve(sap, pid, parent, parent_sha, previous, base, target, initial_sha)
+    with _private_session(sap, active, target, _digest(active), switch=active != target):
+        captured = _read_or_solve(sap, pid, parent, parent_sha, previous, base, target, initial_sha)
+        if pressure_plan:
+            from .wall_pressure_capture import extend_pressure_read
+            captured = extend_pressure_read(sap, pid, parent, parent_sha, captured, pressure_plan)
+            _write_new(folder / "pressure-pier-read.json", captured)
+        return captured
 
 
 def _read_or_solve(sap, pid, parent, parent_sha, previous, base, target, initial_sha):

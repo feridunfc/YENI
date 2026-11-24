@@ -104,7 +104,7 @@ def _entry(directory):
                  "model_name": _legacy_model(directory, model)}
         if member:
             quick["pmm_member_id"] = member
-    return {"steps": steps, "quick": quick}
+    return {"steps": steps, "quick": quick, "modal_at": modal.get("captured_at_utc")}
 
 
 def _step(record):
@@ -124,12 +124,14 @@ def _stamp(directory):
 def _database(root):
     cache = root / ".history-catalog.sqlite3"
     schema = "CREATE TABLE IF NOT EXISTS runs (id TEXT PRIMARY KEY, stamp TEXT, entry TEXT)"
+    modal = "CREATE TABLE IF NOT EXISTS modal_verified (id TEXT PRIMARY KEY, digest TEXT, data TEXT)"
     db = None
     try:
         if cache.is_symlink():
             raise ValueError("HISTORY_INDEX_PATH_INVALID")
         db = sqlite3.connect(cache, timeout=0.1)
         db.execute(schema)
+        db.execute(modal)
         db.execute("SELECT id, stamp, entry FROM runs LIMIT 0")
         return db
     except (OSError, ValueError, sqlite3.Error):
@@ -137,10 +139,11 @@ def _database(root):
             db.close()
         db = sqlite3.connect(":memory:")
         db.execute(schema)
+        db.execute(modal)
         return db
 
 
-def record_listing(run, model_filename, case, pmm_member, suite):
+def record_listing(run, model_filename, case, pmm_member, suite, *, modal_result=None, source_rows=None):
     quick = None
     if suite:
         quick = {"run_id": run.run_id, "captured_at_utc": run.modal_timestamp,
@@ -150,13 +153,30 @@ def record_listing(run, model_filename, case, pmm_member, suite):
     try:
         with closing(_database(run.root.parent)) as db, db:
             db.execute("INSERT OR REPLACE INTO runs VALUES (?,?,?)",
-                       (run.run_id, _stamp(run.root), json.dumps({"steps": run.listing_steps, "quick": quick})))
+                       (run.run_id, _stamp(run.root), json.dumps({"steps": run.listing_steps, "quick": quick, "modal_at":run.modal_timestamp})))
+            if modal_result is not None:
+                from .history import _read_receipt
+                modal = _read_receipt(run.root, "modal")
+                schema = _read_receipt(run.root, "schema")
+                values = (schema or {}).get("payload", {})
+                if (modal and schema and modal["payload"] == modal_result and values.get("status") == "SCHEMA_VALID"
+                        and modal["input_sha256"] == schema["input_sha256"] and values.get("source_mode") == "LIVE_ETABS"
+                        and values.get("target_case") == modal_result.get("case") == case
+                        and type(source_rows) is int and source_rows == values.get("raw_row_count")
+                        and 0 < values["case_row_count"] <= source_rows):
+                    summary = {"run_id":run.run_id,"captured_at_utc":modal["captured_at_utc"],"case":case,
+                               "model_name":ntpath.basename(model_filename or "") or None,"source_mode":"LIVE_ETABS",
+                               "case_row_count":values["case_row_count"],"raw_row_count":source_rows,"result":modal_result,
+                               "input_sha256":modal["input_sha256"],"receipt_sha256":modal["receipt_sha256"],
+                               "engineering_release":"NOT_READY"}
+                    db.execute("INSERT OR REPLACE INTO modal_verified VALUES (?,?,?)",
+                               (run.run_id,verification_key(run.root),json.dumps(summary)))
     except (OSError, ValueError, sqlite3.Error):
         # A locked or read-only catalog can be reconstructed from the completed receipts.
         return
 
 
-def listing(root, *, quick=False, limit=60):
+def listing(root, *, quick=False, modal=False, limit=60):
     """Catalog entries are navigation hints. No verdict or large result body is loaded here."""
     root = Path(root)
     if not root.is_dir():
@@ -179,7 +199,15 @@ def listing(root, *, quick=False, limit=60):
                     else:
                         entry = json.loads(raw)
                     if entry is not None:
-                        if not quick:
+                        if modal:
+                            if "modal_at" not in entry:
+                                from .history import _read_receipt
+                                record = _read_receipt(Path(child.path), "modal") or {}
+                                entry["modal_at"] = record.get("captured_at_utc")
+                                updates.append((child.name, stamp, json.dumps(entry)))
+                            if entry["modal_at"]:
+                                output.append({"run_id":child.name, "captured_at_utc":entry["modal_at"]})
+                        elif not quick:
                             output.append({"run_id": child.name, "steps": entry["steps"]})
                         elif entry["quick"]:
                             output.append(entry["quick"])
@@ -191,6 +219,68 @@ def listing(root, *, quick=False, limit=60):
                     db.executemany("INSERT OR REPLACE INTO runs VALUES (?,?,?)", updates)
             except sqlite3.Error:
                 pass  # Source-backed listing is still available when a cache write is denied.
-    if quick:
+    if quick or modal:
         return sorted(output, key=lambda r: (r["captured_at_utc"], r["run_id"]), reverse=True)[:limit]
     return sorted(output, key=lambda r: r["run_id"], reverse=True)[:limit]
+
+
+def verification_key(directory):
+    from hashlib import sha256
+    from .archive_blobs import archive_file_hash
+    if directory.is_symlink() or not directory.is_dir():
+        raise ValueError("RUN_DIRECTORY_UNSAFE")
+    paths = receipt_paths(directory) + [directory / "input.source"]
+    for name in ("parent.source", "engine-results.payload"):
+        path = directory / name
+        if path.exists() or path.is_symlink():
+            paths.append(path)
+    return sha256(json.dumps([(p.name, archive_file_hash(p)) for p in paths]).encode()).hexdigest()
+
+
+def _modal_key(directory):
+    from .history import _read_receipt
+    try:
+        paths = receipt_paths(directory)
+        if not any(p.stem.partition("-")[2] == "live-capture" for p in paths):
+            discovery = _read_receipt(directory,"schema-discovery") or {}
+            if discovery.get("receipt_schema") is not None:
+                return None  # A modern run is visible as soon as its terminal seal is written.
+        return verification_key(directory)
+    except (OSError, ValueError):
+        return None
+
+
+def verified_modal_listing(root, limit):
+    from concurrent.futures import ThreadPoolExecutor
+    from .history import _read_modal_run, _read_receipt
+    candidates = iter(listing(root, modal=True, limit=None))
+    rows = []
+    from itertools import islice
+    with closing(_database(root)) as db, ThreadPoolExecutor(max_workers=min(4,limit)) as workers:
+        while len(rows) < limit:
+            dirs = [root/c["run_id"] for c in islice(candidates,limit-len(rows))]
+            if not dirs:
+                break
+            for directory, digest in zip(dirs,workers.map(_modal_key,dirs)):
+                if digest is None:
+                    continue
+                try:
+                    rid = directory.name
+                    hit = db.execute("SELECT data FROM modal_verified WHERE id=? AND digest=?", (rid,digest)).fetchone()
+                    row = json.loads(hit[0]) if hit else None
+                    modal = _read_receipt(directory, "modal")
+                    if not (row and modal and row["receipt_sha256"] == modal["receipt_sha256"]
+                            and row["result"] == modal["payload"] and row["input_sha256"] == modal["input_sha256"]
+                            and row["run_id"] == rid and row["captured_at_utc"] == modal["captured_at_utc"]):
+                        row = _read_modal_run(directory)
+                        if row is None or digest != verification_key(directory):
+                            continue
+                        try:
+                            with db:
+                                db.execute("INSERT OR REPLACE INTO modal_verified VALUES (?,?,?)", (rid,digest,json.dumps(row)))
+                        except sqlite3.Error:
+                            pass
+                    rows.append(row)
+                except (OSError, ValueError, TypeError, KeyError):
+                    continue
+    return rows

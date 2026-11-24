@@ -21,9 +21,13 @@ FRAME_METHOD = "TS500_7_21_SWAY_WEB_RM1_SELF_WEIGHT_NMAX"
 
 def normalize_building_design(raw, *, source_data_sha256):
     fields = {"schema", "source_data_sha256", "frame_method", "wall_hinge_aggregate_storeys", "decision_reference"}
-    if (not isinstance(raw, dict) or set(raw) != fields or raw["schema"] != BUILDING_SCHEMA
+    if (not isinstance(raw, dict) or set(raw) - {"maximum_aggregate_mm"} != fields or raw["schema"] != BUILDING_SCHEMA
             or raw["source_data_sha256"] != source_data_sha256 or raw["frame_method"] != FRAME_METHOD):
         raise ValueError("BUILDING_DESIGN_POLICY_OR_SOURCE_INVALID")
+    if "maximum_aggregate_mm" in raw:
+        aggregate = raw["maximum_aggregate_mm"]
+        if type(aggregate) not in (float, int) or not isfinite(aggregate) or aggregate <= 0:
+            raise ValueError("MAXIMUM_AGGREGATE_MUST_BE_FINITE_POSITIVE_MM")
     storeys = raw["wall_hinge_aggregate_storeys"]
     ref = raw["decision_reference"]
     if (not isinstance(storeys, list) or any(not isinstance(s, str) or not s or s.strip() != s for s in storeys)

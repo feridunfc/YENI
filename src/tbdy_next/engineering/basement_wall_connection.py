@@ -4,7 +4,7 @@ from math import ceil, cos, isfinite, pi, radians, sin, sqrt
 from ..column_engine.section_capacity import perimeter
 from .basement_joint_layout import layout_policy, level_grid
 from .basement_pier_geometry import required
-from .basement_wall_pressure import CAGES, panel_pressure_design
+from .basement_wall_pressure import CAGES, DEFAULT_AGGREGATE_MM, clear_limit, panel_pressure_design
 from .column_pmm_section import COLUMN_REINFORCING, _named_row, _rows
 
 
@@ -72,6 +72,13 @@ def _bar_clearance(profile, offset, diameter):
     return centre_distance - (diameter + profile["bar_diameter"])/2
 
 
+def _entry_lanes(profiles, preferred):
+    # Midpoints of neighbouring vertical bars maximise clearance inside each available lane.
+    occupied = sorted({abs(x) for profile in profiles for x in profile["bar_offsets"]})
+    mids = [(lo+hi)/2 for lo,hi in zip(occupied, occupied[1:]) if 0 < (lo+hi)/2 < preferred]
+    return [preferred, *sorted(mids, reverse=True)]
+
+
 def _adjacent_web(geometry, panel, side, offset, diameter, cover):
     joint = panel["joint_"+side.lower()]
     for other in geometry["panels"]:
@@ -86,7 +93,7 @@ def _adjacent_web(geometry, panel, side, offset, diameter, cover):
     return {}
 
 
-def _development(profiles, geometry, panel, grid, mat):
+def _development(profiles, geometry, panel, grid, mat, aggregate=DEFAULT_AGGREGATE_MM):
     dia, cover = grid["diameter_mm"], grid["cover_mm"]
     spacing = grid["pitch_mm"]-dia
     wall = tension_development(dia, mat.fyd, mat.fck, mat.fcd, cover, spacing)
@@ -100,6 +107,7 @@ def _development(profiles, geometry, panel, grid, mat):
         needed = bond["position_i_mm"]
         specified = 5*ceil(needed/5)
         clearance = _bar_clearance(prof, offset, dia)
+        limit = clear_limit(aggregate, dia, prof["bar_diameter"])
         adjacent = _adjacent_web(geometry, panel, side, offset, dia, cover)
         corridor = prof["depth_mm"]+adjacent["clear_extension_mm"] if adjacent.get("clear_extension_mm",0)>0 else available
         ends[side] = {**bond, "column": prof["column"], "column_section": prof["section"], "column_role": prof["role"],
@@ -108,12 +116,15 @@ def _development(profiles, geometry, panel, grid, mat):
             "column_available_mm": available, "specified_embedment_mm": specified, "margin_mm": available-needed,
             "wall_side_available_mm": 500*panel["clear_length_m"], "wall_side_required_mm": wall["position_i_mm"],
             "template_longitudinal_clearance_mm": clearance, "adjacent_web": adjacent,
-            "geometric_corridor_mm": corridor, "fits_column": specified <= available and clearance > 0
+            "geometric_corridor_mm": corridor, "maximum_aggregate_mm": aggregate, "entry_required_mm": limit,
+            "entry_margin_mm": clearance-limit, "horizontal_clear_mm": spacing,
+            "horizontal_required_mm": clear_limit(aggregate, dia),
+            "fits_column": specified <= available and clearance >= limit and spacing >= clear_limit(aggregate, dia)
             and wall["position_i_mm"] <= 500*panel["clear_length_m"]}
     return ends
 
 
-def _transfer(panel, profile, h, mat, policy):
+def _transfer(panel, profile, h, mat, policy, *, vertical_diameter=None):
     thickness = panel["thickness_m"]*1000
     peak = max(row["reaction_bound_kn_m"] for row in h["cuts"])
     # Two dedicated deformed bars per level, perpendicular to the joint and symmetric
@@ -123,7 +134,7 @@ def _transfer(panel, profile, h, mat, policy):
     column_limit = profile["depth_mm"]-cover-profile["tie"]
     wall_limit = panel["clear_length_m"]*500
     cap = .2*min(mat.fcd,profile["fcd"],25.)*thickness
-    offset = thickness/8
+    aggregate = policy["aggregate_mm"]
     for dia,pitch in choices:
         grid = level_grid(policy,dia,pitch,cover,dowel=True)
         if not grid:
@@ -133,11 +144,25 @@ def _transfer(panel, profile, h, mat, policy):
         steel = 2*grid["guaranteed_bars_per_m"]*pi*dia**2/4
         resistance = min(.6*steel*mat.fyd/1000, cap)
         wall_embed, col_embed = (5*ceil(dev["position_i_mm"]/5) for dev in (wall,column))
-        # Keep the dowels between the two pressure curtains, clear of the column's modelled vertical bars.
+        # Each symmetric dowel pair must clear the supporting column's vertical bars.
         curtain_offset = thickness/2-h["cover_mm"]-h.get("curtain_inset_mm",0.)-1.5*h["diameter_mm"]
-        clear = _bar_clearance(profile,offset,dia)
-        if (peak <= resistance and wall_embed <= wall_limit and col_embed <= column_limit and clear > 0
-                and curtain_offset-offset > (dia+h["diameter_mm"])/2 and grid["clear_spacing_mm"] >= max(25.,dia)):
+        limit = clear_limit(aggregate, dia, profile["bar_diameter"])
+        lanes = _entry_lanes([profile], thickness/8)
+        if vertical_diameter is not None:
+            # The two-way layout has known curtain depths. A dedicated dowel may also
+            # occupy the cover-side lane if it clears both orthogonal web bar families.
+            outer = thickness/2-cover-dia/2
+            lanes += [off for off in _entry_lanes([profile], outer) if off > curtain_offset]
+            vertical_axis = curtain_offset-(h["diameter_mm"]+vertical_diameter)/2
+            lanes = [off for off in lanes if abs(off-vertical_axis)-(dia+vertical_diameter)/2
+                     >= clear_limit(aggregate,dia,vertical_diameter)]
+        offset = next((off for off in lanes
+                       if _bar_clearance(profile,off,dia) >= limit
+                       and 2*off-dia >= clear_limit(aggregate,dia)
+                       and abs(curtain_offset-off)-(dia+h["diameter_mm"])/2 >= clear_limit(aggregate,dia,h["diameter_mm"])), None)
+        if (peak <= resistance and wall_embed <= wall_limit and col_embed <= column_limit and offset is not None
+                and grid["clear_spacing_mm"] >= clear_limit(aggregate,dia)):
+            clear = _bar_clearance(profile,offset,dia)
             break
     else:
         return {"status":"HOLD", "reason":"NO_SEPARATE_FULLY_DEVELOPED_DOWEL_LAYOUT_IN_CATALOGUE",
@@ -156,36 +181,55 @@ def _transfer(panel, profile, h, mat, policy):
             "peak_ratio":peak/resistance, "force_margin_kn_m":resistance-peak,
             "wall_required_mm":wall["position_i_mm"], "wall_embedment_mm":wall_embed, "wall_available_mm":wall_limit,
             "column_required_mm":column["position_i_mm"], "column_embedment_mm":col_embed, "column_available_mm":column_limit,
-            "template_longitudinal_clearance_mm":clear, "pressure_only_normal_force_kn_m":0., "combinations":cuts}
+            "template_longitudinal_clearance_mm":clear, "entry_required_mm":limit, "pressure_only_normal_force_kn_m":0., "combinations":cuts}
 
 
-def pressure_connections(source, stages, geometry, panel, initial, combos, cover, mat, height):
-    profiles = support_profiles(source, stages, panel)
-    initial_ends = _development(profiles, geometry, panel, initial, mat)
-    policy = layout_policy(geometry,panel,cover)
+def developed_entry_grids(profiles, geometry, panel, cover, mat, policy, preferred_pair=None):
+    """Trial straight-bar grids at the actual levels and lanes inside both supporting cages."""
+    options = set(CAGES) | {(d,p) for d in (12,14,16,18,20,22,25) for p in (40,50)}
+    thickness = 1000*panel["thickness_m"]
     inset = 50. if policy["inner"] else 0.
+    aggregate = policy["aggregate_mm"]
+    options = sorted(options, key=lambda pair: (pair != preferred_pair, pair[0]**2/pair[1], pair[0], pair[1]))
+    for dia, pitch in options:
+        levels = level_grid(policy,dia,pitch,cover)
+        if not levels or 2*levels["guaranteed_bars_per_m"]*pi*dia**2/4 < .0025*1000*thickness:
+            continue
+        preferred = thickness/2-cover-1.5*dia-inset
+        for lane in _entry_lanes(profiles.values(), preferred):
+            if 2*lane-dia < clear_limit(aggregate,dia):
+                continue
+            grid = {**levels,"diameter_mm":dia,"maximum_pitch_mm":pitch,"cover_mm":cover,
+                    "curtain_inset_mm":inset+preferred-lane,"physical_height_mm":policy["height"]}
+            ends = _development(profiles,geometry,panel,grid,mat,aggregate)
+            if all(end["fits_column"] for end in ends.values()):
+                yield grid, ends, lane
+
+
+def pressure_connections(source, stages, geometry, panel, initial, combos, cover, mat, height, *, aggregate=DEFAULT_AGGREGATE_MM):
+    profiles = support_profiles(source, stages, panel)
+    initial_ends = _development(profiles, geometry, panel, initial, mat, aggregate)
+    policy = layout_policy(geometry,panel,cover,aggregate)
     initial_pair = (initial["diameter_mm"], initial["maximum_pitch_mm"])
-    options = set(CAGES) | {(d,p) for d in (12,14,16,18,20,22,25) for p in (50,40)}
-    candidates = [initial_pair] + sorted(options-{initial_pair}, key=lambda pair: (pair[0]**2/pair[1],pair[0]))
     h, ends = initial, initial_ends
-    for candidate in candidates:
+    selected = False
+    for grid, assessment, _ in developed_entry_grids(profiles,geometry,panel,cover,mat,policy,initial_pair):
+        pair = (grid["diameter_mm"], grid["maximum_pitch_mm"])
         try:
-            grid = panel_pressure_design(panel, combos, cover, mat, height, candidates=[candidate], inset=inset,
-                                        grid_for=lambda dia,pitch: level_grid(policy,dia,pitch,cover))
+            h = panel_pressure_design(panel,combos,cover,mat,height,candidates=[pair],
+                                      inset=grid["curtain_inset_mm"],aggregate=aggregate,grid_for=lambda d,p: grid)
         except ValueError as exc:
             if str(exc) != "NO_PROPOSED_HORIZONTAL_CAGE_MEETS_PRESSURE_BENDING_AND_CRACKING_SHEAR":
                 raise
             continue
-        assessment = _development(profiles, geometry, panel, grid, mat)
-        if all(row["fits_column"] for row in assessment.values()):
-            h, ends = grid, assessment
-            break
-    selected = "first_station_mm" in h
+        ends, selected = assessment, True
+        break
     for side, end in ends.items():
         end["initial"] = dict(initial_ends[side])
         end["transfer"] = _transfer(panel, profiles[side], h, mat, policy)
-        end["status"] = ("CONDITIONAL_PRESSURE_END_DESIGN" if selected and end["transfer"]["status"] != "HOLD"
-                         else "COLUMN_ONLY_ANCHORAGE_EXCEEDANCE" if not end["fits_column"] else "HOLD")
+        end["status"] = ("CONDITIONAL_PRESSURE_END_DESIGN" if selected and end["fits_column"] and end["transfer"]["status"] != "HOLD"
+                         else "SUPPORT_ENTRY_SPACING_UNSATISFIED" if end["entry_margin_mm"] < 0
+                         else "COLUMN_ONLY_ANCHORAGE_EXCEEDANCE" if end["margin_mm"] < 0 else "HOLD")
     return h, {"initial_diameter_mm":initial_pair[0], "initial_maximum_pitch_mm":initial_pair[1],
                "initial_pitch_mm":initial["pitch_mm"], "initial_mr_knm_m":initial["design_moment_resistance_knm_m"],
                "max_aggregate_from_horizontal_spacing_mm":.75*(h["pitch_mm"]-h["diameter_mm"]),

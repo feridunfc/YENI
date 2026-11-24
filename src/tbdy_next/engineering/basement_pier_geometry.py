@@ -232,7 +232,7 @@ def folded_section(source, bound, name, story, member_ids):
                 "axis_angle_deg": float(angle) if angle not in ("None", None, "") else 0.}
         panels.append({"member": uid, "wall": row["WallBay"], "joint_i": i, "joint_j": j, "column_i": left, "column_j": right,
             "support_sections": support_sections,
-            "span_m": length, "thickness_m": thick, "clear_length_m": length-l-r, "width_direction": [dx, dy],
+            "section_name": prop["Name"], "shell_model": prop.get("ModelType"), "span_m": length, "thickness_m": thick, "clear_length_m": length-l-r, "width_direction": [dx, dy],
             "clear_centroid_xy_m": [(u+v)/2 for u,v in zip(clear_a, clear_b)], "clear_bounds_xy_m": list(clear_rect)})
         strips.append(rect)
         strips_clear.append(clear_rect)

@@ -24,14 +24,33 @@ def read_missing_wall_forces(payload, raw, directory, pid, *, private_replay_roo
         return None
     previous = basis.get("read") or {}
     modes = previous.get("wall_modes")
+    from .wall_pressure_capture import extend_pressure_read, pressure_field_plan
+    parent_sha = sha256(parent_raw).hexdigest()
+    pressure_plan = {} if previous.get("pressure_shells") else pressure_field_plan(payload)
     if modes:
-        if previous.get("transition_shells"):
-            return None
         from .engineering.wall_transition_shell import native_plan
 
         labels = previous["tables"]["table_reads"]["Area Assignments - Pier Labels"]["rows"]
-        if not native_plan(parent, labels)[0]:
-            return None
+        if previous.get("transition_shells") or not native_plan(parent, labels)[0]:
+            if not pressure_plan:
+                return None
+            def read_pressure(sap):
+                try:
+                    return extend_pressure_read(sap, pid, parent, parent_sha, previous, pressure_plan)
+                except (ValueError, RuntimeError) as exc:
+                    # Only an explicit copy solve can recover unavailable or different native results.
+                    if private_replay_root is None or not (str(exc).startswith("PIER_SOLVED_GENERATION_FRAME_CONTROL_MISMATCH")
+                            or "requires a locked ETABS model" in str(exc)):
+                        raise
+                    from .wall_analysis_replay import solve_private_wall_source
+                    return solve_private_wall_source(sap,pid,parent,parent_sha,previous,private_replay_root,
+                                                     pressure_plan=pressure_plan)
+            if not LIVE_CAPTURE_LOCK.acquire(blocking=False):
+                raise ValueError("ETABS_CAPTURE_IN_PROGRESS")
+            try:
+                return _with_etabs(pid, read_pressure)
+            finally:
+                LIVE_CAPTURE_LOCK.release()
     modal_bank = (parent["column_axial"].get("demand_support") or {}).get("force_source") or {}
     modal_ready = bool(modal_bank.get("expected_modal_modes") and modal_bank.get("rowsets"))
     if modal_ready:
@@ -47,20 +66,19 @@ def read_missing_wall_forces(payload, raw, directory, pid, *, private_replay_roo
     if not LIVE_CAPTURE_LOCK.acquire(blocking=False):
         raise ValueError("ETABS_CAPTURE_IN_PROGRESS")
     try:
-        if private_replay_root is not None:
-            from .wall_analysis_replay import solve_private_wall_source
+        def acquire(sap):
+            if private_replay_root is not None and modes:
+                from .wall_analysis_replay import solve_private_wall_source
+                return solve_private_wall_source(sap,pid,parent,parent_sha,previous,private_replay_root,
+                                                 pressure_plan=pressure_plan)
+            read = capture_assigned_pier_forces(sap,pid,parent,parent_sha,wall_modes=modal_ready,retained_modes=modes)
+            if not payload.get("analysis_archive"):
+                return read
+            from .engineering.design_scenario import prepare_pipeline_source
+            attached = prepare_pipeline_source(raw,source_directory=directory,whole_building=True,pier_forces=read)
+            targets = pressure_field_plan(attached.payload)
+            return extend_pressure_read(sap,pid,parent,parent_sha,read,targets) if targets else read
 
-            return _with_etabs(
-                pid,
-                lambda sap: solve_private_wall_source(
-                    sap, pid, parent, sha256(parent_raw).hexdigest(), previous, private_replay_root
-                ),
-            )
-        return _with_etabs(
-            pid,
-            lambda sap: capture_assigned_pier_forces(
-                sap, pid, parent, sha256(parent_raw).hexdigest(), wall_modes=modal_ready, retained_modes=modes
-            ),
-        )
+        return _with_etabs(pid,acquire)
     finally:
         LIVE_CAPTURE_LOCK.release()

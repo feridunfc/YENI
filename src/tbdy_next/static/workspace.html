@@ -140,6 +140,7 @@ button:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visi
   <label>Source run<select id="deskRun" disabled></select></label>
   <label class="modal-case">Modal case<input id="deskModalCase" value="Modal" maxlength="120" required></label>
   <button class="desk-button primary" id="deskLive" type="submit">Read ETABS and calculate</button>
+  <label>Wall aggregate (mm)<input id="deskWallAggregate" type="number" step="any" min="0.01" value="20" required></label>
   <button class="desk-button" id="deskRunWalls" type="button" disabled title="Calculate all wall checks from the selected whole-building source">Run all wall checks</button>
   <label id="deskPrivateWallOption" hidden><input id="deskPrivateWall" type="checkbox"> Solve missing wall results on a new private copy</label>
 </form>
