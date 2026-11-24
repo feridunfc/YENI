@@ -1,5 +1,7 @@
 # Local development and GitHub worker handoff
 
+For the reported wall design table, open run `RUN-8e123f88fb574073b94bdb0af78fc97e`, check **7.0**, and expand a pier–storey. UI, print and worksheet use the same report projection over sealed results. Its 80 check cells comprise 15 axial, 12 shear, 12 friction, 13 PMM and 12 wall–beam numerical results, plus 16 open inputs. Keep component-envelope bounds and the actual joint faces when comparing with another report. Use the separate column PMM action to apply column or beam selection policies. The next engineering task remains the opening and uncolumned-end work below.
+
 ## Current wall calculation
 
 Start at `RUN-59b1c63cbeb347b4b033b2cd4847d2c3`. Workspace **7.19** contains both physical sections at −1.50 m for seven static combinations and the control at each adjacent mesh plane. **7.20** contains the signed and bounded C104 jamb forces. **7.21** contains W22 loads, transfer by edge and corner, the opening-edge subtotal and all seven equilibrated free bodies. The shell source was acquired through the whole-building action on an input-identical private ETABS analysis. All 1,950 original pier combination rows and 57 original member control rows were reproduced. Reopening ETABS is unnecessary for replay. [Results and reproduction](../engineering/WHOLE_BUILDING_ENGINE_20261122.md#wall-section-changes-inside-a-storey)

@@ -20,6 +20,7 @@ from .check_labels import display_check, display_check_group
 from .history import _MAX_SOURCE_BYTES, _RUN, _read_modal_run, _read_receipt
 from .member_groups import geometry_groups, material_member_groups
 from .quick_checks import check_registry, evaluate_geometry_capture
+from .wall_design_report import wall_design_calculations
 
 
 class ReportUnavailable(ValueError):
@@ -1042,6 +1043,7 @@ def _assemble_complete_report(run_id: str, source: Mapping[str, Any],
             "column_gates", "beam_r10", "r10_live", "r08_local_slenderness", "r14_closure",
         ) if stages[key] is not None},
         **{key: value for key, value in evidence.items() if value is not None},
+        "wall_design_calculations": wall_design_calculations((evidence.get("building_design") or {}).get("wall_sections")),
         "column_candidate_schedule": _column_candidate_schedule(stages, evidence),
         "vs03": display_check_group(new_checks),
         "checks": [display_check(check) for check in checks],
@@ -1255,7 +1257,7 @@ def _basement_reference_tables(base):
         "</details>"))
 
 
-def _wall_batch_tables(batch):
+def _wall_batch_tables(batch, calculations=None):
     if not batch:
         return ""
     overview, forces, moments = [], [], []
@@ -1274,6 +1276,15 @@ def _wall_batch_tables(batch):
             forces.append({**key, **c, "vr": web.get("vr_kn"), "shear_ratio": web.get("source_v2_ratio"),
                            "vs": fr.get("resistance_kn"), "friction_ratio": fr.get("upper_utilization"), "joint_result": fr.get("status")})
     identity = (("pier","Pier"),("storey","Storey"),("members","Wall IDs"))
+    governing = []
+    if calculations:
+        columns = tuple((name, name) for name in calculations["headers"])
+        for group in calculations["groups"]:
+            key = {"pier": group.get("pier") or "Unassigned", "storey": group["story"], "members": ", ".join(group["members"])}
+            governing.extend({**key, **dict(zip(calculations["headers"], row, strict=True))} for row in group["rows"])
+        governing_html = '<h4 id="wall-design-calculations">Governing wall design calculations</h4>' + _table(identity + columns, governing)
+    else:
+        governing_html = ""
     transition_views = []
     for view in batch.get("transition_tables", {}).values():
         columns = view["columns"]
@@ -1297,6 +1308,7 @@ def _wall_batch_tables(batch):
         _table(identity+(("compression","Net-area compression"),("shear","Design shear"),
                ("horizontal_joint","Design joint friction"),("pmm","Section PMM"),("wall_beam","Wall–beam strength"),
                ("scheduled","Scheduled panels"),("reason","Design result or open input")), overview),
+        governing_html,
         "<details><summary>Wall forces, reference reinforcement and resistance by combination</summary>"
         "<p>Two Ø12/200 horizontal curtains on parallel net webs. Horizontal plane reference uses 0.75% anchored vertical steel, "
         "μ = 1, tension reservation and two shear components. Ratios use the source combination at the indicated face. "
@@ -1333,7 +1345,7 @@ def _wall_batch_tables(batch):
                 ("shell_area_m2","Gross shell area (m²)"),("net_area_m2","Net web area (m²)")), bands), "</details>"))
 
 
-def _confinement_tables(building):
+def _confinement_tables(building, wall_calculations=None):
     frames = building.get("frame_confinement")
     if not frames:
         return ""
@@ -1373,7 +1385,7 @@ def _confinement_tables(building):
                             ("status", "Boundary result"), ("reason", "Open input")), wall.get("walls", [])), "</details>"])
     piers = building.get("wall_sections")
     if piers:
-        section.append(_wall_batch_tables(piers.get("batch")))
+        section.append(_wall_batch_tables(piers.get("batch"), wall_calculations))
         section.extend(["<h3>Pier section design</h3><p>Signed gravity demand · ",
                         _val(piers.get("basis") or piers.get("source_reason")), " · ",
                         _val(piers["evaluated_gravity"]), " / ", _val(piers["expected_gravity"]),
@@ -1473,7 +1485,7 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
             + _table((("story", "Storey"), ("label", "Beam"), ("check", "Check"), ("full_ve_kn", "Ve (kN)"),
                       ("resistance_kn", "Resistance (kN)"), ("utilization", "Utilization")),
                      [building["governing_beam"]] if building["governing_beam"] else [])
-            + _confinement_tables(building)
+            + _confinement_tables(building, report.get("wall_design_calculations"))
             + '<details><summary>Columns and reasons for a hold</summary>'
             + _table((("story", "Storey"), ("label", "Column"), ("member_id", "ETABS ID"), ("status", "Result"),
                       ("reason", "Frame basis hold"), ("failures", "Numerical failures"), ("open_gates", "Open checks")),

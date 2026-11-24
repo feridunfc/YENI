@@ -128,7 +128,7 @@
     };
   }
 
-  function addWallTables(tables, building) {
+  function addWallTables(tables, building, calculations) {
     const sections = building?.wall_sections;
     const boundaries = building?.wall_boundaries;
     const piers = sections?.piers ?? [];
@@ -200,9 +200,14 @@
       tables['7.0'] = table([...id, 'Net-area axial (%)', 'Design shear (%)', 'Design friction (%)', 'PMM (%)',
         'Wall–beam (%)', 'Scheduled panels', 'Design result or open input'], overview,
         coverage(counts.native_assigned_faces, counts.assigned_face_checks_expected, 'assigned face results'),
-        'Each row covers the storey and wall IDs shown. Design columns use the proposed cage and its governing combination.',
+        'Open a pier–storey calculation to inspect its governing forces, combination, physical cut and resistance.',
         [['Physical walls', counts.physical_walls], ['Pier–storeys', counts.pier_storeys], ['Unassigned wall objects', counts.unassigned_walls],
          ['Assigned combinations', counts.assigned_combinations], ['Directional pier moments', counts.directional_moments]]);
+      if (calculations?.groups?.length) {
+        tables['7.0'].detailHeaders = calculations.headers;
+        tables['7.0'].rowDetails = new Map(calculations.groups.map(group =>
+          [JSON.stringify([group.pier || 'Unassigned', group.story, group.members.join(', ')]), group.rows]));
+      }
       tables['7.7'] = table([...id, 'Bottom z (m)', 'Excitation', 'Case', 'Pier component', 'Centroid moment (kN·m)',
         'Rounding bound (kN·m)', 'Native equations', 'Total storey moment (kN·m)', 'Project share decision'], moments,
         coverage(counts.directional_moments, 2 * counts.pier_storeys, 'individual directional moments'),
@@ -692,7 +697,7 @@
         row.seismic_axial_interval_check?.governing_combination, decimals(row.seismic_axial_interval_check?.minimum_ratio_lower),
         row.status]), columnJoints.length + ' column end–direction records',
       'TBDY §7.3.5. Each record identifies its target column end. Adjacent columns can share a physical joint. A sufficient lower ratio is at least 1.');
-    addWallTables(tables, report.building_design);
+    addWallTables(tables, report.building_design, report.wall_design_calculations);
     return tables;
   }
 
@@ -985,17 +990,15 @@
       'Reading the locked ETABS model and evaluating the combined checks…');
     log('info', 'ETABS', (columnStrength ? 'Column force capture for ' + columnCheck + ' · ' : 'Combined live scan started · ') + modal);
     try {
-      const wsState = workspace.getState();
       const query = new URLSearchParams();
-      if (wsState?.assignments?.beamSelection) {
-        query.set('beam_selection', JSON.stringify(wsState.assignments.beamSelection));
-      }
-      if (wsState?.assignments?.columnSelection) {
-        query.set('column_selection', JSON.stringify(wsState.assignments.columnSelection));
-      }
       if (columnStrength) {
         query.set('check', pmmMember ? 'column-pmm' : 'column-axial');
-        if (pmmMember) query.set('member', pmmMember);
+        if (pmmMember) {
+          query.set('member', pmmMember);
+          const {beamSelection, columnSelection} = workspace.getState().assignments;
+          if (beamSelection) query.set('beam_selection', JSON.stringify(beamSelection));
+          if (columnSelection) query.set('column_selection', JSON.stringify(columnSelection));
+        }
         query.set('base_run_id', selector.value);
         query.set('combination_source', columnStrength.source);
         if (columnStrength.source === 'ASSIGNED_DESIGN') {

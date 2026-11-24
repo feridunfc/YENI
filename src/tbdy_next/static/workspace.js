@@ -370,7 +370,8 @@
   function drawTable(host, table) {
     const t = node('table', undefined, 'desk-table');
     const head = node('thead'), header = node('tr');
-    for (const text of table.headers) {
+    const headers = table.rowDetails ? [...table.headers, 'Calculation'] : table.headers;
+    for (const text of headers) {
       const th = node('th', text);
       th.scope = 'col';
       header.append(th);
@@ -399,6 +400,31 @@
         line.append(cell);
       });
       body.append(line);
+      if (table.rowDetails) {
+        const actions = node('td');
+        line.append(actions);
+        const details = table.rowDetails.get(JSON.stringify(row.slice(0, 3)));
+        if (!details) continue;
+        const detailLine = node('tr', undefined, 'wall-calc-detail');
+        const detailCell = node('td');
+        detailCell.colSpan = headers.length;
+        const toggle = node('button');
+        toggle.type = 'button';
+        detailLine.id = host.id + '-wall-calculation-' + body.children.length;
+        toggle.setAttribute('aria-controls', detailLine.id);
+        const setExpanded = expanded => {
+          detailLine.hidden = !expanded;
+          toggle.setAttribute('aria-expanded', String(expanded));
+          toggle.textContent = expanded ? 'Hide calculation' : 'Show calculation';
+          toggle.setAttribute('aria-label', toggle.textContent + ' for ' + row[0] + ' at ' + row[1]);
+        };
+        setExpanded(body.children.length === 1);
+        toggle.addEventListener('click', () => setExpanded(detailLine.hidden));
+        actions.append(toggle);
+        drawTable(detailCell, {headers: table.detailHeaders, rows: details});
+        detailLine.append(detailCell);
+        body.append(detailLine);
+      }
     }
     t.append(body);
     host.replaceChildren(t);
@@ -646,7 +672,7 @@
     byId('deskResultsCard').hidden = reference;
     const pmmResults = current.id === '4.4';
     const slendernessResults = current.id === '4.5';
-    byId('deskResultsTitle').textContent = pmmResults ? '4.4 · PMM check results' :
+    byId('deskResultsTitle').textContent = current.id === '7.0' ? '7.0 · Wall design results' : pmmResults ? '4.4 · PMM check results' :
       slendernessResults ? '4.5 · Slenderness results' : current.id === '4.2' ? '4.2 · Longitudinal reinforcement results' : 'Check results';
     host.classList.toggle('column-results-table',
       ['4.2', '4.4', '4.5'].includes(current.id) && Boolean(state.bundle?.columnPmmMember));
@@ -1280,6 +1306,13 @@
       ['SCOPE', table.note], ['SOURCE SHA-256', bundle.sourceSha],
       ...(bundle.resultSha ? [['RESULTS SHA-256', bundle.resultSha]] : []),
     ];
+    if (table.rowDetails) {
+      rows.push([], ['Governing wall design calculations'], [...table.headers.slice(0, 3), ...table.detailHeaders]);
+      for (const summary of table.rows) {
+        const identity = summary.slice(0, 3);
+        for (const detail of table.rowDetails.get(JSON.stringify(identity)) || []) rows.push([...identity, ...detail]);
+      }
+    }
     const url = URL.createObjectURL(xlsx(rows));
     const link = node('a');
     link.href = url;

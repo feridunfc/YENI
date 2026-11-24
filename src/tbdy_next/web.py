@@ -757,6 +757,8 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                             capture_options["column_axial_request"] = _column_axial_request(axial_query, output_root)
                         if whole_building and (capture_options.get("column_axial_request") or {}).get("pmm_member") != "ALL":
                             raise ValueError("BUILDING_DESIGN_REQUIRES_ALL_COLUMNS")
+                        if rebar_selection_opts and not (capture_options.get("column_axial_request") or {}).get("pmm_member"):
+                            raise ValueError("Rebar selection requires a column PMM capture. Select the column PMM action and a member or ALL.")
                     except (ReportUnavailable, ValueError, TypeError) as exc:
                         self.reply(422, {"status": "CAPTURE_REJECTED", "reason": str(exc)})
                         return

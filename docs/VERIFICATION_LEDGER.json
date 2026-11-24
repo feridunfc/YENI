@@ -11804,6 +11804,27 @@
       "public_engineering_note": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
       "engineering_release": "NOT_READY",
       "next_action": "Qualify the xP2 opening resultants at a common mesh section at -1.50 m and establish reinforcement continuity and development at the opening before selecting the design base. The seven W22 load and transfer balances are complete. While the common-edge source or connection detail is pending, advance the yP2 uncolumned-end transfer in the whole-building engine."
+    },
+    {
+      "id": "EV-WALL-GOVERNING-DESIGN-VIEW-20261124",
+      "status": "VERIFIED_SEALED_WALL_DESIGN_REPORT_AND_LIVE_GENERAL_SCAN",
+      "inspected_base_commit": "aba1569252f2ffbc230a5047f6c9889c79631a9b",
+      "design_run": "RUN-8e123f88fb574073b94bdb0af78fc97e",
+      "archive_sha256": {
+        "input.source": "056b927edbf55445ecc5f1d20e9296552d1f425e0767bd36ab2f560413bcb2a7",
+        "15-engine-results.json": "e4faa159e8437a85bf5f074e2a75221982af0463a25815fda742749605b5350d"
+      },
+      "general_live_scan": "RUN-4a11256ef5b9444d9b92bafc31097074",
+      "live_response_http": 200,
+      "model": "kompakt_b.EDB",
+      "locked_before_and_after_scan": true,
+      "unique_pier_storey_groups_including_unassigned": 16,
+      "overview_check_cells": 80,
+      "numerical_results_with_governing_operands": {
+        "net_area_axial": 15, "design_shear": 12, "horizontal_joint": 12, "pmm": 13, "wall_beam": 12
+      },
+      "open_cells_by_group": {"xP2": 4, "yP1": 3, "yP2": 4, "unassigned_W32": 5},
+      "engineering_release": "NOT_READY"
     }
   ],
   "new_record_template": {

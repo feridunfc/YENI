@@ -95,7 +95,9 @@ class ColumnAxialIntegration(unittest.TestCase):
 
     def post(self, query):
         req = Request(self.url + "/api/live-vs04?" + urlencode(query, doseq=True), data=b"", method="POST")
-        with urlopen(req, timeout=8) as response:
+        # An explicit PMM request runs reinforcement selection and downstream design before replying.
+        timeout = 30 if query.get("check") == "column-pmm" else 8
+        with urlopen(req, timeout=timeout) as response:
             return json.load(response)
 
     def get(self, path):

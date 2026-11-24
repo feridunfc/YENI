@@ -1,5 +1,13 @@
 # Original building calculation and local handoff
 
+## Reading the governing wall design results
+
+Workspace **7.0 · Wall design results** opens the five governing calculations for each pier and storey. In `RUN-8e123f88fb574073b94bdb0af78fc97e`, 64 of 80 cells have a numerical result with its governing combination, physical cut, demand and resistance or interaction method. The other 16 cells carry their source or detailing reason. The printable report and the 7.0 Excel export include the same calculations.
+
+At P2 / +0.00, wall 472 Bottom, `Crack_SeisX_Soil` governs net-area compression (2,095.63 / 19,600.00 kN), design shear (1,975.25 / 3,402.55 kN) and horizontal joint friction (1,975.25 / 6,333.72 kN). `Crack_SeisX_UpSoil` governs the section PMM bound (42.74%) and the wall–beam joint at elevation 0.00 m (359.96 / 16,004.31 kN·m). Each check retains the combination and proposed reinforcement of its calculation owner.
+
+The general ETABS scan sends the modal case. Column PMM requests also send the selected reinforcement policies. Live scan `RUN-4a11256ef5b9444d9b92bafc31097074` completed on the locked original model. Use **Run all wall checks** for a whole-building design run.
+
 ## xP2 wall actions across the W22 opening
 
 Open **7.19–7.21** in whole-building run `RUN-59b1c63cbeb347b4b033b2cd4847d2c3`. The engine found the interior section change at −1.50 m. Five wall panels cross the lower face and six cross the upper face. All six are 0.40 m thick. The engine calculated **14/14 physical face–combination resultants**, checked them against native forces at the nearest full mesh sections, and balanced **7/7 W22 free bodies**. It also resolved **5/5 signed static combinations** and **8/8 seismic component bounds** at the C104 jamb.

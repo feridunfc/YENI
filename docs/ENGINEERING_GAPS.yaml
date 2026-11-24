@@ -903,7 +903,8 @@
         "EV-ALL-WALL-PIER-STOREY-BATCH-20261123",
         "EV-ORIGINAL-WALL-MODAL-CUTS-20261123",
         "EV-BASEMENT-PERIOD-PAIR-20261124",
-        "EV-WALL-OPENING-SECTIONS-20261124"
+        "EV-WALL-OPENING-SECTIONS-20261124",
+        "EV-WALL-GOVERNING-DESIGN-VIEW-20261124"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,

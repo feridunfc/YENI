@@ -12,6 +12,7 @@ from tempfile import TemporaryDirectory
 from threading import Thread
 import unittest
 from urllib.request import urlopen, Request
+from urllib.error import HTTPError
 
 from tbdy_next.web import make_handler
 from test_quick_suite import fake_live_suite
@@ -97,6 +98,16 @@ class OneButtonProductPath(unittest.TestCase):
         self.get("/")
         self.get("/quick.js")
         self.assertEqual(self.calls,[])
+
+    def test_general_scan_rejects_explicit_pmm_settings_before_capture(self):
+        req = Request(self.url + "/api/live-vs04?case=Modal&column_selection=default", data=b"", method="POST")
+        with self.assertRaises(HTTPError) as caught:
+            urlopen(req, timeout=8)
+        with caught.exception as response:
+            self.assertEqual(response.code, 422)
+            self.assertIn("column PMM", json.load(response)["reason"])
+        self.assertEqual(self.calls, [])
+        self.assertFalse(list(self.root.glob("RUN-*")))
 
 
 if __name__=="__main__":
