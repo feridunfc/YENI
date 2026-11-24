@@ -18,8 +18,7 @@ from .source import SourceError, parse_modal_capture
 
 _RUN = re.compile(r"RUN-[0-9a-f]{32}\Z")
 # One bound for capture, replay, reports and scenario parent verification.
-# Same-run primitive and all-mode frame arrays can exceed the former 32 MiB cap.
-_MAX_SOURCE_BYTES = 64 * 1024 * 1024
+from .archive_blobs import MAX_SOURCE_BYTES as _MAX_SOURCE_BYTES, archive_bytes
 
 
 def _read_receipt(directory: Path, stage: str) -> dict[str, Any] | None:
@@ -37,6 +36,11 @@ def _read_receipt_file(path: Path, stage: str) -> dict[str, Any] | None:
         record = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(record, dict) or record.get("stage") != stage:
             return None
+        if stage == "engine-results" and isinstance(record.get("payload"), dict) and set(record["payload"]) == {"archived_payload_sha256"}:
+            body = archive_bytes(path.parent / "engine-results.payload")
+            if sha256(body).hexdigest() != record["payload"]["archived_payload_sha256"]:
+                return None
+            record["payload"] = json.loads(body)
         actual_hash = record.get("receipt_sha256")
         if not isinstance(actual_hash, str):
             return None
@@ -53,7 +57,7 @@ def _read_receipt_file(path: Path, stage: str) -> dict[str, Any] | None:
 
 
 def _read_finalized_stages(directory: Path, *, input_sha: str) -> dict[str, Any] | None:
-    from .engineering.pipeline_snapshot import SCHEMA, STAGE, TERMINAL, read_receipts, read_snapshot
+    from .engineering.pipeline_snapshot import SEALED_SCHEMAS, STAGE, TERMINAL, read_receipts, read_snapshot
 
     stages = {path.stem.partition("-")[2] for path in receipt_paths(directory)}
     discovery = _read_receipt(directory, "schema-discovery")
@@ -66,7 +70,7 @@ def _read_finalized_stages(directory: Path, *, input_sha: str) -> dict[str, Any]
             return None
     receipts = read_receipts(directory, input_sha=input_sha)
     snapshot = read_snapshot(directory, input_sha=input_sha, receipts=receipts)
-    return snapshot["results"] if snapshot is not None and snapshot["schema"] == SCHEMA else None
+    return snapshot["results"] if snapshot is not None and snapshot["schema"] in SEALED_SCHEMAS else None
 
 
 def _read_modal_with_stages(directory: Path) -> tuple[dict[str, Any], dict[str, Any] | None] | None:
@@ -82,7 +86,7 @@ def _read_modal_with_stages(directory: Path) -> tuple[dict[str, Any], dict[str, 
     try:
         if source_file.is_symlink() or not source_file.is_file() or source_file.stat().st_size > _MAX_SOURCE_BYTES:
             return None
-        raw = source_file.read_bytes()
+        raw = archive_bytes(source_file)
         input_sha = sha256(raw).hexdigest()
         if input_sha != modal.get("input_sha256"):
             return None
@@ -136,6 +140,18 @@ def _read_modal_run(directory: Path) -> dict[str, Any] | None:
     return result[0] if result is not None else None
 
 
+def _recent_modal_dirs(root):
+    candidates = []
+    for directory in root.glob("RUN-*"):
+        if directory.is_symlink() or not _RUN.fullmatch(directory.name):
+            continue
+        modal = _read_receipt(directory, "modal")
+        timestamp = (modal or {}).get("captured_at_utc")
+        if isinstance(timestamp, str):
+            candidates.append((timestamp, directory.name, directory))
+    return (d for _, _, d in sorted(candidates, reverse=True))
+
+
 def modal_history(root: Path, *, limit: int = 20) -> list[dict[str, Any]]:
     """Return recent verified stage receipts; never return full ETABS rows."""
     if limit < 1 or limit > 100:
@@ -144,10 +160,12 @@ def modal_history(root: Path, *, limit: int = 20) -> list[dict[str, Any]]:
     if not root.is_dir():
         return []
     results = []
-    for path in root.glob("RUN-*"):
+    for path in _recent_modal_dirs(root):
         entry = _read_modal_run(path)
         if entry is not None:
             results.append(entry)
+            if len(results) == limit:
+                break
     results.sort(key=lambda x: (x["captured_at_utc"], x["run_id"]), reverse=True)
     return results[:limit]
 
@@ -168,7 +186,7 @@ def modal_source_table(root: Path, run_id: str) -> dict[str, Any] | None:
         source_file = directory / "input.source"
         if source_file.is_symlink() or source_file.stat().st_size > _MAX_SOURCE_BYTES:
             return None
-        raw = source_file.read_bytes()
+        raw = archive_bytes(source_file)
         if sha256(raw).hexdigest() != entry["input_sha256"]:
             return None
         source = json.loads(raw)
@@ -218,12 +236,17 @@ def _quick_view(entry: dict[str, Any], modal: dict[str, Any], stages: dict[str, 
 
 def quick_history(root: Path, *, limit: int = 15, summary: bool = False) -> list[dict[str, Any]]:
     """Recover only intact quick-suite receipts for locally archived source data."""
+    if summary:
+        from .history_catalog import listing
+        return listing(root, quick=True, limit=limit)
     from .quick_checks import evaluate_geometry_capture
     root = Path(root)
     if not root.is_dir():
         return []
     output: list[dict[str, Any]] = []
-    for directory in root.glob("RUN-*"):
+    for directory in _recent_modal_dirs(root):
+        if len(output) >= limit:
+            break
         found = _read_modal_with_stages(directory)
         if found is None:
             continue
@@ -236,19 +259,13 @@ def quick_history(root: Path, *, limit: int = 15, summary: bool = False) -> list
             if stages["geometry"] != quick["payload"]:
                 continue
             try:
-                if summary:
-                    member = (stages["column_pmm"] or {}).get("member_id")
-                    if isinstance(member, str) and member:
-                        entry["pmm_member_id"] = member
-                    output.append(entry)
-                else:
-                    evidence = stages["report_evidence"]
-                    output.append(_quick_view(entry, modal, {**stages, "story_drift": evidence.get("story_drift")}))
+                evidence = stages["report_evidence"]
+                output.append(_quick_view(entry, modal, {**stages, "story_drift": evidence.get("story_drift")}))
             except (AttributeError, KeyError, TypeError, ValueError):
                 continue
             continue
         try:
-            source = json.loads((directory / "input.source").read_text(encoding="utf-8"))
+            source = json.loads(archive_bytes(directory / "input.source"))
             geometry = source.get("geometry_capture")
             if geometry is None:
                 continue
@@ -329,18 +346,6 @@ def quick_history(root: Path, *, limit: int = 15, summary: bool = False) -> list
             if story_drift != stage["payload"]:
                 continue
         elif stage is not None:
-            continue
-        if summary:
-            axial = source.get("column_axial")
-            request = axial.get("request") if isinstance(axial, dict) else None
-            member = request.get("pmm_member") if isinstance(request, dict) else None
-            if isinstance(member, str) and member:
-                pmm = _read_receipt(directory, "column-pmm")
-                if (pmm is not None and pmm.get("input_sha256") == modal["input_sha256"]
-                        and pmm["payload"].get("schema") == "tbdy.next.column-pmm-check.v1"
-                        and pmm["payload"].get("member_id") == member):
-                    entry["pmm_member_id"] = member
-            output.append(entry)
             continue
         output.append(_quick_view(entry, modal, {
             "geometry": rechecked, "extra": extra, "vs04": vs04, "vs04_numerics": vs04_numerics,

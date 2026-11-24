@@ -6,6 +6,8 @@ from hashlib import sha256
 import json
 from pathlib import Path
 import uuid
+
+from .archive_blobs import PACK_THRESHOLD, store_archive
 from typing import Any, Mapping
 
 
@@ -33,14 +35,15 @@ class ReceiptRun:
         self.root = Path(root) / self.run_id
         self.root.mkdir(parents=True, exist_ok=False)
         self._counter = 0
+        self.listing_steps = []
+        self.modal_timestamp = None
 
     def archive_input(self, payload: bytes, *, expected_sha256: str) -> Path:
         """Keep original uploaded input locally; never commit it to the public repo."""
         if sha256(payload).hexdigest() != expected_sha256:
             raise ValueError("Source input SHA-256 mismatch")
         target = self.root / "input.source"
-        with target.open("xb") as stream:
-            stream.write(payload)
+        store_archive(target, payload, digest=expected_sha256)
         return target
 
     def record(self, stage: str, payload: Mapping[str, Any], *, input_sha256: str,
@@ -56,7 +59,16 @@ class ReceiptRun:
         if receipt_schema is not None:
             record["receipt_schema"] = receipt_schema
         record["receipt_sha256"] = sha256(canonical_bytes(record)).hexdigest()
+        if stage == "engine-results":
+            body = canonical_bytes(record["payload"])
+            if len(body) >= PACK_THRESHOLD:
+                digest = sha256(body).hexdigest()
+                store_archive(self.root / "engine-results.payload", body, digest=digest)
+                record["payload"] = {"archived_payload_sha256": digest}
         target = self.root / f"{self._counter:02d}-{stage.lower()}.json"
         with target.open("x", encoding="utf-8") as stream:
             stream.write(json.dumps(record, indent=2, sort_keys=True, ensure_ascii=False) + "\n")
+        self.listing_steps.append({"stage": stage, "status": payload.get("status"), "receipt_sha256": record["receipt_sha256"]})
+        if stage == "modal":
+            self.modal_timestamp = record["captured_at_utc"]
         return target

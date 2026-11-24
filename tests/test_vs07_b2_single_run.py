@@ -112,7 +112,7 @@ class B2SingleRunTests(unittest.TestCase):
         self.assertEqual(report["story_drift"]["expected_story_case_direction_count"], 12)
         self.assertEqual(report["declared_story_drift_source_record"]["expected_story_case_direction_count"], 16)
         self.assertEqual(report["vs06_effective_drift_readiness"]["expected_story_direction_instances"], 8)
-        scenario = json.loads(self.get("/api/vs06-drift-scenario?run_id=" + run_id))
+        scenario = json.loads(self.get("/api/vs06-drift-scenario?run_id=" + run_id + "&r=7&i=1.5"))
         self.assertEqual(scenario["expected_story_direction_count"], 6)
         self.assertEqual(scenario["source_numeric_count"], 6)
         html = self.get("/report/print?run_id=" + run_id).decode()

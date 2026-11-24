@@ -1,5 +1,15 @@
 # Original building calculation and local handoff
 
+## Project defaults from the assigned response spectra
+
+In the original compact building, RSX acts along global X (U1) and RSY along global Y (U2). Both use the horizontal ETABS function `RESP_YATAY`. **Rx = Ry = 7, Dx = Dy = 2.5, I = 1.5 and BKS = 1.** The ZD function has Ss = 0.345, S1 = 0.111, Fs = 1.524, F1 = 2.378, SDS = 0.52578, SD1 = 0.263958, TL = 6 s and 5% damping. The drift calculation at +0.00 m gives 12.23297 mm in X and 9.30090 mm in Y. It evaluated all six physical storey–direction instances with the model factors.
+
+Open **2.1** or **1.0** for the parameter, value and source. The engine reads assigned horizontal functions, uses the actual global direction, and keeps distinct X and Y factors. It derives BKS from I using Table 3.1, DTS from DD-2 SDS and BKS using Table 3.2, and BYS from DTS and seismic building height using Table 3.3. Directly recorded project classes and missing-field entries retain their provenance. Filling an open value creates a new source-bound run.
+
+The model supplies no ground-motion level for the function. The physical roof is +9.00 m. If DD-2 is confirmed, DTS is 2a. Using a base at 0.00 m gives HN = 9.00 m and BYS = 7. Using the foundation at −5.15 m gives HN = 14.15 m and BYS = 6. The enclosure decision at W22 is open. [TBDY 2018, Tables 3.1–3.3 and §3.3.1](https://www.afad.gov.tr/kurumlar/afad.gov.tr/2309/files/TBDY_2018.pdf)
+
+The whole-building result `RUN-1653aec18a9240e08e9790899438608f` records the project profile, 42 conditional column designs, 4 column failures, 41 held columns and 180 conditional beam designs. The two opening faces provide 14 recovered actions. None of the 14 meet the six-component field tolerance at the adjoining native control planes. The seven W22 free-body balances remain satisfied. The wall schedule counts 12 of 30 panels. W28 requires a two-way pressure and construction-detail check using the actual support cages.
+
 ## Reading the governing wall design results
 
 Workspace **7.0 · Wall design results** opens the five governing calculations for each pier and storey. In `RUN-8e123f88fb574073b94bdb0af78fc97e`, 64 of 80 cells have a numerical result with its governing combination, physical cut, demand and resistance or interaction method. The other 16 cells carry their source or detailing reason. The printable report and the 7.0 Excel export include the same calculations.

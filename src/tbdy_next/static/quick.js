@@ -954,7 +954,7 @@
   // C2: one read-only source-numeric scenario per selected archived run.
   // Does not invoke COM, alter the original receipt or introduce a second live button.
   const C2_FIELDS = {
-    r: 'c2R', i: 'c2I', lambda: 'c2Lambda', material: 'c2Material',
+    rx: 'c2R', ry: 'c2Ry', i: 'c2I', lambda: 'c2Lambda', material: 'c2Material',
     wall_type: 'c2WallType', flexible_proven: 'c2FlexibleProven',
     wall_mode: 'c2WallMode', wall_load_pattern: 'c2WallLoadPattern', coverage_pct: 'c2Coverage',
     wall_height_m: 'c2WallHeight', opening_pct: 'c2Opening', thickness_m: 'c2Thickness',
@@ -964,7 +964,9 @@
     const query = new URLSearchParams();
     for (const [key, id] of Object.entries(C2_FIELDS)) {
       const el = byId(id);
-      query.set(key, key === 'flexible_proven' ? (el.checked ? 'true' : 'false') : el.value);
+      if (el && (!(key === 'rx' || key === 'ry' || key === 'i') || el.value)) {
+        query.set(key, key === 'flexible_proven' ? (el.checked ? 'true' : 'false') : el.value);
+      }
     }
     return '&' + query.toString();
   }
@@ -998,6 +1000,8 @@
         data.conditional_within_count + ' · Above limit: ' +
         data.conditional_exceeds_count + '. Regulatory compliance NOT_PROVEN.';
       host.append(make('p', 'TBDY 2018 Eqs. (4.32)–(4.34) · ETABS Story Drifts × h · User scenario for R/I and λ.', 'muted small'));
+      host.append(make('p', 'Rx = ' + data.scenario_input.rx + ' · Ry = ' + data.scenario_input.ry +
+        ' · I = ' + data.scenario_input.i, 'muted small'));
       renderPhysicalExclusions(host, data);
       if (data.flexible_capacity_warning)
         host.append(make('p', 'The 0.016κ scenario limit for flexible infill requires documented connection capacity.', 'warn'));

@@ -26,13 +26,13 @@ from ..column_engine.native_archive import BankError
 from ..column_engine.source_bank import native_frame_force_rows
 from ..column_engine.transverse_kernel import max_shear_web_kn
 from ..column_engine.ts500_column import positive
+from .frame_geometry import build_frame_catalog
 from .column_r10_live import (
     BEAM_DESIGN_SUMMARY,
     BEAM_REINFORCING,
     END_OFFSETS,
     RELEASES,
     _GEOMETRY_TOL,
-    _build_frame_catalog,
     _float_or_none,
     _materials_fck,
 )
@@ -598,7 +598,7 @@ def project_beam_r10_live(
     """Deterministic beam demand, CHK-131..136 multi-row cages, signed M3 and Ve projection."""
     if axial is None or geometry is None or "column_axial" not in source:
         return None
-    frames, points, graph_meta = _build_frame_catalog(source)
+    frames, points, graph_meta = build_frame_catalog(source)
     adjacency = graph_meta.pop("adjacency")
     pmm_id = (pmm or {}).get("member_id")
     if pmm_id and pmm_id in frames:

@@ -7,12 +7,15 @@ from pathlib import Path
 import platform
 from typing import Any, Mapping
 
+from ..archive_blobs import archive_bytes, copy_archive
 from ..history import _MAX_SOURCE_BYTES, _read_receipt_file
 from ..receipts import ReceiptRun, receipt_paths
 
 STAGE = "engine-results"
 LEGACY_SCHEMA = "tbdy.next.pipeline-stage-snapshot.v1"
-SCHEMA = "tbdy.next.pipeline-stage-snapshot.v2"
+EVIDENCE_SCHEMA = "tbdy.next.pipeline-stage-snapshot.v2"
+SCHEMA = "tbdy.next.pipeline-stage-snapshot.v3"
+SEALED_SCHEMAS = (EVIDENCE_SCHEMA, SCHEMA)
 TERMINAL = "live-capture"
 _LEGACY_KEYS = frozenset((
     "result", "geometry", "extra", "vs04", "vs04_numerics", "vs04_readiness",
@@ -20,7 +23,8 @@ _LEGACY_KEYS = frozenset((
     "column_axial", "column_pmm", "column_gates", "beam_r10", "r10_live",
     "r08_second_order", "r08_local_slenderness", "r14_closure",
 ))
-REQUIRED_KEYS = _LEGACY_KEYS | {"report_evidence"}
+_EVIDENCE_KEYS = _LEGACY_KEYS | {"report_evidence"}
+REQUIRED_KEYS = _EVIDENCE_KEYS | {"building_design"}
 
 
 def _digest(value: Any) -> str:
@@ -97,20 +101,20 @@ def read_snapshot(directory: Path, *, input_sha: str,
     value = record["payload"]
     results = value.get("results")
     schema = value.get("schema")
-    required = _LEGACY_KEYS if schema == LEGACY_SCHEMA else REQUIRED_KEYS
+    required = {LEGACY_SCHEMA: _LEGACY_KEYS, EVIDENCE_SCHEMA: _EVIDENCE_KEYS, SCHEMA: REQUIRED_KEYS}.get(schema, ())
     if (record.get("input_sha256") != input_sha or value.get("input_sha256") != input_sha
-            or schema not in (LEGACY_SCHEMA, SCHEMA) or not isinstance(results, Mapping)
+            or schema not in (LEGACY_SCHEMA, *SEALED_SCHEMAS) or not isinstance(results, Mapping)
             or set(results) != required
             or value.get("results_sha256") != _digest(results)):
         raise ValueError("PIPELINE_SNAPSHOT_SOURCE_OR_RESULTS_INVALID")
-    if schema == SCHEMA:
+    if schema in SEALED_SCHEMAS:
         from ..column_engine.native_archive import decode
         from .design_scenario import verify_archived_scenario
 
         source = directory / "input.source"
         if source.is_symlink() or not source.is_file() or not 0 < source.stat().st_size <= _MAX_SOURCE_BYTES:
             raise ValueError("PIPELINE_SOURCE_MISSING_OR_UNSAFE")
-        raw = source.read_bytes()
+        raw = archive_bytes(source)
         if sha256(raw).hexdigest() != input_sha:
             raise ValueError("PIPELINE_SOURCE_HASH_MISMATCH")
         source_payload = decode(raw)
@@ -119,14 +123,21 @@ def read_snapshot(directory: Path, *, input_sha: str,
         scenario = verify_archived_scenario(directory, source_payload)
         if scenario != results["report_evidence"].get("design_scenario"):
             raise ValueError("PIPELINE_SCENARIO_SNAPSHOT_MISMATCH")
-        expected_link = {"schema": SCHEMA, "snapshot_sha256": _digest(value),
+        expected_link = {"schema": schema, "snapshot_sha256": _digest(value),
                          "results_sha256": value["results_sha256"]}
-        if (declared_schema != SCHEMA or link != expected_link
+        if (declared_schema != schema or link != expected_link
                 or list(records)[-2:] != [STAGE, TERMINAL]):
             raise ValueError("PIPELINE_FINALIZATION_MISSING_OR_INVALID")
         if (not isinstance(results["report_evidence"], Mapping)
                 or not value.get("stage_inventory") or value["stage_inventory"] != _stage_inventory(records)):
             raise ValueError("PIPELINE_STAGE_INVENTORY_MISMATCH")
+        if schema == SCHEMA:
+            building = results["building_design"]
+            pointer = records.get("building-design")
+            if "building_design" in results["report_evidence"] or (building is None) != (pointer is None):
+                raise ValueError("BUILDING_STAGE_OWNERSHIP_MISMATCH")
+            if building is not None and pointer["payload"].get("results_sha256") != _digest(building):
+                raise ValueError("BUILDING_STAGE_HASH_MISMATCH")
     elif link is not None or declared_schema is not None:
         raise ValueError("PIPELINE_FINALIZATION_SCHEMA_MISMATCH")
     return value
@@ -139,13 +150,13 @@ def compare_runs(reference: Path, current: Path) -> dict[str, Any]:
         source = root / "input.source"
         if source.is_symlink() or not source.is_file():
             raise ValueError("REPLAY_SOURCE_MISSING_OR_UNSAFE")
-        input_sha = sha256(source.read_bytes()).hexdigest()
+        input_sha = copy_archive(source)
         records = read_receipts(root, input_sha=input_sha)
         if not records:
             raise ValueError("REPLAY_NO_RECEIPTS")
         snapshot = read_snapshot(root, input_sha=input_sha, receipts=records)
         return ({stage: record["payload"] for stage, record in records.items()}, input_sha,
-                bool(snapshot and snapshot.get("schema") == SCHEMA))
+                bool(snapshot and snapshot.get("schema") in SEALED_SCHEMAS))
     old, old_sha, old_complete = read_all(reference)
     new, new_sha, new_complete = read_all(current)
     common = set(old) & set(new)

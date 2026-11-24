@@ -136,7 +136,11 @@ def verified_database(root, run_id):
     receipt = _read_receipt(directory, "column-bank")
     if receipt is None or receipt["payload"].get("schema") != SCHEMA:
         raise BankError("COLUMN_RECEIPT_UNVERIFIED")
-    source = _file_bytes(directory / "input.source", MAX_ARCHIVE_BYTES)
+    from ..archive_blobs import archive_bytes
+    try:
+        source = archive_bytes(directory / "input.source", limit=MAX_ARCHIVE_BYTES)
+    except (ValueError, OSError) as exc:
+        raise BankError("COLUMN_SOURCE_ARCHIVE_INVALID") from exc
     database = directory / "column-bank.sqlite"
     raw = _file_bytes(database, MAX_DATABASE_BYTES)
     if (sha256(source).hexdigest() != receipt["input_sha256"]

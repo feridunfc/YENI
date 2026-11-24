@@ -16,7 +16,7 @@ from test_vs07_soft_story_b2 import b2_source, reseal, STORIES, BASE, DRIFTS, AV
 from test_vs06_c2_drift_scenario import scenario_report
 from test_vs06_b1_source_bridge import sources as b1_sources
 from test_etabs_source_gateway import FakeSap, FakeDb
-from tools.etabs_source_gateway_windows import capture, capture_physical_object_inventory
+from tbdy_next.etabs_source_gateway_windows import capture, capture_physical_object_inventory
 
 
 def with_inventory(source, frames, areas):

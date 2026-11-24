@@ -6,7 +6,7 @@ from ..column_engine.ts500_column import (
     euler_load_kn, evaluate_slenderness,
 )
 from .column_clear_length import proven_clear_length_m
-from .column_r10_live import _build_frame_catalog
+from .frame_geometry import build_frame_catalog
 
 
 def _within_axis(a, b):
@@ -31,7 +31,7 @@ def reference_end_ratios(source, physical_members):
     """Use axis lengths in I/L; keep the proof's face length for k*ln."""
     if not any(proven_clear_length_m(row, uid) for uid, row in physical_members.items()):
         return {}
-    frames, _, meta = _build_frame_catalog(source)
+    frames, _, meta = build_frame_catalog(source)
     table = source["geometry_capture"]["tables"].get("FRAME_ASSIGNMENTS") or {}
     if table.get("field_metadata", {}).get("units_by_field", {}).get("Length") != "m":
         return {}

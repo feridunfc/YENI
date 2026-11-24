@@ -102,7 +102,7 @@ def _assigned_end_disposition(frame, end, direction, frames, points, plan, summa
 
 def assigned_story_applicability(source, scope, plan, r10, names):
     """Check whether a story needs the 7.3.6 alternative before requesting signed shears."""
-    from .column_r10_live import _build_frame_catalog
+    from .frame_geometry import build_frame_catalog
     from .design_dependencies import story_blockers
     request = (source.get("column_axial") or {}).get("request") or {}
     if (request.get("pmm_member") != "ALL" or not plan or not r10 or not scope or not names or not scope.get("input_sha256")
@@ -110,7 +110,7 @@ def assigned_story_applicability(source, scope, plan, r10, names):
             or plan.get("global_blockers") or plan.get("topology_blockers") or not plan.get("all_member_inputs_bound")
             or r10.get("member_dependencies") != plan):
         return []
-    frames, points, graph = _build_frame_catalog(source)
+    frames, points, graph = build_frame_catalog(source)
     expected = defaultdict(list)
     for uid, frame in frames.items():
         if frame["type"] == "Column":

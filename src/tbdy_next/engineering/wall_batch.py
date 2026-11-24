@@ -87,11 +87,11 @@ def _design_summary(row, sections, basement):
     if basement:
         webs = basement.get("geometry", {}).get("panels", [])
         out.update(pmm=_governing([r for r in basement["cuts"] if r["role"] == "WALL_STRENGTH"], "pmm_upper"),
-                   scheduled_panels=sum("vertical" in p and "horizontal" in p for p in webs),
+                   scheduled_panels=sum(p.get("schedule_status") == "PRESSURE_PANEL_SCHEDULE_QUALIFIED" for p in webs),
                    pressure_ends_checked=sum(len(p.get("pressure_connections",{}).get("ends",{})) for p in webs),
                    pressure_ends_satisfied=sum(e["status"] == "CONDITIONAL_PRESSURE_END_DESIGN" for p in webs
                        for e in p.get("pressure_connections",{}).get("ends",{}).values()))
-        out["reason"] = basement.get("reason") or "MULTIPANEL_IN_PLANE_SHEAR_DISTRIBUTION_AND_HORIZONTAL_JOINT_DETAIL_REQUIRED"
+        out["reason"] = basement.get("reason") or ("SHELL_BENDING_AND_INTERFACE_NORMAL_ACTION_REQUIRED" if webs and out["scheduled_panels"] < len(webs) else "MULTIPANEL_IN_PLANE_SHEAR_DISTRIBUTION_AND_HORIZONTAL_JOINT_DETAIL_REQUIRED")
     elif not cuts:
         out["reason"] = row.get("reason") or "PIER_SECTION_AND_CAGE_REQUIRED"
     elif out["conditional_faces"] < len(cuts):
@@ -178,7 +178,7 @@ def wall_batch(source, stages, boundaries, sections, bound, scope):
             row["material_reason"] = str(exc)
         try:
             row["transitions"] = transition_results(source, context, row, bound, scope, strengths.get(native["Material"]),
-                                                   column_sections=(stages.get("column_pmm") or {}).get("members", ()))
+                                                   column_sections=(stages.get("column_pmm") or {}).get("members", ()), stages=stages)
         except (KeyError, TypeError, ValueError) as exc:
             row["transition_reason"] = str(exc)
         for face in ("Bottom", "Top"):
@@ -259,6 +259,7 @@ def wall_batch(source, stages, boundaries, sections, bound, scope):
                                                       for c in j.get("seismic_bounds", ())),
                   transition_native_shell_sections=sum(len(t["shell_actions"]["sections"]) for t in transitions),
                   transition_recovered_shell_sections=sum(len(t["shell_actions"]["recovered"]) for t in transitions),
+                  transition_field_controls_within_tolerance=sum(t["shell_actions"].get("field_control_within_tolerance", 0) for t in transitions),
                   transition_native_opening_edges=sum("opening_edge_kn_knm" in p for t in transitions for p in t["shell_actions"]["panel_zones"]),
                   transition_panel_balances=sum(p.get("balanced") is True for t in transitions for p in t["shell_actions"]["panel_zones"]),
                   transition_native_panel_transfers=sum(len(t["shell_actions"]["panel_zones"]) for t in transitions))

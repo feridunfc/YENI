@@ -35,10 +35,24 @@ def support_profiles(source, stages, panel):
                  and axial[0].get("material_name") == support["material"]
                  and axial[0].get("fck_mpa") == detail.get("fck_mpa") and axial[0].get("fcd_mpa") == detail.get("fcd_mpa"),
                  "COLUMN_MATERIAL_AND_SECTION_MISMATCH")
-        counts = _named_row(rows, "Name", name, COLUMN_REINFORCING)
-        bars, _, _ = perimeter(detail["t2_mm"], detail["t3_mm"], detail["cover_to_tie_mm"], detail["tie_diameter_mm"],
-                               detail["longitudinal_bar_diameter_mm"], int(counts["NumBars2Dir"]), int(counts["NumBars3Dir"]))
-        required(len(bars) == detail["bar_count"], "COLUMN_LONGITUDINAL_GRID_MISMATCH")
+        selection = ((stages.get("r10_live") or {}).get("per_member", {}).get(uid, {})
+                     .get("engineer_column_selection") or {})
+        selected = selection.get("selected")
+        if selected is not None:
+            required(selection.get("member_id") == uid and selection.get("status") == "ENGINEER_COLUMN_SELECTED_NOT_PROVEN"
+                     and selection.get("section_sides_mm") == [detail["t2_mm"], detail["t3_mm"]]
+                     and selected.get("eligible") is True, "SELECTED_SUPPORT_CAGE_IDENTITY_REQUIRED")
+            n2, n3 = selected["num_bars_2_dir"], selected["num_bars_3_dir"]
+            dia, count = selected["diameter_mm"], selected["bar_count"]
+            tie = selected["selected_transverse"]["tie_diameter_mm"]
+            role = "ENGINEER_SELECTED_COLUMN_REBAR"
+        else:
+            counts = _named_row(rows, "Name", name, COLUMN_REINFORCING)
+            n2, n3 = int(counts["NumBars2Dir"]), int(counts["NumBars3Dir"])
+            dia, count = detail["longitudinal_bar_diameter_mm"], detail["bar_count"]
+            tie, role = detail["tie_diameter_mm"], detail["reinforcement_role"]
+        bars, _, _ = perimeter(detail["t2_mm"], detail["t3_mm"], detail["cover_to_tie_mm"], tie, dia, n2, n3)
+        required(len(bars) == count, "COLUMN_LONGITUDINAL_GRID_MISMATCH")
         # At zero rotation the native column local-2 axis is global X.
         angle = radians(support["axis_angle_deg"])
         dx, dy = panel["width_direction"]
@@ -46,9 +60,9 @@ def support_profiles(source, stages, panel):
         across_2, across_3 = -along_3, along_2
         depth = abs(along_2)*detail["t2_mm"] + abs(along_3)*detail["t3_mm"]
         required(abs(depth-support["depth_mm"]) < 1e-5, "COLUMN_DEPTH_AND_LAYOUT_AXES_DIFFER")
-        profiles[side] = {**support, "role": detail["reinforcement_role"], "fck": detail["fck_mpa"],
-            "fcd": detail["fcd_mpa"], "cover": detail["cover_to_tie_mm"], "tie": detail["tie_diameter_mm"],
-            "bar_diameter": detail["longitudinal_bar_diameter_mm"],
+        profiles[side] = {**support, "role": role, "bar_count": count, "fck": detail["fck_mpa"],
+            "fcd": detail["fcd_mpa"], "cover": detail["cover_to_tie_mm"], "tie": tie,
+            "bar_diameter": dia,
             "bar_offsets": [b.x2*across_2 + b.x3*across_3 for b in bars]}
     return profiles
 
@@ -89,6 +103,7 @@ def _development(profiles, geometry, panel, grid, mat):
         adjacent = _adjacent_web(geometry, panel, side, offset, dia, cover)
         corridor = prof["depth_mm"]+adjacent["clear_extension_mm"] if adjacent.get("clear_extension_mm",0)>0 else available
         ends[side] = {**bond, "column": prof["column"], "column_section": prof["section"], "column_role": prof["role"],
+            "column_bars": prof["bar_count"], "column_bar_diameter_mm": prof["bar_diameter"],
             "column_depth_mm": prof["depth_mm"], "end_cover_mm": end_cover, "far_hoop_mm": prof["tie"],
             "column_available_mm": available, "specified_embedment_mm": specified, "margin_mm": available-needed,
             "wall_side_available_mm": 500*panel["clear_length_m"], "wall_side_required_mm": wall["position_i_mm"],

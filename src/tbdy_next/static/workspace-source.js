@@ -241,15 +241,16 @@
         const actions = modal.storeys.flatMap(st => (st.directions.length ? st.directions : [{}]).map(r => [
           st.story, st.cut_z_m, st.walls, st.columns, st.modes_balanced + '/' + st.modes_expected, r.direction,
           decimals(r.wall_cqc_shear_kn, 2), decimals(r.storey_cqc_shear_kn, 2), percentage(r.wall_to_storey_shear),
+          decimals(r.sum_individual_centroid_cqc_knm, 2), decimals(r.horizontal_floor_mo_cqc_knm, 2),
+          percentage(r.individual_centroid_sum_to_floor_mo), percentage(r.separate_piers_native_to_floor_mo),
           decimals(r.wall_common_origin_cqc_knm, 2), decimals(r.storey_common_origin_cqc_knm, 2),
-          percentage(r.wall_to_storey_common_origin), decimals(r.sum_individual_centroid_cqc_knm, 2),
-          decimals(r.horizontal_floor_mo_cqc_knm, 2), percentage(r.separate_piers_native_to_floor_mo),
           st.reason || modal.spectrum_reason || st.status
         ]));
         tables['7.15'] = table(['Storey', 'Cut z (m)', 'Walls', 'Columns', 'Balanced modes', 'Direction', 'Wall shear (kN)',
-          'Storey shear (kN)', 'Shear ratio (%)', 'Wall moment (kN·m)', 'Storey moment (kN·m)', 'Moment ratio (%)',
-          'Sum of separate centroid CQC (kN·m)', 'Horizontal floor-load moment (kN·m)', 'Separate native piers / floor moment (%)', 'Cut result'], actions,
-          modal.status, 'The signed sum uses (0, 0, cut elevation) before periodic CQC. The project overturning decision requires the adopted base and coupling model.');
+          'Storey shear (kN)', 'Shear ratio (%)', 'Sum of individual wall centroid moments (periodic CQC, kN·m)',
+          'Horizontal floor-load moment Mo (kN·m)', 'Individual wall sum / Mo (%)', 'Native separate piers / Mo (%)',
+          'Equilibrium at (0, 0, z): walls (kN·m)', 'Equilibrium at (0, 0, z): whole cut (kN·m)', 'Cut result'], actions,
+          modal.status, 'The separate-wall comparison sums individual centroid amplitudes. Coupled walls require the axial couple within each identified group. The project decision also requires the adopted base and design spectrum.');
       }
       const profiles = batch.rows.flatMap(r => (r.physical_profile?.panels ?? []).map(p => [
         r.pier || 'Unassigned', r.story, p.member, p.label, p.section, decimals(p.thickness_m, 3), decimals(p.length_m, 2),
@@ -752,6 +753,7 @@
         combinations: report.column_axial.combination_plan.combinations,
       } : null,
       project: projectDetails(report), seismic: spectrumDetails(report),
+      seismicProfile: report.seismic_project_profile,
       tables: runTables(report), irregularities: irregularityTables(report),
     };
   }
@@ -1082,6 +1084,37 @@
     const state = workspace.getState();
     if (state.selectedCheck === '4.4' && !state.pmmMember) return;
     runLive(state.assignments.columnStrength, state.selectedCheck === '4.4' ? state.pmmMember : null);
+  });
+
+  window.addEventListener('tbdy:project-parameters', async event => {
+    const {runId, values, button, feedback} = event.detail;
+    if (busy || !runIdPattern.test(runId)) return;
+    busy = true;
+    button.disabled = true;
+    selector.disabled = true;
+    workspace.setLiveBusy(true);
+    feedback.textContent = 'Calculating with the selected source…';
+    setRunStatus(feedback.textContent);
+    try {
+      const body = await json('/api/project-parameters', {method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({base_run_id: runId, project_parameters: values})});
+      if (!runIdPattern.test(body.run_id)) throw new Error('Missing result run.');
+      entries = [{run_id: body.run_id, model_name: body.model_name, source_mode: 'LIVE_ETABS',
+        case: byId('deskModalCase').value.trim(), captured_at_utc: new Date().toISOString()}, ...entries];
+      renderPicker(body.run_id);
+      await activateSource(body.run_id);
+      log('success', 'PROJECT', 'Project inputs applied to run ' + body.run_id);
+    } catch (error) {
+      feedback.textContent = error.message;
+      setRunStatus(error.message, true);
+      log('error', 'PROJECT', error.message);
+    } finally {
+      busy = false;
+      selector.disabled = false;
+      button.disabled = false;
+      workspace.setLiveBusy(false);
+    }
   });
 
   window.addEventListener('tbdy:apply-rebar-selection', async event => {

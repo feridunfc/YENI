@@ -148,9 +148,10 @@ STAGES: tuple[StageSpec, ...] = (
               "COLUMN_PMM_MEMBER", consumes=(_PMM_RESULT,), method_version="column-r14.building-beams.v3"),
     StageSpec("report-evidence", LIVE, "tbdy_next.engineering.pipeline", (), (),
               "Scoped story checks, source controls, design assignments and member evidence", "SUITE"),
-    StageSpec("building-design", LIVE, "tbdy_next.engineering.building_design", (), (),
+    StageSpec("building-design", LIVE, "tbdy_next.engineering.building_design", ("building-design",), (),
               "Physical building census, selected frame results, known failures and outstanding design scope",
-              "BUILDING_DESIGN_POLICY", method_version="building-design.v1"),
+              "BUILDING_DESIGN_POLICY", produces=(ArtifactContract("building_design", "schema", "tbdy.next.building-results.v1"),),
+              method_version="building-design.v2"),
     StageSpec("engine-results", LIVE, "tbdy_next.engineering.pipeline_snapshot", ("engine-results",), (),
               "Sealed returned-stage snapshot with source, method, registry and result hashes"),
     StageSpec("live-capture", LIVE, "tbdy_next.engineering.pipeline", ("live-capture",), (),
@@ -599,6 +600,9 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
         raise ValueError("DESIGN_SELECTION_REQUIRES_PREPARED_SCENARIO")
     if scenario is None and any(payload.get(key) is not None for key in CALCULATION_BASES):
         raise ValueError("CALCULATION_BASIS_REQUIRES_PREPARED_SCENARIO")
+    profile_lineage = scenario
+    if scenario and not any(payload.get(key) is not None for key in POLICIES):
+        scenario = None
     out: dict[str, Any] = {
         "result": calculate_modal(payload, case=case, run=run, input_sha=input_sha, receipt_schema=SCHEMA),
     }
@@ -729,13 +733,15 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
         from ..physical_story_scope import review_physical_story_scope
 
         physical_scope = review_physical_story_scope(payload["vs05_delta_source"])
+    from .seismic_profile import project_seismic_profile
+    project_profile = project_seismic_profile(payload, physical_scope=physical_scope)
     declared_second_order = r08_second_order = None
     if "r08_second_order_source" in payload or "r08_second_order_capture_error" in payload:
         from ..story_second_order import bind_story_second_order, scope_story_second_order
 
         declared_second_order = bind_story_second_order(
             payload.get("r08_second_order_source"),
-            capture_error=payload.get("r08_second_order_capture_error"))
+            capture_error=payload.get("r08_second_order_capture_error"), project_profile=project_profile)
         run.record("r08-second-order", declared_second_order, input_sha256=input_sha)
         r08_second_order = scope_story_second_order(
             declared_second_order, payload.get("r08_second_order_source"), payload.get("vs05_delta_source"), physical_scope,
@@ -821,18 +827,36 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
             r14_closure["design_dependencies"] = design_dependencies
             r14_closure["design_revisions"] = dependency_revisions
             r14_closure["alpha_iteration"] = alpha_iteration
+    out["building_design"] = None
     if building:
         from .building_design import building_results
-        out["report_evidence"]["building_design"] = building_results(payload, out, out["report_evidence"])
+        from .pipeline_snapshot import _digest
+        stage = next(s for s in STAGES if s.key == "building-design")
+        result = building_results(payload, out, out["report_evidence"])
+        if not all(contract.accepts(result) for contract in stage.produces):
+            raise ValueError("INVALID_STAGE_OUTPUT:building-design")
+        out["building_design"] = result
+        run.record(stage.key, {"schema": result["schema"], "results_sha256": _digest(result),
+                               "column_count": result["column_count"], "beam_count": result["beam_count"]},
+                   input_sha256=input_sha)
+        base = result["wall_sections"]["batch"].get("modal_base", {}).get("basement_reference")
+        project_profile = project_seismic_profile(payload, physical_scope=physical_scope, basement=base)
+    out["report_evidence"]["seismic_project_profile"] = project_profile
+    if profile_lineage is not None and scenario is None:
+        out["report_evidence"]["design_scenario"] = profile_lineage
     snapshot = record_snapshot(run, input_sha=input_sha, results=out, registry=stage_registry())
     meta = payload.get("capture_metadata") or {}
+    import ntpath
     run.record("live-capture", {
+        "model_basename": ntpath.basename(meta.get("model_filename") or ""),
         "status": "SOURCE_CAPTURED", "source_mode": "LIVE_ETABS", "case": case,
         "source_rows": payload["table"]["row_count"],
         "display_selection_restored": bool(meta.get("display_selection_restored")),
         "engineering_release": "NOT_READY", "engine_snapshot": snapshot,
     }, input_sha256=input_sha)
     out["engine_snapshot"] = snapshot
+    from ..history_catalog import record_listing
+    record_listing(run, meta.get("model_filename"), case, (out.get("column_pmm") or {}).get("member_id"), suite)
     return out
 
 

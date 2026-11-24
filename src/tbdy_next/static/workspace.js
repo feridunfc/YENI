@@ -500,6 +500,7 @@
       ['Latitude (°)', null], ['Longitude (°)', null]]]];
     fieldGroups(side, project?.groups ?? fallback);
     content.replaceChildren();
+    renderProjectParameters(content);
     const card = referenceCard(content, 'Structural system summary');
     if (!project?.table.rows.length) {
       card.append(node('p', 'A verified model capture is required for the structural inventory.'));
@@ -555,6 +556,63 @@
     }
   }
 
+  function renderProjectParameters(host) {
+    const profile = state.bundle?.seismicProfile;
+    if (!profile?.fields) return;
+    const card = referenceCard(host, 'Seismic design parameters');
+    const labels = {Rx: 'Behaviour factor Rx', Ry: 'Behaviour factor Ry', Dx: 'Overstrength Dx', Dy: 'Overstrength Dy',
+      I: 'Importance I', BKS: 'Building use class (BKS)', DTS: 'Seismic design class (DTS)',
+      HN: 'Seismic building height HN (m)', BYS: 'Building height class (BYS)', DD: 'Ground-motion level (DD)',
+      SiteClass: 'Site class', TL: 'Long-period transition TL (s)', DampRatio: 'Damping ratio'};
+    const choices = {DD: ['DD-1', 'DD-2', 'DD-3', 'DD-4'], DTS: ['1','1a','2','2a','3','3a','4','4a'],
+      BKS: ['1','2','3'], BYS: ['1','2','3','4','5','6','7','8'], SiteClass: ['ZA','ZB','ZC','ZD','ZE','ZF']};
+    const form = node('form'), grid = node('div', undefined, 'desk-fields');
+    const editors = [];
+    for (const key of ['Rx','Ry','Dx','Dy','I','BKS','DD','DTS','HN','BYS','SiteClass','Ss','S1','Fs','F1','SDS','SD1','TL','DampRatio']) {
+      const field = profile.fields[key];
+      if (!field) continue;
+      const label = node('label', undefined, 'desk-field');
+      const editable = field.origin === 'INPUT_REQUIRED' || field.origin === 'PROJECT_INPUT';
+      const control = node(editable && choices[key] ? 'select' : 'input');
+      if (editable && choices[key]) {
+        for (const value of ['', ...choices[key]]) {
+          const option = node('option', value || 'Select…'); option.value = value; control.append(option);
+        }
+      } else if (editable) {
+        control.type = 'number'; control.step = 'any'; control.min = '0';
+      } else {
+        control.readOnly = true;
+      }
+      control.value = field.value ?? '';
+      const note = node('small', field.basis);
+      label.append(node('span', labels[key] ?? key), control, note);
+      grid.append(label);
+      if (editable) editors.push([key, control, String(field.value ?? '')]);
+    }
+    form.append(grid);
+    if (editors.length) {
+      const button = node('button', 'Apply project inputs', 'desk-button');
+      button.type = 'submit'; button.disabled = state.pending || state.liveBusy;
+      const feedback = node('p', '', 'desk-result-note'); feedback.setAttribute('role','status');
+      form.append(button, feedback);
+      form.addEventListener('submit', event => {
+        event.preventDefault();
+        const values = Object.fromEntries(editors.filter(([, c, previous]) => c.value.trim() && c.value !== previous)
+          .map(([k, c]) => [k, c.value.trim()]));
+        if (!Object.keys(values).length) { feedback.textContent = 'Enter a missing value first.'; return; }
+        window.dispatchEvent(new CustomEvent('tbdy:project-parameters', {detail: {
+          runId: state.bundle.runId, values, button, feedback}}));
+      });
+    }
+    card.append(form);
+    if (profile.height_scenarios?.length) {
+      const wrap = node('div', undefined, 'desk-table-wrap');
+      drawTable(wrap, {headers: ['Candidate base (m)', 'HN (m)', 'DTS', 'Assumed motion level', 'Conditional BYS'],
+        rows: profile.height_scenarios.map(r => [r.base_m, r.height_m, r.DTS, r.assumed_DD, r.BYS])});
+      card.append(wrap);
+    }
+  }
+
   function renderSeismicInformation() {
     const side = byId('deskReferenceFields'), content = byId('deskReferenceContent');
     const seismic = state.bundle?.seismic;
@@ -566,15 +624,16 @@
       ? Number(value).toLocaleString('en-GB', {maximumFractionDigits: 5, useGrouping: false}) : value;
     fieldGroups(side, [
       ['Site and hazard', [['Latitude (°)', null], ['Longitude (°)', null], ['Site class', params.SiteClass],
-        ['Ground-motion level', null], ['PGA (g)', null], ['PGV (cm/s)', null]]],
+        ['Ground-motion level', state.bundle?.seismicProfile?.fields.DD.value], ['PGA (g)', null], ['PGV (cm/s)', null]]],
       ['ETABS function parameters', [['Function', item?.name], ['Direction', params.Direction],
         ['R', params.R], ['D', params.D], ['Importance factor I', params.I],
         ['Live load mass factor n', null], ['Ss', params.Ss], ['S1', params.S1],
         ['Fs', params.Fs], ['F1', params.F1], ['SDS', params.SDS], ['SD1', params.SD1],
         ['Tₐ (s)', fieldNumber(corners?.T_A)], ['Tᵦ (s)', fieldNumber(corners?.T_B)], ['TL (s)', params.TL],
-        ['Building height class', null], ['Building use class', null], ['Seismic design class', null]]],
+        ['Damping ratio', params.DampRatio]]],
     ]);
     content.replaceChildren();
+    renderProjectParameters(content);
     const card = referenceCard(content, 'Captured response spectrum');
     if (!item) {
       card.append(node('p', 'The verified source has no captured response spectrum function.'));

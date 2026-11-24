@@ -100,8 +100,9 @@
       <select class="field" id="c2WallType" style="width:100%"><option value="BRITTLE" selected>Brittle infill — in contact, without gaps (default)</option><option value="FLEXIBLE">Flexible joints or connections</option></select></div>
     <div><label for="c2Material">Structural system</label>
       <select class="field" id="c2Material" style="width:100%"><option value="RC" selected>Reinforced concrete · κ=1</option><option value="STEEL">Steel · κ=0.5</option></select></div>
-    <div><label for="c2R">Behavior factor R (scenario)</label><input class="field" id="c2R" type="number" min=".01" step="any" value="7"></div>
-    <div><label for="c2I">Building importance factor I (scenario)</label><input class="field" id="c2I" type="number" min=".01" step="any" value="1.5"></div>
+    <div><label for="c2R">Behaviour factor Rx</label><input class="field" id="c2R" type="number" min=".01" step="any" placeholder="Project Rx"></div>
+    <div><label for="c2Ry">Behaviour factor Ry</label><input class="field" id="c2Ry" type="number" min=".01" step="any" placeholder="Project Ry"></div>
+    <div><label for="c2I">Building importance factor I (scenario)</label><input class="field" id="c2I" type="number" min=".01" step="any" placeholder="Project I"></div>
     <div><label for="c2Lambda">λ = Sae(DD-3,Tp) / Sae(DD-2,Tp)</label><input class="field" id="c2Lambda" type="number" min=".001" step="any" value="0.5"></div>
     <div><label for="c2WallMode">Infill source assumption</label><select class="field" id="c2WallMode" style="width:100%"><option value="LOAD_PATTERN_BEAM_CANDIDATE" selected>Beams with the selected load pattern are candidate infill locations</option><option value="MANUAL">User-defined area assumption</option></select></div>
     <div><label for="c2WallLoadPattern">Wall load pattern (ETABS, default LC_WDL)</label><input class="field" id="c2WallLoadPattern" type="text" maxlength="120" value="LC_WDL"></div>

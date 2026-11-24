@@ -128,6 +128,11 @@ def _design(result, source, stages, bound, scope):
             except (KeyError, TypeError, ValueError) as exc:
                 panel["pressure_connections"] = {"status":"HOLD", "reason": str(exc), "ends":{}}
             panel["horizontal"] = horizontal
+            panel["pressure_design_scope"] = {"calculated": "ONE_WAY_HORIZONTAL_UNIFORM_STRIP",
+                "status": "SHELL_BENDING_AND_INTERFACE_NORMAL_ACTION_REQUIRED",
+                "span_m": panel["span_m"], "height_m": height,
+                "construction_status": "AGGREGATE_HOOK_AND_CAGE_CLEARANCE_REQUIRED"}
+            panel["schedule_status"] = "PRESSURE_STRIP_CANDIDATE_ONLY"
             demands = [(r["face"],r["combination"],d) for r in result["cuts"] for d in r.get("web_demands",[]) if d["member"]==uid]
             required(len(demands) == result["expected_cut_combinations"], "COMPLETE_NATIVE_CUT_POPULATION_REQUIRED_FOR_VERTICAL_SELECTION")
             whole_n = [min(d["nd_kn"][0] for _,_,d in demands), max(d["nd_kn"][1] for _,_,d in demands)]
@@ -169,7 +174,7 @@ def _design(result, source, stages, bound, scope):
         else:
             row["status"] = "HOLD"
     result["evaluated_cut_combinations"] = sum(r["status"] == "CONDITIONAL_NET_WEB_PMM_BOUND" for r in result["cuts"])
-    result["status"] = "CONDITIONAL_NET_WEB_AND_PRESSURE_DESIGN" if result["evaluated_cut_combinations"] == result["expected_cut_combinations"] else "HOLD"
+    result["status"] = "CONDITIONAL_NET_WEB_PMM_WITH_PRESSURE_STRIP_REFERENCES" if result["evaluated_cut_combinations"] == result["expected_cut_combinations"] else "HOLD"
 
 
 def basement_piers(source, stages, bounds, bound, scope):
@@ -208,7 +213,7 @@ def basement_coverage(piers):
                 else:
                     other_evaluated += 1
         for panel in (pier.get("geometry") or {}).get("panels", []):
-            scheduled += "vertical" in panel and "horizontal" in panel
+            scheduled += panel.get("schedule_status") == "PRESSURE_PANEL_SCHEDULE_QUALIFIED"
             pressure_evaluated += sum(c["combination"] in names for c in panel.get("horizontal", {}).get("cuts", []))
             for end in panel.get("pressure_connections", {}).get("ends", {}).values():
                 ends_checked += 1

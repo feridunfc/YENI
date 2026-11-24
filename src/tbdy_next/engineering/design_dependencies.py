@@ -29,7 +29,7 @@ def _topology(source: Mapping[str, Any]) -> tuple[dict, dict, list[str]]:
 Connectivity is never filtered to successful force rows. Assignment census is
 an independent captured table, not a claim of physical face/anchorage approval.
 """
-    from .column_r10_live import _build_frame_catalog
+    from .frame_geometry import build_frame_catalog
 
     geometry = source.get("geometry_capture") or {}
     tables = geometry.get("tables") or {}
@@ -68,7 +68,7 @@ an independent captured table, not a claim of physical face/anchorage approval.
         issues.append("DESIGN_FRAME_NAMESPACE_COLLISION")
     if issues:
         return {}, {}, sorted(set(issues))
-    frames, _, graph = _build_frame_catalog(source)
+    frames, _, graph = build_frame_catalog(source)
     if set(frames) != set(all_ids):
         return {}, {}, ["DESIGN_FRAME_CATALOG_CENSUS_MISMATCH"]
     return frames, dict(graph["adjacency"]), []

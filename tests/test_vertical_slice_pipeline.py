@@ -262,7 +262,8 @@ class VerticalSlicePipelineTests(unittest.TestCase):
         request.pop("second_order_basis", None)
         request.pop("analysis_archive", None)
         summary, snapshot = self.calculate(self.raw, request, "building", whole_building=True)
-        building = snapshot["results"]["report_evidence"]["building_design"]
+        building = snapshot["results"]["building_design"]
+        self.assertNotIn("building_design", snapshot["results"]["report_evidence"])
         self.assertEqual(building["column_count"], 1)
         self.assertEqual(building["column_status_counts"], {"hold": 1})
         self.assertEqual(building["beam_count"], 2)

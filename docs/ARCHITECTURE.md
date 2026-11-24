@@ -94,9 +94,9 @@ The current sequence is explicit Python control flow:
 2. Analysis setup, column axial population and same-source PMM/cut coverage.
 3. Native/mixed-demand evidence and member/joint dependency plan.
 4. Beam-end capacities, column candidate selection and initial R10 checks.
-5. Same-run selected-cage ledger, global second-order source and local R08 calculations.
+5. Same-run selected cages and the project seismic profile. The global second-order and effective-drift owners consume the model’s directional factors. The local R08 owner consumes its member and storey basis.
 6. Bounded alpha iteration, revision evidence and R14/R15 closure.
-7. Report evidence, complete snapshot and finalization receipt.
+7. Report evidence and, when requested, the `building-design` stage. Snapshot v3 stores its result directly and verifies its digest against the stage receipt. JSON, workspace and print read that result. Legacy v2 reports retain their original layout.
 
 Initial R10 work supplies candidate and neighboring capacities needed by later calculations. Feedback must then recompute affected consumers using the current cage and demand revision.
 
@@ -113,6 +113,8 @@ flowchart TD
 The loop expresses dependencies, not an unconstrained retry. The existing alpha owner has explicit termination and unresolved states. Each iteration derives demands from immutable base effects and current absolute factors, avoiding cumulative re-amplification.
 
 ### Registry boundary
+
+`engineering/frame_geometry.py` supplies the physical frame catalog shared by column, beam, story and joint owners. `engineering/seismic_profile.py` joins response cases to the assigned native TSC-2018 functions and resolves project classifications. The source-bound scenario records missing inputs entered through the web or CLI. The history catalog indexes navigation summaries. A receipt points to a verified, compressed, content-addressed blob for large source and result objects. Opening the calculation verifies the expanded contents.
 
 `STAGES` documents owners, conditions, receipts and some typed artifacts; only seven entries currently declare input contracts. It does not dispatch the complete calculation as a topological scheduler. R14 has no dedicated `StageSpec`, and B1/B2/wall geometry execute within `derive_report_evidence`. Declared and actual ordering are not identical everywhere.
 

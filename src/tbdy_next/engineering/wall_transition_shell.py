@@ -1,7 +1,7 @@
 """Native element joint resultants on one side of a horizontal cut and at panel boundaries."""
 
 from collections import defaultdict
-from math import dist, fsum
+from math import dist, fsum, isfinite
 
 from ..etabs_source_gateway_windows import verify
 from .basement_pier_geometry import _column_footprints, _context, panel_profile, required
@@ -9,6 +9,16 @@ from .gravity_wall_cut import joint_action_at_origin
 from .wall_transition import GLOBAL_COMPONENTS, TOL, changes, mesh_geometry, section_plan, weighted_vectors
 
 SCHEMA = "tbdy.next.original-transition-shell-actions.v1"
+
+
+def field_control(reference, residual):
+    """Project accuracy criterion at the native plane, in kN and kN·m respectively."""
+    required(len(reference) == len(residual) == len(GLOBAL_COMPONENTS)
+             and all(isfinite(v) for v in (*reference, *residual)), "INVALID_FIELD_CONTROL_COMPONENTS")
+    limits = [max(5.0, 0.02 * abs(v)) for v in reference]
+    failed = [key for key, err, limit in zip(GLOBAL_COMPONENTS, residual, limits) if abs(err) > limit]
+    return {"native_action_kn_knm": list(reference), "limits_kn_knm": limits, "failed_components": failed,
+            "status": "FIELD_CONTROL_ERROR_EXCEEDED_COMMON_MESH_REQUIRED" if failed else "FIELD_CONTROL_WITHIN_TOLERANCE"}
 
 
 def native_plan(source, label_rows, *, with_fields=False):
@@ -183,7 +193,7 @@ def project_transition_shells(source, bound, scope, change, panels, plans, coord
                         "global_kn_knm": exact_z[name],
                         "control_z_m": plan["z_m"],
                         "control_delta_kn_knm": delta,
-                        "status": "RECOVERED_CORNER_FIELD_REFERENCE",
+                        "status": "FIELD_LOAD_PROJECTION_REQUIRED",
                     }
                     if physical.get("axial_limit_kn"):
                         result["reference_axial_ratio"] = (
@@ -197,6 +207,8 @@ def project_transition_shells(source, bound, scope, change, panels, plans, coord
                         result["control_delta_after_uniform_load_kn_knm"] = [
                             d - f for d, f in zip(delta, direct)
                         ]
+                        control = field_control(sec["global_kn_knm"], result["control_delta_after_uniform_load_kn_knm"])
+                        result.update(field_control=control, status=control["status"])
                     except (KeyError, ValueError, TypeError) as exc:
                         result["control_load_reason"] = str(exc)
                     out["recovered"].append(result)
@@ -262,6 +274,14 @@ def project_transition_shells(source, bound, scope, change, panels, plans, coord
             if len(out["sections"]) == out["expected_section_combinations"]
             else "COMMON_MESH_SECTION_REQUIRED"
         )
+        out["field_control_expected"] = out["expected_section_combinations"]
+        out["field_control_within_tolerance"] = sum(r["status"] == "FIELD_CONTROL_WITHIN_TOLERANCE" for r in out["recovered"])
+        if any(r["status"] == "FIELD_CONTROL_ERROR_EXCEEDED_COMMON_MESH_REQUIRED" for r in out["recovered"]):
+            out["field_status"] = "FIELD_CONTROL_ERROR_EXCEEDED_COMMON_MESH_REQUIRED"
+        elif out["field_control_within_tolerance"] == out["field_control_expected"]:
+            out["field_status"] = "FIELD_CONTROLS_WITHIN_TOLERANCE"
+        else:
+            out["field_status"] = "FIELD_CONTROLS_INCOMPLETE"
         if any(p.get("balanced") is False for p in out["panel_zones"]):
             out["status"] = "PANEL_EQUILIBRIUM_MISMATCH"
     except (KeyError, TypeError, IndexError, ValueError, RuntimeError) as exc:

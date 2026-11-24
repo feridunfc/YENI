@@ -141,7 +141,7 @@ def _declared_story_names(source: Mapping) -> list[str]:
 
 
 def bind_story_second_order(capture: Mapping | None, *,
-                            capture_error: str | None = None) -> dict:
+                            capture_error: str | None = None, project_profile: Mapping | None = None) -> dict:
     """Bind native ETABS tables to the existing GLOBAL_SECOND_ORDER owner."""
     out = _base(capture_error)
     if capture_error:
@@ -172,8 +172,22 @@ def bind_story_second_order(capture: Mapping | None, *,
                 or cfg["live_model_basename"].casefold() !=
                    model.replace("\\", "/").split("/")[-1].casefold()):
             raise DeltaSourceError("R08_EXACT_PROJECT_CASE_BINDING_REQUIRED")
-        r, d, ch = (dec(cfg[k], k) for k in ("R", "D", "Ch"))
-        if any(x <= 0 for x in (r, d, ch)):
+        for assignment in (project_profile or {}).get("assignments", ()):
+            for axis in ("X", "Y"):
+                if assignment["case"] == cfg[axis.lower() + "_case"] and assignment["axis"] != axis:
+                    raise DeltaSourceError("R08_PROJECT_CASE_DIRECTION_CONFLICT:" + axis)
+        ch = dec(cfg["Ch"], "Ch")
+        parameters = {}
+        for axis in ("X", "Y"):
+            for factor in ("R", "D"):
+                key = factor + axis.lower()
+                entry = (project_profile or {}).get("fields", {}).get(key)
+                # A standalone replay of an older R08 receipt carries its recorded scalar settings.
+                value = cfg[factor] if entry is None else entry["value"]
+                if value is None:
+                    raise DeltaSourceError("R08_PROJECT_PARAMETER_REQUIRED:" + key)
+                parameters[factor + "_" + axis] = float(dec(str(value), key))
+        if ch <= 0 or any(value <= 0 for value in parameters.values()):
             raise DeltaSourceError("R08_R_D_CH_NONPOSITIVE")
         terms = _combo_terms(rs)
         levels, story_evidence = read_story_levels(rs)
@@ -270,9 +284,7 @@ def bind_story_second_order(capture: Mapping | None, *,
                        "case_type": "LinRespSpec", "step_type": "Max"}
                 for axis, case in (("X", "RSX"), ("Y", "RSY"))
             },
-            "design_parameters": {"R_X": float(r), "R_Y": float(r),
-                                  "D_X": float(d), "D_Y": float(d),
-                                  "Ch": float(ch)},
+            "design_parameters": {**parameters, "Ch": float(ch)},
             "stories": rows,
         }
         owner = review_story_pdelta(owner_input)
@@ -321,6 +333,7 @@ def bind_story_second_order(capture: Mapping | None, *,
             "case_source_sha256": rs["payload_sha256"],
             "weight_source_sha256": wsrc["payload_sha256"],
             "model": model, "configuration": dict(cfg),
+            **({"project_design_parameters": parameters} if project_profile is not None else {}),
             "weight_components": {k: str(v) for k, v in terms.items()},
             "weight_base_reaction_kn": str(base_fz),
             "mass_source_comparison": {

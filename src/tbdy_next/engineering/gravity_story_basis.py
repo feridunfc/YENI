@@ -12,7 +12,7 @@ from ..column_engine.ts500_column import (
 )
 from .column_clear_length import WALL_CONNECTIVITY, WALL_COUPLED, proven_clear_length_m
 from .column_pmm_section import MECHANICAL
-from .column_r10_live import _build_frame_catalog
+from .frame_geometry import build_frame_catalog
 
 STORY_BASIS_SCHEMA = "tbdy.next.gravity-story-basis.v1"
 CONTRIBUTOR_MODIFIER_SCHEMA = "tbdy.next.gravity-story-contributor-modifiers.v1"
@@ -85,7 +85,7 @@ def _crosses(z, levels):
 
 
 def _physical_population(source, z):
-    frames, frame_points, metadata = _build_frame_catalog(source)
+    frames, frame_points, metadata = build_frame_catalog(source)
     geometry = source["geometry_capture"]["tables"]
     native = source["vs06_b1_geometry_source"]["table_reads"]
     columns = _index(_rows(geometry, "COLUMN_CONNECTIVITY",

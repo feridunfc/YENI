@@ -17,6 +17,7 @@ import re
 from typing import Any, Mapping
 
 from .check_labels import display_check, display_check_group
+from .archive_blobs import archive_bytes
 from .history import _MAX_SOURCE_BYTES, _RUN, _read_modal_run, _read_receipt
 from .member_groups import geometry_groups, material_member_groups
 from .quick_checks import check_registry, evaluate_geometry_capture
@@ -432,7 +433,7 @@ def _load_source(directory: Path, expected_sha: str) -> dict[str, Any]:
         raise ReportUnavailable("Source file unavailable")
     if source_file.stat().st_size > _MAX_SOURCE_BYTES:
         raise ReportUnavailable("Archived source exceeds size limit")
-    raw = source_file.read_bytes()
+    raw = archive_bytes(source_file)
     if sha256(raw).hexdigest() != expected_sha:
         raise ReportUnavailable("Archived source hash mismatch")
     decoded = json.loads(raw)
@@ -562,7 +563,7 @@ def _vs05_summary_row(drift: dict) -> dict:
 
 def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
     """Load an exact run and render only the recorded results for finalized runs."""
-    from .engineering.pipeline_snapshot import SCHEMA, read_receipts, read_snapshot
+    from .engineering.pipeline_snapshot import SEALED_SCHEMAS, read_receipts, read_snapshot
 
     if not isinstance(run_id, str) or _RUN.fullmatch(run_id) is None:
         raise ReportUnavailable("Invalid run ID")
@@ -577,7 +578,7 @@ def build_complete_report(root: Path, run_id: str) -> dict[str, Any]:
         source = _load_source(directory, input_sha)
         receipts = read_receipts(directory, input_sha=input_sha)
         snapshot = read_snapshot(directory, input_sha=input_sha, receipts=receipts)
-        if snapshot is not None and snapshot["schema"] == SCHEMA:
+        if snapshot is not None and snapshot["schema"] in SEALED_SCHEMAS:
             stages = snapshot["results"]
             evidence = stages["report_evidence"]
             return _assemble_complete_report(run_id, source, receipts, stages, evidence, snapshot)
@@ -876,7 +877,7 @@ def _assemble_complete_report(run_id: str, source: Mapping[str, Any],
                               receipts: Mapping[str, Mapping[str, Any]], stages: Mapping[str, Any],
                               evidence: Mapping[str, Any], snapshot: Mapping[str, Any] | None) -> dict[str, Any]:
     """Format archived evidence and attach provenance. No check evaluation."""
-    from .engineering.pipeline_snapshot import SCHEMA
+    from .engineering.pipeline_snapshot import SEALED_SCHEMAS
 
     modal = receipts.get("modal")
     quick = receipts.get("quick-geometry")
@@ -891,7 +892,15 @@ def _assemble_complete_report(run_id: str, source: Mapping[str, Any],
                          and example.get("classification") == "CONTRACT_FIXTURE"
                          and example.get("origin") == "GENERATED_OFFLINE_NOT_ETABS")
     shown_case = modal["payload"]["case"]
-    full_projection = snapshot is not None and snapshot["schema"] == SCHEMA
+    full_projection = snapshot is not None and snapshot["schema"] in SEALED_SCHEMAS
+    building = stages.get("building_design", evidence.get("building_design"))
+    profile = evidence.get("seismic_project_profile")
+    if profile is None and source_mode == "LIVE_ETABS":
+        from .engineering.seismic_profile import project_seismic_profile
+        wall_batch = ((building or {}).get("wall_sections") or {}).get("batch") or {}
+        profile = project_seismic_profile(source, physical_scope=evidence.get("physical_story_scope"),
+                                          basement=(wall_batch.get("modal_base") or {}).get("basement_reference"))
+    profile_origin = "SEALED_RUN_RESULT" if "seismic_project_profile" in evidence else "ARCHIVED_SOURCE_DEFAULTS"
     modal_definition = next(item for item in check_registry() if item["check_id"] == "modal_mass_95")
     geo_checks = geometry.get("checks", [])
     required_geometry = {"column_rect_min", "beam_width_min", "beam_depth_min", "beam_depth_width"}
@@ -1043,7 +1052,9 @@ def _assemble_complete_report(run_id: str, source: Mapping[str, Any],
             "column_gates", "beam_r10", "r10_live", "r08_local_slenderness", "r14_closure",
         ) if stages[key] is not None},
         **{key: value for key, value in evidence.items() if value is not None},
-        "wall_design_calculations": wall_design_calculations((evidence.get("building_design") or {}).get("wall_sections")),
+        **({"building_design": building} if building is not None else {}),
+        "seismic_project_profile": profile, "seismic_profile_origin": profile_origin,
+        "wall_design_calculations": wall_design_calculations((building or {}).get("wall_sections")),
         "column_candidate_schedule": _column_candidate_schedule(stages, evidence),
         "vs03": display_check_group(new_checks),
         "checks": [display_check(check) for check in checks],
@@ -1325,16 +1336,17 @@ def _wall_batch_tables(batch, calculations=None):
                 ("evaluated_groups","Recovered groups"),("expected_groups","Physical groups"),("project_reason","Project decision")),
                batch["overturning_storeys"]), "</details>",
         "<h3>Signed wall and storey actions</h3><p>Six signed components are summed at (0, 0, cut elevation) in every mode. "
-        "Directional ratios use periodic CQC after this sum. The floor-load moment uses horizontal floor forces and their "
+        "The separate-wall comparison sums individual centroid amplitudes. The two common-origin columns diagnose equilibrium. The floor-load moment uses horizontal floor forces and their "
         "heights above the cut. A project overturning classification requires the adopted base and wall coupling model.</p>",
         _val(modal.get("spectrum_reason") or modal.get("reason") or modal.get("status")),
         _table((("story","Storey"),("z","Cut z (m)"),("walls","Walls"),("columns","Columns"),("modes","Balanced modes"),
                 ("direction","Direction"),("wall_cqc_shear_kn","Wall shear (kN)"),("storey_cqc_shear_kn","Storey shear (kN)"),
-                ("wall_to_storey_shear","Shear ratio"),("wall_common_origin_cqc_knm","Wall moment (kN·m)"),
-                ("storey_common_origin_cqc_knm","Storey moment (kN·m)"),("wall_to_storey_common_origin","Moment ratio"),
-                ("sum_individual_centroid_cqc_knm","Sum of separate centroid CQC (kN·m)"),
-                ("horizontal_floor_mo_cqc_knm","Horizontal floor-load moment (kN·m)"),
-                ("separate_piers_native_to_floor_mo","Separate native piers / floor moment"),("state","Cut result")), modal_rows),
+                ("wall_to_storey_shear","Shear ratio"),("sum_individual_centroid_cqc_knm","Sum of individual wall centroid moments (periodic CQC, kN·m)"),
+                ("horizontal_floor_mo_cqc_knm","Horizontal floor-load moment Mo (kN·m)"),
+                ("individual_centroid_sum_to_floor_mo","Individual wall sum / Mo"),
+                ("separate_piers_native_to_floor_mo","Native separate piers / Mo"),
+                ("wall_common_origin_cqc_knm","Equilibrium at (0, 0, z): walls (kN·m)"),
+                ("storey_common_origin_cqc_knm","Equilibrium at (0, 0, z): whole cut (kN·m)"),("state","Cut result")), modal_rows),
         _basement_reference_tables(modal.get("basement_reference")),
         *transition_views,
         "<details><summary>Assigned shell sections and pier geometry by elevation</summary>",
@@ -1596,6 +1608,14 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
                               '</h2><p>Source-based check. Formal compliance is NOT_PROVEN.</p>' +
                               _table(columns, items) + '</section>')
     vs04_sections = []
+    profile = report.get("seismic_project_profile") or {}
+    if profile.get("fields"):
+        vs04_sections.append('<section><h2>Seismic project parameters</h2>' +
+                             _table((("key", "Parameter"), ("value", "Value"), ("origin", "Source"), ("basis", "Basis")),
+                                    [dict(key=k, **v) for k, v in profile["fields"].items()]) +
+                             _table((("base_m", "Candidate base (m)"), ("height_m", "HN (m)"), ("DTS", "DTS"),
+                                     ("assumed_DD", "Assumed motion level"), ("BYS", "Conditional BYS")),
+                                    profile.get("height_scenarios", [])) + '</section>')
     analysis_setup = report.get("analysis_setup")
     if isinstance(analysis_setup, Mapping):
         vs04_sections.append(_analysis_setup_html(

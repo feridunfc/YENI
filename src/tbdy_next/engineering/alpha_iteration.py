@@ -56,7 +56,7 @@ def qualify_story_alpha(source, axial, scope, dependencies, r10):
 The strict subset deliberately blocks unproven end exemptions. Numerical
 SCWB is still a selected-candidate reference, not engineering approval.
 """
-    from .column_r10_live import _build_frame_catalog
+    from .frame_geometry import build_frame_catalog
     from .design_dependencies import story_blockers
     from .mixed_demands import earthquake_row
     from .demand_sources import component_force_rows
@@ -93,7 +93,7 @@ SCWB is still a selected-candidate reference, not engineering approval.
     except (KeyError, ValueError, TypeError, ArithmeticError, RecursionError) as exc:
         return {"status": "BLOCKED_INPUTS", "cases": [],
                 "reason_codes": ["ALPHA_SEISMIC_SHEAR_PROVENANCE_UNVERIFIED:" + str(exc)]}
-    frames, points, _ = _build_frame_catalog(source)
+    frames, points, _ = build_frame_catalog(source)
     rowsets = ((source.get("column_axial") or {}).get("force_source") or {}).get("rowsets") or {}
     cuts = (scope or {}).get("configured_output_cuts") or {}
     details = (r10 or {}).get("per_member") or {}
@@ -203,8 +203,8 @@ SCWB is still a selected-candidate reference, not engineering approval.
 
 def build_demand_revision(source, cases, *, input_sha):
     """Absolute factors relative to captured vectors, never factors on prior results."""
-    from .column_r10_live import _build_frame_catalog
-    frames, _, _ = _build_frame_catalog(source)
+    from .frame_geometry import build_frame_catalog
+    frames, _, _ = build_frame_catalog(source)
     rows = ((source.get("column_axial") or {}).get("force_source") or {}).get("rowsets") or {}
     factors = {}
     seen = set()

@@ -19,6 +19,9 @@ def main(argv: list[str] | None = None) -> int:
         command.add_argument("--out", type=Path, required=True)
         if name == "check-modal":
             command.add_argument("--case", required=True)
+    unpack = actions.add_parser("export-archive", help="Write original bytes from an archived source or result payload")
+    unpack.add_argument("--source", type=Path, required=True)
+    unpack.add_argument("--out", type=Path, required=True, help="New output file")
     service = actions.add_parser("serve", help="Local web UI for one implemented vertical slice")
     service.add_argument("--host", default="127.0.0.1")
     service.add_argument("--port", type=int, default=8765)
@@ -89,6 +92,7 @@ def main(argv: list[str] | None = None) -> int:
     replay.add_argument("--out", type=Path, required=True, help="Receipt root for the replay run")
     replay.add_argument("--compare-run", type=Path, help="Existing RUN-* directory; every stage payload must match")
     replay.add_argument("--design-scenario", type=Path, help="Explicit source-bound offline design scenario JSON")
+    replay.add_argument("--project-parameters", type=Path, help="JSON object with missing seismic project values")
     replay.add_argument("--whole-building", action="store_true",
                         help="Run all physical members and building checks, then write the sealed HTML report")
     replay.add_argument("--wall-hinge-aggregate-storey", action="append", metavar="STOREY",
@@ -105,6 +109,17 @@ def main(argv: list[str] | None = None) -> int:
     replay.add_argument("--beam-selection", help="'default' or path to JSON beam selection policy")
     replay.add_argument("--column-selection", help="'default' or path to JSON column selection policy")
     args = parser.parse_args(argv)
+    if args.action == "export-archive":
+        from tempfile import TemporaryFile
+        from shutil import copyfileobj
+        from .archive_blobs import copy_archive
+        with TemporaryFile() as verified:
+            digest = copy_archive(args.source, verified)
+            verified.seek(0)
+            with args.out.open("xb") as output:
+                copyfileobj(verified, output)
+        print(json.dumps({"file": str(args.out), "sha256": digest}))
+        return 0
     if args.action in ("reconcile-live-column", "precheck-story-pdelta", "pipeline-plan", "run-pipeline"):
         from .engineering.cli_adapter import run_cli
         return run_cli(args)

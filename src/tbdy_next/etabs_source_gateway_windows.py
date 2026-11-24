@@ -907,7 +907,8 @@ def main(argv: list[str] | None = None) -> int:
     args = p.parse_args(argv)
     if args.command == "pier-forces":
         from .live_etabs import _with_etabs
-        raw = args.source.read_bytes()
+        from .archive_blobs import archive_bytes
+        raw = archive_bytes(args.source)
         parent = json.loads(raw)
         data = _with_etabs(args.pid, lambda sap: capture_assigned_pier_forces(
             sap, args.pid, parent, sha256(raw).hexdigest(), wall_modes=args.wall_modes))

@@ -35,6 +35,8 @@ def scenario_report(pair=None):
     return {
         "run_id": "RUN-" + "a" * 32,
         "story_drift": record,
+        "seismic_project_profile": {"fields": {key: {"value": value} for key, value in
+                                              (("Rx", 7), ("Ry", 7), ("I", 1.5))}},
         "vs06_effective_drift_readiness": ready,
         "source_snapshot": {"vs05_delta_source": source},
         "source_provenance": {"input_sha256": "f" * 64},

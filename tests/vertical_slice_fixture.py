@@ -10,6 +10,7 @@ from copy import deepcopy
 from hashlib import sha256
 import json
 
+from tbdy_next.basis_linkage import SPECTRUM_CASE, SPECTRUM_FUNCTION
 from tbdy_next.column_engine.native_archive import digest
 from tbdy_next.engineering.analysis_setup import (
     ADOPTED_ANALYSIS_SCHEMA, DESIGN_COMBOS, STATIC_CASES, bind_analysis_setup,
@@ -140,6 +141,10 @@ def source():
     reads = {
         SUMMARY: table(SUMMARY, "Name Type GUID", [(name, {"RESPONSE_SPECTRUM": "Response Spectrum", "MODAL": "Modal - Ritz"}.get(role, "Linear Static"), "case-" + name) for name, role in case_roles.items()]),
         COMBOS: table(COMBOS, "Name Type LoadName SF GUID", combination_rows),
+        SPECTRUM_CASE: table(SPECTRUM_CASE, "Name Function LoadName Angle CoordSys TransAccSF", [
+            ("RSX", "design", "U1", "0", "Global", "9.81"), ("RSY", "design", "U2", "0", "Global", "9.81")]),
+        SPECTRUM_FUNCTION: table(SPECTRUM_FUNCTION, "Name Direction R D I", [
+            ("design", "Horizontal", "7", "2.5", "1.5")]),
         DESIGN_COMBOS: table(DESIGN_COMBOS, "ComboName ComboType", [(name, "Strength") for name in COMBINATIONS]),
         STATIC_CASES: table(STATIC_CASES, "Name StiffType NonlinCase LoadType LoadName LoadSF", [(name, "Unstressed", "None", "Load", name, "1") for name, role in case_roles.items() if role not in {"RESPONSE_SPECTRUM", "MODAL"}]),
         "Load Pattern Definitions": table("Load Pattern Definitions", "Name Type SelfWtMult", [(name, "Quake" if role == "STATIC_SEISMIC" else "Live" if name == "LC_LL" else "Dead", "1" if name == "LC_DL" else "0") for name, role in case_roles.items() if role not in {"RESPONSE_SPECTRUM", "MODAL"}]),

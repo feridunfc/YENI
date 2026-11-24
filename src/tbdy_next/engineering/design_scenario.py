@@ -15,7 +15,7 @@ import re
 from typing import Any, Mapping
 
 from ..column_engine.native_archive import decode
-from ..history import _MAX_SOURCE_BYTES
+from ..archive_blobs import MAX_SOURCE_BYTES as _MAX_SOURCE_BYTES, archive_bytes, store_archive
 from .rebar_selection import (
     DEFAULT_BEAM_SELECTION_POLICY, DEFAULT_COLUMN_SELECTION_POLICY,
     normalize_beam_selection_policy, normalize_column_selection_policy,
@@ -27,7 +27,8 @@ LINEAGE_WITH_BASIS = "tbdy.next.design-scenario-lineage.v2"
 PARENT_FILE = "parent.source"
 POLICIES = ("beam_selection", "column_selection")
 CALCULATION_BASES = ("second_order_basis", "analysis_basis", "analysis_archive", "gravity_order_pair",
-                     "coupled_wall_transition", "building_design", "pier_section_forces", "basement_modal_matrices")
+                     "coupled_wall_transition", "building_design", "pier_section_forces", "basement_modal_matrices",
+                     "project_parameter_inputs")
 
 
 @dataclass(frozen=True)
@@ -40,8 +41,7 @@ class PreparedPipelineSource:
 
     def archive_parent(self, directory: Path) -> None:
         if self.parent_raw is not None:
-            with (directory / PARENT_FILE).open("xb") as parent:
-                parent.write(self.parent_raw)
+            store_archive(directory / PARENT_FILE, self.parent_raw)
 
 
 def _bytes(value: Any) -> bytes:
@@ -60,6 +60,9 @@ def _source_data(payload: Mapping[str, Any]) -> dict[str, Any]:
 def _calculation_basis(key: str, value: Any, source_data_sha256: str) -> dict[str, Any] | None:
     if value is None:
         return None
+    if key == "project_parameter_inputs":
+        from .seismic_profile import normalize_inputs
+        return normalize_inputs(value, source_data_sha256)
     if key == "basement_modal_matrices":
         from .basement_matrices import normalize_matrices
         return normalize_matrices(value, source_data_sha256=source_data_sha256)
@@ -142,14 +145,17 @@ def create_design_scenario(parent_raw: bytes, request: Mapping[str, Any]) -> byt
         raise ValueError("SCENARIO_NATIVE_PARENT_CONTAINS_UNBOUND_CALCULATION_BASIS")
     feature = parent.get("column_axial")
     column_request = feature.get("request") if isinstance(feature, Mapping) else None
-    if not isinstance(column_request, Mapping) or not column_request.get("pmm_member"):
+    profile_only = (request.get("project_parameter_inputs") is not None
+                    and all(request.get(key) is None for key in (*POLICIES, *CALCULATION_BASES)
+                            if key != "project_parameter_inputs"))
+    if not profile_only and (not isinstance(column_request, Mapping) or not column_request.get("pmm_member")):
         raise ValueError("SCENARIO_PMM_REQUEST_REQUIRED")
     policies = {key: _policy(request[key], key) for key in POLICIES}
     if request.get("building_design") is not None and (
             column_request.get("pmm_member") != "ALL" or not all(policies.values())
             or column_request.get("combination_source") != "ASSIGNED_DESIGN"):
         raise ValueError("BUILDING_DESIGN_REQUIRES_ALL_COLUMNS_ASSIGNED_LOADS_AND_BOTH_SELECTION_POLICIES")
-    if all(value is None for value in policies.values()):
+    if not profile_only and all(value is None for value in policies.values()):
         raise ValueError("SCENARIO_SELECTION_REQUIRED")
     native_sha = _digest(_source_data(parent))
     bases = {key: _calculation_basis(key, request[key], native_sha)
@@ -236,7 +242,7 @@ def _read_verified_parent(directory: Path | None, payload: Mapping[str, Any]) ->
     parent = directory / PARENT_FILE
     if parent.is_symlink() or not parent.is_file() or not 0 < parent.stat().st_size <= _MAX_SOURCE_BYTES:
         raise ValueError("SCENARIO_PARENT_SOURCE_MISSING_OR_UNSAFE")
-    raw = parent.read_bytes()
+    raw = archive_bytes(parent)
     verify_parent(payload, raw)
     return raw
 
@@ -247,6 +253,7 @@ def prepare_pipeline_source(
     source_directory: Path | None = None,
     request: Mapping[str, Any] | None = None,
     selection_overrides: Mapping[str, Any] | None = None,
+    project_parameters: Mapping[str, Any] | None = None,
     whole_building: bool = False,
     pier_forces: Mapping[str, Any] | None = None,
     basement_matrices: Path | None = None,
@@ -331,6 +338,19 @@ def prepare_pipeline_source(
         if wall_hinge_aggregate_storeys is not None:
             policy = {**policy, "wall_hinge_aggregate_storeys": wall_hinge_aggregate_storeys}
         request["building_design"] = policy
+    if project_parameters is not None:
+        from .seismic_profile import INPUT_SCHEMA, normalize_values
+        if explicit_request:
+            raise ValueError("PROJECT_PARAMETERS_ALREADY_BOUND_BY_SCENARIO")
+        parent = parent_raw if parent_raw is not None else source_raw
+        if request is None:
+            request = {"schema": SCHEMA, "scenario_id": scenario["scenario_id"] if scenario else "project-parameters",
+                       "parent_input_sha256": sha256(parent).hexdigest(),
+                       **{key: payload.get(key) for key in POLICIES},
+                       **{key: payload[key] for key in CALCULATION_BASES if payload.get(key) is not None}}
+        inherited = (request.get("project_parameter_inputs") or {}).get("values", {})
+        request["project_parameter_inputs"] = {"schema": INPUT_SCHEMA, "source_data_sha256": _digest(_source_data(payload)),
+                                               "values": {**inherited, **normalize_values(project_parameters)}}
     if request is not None:
         parent_raw = parent_raw if parent_raw is not None else source_raw
         raw = create_design_scenario(parent_raw, request)

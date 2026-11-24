@@ -197,7 +197,10 @@ def building_results(source, stages, evidence):
             ("Beam torsion and serviceability", beam_count, "Torsion, deflection and crack-width checks required"),
             ("Coupling-beam design", None, "Physical coupling-beam classification and design required")):
         add(name, population, 0, reason)
+    from .frame_storey_design import wall_compression_scope
+    wall_scope = wall_compression_scope(frames, (pier_design.get("batch") or {}).get("rows", []))
     return {"schema": "tbdy.next.building-results.v1", "checks": checks, "column_count": column_count,
+            "frame_wall_compression_scope": wall_scope,
             "column_status_counts": dict(states), "columns": column_rows, "storeys": storeys,
             "beam_count": beam_count, "beam_status_counts": dict(beam_counts), "governing_beam": governing,
             "area_population": areas, "frame_confinement": detailing, "wall_boundaries": boundaries,

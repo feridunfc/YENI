@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-24T05:06:00+00:00",
+  "updated_at_utc": "2026-11-24T17:31:37+00:00",
   "repository": "feridunfc/YENI",
   "baseline_implementation_commit": "773fd4d69d5479c87ff4b12449dfcd7956d022ad",
   "local_reconciled": true,
-  "scope_note": "The original basement satisfies both period ratios in §3.3.1.1(b). The three-sided return path is continuous only in the upper W22 band. Original 300/300 signed modal and 6/6 static wall-and-column cuts balance at three datums. The wall batch retains 390 assigned faces per reference check, 17/30 proposed layouts and four conditional rectangular stacks. The wall opening batch calculates 14 physical face-combination resultants and balances seven W22 free bodies.",
+  "scope_note": "The original basement satisfies both period ratios in §3.3.1.1(b). The three-sided return path is continuous only in the upper W22 band. Original 300/300 signed modal and 6/6 static wall-and-column cuts balance at three datums. The wall batch retains 390 assigned faces per reference check, 12/30 scheduled panels and four conditional rectangular stacks. W28 is a strip candidate. The wall opening batch calculates 14 physical face-combination resultants and balances seven W22 free bodies. All 14 field controls exceed tolerance on one or more components.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -33,23 +33,25 @@
     "GAP-018",
     "GAP-006"
   ],
-  "active_task": "Qualify the xP2 opening resultants at a common mesh section at -1.50 m and establish reinforcement continuity and development at the opening before selecting the design base. The seven W22 load and transfer balances are complete. While the common-edge source or connection detail is pending, advance the yP2 uncolumned-end transfer in the whole-building engine.",
+  "active_task": "Qualify the xP2 opening resultants at a common mesh section at -1.50 m and establish reinforcement continuity and development at the opening before selecting the design base. The seven W22 load and transfer balances are complete. The model seismic defaults are complete. Bind the project DD level and base decision if supplied. Reuse the current separate-pier overturning and common-origin equilibrium results. For W28 qualify two-way shell and interface demands against the selected support cages. An equivalent coupled-system method and the missing independent S06/S08 sources remain open.",
   "gaps": [
     {
       "id": "GAP-001",
       "title": "Approved model profile",
       "status": "OPEN",
       "priority": "P0",
-      "achieved_scope": "Existing basis and role contracts remain available.",
+      "achieved_scope": "The original active X/Y functions, directional R/D, occupancy importance, derived BKS and site coefficients now populate the source-bound project profile. Both global second-order and effective drift consume the directional factors. Ground-motion level and the W22-dependent seismic base are open.",
       "blocker": "Project-approved applicability, roles and parameters are not established.",
       "closure_criteria": "Version the applicable standard edition, structural roles and parameters with source and approval evidence.",
       "owner_paths": [
         "src/tbdy_next/candidate_model_contracts.py",
+        "src/tbdy_next/engineering/seismic_profile.py",
         "src/tbdy_next/engineering/analysis_setup.py"
       ],
       "evidence_refs": [
         "EV-D3B",
-        "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121"
+        "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
+        "EV-ORIGINAL-ETABS-PROJECT-DEFAULTS-20261124"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -1738,5 +1740,40 @@
       "punching",
       "C104 local convergence"
     ]
+  },
+  "source_bound_project_defaults_20261124": {
+    "evidence_id": "EV-ORIGINAL-ETABS-PROJECT-DEFAULTS-20261124",
+    "run_id": "RUN-1653aec18a9240e08e9790899438608f",
+    "values": {
+      "Rx": 7.0,
+      "Ry": 7.0,
+      "Dx": 2.5,
+      "Dy": 2.5,
+      "I": 1.5,
+      "BKS": 1,
+      "SDS": 0.52578,
+      "SD1": 0.263958
+    },
+    "conditional_height_classes": [
+      {
+        "BYS": 7,
+        "DTS": "2a",
+        "assumed_DD": "DD-2",
+        "base_m": 0.0,
+        "height_m": 9.0
+      },
+      {
+        "BYS": 6,
+        "DTS": "2a",
+        "assumed_DD": "DD-2",
+        "base_m": -5.15,
+        "height_m": 14.15
+      }
+    ],
+    "required_project_decisions": [
+      "DD level",
+      "seismic base at W22"
+    ],
+    "engineering_release": "NOT_READY"
   }
 }

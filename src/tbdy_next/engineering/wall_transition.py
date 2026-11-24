@@ -104,7 +104,38 @@ def weighted_vectors(rows):
     return [fsum(factor * vector[i] for factor, vector in rows) for i in range(6)]
 
 
-def _jamb_forces(source, context, story, point, cases, seismic):
+def _periodic_jumps(bank, spectra_source, primitive, ends):
+    from .wall_modal_balance import _case_modes, cqc, cqc_matrix
+
+    populations = bank["expected_modal_modes"]
+    required(len(populations) == 1, "UNIQUE_JAMB_MODAL_CASE_REQUIRED")
+    modal, modes = next(iter(populations.items()))
+    required(modes and modes == list(range(1, len(modes) + 1)), "COMPLETE_JAMB_MODES_REQUIRED")
+    spectra = _case_modes(spectra_source, modal, modes)
+    pairs = []
+    for m in modes:
+        faces = primitive[modal, "Mode", m]
+        required(set(faces) == set(ends), "BOTH_JAMB_FACES_REQUIRED_FOR_EVERY_MODE")
+        pairs.append([faces[end] for end in ends])
+    results = {}
+    for case, amplitudes, periods, damping, ecc in spectra.values():
+        matrix = cqc_matrix(periods, damping)
+        def combine(component, operation):
+            return cqc([amp * operation(lo[component], hi[component])
+                        for amp, (lo, hi) in zip(amplitudes, pairs, strict=True)], matrix)
+        jump = [combine(i, lambda lo, hi: hi - lo) for i in range(6)]
+        # Only a source with no accidental torsion can be controlled directly by the native Max faces.
+        control = None
+        if ecc == 0:
+            native = primitive[case, "Max", 0]
+            control = all(isclose(combine(i, select), abs(native[end][i]), abs_tol=0.001, rel_tol=1e-5)
+                          for end, select in zip(ends, (lambda a,b: a, lambda a,b: b)) for i in range(6))
+        results[case] = {"amplitudes_kn_knm": jump, "modal_case": modal, "modes": len(modes),
+                         "eccentricity_ratio": ecc, "native_zero_eccentricity_faces_verified": control}
+    return results
+
+
+def _jamb_forces(source, context, story, point, cases, seismic, *, stages=None):
     xyz = context[0]
     target = xyz[point]
     tables = source["column_axial"]["r10_source"]["table_reads"]
@@ -163,7 +194,7 @@ def _jamb_forces(source, context, story, point, cases, seismic):
             indexed[k][elm] = v
         return indexed
 
-    primitive = at_point(bank["rowsets"][uid], {"Single Value", "Max"})
+    primitive = at_point(bank["rowsets"][uid], {"Single Value", "Max", "Mode"})
     direct = at_point(source["column_axial"]["force_source"]["rowsets"][uid], {"Single Value"})
     result = {
         "point": point,
@@ -206,6 +237,12 @@ def _jamb_forces(source, context, story, point, cases, seismic):
             rec["reason"] = str(exc)
     if seismic:
         _, types, graph = native_graph(source)
+        try:
+            periodic = _periodic_jumps(bank, stages or {}, primitive, result["elements"])
+            result["periodic_spectrum_jumps"] = periodic
+        except (KeyError, TypeError, ValueError, ArithmeticError) as exc:
+            periodic = {}
+            result["periodic_source_reason"] = str(exc)
         for name, static in seismic.items():
             rec = {"combination": name}
             result["seismic_bounds"].append(rec)
@@ -246,6 +283,19 @@ def _jamb_forces(source, context, story, point, cases, seismic):
                         for k, f in spectra.items()
                     ]
                 )
+                rec["bound_basis"] = "INDEPENDENT_NATIVE_FACE_ENVELOPES"
+                if set(spectra) <= periodic.keys():
+                    periodic_radius = weighted_vectors([(abs(float(f)), periodic[k]["amplitudes_kn_knm"])
+                                                        for k, f in spectra.items()])
+                    rec.update(static_jump=center, periodic_radius=periodic_radius,
+                               periodic_minimum=[c-r for c,r in zip(center, periodic_radius)],
+                               periodic_maximum=[c+r for c,r in zip(center, periodic_radius)])
+                    if all(periodic[k]["native_zero_eccentricity_faces_verified"] is True for k in spectra):
+                        radius = periodic_radius
+                        rec["bound_basis"] = "SIGNED_MODAL_JUMP_CQC_CONTROLLED_ZERO_ECCENTRICITY"
+                    else:
+                        rec["periodic_scope"] = ("PERIODIC_ONLY_SIGNED_ECCENTRIC_TORSION_REQUIRED" if
+                            any(periodic[k]["eccentricity_ratio"] for k in spectra) else "NATIVE_MODAL_FACE_CONTROL_REQUIRED")
                 rec.update(
                     minimum=[c - r for c, r in zip(center, radius)],
                     maximum=[c + r for c, r in zip(center, radius)],
@@ -318,7 +368,7 @@ def panel_loads(source, bound, scope, row, panel):
     }
 
 
-def transition_results(source, context, row, bound, scope, fck, *, column_sections=()):
+def transition_results(source, context, row, bound, scope, fck, *, column_sections=(), stages=None):
     profile = row.get("physical_profile") or {}
     if not profile.get("bands") or not any(changes(profile)):
         return []
@@ -366,7 +416,7 @@ def transition_results(source, context, row, bound, scope, fck, *, column_sectio
             try:
                 out["jambs"].append(
                     _jamb_forces(
-                        source, context, row["story"], point, scope["native_static"], scope["native_seismic"]
+                        source, context, row["story"], point, scope["native_static"], scope["native_seismic"], stages=stages
                     )
                 )
             except (KeyError, ValueError, TypeError) as exc:

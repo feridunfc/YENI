@@ -46,12 +46,12 @@ def _run_pipeline_replay(args) -> int:
     from .pipeline import EnginePipelineRunner
 
     from .design_scenario import prepare_pipeline_source, validate_design_scenario
-    from ..history import _MAX_SOURCE_BYTES
+    from ..archive_blobs import MAX_SOURCE_BYTES as _MAX_SOURCE_BYTES, archive_bytes
 
     if (args.source.is_symlink() or not args.source.is_file()
             or not 0 < args.source.stat().st_size <= _MAX_SOURCE_BYTES):
         raise ValueError("SOURCE_PATH_MISSING_OR_UNSAFE")
-    raw = args.source.read_bytes()
+    raw = archive_bytes(args.source)
     beam_sel = _load_selection_arg(getattr(args, "beam_selection", None), "beam")
     col_sel = _load_selection_arg(getattr(args, "column_selection", None), "column")
     scenario_path = getattr(args, "design_scenario", None)
@@ -81,6 +81,7 @@ def _run_pipeline_replay(args) -> int:
                                               private_replay_root=args.out if solve_copy else None)
     prepared = prepare_pipeline_source(raw, source_directory=args.source.parent, request=request,
                                        selection_overrides=overrides or None,
+                                       project_parameters=_read(args.project_parameters) if getattr(args, "project_parameters", None) else None,
                                        whole_building=getattr(args, "whole_building", False),
                                        basement_matrices=getattr(args, "basement_matrices", None),
                                        basement_ground_storey=getattr(args, "basement_ground_storey", None),
@@ -102,8 +103,10 @@ def _run_pipeline_replay(args) -> int:
                "r10_joints": (stages.get("r10_live") or {}).get("joint_end_count"),
                "r08_local_slenderness": (stages.get("r08_local_slenderness") or {}).get("status"),
                "engineering_release": "NOT_READY", "engineering_verdict": "NOT_PROVEN"}
+    summary["seismic_project_profile"] = stages["report_evidence"].get("seismic_project_profile")
     if scenario is not None:
         summary["design_scenario"] = scenario
+    if scenario is not None and any(scenario["policies"].values()):
         summary["design_dependencies"] = stages["report_evidence"]["design_dependencies"]
         closure = stages.get("r14_closure") or {}
         summary["r14_closure"] = {key: closure.get(key) for key in
@@ -112,7 +115,7 @@ def _run_pipeline_replay(args) -> int:
     if args.compare_run is not None:
         from .pipeline_snapshot import compare_runs
         summary["compare"] = compare_runs(args.compare_run, run.root)
-    building = stages["report_evidence"].get("building_design")
+    building = stages.get("building_design")
     if building:
         summary["building_design"] = {k: building[k] for k in
             ("column_count", "column_status_counts", "beam_count", "beam_status_counts", "storeys", "area_population")}

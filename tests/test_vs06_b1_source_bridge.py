@@ -5,8 +5,7 @@ from copy import deepcopy
 from decimal import Decimal
 import unittest
 
-from tbdy_next.b1_source_bridge import B1BridgeError, evaluate_b1_sources
-from tools.verify_vs06_b1_sources import render_b1_html
+from tbdy_next.b1_source_bridge import B1BridgeError, evaluate_b1_sources, render_b1_html
 from test_vs05_story_drift_binding import seal
 
 

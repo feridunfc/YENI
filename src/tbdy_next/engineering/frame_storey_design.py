@@ -9,7 +9,7 @@ from ..column_engine.ts500_column import (
 )
 from .column_clear_length import proven_clear_length_m
 from .column_pmm_section import MECHANICAL, _named_row, _rows
-from .column_r10_live import _build_frame_catalog
+from .frame_geometry import build_frame_catalog
 from .second_order_basis import (
     AXIAL_IDEALIZATION_APPLICABILITY, AXIAL_IDEALIZATION_METHOD, ROLE, SCHEMA, SWAY_POLICY,
     normalize_second_order_basis,
@@ -114,6 +114,35 @@ def storey_critical_loads(source, storey, physical, ratios, *, allow_wall_hinge)
     return {direction: fsum(values) for direction, values in loads.items()}
 
 
+def wall_compression_scope(frames, wall_rows):
+    """Show signed bottom-pier compression omitted from the frame-only critical-load calculation."""
+    by_storey = defaultdict(list)
+    for w in wall_rows:
+        by_storey[w["story"]].append(w)
+    output = []
+    for story, record in frames.get("storeys", {}).items():
+        for case, frame_nd in record.get("compression_kn", {}).items():
+            walls = by_storey[story]
+            # Only compare a directly assigned, signed static load combination.
+            if not any(c["combination"] == case and c["role"] == "ASSIGNED_STATIC" for w in walls for c in w["cuts"]):
+                continue
+            values = {}
+            for w in walls:
+                cuts = [c for c in w["cuts"] if c["combination"] == case and c["face"] == "Bottom"
+                        and c.get("force_basis") == "SIGNED_STATIC" and c.get("compression_kn") is not None]
+                if w["pier"] and w["pier"] not in values and len(cuts) == 1:
+                    values[w["pier"]] = cuts[0]["compression_kn"]
+            wall_nd = fsum(values.values())
+            complete = len(values) == len(walls) and bool(walls)
+            output.append({"story": story, "combination": case, "expected_pier_groups": len(walls),
+                "evaluated_pier_groups": len(values), "wall_bottom_compression_by_pier_kn": values,
+                "frame_member_max_sum_kn": frame_nd, "known_wall_bottom_compression_kn": wall_nd,
+                "omitted_compression_fraction": wall_nd/(wall_nd + frame_nd) if complete and wall_nd + frame_nd > 0 else None,
+                "system_status": "STORY_WALL_CRITICAL_LOAD_METHOD_UNSUPPORTED",
+                "comparison": "Frame member maxima and pier bottom compression. Coupled system critical load unbound."})
+    return output
+
+
 def _member_restraint_hold(uid, frame, physical, ratios):
     proof = physical.get(uid, {})
     if proven_clear_length_m(proof, uid) is None:
@@ -155,7 +184,7 @@ def building_frame_basis(source, physical, ratios, pmm, scope):
     groups = (request.get("design_assignment") or {}).get("groups", {})
     assignments = list(request.get("combinations", ()))
     loads = set(assignments)
-    frames, _, _ = _build_frame_catalog(source)
+    frames, _, _ = build_frame_catalog(source)
     native = source.get("geometry_capture", {}).get("tables", {}).get("COLUMN_CONNECTIVITY", {})
     by_storey = defaultdict(dict)
     seen = set()

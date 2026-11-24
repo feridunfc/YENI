@@ -112,10 +112,10 @@ def _idealization_geometry(source, pmm, length, frame_length):
     """Rebind the existing geometry owners before accepting the declared scope."""
     from .column_clear_length import FACE_BASIS, project_column_clear_lengths
     from .column_pmm import bind_configured_output_cuts, bind_pmm_mesh_source
-    from .column_r10_live import _build_frame_catalog
+    from .frame_geometry import build_frame_catalog
 
     uid = pmm["member_id"]
-    frames, _, graph = _build_frame_catalog(source)
+    frames, _, graph = build_frame_catalog(source)
     frame = frames[uid]
     if frame["type"] != "Column" or frame["section_name"] != pmm["section"]:
         raise ValueError("AXIAL_IDEALIZATION_SECTION_ASSIGNMENT_CONFLICT")

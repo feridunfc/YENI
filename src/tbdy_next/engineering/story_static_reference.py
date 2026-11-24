@@ -8,7 +8,7 @@ from ..column_engine.source_bank import native_frame_force_rows
 from ..column_engine.story_alpha import alpha_feedback_factor, evaluate_story_alpha_reference
 from .alpha_iteration import _axis_indices
 from .column_pmm import _required_cut_coverage
-from .column_r10_live import _build_frame_catalog
+from .frame_geometry import build_frame_catalog
 from .demand_sources import _verified_support
 from .design_dependencies import _topology
 from .design_scenario import _digest
@@ -136,7 +136,7 @@ def supplementary_story_reference(source, axial, scope, dependencies):
         result["gravity_combinations"] = {n: {k: str(v) for k, v in terms.items()} for n, terms in gravity.items()}
         result["common_static_settings"] = list(next(iter(settings)))
         frames, _, blockers = _topology(source)
-        _, points, _ = _build_frame_catalog(source)
+        _, points, _ = build_frame_catalog(source)
         roster = defaultdict(list)
         for uid, frame in frames.items():
             if frame["type"] == "Column":

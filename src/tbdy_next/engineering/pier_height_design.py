@@ -90,14 +90,19 @@ def _branch(rows, site, branch, ztop, *, shear_available=True):
     third = base + h/3
     f = min(1., max(0., (z-third)/(ztop-third)))
     for kind in ("solid", "coupled") if shear_available else ():
-        bottom = _ordinate(rows, base, kind)
-        knee = _ordinate(rows, third, kind)
-        upper = site[kind]
+        def upper_envelope(level):
+            # Both physical faces at a storey jump and every larger demand above the cut.
+            native = _ordinate(rows, level, kind)
+            return max([native] + [r[kind] for r in rows if r["z_m"] >= level - 1e-8])
+
+        bottom = upper_envelope(base)
+        knee = upper_envelope(third)
+        upper = upper_envelope(max(base, z))
         if z >= third:
-            upper = max(upper, (1-f)*knee + f*.5*bottom)
-        elif z < base:
-            upper = max(upper, bottom)
-        demands[kind] = {"ve_upper_kn": upper, "base_upper_kn": bottom, "third_height_upper_kn": knee}
+            upper = max(upper, (1-f)*knee + f*max(.5*bottom, _ordinate(rows, ztop, kind)))
+        demands[kind] = {"ve_upper_kn": max(upper, site[kind]), "base_upper_kn": bottom,
+                         "third_height_upper_kn": knee, "third_height_native_kn": _ordinate(rows, third, kind),
+                         "method": "NONREDUCING_HEIGHT_ENVELOPE_OF_ALTERNATIVE_SHEAR_LIMIT"}
     return {**demands, "reference_z_m": base, "hcr_m": hcr, "third_height_z_m": third,
             "above_plateau_slope_fraction": fraction}
 

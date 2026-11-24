@@ -32,7 +32,7 @@ def transition_tables(walls):
                         sections.append(
                             start
                             + [
-                                method,
+                                (method + " · " + v.get("status", "Historical reference without an accuracy check")) if key == "recovered" else method,
                                 v["z_m"],
                                 v["combination"],
                                 *v["global_kn_knm"],
@@ -97,9 +97,12 @@ def transition_tables(walls):
                         )
                 for v in j.get("seismic_bounds", ()):
                     for kind, key in (("Lower bound", "minimum"), ("Upper bound", "maximum")):
-                        frames.append(
-                            start + [kind, v["combination"], *v.get(key, [None] * 6), v.get("reason")]
-                        )
+                        frames.append(start + [kind, v["combination"], *v.get(key, [None] * 6),
+                                                v.get("reason") or v.get("bound_basis", "Independent native face envelopes")])
+                    if "periodic_radius" in v:
+                        for kind, key in (("Signed static jump", "static_jump"), ("Periodic CQC radius of the jump", "periodic_radius"),
+                                          ("Static + periodic lower", "periodic_minimum"), ("Static + periodic upper", "periodic_maximum")):
+                            frames.append(start + [kind, v["combination"], *v[key], v.get("periodic_scope") or v["bound_basis"]])
                 if not j.get("combinations"):
                     frames.append(start + [None, None] + [None] * 6 + [j.get("reason") or j["status"]])
             for panel in change["panel_loads"]:
@@ -155,7 +158,7 @@ def transition_tables(walls):
             + ["Reference axial ratio", "Control z (m)", "Max control ΔF (kN)", "Max control ΔM (kN·m)"],
             "rows": sections,
             "note": " ".join(sorted(bases))
-            + " Native actions use the printed mesh elevation. The recovered section integrates unaveraged element-corner fields at the opening. At each mesh control plane the bilinear load projection assigns one quarter of each rectangular element's uniform pressure and self-weight to each corner. The remaining difference measures agreement after these translational loads.",
+            + " Native actions use the printed mesh elevation. The recovered section integrates unaveraged element-corner fields at the opening. At each mesh control plane the bilinear load projection assigns one quarter of each rectangular element's uniform pressure and self-weight to each corner. Each force and moment residual is compared with the greater of 2% of the native component or 5 kN / 5 kN·m. A failed component requires a common mesh before the field can be used for design.",
         },
         "7.20": {
             "title": "Frame actions at opening jambs",
@@ -164,7 +167,7 @@ def transition_tables(walls):
             + local_axes
             + ["Source status"],
             "rows": frames,
-            "note": "Signed static actions share one physical station and the frame local axes. A jump is the total change across the joint. Seismic intervals enclose each component separately.",
+            "note": "Signed static actions share one physical station and the frame local axes. A jump is the total change across the joint. Periodic CQC combines signed upper-minus-lower modal forces at the same station. The design interval retains both native face envelopes wherever the eccentric torsional jump is unresolved.",
         },
         "7.21": {
             "title": "Opening panel loads and transfer",

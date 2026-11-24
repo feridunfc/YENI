@@ -122,7 +122,8 @@ def panel_pressure_design(panel, combos, cover, mat, height, *, candidates=CAGES
     else:
         raise ValueError("NO_PROPOSED_HORIZONTAL_CAGE_MEETS_PRESSURE_BENDING_AND_CRACKING_SHEAR")
     n = ceil(height*1000/pitch)
-    return {"diameter_mm":dia, "maximum_pitch_mm":pitch, "layers":n, "pitch_mm":height*1000/n,
+    return {"pressure_model":"ONE_WAY_HORIZONTAL_UNIFORM_STRIP", "physical_height_mm":height*1000,
+            "diameter_mm":dia, "maximum_pitch_mm":pitch, "layers":n, "pitch_mm":height*1000/n,
             **grid, "curtain_inset_mm":inset, "provided_ratio_at_maximum_pitch":rho, "cover_mm": cover, "governing":governing,
             "design_moment_resistance_knm_m":mr, "diagonal_cracking_kn_m":vcr,
             "cuts": [{"combination":name,"pressure_kn_m2":q,"moment_bound_knm_m":abs(q)*span**2/8,
@@ -143,9 +144,14 @@ def vertical_section(panel, horizontal, cover, material, diameter, pitch):
     bars = tuple(Bar((2*i-count+1)*spacing/2, sign*offset, area) for i in range(count) for sign in (-1,1))
     # A crosstie at every vertical station and horizontal layer connects the two curtains.
     ties_per_m2 = floor(1000/spacing+1e-10)*floor(1000/horizontal["pitch_mm"]+1e-10)
-    required(ties_per_m2 >= 4 and thick >= 150 and panel["span_m"]/panel["thickness_m"] >= 7-1e-9,
-             "TS500_WALL_DIMENSION_OR_CROSSTIE_MINIMUM_UNSATISFIED")
+    from .pier_height_design import section_dimensions
+    actual_height = horizontal.get("physical_height_mm")
+    required(actual_height and isfinite(actual_height) and actual_height > 0, "PHYSICAL_PANEL_HEIGHT_REQUIRED")
+    dimensions = section_dimensions(1000*panel["span_m"], thick, actual_height)
+    required(dimensions["status"] == "DIMENSIONS_SATISFIED" and ties_per_m2 >= 4
+             and panel["span_m"]/panel["thickness_m"] >= 7-1e-9,
+             "TBDY_WALL_DIMENSIONS_OR_WEB_CROSSTIE_MINIMUM_UNSATISFIED")
     return Section(length,thick,bars,material), {"diameter_mm":diameter,"pitch_mm":spacing,
         "stations_per_face":count,"as_two_faces_mm2":2*count*area,"vertical_ratio":2*count*area/(length*thick),
-        "crosstie_diameter_mm":horizontal["diameter_mm"], "crossties":count*horizontal["layers"],
+        "dimensions": dimensions, "crosstie_diameter_mm":horizontal["diameter_mm"], "crossties":count*horizontal["layers"],
         "min_crossties_full_m2":ties_per_m2, "steel_role":"PROPOSED_WEB_BETWEEN_COLUMN_FACES"}

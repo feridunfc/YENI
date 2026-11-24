@@ -22,6 +22,7 @@ from . import __version__
 from .check_labels import display_check_group
 from .live_etabs import CAPTURE_UNIT_CODE, CAPTURE_UNIT_LABEL, EtabsConnectionError, EtabsUnitsError
 from .modal import evaluate_modal_mass
+from .archive_blobs import archive_bytes
 from .history import _MAX_SOURCE_BYTES, modal_history, modal_source_table, quick_history
 from .quick_checks import check_registry, evaluate_geometry_capture
 from .next_checks import evaluate_next_capture
@@ -63,6 +64,7 @@ def _execute_and_reply_live_payload(
     source_directory: Path | None = None,
     selection_overrides: Mapping[str, Any] | None = None,
     scenario_request: Mapping[str, Any] | None = None,
+    project_parameters: Mapping[str, Any] | None = None,
     whole_building: bool = False,
     pier_forces: Mapping[str, Any] | None = None,
     wall_hinge_aggregate_storeys: list[str] | None = None,
@@ -77,7 +79,7 @@ def _execute_and_reply_live_payload(
     try:
         prepared = prepare_pipeline_source(raw, source_directory=source_directory,
                                            selection_overrides=selection_overrides, request=scenario_request,
-                                           whole_building=whole_building,
+                                           whole_building=whole_building, project_parameters=project_parameters,
                                            pier_forces=pier_forces,
                                            wall_hinge_aggregate_storeys=wall_hinge_aggregate_storeys)
     except (OSError, ValueError, TypeError, KeyError) as exc:
@@ -106,9 +108,9 @@ def _execute_and_reply_live_payload(
         meta = payload.get("capture_metadata") or {}
         handler.reply(200, {
             "run_id": run.run_id, "result": result,
+            "seismic_project_profile": stages["report_evidence"].get("seismic_project_profile"),
             "engine_snapshot": stages["engine_snapshot"],
-            **({"building_design": stages["report_evidence"]["building_design"]}
-               if "building_design" in stages["report_evidence"] else {}),
+            **({"building_design": stages["building_design"]} if stages.get("building_design") is not None else {}),
             "model_name": ntpath.basename(str(meta.get("model_filename", ""))),
             "case_row_count": meta.get("case_row_count"),
             "source_rows": payload["table"]["row_count"],
@@ -259,25 +261,8 @@ def _column_axial_request(query: dict, output_root: Path) -> dict:
 
 
 def _runs(root: Path) -> list[dict[str, Any]]:
-    if not root.exists():
-        return []
-    output = []
-    for directory in sorted(root.glob("RUN-*"), reverse=True)[:60]:
-        if not directory.is_dir() or not _RUN_ID_PATTERN.fullmatch(directory.name):
-            continue
-        steps: list[dict[str, Any]] = []
-        try:
-            files = receipt_paths(directory)
-        except (OSError, ValueError):
-            continue
-        for file in files:
-            try:
-                data = json.loads(file.read_text(encoding="utf-8"))
-            except (OSError, ValueError):
-                continue
-            steps.append({"stage": data.get("stage"), "status": (data.get("payload") or {}).get("status"), "receipt_sha256": data.get("receipt_sha256")})
-        output.append({"run_id": directory.name, "steps": steps})
-    return output
+    from .history_catalog import listing
+    return listing(root)
 
 
 from .engineering.pipeline import calculate_modal as _calculate_modal  # noqa: E402
@@ -331,7 +316,8 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                 self.end_headers()
                 self.wfile.write(contents)
             elif url.path == "/api/health":
-                self.reply(200, {"status": "PARTIAL_UNIFIED_VS04_SCREENING", "implemented_slices": ["MODAL_MASS_RATIO", "MATERIAL_FCK_25", "A1_X_Y_SOURCE_CLASSIFICATION"], "source_only_slices": ["VS04_ANALYSIS_SOURCE_SCHEMA", "VS04_ANALYSIS_NUMERIC_SOURCE", "VS04_E_NORMATIVE_READINESS"], "live_web_f_to_j_integrated": True, "single_primary_action": "/api/live-vs04", "on_demand_force_checks": ["column-axial", "column-pmm"], "formal_compliance": "NOT_PROVEN", "engineering_release": "NOT_READY"})
+                self.reply(200, {"workspace_sha256": sha256(scripts["workspace.js"] + scripts["workspace-source.js"]).hexdigest(),
+                                 "status": "PARTIAL_UNIFIED_VS04_SCREENING", "implemented_slices": ["MODAL_MASS_RATIO", "MATERIAL_FCK_25", "A1_X_Y_SOURCE_CLASSIFICATION"], "source_only_slices": ["VS04_ANALYSIS_SOURCE_SCHEMA", "VS04_ANALYSIS_NUMERIC_SOURCE", "VS04_E_NORMATIVE_READINESS"], "live_web_f_to_j_integrated": True, "single_primary_action": "/api/live-vs04", "on_demand_force_checks": ["column-axial", "column-pmm"], "formal_compliance": "NOT_PROVEN", "engineering_release": "NOT_READY"})
             elif url.path == "/api/pipeline":
                 from .engineering.pipeline import dag_coverage, stage_registry
                 self.reply(200, {"stages": stage_registry(), "dag_coverage": dag_coverage(),
@@ -627,7 +613,7 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                     self.reply(422, {"error": str(exc),
                                      "formal_compliance": "NOT_PROVEN"})
                 return
-            if url.path == "/api/apply-rebar-selection":
+            if url.path in ("/api/apply-rebar-selection", "/api/project-parameters"):
                 origin = self.headers.get("Origin")
                 host = self.headers.get("Host", "")
                 if (self.headers.get("Sec-Fetch-Site") == "cross-site"
@@ -653,12 +639,22 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                     base_report = build_complete_report(output_root, base_run_id)
                     if base_report["source_mode"] != "LIVE_ETABS":
                         raise ValueError("LIVE_ETABS_BASE_RUN_REQUIRED")
+                    if url.path == "/api/project-parameters":
+                        from .engineering.seismic_profile import normalize_values
+                        if set(body) != {"base_run_id", "project_parameters"} or q:
+                            raise ValueError("PROJECT_PARAMETER_REQUEST_INVALID")
+                        values = normalize_values(body["project_parameters"])
+                        defaults = (base_report.get("seismic_project_profile") or {}).get("fields", {})
+                        for key, value in values.items():
+                            field = defaults.get(key) or {}
+                            if field.get("origin") in {"ETABS_FUNCTION", "ETABS_PROJECT", "DERIVED"} and field.get("value") != value:
+                                raise ValueError("PROJECT_PARAMETER_CONFLICT:" + key)
                     source_directory = output_root / base_run_id
                     source_path = source_directory / "input.source"
                     if (source_path.is_symlink() or not source_path.is_file()
                             or not 0 < source_path.stat().st_size <= _MAX_SOURCE_BYTES):
                         raise ValueError("SOURCE_PATH_MISSING_OR_UNSAFE")
-                    source_raw = source_path.read_bytes()
+                    source_raw = archive_bytes(source_path)
                     if sha256(source_raw).hexdigest() != base_report["source_provenance"]["input_sha256"]:
                         raise ValueError("SCENARIO_BASE_SOURCE_HASH_MISMATCH")
                     selection_overrides = {}
@@ -695,8 +691,8 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                 _execute_and_reply_live_payload(
                     self, output_root, base_report["source_snapshot"], case, suite=True,
                     source_raw=source_raw, source_directory=source_directory,
-                    selection_overrides=selection_overrides,
-                    scenario_request=scenario_request,
+                    selection_overrides=selection_overrides if url.path == "/api/apply-rebar-selection" else None,
+                    project_parameters=body.get("project_parameters"), scenario_request=scenario_request,
                     whole_building=body.get("whole_building", False),
                     pier_forces=pier_forces,
                     wall_hinge_aggregate_storeys=body.get("wall_hinge_aggregate_storeys"),

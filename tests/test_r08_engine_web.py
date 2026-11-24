@@ -25,6 +25,9 @@ class R08ProductWebTests(unittest.TestCase):
         def capture(case):
             self.calls.append(case)
             data = fake_live_suite(case)
+            from test_seismic_project_profile import model
+            data.update(model([("design", "7")], [("RSX", "design", "U1", 0, "Global"),
+                                                  ("RSY", "design", "U2", 0, "Global")]))
             data["r08_second_order_source"] = fixture()
             return data
 

@@ -85,7 +85,8 @@ def capture_basis_probe(sap: Any, *, max_tables: int = 24) -> dict:
         table["field_metadata"] = _full_metadata(db,key)
         reads[key]=table
     # These exact source definitions are required independently of the discovery budget.
-    for key in (DESIGN_COMBOS, "Load Pattern Definitions"):
+    for key in (DESIGN_COMBOS, "Load Pattern Definitions", "Project Information",
+                "Functions - Response Spectrum - TSC-2018", "Load Case Definitions - Response Spectrum"):
         if key in reads:
             continue
         try:

@@ -1,5 +1,6 @@
 """Opt-in reanalysis of a dedicated input-identical copy for missing wall results."""
 
+from contextlib import contextmanager
 from hashlib import sha256
 import json
 from math import isfinite
@@ -90,6 +91,45 @@ def pier_controls(original, observed):
     }
 
 
+def _session_state(sap):
+    return {"file": str(Path(model_file(sap)).with_suffix(".EDB").resolve(strict=True)),
+            "units": int(sap.GetPresentUnits()), "locked": bool(sap.GetModelIsLocked())}
+
+
+@contextmanager
+def _private_session(sap, original, target, original_sha, switch):
+    before = _session_state(sap)
+    _check(Path(before["file"]) == (original if switch else target), "ACTIVE_MODEL_CHANGED_BEFORE_PRIVATE_READ")
+    status = "PRIVATE_SESSION_ALREADY_OPEN"
+    try:
+        if switch:
+            _native(sap.File.OpenFile(str(target)), "Open private wall analysis copy")
+        yield
+    finally:
+        final = None
+        try:
+            active = _session_state(sap)
+            if switch and Path(active["file"]) == target:
+                _check(_safe(original) and _digest(original) == original_sha, "ORIGINAL_CHANGED_BEFORE_SESSION_RESTORE")
+                _native(sap.File.OpenFile(str(original)), "Restore original ETABS model")
+                restored = _session_state(sap)
+                _check(Path(restored["file"]) == original, "ORIGINAL_SESSION_RESTORE_FAILED")
+                if restored["units"] != before["units"]:
+                    _native(sap.SetPresentUnits(before["units"]), "Restore original presentation units")
+                status = "ORIGINAL_MODEL_RESTORED"
+            elif switch and Path(active["file"]) == original:
+                status = "ORIGINAL_ALREADY_ACTIVE"
+            elif Path(active["file"]) != target:
+                status = "USER_SELECTED_MODEL_PRESERVED"
+            final = _session_state(sap)
+        except Exception:
+            status = "ETABS_SESSION_RESTORE_FAILED"
+            raise
+        finally:
+            _write_new(target.parent / ("session-" + uuid4().hex + ".json"),
+                       {"before": before, "after": final, "status": status})
+
+
 def solve_private_wall_source(sap, pid, parent, parent_sha, previous, output_root):
     verify(previous)
     _check(
@@ -118,7 +158,6 @@ def solve_private_wall_source(sap, pid, parent, parent_sha, previous, output_roo
             {"original": str(base), "parent_sha256": parent_sha, "input_sha256": initial_sha},
         )
         print("Opening private wall analysis copy: " + str(target), flush=True)
-        _native(sap.File.OpenFile(str(target)), "Open private wall analysis copy")
     else:
         target, folder = active, active.parent
         _check(
@@ -130,6 +169,13 @@ def solve_private_wall_source(sap, pid, parent, parent_sha, previous, output_roo
             manifest == {"original": str(base), "parent_sha256": parent_sha, "input_sha256": initial_sha},
             "PRIVATE_WALL_COPY_PARENT_DIFFERS",
         )
+
+    with _private_session(sap, base, target, initial_sha, switch=active == base):
+        return _read_or_solve(sap, pid, parent, parent_sha, previous, base, target, initial_sha)
+
+
+def _read_or_solve(sap, pid, parent, parent_sha, previous, base, target, initial_sha):
+    folder = target.parent
 
     def guard():
         path = Path(model_file(sap)).resolve(strict=True)

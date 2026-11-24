@@ -17,7 +17,7 @@ from .story_drift_binding import _verify_generic_capture
 
 SCHEMA = "tbdy.next.vs06.c2.drift-scenario.v1"
 DEFAULTS = {
-    "r": "7", "i": "1.5", "lambda": "0.5", "material": "RC",
+    "r": "", "rx": "", "ry": "", "i": "", "lambda": "0.5", "material": "RC",
     "wall_type": "BRITTLE", "flexible_proven": "false",
     "wall_mode": "LOAD_PATTERN_BEAM_CANDIDATE",
     "wall_load_pattern": "LC_WDL",
@@ -71,8 +71,9 @@ def options(raw: Mapping[str, Any] | None) -> dict[str, str]:
     if (not pattern or len(pattern) > 120 or pattern.strip() != pattern
             or any(ord(ch) < 32 or ord(ch) == 127 for ch in pattern)):
         raise DriftScenarioError("WALL_LOAD_PATTERN_INVALID")
-    _positive(merged["r"], "R", maximum="20")
-    _positive(merged["i"], "I", maximum="5")
+    for name in ("r", "rx", "ry", "i"):
+        if merged[name]:
+            _positive(merged[name], name.upper(), maximum="5" if name == "i" else "20")
     _positive(merged["lambda"], "LAMBDA", maximum="10")
     _positive(merged["coverage_pct"], "COVERAGE", zero=True, maximum="100")
     _positive(merged["opening_pct"], "OPENING", zero=True, maximum="100")
@@ -263,13 +264,20 @@ def evaluate_drift_scenario(report: Mapping[str, Any], inputs: Mapping[str, Any]
             raise DriftScenarioError("DUPLICATE_SOURCE_DRIFT_SLOT")
         index[key] = row
     lam = _positive(opt["lambda"], "LAMBDA")
-    R, I = _positive(opt["r"], "R"), _positive(opt["i"], "I")
+    fields = (report.get("seismic_project_profile") or {}).get("fields", {})
+    for key, name in (("rx", "Rx"), ("ry", "Ry"), ("i", "I")):
+        value = opt[key] or (opt["r"] if key in ("rx", "ry") else None) or (fields.get(name) or {}).get("value")
+        if value is None:
+            raise DriftScenarioError("PROJECT_PARAMETER_REQUIRED:" + name)
+        opt[key] = str(value)
+    I = _positive(opt["i"], "I", maximum="5")
     kappa = Decimal(1) if opt["material"] == "RC" else Decimal("0.5")
     coef = Decimal("0.008") if opt["wall_type"] == "BRITTLE" else Decimal("0.016")
     limit = coef * kappa
     rows = []
     for instance in instances:
         story, case, direction = (instance["story"], instance["case"], instance["direction"])
+        R = _positive(opt["r" + direction.lower()], "R" + direction, maximum="20")
         if CASES[direction] != case:
             raise DriftScenarioError("NOT_PRIMARY_DIRECTION")
         raw = index.get((story, case, direction))

@@ -19,19 +19,20 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "ORIGINAL_BUILDING_OPENING_SECTIONS_AND_SIGNED_PANEL_EQUILIBRIUM",
-    "work_branch": "work/wall-transition-sections",
+    "status": "SOURCE_BOUND_PROJECT_DEFAULTS_AND_BUILDING_STAGE",
+    "work_branch": "work/audit-stabilization",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "b7aa7147b4e07fa26e1657bc4220fda842bab0ba",
-    "tested_implementation_commit": "773fd4d69d5479c87ff4b12449dfcd7956d022ad",
+    "inspected_base_commit": "6154425d2f8471495f5d7deee8c70ae4b38e02a6",
+    "tested_git_subtrees": {
+      "src": "0b2695e853fa031036948ade04f1078f46428889",
+      "tests": "f9a0ffb31800c01af3f84169e61e95350d6bb130"
+    },
+    "production_run_id": "RUN-1653aec18a9240e08e9790899438608f",
+    "results_sha256": "6ebee0a9ec3775fb7843a332effde4fd66d920d88b33d4c8189fab7d5c59dcb1",
     "evidence_refs": [
-      "EV-WALL-OPENING-SECTIONS-20261124"
+      "EV-ORIGINAL-ETABS-PROJECT-DEFAULTS-20261124"
     ],
-    "production_run_id": "RUN-59b1c63cbeb347b4b033b2cd4847d2c3",
-    "results_sha256": "62cad46f05b3845012951a16b8f77d93eb4f623c65e5b544fc7f7ebcb91cad27",
-    "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
-    "engineering_release": "NOT_READY",
-    "next_action": "Qualify the xP2 opening resultants at a common mesh section at -1.50 m and establish reinforcement continuity and development at the opening before selecting the design base. The seven W22 load and transfer balances are complete. While the common-edge source or connection detail is pending, advance the yP2 uncolumned-end transfer in the whole-building engine."
+    "engineering_release": "NOT_READY"
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
@@ -11825,6 +11826,177 @@
       },
       "open_cells_by_group": {"xP2": 4, "yP1": 3, "yP2": 4, "unassigned_W32": 5},
       "engineering_release": "NOT_READY"
+    },
+    {
+      "id": "EV-ORIGINAL-ETABS-PROJECT-DEFAULTS-20261124",
+      "status": "SOURCE_BOUND_DEFAULTS_AND_DIRECTIONAL_CALCULATION_VERIFIED",
+      "inspected_base_commit": "6154425d2f8471495f5d7deee8c70ae4b38e02a6",
+      "tested_git_subtrees": {
+        "src": "0b2695e853fa031036948ade04f1078f46428889",
+        "tests": "f9a0ffb31800c01af3f84169e61e95350d6bb130"
+      },
+      "engine": "tbdy_next.engineering.pipeline.EnginePipelineRunner",
+      "design_run": "RUN-1653aec18a9240e08e9790899438608f",
+      "source_run": "RUN-59b1c63cbeb347b4b033b2cd4847d2c3",
+      "source_kind": "REPLAY_OF_ORIGINAL_MODEL_CAPTURE",
+      "input_sha256": "056b927edbf55445ecc5f1d20e9296552d1f425e0767bd36ab2f560413bcb2a7",
+      "parent_sha256": "703e202fc8b08f60043c571d9970945b6307e5cee99e8a45e6377c8446da56fc",
+      "engine_snapshot": {
+        "schema": "tbdy.next.pipeline-stage-snapshot.v3",
+        "snapshot_sha256": "e7ba3b5a40188e50d6aec7601cdf61f13b548e1e6ead8af73665a42f9c662898",
+        "results_sha256": "6ebee0a9ec3775fb7843a332effde4fd66d920d88b33d4c8189fab7d5c59dcb1"
+      },
+      "physical_model": "kompakt_b.EDB",
+      "live_gateway_check": {
+        "run_id": "RUN-1653aec18a9240e08e9790899438608f",
+        "port": 8876,
+        "http_status": 200,
+        "origin": "SEALED_RUN_RESULT",
+        "views": [
+          "1.0",
+          "2.1"
+        ]
+      },
+      "assignments": [
+        {
+          "angle_deg": "0",
+          "axis": "X",
+          "case": "RSX",
+          "csys": "Global",
+          "function": "RESP_YATAY",
+          "horizontal_tsc": true,
+          "load": "U1"
+        },
+        {
+          "angle_deg": "0",
+          "axis": "Y",
+          "case": "RSY",
+          "csys": "Global",
+          "function": "RESP_YATAY",
+          "horizontal_tsc": true,
+          "load": "U2"
+        }
+      ],
+      "parameters": {
+        "BKS": 1,
+        "BYS": null,
+        "DD": null,
+        "DTS": null,
+        "DampRatio": 0.05,
+        "Dx": 2.5,
+        "Dy": 2.5,
+        "F1": 2.378,
+        "Fs": 1.524,
+        "HN": null,
+        "I": 1.5,
+        "Rx": 7.0,
+        "Ry": 7.0,
+        "S1": 0.111,
+        "SD1": 0.263958,
+        "SDS": 0.52578,
+        "SiteClass": "ZD",
+        "Ss": 0.345,
+        "TL": 6.0
+      },
+      "profile_missing_inputs": [
+        "DD",
+        "DTS",
+        "HN",
+        "BYS"
+      ],
+      "physical_roof_m": 9.0,
+      "classification_reference": "TBDY 2018 Tables 3.1, 3.2, 3.3 and section 3.3.1",
+      "height_scenarios": [
+        {
+          "BYS": 7,
+          "DTS": "2a",
+          "assumed_DD": "DD-2",
+          "base_m": 0.0,
+          "height_m": 9.0
+        },
+        {
+          "BYS": 6,
+          "DTS": "2a",
+          "assumed_DD": "DD-2",
+          "base_m": -5.15,
+          "height_m": 14.15
+        }
+      ],
+      "scoped_second_order": {
+        "evaluated_story_direction_count": 6,
+        "expected_story_direction_count": 6,
+        "project_design_parameters": {
+          "D_X": 2.5,
+          "D_Y": 2.5,
+          "R_X": 7.0,
+          "R_Y": 7.0
+        },
+        "status": "NUMERIC_PRECHECK_UNAPPROVED"
+      },
+      "effective_drift": {
+        "source_run": "RUN-8e123f88fb574073b94bdb0af78fc97e",
+        "expected": 6,
+        "evaluated": 6,
+        "ground_floor": [
+          {
+            "story": "+0.00",
+            "direction": "X",
+            "source_delta_mm": "2.62135000",
+            "effective_delta_mm": "12.23296666666666666666666667"
+          },
+          {
+            "story": "+0.00",
+            "direction": "Y",
+            "source_delta_mm": "1.99305000",
+            "effective_delta_mm": "9.30090000"
+          }
+        ]
+      },
+      "wall_check_counts": {
+        "physical_walls": 30,
+        "scheduled_panels": 12,
+        "transition_recovered_shell_sections": 14,
+        "transition_field_controls_within_tolerance": 0,
+        "transition_panel_balances": 7
+      },
+      "wall_field_control": "Each of six components has an allowance max(5 kN or kN m, 2% of the absolute native action).",
+      "column_results": {
+        "conditional": 42,
+        "hold": 41,
+        "failed": 4
+      },
+      "calculated_beams": 180,
+      "software_tests": {
+        "command": "python -X utf8 -B tools/test_offline.py",
+        "python_version": "3.12.10",
+        "platform": "Windows",
+        "total": 1770,
+        "passed": 1769,
+        "skipped": 1,
+        "skip_reason": "OS disallows creating symlinks",
+        "javascript_test_files": 12,
+        "golden": {
+          "numerical_match": 36,
+          "interpretation_difference": 4,
+          "insufficient_source": 4
+        },
+        "result": "PASS"
+      },
+      "replay_command": "python -X utf8 -B -m tbdy_next.cli run-pipeline --whole-building --case Modal --source .receipts/RUN-59b1c63cbeb347b4b033b2cd4847d2c3/input.source --out .receipts",
+      "private_evidence_root": ".receipts/verification/audit-stabilization-20261124",
+      "log_sha256": {
+        "profile-final.log": "d3cc257bff09054ce159b6a5045374c3729f0eaaf35b049951eb6c4bcaeec5c2",
+        "http-profile.json": "b71e62af4edfacd1dcb9e604b1018c19445beb3b49d1583f6aa92d1f8882302b",
+        "http-sealed-profile.json": "680223e2380127638aab03f014c28b74d3f7ac852a54d405b80cfbf645092f40",
+        "http-drift.json": "ca4d64b0ea0ea2d9603d970237d91179e0bae77d60e31718216dcf1adb2c8f73",
+        "windows-delivery.log": "82ff330eea3793491708e27a6c9a0c0014bba8e59afc23011c896b4fb509ee4b"
+      },
+      "limits": [
+        "Ground-motion level of the source function is unrecorded. The construction/enclosure basis at W22 is unresolved.",
+        "The two BYS outputs are conditional on DD-2 and the indicated seismic base. The conditional frame critical-load method needs a coupled-system decision.",
+        "Direct material/solver approvals and S06/S08 independent source rows remain open."
+      ],
+      "engineering_release": "NOT_READY"
     }
   ],
   "new_record_template": {
@@ -11849,7 +12021,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-24T05:06:00+00:00",
+  "updated_at_utc": "2026-11-24T17:31:37+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -12693,6 +12865,21 @@
       "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
       "engineering_release": "NOT_READY",
       "next_action": "Use the same all-wall run to recover signed modal wall totals at the project base and reconcile the unassigned wall 471. Extend the multi-panel design owner to the stepped xP2 and the unsupported yP2 end while retaining the existing 15-row batch."
+    },
+    {
+      "status": "ORIGINAL_BUILDING_OPENING_SECTIONS_AND_SIGNED_PANEL_EQUILIBRIUM",
+      "work_branch": "work/wall-transition-sections",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "b7aa7147b4e07fa26e1657bc4220fda842bab0ba",
+      "tested_implementation_commit": "773fd4d69d5479c87ff4b12449dfcd7956d022ad",
+      "evidence_refs": [
+        "EV-WALL-OPENING-SECTIONS-20261124"
+      ],
+      "production_run_id": "RUN-59b1c63cbeb347b4b033b2cd4847d2c3",
+      "results_sha256": "62cad46f05b3845012951a16b8f77d93eb4f623c65e5b544fc7f7ebcb91cad27",
+      "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
+      "engineering_release": "NOT_READY",
+      "next_action": "Qualify the xP2 opening resultants at a common mesh section at -1.50 m and establish reinforcement continuity and development at the opening before selecting the design base. The seven W22 load and transfer balances are complete. While the common-edge source or connection detail is pending, advance the yP2 uncolumned-end transfer in the whole-building engine."
     }
   ],
   "remote_audit_correction_checkpoint": {
