@@ -92,6 +92,9 @@ def main(argv: list[str] | None = None) -> int:
     replay.add_argument("--wall-hinge-aggregate-storey", action="append", metavar="STOREY",
                         help="Adopt a lower wall hinge only in this storey's frame critical-load sum")
     replay.add_argument("--pier-forces", type=Path, help="Original pier-forces gateway capture for the whole-building run")
+    replay.add_argument("--basement-matrices", type=Path, metavar="CASE.TXA",
+                        help="Attach the private ETABS modal matrix files for the basement period comparison")
+    replay.add_argument("--basement-ground-storey", metavar="STOREY", help="Ground-floor storey identity for the imported matrix pair")
     replay.add_argument("--beam-selection", help="'default' or path to JSON beam selection policy")
     replay.add_argument("--column-selection", help="'default' or path to JSON column selection policy")
     args = parser.parse_args(argv)

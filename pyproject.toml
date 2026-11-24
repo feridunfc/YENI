@@ -13,6 +13,7 @@ dependencies = []
 # ETABS is an in-process Windows COM integration. Keep Linux/offline CI free
 # of Windows-only imports while making the live workstation setup reproducible.
 etabs-windows = ["comtypes>=1.4,<2; sys_platform == 'win32'"]
+modal-matrices = ["numpy>=1.26,<3", "scipy>=1.12,<2"]
 
 [project.scripts]
 tbdy-next = "tbdy_next.cli:main"

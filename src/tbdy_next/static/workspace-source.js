@@ -204,6 +204,30 @@
         coverage(counts.directional_moments, 2 * counts.pier_storeys, 'individual directional moments'),
         'Each scalar moment acts at its pier centroid. Check 7.15 reports the signed sum at each physical cut.');
       const modal = batch.modal_base;
+      const base = modal?.basement_reference;
+      if (base) {
+        tables['7.17'] = table(['Direction', 'ETABS full period (s)', 'Full matrix period (s)', 'Upper period (s)',
+          'Full / upper', 'Limit', 'Full effective mass (%)', 'Upper effective mass (%)', 'Period check'],
+        ['X', 'Y'].map(axis => {
+          const p = base.periods.find(row => row.direction === axis) || {};
+          return [axis, decimals(p.full_period_s, 7), decimals(p.matrix_full_period_s, 7), decimals(p.upper_period_s, 7),
+            decimals(p.period_ratio, 6), 1.1, percentage(p.matrix_full_mass_ratio), percentage(p.upper_mass_ratio),
+            p.status || base.period_reason || base.periods_reason || base.reason];
+        }), coverage(base.evaluated_directions || 0, 2, 'directions'), base.status,
+        [['Candidate level (m)', base.candidate_m], ['Foundation (m)', base.foundation_m],
+         ['Design base (m)', base.design_base_m], ['Omitted physical X mass (t)', decimals(base.mass_scope?.removed?.UX, 3)],
+         ['Retained physical X mass (t)', decimals(base.mass_scope?.retained?.UX, 3)]]);
+        if (base.perimeter) {
+          const outline = base.perimeter.bands.flatMap(b => b.sides.map(s => {
+            const path = (b.open_side_paths || []).find(p => p.side === s.side);
+            return [b.bottom_m, b.top_m, s.side, decimals(s.span_m, 2), decimals(s.on_outline_m, 2), decimals(s.gap_m, 2),
+              [...new Set(s.intervals.flatMap(i => i.walls.map(w => base.perimeter.wall_labels[w])))].join(', '),
+              path ? (path.connected ? path.wall_ids.map(w => base.perimeter.wall_labels[w]).join(' → ') : 'Disconnected') : null];
+          }));
+          tables['7.18'] = table(['From (m)', 'To (m)', 'Side', 'Projected length (m)', 'On outline (m)',
+            'Remaining length (m)', 'Wall labels', 'Return path between open-side ends'], outline, base.enclosure_status, base.perimeter.interpretation);
+        }
+      }
       if (modal?.storeys?.length) {
         const actions = modal.storeys.flatMap(st => (st.directions.length ? st.directions : [{}]).map(r => [
           st.story, st.cut_z_m, st.walls, st.columns, st.modes_balanced + '/' + st.modes_expected, r.direction,

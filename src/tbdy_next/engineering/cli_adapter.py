@@ -62,6 +62,8 @@ def _run_pipeline_replay(args) -> int:
     prepared = prepare_pipeline_source(raw, source_directory=args.source.parent, request=request,
                                        selection_overrides=overrides or None,
                                        whole_building=getattr(args, "whole_building", False),
+                                       basement_matrices=getattr(args, "basement_matrices", None),
+                                       basement_ground_storey=getattr(args, "basement_ground_storey", None),
                                        pier_forces=_read(args.pier_forces) if getattr(args, "pier_forces", None) else None,
                                        wall_hinge_aggregate_storeys=getattr(args, "wall_hinge_aggregate_storey", None))
     raw, payload = prepared.raw, prepared.payload

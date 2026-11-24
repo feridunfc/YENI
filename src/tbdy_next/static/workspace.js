@@ -82,7 +82,9 @@
       ['7.13', 'Pressure reinforcement at wall ends', 'Development and transfer', 'TS 500 §§8.1.7 and 9.1.2 · Anchorage and joint shear', 13],
       ['7.14', 'Wall results by load combination', 'All pier cuts', 'TBDY 2018 §§7.6.1 and 7.6.7 · Section and joint controls', 13],
       ['7.15', 'Signed wall and storey actions', 'Modal equilibrium and load sharing', 'TBDY 2018 Annex 4B · Periodic CQC and horizontal floor loads', 13],
-      ['7.16', 'Wall panel sections by elevation', 'Assigned shell properties', 'ETABS wall objects and physical cut geometry', 13]]],
+      ['7.16', 'Wall panel sections by elevation', 'Assigned shell properties', 'ETABS wall objects and physical cut geometry', 13],
+      ['7.17', 'Basement periods and design base', 'Dominant modes in X and Y', 'TBDY 2018 §§3.3.1.1–3.3.1.2', 13],
+      ['7.18', 'Basement perimeter walls', 'Ground-floor outline by elevation', 'TBDY 2018 §3.3.1.1(a)', 13]]],
     ['Slabs and punching shear', [
       ['8.1', 'Column–slab punching shear', 'TS 500', 'TS 500 §8.3 · Punching shear strength and reinforcement', 10]]]
   ];

@@ -27,7 +27,7 @@ LINEAGE_WITH_BASIS = "tbdy.next.design-scenario-lineage.v2"
 PARENT_FILE = "parent.source"
 POLICIES = ("beam_selection", "column_selection")
 CALCULATION_BASES = ("second_order_basis", "analysis_basis", "analysis_archive", "gravity_order_pair",
-                     "coupled_wall_transition", "building_design", "pier_section_forces")
+                     "coupled_wall_transition", "building_design", "pier_section_forces", "basement_modal_matrices")
 
 
 @dataclass(frozen=True)
@@ -60,6 +60,9 @@ def _source_data(payload: Mapping[str, Any]) -> dict[str, Any]:
 def _calculation_basis(key: str, value: Any, source_data_sha256: str) -> dict[str, Any] | None:
     if value is None:
         return None
+    if key == "basement_modal_matrices":
+        from .basement_matrices import normalize_matrices
+        return normalize_matrices(value, source_data_sha256=source_data_sha256)
     if key == "building_design":
         from .frame_storey_design import normalize_building_design
         return normalize_building_design(value, source_data_sha256=source_data_sha256)
@@ -86,7 +89,8 @@ def _lineage_bases(bases: Mapping[str, Any]) -> dict[str, Any]:
     # Archive artifacts belong to input.source. The sealed result and printed
     # report only need their binding digest.
     return {key: {"archive_sha256": _digest(value)} if key in {
-                "analysis_archive", "gravity_order_pair", "coupled_wall_transition", "pier_section_forces"} else value
+                "analysis_archive", "gravity_order_pair", "coupled_wall_transition", "pier_section_forces",
+                "basement_modal_matrices"} else value
             for key, value in bases.items()}
 
 
@@ -245,6 +249,8 @@ def prepare_pipeline_source(
     selection_overrides: Mapping[str, Any] | None = None,
     whole_building: bool = False,
     pier_forces: Mapping[str, Any] | None = None,
+    basement_matrices: Path | None = None,
+    basement_ground_storey: str | None = None,
     wall_hinge_aggregate_storeys: list[str] | None = None,
 ) -> PreparedPipelineSource:
     """Prepare replay or selection identically for Web and CLI.
@@ -262,8 +268,10 @@ def prepare_pipeline_source(
     if request is not None and selection_overrides is not None:
         raise ValueError("SCENARIO_AND_SELECTION_FLAGS_ARE_EXCLUSIVE")
     if type(whole_building) is not bool or (not whole_building and
-            (wall_hinge_aggregate_storeys is not None or pier_forces is not None)):
+            (wall_hinge_aggregate_storeys is not None or pier_forces is not None or basement_matrices is not None)):
         raise ValueError("BUILDING_SCOPE_OPTION_INVALID")
+    if (basement_matrices is None) != (basement_ground_storey is None):
+        raise ValueError("BASEMENT_MATRIX_IMPORT_REQUIRES_GROUND_STOREY")
     payload = decode(source_raw)
     if not isinstance(payload, dict) or payload.get("source_mode") != "LIVE_ETABS":
         raise ValueError("LIVE_ETABS_ARCHIVED_SOURCE_REQUIRED")
@@ -296,6 +304,11 @@ def prepare_pipeline_source(
                        **{key: payload.get(key) if scenario else payload.get(key, "default") for key in POLICIES},
                        **{key: payload[key] for key in CALCULATION_BASES if payload.get(key) is not None}}
         request = dict(request)
+        if basement_matrices is not None:
+            from .basement_matrices import pack_matrices
+            if request.get("analysis_archive") is None:
+                raise ValueError("BASEMENT_MATRIX_MODEL_EXPORT_REQUIRED")
+            request["basement_modal_matrices"] = pack_matrices(basement_matrices, request["analysis_archive"], basement_ground_storey)
         if pier_forces is not None:
             from .pier_force_source import ORIGINAL, SCHEMA as PIER_SCHEMA
             inherited = request.get("pier_section_forces")

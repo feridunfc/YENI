@@ -191,6 +191,7 @@ def wall_batch(source, stages, boundaries, sections, bound, scope):
                            "friction": _governing(assigned_rows, "upper_utilization", "reference_friction")}
     modal = modal_wall_balance(source, stages, bound)
     signed_levels = {r["story"] for r in modal["storeys"] if r["directions"]}
+    basement_reference = modal.get("basement_reference") or {}
     references = []
     for story in sorted({r["story"] for r in rows}):
         at_level = [r for r in rows if r["story"] == story]
@@ -209,6 +210,13 @@ def wall_batch(source, stages, boundaries, sections, bound, scope):
             ref["project_status"] = "HOLD"
             ref["project_reason"] = ("PROJECT_BASE_COUPLING_AND_DESIGN_SPECTRUM_BASIS_REQUIRED" if story in signed_levels
                                      else "PROJECT_BASE_WALL_POPULATION_COUPLING_AND_MODAL_WALL_TOTAL_REQUIRED")
+            if story in signed_levels and "design_base_m" in basement_reference:
+                cut = next(r for r in modal["storeys"] if r["story"] == story)
+                ref["at_design_base"] = cut["cut_z_m"] == basement_reference["design_base_m"]
+                ref["project_reason"] = ("WALL_COUPLING_AND_DESIGN_SPECTRUM_BASIS_REQUIRED" if ref["at_design_base"]
+                                         else "CUT_ABOVE_DESIGN_BASE")
+            elif story in signed_levels and basement_reference.get("period_status") == "SATISFIED":
+                ref["project_reason"] = "ENCLOSURE_COUPLING_AND_DESIGN_SPECTRUM_BASIS_REQUIRED"
     named = [r for r in rows if r["pier"]]
     assigned = [c for r in named for c in r["cuts"] if c["role"].startswith("ASSIGNED_")]
     design = [r["design"] for r in named]
@@ -227,6 +235,7 @@ def wall_batch(source, stages, boundaries, sections, bound, scope):
               "directional_moments": sum(len(r["overturning"]) for r in named),
               "balanced_signed_modes": sum(r["modes_balanced"] for r in modal["storeys"]),
               "modal_storey_directions": sum(len(r["directions"]) for r in modal["storeys"]),
+              "basement_period_directions": basement_reference.get("evaluated_directions", 0),
               "design_axial_storeys": sum(d["axial"] is not None for d in design),
               "design_shear_storeys": sum(d["shear"] is not None for d in design),
               "design_friction_storeys": sum(d["horizontal_joint"] is not None for d in design),

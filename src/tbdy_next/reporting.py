@@ -1230,6 +1230,31 @@ def _basement_pier_tables(piers):
          "</details>" if ends else "")))
 
 
+def _basement_reference_tables(base):
+    if not base:
+        return ""
+    periods = [{**r, "decision": r.get("status") or base.get("period_reason")} for r in base["periods"]]
+    perimeter = base.get("perimeter") or {}
+    paths = [{**p, "from_m": b["bottom_m"], "to_m": b["top_m"],
+              "route": " → ".join(perimeter["wall_labels"][wall] for wall in p["wall_ids"]) if p["connected"] else "Disconnected"}
+             for b in perimeter.get("bands", ()) for p in b.get("open_side_paths", ())]
+    sides = [{**side, "from_m": b["bottom_m"], "to_m": b["top_m"]}
+             for b in (base.get("perimeter") or {}).get("bands", ()) for side in b["sides"]]
+    return "".join(("<h3>Basement periods and design base</h3><p>", _val(base["status"]), "</p>",
+        _val(base.get("period_reason") or base.get("reason") or ""), _table((("direction","Direction"),
+        ("full_period_s","Native full T (s)"),("matrix_full_period_s","Full matrix T (s)"),("upper_period_s","Upper T (s)"),
+        ("period_ratio","Full / upper"),("limit","Limit"),("matrix_full_mass_ratio","Full effective mass fraction"),
+        ("upper_mass_ratio","Upper effective mass fraction"),("decision","Period condition")), periods),
+        "<p>Foundation (m) ", _val(base.get("foundation_m")), " · Candidate (m) ", _val(base.get("candidate_m")),
+        " · Design base (m) ", _val(base.get("design_base_m")), "</p>",
+        "<details><summary>Basement perimeter by elevation</summary>", _table((("from_m","From (m)"),("to_m","To (m)"),
+        ("side","Side"),("span_m","Projected length (m)"),("on_outline_m","Wall centreline (m)"),
+        ("gap_m","Remaining projected length (m)")), sides),
+        _table((("from_m","From (m)"),("to_m","To (m)"),("side","Open side"),("route","Wall path between its ends")), paths),
+        _val(perimeter.get("interpretation")),
+        "</details>"))
+
+
 def _wall_batch_tables(batch):
     if not batch:
         return ""
@@ -1292,6 +1317,7 @@ def _wall_batch_tables(batch):
                 ("sum_individual_centroid_cqc_knm","Sum of separate centroid CQC (kN·m)"),
                 ("horizontal_floor_mo_cqc_knm","Horizontal floor-load moment (kN·m)"),
                 ("separate_piers_native_to_floor_mo","Separate native piers / floor moment"),("state","Cut result")), modal_rows),
+        _basement_reference_tables(modal.get("basement_reference")),
         "<details><summary>Assigned shell sections and pier geometry by elevation</summary>",
         _table((("pier","Pier"),("storey","Storey"),("member","Wall ID"),("label","Wall"),("section","Assigned section"),
                 ("thickness_m","Thickness (m)"),("length_m","Length (m)"),("bottom_m","Bottom (m)"),("top_m","Top (m)"),

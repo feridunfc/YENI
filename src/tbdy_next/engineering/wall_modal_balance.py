@@ -9,6 +9,7 @@ from ..column_engine.source_bank import native_frame_force_rows
 from ..etabs_source_gateway_windows import verify
 from ..wall_modal_capture import wall_cut_plan
 from .basement_pier_geometry import required
+from .basement_reference import basement_reference
 from .gravity_story_basis import _physical_population
 from .pier_force_source import ORIGINAL, _table
 from .wall_overturning import directional_components
@@ -590,6 +591,7 @@ def modal_wall_balance(source, stages, bound):
                 )
             except (KeyError, TypeError, ValueError, ArithmeticError) as exc:
                 result["floor_inertia_reason"] = str(exc)
+        result["basement_reference"] = basement_reference(source, modal, result["storeys"])
     except (ValueError, RuntimeError, KeyError, TypeError, ArithmeticError) as exc:
         result.update(status="WALL_MODAL_SOURCE_UNQUALIFIED", reason=str(exc))
     return result
