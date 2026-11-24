@@ -36,10 +36,10 @@
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
-    "commit_sha": "35fd32326f9014e77a31080ee69591eea8775378",
-    "git_tree_sha": "bf222ec63e8d41579adfd68a9caca97d84d5d13f",
-    "observed_on": "2026-11-21",
-    "scope": "Verified integration base of the report-reconstruction milestone. Resolve the current published ref with git ls-remote."
+    "commit_sha": "a58b22de1c7eed3d0080170daececd062622642b",
+    "git_tree_sha": "225112795659ce8e40ebf0f5d875ab0b0023f2e4",
+    "observed_on": "2026-11-24",
+    "scope": "Integrated native two-way pressure and support detail implementation. Subsequent evidence commit advances the branch."
   },
   "record_policy": {
     "append_new_ids": true,
@@ -12136,6 +12136,281 @@
         "The enclosure and W22 reinforcement checks retain their own evidence."
       ],
       "engineering_release": "NOT_READY"
+    },
+    {
+      "id": "EV-YP1-TWO-WAY-SHELL-AND-SUPPORTS-20261124",
+      "status": "CONDITIONAL_TWO_WAY_WEB_AND_COORDINATED_SUPPORT_GEOMETRY",
+      "implementation_commit": "a58b22de1c7eed3d0080170daececd062622642b",
+      "code_git_tree": "225112795659ce8e40ebf0f5d875ab0b0023f2e4",
+      "source_collection_run": "RUN-2af07dce7a974f69bf45c6d9c6826e9b",
+      "previous_detail_run": "RUN-19b28efd5f0a49a09f2bd24a9b9891b8",
+      "run_id": "RUN-b163fffecfb0459798ce21297826b8b2",
+      "input_sha256": "61cbb4aec216c52cfa1e3900cd7c2e2d91fcf302bdc04a23c4286fd0092348c5",
+      "parent_input_sha256": "703e202fc8b08f60043c571d9970945b6307e5cee99e8a45e6377c8446da56fc",
+      "original_edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+      "private_solved_edb_sha256": "9a9322efceb4f13d6051016fc24cc226a3b3edf9448c644bc5c4212fbcae4a59",
+      "native_pressure_payload_sha256": "aba69fc6fc02b94c60ac812cd0a7834a0581e2537389803041edc18280d7f7d4",
+      "results_sha256": "10d368968d1ef8d6e637d06b99111e032a646d83cc55e04cee2c863e4a451a8d",
+      "snapshot_sha256": "c28c9d0f597ba2d7d28a4cf7516f3463cf99d90057d934c41a872f7870db4925",
+      "report_sha256": "c295fabbd1ac7c59129b714fefaba4c204d74379903bc2d786b5604802fb4d39",
+      "method": {
+        "configuration_file_count": 9,
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 179,
+        "package_sha256": "a09d39af2b6facab492a2dcd0ead9254204a826998a62ebfaed414033a9ebff4",
+        "python_implementation": "CPython",
+        "python_version": "3.12.10"
+      },
+      "live_acquisition": "Original geometry and load cases solved on an input-identical private copy. All 11,700 archived pier scalar controls agreed within the recorded tolerances. The original EDB hash, original output selection and the previous session file and units were verified.",
+      "original_controls": {
+        "absolute_tolerance": 0.00021,
+        "components": 11700,
+        "maximum_difference": [
+          0.00010000000020227162,
+          0.00010000000020227162,
+          9.999999999621423e-05,
+          0.0,
+          9.999999997489795e-05,
+          0.00010000000111176632
+        ],
+        "outside_tolerance": 0,
+        "relative_tolerance": 1e-07,
+        "reported_rows": 2130,
+        "rows": 1950
+      },
+      "confirmed_review_sha256": "89493fc9b0d0f5eb08f564639121c2a63f261a65b8c33d11c7ad00561a333fcf",
+      "confirmed_profile": {
+        "DD": "DD-2",
+        "HN": 14.15,
+        "BKS": 1,
+        "DTS": "2a",
+        "BYS": 6
+      },
+      "aggregate_mm": 20,
+      "aggregate_override": {
+        "mm": 25,
+        "required_clear_mm": 33.333333333333336,
+        "input_sha256": "ca04510d24b64609d5bab44caa30fac3f15177d17d583109205e6a3af16c9176"
+      },
+      "scope": {
+        "physical_panels": 5,
+        "mesh_elements": 156,
+        "unaveraged_corners": 624,
+        "combinations": 15,
+        "static": 7,
+        "spectral": 8,
+        "independent_governing_values": 300,
+        "max_independent_difference": 0.0,
+        "original_cage_section_references": {
+          "WITHIN_SECTION_REFERENCE": 288,
+          "ABOVE_SECTION_REFERENCE": 12
+        },
+        "two_way_proposed_checks_within_reference": 300,
+        "separate_pier_face_pmm_bounds": 150,
+        "compatible_pressure_bar_entries": 10,
+        "verified_support_geometry": {
+          "215": {
+            "family_pairs": 6,
+            "min_parallel_clear_mm": 73.5
+          },
+          "221": {
+            "family_pairs": 28,
+            "min_parallel_clear_mm": 37.56862745098033
+          },
+          "227": {
+            "family_pairs": 28,
+            "min_parallel_clear_mm": 73.5
+          },
+          "228": {
+            "family_pairs": 28,
+            "min_parallel_clear_mm": 73.5
+          },
+          "233": {
+            "family_pairs": 28,
+            "min_parallel_clear_mm": 37.56862745098033
+          },
+          "241": {
+            "family_pairs": 6,
+            "min_parallel_clear_mm": 73.5
+          }
+        },
+        "schedule": {
+          "panels": 12,
+          "total": 30
+        },
+        "independently_checked_bar_family_pairs": 124
+      },
+      "w28": {
+        "wall_object": "460",
+        "h_diameter_mm": 12,
+        "h_pitch_mm": 198.27450980392157,
+        "v_diameter_mm": 16,
+        "v_pitch_mm": 199.99999999999997,
+        "crossties": 936,
+        "governing": {
+          "Horizontal Bending": {
+            "demand": 86.83330077670922,
+            "combination": "Crack_SeisX_UpSoil",
+            "resistance": 471.277659898504,
+            "ratio": 0.18425083165497372,
+            "proposed_resistance": 92.06377405838411,
+            "proposed_ratio": 0.9431864125148957,
+            "element": "460-46",
+            "point": "~5479"
+          },
+          "Horizontal Transverse shear": {
+            "demand": 70.82724879022584,
+            "combination": "Crack_SeisX_UpSoil",
+            "resistance": 293.40797684282546,
+            "ratio": 0.24139510299737693,
+            "proposed_resistance": 294.5295669683714,
+            "proposed_ratio": 0.24047585279555908,
+            "element": "460-46",
+            "point": "~5473"
+          },
+          "Vertical Bending": {
+            "demand": 152.54947403140315,
+            "combination": "Crack_SeisX_Soil",
+            "resistance": 92.06377405838411,
+            "ratio": 1.6569978321186443,
+            "proposed_resistance": 152.97564392279313,
+            "proposed_ratio": 0.9972141323908722,
+            "element": "460-19",
+            "point": "~5449"
+          },
+          "Vertical Transverse shear": {
+            "demand": 127.13317742783185,
+            "combination": "Crack_SeisX_Soil",
+            "resistance": 278.1543511354003,
+            "ratio": 0.45705981915755045,
+            "proposed_resistance": 281.96775756225657,
+            "proposed_ratio": 0.4508784214442026,
+            "element": "460-25",
+            "point": "~5450"
+          }
+        },
+        "governing_separate_pier_pmm": {
+          "combination": "Crack_SeisY_Soil",
+          "face": "Bottom",
+          "upper_utilization": 0.17401425382726157
+        },
+        "column_ends": {
+          "I": {
+            "column": "221",
+            "template_longitudinal_clearance_mm": 28.75,
+            "entry_required_mm": 26.666666666666668,
+            "specified_embedment_mm": 635,
+            "column_available_mm": 749.9999999999998,
+            "layout_status": "PROPOSED_PRESSURE_BARS_FIT",
+            "status": "CONDITIONAL_PRESSURE_END_DESIGN",
+            "column_role": "ENGINEER_SELECTED_COLUMN_REBAR",
+            "column_bars": 32,
+            "column_bar_diameter_mm": 16
+          },
+          "J": {
+            "column": "227",
+            "template_longitudinal_clearance_mm": 28.75,
+            "entry_required_mm": 26.666666666666668,
+            "specified_embedment_mm": 635,
+            "column_available_mm": 750.0000000000007,
+            "layout_status": "PROPOSED_PRESSURE_BARS_FIT",
+            "status": "CONDITIONAL_PRESSURE_END_DESIGN",
+            "column_role": "ENGINEER_SELECTED_COLUMN_REBAR",
+            "column_bars": 32,
+            "column_bar_diameter_mm": 16
+          }
+        }
+      },
+      "commands": [
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --whole-building --case Modal --source .receipts/RUN-b09e24a7302146cf8361bb59c50b107c/input.source --out .receipts --maximum-aggregate-mm 20 --etabs-pid <active PID> --solve-wall-copy",
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --whole-building --case Modal --source .receipts/RUN-19b28efd5f0a49a09f2bd24a9b9891b8/input.source --out .receipts",
+        "python -X utf8 -B tools/test_offline.py",
+        "python -B tools/test_installed_wheel.py <clean staged-tree wheel directory>"
+      ],
+      "verification": {
+        "platform": "Windows Python 3.12",
+        "python_total": 1780,
+        "python_passed": 1779,
+        "python_skipped": 1,
+        "python_seconds": 517.532,
+        "skip_reason": "OS disallows creating symlinks",
+        "node_files_passed": 12,
+        "golden": [
+          36,
+          4,
+          4
+        ],
+        "wheel_tests": 531,
+        "wheel_seconds": 224.058,
+        "wheel_sha256": "41a534c44152e3cb20daf95d6b9cd41cc27d6a9f27bf28cf0b545d689b8a8f69",
+        "private_verification_path": ".receipts/verification/w28-two-way-20261124",
+        "independent_check_sha256": "f5e749d3f884064688cbfee4140f4658fe4c59a5224ad8242c2c529a4e02afc9",
+        "offline_log_sha256": "ea7097897beb8da338df36b3f2502a3810b09cd86cbce84e9498bf0bdc5c6cb7",
+        "wheel_log_sha256": "7013b814f0c74789d30f68e8181976444feb0d4288d11cfd8ac053d1b1c7e0f9",
+        "workspace_view": {
+          "check": "7.22",
+          "columns": 19,
+          "numeric_yP1_rows": 300,
+          "other_open_panel_rows": 12,
+          "W28_vertical_governing_pct": 99.72
+        },
+        "live_ui_at_time_of_run": "The running 8876 process served aggregate overrides and the native pressure table. Starting the published version loads the expanded two-way cage and support columns. The sealed local report contains both."
+      },
+      "performance": {
+        "updated_handler_real_store": [
+          {
+            "route": "/api/modal-history",
+            "seconds": 10.108,
+            "bytes": 17526,
+            "http": 200
+          },
+          {
+            "route": "/api/modal-history",
+            "seconds": 10.506,
+            "bytes": 17526,
+            "http": 200
+          },
+          {
+            "route": "/api/export-checks?run_id=RUN-19b28efd5f0a49a09f2bd24a9b9891b8",
+            "seconds": 13.676,
+            "bytes": 103101220,
+            "http": 200
+          },
+          {
+            "route": "/api/export-checks?run_id=RUN-19b28efd5f0a49a09f2bd24a9b9891b8",
+            "seconds": 0.078,
+            "bytes": 103101220,
+            "http": 200
+          }
+        ],
+        "existing_8876_process": [
+          {
+            "endpoint": "/api/runs",
+            "seconds": 0.477,
+            "bytes": 135099,
+            "http": 200
+          },
+          {
+            "endpoint": "/api/modal-history",
+            "seconds": 23.446,
+            "bytes": 17526,
+            "http": 200
+          },
+          {
+            "endpoint": "/api/modal-history",
+            "seconds": 18.567,
+            "bytes": 17526,
+            "http": 200
+          }
+        ],
+        "scope": "Updated handler exercised in process against the real archive. Existing server loads code/assets on start. Cold legacy catalog reconstruction requires full receipt verification."
+      },
+      "limits": [
+        "Plate checks use symmetric reinforcement at zero membrane force. Allocated pier PMM is a separate check.",
+        "Dedicated dowels use a one-way normal pressure reaction reference. Combined shell membrane/bending and native support-edge actions still require evaluation.",
+        "The proposed coordinates check curtain bars and separate dowels against the selected column longitudinal bars and incident pressure bars. As-built steel, hoop/crosstie hook paths and placement tolerances require construction detail."
+      ],
+      "engineering_release": "NOT_READY"
     }
   ],
   "new_record_template": {
@@ -12160,7 +12435,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-24T18:10:27+00:00",
+  "updated_at_utc": "2026-11-24T19:33:36+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",

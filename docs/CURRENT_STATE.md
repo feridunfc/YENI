@@ -1,5 +1,20 @@
 # Original building calculation and local handoff
 
+## Basement wall yP1 under 15 original combinations
+
+In `RUN-b163fffecfb0459798ce21297826b8b2` the whole-building engine evaluated the five column-supported panels W27, W28, W29, W30 and W33 at +0.00 m. It used 156 shell elements and 624 unaveraged corners. Each of 15 combinations has a horizontal and vertical bending check and a horizontal and vertical transverse shear check. The previous strip proposal satisfies 288 of the 300 section references. The revised two-face reinforcement satisfies **300/300 plate checks and 150/150 separate pier-face PMM bounds**. The 12 exceedances with the strip proposal are visible in workspace **7.22** and the printable report. All eight seismic combinations use component bounds at the same corner. [CSI AreaForceShell](https://docs.csiamerica.com/help-files/etabs-api-2016/html/33495335-ec0e-387a-cfe2-9e88cf8b97ee.htm)
+
+| W28 governing action | Combination | Demand | Resistance of proposed layer | Utilization |
+| --- | --- | ---: | ---: | ---: |
+| Horizontal bending (kN·m/m) | Crack_SeisX_UpSoil | 86.83 | 92.06 | 94.32% |
+| Vertical bending (kN·m/m) | Crack_SeisX_Soil | 152.55 | 152.98 | 99.72% |
+| Horizontal transverse shear (kN/m) | Crack_SeisX_UpSoil | 70.83 | 294.53 | 24.05% |
+| Vertical transverse shear (kN/m) | Crack_SeisX_Soil | 127.13 | 281.97 | 45.09% |
+
+The W28 proposal places Ø12 at 198.27 mm horizontally and Ø16 at 200 mm vertically on each face. Its separate PMM bound governs at 17.40% on the bottom face under `Crack_SeisY_Soil`. At columns 221 and 227, the proposed straight bars have 635 mm embedment in 750 mm available and 28.75 mm clear to the selected 32Ø16 longitudinal cages. The **maximum aggregate size defaults to 20 mm** in the workspace and accepts a project override through `--maximum-aggregate-mm`. The same-row limit is 26.67 mm. This project also uses that limit for entry past the column longitudinal bars. The older 17 mm entry fails it. Staggered levels and separate dowel lanes give a geometric fit at all ten panel ends and six columns. The closest parallel pair at 221 has 37.57 mm clearance. [TS 500 §§9.1.2, 9.5.2](https://abs.cu.edu.tr/Dokumanlar/2016/IMZ312/363439620_ts_500_-_betonarme_yapilarin_tasarimi_ve_yapim_kurallari.pdf#page=50)
+
+The plate check compares symmetric reinforcement at zero membrane force. The dowel calculation uses the documented one-way pressure reaction. The next calculation is the interaction with membrane forces and the native transfer across the actual support edges, including joint normal force and concurrent actions. The proposed-reinforcement schedule remains at **12/30** physical wall panels. The source-bound seismic profile is **CONFIRMED** for DD-2, HN 14.15 m, BKS 1, DTS 2a and BYS 6. Engineering release remains **NOT_READY**. [EV-YP1-TWO-WAY-SHELL-AND-SUPPORTS-20261124](VERIFICATION_LEDGER.json)
+
 ## Strength-design inputs for the original building
 
 In the original compact building, RSX acts along global X (U1) and RSY along global Y (U2). Both use the horizontal ETABS function `RESP_YATAY`. **Rx = Ry = 7, Dx = Dy = 2.5, I = 1.5 and BKS = 1.** The ZD function has Ss = 0.345, S1 = 0.111, Fs = 1.524, F1 = 2.378, SDS = 0.52578, SD1 = 0.263958, TL = 6 s and 5% damping. The drift calculation at +0.00 m gives 12.23297 mm in X and 9.30090 mm in Y. It evaluated all six physical storey–direction instances with the model factors.
@@ -8,7 +23,7 @@ Open **2.1** or **1.0** to review the values from the assigned spectrum. The pro
 
 For site class ZD, interpolation gives Fs = 1.524 and F1 = 2.378. Their products with Ss and S1 reproduce SDS = 0.52578 and SD1 = 0.263958. BKS 1 and DD-2 SDS in [0.50, 0.75) give **DTS 2a**. With 10.5 < HN = 14.15 ≤ 17.5 m, the design input is **BYS 6**. The profile records the project source of DD-2 and HN. Confirmation applies to the displayed parameters, including the hazard ordinates and occupancy. An independent hazard-map check would also require the project location. [TBDY 2018, Tables 2.1–2.2, 3.1–3.3 and §3.3.1](https://www.afad.gov.tr/kurumlar/afad.gov.tr/2309/files/TBDY_2018.pdf)
 
-The whole-building run `RUN-22cf1ad131f94aba9a72c1d0ae96c5ed` and live-service replay `RUN-06fab28fe8dc4e99b492638e96308838` produced identical results. All 19 input fields have values and all four spectrum cross-checks agree. The review is awaiting user confirmation. **Confirm project inputs** records the exact source and displayed values in a new run. Editing an input requires a fresh review. The building result includes 42 conditional column designs, 4 column failures, 41 held columns and 180 conditional beam designs. The two opening faces provide 14 recovered actions. None of the 14 meet the six-component field tolerance at the adjoining native control planes. The seven W22 free-body balances remain satisfied. The wall schedule counts 12 of 30 panels. W28 requires a two-way pressure and construction-detail check using the actual support cages.
+The whole-building run `RUN-22cf1ad131f94aba9a72c1d0ae96c5ed` and live-service replay `RUN-06fab28fe8dc4e99b492638e96308838` produced identical results. All 19 input fields have values and all four spectrum cross-checks agree. That earlier replay preceded confirmation of the project inputs. **Confirm project inputs** records the exact source and displayed values in a new run. Editing an input requires a fresh review. The building result includes 42 conditional column designs, 4 column failures, 41 held columns and 180 conditional beam designs. The two opening faces provide 14 recovered actions. None of the 14 meet the six-component field tolerance at the adjoining native control planes. The seven W22 free-body balances remain satisfied. The wall schedule counts 12 of 30 panels. The two-way action and support-bar comparison from this checkpoint appears above.
 
 ## Reading the governing wall design results
 
