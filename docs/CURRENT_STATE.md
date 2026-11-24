@@ -1,12 +1,18 @@
 # Original building calculation and local handoff
 
+## xP2 wall actions across the W22 opening
+
+Open **7.19–7.21** in whole-building run `RUN-59b1c63cbeb347b4b033b2cd4847d2c3`. The engine found the interior section change at −1.50 m. Five wall panels cross the lower face and six cross the upper face. All six are 0.40 m thick. The engine calculated **14/14 physical face–combination resultants**, checked them against native forces at the nearest full mesh sections, and balanced **7/7 W22 free bodies**. It also resolved **5/5 signed static combinations** and **8/8 seismic component bounds** at the C104 jamb.
+
+For `Grav_Ult`, the recovered compressions are **2,790.74 kN below** and **2,921.13 kN above**. At the two native control planes the recovered axial component differs from native joint forces by **191.99 kN** and **173.72 kN**. Including the uniform load assigned to the control-edge corners leaves axial differences of **+2.18 kN** and **−33.93 kN**. For `Soil_Ult`, the W22 boundary balances **276.624 kN** of horizontal pressure and **71.379 kN** of downward weight. Maximum residual over all seven W22 force balances is **0.0000543 kN**. The open design decisions are section-force accuracy at the opening and the continuity and development of its reinforcement. Both design-base alternatives remain in the report. [Section results, mesh control and assumptions](engineering/WHOLE_BUILDING_ENGINE_20261122.md#wall-section-changes-inside-a-storey)
+
 ## Basement period comparison
 
 Open **7.17** in whole-building run `RUN-7ecb0839bd794936869ab335651d5a72`. Both directional checks in TBDY §3.3.1.1(b) satisfy the 1.10 limit. Removing the masses at and below the specified ground floor, with the original stiffness, gives **0.457546 s in X** and **0.431784 s in Y**. The full/upper ratios are **1.026893** and **1.020456**. A separate block Ritz calculation reproduced the two upper periods within 0.000000001 s.
 
 The workspace produced `RUN-7e082dc8514247488bd0248266052335` from **Run all wall checks** with the same input and sealed result digests. All 16 wall batch rows and the three signed storey cut results match the preceding run.
 
-View **7.18** shows the enclosure geometry. The 18-panel wall path across three sides exists between −1.50 and 0.00 m. Below −1.50 m it breaks across the 3.40 m W22 bay. The next calculation is the xP2 physical section and local transfer on each side of that elevation. The project base depends on whether this opening and its transfer details meet the rigid enclosure condition in §3.3.1.1(a). Both cut alternatives are available in the same run. [Calculation, assumptions and reproduction](engineering/WHOLE_BUILDING_ENGINE_20261122.md#basement-periods-and-enclosure-in-the-original-building)
+View **7.18** shows the enclosure geometry. The 18-panel wall path across three sides exists between −1.50 and 0.00 m. Below −1.50 m it breaks across the 3.40 m W22 bay. The project base depends on whether this opening and its transfer details meet the rigid enclosure condition in §3.3.1.1(a). Both cut alternatives are available in the same run. [Calculation, assumptions and reproduction](engineering/WHOLE_BUILDING_ENGINE_20261122.md#basement-periods-and-enclosure-in-the-original-building)
 
 ## Original wall sections and signed overturning actions
 

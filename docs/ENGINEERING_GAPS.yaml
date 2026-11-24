@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-24T03:32:39+00:00",
+  "updated_at_utc": "2026-11-24T05:06:00+00:00",
   "repository": "feridunfc/YENI",
-  "baseline_implementation_commit": "e2f6f93ae30574b61f08f5bac76257fda496fac0",
+  "baseline_implementation_commit": "773fd4d69d5479c87ff4b12449dfcd7956d022ad",
   "local_reconciled": true,
-  "scope_note": "The original basement satisfies both period ratios in §3.3.1.1(b). The three-sided return path is continuous only in the upper W22 band. Original 300/300 signed modal and 6/6 static wall-and-column cuts balance at three datums. The wall batch retains 390 assigned faces per reference check, 17/30 proposed layouts and four conditional rectangular stacks.",
+  "scope_note": "The original basement satisfies both period ratios in §3.3.1.1(b). The three-sided return path is continuous only in the upper W22 band. Original 300/300 signed modal and 6/6 static wall-and-column cuts balance at three datums. The wall batch retains 390 assigned faces per reference check, 17/30 proposed layouts and four conditional rectangular stacks. The wall opening batch calculates 14 physical face-combination resultants and balances seven W22 free bodies.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -33,7 +33,7 @@
     "GAP-018",
     "GAP-006"
   ],
-  "active_task": "Calculate xP2 section actions on both sides of the W22 start at -1.50 m and the local transfer across the 3.40 m opening. Use that calculation and the available detailing to qualify the three-sided enclosure. Apply the appropriate saved wall cut, coupling and design eccentricity.",
+  "active_task": "Qualify the xP2 opening resultants at a common mesh section at -1.50 m and establish reinforcement continuity and development at the opening before selecting the design base. The seven W22 load and transfer balances are complete. While the common-edge source or connection detail is pending, advance the yP2 uncolumned-end transfer in the whole-building engine.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -862,7 +862,7 @@
       "title": "Wall/pier factor and wall design",
       "status": "PARTIAL",
       "priority": "P1",
-      "achieved_scope": "Both ends of 12/30 physical wall objects have conditional rectangular boundary longitudinal and transverse designs in the building run. P2–P5 have continuous shared-edge stacks. Their critical zones are retained over all three storeys in the proposal, with 16 to 24 Ø14 per end, Ø10/80 hoops and crossties checked separately in both directions. The same twelve panels now have a calculated double-curtain web and fixed-axial biaxial capacities at both ends for all five native wall static assignments. All eight native wall seismic assignments have sufficient local in-plane shear bounds for both classifications under 7.6.6.3. The original eight native wall assignments now produce 192 conditional full-interval PMM, heightwise moment, shear and axial section designs. All 96 construction joint combinations and 96 floor moment-strength combinations under §7.6.6.2 satisfy their bounds. The engine also calculates the physical web crossties on all 12 panels. The saved workspace and printable report expose the same results. Five original basement panels in yP1 now carry selected two-face proposed grids, with 30/30 pier-end bounds, 150/150 net-web PMM checks and 75/75 horizontal pressure panel combinations. A single building action evaluates every pier and storey. The original has 390/390 net-area compression, reference web shear and rough-plane friction checks and 30 directional bending amplitudes. Ten yP1 wall ends now have a calculated proposed anchorage and pressure transfer. Original signed shell and column cuts balance six actions in each of 300/300 modal and 6/6 static storey cases. Six conditional wall shear and common-origin moment shares are calculated. W32/471 participates once in the foundation cut. The boundary calculation identifies 17 panels sharing elevations. Its former combined warning also covered a change of shell thickness. The same building run now solves both §3.3.1.1(b) ratios from the original stiffness, 1.026893 in X and 1.020456 in Y, and traces the enclosure across both physical basement bands.",
+      "achieved_scope": "Both ends of 12/30 physical wall objects have conditional rectangular boundary longitudinal and transverse designs in the building run. P2–P5 have continuous shared-edge stacks. Their critical zones are retained over all three storeys in the proposal, with 16 to 24 Ø14 per end, Ø10/80 hoops and crossties checked separately in both directions. The same twelve panels now have a calculated double-curtain web and fixed-axial biaxial capacities at both ends for all five native wall static assignments. All eight native wall seismic assignments have sufficient local in-plane shear bounds for both classifications under 7.6.6.3. The original eight native wall assignments now produce 192 conditional full-interval PMM, heightwise moment, shear and axial section designs. All 96 construction joint combinations and 96 floor moment-strength combinations under §7.6.6.2 satisfy their bounds. The engine also calculates the physical web crossties on all 12 panels. The saved workspace and printable report expose the same results. Five original basement panels in yP1 now carry selected two-face proposed grids, with 30/30 pier-end bounds, 150/150 net-web PMM checks and 75/75 horizontal pressure panel combinations. A single building action evaluates every pier and storey. The original has 390/390 net-area compression, reference web shear and rough-plane friction checks and 30 directional bending amplitudes. Ten yP1 wall ends now have a calculated proposed anchorage and pressure transfer. Original signed shell and column cuts balance six actions in each of 300/300 modal and 6/6 static storey cases. Six conditional wall shear and common-origin moment shares are calculated. W32/471 participates once in the foundation cut. The boundary calculation identifies 17 panels sharing elevations. Its former combined warning also covered a change of shell thickness. The same building run now solves both §3.3.1.1(b) ratios from the original stiffness, 1.026893 in X and 1.020456 in Y, and traces the enclosure across both physical basement bands. Original xP2 opening sections, signed C104 jamb actions, W22 pressure and self-weight, and seven equilibrated panel transfer results are available in the sealed wall batch.",
       "blocker": "The project overturning decision needs §3.3.1.1(a) enclosure at the lower W22 opening, wall grouping and design eccentricity. W32/471 shares full edges with W31/470, W55/464 and W6/472. Its design load path needs qualification. xP2 has five to six constant-thickness panels across two elevation bands. yP2's end without a registered column needs a wall-to-wall transfer model. Actual steel, W28 placement, construction joint conditions, local shell actions and combined shear/torsion remain open.",
       "closure_criteria": "Complete the real wall topology/forces, normative calculation, independent oracle and sealed-report slice.",
       "owner_paths": [
@@ -885,7 +885,11 @@
         "src/tbdy_next/engineering/wall_modal_balance.py",
         "src/tbdy_next/wall_modal_capture.py",
         "src/tbdy_next/engineering/basement_reference.py",
-        "src/tbdy_next/engineering/basement_matrices.py"
+        "src/tbdy_next/engineering/basement_matrices.py",
+        "src/tbdy_next/engineering/wall_transition.py",
+        "src/tbdy_next/engineering/wall_transition_shell.py",
+        "src/tbdy_next/engineering/wall_shell_section.py",
+        "src/tbdy_next/wall_batch_source.py"
       ],
       "evidence_refs": [
         "EV-RECIPE18-INTAKE",
@@ -898,7 +902,8 @@
         "EV-BUILDING-BASEMENT-PIER-YP1-20261123",
         "EV-ALL-WALL-PIER-STOREY-BATCH-20261123",
         "EV-ORIGINAL-WALL-MODAL-CUTS-20261123",
-        "EV-BASEMENT-PERIOD-PAIR-20261124"
+        "EV-BASEMENT-PERIOD-PAIR-20261124",
+        "EV-WALL-OPENING-SECTIONS-20261124"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -1079,7 +1084,37 @@
         "ground_cut_m": 0,
         "foundation_cut_m": -5.15,
         "enclosure_status": "PROJECT_RIGID_ENCLOSURE_INTERPRETATION_REQUIRED",
-        "next_task": "Calculate xP2 section actions on both sides of the W22 start at -1.50 m and the local transfer across the 3.40 m opening. Use that calculation and the available detailing to qualify the three-sided enclosure. Apply the appropriate saved wall cut, coupling and design eccentricity."
+        "next_task": "Calculate xP2 section actions on both sides of the W22 start at -1.50 m and the local transfer across the 3.40 m opening. Use that calculation and the available detailing to qualify the three-sided enclosure. Apply the appropriate saved wall cut, coupling and design eccentricity.",
+        "next_task_superseded_by": "EV-WALL-OPENING-SECTIONS-20261124"
+      },
+      "wall_opening_sections_20261124": {
+        "evidence": "EV-WALL-OPENING-SECTIONS-20261124",
+        "run": "RUN-59b1c63cbeb347b4b033b2cd4847d2c3",
+        "transition_elevation_m": -1.5,
+        "panel_count_below_above": [
+          5,
+          6
+        ],
+        "net_area_m2": [
+          11.19999999999998,
+          12.39999999999998
+        ],
+        "net_concrete_axial_limit_kn": [
+          137199.99999999974,
+          151899.99999999974
+        ],
+        "expected_physical_face_combinations": 14,
+        "evaluated_physical_face_combinations": 14,
+        "expected_panel_free_bodies": 7,
+        "equilibrated_panel_free_bodies": 7,
+        "native_opening_edge_subtotals": 7,
+        "signed_static_jamb_combinations": 5,
+        "componentwise_seismic_jamb_bounds": 8,
+        "remaining_design_inputs": [
+          "Common-section force accuracy at the opening",
+          "Opening-bar continuity and development",
+          "Project wall grouping and design eccentricity"
+        ]
       }
     },
     {

@@ -19,19 +19,19 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "BOTH_BASEMENT_PERIOD_DIRECTIONS_SATISFIED",
-    "work_branch": "work/basement-design-base",
+    "status": "ORIGINAL_BUILDING_OPENING_SECTIONS_AND_SIGNED_PANEL_EQUILIBRIUM",
+    "work_branch": "work/wall-transition-sections",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "126f7cf97b4123e7fee735e86b9ffd251777e43b",
-    "tested_implementation_commit": "e2f6f93ae30574b61f08f5bac76257fda496fac0",
+    "inspected_base_commit": "b7aa7147b4e07fa26e1657bc4220fda842bab0ba",
+    "tested_implementation_commit": "773fd4d69d5479c87ff4b12449dfcd7956d022ad",
     "evidence_refs": [
-      "EV-BASEMENT-PERIOD-PAIR-20261124"
+      "EV-WALL-OPENING-SECTIONS-20261124"
     ],
-    "production_run_id": "RUN-7e082dc8514247488bd0248266052335",
-    "results_sha256": "7afd1e153bd87eaaa3d932f4d2614673f28ea98a993c77b66fed572c542826cf",
+    "production_run_id": "RUN-59b1c63cbeb347b4b033b2cd4847d2c3",
+    "results_sha256": "62cad46f05b3845012951a16b8f77d93eb4f623c65e5b544fc7f7ebcb91cad27",
     "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
     "engineering_release": "NOT_READY",
-    "next_action": "Calculate xP2 section actions on both sides of the W22 start at -1.50 m and the local transfer across the 3.40 m opening. Use that calculation and the available detailing to qualify the three-sided enclosure. Apply the appropriate saved wall cut, coupling and design eccentricity."
+    "next_action": "Qualify the xP2 opening resultants at a common mesh section at -1.50 m and establish reinforcement continuity and development at the opening before selecting the design base. The seven W22 load and transfer balances are complete. While the common-edge source or connection detail is pending, advance the yP2 uncolumned-end transfer in the whole-building engine."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
@@ -11587,6 +11587,223 @@
       "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
       "engineering_release": "NOT_READY",
       "next_action": "Calculate xP2 section actions on both sides of the W22 start at -1.50 m and the local transfer across the 3.40 m opening. Use that calculation and the available detailing to qualify the three-sided enclosure. Apply the appropriate saved wall cut, coupling and design eccentricity."
+    },
+    {
+      "id": "EV-WALL-OPENING-SECTIONS-20261124",
+      "status": "ORIGINAL_BUILDING_OPENING_SECTIONS_AND_SIGNED_PANEL_EQUILIBRIUM",
+      "observed_at_utc": "2026-11-24T05:06:00+00:00",
+      "inspected_base_commit": "b7aa7147b4e07fa26e1657bc4220fda842bab0ba",
+      "tested_implementation_commit": "773fd4d69d5479c87ff4b12449dfcd7956d022ad",
+      "tested_tree": "4924a022fbcda6a0d4acd2994e6ef166b3bd5fc4",
+      "basis_refs": [
+        "EV-BASEMENT-PERIOD-PAIR-20261124"
+      ],
+      "original_parent_run": "RUN-7e082dc8514247488bd0248266052335",
+      "workspace_live_acquisition_run": "RUN-fe02ec00ba3d4a9688b165bfa3303d80",
+      "final_workspace_replay": {
+        "run": "RUN-8e123f88fb574073b94bdb0af78fc97e",
+        "input_sha256": "056b927edbf55445ecc5f1d20e9296552d1f425e0767bd36ab2f560413bcb2a7",
+        "results_sha256": "62cad46f05b3845012951a16b8f77d93eb4f623c65e5b544fc7f7ebcb91cad27",
+        "identical_to_cli": true
+      },
+      "production_run": "RUN-59b1c63cbeb347b4b033b2cd4847d2c3",
+      "input_sha256": "056b927edbf55445ecc5f1d20e9296552d1f425e0767bd36ab2f560413bcb2a7",
+      "results_sha256": "62cad46f05b3845012951a16b8f77d93eb4f623c65e5b544fc7f7ebcb91cad27",
+      "report_sha256": "5fffb8225821bdaccd8bed5ef6408ba0605d27e55824e0edafed9b2c87a45627",
+      "solver_source": {
+        "method": "INPUT_IDENTICAL_PRIVATE_REANALYSIS",
+        "initial_original_edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+        "input_identical_copy_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+        "solved_private_edb_sha256": "9902201ce851889947f203e8b4f51289181a1dbd64e6a4eec6a82625c7a47cc3",
+        "private_read_sha256": "f3ff8d1b5245f534532c16967e5462035761a7aaae932564ed125ea716a392b3",
+        "original_hash_rechecked": true,
+        "completed_original_case_count": 15,
+        "static_cases_with_local_shell_data": 12,
+        "joint_action_locations": 160,
+        "unaveraged_field_locations": 416,
+        "matched_frame_member": "127",
+        "matched_frame_rows": 57,
+        "pier_control": {
+          "absolute_tolerance": 0.00021,
+          "components": 11700,
+          "maximum_difference": [
+            0.00010000000020227162,
+            0.00010000000020227162,
+            9.999999997489795e-05,
+            0.00010000000020227162,
+            0.0,
+            0.00010000000111176632
+          ],
+          "outside_tolerance": 0,
+          "relative_tolerance": 1e-07,
+          "reported_rows": 2130,
+          "rows": 1950
+        }
+      },
+      "physical_scope": {
+        "evidence": "EV-WALL-OPENING-SECTIONS-20261124",
+        "run": "RUN-59b1c63cbeb347b4b033b2cd4847d2c3",
+        "transition_elevation_m": -1.5,
+        "panel_count_below_above": [
+          5,
+          6
+        ],
+        "net_area_m2": [
+          11.19999999999998,
+          12.39999999999998
+        ],
+        "net_concrete_axial_limit_kn": [
+          137199.99999999974,
+          151899.99999999974
+        ],
+        "expected_physical_face_combinations": 14,
+        "evaluated_physical_face_combinations": 14,
+        "expected_panel_free_bodies": 7,
+        "equilibrated_panel_free_bodies": 7,
+        "native_opening_edge_subtotals": 7,
+        "signed_static_jamb_combinations": 5,
+        "componentwise_seismic_jamb_bounds": 8,
+        "remaining_design_inputs": [
+          "Common-section force accuracy at the opening",
+          "Opening-bar continuity and development",
+          "Project wall grouping and design eccentricity"
+        ]
+      },
+      "native_mesh_control_elevations_m": {
+        "Below": -1.71667,
+        "Above": 0.0
+      },
+      "global_moment_origin_m": [
+        75.7,
+        0.4,
+        -1.5
+      ],
+      "selected_cases": {
+        "Grav_Ult": {
+          "axial_below_above_kn": [
+            2790.737593975368,
+            2921.1323065865467
+          ],
+          "control_y_before_load_projection_kn": [
+            4.3325863430254685e-07,
+            -1.0072088230117515e-07
+          ],
+          "control_y_after_load_projection_kn": [
+            4.3325863430254685e-07,
+            -1.0072088230117515e-07
+          ],
+          "control_axial_after_pressure_and_weight_kn": [
+            2.182251973384183,
+            -33.93100049869193
+          ],
+          "opening_edge_global_kn_knm": [
+            -235.77089338942352,
+            10.250870218079632,
+            178.24332411337758,
+            15.481245400773053,
+            -195.95839349840918,
+            1.818042906167714
+          ],
+          "applied_panel_global_kn_knm": [
+            0.0,
+            0.0,
+            -71.37886560000011,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "Soil_Ult": {
+          "axial_below_above_kn": [
+            2881.381833717168,
+            3057.8655576697124
+          ],
+          "control_y_before_load_projection_kn": [
+            -735.5848884553529,
+            -804.7408955865299
+          ],
+          "control_y_after_load_projection_kn": [
+            -0.002945095352856697,
+            -0.0029522265298282946
+          ],
+          "control_axial_after_pressure_and_weight_kn": [
+            197.19182336090674,
+            90.76785982386397
+          ],
+          "opening_edge_global_kn_knm": [
+            -249.74869690230565,
+            2.1071838332058457,
+            202.86913518713854,
+            -45.95254119028742,
+            -186.13456313503502,
+            -5.250923792437285
+          ],
+          "applied_panel_global_kn_knm": [
+            0.0,
+            276.6240000000005,
+            -71.37886560000011,
+            -207.46800000000036,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "maximum_absolute_panel_residual": {
+        "kn": 5.426414242037936e-05,
+        "knm": 1.6191518742089683e-10
+      },
+      "remaining_field_minus_nodal_differences_after_uniform_load_projection": {
+        "force_kn": {
+          "side": "Above",
+          "case": "Grav_TempPos",
+          "component": "FZ",
+          "signed_difference": -269.30899722336204
+        },
+        "moment_knm": {
+          "side": "Below",
+          "case": "Grav_TempPos",
+          "component": "MY",
+          "signed_difference": 3155.7241978680436
+        }
+      },
+      "independent_raw_corner_check": {
+        "all_panel": 1.2000817006807551e-13,
+        "opening_edge": 7.105427357601002e-14
+      },
+      "jamb_reinforcement_source": [
+        {
+          "bar_count": 12,
+          "cover_to_tie_mm": 40.0,
+          "longitudinal_bar_diameter_mm": 20.0,
+          "reinforcement_role": "ETABS_DESIGN_TEMPLATE",
+          "section": "Column_80x80",
+          "t2_mm": 800.0,
+          "t3_mm": 800.0,
+          "tie_diameter_mm": 10.0
+        }
+      ],
+      "workspace_and_print_tables": {
+        "7.19": 70,
+        "7.20": 33,
+        "7.21": 92
+      },
+      "print_http_matches_saved_html_after_newline_normalization": true,
+      "verification": {
+        "windows_offline": "PASS",
+        "python_total": 1749,
+        "python_passed": 1748,
+        "python_skipped": 1,
+        "skipped_reason": "Windows sandbox disallows creation of symbolic links",
+        "golden": {
+          "matches": 36,
+          "method_differences": 4,
+          "source_gaps": 4
+        },
+        "log_sha256": "cc2b58ea103e0db7784a2422b5efc9ba31af7d50499d95cc31011cbaacf9b8bd"
+      },
+      "public_engineering_note": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
+      "engineering_release": "NOT_READY",
+      "next_action": "Qualify the xP2 opening resultants at a common mesh section at -1.50 m and establish reinforcement continuity and development at the opening before selecting the design base. The seven W22 load and transfer balances are complete. While the common-edge source or connection detail is pending, advance the yP2 uncolumned-end transfer in the whole-building engine."
     }
   ],
   "new_record_template": {
@@ -11611,7 +11828,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-23T16:41:50+00:00",
+  "updated_at_utc": "2026-11-24T05:06:00+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",

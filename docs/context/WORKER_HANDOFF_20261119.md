@@ -2,9 +2,15 @@
 
 ## Current wall calculation
 
+Start at `RUN-59b1c63cbeb347b4b033b2cd4847d2c3`. Workspace **7.19** contains both physical sections at −1.50 m for seven static combinations and the control at each adjacent mesh plane. **7.20** contains the signed and bounded C104 jamb forces. **7.21** contains W22 loads, transfer by edge and corner, the opening-edge subtotal and all seven equilibrated free bodies. The shell source was acquired through the whole-building action on an input-identical private ETABS analysis. All 1,950 original pier combination rows and 57 original member control rows were reproduced. Reopening ETABS is unnecessary for replay. [Results and reproduction](../engineering/WHOLE_BUILDING_ENGINE_20261122.md#wall-section-changes-inside-a-storey)
+
+For an enclosure decision, qualify the section forces at the actual opening elevation. Compare the current corner-field results with a mesh that has a common horizontal edge across the complete pier at that elevation, under the same loads and stiffness, if such a solution is available or authorized. The W22 free-body residuals and each C104 jamb force are already available. The remaining detailing input is reinforcement continuity and development across the opening. Carry the two design-base alternatives until the force accuracy and connection detail support a choice. If the common-edge solution or reinforcement detail is unavailable, keep the two alternatives in the report and advance the yP2 uncolumned-end transfer calculation.
+
+## Previous basement period and enclosure calculation
+
 Start with `RUN-7ecb0839bd794936869ab335651d5a72` and **Run all wall checks**. This run includes the original native matrices, 100 Ritz reference modes, W32 shell forces and signed actions at each physical cut. Workspace **7.17** reports **2/2 satisfied** for the §3.3.1.1(b) period comparison, X **1.026893** and Y **1.020456**. **7.18** follows the actual enclosure. The 18-wall return path connects above −1.50 m and breaks below W22. [Original building calculation and native inputs](../engineering/WHOLE_BUILDING_ENGINE_20261122.md#basement-periods-and-enclosure-in-the-original-building)
 
-The next delivery is xP2 at the −1.50 m opening. Use the five lower and six upper panels, physical cuts on both sides, signed local transfer and available reinforcement detail to calculate the sectional design and assess rigid three-sided enclosure under §3.3.1.1(a). Keep the 0.00 m and −5.15 m overturning scenarios available until the enclosure, group coupling and eccentricity decisions are supported. For yP2, trace the load into the adjacent walls at its uncolumned end. [Signed cuts and project limits](../engineering/WHOLE_BUILDING_ENGINE_20261122.md#original-signed-wall-and-storey-cuts)
+Keep the 0.00 m and −5.15 m overturning scenarios available until the enclosure, group coupling and eccentricity decisions are supported. For yP2, trace the load into the adjacent walls at its uncolumned end. [Signed cuts and project limits](../engineering/WHOLE_BUILDING_ENGINE_20261122.md#original-signed-wall-and-storey-cuts)
 
 ## Previous all-wall batch
 
