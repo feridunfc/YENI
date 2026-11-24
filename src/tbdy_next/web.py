@@ -65,6 +65,7 @@ def _execute_and_reply_live_payload(
     selection_overrides: Mapping[str, Any] | None = None,
     scenario_request: Mapping[str, Any] | None = None,
     project_parameters: Mapping[str, Any] | None = None,
+    confirm_project_profile: str | None = None,
     whole_building: bool = False,
     pier_forces: Mapping[str, Any] | None = None,
     wall_hinge_aggregate_storeys: list[str] | None = None,
@@ -80,7 +81,7 @@ def _execute_and_reply_live_payload(
         prepared = prepare_pipeline_source(raw, source_directory=source_directory,
                                            selection_overrides=selection_overrides, request=scenario_request,
                                            whole_building=whole_building, project_parameters=project_parameters,
-                                           pier_forces=pier_forces,
+                                           confirm_project_profile=confirm_project_profile, pier_forces=pier_forces,
                                            wall_hinge_aggregate_storeys=wall_hinge_aggregate_storeys)
     except (OSError, ValueError, TypeError, KeyError) as exc:
         handler.reply(422, {"status": "REJECTED", "reason": str(exc), "engineering_release": "NOT_READY"})
@@ -94,6 +95,9 @@ def _execute_and_reply_live_payload(
         # One owner for stage order: engineering/pipeline.py (registry + runner).
         from .engineering.pipeline import EnginePipelineRunner
         stages = EnginePipelineRunner().run(payload, case=case, run=run, input_sha=input_sha, suite=suite)
+        if confirm_project_profile is not None:
+            from .engineering.seismic_input_review import require_reviewable
+            require_reviewable(stages["report_evidence"]["seismic_project_profile"], confirm_project_profile)
         result, geometry, extra = stages["result"], stages["geometry"], stages["extra"]
         vs04, vs04_numerics = stages["vs04"], stages["vs04_numerics"]
         vs04_readiness, vs04_pipeline = stages["vs04_readiness"], stages["vs04_pipeline"]
@@ -641,14 +645,27 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                         raise ValueError("LIVE_ETABS_BASE_RUN_REQUIRED")
                     if url.path == "/api/project-parameters":
                         from .engineering.seismic_profile import normalize_values
-                        if set(body) != {"base_run_id", "project_parameters"} or q:
+                        from .engineering.seismic_input_review import require_reviewable
+                        profile = base_report.get("seismic_project_profile") or {}
+                        if q or set(body) not in ({"base_run_id", "project_parameters"}, {"base_run_id", "confirm_project_profile"},
+                                                  {"base_run_id", "refresh_project_profile"}):
                             raise ValueError("PROJECT_PARAMETER_REQUEST_INVALID")
-                        values = normalize_values(body["project_parameters"])
-                        defaults = (base_report.get("seismic_project_profile") or {}).get("fields", {})
-                        for key, value in values.items():
-                            field = defaults.get(key) or {}
-                            if field.get("origin") in {"ETABS_FUNCTION", "ETABS_PROJECT", "DERIVED"} and field.get("value") != value:
-                                raise ValueError("PROJECT_PARAMETER_CONFLICT:" + key)
+                        if "refresh_project_profile" in body:
+                            if body["refresh_project_profile"] is not True:
+                                raise ValueError("PROJECT_PARAMETER_REQUEST_INVALID")
+                        elif "confirm_project_profile" in body:
+                            if base_report.get("seismic_profile_origin") != "SEALED_RUN_RESULT":
+                                raise ValueError("REFRESH_PROJECT_DEFAULTS_BEFORE_CONFIRMATION")
+                            require_reviewable(profile, body["confirm_project_profile"])
+                            if profile["review"]["status"] == "CONFIRMED":
+                                self.reply(200, {"run_id": base_run_id, "seismic_project_profile": profile,
+                                                 "model_name": base_report.get("model_name")})
+                                return
+                        else:
+                            for key, value in normalize_values(body["project_parameters"]).items():
+                                field = profile.get("fields", {}).get(key, {})
+                                if field.get("origin") in {"ETABS_FUNCTION", "ETABS_PROJECT", "DERIVED"} and field["value"] != value:
+                                    raise ValueError("PROJECT_PARAMETER_CONFLICT:" + key)
                     source_directory = output_root / base_run_id
                     source_path = source_directory / "input.source"
                     if (source_path.is_symlink() or not source_path.is_file()
@@ -692,7 +709,8 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                     self, output_root, base_report["source_snapshot"], case, suite=True,
                     source_raw=source_raw, source_directory=source_directory,
                     selection_overrides=selection_overrides if url.path == "/api/apply-rebar-selection" else None,
-                    project_parameters=body.get("project_parameters"), scenario_request=scenario_request,
+                    project_parameters=body.get("project_parameters"), confirm_project_profile=body.get("confirm_project_profile"),
+                    scenario_request=scenario_request,
                     whole_building=body.get("whole_building", False),
                     pier_forces=pier_forces,
                     wall_hinge_aggregate_storeys=body.get("wall_hinge_aggregate_storeys"),

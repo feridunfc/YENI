@@ -254,6 +254,7 @@ def prepare_pipeline_source(
     request: Mapping[str, Any] | None = None,
     selection_overrides: Mapping[str, Any] | None = None,
     project_parameters: Mapping[str, Any] | None = None,
+    confirm_project_profile: str | None = None,
     whole_building: bool = False,
     pier_forces: Mapping[str, Any] | None = None,
     basement_matrices: Path | None = None,
@@ -338,8 +339,10 @@ def prepare_pipeline_source(
         if wall_hinge_aggregate_storeys is not None:
             policy = {**policy, "wall_hinge_aggregate_storeys": wall_hinge_aggregate_storeys}
         request["building_design"] = policy
-    if project_parameters is not None:
+    if project_parameters is not None or confirm_project_profile is not None:
         from .seismic_profile import INPUT_SCHEMA, normalize_values
+        if project_parameters is not None and confirm_project_profile is not None:
+            raise ValueError("APPLY_CHANGED_VALUES_BEFORE_CONFIRMATION")
         if explicit_request:
             raise ValueError("PROJECT_PARAMETERS_ALREADY_BOUND_BY_SCENARIO")
         parent = parent_raw if parent_raw is not None else source_raw
@@ -349,8 +352,11 @@ def prepare_pipeline_source(
                        **{key: payload.get(key) for key in POLICIES},
                        **{key: payload[key] for key in CALCULATION_BASES if payload.get(key) is not None}}
         inherited = (request.get("project_parameter_inputs") or {}).get("values", {})
-        request["project_parameter_inputs"] = {"schema": INPUT_SCHEMA, "source_data_sha256": _digest(_source_data(payload)),
-                                               "values": {**inherited, **normalize_values(project_parameters)}}
+        values = {**inherited, **normalize_values(project_parameters)} if project_parameters is not None else inherited
+        binding = {"schema": INPUT_SCHEMA, "source_data_sha256": _digest(_source_data(payload)), "values": values}
+        if confirm_project_profile is not None:
+            binding["confirmed_profile_sha256"] = confirm_project_profile
+        request["project_parameter_inputs"] = binding
     if request is not None:
         parent_raw = parent_raw if parent_raw is not None else source_raw
         raw = create_design_scenario(parent_raw, request)

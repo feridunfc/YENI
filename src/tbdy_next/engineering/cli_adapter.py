@@ -82,6 +82,7 @@ def _run_pipeline_replay(args) -> int:
     prepared = prepare_pipeline_source(raw, source_directory=args.source.parent, request=request,
                                        selection_overrides=overrides or None,
                                        project_parameters=_read(args.project_parameters) if getattr(args, "project_parameters", None) else None,
+                                       confirm_project_profile=getattr(args, "confirm_project_profile", None),
                                        whole_building=getattr(args, "whole_building", False),
                                        basement_matrices=getattr(args, "basement_matrices", None),
                                        basement_ground_storey=getattr(args, "basement_ground_storey", None),
@@ -104,6 +105,9 @@ def _run_pipeline_replay(args) -> int:
                "r08_local_slenderness": (stages.get("r08_local_slenderness") or {}).get("status"),
                "engineering_release": "NOT_READY", "engineering_verdict": "NOT_PROVEN"}
     summary["seismic_project_profile"] = stages["report_evidence"].get("seismic_project_profile")
+    if getattr(args, "confirm_project_profile", None) is not None:
+        from .seismic_input_review import require_reviewable
+        require_reviewable(summary["seismic_project_profile"], args.confirm_project_profile)
     if scenario is not None:
         summary["design_scenario"] = scenario
     if scenario is not None and any(scenario["policies"].values()):

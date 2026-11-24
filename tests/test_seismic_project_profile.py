@@ -59,6 +59,28 @@ class ProjectSpectrumTests(unittest.TestCase):
             with self.assertRaises(HTTPError) as error:
                 post("/api/project-parameters", {"base_run_id": revised["run_id"], "project_parameters": {"BKS": 3}})
             self.assertEqual(error.exception.code, 422)
+            route = "/api/project-parameters"
+            partial = revised["seismic_project_profile"]["review"]
+            with self.assertRaises(HTTPError):
+                post(route, {"base_run_id": revised["run_id"], "confirm_project_profile": partial["sha256"]})
+            complete = post(route, {"base_run_id": revised["run_id"], "project_parameters": {
+                "Dx": 2.5, "Dy": 2.5, "Ss": 0.625, "S1": 0.25, "SiteClass": "ZA",
+                "Fs": 0.8, "F1": 0.8, "SD1": 0.2, "TL": 6, "DampRatio": 0.05}})
+            review = complete["seismic_project_profile"]["review"]
+            self.assertEqual(review["status"], "AWAITING_CONFIRMATION")
+            self.assertEqual(len(review["checks"]), 4)
+            confirm = {"base_run_id": complete["run_id"], "confirm_project_profile": review["sha256"]}
+            with self.assertRaises(HTTPError):
+                post(route, {**confirm, "confirm_project_profile": partial["sha256"]})
+            confirmed = post(route, confirm)
+            self.assertEqual(confirmed["seismic_project_profile"]["review"]["status"], "CONFIRMED")
+            with urlopen(base + "/api/export-checks?run_id=" + confirmed["run_id"]) as response:
+                self.assertEqual(json.load(response)["seismic_project_profile"], confirmed["seismic_project_profile"])
+            repeat = post(route, {**confirm, "base_run_id": confirmed["run_id"]})
+            self.assertEqual(repeat["run_id"], confirmed["run_id"])
+            edited = post(route, {"base_run_id": confirmed["run_id"], "project_parameters": {"HN": 16}})
+            self.assertEqual(edited["seismic_project_profile"]["review"]["status"], "AWAITING_CONFIRMATION")
+            self.assertEqual(edited["seismic_project_profile"]["fields"]["BYS"]["value"], 6)
 
     def test_two_assigned_functions_and_unused_function(self):
         source = model([("trans", "4"), ("long", "7"), ("unused", "2")],
@@ -67,7 +89,7 @@ class ProjectSpectrumTests(unittest.TestCase):
         fields = profile["fields"]
         self.assertEqual([fields[k]["value"] for k in ("Rx", "Ry", "I", "BKS")], [7, 4, 1.5, 1])
         self.assertIn("east / long", fields["Rx"]["basis"])
-        self.assertIsNone(fields["DTS"]["value"])
+        self.assertEqual((fields["DD"]["origin"], fields["DTS"]["value"]), ("PROJECT_DEFAULT", "2a"))
 
     def test_unmapped_secondary_case_and_conflicting_functions_require_input(self):
         source = model([("A", 4), ("B", 8)], [("one", "A", "U1", 0, "Global"),
@@ -135,6 +157,40 @@ class ProjectSpectrumTests(unittest.TestCase):
         blocked = bind_story_second_order(fixture(), project_profile=missing)
         self.assertEqual(blocked["evaluated_story_direction_count"], 0)
         self.assertGreater(blocked["expected_story_direction_count"], 0)
+
+    def test_height_uses_complete_elevation_stack_and_adopted_base(self):
+        source = model([("A", 7)], [("x", "A", "U1", 0, "Global")])
+        rows = [{"story": name, "lower_elevation_m": lo, "upper_elevation_m": hi, "height_m": hi - lo,
+                 "applicability": status} for name, lo, hi, status in [
+                     ("L1", -5.15, 0, "IN_SCOPE"), ("L2", 0, 4.5, "IN_SCOPE"), ("L3", 4.5, 9, "IN_SCOPE"),
+                     ("Empty", 9, 14.5, "NOT_APPLICABLE")]]
+        scope = {"source_inventory_complete": True, "stories": rows}
+        profile = project_seismic_profile(source, physical_scope=scope, input_sha="a" * 64)
+        self.assertEqual((profile["fields"]["HN"]["value"], profile["fields"]["BYS"]["value"]), (14.15, 6))
+        self.assertEqual(profile["height_basis"]["physical"]["lowest_m"], -5.15)
+        qualified = project_seismic_profile(source, physical_scope=scope, basement={"design_base_m": 0})
+        self.assertEqual((qualified["fields"]["HN"]["value"], qualified["fields"]["BYS"]["value"]), (9, 7))
+        rows[1]["lower_elevation_m"] = 1
+        self.assertIsNone(project_seismic_profile(source, physical_scope=scope)["fields"]["HN"]["value"])
+
+    def test_other_motion_and_inconsistent_spectrum_cannot_be_confirmed(self):
+        source = model([("A", 7)], [("x", "A", "U1", 0, "Global")], [("DD", "DD-1")])
+        row = source["vs04_basis_probe"]["table_reads"][SPECTRUM_FUNCTION]["rows"][0]
+        row.update(Ss="0.345", S1="0.111", SiteClass="ZD", Fs="1.524", F1="2.378", SD1="0.263958")
+        p = project_seismic_profile(source, input_sha="a" * 64)
+        self.assertEqual(p["fields"]["DD"]["value"], "DD-1")
+        self.assertIsNone(p["fields"]["DTS"]["value"])
+        self.assertEqual(p["review"]["status"], "SOURCE_REVIEW_REQUIRED")
+        self.assertTrue(all(c["satisfied"] for c in p["review"]["checks"]))
+        row["DD"] = "DD-2"
+        p = project_seismic_profile(source)
+        self.assertIsNone(p["fields"]["DD"]["value"])
+        row.update(SD1="0.111", F1="1")
+        p = project_seismic_profile(source)
+        self.assertEqual([c["field"] for c in p["review"]["checks"] if not c["satisfied"]], ["F1"])
+        row["SD1"] = "0.9"
+        self.assertEqual([c["field"] for c in project_seismic_profile(source)["review"]["checks"]
+                          if not c["satisfied"]], ["F1", "SD1"])
 
     def test_zero_damping_does_not_become_missing(self):
         source = model([("A", 7)], [("x", "A", "U1", 0, "Global")])

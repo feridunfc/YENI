@@ -753,7 +753,7 @@
         combinations: report.column_axial.combination_plan.combinations,
       } : null,
       project: projectDetails(report), seismic: spectrumDetails(report),
-      seismicProfile: report.seismic_project_profile,
+      seismicProfile: report.seismic_project_profile, seismicProfileOrigin: report.seismic_profile_origin,
       tables: runTables(report), irregularities: irregularityTables(report),
     };
   }
@@ -1087,8 +1087,8 @@
   });
 
   window.addEventListener('tbdy:project-parameters', async event => {
-    const {runId, values, button, feedback} = event.detail;
-    if (busy || !runIdPattern.test(runId)) return;
+    const {runId, request, button, feedback} = event.detail;
+    if (busy || !runIdPattern.test(runId) || selector.value !== runId) return;
     busy = true;
     button.disabled = true;
     selector.disabled = true;
@@ -1098,13 +1098,14 @@
     try {
       const body = await json('/api/project-parameters', {method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({base_run_id: runId, project_parameters: values})});
+        body: JSON.stringify({base_run_id: runId, ...request})});
       if (!runIdPattern.test(body.run_id)) throw new Error('Missing result run.');
       entries = [{run_id: body.run_id, model_name: body.model_name, source_mode: 'LIVE_ETABS',
         case: byId('deskModalCase').value.trim(), captured_at_utc: new Date().toISOString()}, ...entries];
       renderPicker(body.run_id);
       await activateSource(body.run_id);
-      log('success', 'PROJECT', 'Project inputs applied to run ' + body.run_id);
+      const action = body.seismic_project_profile?.review?.status === 'CONFIRMED' ? 'confirmed' : 'loaded';
+      log('success', 'PROJECT', 'Project inputs ' + action + ' for run ' + body.run_id);
     } catch (error) {
       feedback.textContent = error.message;
       setRunStatus(error.message, true);

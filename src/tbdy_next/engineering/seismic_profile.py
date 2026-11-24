@@ -5,6 +5,7 @@ from collections import defaultdict
 from math import isclose, isfinite
 
 from ..basis_linkage import SPECTRUM_CASE, SPECTRUM_FUNCTION
+from .seismic_input_review import physical_height, project_review, valid_review_digest
 
 SCHEMA = "tbdy.next.seismic-project-profile.v1"
 INPUT_SCHEMA = "tbdy.next.seismic-project-inputs.v1"
@@ -47,9 +48,15 @@ def normalize_values(values):
 
 
 def normalize_inputs(raw, source_data_sha256):
-    if (not isinstance(raw, dict) or set(raw) != {"schema", "source_data_sha256", "values"}
+    required = {"schema", "source_data_sha256", "values"}
+    if (not isinstance(raw, dict) or not required <= raw.keys() <= required | {"confirmed_profile_sha256"}
             or raw["schema"] != INPUT_SCHEMA or raw["source_data_sha256"] != source_data_sha256):
         raise ValueError("PROJECT_PARAMETERS_NATIVE_SOURCE_MISMATCH")
+    if "confirmed_profile_sha256" in raw:
+        if not valid_review_digest(raw["confirmed_profile_sha256"]):
+            raise ValueError("PROJECT_INPUT_REVIEW_DIGEST_INVALID")
+        if raw["values"] == {}:
+            return dict(raw)
     return {**raw, "values": normalize_values(raw["values"])}
 
 
@@ -95,7 +102,7 @@ def _constant(rows, key):
     return next(iter(values)) if len(values) == 1 else None
 
 
-def project_seismic_profile(source, *, physical_scope=None, basement=None):
+def project_seismic_profile(source, *, physical_scope=None, basement=None, input_sha=None):
     probe = source.get("vs04_basis_probe") or {}
     tables = probe.get("table_reads") or {}
     if (probe.get("read_only_invariant_proven") is False
@@ -123,7 +130,9 @@ def project_seismic_profile(source, *, physical_scope=None, basement=None):
                                                    and directions == {"Horizontal"})})
 
     fields = {k: {"value": None, "origin": "INPUT_REQUIRED", "basis": "Project input required"} for k in FIELDS}
-    inputs = (source.get("project_parameter_inputs") or {}).get("values") or {}
+    project_inputs = source.get("project_parameter_inputs") or {}
+    inputs = project_inputs.get("values") or {}
+    review_issues = []
 
     def resolve(key, value, origin, basis):
         if value is not None:
@@ -175,27 +184,37 @@ def project_seismic_profile(source, *, physical_scope=None, basement=None):
         key = str(row.get("Item", row.get("Name", ""))).strip().upper()
         info[key].append({"v": row.get("Data", row.get("Value"))})
 
-    def classify(key, derived, basis):
-        native = [r["v"] for r in info[key] if r["v"] not in MISSING]
-        assigned = [a for a in assignments if a["horizontal_tsc"]]
-        if assigned and len(assigned) == len(assignments):
-            values = [_constant(functions[a["function"]], key) for a in assigned]
-            if all(value is not None for value in values):
-                native.extend(values)
+    def classify(key, derived, basis, *, default=None):
+        project_values = [r["v"] for r in info[key] if r["v"] not in MISSING]
+        reported = [[r[key] for r in functions[a["function"]] if r.get(key) not in MISSING]
+                    if a["horizontal_tsc"] else [] for a in assignments]
+        native = project_values + [v for group in reported for v in group]
         if native:
             value = _constant([{key: v} for v in native], key)
-            if value is None or (derived is not None and value != derived):
-                if derived is not None and key in inputs and inputs[key] != derived:
-                    raise ValueError("PROJECT_PARAMETER_CONFLICT:" + key)
-                return resolve(key, None, "", "ETABS project information conflicts with " + basis)
+            if value is None or (not project_values and not all(reported)) or (derived is not None and value != derived):
+                issue = "ETABS project or spectrum values conflict with " + key + " / " + basis
+                review_issues.append(issue)
+                fields[key]["basis"] = issue
+                return None
             return resolve(key, value, "ETABS_PROJECT", "ETABS / " + key)
+        if derived is None and key not in inputs and default is not None:
+            return resolve(key, default, "PROJECT_DEFAULT", basis)
         return resolve(key, derived, "DERIVED", basis)
 
-    dd = classify("DD", None, "Ground-motion level of the assigned spectrum")
-    bks = classify("BKS", IMPORTANCE.get(fields["I"]["value"]), "TBDY Table 3.1 / importance I")
+    dd = classify("DD", None, "Strength design uses DD-2. Verify the assigned spectrum hazard level.",
+                  default="DD-2")
+    importance = fields["I"]["value"]
+    bks = classify("BKS", IMPORTANCE.get(importance), "TBDY Table 3.1 / importance I")
+    if importance is not None and importance not in IMPORTANCE:
+        review_issues.append("Verify occupancy and importance I against TBDY Table 3.1.")
     sds = fields["SDS"]["value"]
     dts = classify("DTS", _dts(sds, bks) if dd == "DD-2" and sds is not None and bks else None,
                    "TBDY Table 3.2 / DD-2 SDS and BKS")
+
+    ss, fs = fields["Ss"]["value"], fields["Fs"]["value"]
+    if (dd == "DD-2" and bks and None not in (sds, ss, fs)
+            and _dts(sds, bks) != _dts(ss * fs, bks)):
+        review_issues.append("The reported SDS and Ss × Fs fall in different DTS bands in Table 3.2.")
 
     physical = physical_scope or {}
     stories = [r for r in physical.get("stories", ()) if r.get("applicability") == "IN_SCOPE"]
@@ -203,8 +222,15 @@ def project_seismic_profile(source, *, physical_scope=None, basement=None):
         physical.get("source_inventory_complete") is True) else None
     basement = basement or {}
     base = basement.get("design_base_m")
+    extent = physical_height(stories) if physical.get("source_inventory_complete") is True else None
     height = roof - base if roof is not None and base is not None and roof > base else None
-    hn = classify("HN", height, "TBDY §3.3.1 / physical roof and adopted seismic base (m)")
+    basis = ("TBDY §3.3.1 / physical roof and adopted seismic base (m)" if height is not None or extent is None
+             else "Sum of physical storey heights from the lowest floor to the roof. Verify the building base.")
+    hn = classify("HN", height, basis, default=extent["total_m"] if extent else None)
+    if hn is not None and extent and hn > extent["total_m"] + 1e-6:
+        review_issues.append("The project height exceeds the verified physical storey stack.")
+    height_basis = {"physical": extent, "profile_base_m": round(roof - hn, 9) if roof is not None and hn else None,
+                    "roof_m": roof, "height_m": hn}
     classify("BYS", _height_class(hn, dts) if hn is not None and dts else None, "TBDY Table 3.3 / HN and DTS")
     comparison = dts or (_dts(sds, bks) if dd is None and sds is not None and bks else None)
     scenarios = []
@@ -214,6 +240,12 @@ def project_seismic_profile(source, *, physical_scope=None, basement=None):
             scenarios.append({"base_m": cut, "height_m": h, "DTS": comparison,
                               "assumed_DD": "DD-2" if comparison and not dts else None,
                               "BYS": _height_class(h, comparison) if comparison else None})
-    return {"schema": SCHEMA, "fields": fields, "assignments": assignments, "physical_roof_m": roof,
-            "base_status": basement.get("status"), "height_scenarios": scenarios,
-            "missing_inputs": [k for k in FIELDS if fields[k]["value"] is None]}
+    profile = {"schema": SCHEMA, "fields": fields, "assignments": assignments, "physical_roof_m": roof,
+               "height_basis": height_basis, "base_status": basement.get("status"),
+               "height_scenarios": scenarios if fields["HN"]["origin"] in ("INPUT_REQUIRED", "PROJECT_DEFAULT") else [],
+               "missing_inputs": [k for k in FIELDS if fields[k]["value"] is None]}
+    parent_sha = (source.get("design_scenario") or {}).get("parent_input_sha256", input_sha)
+    profile["review"] = project_review(profile, parent_sha, project_inputs.get("confirmed_profile_sha256"), review_issues)
+    if profile["review"]["status"] == "CONFIRMED":
+        profile["height_scenarios"] = []
+    return profile

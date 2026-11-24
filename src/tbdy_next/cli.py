@@ -92,7 +92,8 @@ def main(argv: list[str] | None = None) -> int:
     replay.add_argument("--out", type=Path, required=True, help="Receipt root for the replay run")
     replay.add_argument("--compare-run", type=Path, help="Existing RUN-* directory; every stage payload must match")
     replay.add_argument("--design-scenario", type=Path, help="Explicit source-bound offline design scenario JSON")
-    replay.add_argument("--project-parameters", type=Path, help="JSON object with missing seismic project values")
+    replay.add_argument("--project-parameters", type=Path, help="JSON object with project seismic inputs")
+    replay.add_argument("--confirm-project-profile", metavar="SHA256", help="Confirm the displayed seismic input review")
     replay.add_argument("--whole-building", action="store_true",
                         help="Run all physical members and building checks, then write the sealed HTML report")
     replay.add_argument("--wall-hinge-aggregate-storey", action="append", metavar="STOREY",

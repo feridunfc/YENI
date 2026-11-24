@@ -19,18 +19,18 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "SOURCE_BOUND_PROJECT_DEFAULTS_AND_BUILDING_STAGE",
-    "work_branch": "work/audit-stabilization",
+    "status": "ORIGINAL_DD2_PHYSICAL_HEIGHT_AND_SPECTRUM_INPUT_REVIEW",
+    "work_branch": "work/project-input-review",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "6154425d2f8471495f5d7deee8c70ae4b38e02a6",
+    "inspected_base_commit": "04430aa07fbc776de46d2c59ec8e742dd0c18fdb",
     "tested_git_subtrees": {
-      "src": "0b2695e853fa031036948ade04f1078f46428889",
-      "tests": "f9a0ffb31800c01af3f84169e61e95350d6bb130"
+      "src": "8aba1c1af34669a42876bc88ccc579713a615d46",
+      "tests": "c04ad5101838244186e4547087e528254ea279e4"
     },
-    "production_run_id": "RUN-1653aec18a9240e08e9790899438608f",
-    "results_sha256": "6ebee0a9ec3775fb7843a332effde4fd66d920d88b33d4c8189fab7d5c59dcb1",
+    "production_run_id": "RUN-22cf1ad131f94aba9a72c1d0ae96c5ed",
+    "results_sha256": "7fb03fc7ce768d382eb67afe7eaf67b3945a246ba15f9df0e21452fafb5c77af",
     "evidence_refs": [
-      "EV-ORIGINAL-ETABS-PROJECT-DEFAULTS-20261124"
+      "EV-ORIGINAL-DD2-PROJECT-INPUT-REVIEW-20261124"
     ],
     "engineering_release": "NOT_READY"
   },
@@ -11997,6 +11997,145 @@
         "Direct material/solver approvals and S06/S08 independent source rows remain open."
       ],
       "engineering_release": "NOT_READY"
+    },
+    {
+      "id": "EV-ORIGINAL-DD2-PROJECT-INPUT-REVIEW-20261124",
+      "status": "PROJECT_DD2_AND_HEIGHT_APPLIED_SPECTRUM_AWAITING_USER_CONFIRMATION",
+      "inspected_base_commit": "04430aa07fbc776de46d2c59ec8e742dd0c18fdb",
+      "tested_git_subtrees": {
+        "src": "8aba1c1af34669a42876bc88ccc579713a615d46",
+        "tests": "c04ad5101838244186e4547087e528254ea279e4"
+      },
+      "design_run": "RUN-22cf1ad131f94aba9a72c1d0ae96c5ed",
+      "web_run": "RUN-06fab28fe8dc4e99b492638e96308838",
+      "source_run": "RUN-1653aec18a9240e08e9790899438608f",
+      "source_kind": "REPLAY_OF_ORIGINAL_MODEL_CAPTURE",
+      "input_sha256": "446fa5e52487958dfc2ea5dd143e67b1986f0945972ab45161eb1b049f915ef3",
+      "parent_sha256": "703e202fc8b08f60043c571d9970945b6307e5cee99e8a45e6377c8446da56fc",
+      "engine_snapshot": {
+        "results_sha256": "7fb03fc7ce768d382eb67afe7eaf67b3945a246ba15f9df0e21452fafb5c77af",
+        "schema": "tbdy.next.pipeline-stage-snapshot.v3",
+        "snapshot_sha256": "790b3225b839a8e046d01b6e415d48aff43f5219145d76df9dca0784d23bf89d"
+      },
+      "same_results_via_web_and_cli": true,
+      "scope": "DD-2 strength-design project inputs for the original compact building",
+      "project_decisions": {
+        "DD": "DD-2",
+        "HN_m": 14.15,
+        "reference_base_m": -5.15
+      },
+      "physical_height": {
+        "height_m": 14.15,
+        "physical": {
+          "lowest_m": -5.15,
+          "roof_m": 9.0,
+          "storeys": [
+            {
+              "height_m": 5.15,
+              "storey": "+0.00"
+            },
+            {
+              "height_m": 4.5,
+              "storey": "+4.50"
+            },
+            {
+              "height_m": 4.5,
+              "storey": "+9.00"
+            }
+          ],
+          "total_m": 14.15
+        },
+        "profile_base_m": -5.15,
+        "roof_m": 9.0
+      },
+      "live_gateway_session": {
+        "attachment": "PROCESS_ID",
+        "model_locked": true,
+        "model_name": "kompakt_b.EDB",
+        "process_id": 36508,
+        "units_api_agree": true,
+        "units_code": 6,
+        "units_label": "kN·m·°C"
+      },
+      "parameters": {
+        "BKS": 1,
+        "BYS": 6,
+        "DD": "DD-2",
+        "DTS": "2a",
+        "DampRatio": 0.05,
+        "Dx": 2.5,
+        "Dy": 2.5,
+        "F1": 2.378,
+        "Fs": 1.524,
+        "HN": 14.15,
+        "I": 1.5,
+        "Rx": 7.0,
+        "Ry": 7.0,
+        "S1": 0.111,
+        "SD1": 0.263958,
+        "SDS": 0.52578,
+        "SiteClass": "ZD",
+        "Ss": 0.345,
+        "TL": 6.0
+      },
+      "field_count": 19,
+      "review": {
+        "checks": [
+          {
+            "absolute_tolerance": 0.0005,
+            "basis": "Table 2.1",
+            "expected": 1.524,
+            "field": "Fs",
+            "satisfied": true,
+            "value": 1.524
+          },
+          {
+            "absolute_tolerance": 5e-05,
+            "basis": "Eq. (2.1)",
+            "expected": 0.52578,
+            "field": "SDS",
+            "satisfied": true,
+            "value": 0.52578
+          },
+          {
+            "absolute_tolerance": 0.0005,
+            "basis": "Table 2.2",
+            "expected": 2.378,
+            "field": "F1",
+            "satisfied": true,
+            "value": 2.378
+          },
+          {
+            "absolute_tolerance": 5e-05,
+            "basis": "Eq. (2.1)",
+            "expected": 0.263958,
+            "field": "SD1",
+            "satisfied": true,
+            "value": 0.263958
+          }
+        ],
+        "issues": [],
+        "sha256": "89493fc9b0d0f5eb08f564639121c2a63f261a65b8c33d11c7ad00561a333fcf",
+        "source_sha256": "703e202fc8b08f60043c571d9970945b6307e5cee99e8a45e6377c8446da56fc",
+        "status": "AWAITING_CONFIRMATION"
+      },
+      "served_workspace_sha256": "da6ee72f463f51dab0b8e084e3903e874d664a211f4d411fa34045716b3041bb",
+      "printed_report_sha256": "8ad8b6af28d8b3b9bca8c8d1310f27fff25ff7e168305b15c67e75ce1986aa1b",
+      "primary_reference": "TBDY 2018 Tables 2.1, 2.2, 3.1, 3.2, 3.3, Eq. (2.1) and section 3.3.1",
+      "software_tests": {
+        "windows_python_total": 1772,
+        "passed": 1771,
+        "skipped": 1,
+        "javascript_files": 12,
+        "offline": "PASS"
+      },
+      "private_evidence_root": ".receipts/verification/strength-design-project-review-20261124",
+      "limits": [
+        "Review of all displayed spectrum inputs awaits the project user.",
+        "The hazard map ordinates require a location for independent verification.",
+        "The enclosure and W22 reinforcement checks retain their own evidence."
+      ],
+      "engineering_release": "NOT_READY"
     }
   ],
   "new_record_template": {
@@ -12021,7 +12160,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-24T17:31:37+00:00",
+  "updated_at_utc": "2026-11-24T18:10:27+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -12880,6 +13019,22 @@
       "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
       "engineering_release": "NOT_READY",
       "next_action": "Qualify the xP2 opening resultants at a common mesh section at -1.50 m and establish reinforcement continuity and development at the opening before selecting the design base. The seven W22 load and transfer balances are complete. While the common-edge source or connection detail is pending, advance the yP2 uncolumned-end transfer in the whole-building engine."
+    },
+    {
+      "status": "SOURCE_BOUND_PROJECT_DEFAULTS_AND_BUILDING_STAGE",
+      "work_branch": "work/audit-stabilization",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "6154425d2f8471495f5d7deee8c70ae4b38e02a6",
+      "tested_git_subtrees": {
+        "src": "0b2695e853fa031036948ade04f1078f46428889",
+        "tests": "f9a0ffb31800c01af3f84169e61e95350d6bb130"
+      },
+      "production_run_id": "RUN-1653aec18a9240e08e9790899438608f",
+      "results_sha256": "6ebee0a9ec3775fb7843a332effde4fd66d920d88b33d4c8189fab7d5c59dcb1",
+      "evidence_refs": [
+        "EV-ORIGINAL-ETABS-PROJECT-DEFAULTS-20261124"
+      ],
+      "engineering_release": "NOT_READY"
     }
   ],
   "remote_audit_correction_checkpoint": {

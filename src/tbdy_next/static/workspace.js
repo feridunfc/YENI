@@ -559,7 +559,26 @@
   function renderProjectParameters(host) {
     const profile = state.bundle?.seismicProfile;
     if (!profile?.fields) return;
-    const card = referenceCard(host, 'Seismic design parameters');
+    const card = referenceCard(host, 'Review seismic design inputs');
+    const runId = state.bundle.runId;
+    const review = profile.review;
+    const sealed = state.bundle.seismicProfileOrigin === 'SEALED_RUN_RESULT' && Boolean(review?.sha256);
+    const assignments = (profile.assignments ?? []).filter(a => a.horizontal_tsc)
+      .map(a => [a.case, a.function].join(' / '));
+    const origins = [...new Set(assignments)].join(', ');
+    if (origins) card.append(node('p', 'Read from ETABS: ' + origins + '.'));
+    const status = {AWAITING_CONFIRMATION: 'Are these the correct inputs for DD-2 strength design?',
+      CONFIRMED: 'Project inputs confirmed for this spectrum and building height.',
+      INPUTS_REQUIRED: 'Complete the missing inputs, then review the recalculated values.',
+      SOURCE_REVIEW_REQUIRED: 'Resolve the source checks before confirming the design inputs.'};
+    card.append(node('p', sealed ? status[review.status] : 'Load the current design defaults to review this archived run.'));
+    for (const issue of review?.issues ?? []) card.append(node('p', issue, 'desk-result-note'));
+    const height = profile.height_basis;
+    if (height?.physical) {
+      const sum = height.physical.storeys.map(row => row.height_m.toFixed(2)).join(' + ');
+      card.append(node('p', 'Physical storeys: ' + sum + ' = ' + height.physical.total_m.toFixed(2) +
+        ' m. Profile base ' + (height.profile_base_m?.toFixed(2) ?? 'unresolved') + ' m · Roof ' + height.roof_m.toFixed(2) + ' m.'));
+    }
     const labels = {Rx: 'Behaviour factor Rx', Ry: 'Behaviour factor Ry', Dx: 'Overstrength Dx', Dy: 'Overstrength Dy',
       I: 'Importance I', BKS: 'Building use class (BKS)', DTS: 'Seismic design class (DTS)',
       HN: 'Seismic building height HN (m)', BYS: 'Building height class (BYS)', DD: 'Ground-motion level (DD)',
@@ -572,7 +591,7 @@
       const field = profile.fields[key];
       if (!field) continue;
       const label = node('label', undefined, 'desk-field');
-      const editable = field.origin === 'INPUT_REQUIRED' || field.origin === 'PROJECT_INPUT';
+      const editable = ['INPUT_REQUIRED','PROJECT_INPUT','PROJECT_DEFAULT'].includes(field.origin);
       const control = node(editable && choices[key] ? 'select' : 'input');
       if (editable && choices[key]) {
         for (const value of ['', ...choices[key]]) {
@@ -585,26 +604,51 @@
       }
       control.value = field.value ?? '';
       const note = node('small', field.basis);
+      control.setAttribute('name', key);
       label.append(node('span', labels[key] ?? key), control, note);
       grid.append(label);
       if (editable) editors.push([key, control, String(field.value ?? '')]);
     }
-    form.append(grid);
+    const feedback = node('p', '', 'desk-result-note');
+    feedback.setAttribute('role', 'status');
+    const busy = state.pending || state.liveBusy;
+    const changes = () => Object.fromEntries(editors.filter(([, c, old]) => c.value.trim() && c.value !== old)
+      .map(([key, c]) => [key, c.value.trim()]));
+    const send = (request, button) => window.dispatchEvent(new CustomEvent('tbdy:project-parameters', {
+      detail: {runId, request, button, feedback}}));
+    if (!sealed || review.status === 'AWAITING_CONFIRMATION') {
+      const action = node('button', sealed ? 'Confirm project inputs' : 'Load current design defaults', 'desk-button');
+      action.type = 'button';
+      action.disabled = busy;
+      action.addEventListener('click', () => {
+        if (editors.some(([, c, old]) => c.value !== old)) {
+          feedback.textContent = 'Apply your edits and review the recalculated inputs first.';
+          return;
+        }
+        send(sealed ? {confirm_project_profile: review.sha256} : {refresh_project_profile: true}, action);
+      });
+      form.append(action);
+    }
     if (editors.length) {
-      const button = node('button', 'Apply project inputs', 'desk-button');
-      button.type = 'submit'; button.disabled = state.pending || state.liveBusy;
-      const feedback = node('p', '', 'desk-result-note'); feedback.setAttribute('role','status');
-      form.append(button, feedback);
+      const apply = node('button', 'Apply edited inputs', 'desk-button');
+      apply.type = 'submit';
+      apply.disabled = true;
+      form.addEventListener('input', () => { apply.disabled = busy || !Object.keys(changes()).length; });
       form.addEventListener('submit', event => {
         event.preventDefault();
-        const values = Object.fromEntries(editors.filter(([, c, previous]) => c.value.trim() && c.value !== previous)
-          .map(([k, c]) => [k, c.value.trim()]));
-        if (!Object.keys(values).length) { feedback.textContent = 'Enter a missing value first.'; return; }
-        window.dispatchEvent(new CustomEvent('tbdy:project-parameters', {detail: {
-          runId: state.bundle.runId, values, button, feedback}}));
+        const values = changes();
+        if (Object.keys(values).length) send({project_parameters: values}, apply);
       });
+      form.append(apply);
     }
+    form.append(feedback, grid);
     card.append(form);
+    if (review?.checks?.length) {
+      const wrap = node('div', undefined, 'desk-table-wrap');
+      drawTable(wrap, {headers: ['Parameter', 'Input', 'Recalculated', 'TBDY 2018', 'Agreement'],
+        rows: review.checks.map(r => [r.field, r.value, r.expected, r.basis, r.satisfied ? 'Yes' : 'Review'])});
+      card.append(wrap);
+    }
     if (profile.height_scenarios?.length) {
       const wrap = node('div', undefined, 'desk-table-wrap');
       drawTable(wrap, {headers: ['Candidate base (m)', 'HN (m)', 'DTS', 'Assumed motion level', 'Conditional BYS'],

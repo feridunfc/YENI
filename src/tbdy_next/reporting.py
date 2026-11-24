@@ -1610,12 +1610,26 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
     vs04_sections = []
     profile = report.get("seismic_project_profile") or {}
     if profile.get("fields"):
-        vs04_sections.append('<section><h2>Seismic project parameters</h2>' +
-                             _table((("key", "Parameter"), ("value", "Value"), ("origin", "Source"), ("basis", "Basis")),
-                                    [dict(key=k, **v) for k, v in profile["fields"].items()]) +
-                             _table((("base_m", "Candidate base (m)"), ("height_m", "HN (m)"), ("DTS", "DTS"),
-                                     ("assumed_DD", "Assumed motion level"), ("BYS", "Conditional BYS")),
-                                    profile.get("height_scenarios", [])) + '</section>')
+        review = profile.get("review") or {}
+        height = profile.get("height_basis") or {}
+        physical = height.get("physical") or {}
+        section = ['<section><h2>Seismic project parameters</h2>']
+        if review:
+            section.append('<p>Strength-design input review · ' + _val(review["status"]) + '</p>')
+            section.extend('<p>' + _val(issue) + '</p>' for issue in review["issues"])
+        section.append(_table((("key", "Parameter"), ("value", "Value"), ("origin", "Source"), ("basis", "Basis")),
+                              [dict(key=k, **v) for k, v in profile["fields"].items()]))
+        if physical:
+            section.append(_table((("storey", "Physical storey"), ("height_m", "Storey height (m)")), physical["storeys"]))
+            section.append('<p>Profile base (m) ' + _val(height["profile_base_m"]) + ' · Physical roof (m) ' +
+                           _val(height["roof_m"]) + ' · Sum of physical heights (m) ' + _val(physical["total_m"]) + '</p>')
+        if review.get("checks"):
+            section.append(_table((("field", "Parameter"), ("value", "Input"), ("expected", "Recalculated"),
+                                   ("basis", "TBDY 2018"), ("satisfied", "Consistent")), review["checks"]))
+        if profile.get("height_scenarios"):
+            section.append(_table((("base_m", "Candidate base (m)"), ("height_m", "HN (m)"), ("DTS", "DTS"),
+                                   ("assumed_DD", "Assumed motion level"), ("BYS", "Conditional BYS")), profile["height_scenarios"]))
+        vs04_sections.append(''.join(section) + '</section>')
     analysis_setup = report.get("analysis_setup")
     if isinstance(analysis_setup, Mapping):
         vs04_sections.append(_analysis_setup_html(

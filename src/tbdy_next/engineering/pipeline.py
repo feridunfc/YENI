@@ -734,7 +734,7 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
 
         physical_scope = review_physical_story_scope(payload["vs05_delta_source"])
     from .seismic_profile import project_seismic_profile
-    project_profile = project_seismic_profile(payload, physical_scope=physical_scope)
+    project_profile = project_seismic_profile(payload, physical_scope=physical_scope, input_sha=input_sha)
     declared_second_order = r08_second_order = None
     if "r08_second_order_source" in payload or "r08_second_order_capture_error" in payload:
         from ..story_second_order import bind_story_second_order, scope_story_second_order
@@ -840,7 +840,7 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
                                "column_count": result["column_count"], "beam_count": result["beam_count"]},
                    input_sha256=input_sha)
         base = result["wall_sections"]["batch"].get("modal_base", {}).get("basement_reference")
-        project_profile = project_seismic_profile(payload, physical_scope=physical_scope, basement=base)
+        project_profile = project_seismic_profile(payload, physical_scope=physical_scope, basement=base, input_sha=input_sha)
     out["report_evidence"]["seismic_project_profile"] = project_profile
     if profile_lineage is not None and scenario is None:
         out["report_evidence"]["design_scenario"] = profile_lineage
