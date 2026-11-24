@@ -2,9 +2,9 @@
 
 ## Current wall calculation
 
-Start with `RUN-2d5ab7007688458f9d7a2f215e134942` and **Run all wall checks**. The original source already contains the 100 modes, shell forces for W32 and signed actions for each physical cut. Workspace **7.15** shows three cut elevations in X and Y. **7.16** shows the actual section assignments. Read the xP2 bands and the shared W32 edge IDs before extending the basement design. For xP2 check the individual faces on either side of −1.50 m. For yP2 check transfer into the adjacent walls at its uncolumned end.
+Start with `RUN-7ecb0839bd794936869ab335651d5a72` and **Run all wall checks**. This run includes the original native matrices, 100 Ritz reference modes, W32 shell forces and signed actions at each physical cut. Workspace **7.17** reports **2/2 satisfied** for the §3.3.1.1(b) period comparison, X **1.026893** and Y **1.020456**. **7.18** follows the actual enclosure. The 18-wall return path connects above −1.50 m and breaks below W22. [Original building calculation and native inputs](../engineering/WHOLE_BUILDING_ENGINE_20261122.md#basement-periods-and-enclosure-in-the-original-building)
 
-The first project decision is the basement reference under §3.3.1.1. The archive contains one full-mass Ritz case. The largest directional mass ratios identify mode 1 in X (0.469851 s, 69.74%) and mode 2 in Y (0.440617 s, 64.35%). Qualify the perimeter and the X/Y periods with the same stiffness and the ground-floor and basement masses omitted. Use the saved signed cuts at −5.15 and 0.00 m and qualify the wall groups and design eccentricity. [Calculation and project limits](../engineering/WHOLE_BUILDING_ENGINE_20261122.md#original-signed-wall-and-storey-cuts)
+The next delivery is xP2 at the −1.50 m opening. Use the five lower and six upper panels, physical cuts on both sides, signed local transfer and available reinforcement detail to calculate the sectional design and assess rigid three-sided enclosure under §3.3.1.1(a). Keep the 0.00 m and −5.15 m overturning scenarios available until the enclosure, group coupling and eccentricity decisions are supported. For yP2, trace the load into the adjacent walls at its uncolumned end. [Signed cuts and project limits](../engineering/WHOLE_BUILDING_ENGINE_20261122.md#original-signed-wall-and-storey-cuts)
 
 ## Previous all-wall batch
 

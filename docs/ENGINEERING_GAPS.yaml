@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-23T16:41:50+00:00",
+  "updated_at_utc": "2026-11-24T03:32:39+00:00",
   "repository": "feridunfc/YENI",
-  "baseline_implementation_commit": "627b417a981ace55b033d5c5f71627e0e6a5769d",
+  "baseline_implementation_commit": "e2f6f93ae30574b61f08f5bac76257fda496fac0",
   "local_reconciled": true,
-  "scope_note": "Original 300/300 signed modal and 6/6 static wall-and-column cuts balance at three datums. The wall batch retains 390 assigned faces per reference check, 17/30 proposed layouts and four conditional rectangular stacks.",
+  "scope_note": "The original basement satisfies both period ratios in §3.3.1.1(b). The three-sided return path is continuous only in the upper W22 band. Original 300/300 signed modal and 6/6 static wall-and-column cuts balance at three datums. The wall batch retains 390 assigned faces per reference check, 17/30 proposed layouts and four conditional rectangular stacks.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -33,7 +33,7 @@
     "GAP-018",
     "GAP-006"
   ],
-  "active_task": "Decide the project base using the basement perimeter and the two §3.3.1.1 period ratios. Use the six completed physical cut results. Establish the basement wall groups, W32 end transfer and the design eccentricity before assigning a project overturning ratio. Use xP2's two measured panel populations for its section design.",
+  "active_task": "Calculate xP2 section actions on both sides of the W22 start at -1.50 m and the local transfer across the 3.40 m opening. Use that calculation and the available detailing to qualify the three-sided enclosure. Apply the appropriate saved wall cut, coupling and design eccentricity.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -862,8 +862,8 @@
       "title": "Wall/pier factor and wall design",
       "status": "PARTIAL",
       "priority": "P1",
-      "achieved_scope": "Both ends of 12/30 physical wall objects have conditional rectangular boundary longitudinal and transverse designs in the building run. P2–P5 have continuous shared-edge stacks. Their critical zones are retained over all three storeys in the proposal, with 16 to 24 Ø14 per end, Ø10/80 hoops and crossties checked separately in both directions. The same twelve panels now have a calculated double-curtain web and fixed-axial biaxial capacities at both ends for all five native wall static assignments. All eight native wall seismic assignments have sufficient local in-plane shear bounds for both classifications under 7.6.6.3. The original eight native wall assignments now produce 192 conditional full-interval PMM, heightwise moment, shear and axial section designs. All 96 construction joint combinations and 96 floor moment-strength combinations under §7.6.6.2 satisfy their bounds. The engine also calculates the physical web crossties on all 12 panels. The saved workspace and printable report expose the same results. Five original basement panels in yP1 now carry selected two-face proposed grids, with 30/30 pier-end bounds, 150/150 net-web PMM checks and 75/75 horizontal pressure panel combinations. A single building action evaluates every pier and storey. The original has 390/390 net-area compression, reference web shear and rough-plane friction checks and 30 directional bending amplitudes. Ten yP1 wall ends now have a calculated proposed anchorage and pressure transfer. Original signed shell and column cuts balance six actions in each of 300/300 modal and 6/6 static storey cases. Six conditional wall shear and common-origin moment shares are calculated. W32/471 participates once in the foundation cut. The boundary calculation identifies 17 panels sharing elevations. Its former combined warning also covered a change of shell thickness.",
-      "blocker": "The project overturning decision needs the adopted basement reference, wall grouping and design eccentricity. W32/471 shares full edges with W31/470, W55/464 and W6/472. Its design load path needs qualification. xP2 has five to six constant-thickness panels across two elevation bands. yP2's end without a registered column needs a wall-to-wall transfer model. Actual steel, W28 placement, construction joint conditions, local shell actions and combined shear/torsion remain open.",
+      "achieved_scope": "Both ends of 12/30 physical wall objects have conditional rectangular boundary longitudinal and transverse designs in the building run. P2–P5 have continuous shared-edge stacks. Their critical zones are retained over all three storeys in the proposal, with 16 to 24 Ø14 per end, Ø10/80 hoops and crossties checked separately in both directions. The same twelve panels now have a calculated double-curtain web and fixed-axial biaxial capacities at both ends for all five native wall static assignments. All eight native wall seismic assignments have sufficient local in-plane shear bounds for both classifications under 7.6.6.3. The original eight native wall assignments now produce 192 conditional full-interval PMM, heightwise moment, shear and axial section designs. All 96 construction joint combinations and 96 floor moment-strength combinations under §7.6.6.2 satisfy their bounds. The engine also calculates the physical web crossties on all 12 panels. The saved workspace and printable report expose the same results. Five original basement panels in yP1 now carry selected two-face proposed grids, with 30/30 pier-end bounds, 150/150 net-web PMM checks and 75/75 horizontal pressure panel combinations. A single building action evaluates every pier and storey. The original has 390/390 net-area compression, reference web shear and rough-plane friction checks and 30 directional bending amplitudes. Ten yP1 wall ends now have a calculated proposed anchorage and pressure transfer. Original signed shell and column cuts balance six actions in each of 300/300 modal and 6/6 static storey cases. Six conditional wall shear and common-origin moment shares are calculated. W32/471 participates once in the foundation cut. The boundary calculation identifies 17 panels sharing elevations. Its former combined warning also covered a change of shell thickness. The same building run now solves both §3.3.1.1(b) ratios from the original stiffness, 1.026893 in X and 1.020456 in Y, and traces the enclosure across both physical basement bands.",
+      "blocker": "The project overturning decision needs §3.3.1.1(a) enclosure at the lower W22 opening, wall grouping and design eccentricity. W32/471 shares full edges with W31/470, W55/464 and W6/472. Its design load path needs qualification. xP2 has five to six constant-thickness panels across two elevation bands. yP2's end without a registered column needs a wall-to-wall transfer model. Actual steel, W28 placement, construction joint conditions, local shell actions and combined shear/torsion remain open.",
       "closure_criteria": "Complete the real wall topology/forces, normative calculation, independent oracle and sealed-report slice.",
       "owner_paths": [
         "src/tbdy_next/wall_geometry.py",
@@ -883,7 +883,9 @@
         "src/tbdy_next/engineering/basement_wall_connection.py",
         "src/tbdy_next/engineering/basement_joint_layout.py",
         "src/tbdy_next/engineering/wall_modal_balance.py",
-        "src/tbdy_next/wall_modal_capture.py"
+        "src/tbdy_next/wall_modal_capture.py",
+        "src/tbdy_next/engineering/basement_reference.py",
+        "src/tbdy_next/engineering/basement_matrices.py"
       ],
       "evidence_refs": [
         "EV-RECIPE18-INTAKE",
@@ -895,7 +897,8 @@
         "EV-BUILDING-SEISMIC-WALL-DESIGN-20261122",
         "EV-BUILDING-BASEMENT-PIER-YP1-20261123",
         "EV-ALL-WALL-PIER-STOREY-BATCH-20261123",
-        "EV-ORIGINAL-WALL-MODAL-CUTS-20261123"
+        "EV-ORIGINAL-WALL-MODAL-CUTS-20261123",
+        "EV-BASEMENT-PERIOD-PAIR-20261124"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -1060,7 +1063,23 @@
           4,
           6
         ],
-        "next_task": "Decide the project base using the basement perimeter and the two §3.3.1.1 period ratios. Use the six completed physical cut results. Establish the basement wall groups, W32 end transfer and the design eccentricity before assigning a project overturning ratio. Use xP2's two measured panel populations for its section design."
+        "next_task": "Decide the project base using the basement perimeter and the two §3.3.1.1 period ratios. Use the six completed physical cut results. Establish the basement wall groups, W32 end transfer and the design eccentricity before assigning a project overturning ratio. Use xP2's two measured panel populations for its section design.",
+        "next_task_superseded_by": "EV-BASEMENT-PERIOD-PAIR-20261124"
+      },
+      "basement_periods_20261124": {
+        "evidence": "EV-BASEMENT-PERIOD-PAIR-20261124",
+        "run": "RUN-7e082dc8514247488bd0248266052335",
+        "expected": 2,
+        "evaluated": 2,
+        "satisfied": 2,
+        "ratios": {
+          "X": 1.0268931392367315,
+          "Y": 1.0204562613413222
+        },
+        "ground_cut_m": 0,
+        "foundation_cut_m": -5.15,
+        "enclosure_status": "PROJECT_RIGID_ENCLOSURE_INTERPRETATION_REQUIRED",
+        "next_task": "Calculate xP2 section actions on both sides of the W22 start at -1.50 m and the local transfer across the 3.40 m opening. Use that calculation and the available detailing to qualify the three-sided enclosure. Apply the appropriate saved wall cut, coupling and design eccentricity."
       }
     },
     {

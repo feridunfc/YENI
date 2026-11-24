@@ -1,7 +1,7 @@
 {
   "schema": "yeni.project-memory.verification-ledger.v2",
   "repository": "feridunfc/YENI",
-  "updated_on": "2026-11-23",
+  "updated_on": "2026-11-24",
   "purpose": "Durable evidence index. It is not a source receipt or formal engineering acceptance.",
   "workflow": {
     "primary_workspace": "LOCAL_CODEX",
@@ -19,19 +19,19 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "ORIGINAL_WALL_SIGNED_CUTS_BALANCED",
-    "work_branch": "work/wall-base-modal-and-panel-profile",
+    "status": "BOTH_BASEMENT_PERIOD_DIRECTIONS_SATISFIED",
+    "work_branch": "work/basement-design-base",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "ac5ffb89be28fa666834ad8505c9d1ec69287dbc",
-    "tested_implementation_commit": "627b417a981ace55b033d5c5f71627e0e6a5769d",
+    "inspected_base_commit": "126f7cf97b4123e7fee735e86b9ffd251777e43b",
+    "tested_implementation_commit": "e2f6f93ae30574b61f08f5bac76257fda496fac0",
     "evidence_refs": [
-      "EV-ORIGINAL-WALL-MODAL-CUTS-20261123"
+      "EV-BASEMENT-PERIOD-PAIR-20261124"
     ],
-    "production_run_id": "RUN-2d5ab7007688458f9d7a2f215e134942",
-    "results_sha256": "71241d76ab3a6880fe73fd61c2317d3d7ee3f6caa6b7e7d2d7c2a87dca858fd9",
+    "production_run_id": "RUN-7e082dc8514247488bd0248266052335",
+    "results_sha256": "7afd1e153bd87eaaa3d932f4d2614673f28ea98a993c77b66fed572c542826cf",
     "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
     "engineering_release": "NOT_READY",
-    "next_action": "Decide the project base using the basement perimeter and the two §3.3.1.1 period ratios. Use the six completed physical cut results. Establish the basement wall groups, W32 end transfer and the design eccentricity before assigning a project overturning ratio. Use xP2's two measured panel populations for its section design."
+    "next_action": "Calculate xP2 section actions on both sides of the W22 start at -1.50 m and the local transfer across the 3.40 m opening. Use that calculation and the available detailing to qualify the three-sided enclosure. Apply the appropriate saved wall cut, coupling and design eccentricity."
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
@@ -11342,6 +11342,251 @@
       ],
       "engineering_release": "NOT_READY",
       "next_action": "Decide the project base using the basement perimeter and the two §3.3.1.1 period ratios. Use the six completed physical cut results. Establish the basement wall groups, W32 end transfer and the design eccentricity before assigning a project overturning ratio. Use xP2's two measured panel populations for its section design."
+    },
+    {
+      "id": "EV-BASEMENT-PERIOD-PAIR-20261124",
+      "status": "BOTH_BASEMENT_PERIOD_DIRECTIONS_SATISFIED",
+      "observed_at_utc": "2026-11-24T03:32:39+00:00",
+      "inspected_base_commit": "126f7cf97b4123e7fee735e86b9ffd251777e43b",
+      "tested_implementation_commit": "e2f6f93ae30574b61f08f5bac76257fda496fac0",
+      "tested_tree": "533ca7206acda2edec424f96930fb717181b75d0",
+      "basis_refs": [
+        "EV-ORIGINAL-WALL-MODAL-CUTS-20261123"
+      ],
+      "selected_source_run": "RUN-2d5ab7007688458f9d7a2f215e134942",
+      "cli_run": "RUN-7ecb0839bd794936869ab335651d5a72",
+      "production_run": "RUN-7e082dc8514247488bd0248266052335",
+      "input_sha256": "ff7b5fe19c6ecec3f6fbad8a510210f1a0eaa6d99a4213f411d25fc555201714",
+      "results_sha256": "7afd1e153bd87eaaa3d932f4d2614673f28ea98a993c77b66fed572c542826cf",
+      "report_sha256": "06f96d9ce480ce74222232052699bb737291604ebeb17c1af7292494c43cac58",
+      "original_edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+      "source": {
+        "matrix_case": "Modal",
+        "private_edb_sha256_after_export": "87619a386ed01c4b4ded35c13cbf499c484ea8e8a8830028140f1a4c5080b3eb",
+        "stiffness": "Native unstressed case stiffness in both solutions",
+        "ground_storey": "+0.00",
+        "native_file_sha256": {
+          "TXA": "ce77f8763e5329c540bc56ae2b4533e2d066128f523689bad3c587ab4068af31",
+          "TXE": "d56cdbe88a4c764c5d1b5d4d50995a418dcd18334f85e56ef584ea29e14b103b",
+          "TXC": "2e017792f6f9b361574362f0463eb399634da8f24507c52aba98ea74a39e10d4",
+          "TXK": "4bcb95813a41c9ab096dd52ae45e617e745bd8d85fc05d530ee4b036bd7ee317",
+          "TXM": "42ee640f1b2644946c172a526c274f57490411000e6cdc41aae81d0ccef17d40",
+          "LOG": "58c432e698cfb14542d2fb82e57282687c95bf156bee8d493592c49db062b24b",
+          "$et": "d443134062a6c901693118e05ef7795e8a847452874536a2f181e7c9a50067f9"
+        },
+        "readback": "The post-solve COM check stopped before saving its auxiliary output. The private solver log records 100 Ritz modes. The full matrix periods and participation were checked against the original archived ETABS modal results."
+      },
+      "scope": {
+        "expected_directions": 2,
+        "evaluated_directions": 2,
+        "satisfied_directions": 2,
+        "active_equations": 44642,
+        "mass_equations": 16707,
+        "upper_mass_equations": 10012,
+        "constraint_equations": 214,
+        "physical_mass_joints": 6151,
+        "elevation_planes": 19,
+        "ground_floor_shells": 33,
+        "basement_wall_objects": 22,
+        "remaining_wall_scope": {
+          "physical_walls": 30,
+          "native_assigned_faces": 390,
+          "net_area_axial_faces": 390,
+          "reference_web_shear_faces": 390,
+          "reference_friction_faces": 390,
+          "balanced_signed_modes": 300,
+          "scheduled_panels": 17
+        }
+      },
+      "periods": [
+        {
+          "direction": "X",
+          "full_mode": 1,
+          "full_period_s": 0.46985063753970846,
+          "matrix_full_period_s": 0.4698506312,
+          "upper_mode": 1,
+          "upper_period_s": 0.4575457886,
+          "period_ratio": 1.0268931392367315,
+          "limit": 1.1,
+          "matrix_full_mass_ratio": 0.697444179,
+          "upper_mass_ratio": 0.889208101,
+          "status": "SATISFIED"
+        },
+        {
+          "direction": "Y",
+          "full_mode": 2,
+          "full_period_s": 0.4406171030174019,
+          "matrix_full_period_s": 0.440617118,
+          "upper_mode": 2,
+          "upper_period_s": 0.431784423,
+          "period_ratio": 1.0204562613413222,
+          "limit": 1.1,
+          "matrix_full_mass_ratio": 0.643513384,
+          "upper_mass_ratio": 0.81670848,
+          "status": "SATISFIED"
+        }
+      ],
+      "active_mass_t": {
+        "full": {
+          "X": 3988.128214,
+          "Y": 3988.128214,
+          "Z": 4380.491597
+        },
+        "upper": {
+          "X": 2395.246099,
+          "Y": 2395.246099,
+          "Z": 2423.871276
+        }
+      },
+      "physical_mass_t": {
+        "removed": {
+          "RX": 0.0,
+          "RY": 0.0,
+          "RZ": 0.0,
+          "UX": 1985.2579,
+          "UY": 1985.2579,
+          "UZ": 1956.6316000000002
+        },
+        "retained": {
+          "RX": 0.0,
+          "RY": 0.0,
+          "RZ": 0.0,
+          "UX": 2395.2604,
+          "UY": 2395.2604,
+          "UZ": 2423.8885
+        }
+      },
+      "numerical_checks": {
+        "independent_block_ritz": {
+          "full": {
+            "X": {
+              "period_s": 0.4698506310638959,
+              "mass_fraction": 0.6974441812043889,
+              "residual": 7.766515506518534e-13
+            },
+            "Y": {
+              "period_s": 0.44061711793543873,
+              "mass_fraction": 0.6435133827205074,
+              "residual": 1.1139778241736722e-12
+            }
+          },
+          "upper": {
+            "X": {
+              "period_s": 0.4575457885197684,
+              "mass_fraction": 0.8892081033231308,
+              "residual": 7.711229254782903e-13
+            },
+            "Y": {
+              "period_s": 0.43178442295085,
+              "mass_fraction": 0.8167084777858367,
+              "residual": 1.1171142951515874e-12
+            }
+          },
+          "X_ratio": 1.0268931391193339,
+          "Y_ratio": 1.0204562613079586,
+          "original_edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15"
+        },
+        "maximum_relative_force_residual": 1.5e-07,
+        "max_upper_period_difference_s": 8.023159914216649e-11
+      },
+      "enclosure": [
+        {
+          "from_m": -5.15,
+          "to_m": -1.5,
+          "south_gap_m": 3.4,
+          "north_facade_open": true,
+          "return_path_connected": false,
+          "connected_panels": 0
+        },
+        {
+          "from_m": -1.5,
+          "to_m": 0.0,
+          "south_gap_m": 0.0,
+          "north_facade_open": true,
+          "return_path_connected": true,
+          "connected_panels": 18
+        }
+      ],
+      "reference_cuts": [
+        {
+          "condition": "RIGID_ENCLOSURE_AND_PERIOD_CONDITIONS_MET",
+          "cut_z_m": 0.0,
+          "direction": "X",
+          "horizontal_floor_mo_cqc_knm": 20473.57792256616,
+          "separate_piers_native_to_floor_mo": 0.16352027538430278,
+          "wall_to_storey_shear": 0.24806802394830546
+        },
+        {
+          "condition": "RIGID_ENCLOSURE_AND_PERIOD_CONDITIONS_MET",
+          "cut_z_m": 0.0,
+          "direction": "Y",
+          "horizontal_floor_mo_cqc_knm": 20483.097644582765,
+          "separate_piers_native_to_floor_mo": 0.16935810003900717,
+          "wall_to_storey_shear": 0.23952062459162837
+        },
+        {
+          "condition": "FOUNDATION_TOP",
+          "cut_z_m": -5.15,
+          "direction": "X",
+          "horizontal_floor_mo_cqc_knm": 37657.499937068234,
+          "wall_to_storey_shear": 0.7235210156839023
+        },
+        {
+          "condition": "FOUNDATION_TOP",
+          "cut_z_m": -5.15,
+          "direction": "Y",
+          "horizontal_floor_mo_cqc_knm": 37474.765679530945,
+          "wall_to_storey_shear": 0.8350356195448873
+        }
+      ],
+      "validation": {
+        "platform": "Windows",
+        "python_total": 1743,
+        "passed": 1742,
+        "skipped": 1,
+        "skip_reason": "OS disallows creating symlinks",
+        "python_seconds": 475.311,
+        "javascript_files_passed": 11,
+        "golden_44": {
+          "matched": 36,
+          "method_difference": 4,
+          "source_missing": 4
+        },
+        "offline": "PASS",
+        "cli_and_workspace_same_input_and_results": true,
+        "rendered_workspace_rows": {
+          "7.0": 16,
+          "7.3": 30,
+          "7.7": 31,
+          "7.13": 34,
+          "7.14": 15,
+          "7.15": 6,
+          "7.16": 30,
+          "7.17": 2,
+          "7.18": 8
+        },
+        "engaged_action": "Run all wall checks",
+        "isolated_wheel": {
+          "status": "PASS",
+          "tests": 531,
+          "seconds": 217.176
+        },
+        "previous_run_comparison": {
+          "identical_pier_storey_or_unassigned_rows": 16,
+          "identical_modal_storey_results": 3,
+          "conditional_columns": 42,
+          "failed_columns": 4,
+          "held_columns": 41,
+          "selected_beams": 180
+        }
+      },
+      "scope_limits": [
+        "The upper natural periods were calculated from the native assembled matrices. The independent block Ritz check uses the same physical model.",
+        "Three-sided rigidity across the lower W22 opening, wall grouping and earthquake eccentricity remain project decisions."
+      ],
+      "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md",
+      "engineering_release": "NOT_READY",
+      "next_action": "Calculate xP2 section actions on both sides of the W22 start at -1.50 m and the local transfer across the 3.40 m opening. Use that calculation and the available detailing to qualify the three-sided enclosure. Apply the appropriate saved wall cut, coupling and design eccentricity."
     }
   ],
   "new_record_template": {

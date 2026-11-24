@@ -1,8 +1,16 @@
 # Original building calculation and local handoff
 
+## Basement period comparison
+
+Open **7.17** in whole-building run `RUN-7ecb0839bd794936869ab335651d5a72`. Both directional checks in TBDY §3.3.1.1(b) satisfy the 1.10 limit. Removing the masses at and below the specified ground floor, with the original stiffness, gives **0.457546 s in X** and **0.431784 s in Y**. The full/upper ratios are **1.026893** and **1.020456**. A separate block Ritz calculation reproduced the two upper periods within 0.000000001 s.
+
+The workspace produced `RUN-7e082dc8514247488bd0248266052335` from **Run all wall checks** with the same input and sealed result digests. All 16 wall batch rows and the three signed storey cut results match the preceding run.
+
+View **7.18** shows the enclosure geometry. The 18-panel wall path across three sides exists between −1.50 and 0.00 m. Below −1.50 m it breaks across the 3.40 m W22 bay. The next calculation is the xP2 physical section and local transfer on each side of that elevation. The project base depends on whether this opening and its transfer details meet the rigid enclosure condition in §3.3.1.1(a). Both cut alternatives are available in the same run. [Calculation, assumptions and reproduction](engineering/WHOLE_BUILDING_ENGINE_20261122.md#basement-periods-and-enclosure-in-the-original-building)
+
 ## Original wall sections and signed overturning actions
 
-The latest whole-building run is `RUN-2d5ab7007688458f9d7a2f215e134942`. Workspace **7.15** shows six directional cut results. **7.16** identifies all 30 physical wall panels. Every assigned shell is 0.40 m thick. In xP2 the 3.40 m W22 panel starts at −1.50 m. Across that level the group grows from five panels to six, with gross areas of 12.64 and 14.00 m². W32/471 participates once in the foundation cut. The boundary calculation identifies 17 panels sharing elevations. Its former combined warning also covered a change of shell thickness.
+The signed cuts first appeared in `RUN-2d5ab7007688458f9d7a2f215e134942`. Workspace **7.15** shows six directional cut results. **7.16** identifies all 30 physical wall panels. Every assigned shell is 0.40 m thick. In xP2 the 3.40 m W22 panel starts at −1.50 m. Across that level the group grows from five panels to six, with gross areas of 12.64 and 14.00 m². W32/471 participates once in the foundation cut. The boundary calculation identifies 17 panels sharing elevations. Its former combined warning also covered a change of shell thickness.
 
 All six actions balance against native ETABS storey results in **300/300 modal cuts** and **6/6 static cuts**. At −5.15 m the periodic wall shear ratios are **72.35% X and 83.50% Y**. At 0.00 m they are **24.81% X and 23.95% Y**. Treating P2–P5 as four separate piers at 0.00 m gives **16.35% X and 16.94% Y** for the sum of native centroid moments divided by the horizontal floor-load moment. The design base, basement coupling and eccentricity treatment govern project acceptance. [Six directional results and assumptions](engineering/WHOLE_BUILDING_ENGINE_20261122.md#original-signed-wall-and-storey-cuts)
 
