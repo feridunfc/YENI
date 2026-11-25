@@ -3,6 +3,8 @@ from collections import defaultdict
 from itertools import chain, combinations, product
 from math import ceil, floor, hypot
 
+from .wall_bar_paths import bent_path, point_distance, segment_distance
+
 from .basement_pier_geometry import support_id
 from .basement_wall_pressure import DEFAULT_AGGREGATE_MM, clear_limit, finite_grid
 
@@ -22,10 +24,10 @@ def layout_policy(geometry, panel, cover, aggregate=DEFAULT_AGGREGATE_MM):
             "phase":.5 if abs(direction[0]) > .5 else 0., "inner":shorter}
 
 
-def level_grid(policy, diameter, nominal, cover, *, dowel=False):
+def level_grid(policy, diameter, nominal, cover, *, dowel=False, minimum_per_m=None):
     module, height = policy["module"], policy["height"]
     edge = cover+diameter/2
-    required_count = 1000//nominal
+    required_count = 1000//nominal if minimum_per_m is None else minimum_per_m
     for stride in range(min(4,floor(nominal/module+1e-9)),0,-1):
         spacing = stride*module
         if spacing-diameter < clear_limit(policy.get("aggregate_mm", DEFAULT_AGGREGATE_MM),diameter):
@@ -59,7 +61,30 @@ def _families(panel, side, end):
             x2, y2 = x+length*ex, y+length*ey
             corner = end if role=="web" else dowels.get("anchor",{})
             shape = corner.get("return_shape")
-            heights = [grid["first_station_mm"]+i*grid["pitch_mm"] for i in range(grid["layers"])]
+            levels = grid.get("opposite_face_levels",grid) if face==1 else grid
+            heights = [levels["first_station_mm"]+i*levels["pitch_mm"] for i in range(levels["layers"])]
+            hook = end.get("hook") if role=="web" else dowels.get("hook")
+            path = next((p for p in corner.get("bar_paths",()) if p["face"]==face),None)
+            if hook and hook.get("local_paths"):
+                local = next(p for p in hook["local_paths"] if p["face"]==face)
+                path = {**local,"points_mm":[(u*dx-v*dy,u*dy+v*dx) for u,v in local["points_mm"]]}
+            elif hook:
+                turn = hook["lateral_turn"]*face
+                path = bent_path(face,(x,y),(ex,ey),(-turn*dy,turn*dx),hook["straight_to_tangent_mm"],
+                                 hook["centreline_radius_mm"],hook["straight_tail_mm"])
+            if path:
+                pts = list(path["points_mm"])
+                errors = list(path["chord_error_mm"])
+                if end.get("joint"):
+                    arm = panel["clear_length_m"]*1000 if role=="web" else grid["wall_embedment_mm"]
+                    pts.insert(0,[pts[0][0]-ex*arm,pts[0][1]-ey*arm])
+                    errors.insert(0,0.)
+                xs,ys = zip(*pts)
+                err = max(errors)
+                yield {"member":panel["member"],"role":role,"face":face,"horizontal":abs(ex)>.5,
+                       "bounds":(min(xs)-err,max(xs)+err,min(ys)-err,max(ys)+err),"diameter":grid["diameter_mm"],
+                       "heights":heights,"segments":list(zip(pts,pts[1:],errors))}
+                continue
             if shape == "RETURN_U_HAIRPIN" and face==1:
                 # One closure connects both straight legs. The envelope of the bend
                 # includes its complete arc and both faces in the receiving web.
@@ -98,6 +123,13 @@ def _closest_levels(left, right):
     return best
 
 
+def _segments(f):
+    if "segments" in f:
+        return f["segments"]
+    x0,x1,y0,y1=f["bounds"]
+    return [((x0,y0),(x1,y1),0.)]
+
+
 def _separation(a,b, aggregate=DEFAULT_AGGREGATE_MM):
     a0,a1,a2,a3 = a["bounds"]; b0,b1,b2,b3 = b["bounds"]
     dx = max(0.,a0-b1,b0-a1)
@@ -106,6 +138,23 @@ def _separation(a,b, aggregate=DEFAULT_AGGREGATE_MM):
     clear = hypot(dx,dy,dz)-(a["diameter"]+b["diameter"])/2
     parallel = a["horizontal"]==b["horizontal"]
     limit = clear_limit(aggregate,a["diameter"],b["diameter"]) if parallel else 0.
+    if "segments" in a or "segments" in b:
+        minimum = clear_limit(aggregate,a["diameter"],b["diameter"])
+        if clear <= minimum:
+            worst = None
+            for p,q,ea in _segments(a):
+                for u,v,eb in _segments(b):
+                    px,py=q[0]-p[0],q[1]-p[1]
+                    ux,uy=v[0]-u[0],v[1]-u[1]
+                    # Each chord spans 11.25 degrees. Allow both tangent uncertainties when testing parallel bars.
+                    aligned = abs(px*ux+py*uy) >= .98078528040*hypot(px,py)*hypot(ux,uy)
+                    req = minimum if aligned else 0.
+                    dist = max(0.,segment_distance(p,q,u,v)-ea-eb)
+                    space = hypot(dist,dz)-(a["diameter"]+b["diameter"])/2
+                    entry = (space-req,space,req,aligned)
+                    if worst is None or entry<worst:
+                        worst=entry
+            _,clear,limit,parallel=worst
     return {"members":[a["member"],b["member"]],"roles":[a["role"],b["role"]],"faces":[a["face"],b["face"]],
             "levels_above_base_mm":[za,zb],"parallel":parallel,"clear_mm":clear,"required_mm":limit,
             "margin_mm":clear-limit, "fits": clear >= limit-1e-8 if parallel else clear > 0.}
@@ -116,10 +165,10 @@ def main_bar_collision(first, second, aggregate):
     return any(not _separation(a,b,aggregate)["fits"] for a in webs[0] for b in webs[1])
 
 
-def _through_families(families, proof):
+def _through_families(families, proof, role="web"):
     """Replace two specified collinear continuations by the two actual through-bars per level."""
-    straight = [f for f in families if f["role"]=="web"]
-    rest = [f for f in families if f["role"]!="web"]
+    straight = [f for f in families if f["role"]==role]
+    rest = [f for f in families if f["role"]!=role]
     tracks = defaultdict(list)
     for f in straight:
         lo,hi = (2,3) if f["horizontal"] else (0,1)
@@ -134,7 +183,7 @@ def _through_families(families, proof):
                 abs(h-k)>1e-6 for h,k in zip(a["heights"],b["heights"])):
             return families
         aa,bb=a["bounds"],b["bounds"]
-        rest.append({**a,"member":" + ".join(proof["members"]),"role":"continuous web",
+        rest.append({**a,"member":" + ".join(proof["members"]),"role":"continuous "+role,
                      "bounds":(min(aa[0],bb[0]),max(aa[1],bb[1]),min(aa[2],bb[2]),max(aa[3],bb[3]))})
     return rest
 
@@ -160,7 +209,7 @@ def stagger_column_entries(geometry, designs, through, cover, aggregate):
         detail = designs[uid]
         yield detail
         p = panels[uid]
-        if any(support_id(p,s) in through for s in ("I","J")):
+        if detail["horizontal"].get("opposite_face_levels") or any(support_id(p,s) in through for s in ("I","J")):
             return
         policy = layout_policy(geometry,p,cover,aggregate)
         phase = policy["phase"]+int(policy["inner"])
@@ -198,6 +247,38 @@ def stagger_column_entries(geometry, designs, through, cover, aggregate):
 
     ok = "PROPOSED_PRESSURE_BARS_FIT"
     for key, incident in joints.items():
+        if len(incident) == 1 and key not in through:
+            uid, side = incident[0]
+            detail = designs.get(uid) or {}
+            end = detail.get("ends", {}).get(side, {})
+            bars = end.get("transfer", {})
+            if (end.get("hook") and bars.get("basis") == "SAME_CORNER_NATIVE_EDGE"
+                    and layout_at(key, designs) == "PROPOSED_PRESSURE_BARS_CLASH"):
+                policy = layout_policy(geometry, panels[uid], cover, aggregate)
+                cap = bars["concrete_limit_kn_m"]
+                for shift in (.5, .25, .75):
+                    grid = level_grid({**policy, "dowel_phase": policy["phase"] + shift},
+                                      bars["diameter_mm"], bars["maximum_pitch_mm"], max(cover, end["end_cover_mm"]),
+                                      dowel=True, minimum_per_m=1)
+                    if not grid or abs(grid["pitch_mm"] - bars["pitch_mm"]) > 1e-8:
+                        continue
+                    count = grid["minimum_in_any_full_metre"]
+                    factor = count / bars["guaranteed_bars_per_m"]
+                    steel = factor * bars["steel_resistance_kn_m"]
+                    ratio = bars["peak_reaction_kn_m"] / steel
+                    peak_shear = max(r["max_native_shear_kn_m"] for r in bars["combinations"])
+                    if ratio > bars["steel_selection_limit"] or peak_shear > cap:
+                        continue
+                    cuts = [{**r, "upper_ratio": max(r["reaction_kn_m"] / steel, r["max_native_shear_kn_m"] / cap)}
+                            for r in bars["combinations"]]
+                    shifted = {**bars, **grid, "guaranteed_bars_per_m": count, "as_mm2_m": factor * bars["as_mm2_m"],
+                               "steel_resistance_kn_m": steel, "resistance_kn_m": min(steel, cap), "steel_ratio": ratio,
+                               "peak_ratio": max(r["upper_ratio"] for r in cuts), "combinations": cuts,
+                               "force_margin_kn_m": min(steel - bars["peak_reaction_kn_m"], cap - peak_shear)}
+                    trial = {**detail, "ends": {**detail["ends"], side: {**end, "transfer": shifted}}}
+                    if layout_at(key, {**designs, uid: trial}) == ok:
+                        designs[uid] = trial
+                        break
         if key in through or len(incident)<2 or layout_at(key,designs)!="PROPOSED_PRESSURE_BARS_CLASH":
             continue
         uids = [uid for uid,_ in incident]
@@ -238,16 +319,25 @@ def check_joint_layout(geometry, aggregate=DEFAULT_AGGREGATE_MM, through=None, *
         corners = [(p,s,e) for p,s,e in incident if e.get("joint")]
         actual = {p["member"] for p,_,_ in incident}
         if any(set(e["incident_walls"])-actual for _,_,e in corners):
-            row["reason"] = "RECEIVING_WALL_CURTAIN_LAYOUT_UNBOUND"
-            for _,_,end in incident:
-                end["layout_status"] = row["reason"]
-            continue
+            bridge=geometry.get("bridge_checks",{}).get(uid)
+            if bridge:
+                row["transfer_connection"]=bridge
+            if not bridge or bridge["status"]!="TRANSFER_CAGE_LAYOUT_VERIFIED":
+                row["reason"] = (bridge or {}).get("reason","RECEIVING_WALL_CURTAIN_LAYOUT_UNBOUND")
+                for _,_,end in incident:
+                    end["layout_status"] = row["reason"]
+                continue
         families = [bar for panel,side,end in incident for bar in _families(panel,side,end)]
         proof = (through or {}).get(uid)
         if proof:
             merged = _through_families(families,proof)
             if len(merged)==len(families)-2:
                 families = merged
+                if proof.get("through_dowels"):
+                    dowels = _through_families(families,proof,"dowel")
+                    if len(dowels)==len(families)-2:
+                        families=dowels
+                        row["continuous_dowels"]=proof["through_dowels"]
                 row["continuous_web"] = proof
                 for _,_,end in incident:
                     end["bar_path"] = "UNSPLICED_THROUGH_COLUMN"
@@ -274,9 +364,20 @@ def check_joint_layout(geometry, aggregate=DEFAULT_AGGREGATE_MM, through=None, *
                         x0,x1,y0,y1 = bar["bounds"]
                         space = hypot(max(0,x0-x,x-x1),max(0,y0-y,y-y1))-(v["diameter_mm"]+bar["diameter"])/2
                         minimum = clear_limit(aggregate,v["diameter_mm"],bar["diameter"])
+                        if "segments" in bar and space<=minimum:
+                            space=min(point_distance((x,y),p,q)-err for p,q,err in _segments(bar))-(v["diameter_mm"]+bar["diameter"])/2
                         checks.append({"members":[panel["member"],bar["member"]],"roles":["vertical",bar["role"]],
                             "parallel":False,"clear_mm":space,"required_mm":minimum,"margin_mm":space-minimum,
                             "fits":space>=minimum})
+        from .wall_return_layout import vertical_margin
+        for panel,side,end in corners:
+            if not panel.get("vertical"):
+                continue
+            for family in families:
+                margin=vertical_margin(family,panel,side,end,aggregate)
+                if margin!=float("inf"):
+                    checks.append({"members":[panel["member"],family["member"]],"roles":["verticals and crossties",family["role"]],
+                                   "parallel":False,"clear_mm":margin,"required_mm":0.,"margin_mm":margin,"fits":margin>=-1e-8})
         if row.get("reason"):
             continue
         row.update(family_pairs=len(checks), minimum_parallel_clear_mm=min(q["clear_mm"] for q in checks if q["parallel"]),

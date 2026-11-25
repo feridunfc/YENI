@@ -224,7 +224,7 @@ def _link_panel(context, uid):
     direction = tuple((b[k]-a[k])/length for k in (0,1))
     prop = props[assignments[uid]["SectProp"]]
     return {"member":uid,"wall":row["WallBay"],"width_direction":direction,"joint_i":i,"joint_j":j,
-            "column_i":None,"column_j":None,"support_sections":{
+            "column_i":None,"column_j":None,"span_m":length,"thickness_m":float(prop["Thickness"]),"support_sections":{
             side:_wall_edge(context,uid,pt,high,direction,prop["Material"]) for side,pt,high in (("I",i,it),("J",j,jt))}}
 
 
@@ -332,10 +332,22 @@ def folded_section(source, bound, name, story, member_ids):
         face_origins[face] = [cx,cy,cz]
     for panel in panels:
         panel["folded_pier_length_m"] = width
+    transfer = {uid:_link_panel(context,uid) for uid in links}
+    reviewed = (source.get("analysis_archive") or {}).get("observed_edb_sha256") == "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15"
+    for panel in panels:
+        for end in panel["support_sections"].values():
+            if end.get("kind") != "WALL_JUNCTION":
+                continue
+            end["full_corner_square"] = reviewed and end["joint"] in {"947","953","949"} and close(end["depth_mm"],400.) and close(panel["thickness_m"],.4)
+            for leg in end["incident_walls"]:
+                link = transfer.get(leg["member"])
+                if link:
+                    remote = next(e for e in link["support_sections"].values() if e["joint"]==leg["remote_joint"])
+                    leg["continuations"] = remote["incident_walls"]
     return {"panels": panels, "bottom_m":bottom, "top_m":top, "native_axes_2_xy":axes, "native_face_origins_m":face_origins,
             "nominal_area_m2": nominal, "shell_footprint_union_m2": _union(strips), "clear_web_area_m2":net_area,
             "net_centroid_xy_m":[fsum(p["clear_length_m"]*p["thickness_m"]*p["clear_centroid_xy_m"][k]
                                      for p in panels)/net_area for k in (0,1)],
-            "connectivity_links":links, "transfer_panels":[_link_panel(context,uid) for uid in links],
+            "connectivity_links":links, "transfer_panels":list(transfer.values()),
             "reserved_column_ids":sorted({p[key] for p in panels for key in ("column_i","column_j") if p[key]}),
             "material":native["Material"], "projected_length_m":width, "height_over_length":(top-bottom)/width}

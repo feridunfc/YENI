@@ -1,5 +1,5 @@
 """Conditional TS 500 frame restraint references from verified model geometry."""
-from math import fsum, isclose, ulp
+from math import fsum, isclose, isfinite, ulp
 
 from ..column_engine.ts500_column import (
     SWAY_PERMITTED, SWAY_PREVENTED, effective_length_factor, eq729_length_comparison,
@@ -34,12 +34,14 @@ def reference_end_ratios(source, physical_members, mat_supports=None):
     if mat_supports is None:
         from .column_mat_support import project_mat_horizontal_supports
         mat_supports = project_mat_horizontal_supports(source, physical_members)
-    frames, _, meta = build_frame_catalog(source)
+    from .mat_rotational_stiffness import mat_rotation_bounds
+    frames, points, meta = build_frame_catalog(source)
     table = source["geometry_capture"]["tables"].get("FRAME_ASSIGNMENTS") or {}
     if table.get("field_metadata", {}).get("units_by_field", {}).get("Length") != "m":
         return {}
     lengths = {r["UniqueName"]: float(r["Length"]) for r in table["rows"] if r.get("Type") in {"Beam", "Column"}
                and r.get("UniqueName") in frames and r.get("Length") not in (None, "", "None")}
+    mat_bounds = mat_rotation_bounds(source, physical_members, mat_supports, frames, points, lengths, meta["adjacency"])
     result = {}
     for uid, proof in physical_members.items():
         if proven_clear_length_m(proof, uid) is None or uid not in frames:
@@ -61,6 +63,9 @@ def reference_end_ratios(source, physical_members, mat_supports=None):
                         ends[side] = {"basis": "MAT_ROTATIONAL_STIFFNESS_UNBOUND", "joint_id": face["joint_id"],
                                       "horizontal_support": record.get("status") if record.get("base_joint_id")
                                       == face["joint_id"] else None}
+                        if axis in mat_bounds.get(uid, {}):
+                            ends[side]["mat_rotation_bound"] = mat_bounds[uid][axis]
+                            ends[side]["adopted_rotation_status"] = "FINITE_MONOLITHIC_FOOTPRINT_BOUND"
                     continue
                 terms = []
                 thickness = max((s["thickness_m"] for s in face["slabs"]), default=0)
@@ -106,7 +111,7 @@ def reference_end_ratios(source, physical_members, mat_supports=None):
 SUPPORT_ENVELOPE = "LOWER_SUPPORT_SWAY_ENVELOPE"
 
 
-def lower_support_factors(ends):
+def lower_support_factors(ends, *, storey_hinge=False):
     """TS 500 7.14–15. The finite flexible-end case and the single hinge are distinct."""
     from .column_mat_support import BOUND
     lower, upper = ends.get("I", {}), ends.get("J", {})
@@ -114,9 +119,18 @@ def lower_support_factors(ends):
             lower.get("basis") == "MAT_ROTATIONAL_STIFFNESS_UNBOUND" and lower.get("horizontal_support") == BOUND
             or lower.get("basis") == "WALL_BELOW_ROTATIONAL_STIFFNESS_UNBOUND" and lower.get("walls_below"))):
         raise ValueError("LOWER_SUPPORT_IDENTITY_OR_HORIZONTAL_RESTRAINT_UNBOUND")
+    alphas = (1.0, 10.0, None)
+    mat = lower.get("mat_rotation_bound") or {}
+    if (not storey_hinge and lower.get("basis") == "MAT_ROTATIONAL_STIFFNESS_UNBOUND" and
+            mat.get("joint") == lower.get("joint_id") and mat.get("method") == "MONOLITHIC_FOOTPRINT_FREE_STRIPS_LINEAR_WINKLER" and
+            mat.get("k_theta_min_knm_rad", 0) > 0 and mat.get("column_ei_over_l_knm",0)>0 and
+            len(mat.get("leg_stiffness_knm_rad",[]))==2 and all(isfinite(v) and v>0 for v in mat["leg_stiffness_knm_rad"]) and
+            isclose(mat["k_theta_min_knm_rad"],fsum(mat["leg_stiffness_knm_rad"]),rel_tol=1e-12) and
+            isclose(mat.get("alpha_i_upper",0),4*mat["column_ei_over_l_knm"]/mat["k_theta_min_knm_rad"],rel_tol=1e-12)):
+        alphas = (1.0, max(10.0, mat["alpha_i_upper"]))
     return [{"alpha_i": a, "alpha_j": upper["alpha_web"],
              "k": effective_length_factor(alpha_i=a, alpha_j=upper["alpha_web"], sway=SWAY_PERMITTED)}
-            for a in (1.0, 10.0, None)]
+            for a in alphas]
 
 
 def resolve_adopted_frame_k(axis_basis, ends):

@@ -1187,12 +1187,21 @@ def _basement_pier_tables(piers):
         return ""
     inventory, cuts, layouts, pressure, ends, shells, alternatives = [], [], [], [], [], [], []
     membrane, edge_rows, through_bars = [], [], []
+    returns, bridge_rows, starters = [], [], []
     for pier in groups:
         name = pier["pier"]
         geom = pier.get("geometry", {})
         inventory.append({**pier, **geom})
         for layout in pier.get("two_way_support_layouts", []):
+            transfer = layout.get("transfer_connection") or {}
+            if transfer and layout["column"] == "joint " + transfer["shared_joints"][0]:
+                for member, clearance in transfer.get("receiving_clearance_by_member", {}).items():
+                    bridge_rows.append({**clearance, "member": member, "link": transfer["link"],
+                                        "receiving": transfer["receiving_panel"], "status": transfer["status"]})
             proof=layout.get("continuous_web")
+            for starter in (proof or {}).get("straight_starters", []):
+                if starter not in starters:
+                    starters.append(starter)
             if proof:
                 through_bars.append({**proof,**proof["governing"],"checked":len(proof["reversal_checks"])})
         for cut in pier["cuts"]:
@@ -1219,6 +1228,11 @@ def _basement_pier_tables(piers):
                 h,v = proposal.get("horizontal", {}),proposal.get("vertical", {})
             if proposal:
                 for side, end in (proposal.get("ends") or {"":{}}).items():
+                    if end.get("bar_paths"):
+                        returns.append({"wall": panel["wall"], "joint": end["joint"], "shape": end["return_shape"],
+                                        "receivers": end["receiving_members"], "cover": end["nominal_cover_mm"],
+                                        "required": end["required_straight_development_mm"],
+                                        "tail": end["specified_straight_development_mm"], "status": end["status"]})
                     bar = proposal.get("horizontal", {})
                     upright = proposal.get("vertical", {})
                     pmms = proposal.get("cut_pmm", [])
@@ -1290,6 +1304,18 @@ def _basement_pier_tables(piers):
          _table((("pier","Pier"),("wall","Wall"),("combination","Combination"),("action","Check"),("element","Shell"),
                  ("point","Point"),("local_3_face","Local 3 face"),("demand_kn_m","Demand (kN/m)"),
                  ("resistance_kn_m","Resistance (kN/m)"),("utilization","Utilization")), membrane) + "</details>" if membrane else ""),
+        ("<details><summary>Wall return development along receiving webs</summary>" +
+         _table((("wall","Wall"),("joint","Joint"),("shape","Bar shape"),("receivers","Receiving shell IDs"),
+                 ("cover","Cover (mm)"),("required","Full bond length (mm)"),("tail","Straight length provided (mm)"),
+                 ("status","End result")), returns) + "</details>" if returns else ""),
+        ("<details><summary>Transfer panel and receiving boundary cage</summary>" +
+         _table((("member","Incident shell"),("link","Transfer shell"),("receiving","Receiving shell"),
+                 ("role","Bar"),("clear_mm","Clearance (mm)"),("required_mm","Required (mm)"),
+                 ("status","Joint result")), bridge_rows) + "</details>" if bridge_rows else ""),
+        ("<details><summary>Developed terminations of scheduled spans</summary>" +
+         _table((("member","Receiving shell"),("through_column","Column"),("full_bond_mm","Full bond (mm)"),
+                 ("straight_starter_mm","Starter beyond column face (mm)"),("available_mm","Available (mm)")),
+                starters) + "</details>" if starters else ""),
         ("<details><summary>Continuous horizontal bars through interior columns</summary>" +
          _table((("column","Column"),("members","Wall IDs"),("diameter_mm","Diameter (mm)"),("pitch_mm","Pitch (mm)"),
                  ("one_piece_length_mm","Unspliced length (mm)"),("checked","Point–combination checks"),
@@ -1565,8 +1591,10 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
                       ("hold", "Open"), ("failed", "Numerical failures")), floor_rows)
             + _table((("name", "Calculation"), ("expected", "Expected"), ("evaluated", "Calculated"),
                       ("outcome", "Result or outstanding input")), building["checks"])
-            + ("<h3>G1 Supervisor closure candidates</h3>" + _table((("gap","GAP"),("closure_ready","Ready for review"),
-                ("supervisor_approval","Supervisor decision")), review_rows) if review_rows else "")
+            + (("<h3>G1 Supervisor decisions</h3>" + _table((("gap","GAP"),("status","Project status"),
+                ("supervisor_approval","Supervisor decision")), review_rows)) if packet.get("supervisor_acceptance")
+               else ("<h3>G1 Supervisor closure candidates</h3>" + _table((("gap","GAP"),("closure_ready","Ready for review"),
+                ("supervisor_approval","Supervisor decision")), review_rows) if review_rows else ""))
             + '<h3>Governing selected beam</h3>'
             + _table((("story", "Storey"), ("label", "Beam"), ("check", "Check"), ("full_ve_kn", "Ve (kN)"),
                       ("resistance_kn", "Resistance (kN)"), ("utilization", "Utilization")),

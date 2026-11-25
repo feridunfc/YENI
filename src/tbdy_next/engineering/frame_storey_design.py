@@ -90,7 +90,7 @@ def storey_compression(source, physical, groups):
     return {case: fsum(sums[case]) for case in sorted(names)}
 
 
-def _axis_restraint(ends, allow_wall_hinge):
+def _axis_restraint(ends, allow_wall_hinge, *, storey_hinge=False):
     lower, upper = ends.get("I", {}), ends.get("J", {})
     if upper.get("basis") != "FRAME_SECTION_REFERENCE":
         raise ValueError("UPPER_FRAME_END_UNBOUND")
@@ -99,7 +99,7 @@ def _axis_restraint(ends, allow_wall_hinge):
                                        sway=SWAY_PERMITTED), "FRAME_END_RATIOS"
     if lower.get("basis") == "WALL_BELOW_ROTATIONAL_STIFFNESS_UNBOUND" and not allow_wall_hinge:
         raise ValueError("WALL_BELOW_ROTATIONAL_STIFFNESS_UNBOUND")
-    return max(r["k"] for r in lower_support_factors(ends)), SUPPORT_ENVELOPE
+    return max(r["k"] for r in lower_support_factors(ends, storey_hinge=storey_hinge)), SUPPORT_ENVELOPE
 
 
 def storey_critical_loads(source, storey, physical, ratios, *, allow_wall_hinge):
@@ -119,7 +119,7 @@ def storey_critical_loads(source, storey, physical, ratios, *, allow_wall_hinge)
         for axis, direction in directions.items():
             ends = ratios.get(uid, {}).get(axis, {})
             require(set(ends) == {"I", "J"}, f"Missing storey frame ends for {uid}/{axis}")
-            k, _ = _axis_restraint(ends, allow_wall_hinge)
+            k, _ = _axis_restraint(ends, allow_wall_hinge, storey_hinge=True)
             inertia = section["i22_mm4"] if axis == "M2" else section["i33_mm4"]
             ei = effective_stiffness_nmm2(ec_mpa=modulus, ic_mm4=inertia, creep_ratio=1, method="TS500_7_21")
             loads[direction].append(euler_load_kn(effective_ei_nmm2=ei, effective_length_lk_mm=1000 * length * k))

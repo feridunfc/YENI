@@ -103,9 +103,25 @@ def _material(source, stages, concrete):
     return Material(fc,fc/gc,fy/gs,es), bars["cover_mm"]
 
 
-def _through_bar_proof(incident, designs, states, mat):
+def _mark_collinear_runs(panels):
+    columns=defaultdict(list)
+    for p in panels:
+        for side in ("I","J"):
+            if p.get("column_"+side.lower()):
+                columns[p["column_"+side.lower()]].append(p)
+    for p in panels:
+        peers=[]
+        for side in ("I","J"):
+            peers.extend(q for q in columns.get(p.get("column_"+side.lower()),[]) if q is not p and
+                         abs(sum(a*b for a,b in zip(q["width_direction"],p["width_direction"])))>1-1e-9)
+        if len(peers)==2:
+            for q in [p,*peers]:
+                q["collinear_run"]=True
+
+
+def _through_bar_proof(incident, designs, states, mat, *, run=False):
     """One unspliced main bar per track. Dowels remain separately developed at each wall face."""
-    from .wall_support_edge import edge_bar_forces
+    from .wall_support_edge import edge_bar_forces, edge_tie_upper
     (a,side_a),(b,side_b) = incident
     steel, lengths, ends, actions, outer = [], [], [], [], []
     for (panel,side),detail in zip(incident,designs):
@@ -114,7 +130,7 @@ def _through_bar_proof(incident, designs, states, mat):
         end = detail["ends"][side]
         far_side = "J" if side=="I" else "I"
         far = detail["ends"][far_side]
-        if any(e["anchorage_type"]!="STRAIGHT" or not e["fits_column"] for e in (end,far)):
+        if not end["fits_column"] or not far["fits_column"] or (not run and any(e["anchorage_type"]!="STRAIGHT" for e in (end,far))):
             return None
         h=detail["horizontal"]
         steel.append(h["guaranteed_bars_per_m"]*pi*h["diameter_mm"]**2/4*mat.fyd/1000)
@@ -122,7 +138,10 @@ def _through_bar_proof(incident, designs, states, mat):
         ends.append(end)
         outer.append(panel["span_m"]*1000-far["column_depth_mm"]/2+far["specified_embedment_mm"])
         edge=panel["native_support_edges"][side]
-        actions.append(edge_bar_forces(states[panel["member"]],edge["nodes"],detail["membrane_and_plate"]["lever_arm_mm"]))
+        field = edge_tie_upper if run else edge_bar_forces
+        if run and not detail["membrane_and_plate"]["satisfied"]:
+            return None
+        actions.append(field(states[panel["member"]],edge["nodes"],detail["membrane_and_plate"]["lever_arm_mm"]))
     ha,hb=(d["horizontal"] for d in designs)
     if any(abs(ha[k]-hb[k])>1e-6 for k in ("diameter_mm","first_station_mm","pitch_mm","layers","curtain_inset_mm","cover_mm")):
         return None
@@ -134,7 +153,10 @@ def _through_bar_proof(incident, designs, states, mat):
     checks=[]
     for key in sorted(actions[0]):
         demand=[values[key] for values in actions]
-        required_mm=fsum(force*lb/resistance for force,lb,resistance in zip(demand,lengths,steel))
+        # In the checked sandwich model horizontal steel is tensile and concrete carries compression.
+        # For T1,T2 >= 0 the worst jump across one unspliced rod is max(T1_max,T2_max).
+        combine=max if run else fsum
+        required_mm=combine(force*lb/resistance for force,lb,resistance in zip(demand,lengths,steel))
         checks.append({"combination":key[0],"point":key[1],"absolute_main_forces_kn_m":demand,
                        "required_bond_mm":required_mm,"available_bond_mm":available,"ratio":required_mm/available})
     governing=max(checks,key=lambda r:r["ratio"])
@@ -144,17 +166,21 @@ def _through_bar_proof(incident, designs, states, mat):
             "members":[a["member"],b["member"]],"column":ends[0]["column"],
             "diameter_mm":ha["diameter_mm"],"pitch_mm":ha["pitch_mm"],"layers":ha["layers"],
             "one_piece_length_mm":fsum(outer),"full_yield_development_mm":lengths,
-            "per_face_steel_resistance_kn_m":steel,"reversal_checks":checks,"governing":governing}
+            "per_face_steel_resistance_kn_m":steel,"reversal_checks":checks,"governing":governing,
+            "bond_basis":"TENSILE_TIE_DIFFERENCE_INTERVAL" if run else "ABSOLUTE_REVERSAL"}
 
 
-def _coordinate_main_bars(geometry, states, designs, aggregate, material, redesign):
+def _coordinate_main_bars(geometry, states, designs, aggregate, material, redesign, *, source=None,stages=None):
+    from .wall_collinear_run import coordinate_run
     from .basement_joint_layout import main_bar_collision
     joints = defaultdict(list)
     for p in geometry["panels"]:
         for s in ("I","J"):
             joints[support_id(p,s)].append((p,s))
-    proofs={}
+    proofs=coordinate_run(geometry,states,designs,material,aggregate,redesign,source,stages) if source and states else {}
     for col, incident in joints.items():
+        if col in proofs:
+            continue
         if len(incident)!=2:
             continue
         (a,sa),(b,sb)=incident
@@ -170,21 +196,20 @@ def _coordinate_main_bars(geometry, states, designs, aggregate, material, redesi
             return [({**p,"horizontal":d["horizontal"]},s,d["ends"][s]) for (p,s),d in zip(incident,trials)]
         if not main_bar_collision(*descriptors(current),aggregate):
             continue
-        # The scheduled full length has two terminal anchors. Longer collinear chains
-        # require a single layout for all their spans.
-        if any(any(peer["member"]!=p["member"] and abs(fsum(x*y for x,y in
-                zip(p["width_direction"],peer["width_direction"])))>1-1e-9 for peer,_ in
-                joints[support_id(p,"J" if side=="I" else "I")]) for p,side in incident):
-            continue
+        # A continuous length can terminate with full development at the next column
+        # even when another panel starts there. Keep its grid when checking that joint.
+        locked = {m for proof in proofs.values() for m in proof["members"]}
         pair=(current[0]["horizontal"]["diameter_mm"],current[0]["horizontal"]["maximum_pitch_mm"])
         # Start with both selected cages, then trial real catalogue bars on the shared elevation lattice.
         candidates=[None]+sorted({pair,*((dia,pitch) for dia in (12,14,16,18) for pitch in (100,60,50))},
                                   key=lambda v:(v[0]**2/v[1],v))
         for match in candidates:
+            if match is not None and any(p["member"] in locked for p,_ in incident):
+                continue
             trials = current if match is None else [redesign(p,match) for p,_ in incident]
             proof = _through_bar_proof(incident,trials,states,material)
-            if not proof:
-                continue
+            if not proof or locked.intersection(proof["members"]):
+                continue  # Independent terminal development at this end was already specified.
             # Check all independent dowels against the continuous rods before committing this choice.
             local = [{"member":p["member"],"column_i":p["column_i"],"column_j":p["column_j"],
                       "thickness_m":p["thickness_m"],"width_direction":p["width_direction"],"support_sections":p.get("support_sections",{}),"horizontal":d["horizontal"],
@@ -199,7 +224,7 @@ def _coordinate_main_bars(geometry, states, designs, aggregate, material, redesi
     return proofs
 
 
-def _design(result, source, stages, bound, scope):
+def _design(result, source, stages, bound, scope, *, boundaries=None):
     name, story = result["pier"], result["story"]
     geom = folded_section(source, bound, name, story, result["members"])
     result["geometry"] = geom
@@ -213,6 +238,7 @@ def _design(result, source, stages, bound, scope):
         except (KeyError,TypeError,ValueError) as exc:
             row = {"face":face,"combination":combo,"role":spec["role"],"status":"HOLD","reason":str(exc)}
         result["cuts"].append(row)
+    _mark_collinear_runs(geom["panels"])
     mat, cover = _material(source,stages,geom["material"])
     aggregate = (source.get("building_design") or {}).get("maximum_aggregate_mm", DEFAULT_AGGREGATE_MM)
     result["maximum_aggregate_mm"] = aggregate
@@ -285,6 +311,7 @@ def _design(result, source, stages, bound, scope):
             panel["two_way_shell"] = panel_shell_checks(panel,combos,fields[uid],mesh[uid],mat)
         except (KeyError, TypeError, ValueError) as exc:
             panel["two_way_shell"] = {"status":"HOLD","reason":str(exc),"expected_checks":4*len(combos),"checks":[]}
+    link_states={}
     if combined:
         from .wall_membrane_design import corner_states
         from .wall_support_edge import support_edge_actions
@@ -293,7 +320,7 @@ def _design(result, source, stages, bound, scope):
                 field = fields[link["member"]]
                 required(set(map(tuple,field["corners"])) == {(elm,p) for elm,pts in mesh[link["member"]].items()
                          for p in pts}, "LINK_SHELL_CUT_POPULATION_DIFFERS")
-                states = corner_states(link,field,combos)
+                states = link_states[link["member"]] = corner_states(link,field,combos)
                 link["native_support_edges"] = support_edge_actions(link,geom,read["edge_actions"],states,combos)
                 link["edge_balance_verified"] = all(e["status"]=="NATIVE_EDGE_CONTROL_SATISFIED"
                                                      for e in link["native_support_edges"].values())
@@ -326,7 +353,9 @@ def _design(result, source, stages, bound, scope):
         except (KeyError, TypeError, ValueError) as exc:
             detail = {"status":"HOLD","reason":str(exc)}
         designs[panel["member"]] = detail
-    through = _coordinate_main_bars(geom,corner_fields,designs,aggregate,mat,design_candidate) if combined else {}
+    from .wall_return_layout import coordinate_return_tracks
+    through = _coordinate_main_bars(geom,corner_fields,designs,aggregate,mat,design_candidate,source=source,stages=stages)
+    coordinate_return_tracks(geom,designs,mat,aggregate) if combined else {}
     if combined:
         from .basement_joint_layout import stagger_column_entries
         stagger_column_entries(geom, designs, through, cover, aggregate)
@@ -352,7 +381,9 @@ def _design(result, source, stages, bound, scope):
             capacities = detail["resistances"][check["axis"]]
             capacity = capacities[0 if check["action"] == "Bending" else 1]
             check.update(proposed_resistance=capacity, proposed_ratio=check["demand"]/capacity)
-    result["two_way_support_layouts"] = check_joint_layout({"panels":shell_panels},aggregate,through)
+    from .wall_bridge_layout import bridge_checks
+    bridge=bridge_checks(geom,designs,boundaries,source,mat,aggregate,link_states) if combined else {}
+    result["two_way_support_layouts"] = check_joint_layout({"panels":shell_panels,"bridge_checks":bridge},aggregate,through)
     result["pressure_joint_layouts"] = [] if combined else check_joint_layout(geom,aggregate)
     if combined:
         by_support = {r["column"]:r for r in result["two_way_support_layouts"]}
@@ -371,6 +402,8 @@ def _design(result, source, stages, bound, scope):
                 panel["reason"] = (detail.get("open_input") or detail.get("reason") or shell.get("reason")
                                    or next((r.get("reason") or r["status"] for r in supports
                                             if r["status"] != "PROPOSED_PRESSURE_BARS_FIT"), "COMBINED_DESIGN_INCOMPLETE"))
+        from .wall_collinear_run import qualify_run_terminals
+        qualify_run_terminals(geom["panels"], through)
     for row in result["cuts"]:
         checks = row.get("web_demands",[])
         if checks and all("pmm_upper" in d for d in checks):
@@ -443,7 +476,7 @@ def basement_piers(source, stages, bounds, bound, scope):
         results.append(row)
         try:
             required(bound.get("kind") == ORIGINAL, "ORIGINAL_PIER_SECTION_AND_FORCE_SOURCE_REQUIRED")
-            _design(row,source,stages,bound,scope)
+            _design(row,source,stages,bound,scope,boundaries=bounds)
         except (KeyError, TypeError, ValueError, IndexError) as exc:
             row["reason"] = str(exc)
             if str(exc)=="WALL_BASE_OR_TOP_CHANGES_WITHIN_PIER" and bound.get("kind")==ORIGINAL:

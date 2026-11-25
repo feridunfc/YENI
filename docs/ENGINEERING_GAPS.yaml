@@ -43,10 +43,10 @@
     {
       "id": "GAP-001",
       "title": "Approved model profile",
-      "status": "PARTIAL",
+      "status": "CLOSED",
       "priority": "P0",
       "achieved_scope": "The original strength-design scenario adopts DD-2 and HN 14.15 m. All 19 profile fields are populated, four spectrum checks agree, and the engine derives BKS 1, DTS 2a and BYS 6. CLI and web produce the same sealed results. The archived source and exact parameter values have a confirmed review. The sealed G1 packet binds the two specified editions to the ETABS model profile, the 19 confirmed project fields and the native frame-and-wall role.",
-      "blocker": "Supervisor approval of the adopted standards, structural roles and their scope is pending. Ductility and design release remain separate decisions.",
+      "blocker": null,
       "closure_criteria": "Version the applicable standard edition, structural roles and parameters with source and approval evidence.",
       "owner_paths": [
         "src/tbdy_next/candidate_model_contracts.py",
@@ -61,7 +61,9 @@
         "EV-YP1-TWO-WAY-SHELL-AND-SUPPORTS-20261124",
         "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
       ],
-      "closure_evidence_refs": [],
+      "closure_evidence_refs": [
+        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
+      ],
       "local_update_needed": false,
       "implementation_checkpoint_20261121": {
         "evidence_ref": "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
@@ -81,15 +83,24 @@
       "closure_ready": true,
       "closure_candidate_evidence_ref": "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125",
       "closure_candidate_contract_sha256": "a1e32f42e77bc32ee6bcf97277702c74623bb28022857a79148a8ec268bd54e3",
-      "supervisor_decision": "PENDING"
+      "supervisor_decision": "ACCEPTED",
+      "supervisor_acceptance": {
+        "reviewed_contract_sha256": "a1e32f42e77bc32ee6bcf97277702c74623bb28022857a79148a8ec268bd54e3",
+        "reviewed_run": "RUN-e4f718bffb7d4814a6632c3c6c39e462",
+        "scope": "Original model and the project-specific captured design book",
+        "separate_gaps": [
+          "GAP-015",
+          "GAP-018"
+        ]
+      }
     },
     {
       "id": "GAP-002",
       "title": "Combination book and design family scope",
-      "status": "PARTIAL",
+      "status": "CLOSED",
       "priority": "P0",
       "achieved_scope": "Mixed signed Linear Add partition and same-source scalar spectral replay are implemented. Both the native table and the E2K export resolve the 36 combination definitions, signed factors, referenced cases and combos. The packet binds project roles and distinguishes the 31 Linear Add definitions from the five Envelope definitions.",
-      "blocker": "Supervisor acceptance of the project-specific roles, operator scope and assigned design families is pending.",
+      "blocker": null,
       "closure_criteria": "Independently verify every required family, sign, direction, operator and factor against a frozen expected scope.",
       "owner_paths": [
         "src/tbdy_next/engineering/mixed_demands.py",
@@ -102,7 +113,9 @@
         "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122",
         "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
       ],
-      "closure_evidence_refs": [],
+      "closure_evidence_refs": [
+        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
+      ],
       "local_update_needed": false,
       "implementation_checkpoint_20261121": {
         "evidence_ref": "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
@@ -128,15 +141,24 @@
       "closure_ready": true,
       "closure_candidate_evidence_ref": "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125",
       "closure_candidate_contract_sha256": "a1e32f42e77bc32ee6bcf97277702c74623bb28022857a79148a8ec268bd54e3",
-      "supervisor_decision": "PENDING"
+      "supervisor_decision": "ACCEPTED",
+      "supervisor_acceptance": {
+        "reviewed_contract_sha256": "a1e32f42e77bc32ee6bcf97277702c74623bb28022857a79148a8ec268bd54e3",
+        "reviewed_run": "RUN-e4f718bffb7d4814a6632c3c6c39e462",
+        "scope": "Original model and the project-specific captured design book",
+        "separate_gaps": [
+          "GAP-015",
+          "GAP-018"
+        ]
+      }
     },
     {
       "id": "GAP-003",
       "title": "Model and analysis generation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "priority": "P0",
       "achieved_scope": "Source/result SHA lineage and same-acquisition identities are preserved. The original C29 replay uses archived solver and export content to reconcile the configured and applied initial stiffness for all 15 native cases and propagate the first-order basis to PMM and R08. Independent binary analysis-generation approval remains open. The original EDB, native export, original first-order solver log, 15 solved case GUIDs and input-identical private-copy controls are bound together. All 11,700 pier components match within the archived tolerance.",
-      "blocker": "Supervisor acceptance of this model and generation link is pending. The archive has no separate independent original-run attestation.",
+      "blocker": null,
       "closure_criteria": "Bind model contents and consumed results to the same analysis generation with traceable evidence.",
       "owner_paths": [
         "src/tbdy_next/engineering/analysis_setup.py"
@@ -148,7 +170,9 @@
         "EV-C29-R03-ORDER-AXIAL-BALANCE-20261121",
         "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
       ],
-      "closure_evidence_refs": [],
+      "closure_evidence_refs": [
+        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
+      ],
       "local_update_needed": false,
       "implementation_checkpoint_20261121": {
         "evidence_ref": "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
@@ -167,15 +191,24 @@
       "closure_ready": true,
       "closure_candidate_evidence_ref": "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125",
       "closure_candidate_contract_sha256": "a1e32f42e77bc32ee6bcf97277702c74623bb28022857a79148a8ec268bd54e3",
-      "supervisor_decision": "PENDING"
+      "supervisor_decision": "ACCEPTED",
+      "supervisor_acceptance": {
+        "reviewed_contract_sha256": "a1e32f42e77bc32ee6bcf97277702c74623bb28022857a79148a8ec268bd54e3",
+        "reviewed_run": "RUN-e4f718bffb7d4814a6632c3c6c39e462",
+        "scope": "Original model and the project-specific captured design book",
+        "separate_gaps": [
+          "GAP-015",
+          "GAP-018"
+        ]
+      }
     },
     {
       "id": "GAP-004",
       "title": "Native schema, units and selection transactions",
-      "status": "PARTIAL",
+      "status": "CLOSED",
       "priority": "P1",
       "achieved_scope": "Existing gateway and selection transactions capture both native modal getters and eccentricity definitions in the same locked-model live read at units 6. The observed null/zero participation identity binds only through a complete valid companion mode inventory and unique exact same-case period; raw returns remain intact. 100/100 modes and 2/2 spectrum definitions bind, with output/mode restoration verified. Error/ambiguity boundaries and clean wheel contracts are tested. The eight-part C29 shell read uses the exact first-order case and Step 1, native point-element transformations and restored results selection. The ETABS 23.2.0 export, unit code 6, native frame and shell schemas and all 13 selection-restoration records agree for this archive.",
-      "blocker": "Supervisor acceptance of the observed ETABS 23.2.0 schemas, unit convention and restored transactions is pending.",
+      "blocker": null,
       "closure_criteria": "Verify supported native schemas and unit conversions. Restore temporary output/pattern/mode selections and fail on restoration errors. Do not restore the old tonf units contrary to the explicit kN/m/C user instruction.",
       "owner_paths": [
         "src/tbdy_next/etabs_source_gateway_windows.py",
@@ -196,7 +229,9 @@
         "EV-S02-C29-SIGNED-STORY-BALANCE-20261122",
         "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
       ],
-      "closure_evidence_refs": [],
+      "closure_evidence_refs": [
+        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
+      ],
       "local_update_needed": false,
       "reference_requirements": [
         {
@@ -217,7 +252,16 @@
       "closure_ready": true,
       "closure_candidate_evidence_ref": "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125",
       "closure_candidate_contract_sha256": "a1e32f42e77bc32ee6bcf97277702c74623bb28022857a79148a8ec268bd54e3",
-      "supervisor_decision": "PENDING"
+      "supervisor_decision": "ACCEPTED",
+      "supervisor_acceptance": {
+        "reviewed_contract_sha256": "a1e32f42e77bc32ee6bcf97277702c74623bb28022857a79148a8ec268bd54e3",
+        "reviewed_run": "RUN-e4f718bffb7d4814a6632c3c6c39e462",
+        "scope": "Original model and the project-specific captured design book",
+        "separate_gaps": [
+          "GAP-015",
+          "GAP-018"
+        ]
+      }
     },
     {
       "id": "GAP-005",
@@ -356,10 +400,10 @@
     {
       "id": "GAP-007",
       "title": "Exact static Linear Add",
-      "status": "PARTIAL",
+      "status": "CLOSED",
       "priority": "P0",
       "achieved_scope": "Signed E partition remains supported. The newer acquisition now supplies 22 native patterns and the required primitive case-force records. All three signed static Linear Add design combinations were reconstructed from primitive ETABS rows at 1,206 original member/case/cuts, including the element side and step. All 7,236 direct scalar controls agreed. Current linear_coefficients already recursively expands nested Linear Add with exact Fraction arithmetic, cancellation and cycle/operator/reference guards. Exact rational factors reconstruct 7,236 of 7,236 signed static components over 402 distinct same-side cuts and three gravity combinations. The maximum absolute difference is 7.12e-13. The packet records its frozen absolute and relative tolerances.",
-      "blocker": "Supervisor acceptance of the captured project book and the signed static scope is pending. Spectral and Envelope results retain their individual component bounds.",
+      "blocker": null,
       "closure_criteria": "Verify the complete required same-source combination book and supported nested role/operator scope with independent expected values and frozen tolerances; retain unsupported operators explicitly.",
       "owner_paths": [
         "src/tbdy_next/engineering/mixed_demands.py",
@@ -372,7 +416,9 @@
         "EV-COLUMN-JOINT-SLICE-20261119",
         "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
       ],
-      "closure_evidence_refs": [],
+      "closure_evidence_refs": [
+        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
+      ],
       "local_update_needed": false,
       "supervisor_exit_recipe_20261121": {
         "evidence_ref": "EV-SUPERVISOR-SYSTEM-AUDIT-20261121",
@@ -385,7 +431,16 @@
       "closure_ready": true,
       "closure_candidate_evidence_ref": "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125",
       "closure_candidate_contract_sha256": "a1e32f42e77bc32ee6bcf97277702c74623bb28022857a79148a8ec268bd54e3",
-      "supervisor_decision": "PENDING"
+      "supervisor_decision": "ACCEPTED",
+      "supervisor_acceptance": {
+        "reviewed_contract_sha256": "a1e32f42e77bc32ee6bcf97277702c74623bb28022857a79148a8ec268bd54e3",
+        "reviewed_run": "RUN-e4f718bffb7d4814a6632c3c6c39e462",
+        "scope": "Original model and the project-specific captured design book",
+        "separate_gaps": [
+          "GAP-015",
+          "GAP-018"
+        ]
+      }
     },
     {
       "id": "GAP-008",
@@ -1873,9 +1928,16 @@
       "GAP-004",
       "GAP-007"
     ],
-    "closed": 0,
+    "closed": 5,
     "total": 18,
-    "supervisor_decision": "PENDING",
-    "engineering_release": "NOT_READY"
+    "supervisor_decision": "ACCEPTED",
+    "engineering_release": "NOT_READY",
+    "candidate_decision_at_review": "PENDING",
+    "accepted_contract_sha256": "070ac74e3b57f7f3b77f8327d0e218aa3b5f09af7766a9f23939ec64868468f2",
+    "excluded_gaps": [
+      "GAP-015",
+      "GAP-018"
+    ],
+    "scope": "Original model and project-specific captured design book only"
   }
 }

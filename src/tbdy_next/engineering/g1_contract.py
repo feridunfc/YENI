@@ -14,6 +14,28 @@ from .pier_seismic_shear import wall_load_scope
 GAPS = ("GAP-001", "GAP-002", "GAP-003", "GAP-004", "GAP-007")
 ABSTOL, RELTOL = Fraction("1e-9"), Fraction("1e-12")
 STATIC = ("Grav_TempNeg", "Grav_TempPos", "Grav_Ult")
+ACCEPTED_CONTRACT = "a1e32f42e77bc32ee6bcf97277702c74623bb28022857a79148a8ec268bd54e3"
+ACCEPTANCE_EVIDENCE = "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
+
+
+def supervisor_decision(candidate):
+    """The Supervisor accepted one immutable evidence packet for the original project."""
+    digest = _digest(candidate)
+    if digest != ACCEPTED_CONTRACT:
+        return {**candidate, "contract_sha256": digest}
+    acceptance = {
+        "reviewed_contract_sha256": digest,
+        "reviewed_run": "RUN-e4f718bffb7d4814a6632c3c6c39e462",
+        "scope": candidate["scope"],
+        "closure_evidence_refs": [ACCEPTANCE_EVIDENCE],
+        "separate_gaps": {"GAP-015": "R=7 system qualification and overturning",
+                          "GAP-018": "Spectral component simultaneity"},
+    }
+    packet = {**candidate, "decision": "SUPERVISOR_ACCEPTED", "supervisor_acceptance": acceptance,
+              "gaps": {key: {**row, "status": "CLOSED", "supervisor_approval": "ACCEPTED",
+                             "closure_evidence_refs": [ACCEPTANCE_EVIDENCE]}
+                       for key, row in candidate["gaps"].items()}}
+    return {**packet, "contract_sha256": _digest(packet)}
 
 
 def require(value, reason):
@@ -223,5 +245,4 @@ def g1_contract(source, reconciliation, scope, project, input_sha):
         packet["unresolved_input"] = str(exc)
         ready = [False]*len(GAPS)
     packet["gaps"] = {gap:{"closure_ready":ok, "supervisor_approval":"PENDING"} for gap,ok in zip(GAPS,ready)}
-    packet["contract_sha256"] = _digest(packet)
-    return packet
+    return supervisor_decision(packet)

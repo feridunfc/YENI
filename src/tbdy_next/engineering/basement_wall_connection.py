@@ -98,7 +98,7 @@ def _adjacent_web(geometry, panel, side, offset, diameter, cover):
     return {}
 
 
-def _hook_90(profile, side, offset, dia, required_mm, available, clear):
+def _hook_90(profile, side, offset, dia, required_mm, available, clear, levels=None):
     """TS 500 Figure 9.1(b). Two quarter bends in plan with separate, inward-facing tails."""
     if not profile.get("bar_coordinates"):
         return None
@@ -132,65 +132,143 @@ def _hook_90(profile, side, offset, dia, required_mm, available, clear):
                     "projection_mm":projection, "straight_to_tangent_mm":tangent, "inside_diameter_mm":6*dia,
                     "centreline_radius_mm":radius, "straight_tail_mm":tail, "clearance_mm":clearance,
                     "lateral_turn":turn}
+    # Place the opposing inward hooks at distinct stations if their tails cross.
+    from .wall_bar_paths import bent_path, point_distance, segment_distance
+    if not profile.get("width_mm") or 2*offset-dia < clear:
+        return None
+    choices = {}
+    for face in (-1,1):
+        rows = []
+        for proj in range(int(projection),int(available)+1,10):
+            tangent = proj-radius-dia/2
+            if tangent<0 or max(offset,abs(offset-radius-tail))+dia/2+profile["cover"]+profile["tie"]>profile["width_mm"]/2:
+                continue
+            path = bent_path(face,[-sense*profile["depth_mm"]/2,face*offset],(sense,0.),(0.,-face),tangent,radius,tail)
+            points = path["points_mm"]
+            gap = min(point_distance(b,p,q)-err for p,q,err in zip(points,points[1:],path["chord_error_mm"])
+                      for b in profile["bar_coordinates"])-(dia+profile["bar_diameter"])/2
+            if gap >= clear:
+                rows.append((proj,path,gap))
+        if not rows:
+            return None
+        choices[face] = rows
+    for left,a,ga in choices[-1]:
+        for right,b,gb in choices[1]:
+            if abs(right-left)<clear+dia:
+                continue
+            gap = min(segment_distance(p,q,v,w)-ea-eb for p,q,ea in zip(a["points_mm"],a["points_mm"][1:],a["chord_error_mm"])
+                      for v,w,eb in zip(b["points_mm"],b["points_mm"][1:],b["chord_error_mm"]))-dia
+            if gap < clear and levels and levels.get("opposite_face_levels"):
+                from .basement_joint_layout import _separation
+                families=[]
+                for path,grid in ((a,levels),(b,levels["opposite_face_levels"])):
+                    pts=path["points_mm"]
+                    xs,ys=zip(*pts)
+                    err=max(path["chord_error_mm"])
+                    families.append({"member":profile["column"],"role":"web","face":path["face"],"horizontal":True,
+                        "bounds":(min(xs)-err,max(xs)+err,min(ys)-err,max(ys)+err),"diameter":dia,
+                        "heights":[grid["first_station_mm"]+j*grid["pitch_mm"] for j in range(grid["layers"])],
+                        "segments":list(zip(pts,pts[1:],path["chord_error_mm"]))})
+                check=_separation(*families,levels["aggregate_mm"])
+                if check["fits"]:
+                    gap=check["clear_mm"]
+                else:
+                    continue
+            elif gap < clear:
+                continue
+            if min(ga,gb)>=clear:
+                return {"type":"STATION_STAGGERED_90_HOOKS","required_projection_mm":.75*required_mm,
+                        "projection_mm":max(left,right),"face_projections_mm":[left,right],"inside_diameter_mm":6*dia,
+                        "centreline_radius_mm":radius,"straight_tail_mm":tail,"clearance_mm":min(ga,gb),
+                        "pair_clearance_mm":gap,"local_paths":[a,b]}
     return None
 
 
-def wall_return_anchor(profile, panel, side, diameter, offset, cover, clear_spacing, mat, aggregate):
-    """Full-yield TS 500 9.1.2(b) projections inside the as-modelled union at both face tracks."""
+def _forward_length(leg, direction):
+    """Follow an identified, centred, equal-thickness bridge into its next straight web."""
+    if sum(a*b for a,b in zip(leg["direction"],direction)) < 1-1e-8:
+        return 0., []
+    next_leg = [r for r in leg.get("continuations",()) if abs(r["thickness_mm"]-leg["thickness_mm"])<1e-6
+                and sum(a*b for a,b in zip(r["direction"],direction))>1-1e-8]
+    if len(next_leg)==1:
+        return leg["span_mm"]+next_leg[0]["span_mm"], [leg["member"],next_leg[0]["member"]]
+    return leg["span_mm"], [leg["member"]]
+
+
+def wall_return_anchor(profile, panel, side, diameter, offset, cover, clear_spacing, mat, aggregate, *, tail_track=None, face_lanes=None):
+    """Dimension a continuous bar. Its full straight development starts after the bend."""
+    from .wall_bar_paths import bent_path, straight_path
     bond = tension_development(diameter, mat.fyd, mat.fck, mat.fcd, cover, clear_spacing)
-    projection = 5*ceil(.75*bond["position_i_mm"]/5)
+    lb = bond["position_i_mm"]
+    tail = 5*ceil(max(lb,12*diameter)/5)
     depth = profile["depth_mm"]
     dx,dy = panel["width_direction"]
-    across = (-dy,dx)
-    tracks = []
-    for face in (-1,1):
-        # The incoming shell ends at the centreline. A one-sided return provides
-        # its outer half thickness only on the side where it physically exists.
-        ahead = 0.
-        for leg in profile["incident_walls"]:
-            sx,sy = leg["direction"]
-            if leg["across"]:
-                inward = face*offset*(sx*across[0]+sy*across[1])
-                if inward >= cover+diameter/2 and inward+cover+diameter/2 <= leg["span_mm"]:
-                    ahead = max(ahead,leg["thickness_mm"]/2)
-            elif (sx*dx+sy*dy)*(1 if side=="J" else -1) > .999999 and offset+diameter/2+cover <= leg["thickness_mm"]/2:
-                ahead = max(ahead,leg["span_mm"])
-        tracks.append(depth/2+ahead-cover)
-    available = min(tracks)
+    sense = 1 if side=="J" else -1
+    t = (sense*dx,sense*dy)
+    n = (-dy,dx)
+    radius = 3.5*diameter
     limit = clear_limit(aggregate,diameter)
-    inside = 6*diameter
-    tail = 12*diameter
-    # A 180 degree hairpin crossing the two main tracks must also fit its mandrel
-    # and an uninterrupted concrete corridor over its entire transverse bend.
-    across_forward = max((leg["span_mm"] for leg in profile["incident_walls"] if not leg["across"]
-                          and (leg["direction"][0]*dx+leg["direction"][1]*dy)*(1 if side=="J" else -1)>.999999
-                          and offset+diameter/2+cover <= leg["thickness_mm"]/2), default=0.)
-    corner = min(max((leg["thickness_mm"]/2 for leg in profile["incident_walls"] if leg["across"]
-                      and sign*(leg["direction"][0]*across[0]+leg["direction"][1]*across[1])>.999999),default=0.)
-                 for sign in (-1,1))
-    u_available = depth/2+max(across_forward,corner)-cover
-    u_diameter = 2*offset-diameter
-    bridge = [leg["member"] for leg in profile["incident_walls"]]
-    radius = (inside+diameter)/2
-    hook_fits = (projection <= min(available,u_available) and projection >= radius+diameter/2
-                 and 2*(offset-radius-tail)-diameter >= limit)
-    hairpin_fits = (projection <= u_available and projection >= offset+diameter/2 and u_diameter >= inside)
-    straight_fits = bond["position_i_mm"] <= 500*panel["clear_length_m"]
-    fits = (hook_fits or hairpin_fits) and straight_fits and clear_spacing>=limit
-    shape = "RETURN_PAIRED_90" if hook_fits else "RETURN_U_HAIRPIN" if hairpin_fits else None
-    return {**bond,"column":None, "joint":profile["joint"], "column_role":"WALL_JUNCTION",
-            "anchorage_type":shape or "WALL_RETURN_90_OR_U", "return_shape":shape, "incident_walls":bridge, "nominal_cover_mm":cover,
-            "minimum_inside_bend_mm":inside, "hook_90_tail_mm":tail, "hairpin_inside_diameter_mm":u_diameter,
-            "required_projection_mm":.75*bond["position_i_mm"], "specified_embedment_mm":projection,
-            "available_by_face_mm":tracks,"column_available_mm":available,"column_depth_mm":depth,
-            "hairpin_available_mm":u_available,"hairpin_minimum_tail_mm":max(6*diameter,60.),
-            "standard_90_projection_fits":projection<=available, "standard_90_fits":hook_fits,
-            "hairpin_projection_and_bend_fit":hairpin_fits, "centreline_radius_mm":radius, "geometry_clear_limit_mm":limit,
-            "end_cover_mm":cover,"wall_side_available_mm":500*panel["clear_length_m"],
-            "wall_side_required_mm":bond["position_i_mm"],"margin_mm":available-projection,
-            "entry_required_mm":limit, "horizontal_clear_mm":clear_spacing, "horizontal_required_mm":limit,
-            "fits_column":fits,"reason":"RECEIVING_CAGE_LAYOUT_CHECK_REQUIRED" if fits else
-            "STANDARD_HOOK_PROJECTION_OUTSIDE_RECEIVING_WEB" if projection>available else "BEND_TAIL_OR_WALL_BOND_DOES_NOT_FIT"}
+    legs = profile["incident_walls"]
+    across = [r for r in legs if r["across"]]
+    full = profile.get("full_corner_square") or len({tuple(l["direction"]) for l in across})==2
+    tracks = [depth/2+max((leg["thickness_mm"]/2 for leg in across if full or
+             face*sum(a*b for a,b in zip(n,leg["direction"]))>1-1e-8),default=0.)-cover for face in (-1,1)]
+    own = 500*panel["clear_length_m"]
+    shape, paths, members = None, [], []
+    straight = [(l,*_forward_length(l,t)) for l in legs if not l["across"] and
+                offset+diameter/2+cover <= l["thickness_mm"]/2+1e-6]
+    extent = min(tracks)
+    projection = 0.
+    for leg,length,route in straight:
+        extension = tail+(leg["span_mm"] if len(route)>1 else 0.)
+        if length and depth/2+length-cover>=extension:
+            shape, members = "STRAIGHT_THROUGH_RECEIVING_WEB", route
+            extent,projection = depth/2+length-cover, extension
+            tracks = [extent,extent]
+            for face in (-1,1):
+                start = [-depth/2*t[i]+face*offset*n[i] for i in (0,1)]
+                paths.append(straight_path(face,start,t,projection))
+            break
+    if not paths and full:
+        # Prefer a return within the folded pier over extending into an unrelated cage.
+        for leg in sorted(across,key=lambda l:(not bool(l.get("continuations")), -l["span_mm"])):
+            r = leg["direction"]
+            length,route = _forward_length(leg,r)
+            width = leg["thickness_mm"]
+            track = tail_track if tail_track is not None else min(68.,width/2-cover-diameter/2)
+            if offset<=0 or (face_lanes is None and (2*track-diameter<limit or track+diameter/2+cover>width/2)):
+                continue
+            trial = []
+            for face in (-1,1):
+                u = face*offset*sum(a*b for a,b in zip(n,r))
+                dest = face_lanes[face] if face_lanes is not None else (-track if u>0 else track)
+                if abs(dest)+diameter/2+cover>width/2:
+                    break
+                run = depth/2+dest-radius
+                # Keep every outer surface inside the full concrete square and the receiving web.
+                if (run<0 or depth/2+dest+diameter/2>min(tracks)+1e-7 or
+                        abs(u)+diameter/2+cover > panel.get("thickness_m",width/1000)*500+1e-6 or
+                        u+radius+tail+diameter/2+cover > length):
+                    break
+                start = [-depth/2*t[i]+face*offset*n[i] for i in (0,1)]
+                trial.append(bent_path(face,start,t,r,run,radius,tail))
+            if len(trial)==2:
+                paths, members = trial, route
+                shape = "CONTINUOUS_90_FULL_DEVELOPMENT_IN_RETURN"
+                projection = depth/2+(max(face_lanes.values()) if face_lanes is not None else track)+diameter/2
+                break
+    fits = bool(paths) and own>=lb and clear_spacing>=limit
+    return {**bond,"column":None,"joint":profile["joint"],"column_role":"WALL_JUNCTION",
+            "anchorage_type":shape or "WALL_RETURN_UNRESOLVED","return_shape":shape,"bar_paths":paths,
+            "receiving_members":members,"incident_walls":[r["member"] for r in legs],
+            "nominal_cover_mm":cover,"minimum_inside_bend_mm":6*diameter,"centreline_radius_mm":radius,
+            "required_straight_development_mm":lb,"specified_straight_development_mm":tail,
+            "required_projection_mm":None,"specified_embedment_mm":projection,
+            "available_by_face_mm":tracks,"column_available_mm":extent,"column_depth_mm":depth,
+            "geometry_clear_limit_mm":limit,"end_cover_mm":cover,"wall_side_available_mm":own,
+            "wall_side_required_mm":lb,"margin_mm":extent-projection if paths else -lb,"entry_required_mm":limit,
+            "horizontal_clear_mm":clear_spacing,"horizontal_required_mm":limit,
+            "fits_column":fits,"reason":"RECEIVING_CAGE_LAYOUT_CHECK_REQUIRED" if fits else "FULL_DEVELOPED_BAR_PATH_UNBOUND"}
 
 
 def _development(profiles, geometry, panel, grid, mat, aggregate=DEFAULT_AGGREGATE_MM):
@@ -215,7 +293,7 @@ def _development(profiles, geometry, panel, grid, mat, aggregate=DEFAULT_AGGREGA
         corridor = prof["depth_mm"]+adjacent["clear_extension_mm"] if adjacent.get("clear_extension_mm",0)>0 else available
         hook = None
         if specified > available or clearance < limit:
-            hook = _hook_90(prof, side, offset, dia, needed, available, limit)
+            hook = _hook_90(prof, side, offset, dia, needed, available, limit, levels=grid)
             if hook:
                 clearance, specified, needed = hook["clearance_mm"], hook["projection_mm"], hook["required_projection_mm"]
         ends[side] = {**bond, "anchorage_type":"STANDARD_90_DEGREE_HOOK" if hook else "STRAIGHT", "hook":hook, "column": prof["column"], "column_section": prof["section"], "column_role": prof["role"],
@@ -326,9 +404,9 @@ def _return_transfer(panel, profile, h, mat, policy, peak, shear_peak, cuts, res
         resistance = .6*2*grid["guaranteed_bars_per_m"]*pi*dia**2/4*mat.fyd/1000
         if peak>reserve*resistance or shear_peak>cap:
             continue
-        anchor = wall_return_anchor(profile,panel,side,dia,offset,cover,grid["clear_spacing_mm"],mat,aggregate)
+        anchor = wall_return_anchor(profile,panel,side,dia,offset,cover,grid["clear_spacing_mm"],mat,aggregate,tail_track=24.)
         trial = {"status":"CONDITIONAL_PRESSURE_SHEAR_TRANSFER" if anchor["fits_column"] else "HOLD",
-                 "column_embedment_mm":anchor["specified_embedment_mm"], "reason":anchor["reason"],"diameter_mm":dia,"maximum_pitch_mm":pitch,**grid,"offset_each_side_mm":offset,
+                 "column_embedment_mm":anchor["specified_embedment_mm"], "wall_embedment_mm":5*ceil(anchor["wall_side_required_mm"]/5), "reason":anchor["reason"],"diameter_mm":dia,"maximum_pitch_mm":pitch,**grid,"offset_each_side_mm":offset,
                  "steel_resistance_kn_m":resistance,"concrete_limit_kn_m":cap,"steel_selection_limit":reserve,
                  "peak_ratio":max(peak/resistance,shear_peak/cap),"anchor":anchor,"combinations":[{**r,
                  "upper_ratio":max(r["equivalent_friction_demand_kn_m"]/resistance,r["max_native_shear_kn_m"]/cap)}
@@ -375,6 +453,15 @@ def developed_entry_grids(profiles, geometry, panel, cover, mat, policy, preferr
             ends = _development(profiles,geometry,panel,grid,mat,aggregate)
             if include_unanchored or all(end["fits_column"] for end in ends.values()):
                 yield grid, ends, lane
+            if (include_unanchored and (panel.get("collinear_run") or any(v.get("kind")=="WALL_JUNCTION" for v in profiles.values()))
+                    and any(not ends[k]["fits_column"] for k,v in profiles.items() if v.get("kind")!="WALL_JUNCTION")):
+                other=level_grid({**policy,"phase":policy["phase"]+.5},dia,pitch,cover)
+                if (other and other["pitch_mm"]==grid["pitch_mm"] and
+                        other["minimum_in_any_full_metre"]>=grid["guaranteed_bars_per_m"]):
+                    alt={**grid,"opposite_face_levels":other,"aggregate_mm":aggregate}
+                    alternative=_development(profiles,geometry,panel,alt,mat,aggregate)
+                    if all(v["fits_column"] for v in alternative.values()):
+                        yield alt,alternative,lane
 
 
 def pressure_connections(source, stages, geometry, panel, initial, combos, cover, mat, height, *, aggregate=DEFAULT_AGGREGATE_MM):

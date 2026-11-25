@@ -69,6 +69,20 @@ def _nodal_tractions(raw, uid, nodes, coords, direction, combinations):
     return ranges
 
 
+def edge_tie_upper(states, nodes, arm_mm):
+    """Either physical face, using the same tensile-tie/concrete field as the selected web."""
+    from .wall_membrane_design import required_face_forces
+    selected=set(nodes)
+    upper={}
+    for name,corners in states.items():
+        for _,pt,membrane,plate in corners:
+            if pt in selected:
+                key=(name,pt)
+                upper[key]=max(upper.get(key,0.),*(required_face_forces(membrane,plate[:3],f,arm_mm/1000)[0]
+                                                  for f in (-1,1)))
+    return upper
+
+
 def edge_bar_forces(states, nodes, arm_mm):
     """Horizontal resultant bound on either face, including twisting of the tie field."""
     selected = set(nodes)
