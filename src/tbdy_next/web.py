@@ -331,6 +331,8 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
             raise ReportUnavailable("Run changed during report verification")
         return raw
 
+    from .history_catalog import print_verification_key
+
     @lru_cache(maxsize=3)
     def verified_print(run_id, key):
         from .archive_blobs import _direct
@@ -342,10 +344,11 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
         if path.is_file() and _direct(path) and path.stat().st_size <= 128*1024*1024:
             page = path.read_bytes()
         if page is not None and expected is not None and sha256(page).hexdigest() != expected:
-            page = page.replace(b"\r\n", b"\n")
-        if page is None or expected is None or sha256(page).hexdigest() != expected:
+            normalized = page.replace(b"\r\n", b"\n")
+            page = normalized if sha256(normalized).hexdigest() == expected else None
+        if page is None or expected is None:
             page = build_printable_html(build_complete_report(output_root, run_id)).encode("utf-8")
-        if key != verification_key(directory):
+        if key != print_verification_key(directory):
             raise ReportUnavailable("Run changed during printable report verification")
         return page
 
@@ -432,7 +435,7 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                         mime = "application/json; charset=utf-8"
                         disposition = f'attachment; filename="TBDY_NEXT_{ids[0]}_all_checks.json"'
                     else:
-                        data = (verified_print(ids[0], verification_key(output_root / ids[0])) if plain_print
+                        data = (verified_print(ids[0], print_verification_key(output_root / ids[0])) if plain_print
                                 else build_printable_html(report).encode("utf-8"))
                         mime = "text/html; charset=utf-8"
                         disposition = f'inline; filename="TBDY_NEXT_{ids[0]}_report.html"'

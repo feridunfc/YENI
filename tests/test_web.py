@@ -77,6 +77,30 @@ class TestLocalWeb(unittest.TestCase):
                 self.assertEqual(response.read(), b"<html>new verified</html>")
             rebuild.assert_called_once()
 
+    def test_persisted_print_key_tracks_compressed_blob_and_falls_back_without_identity(self):
+        from hashlib import sha256
+        from unittest.mock import patch
+        from tbdy_next.archive_blobs import store_archive
+        from tbdy_next.history_catalog import print_verification_key, recorded_print_hash, verification_key
+
+        directory = Path(self.tmp.name) / ("RUN-" + "2"*32)
+        directory.mkdir()
+        payload = b"sealed source"
+        with patch("tbdy_next.archive_blobs.PACK_THRESHOLD", 1):
+            store_archive(directory / "input.source", payload)
+        key = verification_key(directory)
+        recorded_print_hash(directory, key, sha256(b"verified html").hexdigest())
+        self.assertEqual(print_verification_key(directory), key)
+        with patch("tbdy_next.history_catalog._print_state", return_value=None):
+            with patch("tbdy_next.history_catalog.verification_key", wraps=verification_key) as full_check:
+                self.assertEqual(print_verification_key(directory), key)
+                full_check.assert_called_once_with(directory)
+        blob = directory.parent / ".archive-blobs" / (sha256(payload).hexdigest() + ".gz")
+        blob.write_bytes(blob.read_bytes() + b"changed")
+        self.assertNotEqual(print_verification_key(directory), key)
+        with self.assertRaisesRegex(ValueError, "ARCHIVE_CHANGED_DURING_PRINT_REGISTRATION"):
+            recorded_print_hash(directory, key, sha256(b"old html").hexdigest())
+
     def test_health_explicitly_not_ready(self):
         status, data, _ = self.request("/api/health")
         self.assertEqual(status, 200)

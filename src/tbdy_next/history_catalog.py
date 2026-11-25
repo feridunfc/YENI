@@ -224,9 +224,7 @@ def listing(root, *, quick=False, modal=False, limit=60):
     return sorted(output, key=lambda r: r["run_id"], reverse=True)[:limit]
 
 
-def verification_key(directory, paths=None):
-    from hashlib import sha256
-    from .archive_blobs import archive_file_hash
+def _verification_paths(directory, paths=None):
     if directory.is_symlink() or not directory.is_dir():
         raise ValueError("RUN_DIRECTORY_UNSAFE")
     paths = (receipt_paths(directory) if paths is None else paths) + [directory / "input.source"]
@@ -234,23 +232,63 @@ def verification_key(directory, paths=None):
         path = directory / name
         if path.exists() or path.is_symlink():
             paths.append(path)
-    return sha256(json.dumps([(p.name, archive_file_hash(p)) for p in paths]).encode()).hexdigest()
+    return paths
+
+
+def verification_key(directory, paths=None):
+    from hashlib import sha256
+    from .archive_blobs import archive_file_hash
+    inputs = _verification_paths(directory, paths)
+    return sha256(json.dumps([(p.name, archive_file_hash(p)) for p in inputs]).encode()).hexdigest()
+
+
+def _print_state(directory):
+    from hashlib import sha256
+    from .archive_blobs import archive_storage_identity
+    state = [(path.name, archive_storage_identity(path)) for path in _verification_paths(directory)]
+    if any(identity is None for _, identity in state):
+        return None
+    return sha256(json.dumps(state, separators=(",", ":")).encode()).hexdigest()
+
+
+def _read_print_index(directory, query, args):
+    cache = directory.parent / ".history-catalog.sqlite3"
+    if not cache.is_file() or cache.is_symlink():
+        return None
+    try:
+        with closing(sqlite3.connect(cache.resolve().as_uri() + "?mode=ro", uri=True, timeout=.1)) as db:
+            row = db.execute(query, args).fetchone()
+            return row[0] if row else None
+    except sqlite3.Error:
+        return None
+
+
+def print_verification_key(directory):
+    """Reuse the producer's content key while every archive file has its verified identity."""
+    state = _print_state(directory)
+    if state:
+        key = _read_print_index(directory,
+            "SELECT archive_key FROM verified_print_states WHERE run_id=? AND state_sha256=?",
+            (directory.name, state))
+        if key:
+            return key
+    return verification_key(directory)
 
 
 def recorded_print_hash(directory, key, digest=None):
     """The workspace index binds verified report bytes to a run and its complete archive key."""
+    if digest is None:
+        return _read_print_index(directory,
+            "SELECT html_sha256 FROM verified_prints WHERE run_id=? AND archive_key=?", (directory.name, key))
+    state = _print_state(directory)
+    if verification_key(directory) != key or state != _print_state(directory):
+        raise ValueError("ARCHIVE_CHANGED_DURING_PRINT_REGISTRATION")
     try:
-        if digest is None:
-            cache = directory.parent / ".history-catalog.sqlite3"
-            if not cache.is_file() or cache.is_symlink():
-                return None
-            with closing(sqlite3.connect(cache.resolve().as_uri() + "?mode=ro", uri=True, timeout=.1)) as db:
-                row = db.execute("SELECT html_sha256 FROM verified_prints WHERE run_id=? AND archive_key=?",
-                                 (directory.name,key)).fetchone()
-                return row[0] if row else None
         with closing(_database(directory.parent)) as db, db:
             db.execute("CREATE TABLE IF NOT EXISTS verified_prints (run_id TEXT PRIMARY KEY, archive_key TEXT, html_sha256 TEXT)")
             db.execute("INSERT OR REPLACE INTO verified_prints VALUES (?,?,?)", (directory.name, key, digest))
+            db.execute("CREATE TABLE IF NOT EXISTS verified_print_states (run_id TEXT PRIMARY KEY, archive_key TEXT, state_sha256 TEXT)")
+            db.execute("INSERT OR REPLACE INTO verified_print_states VALUES (?,?,?)", (directory.name, key, state))
         return digest
     except sqlite3.Error:
         return None

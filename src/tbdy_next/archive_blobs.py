@@ -129,6 +129,25 @@ def _content_key(path, identity):
     return (_stored_digest if identity[-1] is not None else _stored_digest.__wrapped__)(path,identity)
 
 
+def archive_storage_identity(path):
+    """Identify the direct file and, for an archive pointer, its compressed backing file."""
+    path = Path(path)
+    identity = _identity(path)
+    parts = [identity]
+    if identity[2] <= 160:
+        with path.open("rb") as stream:
+            prefix = stream.read(160)
+        if _identity(path) != identity:
+            raise ValueError("ARCHIVE_CHANGED_DURING_VERIFICATION")
+        if prefix.startswith(_MAGIC):
+            ref = _REFERENCE.fullmatch(prefix)
+            if not ref:
+                raise ValueError("INVALID_ARCHIVE_REFERENCE")
+            blob = _blob_root(path) / (ref[1].decode("ascii") + ".gz")
+            parts.append(_identity(blob))
+    return parts if all(item[1] and item[-1] is not None for item in parts) else None
+
+
 def archive_file_hash(path):
     """Cache verified bytes by file identity. Track a referenced gzip independently of its pointer."""
     path = Path(path)
