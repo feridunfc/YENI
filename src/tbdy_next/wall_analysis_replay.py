@@ -130,6 +130,34 @@ def _private_session(sap, original, target, original_sha, switch):
                        {"before": before, "after": final, "status": status})
 
 
+def active_wall_reference(sap, previous, parent_sha, output_root):
+    """Recover the sealed controls of the currently open, separately solved copy."""
+    if output_root is None:
+        return previous
+    active = Path(model_file(sap)).with_suffix(".EDB").resolve(strict=True)
+    root = Path(output_root).absolute() / "wall-analysis-copies"
+    if active.parent.parent != root:
+        return previous
+    read_path, manifest = active.parent / "pier-read.json", active.parent / "source.json"
+    _check(_safe(active) and _safe(read_path) and _safe(manifest), "PRIVATE_WALL_REFERENCE_PATH_INVALID")
+    if not read_path.is_file():
+        return previous
+    current = json.loads(read_path.read_bytes())
+    verify(current)
+    shell = current["transition_shells"]
+    verify(shell)
+    control = shell["solution"]
+    stamp = json.loads(manifest.read_bytes())
+    _check(current["parent_input_sha256"] == parent_sha == stamp["parent_sha256"]
+           and current["model_sha256"] == previous["model_sha256"] == control["input_sha256"] == stamp["input_sha256"]
+           and Path(stamp["original"]).name.casefold() == active.name.casefold()
+           and control["method"] == "INPUT_IDENTICAL_PRIVATE_REANALYSIS"
+           and control["solved_sha256"] == _digest(active) and control["frame_control_matched"] is True
+           and control["pier_controls"]["outside_tolerance"] == 0
+           and not pier_controls(previous, current)["outside_tolerance"], "ACTIVE_PRIVATE_WALL_CONTROL_MISMATCH")
+    return seal({**{k:v for k,v in previous.items() if k != "payload_sha256"}, "transition_shells":shell})
+
+
 def solve_private_wall_source(sap, pid, parent, parent_sha, previous, output_root, *, pressure_plan=None):
     verify(previous)
     _check(
@@ -183,7 +211,11 @@ def solve_private_wall_source(sap, pid, parent, parent_sha, previous, output_roo
         if pressure_plan:
             from .wall_pressure_capture import extend_pressure_read
             captured = extend_pressure_read(sap, pid, parent, parent_sha, captured, pressure_plan)
-            _write_new(folder / "pressure-pier-read.json", captured)
+            receipt = folder / "pressure-pier-read.json"
+            if receipt.exists():
+                receipt = folder / ("pressure-pier-read-" + captured["pressure_shells"]["payload_sha256"] + ".json")
+            if not receipt.exists():
+                _write_new(receipt, captured)
         return captured
 
 

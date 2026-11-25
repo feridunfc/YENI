@@ -1,6 +1,7 @@
 """Lossless archive storage shared by replay, receipt verification, reports and the gateway."""
 import gzip
-from hashlib import sha256
+from functools import lru_cache
+from hashlib import file_digest, sha256
 from io import BytesIO
 import os
 from pathlib import Path
@@ -83,26 +84,64 @@ def copy_archive(path, target=None, *, limit=MAX_SOURCE_BYTES):
         return _read_blob(blob, target, size, digest)
 
 
-def archive_file_hash(path):
-    """Fingerprint stored bytes (and any referenced blob) before reusing a verified view."""
-    path = Path(path)
-    if not path.is_file() or not _direct(path):
+if os.name == "nt":
+    import ctypes
+    from ctypes import wintypes
+    import msvcrt
+
+    class _BasicInfo(ctypes.Structure):
+        _fields_ = [(name, ctypes.c_longlong) for name in ("created", "accessed", "written", "changed")] + [
+            ("attributes", wintypes.DWORD)]
+
+    _get_basic = ctypes.WinDLL("kernel32", use_last_error=True).GetFileInformationByHandleEx
+    _get_basic.argtypes = (wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p, wintypes.DWORD)
+    _get_basic.restype = wintypes.BOOL
+
+
+def _identity(path):
+    info = path.lstat()
+    if not stat.S_ISREG(info.st_mode) or getattr(info, "st_file_attributes", 0) & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0):
         raise ValueError("ARCHIVE_INPUT_MISSING_OR_UNSAFE")
+    changed = info.st_ctime_ns
+    if os.name == "nt":
+        # Python 3.12 st_ctime on Windows is creation time. NTFS ChangeTime also
+        # detects an in-place edit followed by restoration of the old last-write time.
+        with path.open("rb") as stream:
+            basic = _BasicInfo()
+            known = _get_basic(msvcrt.get_osfhandle(stream.fileno()),0,ctypes.byref(basic),ctypes.sizeof(basic))
+            changed = basic.changed if known else None
+    return info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, changed
+
+
+@lru_cache(maxsize=4096)
+def _stored_digest(path, identity):
     with path.open("rb") as stream:
         prefix = stream.read(160)
         stream.seek(0)
-        from hashlib import file_digest
-        stored = file_digest(stream, "sha256").hexdigest()
+        digest = file_digest(stream, "sha256").hexdigest()
+    if _identity(path) != identity:
+        raise ValueError("ARCHIVE_CHANGED_DURING_VERIFICATION")
+    return digest, prefix
+
+
+def _content_key(path, identity):
+    # A filesystem without reliable change times must read the bytes on each check.
+    return (_stored_digest if identity[-1] is not None else _stored_digest.__wrapped__)(path,identity)
+
+
+def archive_file_hash(path):
+    """Cache verified bytes by file identity. Track a referenced gzip independently of its pointer."""
+    path = Path(path)
+    identity = _identity(path)
+    stored, prefix = _content_key(path, identity)
     if not prefix.startswith(_MAGIC):
         return stored
     ref = _REFERENCE.fullmatch(prefix)
-    if not ref or path.stat().st_size != len(prefix):
+    if not ref or identity[2] != len(prefix):
         raise ValueError("INVALID_ARCHIVE_REFERENCE")
     blob = _blob_root(path) / (ref[1].decode("ascii") + ".gz")
-    if not blob.is_file() or not _direct(blob):
-        raise ValueError("ARCHIVE_BLOB_UNSAFE")
-    with blob.open("rb") as stream:
-        return stored + ":" + file_digest(stream, "sha256").hexdigest()
+    compressed, _ = _content_key(blob, _identity(blob))
+    return stored + ":" + compressed
 
 
 def archive_bytes(path, *, limit=MAX_SOURCE_BYTES):

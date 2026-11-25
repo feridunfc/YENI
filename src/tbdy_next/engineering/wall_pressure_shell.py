@@ -10,8 +10,10 @@ from .basement_wall_pressure import CAGES, layer_resistance, vertical_section
 from .wall_shell_section import _basis
 
 
-SCHEMA = "tbdy.next.wall-pressure-shell-fields.v1"
-COMPONENTS = ("M11", "M22", "M12", "V13", "V23")
+LEGACY_SCHEMA = "tbdy.next.wall-pressure-shell-fields.v1"
+SCHEMA = "tbdy.next.wall-pressure-shell-fields.v2"
+PLATE_COMPONENTS = ("M11", "M22", "M12", "V13", "V23")
+COMPONENTS = ("F11", "F22", "F12", *PLATE_COMPONENTS)
 
 
 def checked_fields(source, bound):
@@ -20,10 +22,10 @@ def checked_fields(source, bound):
     fields = read.get("pressure_shells")
     required(isinstance(fields,dict), "NATIVE_TWO_WAY_SHELL_FIELDS_REQUIRED")
     verify(fields)
-    required(fields["schema"] == SCHEMA and fields["units"] == 6 and fields["selection_restored"] is True
+    required(fields["schema"] in (LEGACY_SCHEMA, SCHEMA) and fields["units"] == 6 and fields["selection_restored"] is True
              and fields["model_sha256"] == bound["model_sha256"] == read["model_sha256"]
              and fields["parent_input_sha256"] == read["parent_input_sha256"]
-             and fields["components"] == list(COMPONENTS), "TWO_WAY_SHELL_SOLVED_SOURCE_MISMATCH")
+             and fields["components"] == list(COMPONENTS if fields["schema"] == SCHEMA else PLATE_COMPONENTS), "TWO_WAY_SHELL_SOLVED_SOURCE_MISMATCH")
     solved = (read.get("transition_shells") or {}).get("solution") or {}
     expected_sha = (read["model_sha256"] if fields.get("solution_role") == "SOLVED_ORIGINAL" else
                     solved.get("solved_sha256") if fields.get("solution_role") == "INPUT_IDENTICAL_PRIVATE_REANALYSIS" else None)
@@ -56,7 +58,7 @@ def panel_shell_checks(panel, combos, item, mesh, material):
     expected = {(elm,pt) for elm,pts in mesh.items() for pt in pts}
     corners = [tuple(q) for q in item["corners"]]
     required(expected and len(corners) == len(expected) and set(corners) == expected
-             and set(item["axes"]) == set(mesh) and set(item["cases"]) == set(combos),
+             and set(item["axes"]) == set(mesh) and set(combos) <= set(item["cases"]),
              "TWO_WAY_SHELL_POPULATION_MISMATCH")
     axes = {elm:_basis(matrix,(direction[1],-direction[0],0.)) for elm,matrix in item["axes"].items()}
     h,v = panel.get("horizontal",{}),panel.get("vertical",{})
@@ -82,7 +84,7 @@ def panel_shell_checks(panel, combos, item, mesh, material):
             if not spec["spectral"]:
                 required(all(isclose(l,u,rel_tol=1e-10,abs_tol=1e-9) for l,u in zip(lo,hi)),
                          "STATIC_SHELL_COMPONENTS_DO_NOT_DEFINE_ONE_STATE")
-            mh,mv,tw,vh,vv = directional_actions(axes[elm],direction,lo,hi)
+            mh,mv,tw,vh,vv = directional_actions(axes[elm],direction,lo[-5:],hi[-5:])
             twist = max(map(abs,tw))
             for axis,m,q in (("Horizontal",mh,vh),("Vertical",mv,vv)):
                 # The symmetric two-face bending bound follows |m| + |m_hv| in each steel direction.
@@ -106,8 +108,10 @@ def panel_shell_checks(panel, combos, item, mesh, material):
             "support_scope":"COMBINED_INTERFACE_ACTIONS_AND_DETAIL_REQUIRED"}
 
 
-def propose_shell_detail(source, stages, geometry, panel, material, cover, aggregate, cuts):
-    """Size a common pair of curtains against plate actions and the allocated native pier cuts."""
+def propose_shell_detail(source, stages, geometry, panel, material, cover, aggregate, cuts, *, states=None, edges=None, main_pair=None, field_cache=None):
+    """Select both curtains together. Every resistance uses the chosen bar coordinates."""
+    from .wall_membrane_design import SELECTION_LIMIT, check_curtains
+
     rows = panel["two_way_shell"]["checks"]
     demands = {(axis, action): max(r["demand"] for r in rows if (r["axis"], r["action"]) == (axis, action))
                for axis in ("Horizontal", "Vertical") for action in ("Bending", "Transverse shear")}
@@ -116,20 +120,30 @@ def propose_shell_detail(source, stages, geometry, panel, material, cover, aggre
     cases = {r["combination"] for r in rows}
     required(len(web_cuts) == 2*len(cases) and {(f,n) for f,n,_ in web_cuts}
              == {(f,n) for f in ("Top","Bottom") for n in cases}, "SHELL_DETAIL_PIER_CUT_POPULATION_MISMATCH")
+    combined = states is not None
+    required(not combined or (set(states)==cases and edges is not None), "NATIVE_EDGE_AND_MEMBRANE_INPUT_REQUIRED")
     profiles = support_profiles(source, stages, panel)
     policy = layout_policy(geometry, panel, cover, aggregate)
     if policy["inner"]:
-        # Give adjacent collinear inner curtains their own elevations on the shared lattice.
         policy = {**policy, "phase":policy["phase"]+1}
+    if combined:
+        # Collinear neighbours use opposite elevation phases for their independent
+        # dowels as well as their main bars. Different wall directions are offset half a module.
+        policy = {**policy, "dowel_phase":policy["phase"]}
     t = panel["thickness_m"]*1000
-    first = None
-    for h, ends, lane in developed_entry_grids(profiles,geometry,panel,cover,material,policy):
-        hcap = layer_resistance(t,lane,h["diameter_mm"],h["guaranteed_bars_per_m"],material)
-        if demands["Horizontal","Bending"] > hcap[0] or demands["Horizontal","Transverse shear"] > hcap[1]:
+    limit = SELECTION_LIMIT if combined else 1.
+    best = best_rank = None
+    if field_cache is None:
+        field_cache = {}
+    grids = developed_entry_grids(profiles,geometry,panel,cover,material,policy,include_unanchored=combined)
+    for h, ends, lane in grids:
+        if main_pair and ((h["diameter_mm"],h["maximum_pitch_mm"]) != main_pair
+                          or not all(e["fits_column"] for e in ends.values())):
             continue
-        # This separate dowel reference uses the documented one-way support reaction.
-        # Plate transverse shear at a corner alone cannot establish the force across the joint.
-        strip = {**h,"cuts":panel["horizontal"]["cuts"]}
+        hcap = layer_resistance(t,lane,h["diameter_mm"],h["guaranteed_bars_per_m"],material)
+        if demands["Horizontal","Bending"] > limit*hcap[0] or demands["Horizontal","Transverse shear"] > hcap[1]:
+            continue
+        strip = h if combined else {**h, "cuts":panel["horizontal"]["cuts"]}
         for dia, pitch in CAGES:
             if 2*pi*dia**2/4 < .0025*pitch*t:
                 continue
@@ -139,34 +153,54 @@ def propose_shell_detail(source, stages, geometry, panel, material, cover, aggre
                 if str(exc) == "VERTICAL_WEB_GRID_DOES_NOT_FIT":
                     continue
                 raise
-            depth = lane-h["diameter_mm"]/2-dia/2
+            depth = lane-(h["diameter_mm"]+dia)/2
             vcap = layer_resistance(t,depth,dia,floor(1000/v["pitch_mm"]+1e-9),material)
-            if demands["Vertical","Bending"] > vcap[0] or demands["Vertical","Transverse shear"] > vcap[1]:
+            if demands["Vertical","Bending"] > limit*vcap[0] or demands["Vertical","Transverse shear"] > vcap[1]:
                 continue
-            detailed_ends = {}
+            trial = {"maximum_aggregate_mm":aggregate,"horizontal":h,"vertical":v,
+                     "resistances":{"Horizontal":hcap,"Vertical":vcap},"cut_pmm":[],"ends":{}}
+            conditions = []
+            if combined:
+                check = check_curtains(states,field_cache,t,h,v,material,lane)
+                trial["membrane_and_plate"] = check
+                if not check["satisfied"]:
+                    rank = (3,max(check["governing"]["utilization"], check["steel_max"]/limit))
+                    if best_rank is None or rank < best_rank:
+                        best_rank, best = rank, {**trial,"status":"UNQUALIFIED_CURTAIN_TRIAL",
+                                                 "reason":"COMBINED_CURTAIN_RESISTANCE_OR_RESERVE_EXCEEDED"}
+                    continue
             for side, end in ends.items():
-                transfer = _transfer(panel, profiles[side], strip, material, policy, vertical_diameter=dia)
-                detailed_ends[side] = {**end, "transfer":transfer,
-                    "status":"CONDITIONAL_PRESSURE_END_DESIGN" if transfer["status"] != "HOLD" else "DOWEL_LAYOUT_REQUIRED"}
-            dowels_fit = all(end["transfer"]["status"] != "HOLD" for end in detailed_ends.values())
-            if first and not dowels_fit:
+                transfer = _transfer(panel, profiles[side], strip, material, policy, vertical_diameter=dia,
+                                     native_edge=edges[side] if combined else None)
+                end_ok = transfer["status"] != "HOLD" and end["fits_column"]
+                status = "CONDITIONAL_PRESSURE_END_DESIGN" if end_ok else "DOWEL_OR_ANCHORAGE_LAYOUT_REQUIRED"
+                if not end_ok:
+                    conditions.append(status)
+                trial["ends"][side] = {**end, "transfer":transfer,"status":status}
+            rank = (1,len(conditions)) if conditions else (0,0)
+            if (main_pair and conditions) or (best_rank is not None and rank >= best_rank):
                 continue
-            pmm = []
             interval = SectionInterval(section)
             for face, name, demand in web_cuts:
-                check = interval.assess(demand["nd_kn"],demand["m2_upper_knm"],demand["m3_upper_knm"])
-                if check["status"] != "PMM_BOX_SATISFIED":
+                pmm = interval.assess(demand["nd_kn"],demand["m2_upper_knm"],demand["m3_upper_knm"])
+                if pmm["status"] != "PMM_BOX_SATISFIED":
                     break
-                pmm.append({"face":face,"combination":name,"upper_utilization":check["upper_utilization"]})
-            if len(pmm) != len(web_cuts):
+                trial["cut_pmm"].append({"face":face,"combination":name,"upper_utilization":pmm["upper_utilization"]})
+            if len(trial["cut_pmm"]) != len(web_cuts):
+                if combined and (best_rank is None or best_rank[0]>2):
+                    best_rank, best = (2,-len(trial["cut_pmm"])), {**trial,"status":"UNQUALIFIED_CURTAIN_TRIAL",
+                                                               "reason":"SAME_CURTAIN_PIER_PMM_NOT_ESTABLISHED"}
                 continue
-            trial = {"status":"PROPOSED_TWO_WAY_CURTAINS", "maximum_aggregate_mm":aggregate,
-                     "horizontal":h, "vertical":v, "ends":detailed_ends, "cut_pmm":pmm,
-                     "resistances":{"Horizontal":hcap,"Vertical":vcap},
-                     "support_scope":"STRAIGHT_DEVELOPMENT_AND_SEPARATE_ONE_WAY_DOWEL_REFERENCE",
-                     "open_input":"COMBINED_SHELL_MEMBRANE_AND_BENDING_AND_NATIVE_INTERFACE_TRANSFER"}
-            if dowels_fit:
+            if combined:
+                edge_ok = all(e["status"]=="NATIVE_EDGE_CONTROL_SATISFIED" for e in edges.values())
+                if not edge_ok:
+                    conditions.append("NATIVE_EDGE_EQUILIBRIUM_UNRESOLVED")
+                trial.update(status="UNQUALIFIED_CURTAIN_TRIAL" if conditions else "PROPOSED_COMBINED_CURTAINS",
+                             support_scope="NATIVE_EDGE_FRICTION_AND_ANCHORED_TENSION",open_input=", ".join(dict.fromkeys(conditions)))
+            else:
+                trial.update(status="PROPOSED_TWO_WAY_CURTAINS",support_scope="DEVELOPMENT_AND_ONE_WAY_DOWEL_REFERENCE",
+                             open_input="COMBINED_SHELL_MEMBRANE_AND_BENDING_AND_NATIVE_INTERFACE_TRANSFER")
+            if rank[0]==0:
                 return trial
-            first = trial
-            break
-    return first or {"status":"HOLD","reason":"NO_STRAIGHT_TWO_WAY_CURTAIN_FITS_DEMAND_AND_BOTH_SUPPORT_CAGES"}
+            best_rank, best = rank, trial
+    return best or {"status":"HOLD","reason":"NO_CURTAIN_AT_PROJECT_COVER_MEETS_BOTH_DIRECTIONS_AND_SUPPORTS"}

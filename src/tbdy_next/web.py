@@ -9,6 +9,9 @@ from __future__ import annotations
 from hashlib import sha256
 from html import escape
 import ntpath
+import os
+import socket
+import subprocess
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from importlib import resources
 import json
@@ -274,6 +277,28 @@ def _runs(root: Path) -> list[dict[str, Any]]:
 from .engineering.pipeline import calculate_modal as _calculate_modal  # noqa: E402
 
 
+class WorkspaceHTTPServer(ThreadingHTTPServer):
+    """A second Windows workspace must fail its bind instead of sharing a listening port."""
+    allow_reuse_address = os.name != "nt"
+    allow_reuse_port = False
+
+    def server_bind(self):
+        if os.name == "nt":
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        super().server_bind()
+
+
+def _checkout_head():
+    root = Path(__file__).resolve().parents[2]
+    if not (root / ".git").exists():
+        return None
+    try:
+        return subprocess.check_output(["git", "rev-parse", "--verify", "HEAD"], cwd=root,
+                                       stderr=subprocess.DEVNULL, text=True, timeout=2).strip()
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+
 def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None = None, allow_private_wall_analysis=False):
     """Injectable capture callback makes endpoint testable without Windows COM."""
     # Each serving process uses the UI assets it started with and its own engine.
@@ -293,7 +318,12 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
     from functools import lru_cache
     from .history_catalog import verification_key
 
-    @lru_cache(maxsize=1)
+    from .history_catalog import ModalHistoryView
+    history_view = ModalHistoryView(output_root, modal_history)
+    git_head = _checkout_head()
+    workspace_digest = sha256(scripts["workspace.js"] + scripts["workspace-source.js"]).hexdigest()
+
+    @lru_cache(maxsize=2)
     def verified_export(run_id, key):
         raw = (json.dumps(build_complete_report(output_root, run_id), ensure_ascii=False,
                           separators=(",", ":")) + "\n").encode("utf-8")
@@ -333,7 +363,7 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                 self.end_headers()
                 self.wfile.write(contents)
             elif url.path == "/api/health":
-                self.reply(200, {"workspace_sha256": sha256(scripts["workspace.js"] + scripts["workspace-source.js"]).hexdigest(),
+                self.reply(200, {"pid": os.getpid(), "git_head": git_head, "workspace_sha256": workspace_digest,
                                  "status": "PARTIAL_UNIFIED_VS04_SCREENING", "implemented_slices": ["MODAL_MASS_RATIO", "MATERIAL_FCK_25", "A1_X_Y_SOURCE_CLASSIFICATION"], "source_only_slices": ["VS04_ANALYSIS_SOURCE_SCHEMA", "VS04_ANALYSIS_NUMERIC_SOURCE", "VS04_E_NORMATIVE_READINESS"], "live_web_f_to_j_integrated": True, "single_primary_action": "/api/live-vs04", "on_demand_force_checks": ["column-axial", "column-pmm"], "formal_compliance": "NOT_PROVEN", "engineering_release": "NOT_READY"})
             elif url.path == "/api/pipeline":
                 from .engineering.pipeline import dag_coverage, stage_registry
@@ -351,7 +381,7 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                 self.reply(200, {"runs": quick_history(output_root, summary=bool(query)),
                                  "engineering_release": "NOT_READY"})
             elif url.path == "/api/modal-history":
-                self.reply(200, {"runs": modal_history(output_root), "engineering_release": "NOT_READY"})
+                self.reply(200, {"runs": history_view.read(), "engineering_release": "NOT_READY"})
             elif url.path in ("/api/export-checks", "/report/print",
                                 "/api/vs06-drift-scenario"):
                 query = parse_qs(url.query)
@@ -914,6 +944,7 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                 run.record("rejected", result, input_sha256=input_sha)
                 self.reply(422, {"run_id": run.run_id, "result": result})
 
+    Handler.close_history = staticmethod(history_view.close)
     return Handler
 
 
@@ -921,10 +952,13 @@ def serve(*, host: str = "127.0.0.1", port: int = 8765, output_root: Path = Path
           etabs_pid: int | None = None, allow_private_wall_analysis=False) -> None:
     if host not in ("127.0.0.1", "localhost", "::1"):
         raise ValueError("VS01 web UI accepts localhost only; use a trusted port forward in Codespaces")
-    with ThreadingHTTPServer((host, port), make_handler(
+    with WorkspaceHTTPServer((host, port), make_handler(
             Path(output_root), etabs_pid=etabs_pid, allow_private_wall_analysis=allow_private_wall_analysis)) as server:
         target = f"PID {etabs_pid}" if etabs_pid is not None else "active instance"
         print(f"TBDY Next Engine VS01: http://{host}:{server.server_port} | receipts: {output_root} "
               f"| ETABS: {target}, connection sets {CAPTURE_UNIT_LABEL}",
               flush=True)
-        server.serve_forever()
+        try:
+            server.serve_forever()
+        finally:
+            server.RequestHandlerClass.close_history()

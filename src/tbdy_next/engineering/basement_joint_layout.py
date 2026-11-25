@@ -29,7 +29,8 @@ def level_grid(policy, diameter, nominal, cover, *, dowel=False):
         spacing = stride*module
         if spacing-diameter < clear_limit(policy.get("aggregate_mm", DEFAULT_AGGREGATE_MM),diameter):
             continue
-        offset = policy["phase"] + (stride//2 if dowel and policy["inner"] else 0.)
+        offset = (policy.get("dowel_phase",policy["phase"]+(stride//2 if policy["inner"] else 0.))
+                  if dowel else policy["phase"])
         seed = policy["start"] + offset*module
         first = seed + ceil((edge-seed)/spacing-1e-10)*spacing
         count = 1+floor((height-edge-first)/spacing+1e-10)
@@ -55,8 +56,16 @@ def _families(panel, side, end):
         for face in (-1,1):
             x, y = -ex*depth/2-face*dy*offset, -ey*depth/2+face*dx*offset
             x2, y2 = x+length*ex, y+length*ey
+            hook = end.get("hook") if role == "web" else None
+            if hook:
+                # The bounding rectangle contains the complete arc and tail. A passing
+                # distance is a conservative lower bound for the curved bar.
+                shift = hook["centreline_radius_mm"] + hook["straight_tail_mm"]
+                x3, y3 = x2 - hook["lateral_turn"]*face*dy*shift, y2 + hook["lateral_turn"]*face*dx*shift
+            else:
+                x3, y3 = x2, y2
             yield {"member":panel["member"], "role":role, "face":face, "horizontal":abs(ex)>.5,
-                   "bounds":(min(x,x2),max(x,x2),min(y,y2),max(y,y2)), "diameter":grid["diameter_mm"],
+                   "bounds":(min(x,x2,x3),max(x,x2,x3),min(y,y2,y3),max(y,y2,y3)), "diameter":grid["diameter_mm"],
                    "heights":[grid["first_station_mm"]+i*grid["pitch_mm"] for i in range(grid["layers"])]}
 
 
@@ -86,7 +95,35 @@ def _separation(a,b, aggregate=DEFAULT_AGGREGATE_MM):
             "margin_mm":clear-limit, "fits": clear >= limit-1e-8 if parallel else clear > 0.}
 
 
-def check_joint_layout(geometry, aggregate=DEFAULT_AGGREGATE_MM):
+def main_bar_collision(first, second, aggregate):
+    webs = [[f for f in _families(panel,side,end) if f["role"]=="web"] for panel,side,end in (first,second)]
+    return any(not _separation(a,b,aggregate)["fits"] for a in webs[0] for b in webs[1])
+
+
+def _through_families(families, proof):
+    """Replace two specified collinear continuations by the two actual through-bars per level."""
+    straight = [f for f in families if f["role"]=="web"]
+    rest = [f for f in families if f["role"]!="web"]
+    tracks = defaultdict(list)
+    for f in straight:
+        lo,hi = (2,3) if f["horizontal"] else (0,1)
+        coords = f["bounds"]
+        if abs(coords[lo]-coords[hi])>1e-6:
+            return families
+        tracks[(f["horizontal"],round(coords[lo],6),f["diameter"])].append(f)
+    if len(tracks)!=2 or any(len(bars)!=2 for bars in tracks.values()):
+        return families
+    for a,b in tracks.values():
+        if sorted((a["member"],b["member"]))!=sorted(proof["members"]) or len(a["heights"])!=len(b["heights"]) or any(
+                abs(h-k)>1e-6 for h,k in zip(a["heights"],b["heights"])):
+            return families
+        aa,bb=a["bounds"],b["bounds"]
+        rest.append({**a,"member":" + ".join(proof["members"]),"role":"continuous web",
+                     "bounds":(min(aa[0],bb[0]),max(aa[1],bb[1]),min(aa[2],bb[2]),max(aa[3],bb[3]))})
+    return rest
+
+
+def check_joint_layout(geometry, aggregate=DEFAULT_AGGREGATE_MM, through=None):
     by_column = defaultdict(list)
     for panel in geometry["panels"]:
         for side in ("I","J"):
@@ -105,6 +142,15 @@ def check_joint_layout(geometry, aggregate=DEFAULT_AGGREGATE_MM):
                         end["status"] = "HOLD_INCIDENT_PRESSURE_END_DETAILS_REQUIRED"
             continue
         families = [bar for panel,side,end in incident for bar in _families(panel,side,end)]
+        proof = (through or {}).get(uid)
+        if proof:
+            merged = _through_families(families,proof)
+            if len(merged)==len(families)-2:
+                families = merged
+                row["continuous_web"] = proof
+                for _,_,end in incident:
+                    end["bar_path"] = "UNSPLICED_THROUGH_COLUMN"
+                    end["through_bar_length_mm"] = proof["one_piece_length_mm"]
         checks = [_separation(a,b,aggregate) for a,b in combinations(families,2)]
         row.update(family_pairs=len(checks), minimum_parallel_clear_mm=min(q["clear_mm"] for q in checks if q["parallel"]),
                    governing=min(checks,key=lambda q:q["margin_mm"]),

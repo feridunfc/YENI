@@ -3,7 +3,6 @@ from collections import defaultdict
 from math import isfinite
 from pathlib import Path
 
-from .engineering.basement_pier_geometry import folded_section
 from .engineering.basement_wall_pressure import pressure_cases
 from .engineering.pier_force_source import bound_pier_forces
 from .engineering.pier_seismic_shear import wall_load_scope
@@ -26,54 +25,104 @@ def pressure_field_plan(source):
         return {}
     bound = bound_pier_forces(source, scope["native_static"])
     _, mesh = mesh_geometry(source)
-    plan = {}
-    for (name, story), ids in bound["assignments"].items():
+    walls = source["vs06_b1_geometry_source"]["table_reads"]["Wall Object Connectivity"]["rows"]
+    by_id = {r["UniqueName"]: r for r in walls}
+    assigned = set()
+    targets = set()
+    combo_types = {name: False for name in scope["native_static"]}
+    combo_types.update({name: True for name in scope["native_seismic"]})
+    for (pier, story), ids in bound["assignments"].items():
+        assigned.update(ids)
         if len(ids) < 2:
             continue
-        try:
-            geom = folded_section(source, bound, name, story, sorted(ids))
-            cases, _ = pressure_cases(source, bound, scope, name, story, geom["panels"])
-        except ValueError:
-            continue  # The panel design owner retains the unsupported geometry or load reason.
-        for panel in geom["panels"]:
-            uid = panel["member"]
-            if not mesh.get(uid) or uid in plan:
-                raise SourceError("PRESSURE_PANEL_MESH_OR_IDENTITY_INVALID:" + uid)
-            plan[uid] = (mesh[uid], {k: v["spectral"] for k, v in cases.items()})
-    return plan
+        targets.update(ids)
+        panels = [{"member": uid, "wall": by_id[uid]["WallBay"]} for uid in ids]
+        cases, _ = pressure_cases(source, bound, scope, pier, story, panels, allow_unloaded=True)
+        combo_types.update({name: spec["spectral"] for name, spec in cases.items()})
+    targets.update(by_id.keys() - assigned)
+    if any(not mesh.get(uid) for uid in targets):
+        raise SourceError("PRESSURE_PANEL_MESH_OR_IDENTITY_INVALID")
+    return {uid: (mesh[uid], combo_types) for uid in sorted(targets)}
+
+
+def _corner_results(method, uid, corners, targets, indices, column_count):
+    """Preserve individual element contributions and the actual static or envelope step."""
+    n, *columns = _native(method(uid, 0, 0, *([] for _ in range(column_count))), "Native corner results " + uid)
+    if len(columns) != column_count or any(len(col) != n for col in columns):
+        raise SourceError("PRESSURE_RESULT_ABI_MISMATCH:" + uid)
+    population = set(corners)
+    rows = defaultdict(lambda: defaultdict(dict))
+    for raw in zip(*columns):
+        obj, elm, pt, combo, step, number = raw[:6]
+        key = (elm, pt)
+        if combo not in targets or key not in population:
+            continue
+        tag = step or ""
+        values = [raw[i] for i in indices]
+        if (obj != uid or number != 0 or key in rows[combo][tag]
+                or not all(isfinite(v) for v in values)):
+            raise SourceError(f"PRESSURE_CORNER_OR_STEP_INVALID:{uid}:{key}:{combo}:{tag}:{number}")
+        rows[combo][tag][key] = values
+    cases = {}
+    for combo, spectral in targets.items():
+        steps = rows[combo]
+        signed = len(steps) == 1 and next(iter(steps)) in ("", "Single Value", "Static")
+        if (not (set(steps) == {"Min", "Max"} or (signed and not spectral))
+                or any(set(points) != population for points in steps.values())):
+            raise SourceError(f"PRESSURE_COMBINATION_INCOMPLETE:{uid}:{combo}:{list(steps)}")
+        cases[combo] = {tag: [points[k] for k in corners] for tag, points in steps.items()}
+    return {"corners": corners, "cases": cases}
 
 
 def _panel_read(sap, uid, mesh, targets):
     corners = sorted((elm, pt) for elm, nodes in mesh.items() for pt in nodes)
-    population = set(corners)
-    n, *columns = _native(sap.Results.AreaForceShell(uid, 0, 0, *([] for _ in range(23))), "AreaForceShell " + uid)
-    if len(columns) != 23 or any(len(col) != n for col in columns):
-        raise SourceError("PRESSURE_SHELL_ABI_MISMATCH:" + uid)
-    rows = defaultdict(lambda: defaultdict(dict))
-    for raw in zip(*columns):
-        obj, elm, pt, combo, step, num = raw[:6]
-        if combo not in targets:
-            continue
-        key = (elm, pt)
-        tag = step or ""
-        vals = [raw[i] for i in (13, 14, 15, 19, 20)]
-        if (obj != uid or key not in population or num != 0 or key in rows[combo][tag]
-                or not all(isfinite(v) for v in vals)):
-            raise SourceError(f"PRESSURE_SHELL_CORNER_OR_STEP_INVALID:{uid}:{key}:{combo}:{tag}:{num}")
-        rows[combo][tag][key] = vals
-    cases = {}
-    for combo, is_spectral in targets.items():
-        sets = rows[combo]
-        signed = len(sets) == 1 and next(iter(sets)) in ("", "Single Value", "Static")
-        if (not (set(sets) == {"Min", "Max"} or (signed and not is_spectral))
-                or any(set(points) != population for points in sets.values())):
-            raise SourceError(f"PRESSURE_SHELL_COMBINATION_INCOMPLETE:{uid}:{combo}:{list(sets)}")
-        cases[combo] = {tag: [points[k] for k in corners] for tag, points in sets.items()}
+    item = _corner_results(sap.Results.AreaForceShell, uid, corners, targets,
+                           (6, 7, 8, 13, 14, 15, 19, 20), 23)
     axes = {}
     for elm in sorted(mesh):
         (matrix,) = _native(sap.AreaElm.GetTransformationMatrix(elm, []), "AreaElm.GetTransformationMatrix " + elm)
         axes[elm] = list(matrix)
-    return {"corners": corners, "axes": axes, "cases": cases}
+    return {**item, "axes": axes}
+
+
+def _edge_plan(source, plan):
+    """Keep all shell and frame incidences at the physical mesh boundaries, including floors."""
+    from collections import Counter
+    coords, _ = mesh_geometry(source)
+    boundaries = {}
+    for uid, (mesh, _) in plan.items():
+        counts = Counter(tuple(sorted((a,b))) for nodes in mesh.values()
+                         for a,b in zip(nodes, nodes[1:] + nodes[:1]))
+        if not counts or max(counts.values()) > 2:
+            raise SourceError("NONMANIFOLD_PRESSURE_PANEL:" + uid)
+        boundaries[uid] = sorted(edge for edge, count in counts.items() if count == 1)
+    points = {p for edges in boundaries.values() for edge in edges for p in edge}
+    tables = source["column_axial"]["r10_source"]["table_reads"]
+    groups = {}
+    for role, table, keys in (("areas", "Areas", ("ElmJt1","ElmJt2","ElmJt3","ElmJt4")),
+                              ("frames", "Frames", ("ElmJtI","ElmJtJ"))):
+        by_object = defaultdict(set)
+        for row in tables["Objects and Elements - " + table]["rows"]:
+            if (role == "frames" and row["ObjType"] != "Frame") or (role == "areas" and row["ObjType"] not in {"Wall","Floor","Ramp"}):
+                continue
+            for key in keys:
+                pt = row.get(key)
+                if pt in points:
+                    by_object[row["ObjName"]].add((row["ElmName"], pt))
+        groups[role] = {uid: sorted(pairs) for uid, pairs in by_object.items()}
+    return boundaries, {p:coords[p] for p in sorted(points)}, groups
+
+
+def _edge_read(sap, parent, plan, targets):
+    from .wall_modal_capture import _point_basis
+    boundaries, coords, groups = _edge_plan(parent, plan)
+    bases = {p: _point_basis(sap,p,xyz) for p,xyz in coords.items()}
+    data = {"boundaries": boundaries, "point_bases": bases,
+            "components": ["F1","F2","F3","M1","M2","M3"]}
+    for role, method in (("areas", sap.Results.AreaJointForceShell), ("frames", sap.Results.FrameJointForce)):
+        data[role] = {uid: _corner_results(method,uid,corners,targets,range(6,12),12)
+                      for uid,corners in groups[role].items()}
+    return data
 
 
 def extend_pressure_read(sap, pid, parent, parent_sha, previous, plan):
@@ -124,6 +173,8 @@ def extend_pressure_read(sap, pid, parent, parent_sha, previous, plan):
             raise SourceError("PRESSURE_SHELL_SELECTION_DIFFERS")
         for uid, (mesh, targets) in plan.items():
             members[uid] = _panel_read(sap, uid, mesh, targets)
+        targets = {name: spectral for _, cases in plan.values() for name, spectral in cases.items()}
+        edges = _edge_read(sap, parent, plan, targets)
     finally:
         restore_results_setup_state(setup, before)
         if get_results_setup_state(setup, cases=case_names, combos=combo_names) != before:
@@ -136,5 +187,5 @@ def extend_pressure_read(sap, pid, parent, parent_sha, previous, plan):
                   "model_sha256": original_sha, "solved_sha256":solved, "parent_input_sha256": parent_sha,
                   "solution_role":"INPUT_IDENTICAL_PRIVATE_REANALYSIS" if clone else "SOLVED_ORIGINAL",
                   "pier_controls":checks,
-                  "control_member": control["control_member"], "selection_restored": True, "members": members})
+                  "control_member": control["control_member"], "selection_restored": True, "members": members, "edge_actions":edges})
     return seal({**{k:v for k,v in previous.items() if k != "payload_sha256"}, "pressure_shells": field})

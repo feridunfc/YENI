@@ -25,6 +25,7 @@ def main():
     env.pop("PYTHONPATH", None)
     env.pop("PYTHONHOME", None)
     env["PATH"] = os.pathsep.join((str(Path(sys.executable).parent), env.get("PATH", "")))
+    env["PYTHON"] = sys.executable
     env["PYTHONUTF8"] = "1"
     env["PYTHONNOUSERSITE"] = "1"
     env["PYTHONDONTWRITEBYTECODE"] = "1"

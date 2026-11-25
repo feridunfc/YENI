@@ -22,7 +22,7 @@ class TestWallPressureProject(unittest.TestCase):
         lane = _entry_lanes([prof],139.)[1]
         self.assertAlmostEqual(_bar_clearance(prof,lane,14.),27.75)
 
-    def test_inner_curtain_can_use_a_separate_outer_dowel_lane_with_cover_and_bond(self):
+    def test_dowels_stay_inside_project_cover_and_develop_the_native_edge_tension(self):
         from tbdy_next.column_engine.section_capacity import Material
         profile = {"depth_mm":800., "cover":40., "tie":10., "bar_diameter":16.,
                    "bar_offsets":[85.5*i for i in range(-4,5)], "fck":35., "fcd":35./1.5}
@@ -32,13 +32,17 @@ class TestWallPressureProject(unittest.TestCase):
         policy = {"aggregate_mm":20., "height":5150., "module":49.56862745098,"start":47.,"phase":1.,"inner":True}
         mat = Material(35.,35./1.5,500./1.15,200000.)
         result = _transfer(panel,profile,h,mat,policy,vertical_diameter=12)
+        self.assertEqual(result["status"], "HOLD")
+        h["curtain_inset_mm"] = 12.
+        cut = {"combination":"soil","max_native_shear_kn_m":100.,"native_shear_kn_m":100.,
+               "normal_tension_kn_m":50.,"equivalent_friction_demand_kn_m":130.}
+        result = _transfer(panel,profile,h,mat,policy,vertical_diameter=12,native_edge={"cuts":[cut]})
         self.assertEqual(result["status"],"CONDITIONAL_PRESSURE_SHEAR_TRANSFER")
-        offset = result["offset_each_side_mm"]
-        dia = result["diameter_mm"]
-        self.assertGreater(offset,42.75)
-        self.assertLessEqual(offset+dia/2+40,200)
-        self.assertGreaterEqual(offset-42.75-(dia+12)/2,4*20/3)
-        self.assertGreaterEqual(offset-30.75-(dia+12)/2,4*20/3)
+        self.assertEqual(result["peak_reaction_kn_m"],130.)
+        self.assertAlmostEqual(result["peak_ratio"],max(130/result["steel_resistance_kn_m"],100/result["concrete_limit_kn_m"]))
+        offset, dia = result["offset_each_side_mm"], result["diameter_mm"]
+        self.assertLess(offset, 130.)
+        self.assertGreaterEqual(118.-offset-(dia+12)/2,4*20/3)
         self.assertGreaterEqual(result["template_longitudinal_clearance_mm"],4*20/3)
         self.assertLessEqual(result["column_embedment_mm"],result["column_available_mm"])
 
@@ -53,6 +57,55 @@ class TestWallPressureProject(unittest.TestCase):
                 normalize_building_design({**raw,"maximum_aggregate_mm":d},source_data_sha256="a"*64)
         self.assertEqual(normalize_building_design({**raw,"maximum_aggregate_mm":22.4},
                          source_data_sha256="a"*64)["maximum_aggregate_mm"],22.4)
+
+    def test_same_face_equilibrium_with_tension_twist_and_both_signs(self):
+        from tbdy_next.engineering.wall_membrane_design import required_face_forces
+        membrane = [(100.,100.),(0.,0.),(4.,4.)]
+        moment = [(10.,10.),(0.,0.),(2.,2.)]
+        # z=0.2 m, opposite face forces average to the membrane tensor and
+        # their first moment recovers the CSI bending tensor with its signed face convention.
+        self.assertEqual(required_face_forces(membrane,moment,-1,.2)[:2],(112.,12.))
+        self.assertEqual(required_face_forces(membrane,moment,1,.2)[:2],(8.,8.))
+        self.assertGreater(required_face_forces(membrane,moment,1,.2)[2],0.)
+
+    def test_through_bar_requires_both_sides_and_full_stress_reversal_bond(self):
+        from tbdy_next.column_engine.section_capacity import Material
+        from tbdy_next.engineering.basement_pier_design import _through_bar_proof
+        mat=Material(35.,35./1.5,500./1.15,200000.)
+        end={"anchorage_type":"STRAIGHT","fits_column":True,"position_i_mm":635.,"column_depth_mm":800.,
+             "specified_embedment_mm":635.,"column_available_mm":750.,"column":"C","wall_side_available_mm":900.,
+             "wall_side_required_mm":635.}
+        h={"diameter_mm":12.,"first_station_mm":46.,"pitch_mm":100.,"layers":10,"curtain_inset_mm":0.,
+           "cover_mm":40.,"guaranteed_bars_per_m":10}
+        design={"status":"PROPOSED_COMBINED_CURTAINS","ends":{"I":end,"J":end},"horizontal":h,
+                "membrane_and_plate":{"lever_arm_mm":230.}}
+        panels=[({"member":p,"span_m":3.,"thickness_m":.4,"native_support_edges":{side:{"nodes":["p"]}}},side)
+                for p,side in (("L","J"),("R","I"))]
+        def states(n):
+            return {p:{"D":[("e","p",[(n,n),(0,0),(0,0)],[(0,0)]*5)]} for p in ("L","R")}
+        passed=_through_bar_proof(panels,[design,design],states(200.),mat)
+        self.assertEqual(passed["one_piece_length_mm"],6470.)
+        self.assertLess(passed["governing"]["ratio"],1.)
+        self.assertIsNone(_through_bar_proof(panels,[design,design],states(700.),mat))
+        self.assertIsNone(_through_bar_proof(panels,[design,{**design,"horizontal":{**h,"first_station_mm":49.}}],states(200.),mat))
+
+    def test_interior_nodal_transfer_uses_both_elements_and_the_native_tributary_height(self):
+        from tbdy_next.engineering.wall_support_edge import _nodal_tractions
+        rows=[[60.,0.,40.,0.,0.,0.],[-10.,0.,20.,0.,0.,0.]]
+        coords={"i":[0.,0.,0.],"p":[0.,0.,1.],"j":[0.,0.,4.]}
+        edge={"areas":{"w":{"corners":[["a","p"],["b","p"]],"cases":{"D":{"Single Value":rows}}}},
+              "point_bases":{"p":[coords["p"],[1.,0.,0.,0.,1.,0.,0.,0.,1.]]}}
+        row=_nodal_tractions(edge,"w",["i","p","j"],coords,[1.,0.],{"D":{"spectral":False}})["D"][0]
+        self.assertEqual(row["tributary_height_m"],2.)
+        self.assertEqual(row["equivalent_friction_demand_kn_m"],30.+.6*25.)
+
+    def test_hook_has_mandrel_tail_cover_and_both_face_clearances(self):
+        from tbdy_next.engineering.basement_wall_connection import _hook_90
+        profile={"depth_mm":900.,"width_mm":1200.,"cover":40.,"tie":10.,
+                 "bar_coordinates":[(-400.,0.),(400.,0.)],"bar_diameter":16.}
+        h=_hook_90(profile,"I",140.,16.,800.,850.,26.7)
+        self.assertEqual((h["inside_diameter_mm"],h["straight_tail_mm"],h["required_projection_mm"]),(96.,192.,600.))
+        self.assertIsNone(_hook_90(profile,"I",140.,16.,800.,595.,26.7))
 
     def test_rotated_component_box_bounds_every_signed_corner(self):
         c=sqrt(.5)

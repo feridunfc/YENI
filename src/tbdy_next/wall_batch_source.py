@@ -26,7 +26,10 @@ def read_missing_wall_forces(payload, raw, directory, pid, *, private_replay_roo
     modes = previous.get("wall_modes")
     from .wall_pressure_capture import extend_pressure_read, pressure_field_plan
     parent_sha = sha256(parent_raw).hexdigest()
-    pressure_plan = {} if previous.get("pressure_shells") else pressure_field_plan(payload)
+    from .engineering.wall_pressure_shell import SCHEMA
+    existing = previous.get("pressure_shells") or {}
+    complete = existing.get("schema") == SCHEMA and bool(existing.get("edge_actions"))
+    pressure_plan = {} if complete else pressure_field_plan(payload)
     if modes:
         from .engineering.wall_transition_shell import native_plan
 
@@ -35,15 +38,17 @@ def read_missing_wall_forces(payload, raw, directory, pid, *, private_replay_roo
             if not pressure_plan:
                 return None
             def read_pressure(sap):
+                from .wall_analysis_replay import active_wall_reference
+                reference = active_wall_reference(sap, previous, parent_sha, private_replay_root)
                 try:
-                    return extend_pressure_read(sap, pid, parent, parent_sha, previous, pressure_plan)
+                    return extend_pressure_read(sap, pid, parent, parent_sha, reference, pressure_plan)
                 except (ValueError, RuntimeError) as exc:
                     # Only an explicit copy solve can recover unavailable or different native results.
                     if private_replay_root is None or not (str(exc).startswith("PIER_SOLVED_GENERATION_FRAME_CONTROL_MISMATCH")
                             or "requires a locked ETABS model" in str(exc)):
                         raise
                     from .wall_analysis_replay import solve_private_wall_source
-                    return solve_private_wall_source(sap,pid,parent,parent_sha,previous,private_replay_root,
+                    return solve_private_wall_source(sap,pid,parent,parent_sha,reference,private_replay_root,
                                                      pressure_plan=pressure_plan)
             if not LIVE_CAPTURE_LOCK.acquire(blocking=False):
                 raise ValueError("ETABS_CAPTURE_IN_PROGRESS")

@@ -224,12 +224,12 @@ def listing(root, *, quick=False, modal=False, limit=60):
     return sorted(output, key=lambda r: r["run_id"], reverse=True)[:limit]
 
 
-def verification_key(directory):
+def verification_key(directory, paths=None):
     from hashlib import sha256
     from .archive_blobs import archive_file_hash
     if directory.is_symlink() or not directory.is_dir():
         raise ValueError("RUN_DIRECTORY_UNSAFE")
-    paths = receipt_paths(directory) + [directory / "input.source"]
+    paths = (receipt_paths(directory) if paths is None else paths) + [directory / "input.source"]
     for name in ("parent.source", "engine-results.payload"):
         path = directory / name
         if path.exists() or path.is_symlink():
@@ -238,21 +238,105 @@ def verification_key(directory):
 
 
 def _modal_key(directory):
-    from .history import _read_receipt
+    from .history import _read_receipt_file
     try:
         paths = receipt_paths(directory)
-        if not any(p.stem.partition("-")[2] == "live-capture" for p in paths):
-            discovery = _read_receipt(directory,"schema-discovery") or {}
+        by_stage = {p.stem.partition("-")[2]: p for p in paths}
+        if len(by_stage) != len(paths) or "modal" not in by_stage:
+            return None
+        if "live-capture" not in by_stage and "schema-discovery" in by_stage:
+            discovery = _read_receipt_file(by_stage["schema-discovery"],"schema-discovery") or {}
             if discovery.get("receipt_schema") is not None:
-                return None  # A modern run is visible as soon as its terminal seal is written.
-        return verification_key(directory)
+                return None
+        return verification_key(directory, paths), by_stage["modal"]
     except (OSError, ValueError):
         return None
 
 
+class ModalHistoryView:
+    """Reuse a verified navigation page while Windows reports an unchanged receipt tree."""
+    def __init__(self, root, loader):
+        from concurrent.futures import ThreadPoolExecutor
+        self.root, self.loader = root, loader
+        self.executor = None
+        self.directory_handle = self.rows = None
+        self.file_handles = []
+        self.api = None
+        if os.name == "nt":
+            import ctypes
+            from ctypes import wintypes
+            api = ctypes.WinDLL("kernel32", use_last_error=True)
+            api.FindFirstChangeNotificationW.argtypes = (wintypes.LPCWSTR,wintypes.BOOL,wintypes.DWORD)
+            api.FindFirstChangeNotificationW.restype = wintypes.HANDLE
+            api.FindNextChangeNotification.argtypes = (wintypes.HANDLE,)
+            api.FindCloseChangeNotification.argtypes = (wintypes.HANDLE,)
+            api.WaitForSingleObject.argtypes = (wintypes.HANDLE,wintypes.DWORD)
+            api.WaitForSingleObject.restype = wintypes.DWORD
+            self.api = api
+            # Windows cancels change notifications when their issuing thread exits.
+            self.executor = ThreadPoolExecutor(max_workers=1,thread_name_prefix="modal-history")
+
+    def _close_handles(self):
+        if self.directory_handle is not None:
+            for handle in [self.directory_handle,*self.file_handles]:
+                self.api.FindCloseChangeNotification(handle)
+        self.directory_handle = self.rows = None
+        self.file_handles = []
+
+    def _watch(self, path, mask):
+        import ctypes
+        handle = self.api.FindFirstChangeNotificationW(str(path.absolute()),False,mask)
+        if handle in (None,ctypes.c_void_p(-1).value):
+            raise OSError(ctypes.get_last_error(), "Receipt directory notification unavailable")
+        return handle
+
+    def _open(self):
+        # Solver scratch files and logs under verification do not change a sealed run.
+        self.directory_handle = self._watch(self.root, 0x02)
+        with os.scandir(self.root) as entries:
+            for entry in entries:
+                if (entry.name == ".archive-blobs" or _RUN.fullmatch(entry.name)) and entry.is_dir(follow_symlinks=False):
+                    self.file_handles.append(self._watch(Path(entry.path), 0x15f))
+
+    def close(self):
+        if self.executor is not None:
+            self.executor.shutdown(wait=True)
+        self._close_handles()
+
+    def __del__(self):
+        self._close_handles()
+
+    def read(self):
+        if self.api is None:
+            return self.loader(self.root)
+        return self.executor.submit(self._read_windows).result()
+
+    def _read_windows(self):
+        try:
+            if self.directory_handle is None or self.api.WaitForSingleObject(self.directory_handle,0) != 258:
+                self._close_handles()
+                self._open()
+            for handle in self.file_handles:
+                signal = self.api.WaitForSingleObject(handle,0)
+                if signal == 258:  # WAIT_TIMEOUT
+                    continue
+                self.rows = None
+                if signal != 0 or not self.api.FindNextChangeNotification(handle):
+                    raise OSError("Receipt change notification unavailable")
+            if self.rows is not None:
+                return self.rows
+            rows = self.loader(self.root)
+            if all(self.api.WaitForSingleObject(h,0)==258 for h in [self.directory_handle,*self.file_handles]):
+                self.rows = rows
+            return rows
+        except OSError:
+            self._close_handles()
+            return self.loader(self.root)
+
+
 def verified_modal_listing(root, limit):
     from concurrent.futures import ThreadPoolExecutor
-    from .history import _read_modal_run, _read_receipt
+    from .history import _read_modal_run, _read_receipt_file
     candidates = iter(listing(root, modal=True, limit=None))
     rows = []
     from itertools import islice
@@ -261,26 +345,30 @@ def verified_modal_listing(root, limit):
             dirs = [root/c["run_id"] for c in islice(candidates,limit-len(rows))]
             if not dirs:
                 break
-            for directory, digest in zip(dirs,workers.map(_modal_key,dirs)):
-                if digest is None:
+            for directory, key in zip(dirs,workers.map(_modal_key,dirs)):
+                if key is None:
                     continue
+                digest, modal_path = key
                 try:
                     rid = directory.name
                     hit = db.execute("SELECT data FROM modal_verified WHERE id=? AND digest=?", (rid,digest)).fetchone()
                     row = json.loads(hit[0]) if hit else None
-                    modal = _read_receipt(directory, "modal")
+                    if hit and row is None:
+                        continue
+                    modal = _read_receipt_file(modal_path, "modal")
                     if not (row and modal and row["receipt_sha256"] == modal["receipt_sha256"]
                             and row["result"] == modal["payload"] and row["input_sha256"] == modal["input_sha256"]
                             and row["run_id"] == rid and row["captured_at_utc"] == modal["captured_at_utc"]):
                         row = _read_modal_run(directory)
-                        if row is None or digest != verification_key(directory):
+                        if digest != verification_key(directory):
                             continue
                         try:
                             with db:
                                 db.execute("INSERT OR REPLACE INTO modal_verified VALUES (?,?,?)", (rid,digest,json.dumps(row)))
                         except sqlite3.Error:
                             pass
-                    rows.append(row)
+                    if row is not None:
+                        rows.append(row)
                 except (OSError, ValueError, TypeError, KeyError):
                     continue
     return rows

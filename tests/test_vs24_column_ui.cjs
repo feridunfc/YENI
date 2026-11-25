@@ -4,7 +4,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const {execFileSync}=require('node:child_process');
 const root=path.join(__dirname,'..');
-const samples=JSON.parse(execFileSync('python',['-c',`
+const samples=JSON.parse(execFileSync(process.env.PYTHON || 'python',['-c',`
 import json
 from copy import deepcopy
 from pathlib import Path

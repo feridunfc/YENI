@@ -6,7 +6,7 @@ const path=require('node:path');
 const vm=require('node:vm');
 const {execFileSync}=require('node:child_process');
 const root=path.join(__dirname,'..');
-const samples=JSON.parse(execFileSync('python',['-c',`
+const samples=JSON.parse(execFileSync(process.env.PYTHON || 'python',['-c',`
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory

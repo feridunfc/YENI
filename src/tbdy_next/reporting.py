@@ -1186,10 +1186,15 @@ def _basement_pier_tables(piers):
     if not groups:
         return ""
     inventory, cuts, layouts, pressure, ends, shells, alternatives = [], [], [], [], [], [], []
+    membrane, edge_rows, through_bars = [], [], []
     for pier in groups:
         name = pier["pier"]
         geom = pier.get("geometry", {})
         inventory.append({**pier, **geom})
+        for layout in pier.get("two_way_support_layouts", []):
+            proof=layout.get("continuous_web")
+            if proof:
+                through_bars.append({**proof,**proof["governing"],"checked":len(proof["reversal_checks"])})
         for cut in pier["cuts"]:
             native = cut.get("native_kn_knm", {})
             bounds = {key: [native["Min"][key], native["Max"][key]] for key in native.get("Min", {})}
@@ -1200,6 +1205,18 @@ def _basement_pier_tables(piers):
             for check in field.get("checks") or ([{"status": field.get("reason")}] if field else []):
                 shells.append({"pier":name,"wall":panel["wall"], **check})
             proposal = field.get("proposed_detail") or {}
+            combined = proposal.get("membrane_and_plate") or {}
+            for check in combined.get("checks", []):
+                membrane.append({"pier":name,"wall":panel["wall"],**check})
+            for side, edge in panel.get("native_support_edges", {}).items():
+                transfer = (proposal.get("ends", {}).get(side, {}).get("transfer") or {})
+                for cut in edge["cuts"]:
+                    edge_rows.append({"pier":name,"wall":panel["wall"],"end":side,"column":edge["column"],**cut,
+                        "checks":f'{edge["balanced_static_interior"]}/{edge["checked_static_interior"]}',
+                        "steel":transfer.get("steel_resistance_kn_m"),"concrete":transfer.get("concrete_limit_kn_m"),
+                        "status":edge["status"]})
+            if "native_support_edges" in panel:
+                h,v = proposal.get("horizontal", {}),proposal.get("vertical", {})
             if proposal:
                 for side, end in (proposal.get("ends") or {"":{}}).items():
                     bar = proposal.get("horizontal", {})
@@ -1211,13 +1228,16 @@ def _basement_pier_tables(piers):
                         "pmm":max((c["upper_utilization"] for c in pmms),default=None),
                         "provided":end.get("specified_embedment_mm"),"available":end.get("column_available_mm"),
                         "clear":end.get("template_longitudinal_clearance_mm"),"limit":end.get("entry_required_mm"),
-                        "joint":end.get("layout_status") or end.get("status"),"open":proposal.get("open_input") or proposal.get("reason")})
-            for side, end in panel.get("pressure_connections", {}).get("ends", {}).items():
+                        "joint":end.get("layout_status") or end.get("status"),"cover":bar.get("cover_mm"),"stagger":bar.get("curtain_inset_mm"),
+                        "anchor":end.get("bar_path") or end.get("anchorage_type"),"schedule":panel.get("schedule_status"),
+                        "open":panel.get("reason") or proposal.get("open_input") or proposal.get("reason")})
+            from .engineering.basement_pier_design import pressure_ends
+            for side, end in pressure_ends(panel).items():
                 transfer = end["transfer"]
                 ends.append({"pier": name, "wall": panel["wall"], "side": side, "column": end["column"],
                              "aggregate":end.get("maximum_aggregate_mm"), "clear":end.get("template_longitudinal_clearance_mm"),
                              "limit":end.get("entry_required_mm"),
-                             "diameter": h["diameter_mm"], "required": end["position_i_mm"],
+                             "diameter": h["diameter_mm"], "required": (end.get("hook") or {}).get("required_projection_mm",end["position_i_mm"]),
                              "available": end["column_available_mm"], "provided": end["specified_embedment_mm"],
                              "dowel": transfer.get("diameter_mm"), "pitch": transfer.get("pitch_mm"),
                              "reaction": transfer.get("peak_reaction_kn_m"), "resistance": transfer.get("resistance_kn_m"),
@@ -1232,7 +1252,8 @@ def _basement_pier_tables(piers):
         "Supporting columns keep their concrete and reinforcement. The proposed two-curtain grids carry vertical "
         "section demand and horizontal bending from the assigned uniform pressure. The one-metre strips span "
         "between columns with zero relative transverse support displacement. The two-way comparison uses the native "
-        "shell bending and transverse shear where available. Combined membrane actions and interface transfer remain open.</p>",
+        "shell bending and transverse shear where available. The combined design uses signed or bounded membrane, plate "
+        "and shear actions at each native corner. A schedule requires two developed ends and a compatible shared support layout.</p>",
         _table((("pier","Pier"),("story","Storey"),("members","Shell IDs"),("reserved_column_ids","Reserved column IDs"),
                 ("nominal_area_m2","ETABS nominal area (m²)"),("shell_footprint_union_m2","Footprint union (m²)"),
                 ("clear_web_area_m2","Clear webs (m²)"),("evaluated_cut_combinations","Satisfied end combinations"),
@@ -1261,10 +1282,29 @@ def _basement_pier_tables(piers):
          "<p>Symmetric layers at zero membrane force. Bending includes twisting at the same corner.</p>" +
          _table((("wall","Wall"),("side","End"),("column","Column ID"),("h","Horizontal Ø (mm)"),("hp","Pitch (mm)"),
                  ("v","Vertical Ø (mm)"),("vp","Pitch (mm)"),("pmm_count","Pier PMM cuts"),("pmm","Highest PMM ratio"),
-                 ("provided","Straight embedment (mm)"),("available","Available (mm)"),("clear","Entry clear (mm)"),
-                 ("limit","Required (mm)"),("joint","Shared support layout"),("open","Open design input")), alternatives) +
+                 ("cover","Nominal cover (mm)"),("stagger","Curtain stagger (mm)"),("anchor","Anchor"),
+                 ("provided","Provided projection (mm)"),("available","Available (mm)"),("clear","Entry clear (mm)"),
+                 ("limit","Required (mm)"),("joint","Shared support layout"),("schedule","Panel schedule"),("open","Open design input")), alternatives) +
          "</details>" if shells else ""),
-        ("<details><summary>Pressure transfer and straight bar development at columns</summary>" +
+        ("<details><summary>Combined membrane, bending and transverse shear at shell corners</summary>" +
+         _table((("pier","Pier"),("wall","Wall"),("combination","Combination"),("action","Check"),("element","Shell"),
+                 ("point","Point"),("local_3_face","Local 3 face"),("demand_kn_m","Demand (kN/m)"),
+                 ("resistance_kn_m","Resistance (kN/m)"),("utilization","Utilization")), membrane) + "</details>" if membrane else ""),
+        ("<details><summary>Continuous horizontal bars through interior columns</summary>" +
+         _table((("column","Column"),("members","Wall IDs"),("diameter_mm","Diameter (mm)"),("pitch_mm","Pitch (mm)"),
+                 ("one_piece_length_mm","Unspliced length (mm)"),("checked","Point–combination checks"),
+                 ("combination","Governing combination"),("point","Node"),("required_bond_mm","Reversal bond demand (mm)"),
+                 ("available_bond_mm","Available bond (mm)"),("ratio","Bond utilization")), through_bars) + "</details>"
+         if through_bars else ""),
+        ("<details><summary>Vertical wall–column edge tractions and nodal equilibrium</summary>" +
+         _table((("pier","Pier"),("wall","Wall"),("end","End"),("column","Column"),("combination","Combination"),
+                 ("element","Shell"),("point","Point"),("traction_source","Governing extraction"),
+                 ("field_bound_kn_m","Corner bound (kN/m)"),("nodal_bound_kn_m","Interior nodal bound (kN/m)"),
+                 ("normal_tension_kn_m","Normal tension bound (kN/m)"),
+                 ("native_shear_kn_m","Shear (kN/m)"),("equivalent_friction_demand_kn_m","Shear + μ tension (kN/m)"),
+                 ("steel","Steel limit (kN/m)"),("concrete","Concrete limit (kN/m)"),("checks","Balanced interior static states"),
+                 ("status","Edge result")), edge_rows) + "</details>" if edge_rows else ""),
+        ("<details><summary>Pressure transfer and bar development at columns</summary>" +
          _table((("pier","Pier"),("wall","Wall"),("side","End"),("column","Support column"),("diameter","Web Ø (mm)"),
                  ("required","Required bond (mm)"),("available","Available (mm)"),("provided","Proposed embedment (mm)"),
                  ("dowel","Dowel Ø (mm)"),("pitch","Pitch (mm)"),("reaction","Reaction (kN/m)"),

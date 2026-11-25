@@ -103,6 +103,102 @@ def _material(source, stages, concrete):
     return Material(fc,fc/gc,fy/gs,es), bars["cover_mm"]
 
 
+def _through_bar_proof(incident, designs, states, mat):
+    """One unspliced main bar per track. Dowels remain separately developed at each wall face."""
+    from .wall_support_edge import edge_bar_forces
+    (a,side_a),(b,side_b) = incident
+    steel, lengths, ends, actions, outer = [], [], [], [], []
+    for (panel,side),detail in zip(incident,designs):
+        if detail.get("status") != "PROPOSED_COMBINED_CURTAINS":
+            return None
+        end = detail["ends"][side]
+        far_side = "J" if side=="I" else "I"
+        far = detail["ends"][far_side]
+        if any(e["anchorage_type"]!="STRAIGHT" or not e["fits_column"] for e in (end,far)):
+            return None
+        h=detail["horizontal"]
+        steel.append(h["guaranteed_bars_per_m"]*pi*h["diameter_mm"]**2/4*mat.fyd/1000)
+        lengths.append(end["position_i_mm"])
+        ends.append(end)
+        outer.append(panel["span_m"]*1000-far["column_depth_mm"]/2+far["specified_embedment_mm"])
+        edge=panel["native_support_edges"][side]
+        actions.append(edge_bar_forces(states[panel["member"]],edge["nodes"],detail["membrane_and_plate"]["lever_arm_mm"]))
+    ha,hb=(d["horizontal"] for d in designs)
+    if any(abs(ha[k]-hb[k])>1e-6 for k in ("diameter_mm","first_station_mm","pitch_mm","layers","curtain_inset_mm","cover_mm")):
+        return None
+    if abs(a["thickness_m"]-b["thickness_m"])>1e-8 or not actions[0] or actions[0].keys()!=actions[1].keys():
+        return None
+    # Bound complete sign reversal using absolute design forces on both sides at the
+    # same level and case. Each outer end still develops the full yield force.
+    available=min(e["column_available_mm"] for e in ends)
+    checks=[]
+    for key in sorted(actions[0]):
+        demand=[values[key] for values in actions]
+        required_mm=fsum(force*lb/resistance for force,lb,resistance in zip(demand,lengths,steel))
+        checks.append({"combination":key[0],"point":key[1],"absolute_main_forces_kn_m":demand,
+                       "required_bond_mm":required_mm,"available_bond_mm":available,"ratio":required_mm/available})
+    governing=max(checks,key=lambda r:r["ratio"])
+    if governing["ratio"]>1 or any(e["wall_side_available_mm"]<e["wall_side_required_mm"] for e in ends):
+        return None
+    return {"detail":"SINGLE_CONTINUOUS_STRAIGHT_BAR_NO_SPLICE_IN_EITHER_PANEL_OR_SUPPORT",
+            "members":[a["member"],b["member"]],"column":ends[0]["column"],
+            "diameter_mm":ha["diameter_mm"],"pitch_mm":ha["pitch_mm"],"layers":ha["layers"],
+            "one_piece_length_mm":fsum(outer),"full_yield_development_mm":lengths,
+            "per_face_steel_resistance_kn_m":steel,"reversal_checks":checks,"governing":governing}
+
+
+def _coordinate_main_bars(geometry, states, designs, aggregate, material, redesign):
+    from .basement_joint_layout import main_bar_collision
+    joints = defaultdict(list)
+    for p in geometry["panels"]:
+        for s in ("I","J"):
+            joints[p["column_"+s.lower()]].append((p,s))
+    proofs={}
+    for col, incident in joints.items():
+        if len(incident)!=2:
+            continue
+        (a,sa),(b,sb)=incident
+        # At a through joint the two centre-lines leave the identical physical point in opposite directions.
+        sign = 1 if sa==sb else -1
+        dot=fsum(x*y for x,y in zip(a["width_direction"],b["width_direction"]))
+        if a["joint_"+sa.lower()]!=b["joint_"+sb.lower()] or sign*dot > -1+1e-9:
+            continue
+        current=[designs.get(p["member"]) or {} for p,_ in incident]
+        if any(d.get("status")!="PROPOSED_COMBINED_CURTAINS" for d in current):
+            continue
+        def descriptors(trials):
+            return [({**p,"horizontal":d["horizontal"]},s,d["ends"][s]) for (p,s),d in zip(incident,trials)]
+        if not main_bar_collision(*descriptors(current),aggregate):
+            continue
+        # The scheduled full length has two terminal anchors. Longer collinear chains
+        # require a single layout for all their spans.
+        if any(any(peer["member"]!=p["member"] and abs(fsum(x*y for x,y in
+                zip(p["width_direction"],peer["width_direction"])))>1-1e-9 for peer,_ in
+                joints[p["column_"+("j" if side=="I" else "i")]]) for p,side in incident):
+            continue
+        pair=(current[0]["horizontal"]["diameter_mm"],current[0]["horizontal"]["maximum_pitch_mm"])
+        # Start with both selected cages, then trial real catalogue bars on the shared elevation lattice.
+        candidates=[None]+sorted({pair,*((dia,pitch) for dia in (12,14,16,18) for pitch in (100,60,50))},
+                                  key=lambda v:(v[0]**2/v[1],v))
+        for match in candidates:
+            trials = current if match is None else [redesign(p,match) for p,_ in incident]
+            proof = _through_bar_proof(incident,trials,states,material)
+            if not proof:
+                continue
+            # Check all independent dowels against the continuous rods before committing this choice.
+            local = [{"member":p["member"],"column_i":p["column_i"],"column_j":p["column_j"],
+                      "thickness_m":p["thickness_m"],"width_direction":p["width_direction"],"horizontal":d["horizontal"],
+                      "pressure_connections":{"ends":{k:dict(v) for k,v in d["ends"].items()}}}
+                     for (p,_),d in zip(incident,trials)]
+            check=next(r for r in check_joint_layout({"panels":local},aggregate,{col:proof}) if r["column"]==col)
+            if check["status"]=="PROPOSED_PRESSURE_BARS_FIT" and check.get("continuous_web"):
+                proofs[col]=proof
+                for (p,_),d in zip(incident,trials):
+                    designs[p["member"]]=d
+                break
+    return proofs
+
+
 def _design(result, source, stages, bound, scope):
     name, story = result["pier"], result["story"]
     geom = folded_section(source, bound, name, story, result["members"])
@@ -119,8 +215,11 @@ def _design(result, source, stages, bound, scope):
     mat, cover = _material(source,stages,geom["material"])
     aggregate = (source.get("building_design") or {}).get("maximum_aggregate_mm", DEFAULT_AGGREGATE_MM)
     result["maximum_aggregate_mm"] = aggregate
+    from .wall_pressure_shell import SCHEMA, checked_fields, panel_shell_checks, propose_shell_detail
+    read = source["pier_section_forces"]["read"].get("pressure_shells") or {}
+    combined = read.get("schema") == SCHEMA
     height = geom["top_m"]-geom["bottom_m"]
-    for panel in geom["panels"]:
+    for panel in ([] if combined else geom["panels"]):
         uid = panel["member"]
         try:
             horizontal = panel_pressure_design(panel,combos,cover,mat,height,aggregate=aggregate)
@@ -172,7 +271,6 @@ def _design(result, source, stages, bound, scope):
             required("vertical" in panel,"PROPOSED_VERTICAL_CAGES_DID_NOT_ESTABLISH_PMM_BOUND")
         except (KeyError,TypeError,ValueError) as exc:
             panel["reason"] = str(exc)
-    from .wall_pressure_shell import checked_fields, panel_shell_checks, propose_shell_detail
     try:
         fields, mesh = checked_fields(source, bound)
         field_reason = None
@@ -186,27 +284,71 @@ def _design(result, source, stages, bound, scope):
             panel["two_way_shell"] = panel_shell_checks(panel,combos,fields[uid],mesh[uid],mat)
         except (KeyError, TypeError, ValueError) as exc:
             panel["two_way_shell"] = {"status":"HOLD","reason":str(exc),"expected_checks":4*len(combos),"checks":[]}
-    shell_panels = []
+    designs, corner_fields, caches = {}, {}, {}
+
+    def design_candidate(panel, pair=None):
+        uid=panel["member"]
+        return propose_shell_detail(source,stages,geom,panel,mat,cover,aggregate,result["cuts"],
+                                    states=corner_fields.get(uid),edges=panel.get("native_support_edges"),
+                                    main_pair=pair,field_cache=caches.setdefault(uid,{}))
+
     for panel in geom["panels"]:
         shell = panel["two_way_shell"]
-        shadow = {**panel, "pressure_connections":{}}
-        shell_panels.append(shadow)
         if not shell["checks"]:
             continue
         try:
-            detail = propose_shell_detail(source,stages,geom,panel,mat,cover,aggregate,result["cuts"])
+            states = edges = None
+            if combined:
+                from .wall_membrane_design import corner_states
+                from .wall_support_edge import support_edge_actions
+                states = corner_states(panel,fields[panel["member"]],combos)
+                edges = support_edge_actions(panel,geom,read["edge_actions"],states,combos)
+                corner_fields[panel["member"]] = states
+                panel["native_support_edges"] = edges
+                shell["capacity_scope"] = "SAME_CORNER_MEMBRANE_AND_PLATE"
+                shell["support_scope"] = "NATIVE_VERTICAL_EDGE_ACTIONS"
+            detail = design_candidate(panel)
         except (KeyError, TypeError, ValueError) as exc:
             detail = {"status":"HOLD","reason":str(exc)}
+        designs[panel["member"]] = detail
+    through = _coordinate_main_bars(geom,corner_fields,designs,aggregate,mat,design_candidate) if combined else {}
+    shell_panels=[]
+    for panel in geom["panels"]:
+        shadow = {**panel,"pressure_connections":{}}
+        shell_panels.append(shadow)
+        shell=panel["two_way_shell"]
+        detail = designs.get(panel["member"])
+        if detail is None:
+            continue
         shell["proposed_detail"] = detail
         if detail["status"] == "HOLD":
             continue
         shadow.update(horizontal=detail["horizontal"], pressure_connections={"ends":detail["ends"]})
+        if combined and len(detail["cut_pmm"]) == result["expected_cut_combinations"]:
+            pmm = {(r["face"],r["combination"]):r["upper_utilization"] for r in detail["cut_pmm"]}
+            for cut in result["cuts"]:
+                for item in cut.get("web_demands",[]):
+                    if item["member"] == panel["member"]:
+                        item.update(pmm_upper=pmm[cut["face"],cut["combination"]],basis="SAME_CURTAIN_PER_CUT_INTERVAL")
         for check in shell["checks"]:
             capacities = detail["resistances"][check["axis"]]
             capacity = capacities[0 if check["action"] == "Bending" else 1]
             check.update(proposed_resistance=capacity, proposed_ratio=check["demand"]/capacity)
-    result["two_way_support_layouts"] = check_joint_layout({"panels":shell_panels},aggregate)
-    result["pressure_joint_layouts"] = check_joint_layout(geom,aggregate)
+    result["two_way_support_layouts"] = check_joint_layout({"panels":shell_panels},aggregate,through)
+    result["pressure_joint_layouts"] = [] if combined else check_joint_layout(geom,aggregate)
+    if combined:
+        by_support = {r["column"]:r for r in result["two_way_support_layouts"]}
+        for panel in geom["panels"]:
+            shell = panel["two_way_shell"]
+            detail = shell.get("proposed_detail") or {}
+            supports = [by_support[panel["column_"+side]] for side in ("i","j")]
+            qualified = detail.get("status") == "PROPOSED_COMBINED_CURTAINS" and all(
+                r["status"] == "PROPOSED_PRESSURE_BARS_FIT" for r in supports)
+            panel["schedule_status"] = "PRESSURE_PANEL_SCHEDULE_QUALIFIED" if qualified else "PRESSURE_PANEL_DETAIL_OPEN"
+            if not qualified:
+                panel["reason"] = (detail.get("open_input") or detail.get("reason") or shell.get("reason")
+                                   or next((r.get("reason") or r["status"] for r in supports
+                                            if r["status"] != "PROPOSED_PRESSURE_BARS_FIT"), "COMBINED_DESIGN_INCOMPLETE"))
     for row in result["cuts"]:
         checks = row.get("web_demands",[])
         if checks and all("pmm_upper" in d for d in checks):
@@ -215,7 +357,11 @@ def _design(result, source, stages, bound, scope):
         else:
             row["status"] = "HOLD"
     result["evaluated_cut_combinations"] = sum(r["status"] == "CONDITIONAL_NET_WEB_PMM_BOUND" for r in result["cuts"])
-    result["status"] = "CONDITIONAL_NET_WEB_PMM_WITH_PRESSURE_STRIP_REFERENCES" if result["evaluated_cut_combinations"] == result["expected_cut_combinations"] else "HOLD"
+    if result["evaluated_cut_combinations"] == result["expected_cut_combinations"]:
+        result["status"] = ("CONDITIONAL_SAME_CURTAIN_NET_WEB_PMM" if combined else
+                            "CONDITIONAL_NET_WEB_PMM_WITH_PRESSURE_STRIP_REFERENCES")
+    else:
+        result["status"] = "HOLD"
 
 
 def basement_piers(source, stages, bounds, bound, scope):
@@ -239,9 +385,16 @@ def basement_piers(source, stages, bounds, bound, scope):
     return results
 
 
+def pressure_ends(panel):
+    if "native_support_edges" in panel:
+        return ((panel.get("two_way_shell") or {}).get("proposed_detail") or {}).get("ends", {})
+    return panel.get("pressure_connections", {}).get("ends", {})
+
+
 def basement_coverage(piers):
     assigned_expected = assigned_evaluated = other_evaluated = pressure_expected = pressure_evaluated = 0
     physical = scheduled = ends_checked = ends_satisfied = initial_short = transferred = extra_transferred = 0
+    combined_checks = plate_checks = same_cage_cuts = edge_cases = balanced_nodes = checked_nodes = 0
     for pier in piers:
         names = pier["wall_strength"]
         physical += len(pier["members"])
@@ -255,10 +408,21 @@ def basement_coverage(piers):
                     other_evaluated += 1
         for panel in (pier.get("geometry") or {}).get("panels", []):
             scheduled += panel.get("schedule_status") == "PRESSURE_PANEL_SCHEDULE_QUALIFIED"
-            pressure_evaluated += sum(c["combination"] in names for c in panel.get("horizontal", {}).get("cuts", []))
-            for end in panel.get("pressure_connections", {}).get("ends", {}).values():
+            membrane = ((panel.get("two_way_shell") or {}).get("proposed_detail") or {}).get("membrane_and_plate")
+            shell = panel.get("two_way_shell") or {}
+            if membrane:
+                combined_checks += len(membrane["checks"])
+                plate_checks += sum("proposed_ratio" in c for c in shell["checks"])
+                same_cage_cuts += len(shell["proposed_detail"]["cut_pmm"])
+            for edge in panel.get("native_support_edges",{}).values():
+                edge_cases += len(edge["cuts"])
+                balanced_nodes += edge["balanced_static_interior"]
+                checked_nodes += edge["checked_static_interior"]
+            checks = membrane["checks"] if membrane else panel.get("horizontal", {}).get("cuts", [])
+            pressure_evaluated += len({c["combination"] for c in checks if c["combination"] in names})
+            for end in pressure_ends(panel).values():
                 ends_checked += 1
-                initial_short += end["initial"]["margin_mm"] < 0
+                initial_short += (end.get("initial") or {}).get("margin_mm",0) < 0
                 ends_satisfied += end["status"] == "CONDITIONAL_PRESSURE_END_DESIGN"
                 for cut in end["transfer"].get("combinations", []):
                     if cut["combination"] in names:
@@ -266,6 +430,9 @@ def basement_coverage(piers):
                     else:
                         extra_transferred += 1
     return {"physical_panels":physical,"scheduled_panels":scheduled,"assigned_cuts_expected":assigned_expected,
+            "combined_membrane_checks":combined_checks,"same_cage_plate_checks":plate_checks,
+            "same_cage_pmm_cuts":same_cage_cuts,"native_edge_combinations":edge_cases,
+            "balanced_interior_nodal_states":balanced_nodes,"checked_interior_nodal_states":checked_nodes,
             "assigned_cuts_evaluated":assigned_evaluated,"additional_static_cuts_evaluated":other_evaluated,
             "assigned_pressure_panel_combinations_expected":pressure_expected,
             "assigned_pressure_panel_combinations_evaluated":pressure_evaluated,

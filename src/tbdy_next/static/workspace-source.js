@@ -271,11 +271,21 @@
       const cuts = [], pressure = [], ends = [], shells = [];
       for (const pier of sections.basement_piers) {
         const geo = pier.geometry, members = pier.members.join(', ');
+        for (const layout of pier.two_way_support_layouts || []) {
+          const c = layout.continuous_web;
+          if (c) shells.push([pier.pier, c.members.join(' + '), layout.column, c.governing.combination, 'Through column',
+            'Unspliced bar bond reversal', null, c.governing.point, 'Both wall faces at the same level', decimals(c.governing.required_bond_mm, 2),
+            'mm', null, null, 'Ø' + c.diameter_mm + ' @ ' + decimals(c.pitch_mm, 2), decimals(c.governing.available_bond_mm, 2),
+            percentage(c.governing.ratio), 'Length ' + decimals(c.one_piece_length_mm, 0) + ' mm', layout.status, null]);
+        }
         for (const r of pier.cuts) cuts.push([pier.pier, pier.story, members, r.face, r.combination, r.role,
           decimals(geo?.clear_web_area_m2, 3), limits(r.nd_kn), percentage(r.pmm_upper), r.reason || r.status]);
         if (!pier.cuts.length) cuts.push([pier.pier, pier.story, members, null, null, null, null, null, null, pier.reason || pier.status]);
         for (const id of pier.members) {
-          const panel = geo?.panels.find(row => row.member === id), h = panel?.horizontal, v = panel?.vertical;
+          const panel = geo?.panels.find(row => row.member === id);
+          const cage = panel?.two_way_shell?.proposed_detail;
+          const h = panel?.native_support_edges ? cage?.horizontal : panel?.horizontal;
+          const v = panel?.native_support_edges ? cage?.vertical : panel?.vertical;
           const detail = [pier.pier, id, panel?.wall, decimals(panel?.span_m), decimals(panel?.clear_length_m)];
           const shell = panel?.two_way_shell;
           const proposal = shell?.proposed_detail;
@@ -291,17 +301,32 @@
               endDetails.map(e => e.column + ': ' + (e.layout_status || e.status)).join(' · '),
               proposal?.open_input || proposal?.reason || row.status]);
           }
+          for (const r of proposal?.membrane_and_plate?.checks || []) {
+            const grid = r.action === 'Horizontal steel' ? h : r.action === 'Vertical steel' ? v : null;
+            shells.push([pier.pier, panel.wall, id, r.combination, 'Local 3 face ' + r.local_3_face, r.action,
+              r.element, r.point, 'Same-corner membrane + plate', decimals(r.demand_kn_m, 2), 'kN/m', null, null,
+              grid ? 'Ø' + grid.diameter_mm + ' @ ' + decimals(grid.pitch_mm, 2) : null,
+              decimals(r.resistance_kn_m, 2), percentage(r.utilization), entry, panel.schedule_status, panel.reason]);
+          }
+          for (const [side, edge] of Object.entries(panel?.native_support_edges || {})) {
+            const end = proposal?.ends?.[side];
+            for (const r of edge.cuts) shells.push([pier.pier, panel.wall, id, r.combination, side, 'Edge shear + μ tension',
+              r.element, r.point, r.basis, decimals(r.equivalent_friction_demand_kn_m, 2), 'kN/m', null, null,
+              end?.anchorage_type, decimals(end?.transfer?.steel_resistance_kn_m, 2),
+              percentage(end?.transfer?.combinations?.find(c => c.combination === r.combination)?.upper_ratio), entry,
+              edge.balanced_static_interior + '/' + edge.checked_static_interior + ' balanced', panel.reason || edge.status]);
+          }
           if (!shell?.checks?.length) shells.push([pier.pier, panel?.wall, id, null, null, null, null, null,
             null, null, null, null, null, null, null, null, null, null, shell?.reason || panel?.reason || pier.reason || 'Shell result required']);
           for (const side of ['I', 'J']) {
-            const e = panel?.pressure_connections?.ends?.[side], v = e?.transfer;
-            ends.push([pier.pier, id, panel?.wall, side, e?.column, h?.diameter_mm, decimals(e?.position_i_mm, 1),
+            const e = panel?.native_support_edges ? proposal?.ends?.[side] : panel?.pressure_connections?.ends?.[side], v = e?.transfer;
+            ends.push([pier.pier, id, panel?.wall, side, e?.column, h?.diameter_mm, decimals(e?.hook?.required_projection_mm ?? e?.position_i_mm, 1),
               decimals(e?.column_available_mm, 1), e?.specified_embedment_mm, v?.diameter_mm, decimals(v?.pitch_mm, 1),
               decimals(v?.peak_reaction_kn_m, 2), decimals(v?.resistance_kn_m, 2), percentage(v?.peak_ratio),
               decimals(e?.maximum_aggregate_mm, 2), decimals(e?.template_longitudinal_clearance_mm, 2), decimals(e?.entry_required_mm, 2),
               e?.status || panel?.reason || pier.reason]);
           }
-          if (h) {
+          if (h?.cuts) {
             for (const r of h.cuts) pressure.push([...detail, r.combination, decimals(r.pressure_kn_m2, 2),
               decimals(r.moment_bound_knm_m, 2), percentage(r.moment_ratio), percentage(r.cracking_shear_ratio),
               h.diameter_mm, decimals(h.pitch_mm, 2), v?.diameter_mm, decimals(v?.pitch_mm, 2), v?.crossties,
@@ -314,7 +339,7 @@
         'Element', 'Point', 'Demand basis', 'Demand', 'Unit', 'Original strip cage resistance', 'Strip cage ratio (%)',
         'Two-way cage per face (mm)', 'Two-way cage resistance', 'Two-way cage ratio (%)', 'Support entry clear / required (mm)',
         'Shared support layout', 'Open design input'], shells, 'Two-way shell actions',
-        'Each bending demand includes twisting at the same corner. Both cage comparisons use zero membrane force. The proposed two-way cage also receives the pier-cut PMM calculation.');
+        'Plate references use zero membrane force. Combined rows use the eight native shell components, the two physical curtains and their corresponding pier-cut PMM results.');
       tables['7.11'] = table(['Pier', 'Storey', 'Wall IDs', 'Pier end', 'Combination', 'Load scope', 'Net webs (m²)',
         'Compression interval (kN)', 'Maximum web PMM upper (%)', 'Result or open input'], cuts,
         coverage(basement.assigned_cuts_evaluated, basement.assigned_cuts_expected, 'assigned cuts across multi-panel piers'),

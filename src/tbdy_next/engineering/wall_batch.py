@@ -85,13 +85,14 @@ def _design_summary(row, sections, basement):
            "conditional_faces": sum(r.get("chain_status") == "CONDITIONAL_SECTION_DESIGN" for r in cuts),
            "expected_faces": len(cuts), "panel_count": len(row["members"])}
     if basement:
+        from .basement_pier_design import pressure_ends
         webs = basement.get("geometry", {}).get("panels", [])
         out.update(pmm=_governing([r for r in basement["cuts"] if r["role"] == "WALL_STRENGTH"], "pmm_upper"),
                    scheduled_panels=sum(p.get("schedule_status") == "PRESSURE_PANEL_SCHEDULE_QUALIFIED" for p in webs),
-                   pressure_ends_checked=sum(len(p.get("pressure_connections",{}).get("ends",{})) for p in webs),
+                   pressure_ends_checked=sum(len(pressure_ends(p)) for p in webs),
                    pressure_ends_satisfied=sum(e["status"] == "CONDITIONAL_PRESSURE_END_DESIGN" for p in webs
-                       for e in p.get("pressure_connections",{}).get("ends",{}).values()))
-        out["reason"] = basement.get("reason") or ("SHELL_BENDING_AND_INTERFACE_NORMAL_ACTION_REQUIRED" if webs and out["scheduled_panels"] < len(webs) else "MULTIPANEL_IN_PLANE_SHEAR_DISTRIBUTION_AND_HORIZONTAL_JOINT_DETAIL_REQUIRED")
+                       for e in pressure_ends(p).values()))
+        out["reason"] = basement.get("reason") or next((p["reason"] for p in webs if p.get("reason")), None) or ("SHELL_BENDING_AND_INTERFACE_NORMAL_ACTION_REQUIRED" if webs and out["scheduled_panels"] < len(webs) else "MULTIPANEL_IN_PLANE_SHEAR_DISTRIBUTION_AND_HORIZONTAL_JOINT_DETAIL_REQUIRED")
     elif not cuts:
         out["reason"] = row.get("reason") or "PIER_SECTION_AND_CAGE_REQUIRED"
     elif out["conditional_faces"] < len(cuts):

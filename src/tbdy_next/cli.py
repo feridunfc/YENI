@@ -129,8 +129,18 @@ def main(argv: list[str] | None = None) -> int:
         from .web import serve
         if args.etabs_pid is not None and not 1 <= args.etabs_pid <= 2_147_483_647:
             service.error("--etabs-pid requires a positive Windows process ID.")
-        serve(host=args.host, port=args.port, output_root=args.out, etabs_pid=args.etabs_pid,
-              allow_private_wall_analysis=args.allow_private_wall_analysis)
+        import errno
+        try:
+            serve(host=args.host, port=args.port, output_root=args.out, etabs_pid=args.etabs_pid,
+                  allow_private_wall_analysis=args.allow_private_wall_analysis)
+        except KeyboardInterrupt:
+            return 0
+        except OSError as exc:
+            if exc.errno != errno.EADDRINUSE and getattr(exc,"winerror",None) != 10048:
+                raise
+            print(f"Port {args.port} already has a listener. Check http://{args.host}:{args.port}/api/health "
+                  "for its process and version.", file=sys.stderr)
+            return 2
         return 0
     if args.action == "etabs-units":
         from .etabs_modal import ModalCaptureError
