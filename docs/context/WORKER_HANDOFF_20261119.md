@@ -1,5 +1,15 @@
 # Local development and GitHub worker handoff
 
+## 25 November 2026 · Current handoff
+
+Use `RUN-e4f718bffb7d4814a6632c3c6c39e462` for column, basement wall and G1 review. Its sealed source is `RUN-3bb6a4d5d57c4af8af503a20c4d69bbd/input.source`. Compare against `RUN-b7fa070c19ab4a74b29c9e89732b49db` for the previous 42-column, 17-wall schedule. Record `EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125` lists the engineering and gateway commits, source and output digests, test outcomes and eight measured live responses. [Current results](../CURRENT_STATE.md) · [Verification record](../VERIFICATION_LEDGER.json)
+
+- Review the 65 conditional columns by storey. At +0.00 m, the four independent columns C1, C2, C5 and C37 pass both finite support scenarios. The single-hinge scenario exceeds the approximate-method slenderness limit of 100. A defensible upper bound on mat support flexibility or a qualifying second-order analysis is needed for these four. Preserve the 14 coupled holds and the C21–C24 foundation confinement failures. The 18-column Euler lower sum and complete 32-column demand belong to the frame-only storey calculation.
+- Inspect both sides of column 216 and the junctions at points 947, 948, 949 and 953 for the six yP2 panels. Recheck actual cover, development length, bar clearance and force transfer for any revised detail. The W32 crossing spans two distinct native edges. W22 opening cuts and the W32 reinforcement load path remain open. The proposed wall schedule is 17/30 and W29 meets the 85% dowel selection target on both ends.
+- The five G1 candidates carry a common contract digest in the GAP register. Use the private `g1-contract.json` beside the sealed report to review the evidence and its scope. The register records a pending Supervisor decision for all five. [GAP register](../ENGINEERING_GAPS.yaml)
+
+## Earlier on 25 November · Five yP1 panels
+
 Start with whole-building run `RUN-b7fa070c19ab4a74b29c9e89732b49db`, workspace **7.22**. The five yP1 panels are now in the physical schedule, bringing it from 12/30 to 17/30. W28 uses Ø14 at 49.57 mm horizontally and Ø22 at 200 mm vertically on each face. At column 221 one continuous bar crosses W27 and W28. The governing bond transfer requires 739.07 of the 750 mm available. The same proposed cage passes 300 combined shell checks, 300 two-way plate checks, 150 pier-end PMM checks and 150 edge checks. The 350 signed static interior nodal states balance and all six shared support layouts fit. The aggregate-size input defaults to 20 mm. [Governing results, bar schedules and limits](../CURRENT_STATE.md)
 
 The native acquisition is `RUN-3bb6a4d5d57c4af8af503a20c4d69bbd`. It solved the original 15 load cases on a private copy and captured 2,120 unaveraged shell corners from 530 elements on 18 panels, all eight force and moment components, and area/frame actions at 283 boundary nodes. It matched 11,700 original pier control components. The archived source and the final calculation use the same input digest. The original EDB SHA-256 is `0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15`. Replay from the checkout with its private receipt and blob directories present.
@@ -8,7 +18,7 @@ The native acquisition is `RUN-3bb6a4d5d57c4af8af503a20c4d69bbd`. It solved the 
 & '.\.venv\Scripts\python.exe' -X utf8 -B -m tbdy_next.cli run-pipeline --whole-building --case Modal --source '.receipts/RUN-3bb6a4d5d57c4af8af503a20c4d69bbd/input.source' --out .receipts
 ```
 
-### Next project milestones
+### Milestones identified at the yP1 checkpoint
 
 1. **Project source contracts (G1).** Bind the confirmed DD-2 profile to the project's standard editions, building roles and ETABS version. Freeze the design-family roster and static combination operators, signs and factors against independent expectations. Tie the analysis generation and unit/selection transactions to the same sources. Review GAP-001, 002, 003, 004 and 007 individually against their existing closure criteria. The register currently has 17 partial entries and one open entry.
 2. **Independent frame columns (G2).** Establish two-axis lower and upper rotational restraints for the 13 held columns supported on the mat and the 14 held columns supported on a wall below. Propagate both limits through second-order demand, PMM and detailing. The maximum increase from those 27 held columns is from 42 to 69 conditional designs if all 27 qualify. C21–C24 already fail the 600 mm versus 800 mm starter length. Combining those four findings with 69 conditional designs would account for the 73 independent columns. The 14 wall-coupled columns require their own method.

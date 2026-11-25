@@ -1,6 +1,24 @@
 # Original building calculation and local handoff
 
-## 25 November 2026 · Five yP1 panels enter the proposed wall schedule
+## 25 November 2026 · Column support bounds, basement connections and G1 review
+
+The sealed calculation `RUN-e4f718bffb7d4814a6632c3c6c39e462` used the archived source from `RUN-3bb6a4d5d57c4af8af503a20c4d69bbd`. It records **65 conditional columns, 18 held columns and four failures**, 180 conditional beams and **17/30 proposed wall panels**. It retains the calibrated C29 results and the 600 mm foundation confinement length against an 800 mm minimum for C21–C24. The engineering release is `NOT_READY`. [Verification ledger, record EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125](VERIFICATION_LEDGER.json)
+
+| Storey (m) | Conditional columns | Held | Failed |
+| --- | ---: | ---: | ---: |
+| +9.00 | 23/23 | 0 | 0 |
+| +4.50 | 32/32 | 0 | 0 |
+| +0.00 | 10/32 | 18 | 4 |
+
+At the base, all 32 frame columns contribute to the 50,287.929 kN governing compression under `Grav_Ult`. The soft-end critical-load sum uses 18 independent columns. The 14 wall-coupled columns and the wall shells have zero Euler credit. In X and Y respectively, the lower sums are 178,892.517 and 162,096.455 kN. The load ratios are 0.281107 and 0.310235 and the upper storey magnifiers are 1.575893 and 1.675898 within this frame calculation. Coupled wall-frame stability remains open. For C1, C2, C5 and C37 the same 32Φ16 cages pass all nine signed PMM cuts and 192 spectral corners per member at each finite lower-end value of 1 and 10. In the single-hinge case the weak-axis slenderness reaches 106.567 against the approximate-method limit of 100. The archived mat restraints establish horizontal translation restraint. A quantitative rotational stiffness bound would determine eligibility for the finite scenario. [TS 500 §§7.6.1–7.6.2](https://abs.cu.edu.tr/Dokumanlar/2016/IMZ312/363439620_ts_500_-_betonarme_yapilarin_tasarimi_ve_yapim_kurallari.pdf#page=30)
+
+The six yP2 panels have combined shell and section results. Signed static equilibrium closes at all 140 distinct interior node/load states across points 947, 948, 949 and 953. The two column-ended panels share a bar clash at column 216. W50 also needs a developed W55 connection at column 222. With 40 mm nominal cover, the governing face at points 947 and 953 offers 160 mm. At point 949 the W55 proposal needs 635 mm and has 360 mm along the connection through W32. Those details are held. On yP1 the W29 end dowels now use 79.43% and 73.25% of capacity against the 85% selection target. The basement shell fields cover 221/221 assigned panel/combination pairs, with 52/78 net pier cuts evaluated and 22/34 physical ends checked. Of the 57 building check headings, **33/50** with numerical denominators now have full evaluation, up from 32/50. [Member, wall and coverage evidence](VERIFICATION_LEDGER.json)
+
+The native G1 contract identifies the standards, structural roles, ETABS version and units. It checks 7,236/7,236 signed Linear Add components, 11,700/11,700 matched wall controls and 13/13 restored selections. In `ENGINEERING_GAPS.yaml`, GAP-001, GAP-002, GAP-003, GAP-004 and GAP-007 are candidates for the Supervisor's decision. **0/18** are formally closed. The original EDB and solver log identify the archived analysis. Independent attestation of its generation remains open. [G1 register](ENGINEERING_GAPS.yaml)
+
+On the restarted 8876 service the first complete 8,045,505-byte print response took **69.193 ms**. All eight responses matched the archived SHA-256. The one full offline test invocation ran 1,789 Python tests with seven failures and one skip. All seven affected tests subsequently passed after correction. The two cache-identity tests also passed. The 44 golden comparisons yielded 36 numerical matches, four interpretation differences and four insufficient sources. [Test and timing records](VERIFICATION_LEDGER.json)
+
+## Earlier on 25 November · Five yP1 panels enter the proposed wall schedule
 
 The whole-building run `RUN-b7fa070c19ab4a74b29c9e89732b49db` schedules **17 of 30 physical wall panels (56.7%)**. The first 12 belong to the P2–P5 rectangular stacks. The five additions are W27, W28, W29, W30 and W33 on yP1 at +0.00 m. Workspace **7.22** and the printable report show the reinforcement, governing corner, load combination and support detail. The project has approved **0/30** wall panels. The building still has 42 conditional column designs, 41 held columns, four column failures and 180 conditional beam designs. [Calculation and verification record](VERIFICATION_LEDGER.json)
 

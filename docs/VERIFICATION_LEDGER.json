@@ -19,27 +19,22 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "FIVE_SUPPORTED_YP1_PANELS_SCHEDULED_AND_WINDOWS_GATEWAY_VERIFIED",
-    "work_branch": "work/wall-membrane-and-gateway",
+    "status": "COLUMN_SUPPORT_AND_BASEMENT_JOINT_REVIEW_COMPLETE_G1_AWAITS_SUPERVISOR",
+    "work_branch": "work/column-bounds-wall-corners",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "5b407f5b1bf0c4cb908c0ccbcc9aa08d81e84057",
-    "calculation_implementation_commit": "950c7cfaacfa8cb7e935f09bcf013f065d58ed82",
-    "gateway_implementation_commit": "c21a8c4cfedd0a30d6eb063760591fec5b31113a",
+    "inspected_base_commit": "53e2289f8832b30972ebe56779e4a2a0eb719a8e",
+    "calculation_implementation_commit": "4b62a73808040003a42c437d1614a1189230ff7e",
+    "gateway_implementation_commit": "2c083cef285682566e9fca346826197efd95d36c",
     "tested_git_subtrees": {
-      "src": "98a08210be3843105173cc724b0ef4842783087f",
-      "tests": "487f54b1167f0358a2bb10370a8cdc548441a0c1"
+      "src": "382c2a47a612622a64f5210afd788063b8ef8441",
+      "tests": "e3292c0bbf94aa47f3e43206e7ae2b225f15a837"
     },
-    "production_run_id": "RUN-b7fa070c19ab4a74b29c9e89732b49db",
-    "results_sha256": "6daf6669f778b08119e2979a89efc7a8b91bba987fe8c0591b63b964cb19a3ba",
+    "production_run_id": "RUN-e4f718bffb7d4814a6632c3c6c39e462",
+    "results_sha256": "02de6f021da55d9d01daa7d74224b4475b9670717af42fea8988b34b9d5251ce",
     "evidence_refs": [
-      "EV-YP1-COMBINED-SHELL-AND-SUPPORT-SCHEDULE-20261125",
-      "EV-WINDOWS-EXCLUSIVE-GATEWAY-HISTORY-20261125"
+      "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
     ],
-    "engineering_release": "NOT_READY",
-    "tested_local_commits": [
-      "d64dde587e519bb859ea5c44f918714637de6dc4",
-      "79499ed0fbf459b7ca9db61f26e256f02d53705b"
-    ]
+    "engineering_release": "NOT_READY"
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
@@ -12822,6 +12817,442 @@
         ".receipts/verification/wall-audit-20261125/check-native-ratios.py": "89817f53420ab67f144981bbd9a7a44598204f2de96a73628f773dc684bce6ec",
         ".receipts/verification/wall-audit-20261125/independent-result.json": "ad0c8f6b03466c23c9e172f90ade2c37fa60f6b0b8e1db29cdda0e5cc629fda7"
       }
+    },
+    {
+      "id": "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125",
+      "status": "SEALED_CALCULATION_AND_FIVE_SUPERVISOR_CANDIDATES",
+      "tested_base_commit": "53e2289f8832b30972ebe56779e4a2a0eb719a8e",
+      "implementation_commit": "4b62a73808040003a42c437d1614a1189230ff7e",
+      "gateway_implementation_commit": "2c083cef285682566e9fca346826197efd95d36c",
+      "implementation_trees": {
+        "4b62a73808040003a42c437d1614a1189230ff7e": "4dc5df912503305b3d59e1ad5e594f370d1437b7",
+        "2c083cef285682566e9fca346826197efd95d36c": "8eb757f1fe5c3300f9dddf4d9a09d9450e5e5e14"
+      },
+      "tested_files": {
+        "src/tbdy_next/archive_blobs.py": "3cb8931e26323fabb17d6b21723eafc4225ba41c",
+        "src/tbdy_next/engineering/basement_joint_layout.py": "dfb0c33715ffc515d302e824281e2e1135e12679",
+        "src/tbdy_next/engineering/basement_pier_design.py": "f95e54bf1e702f18a89edc7a00e17d70863c7d9b",
+        "src/tbdy_next/engineering/basement_pier_geometry.py": "21d6108b724f69b4d4caa0c178ab3c979518d996",
+        "src/tbdy_next/engineering/basement_wall_connection.py": "9ef20ce1d740c0edda946337b1fc3cc9ba4a68e5",
+        "src/tbdy_next/engineering/basement_wall_pressure.py": "b60d5a79717df1e21ddd644fdbb3ab20a2cb87ad",
+        "src/tbdy_next/engineering/building_design.py": "cda4e9e14577aab1b7e84ec5062cc1446fd516af",
+        "src/tbdy_next/engineering/column_effective_length.py": "4f3fe52d36afc8055fd5032e580b92793eac60b8",
+        "src/tbdy_next/engineering/column_r08_local_live.py": "f7d6504460372b82893f985db230b61d6be22ab4",
+        "src/tbdy_next/engineering/column_r14_closure.py": "6fcbdf57c6abbb8ad83aa54fc8f2e042c0ecb649",
+        "src/tbdy_next/engineering/frame_storey_design.py": "ba94139438a4faf0cc2e43d31fec4f606d258b90",
+        "src/tbdy_next/engineering/g1_contract.py": "14489d2a4c574ba9b831f6db466be6bce4ea2d71",
+        "src/tbdy_next/engineering/pipeline.py": "b42d2f62129c66fc18cda143a618d32ce4a14526",
+        "src/tbdy_next/engineering/second_order_basis.py": "097e9630a93bbdf072dc01c56968cbc22c545bc0",
+        "src/tbdy_next/engineering/wall_pressure_shell.py": "31bbcb725e22789e1e85fa336aa5a199d5133b7d",
+        "src/tbdy_next/engineering/wall_shell_section.py": "ef1a66c25098421fb5f99435e6ee2b77b6268193",
+        "src/tbdy_next/engineering/wall_support_edge.py": "e1b24330afb74f4e7d8ece73758dae098a1d61bb",
+        "src/tbdy_next/history_catalog.py": "41cf0be31e3b608a9d8a19e39b2548f8267fdc38",
+        "src/tbdy_next/reporting.py": "c9fe235956676a3974d200cb21681ef6555aa106",
+        "src/tbdy_next/web.py": "a0e9b7b7821b34568a69c25b42b3bcd796387187",
+        "tests/test_support_bounds_g1.py": "07ecb436f6177bec4f34b52f12e32f82908a9c62",
+        "tests/test_wall_pressure_project.py": "9ce26436b2dcf34817292e21b7dd9eabc8277b27",
+        "tests/test_web.py": "8e324e7a6214b3da12676ff0d9e5ec46c71629a1"
+      },
+      "engineering_tested_files": {
+        "src/tbdy_next/engineering/basement_joint_layout.py": "dfb0c33715ffc515d302e824281e2e1135e12679",
+        "src/tbdy_next/engineering/basement_pier_design.py": "f95e54bf1e702f18a89edc7a00e17d70863c7d9b",
+        "src/tbdy_next/engineering/basement_pier_geometry.py": "21d6108b724f69b4d4caa0c178ab3c979518d996",
+        "src/tbdy_next/engineering/basement_wall_connection.py": "9ef20ce1d740c0edda946337b1fc3cc9ba4a68e5",
+        "src/tbdy_next/engineering/basement_wall_pressure.py": "b60d5a79717df1e21ddd644fdbb3ab20a2cb87ad",
+        "src/tbdy_next/engineering/building_design.py": "cda4e9e14577aab1b7e84ec5062cc1446fd516af",
+        "src/tbdy_next/engineering/column_effective_length.py": "4f3fe52d36afc8055fd5032e580b92793eac60b8",
+        "src/tbdy_next/engineering/column_r08_local_live.py": "f7d6504460372b82893f985db230b61d6be22ab4",
+        "src/tbdy_next/engineering/column_r14_closure.py": "6fcbdf57c6abbb8ad83aa54fc8f2e042c0ecb649",
+        "src/tbdy_next/engineering/frame_storey_design.py": "ba94139438a4faf0cc2e43d31fec4f606d258b90",
+        "src/tbdy_next/engineering/g1_contract.py": "14489d2a4c574ba9b831f6db466be6bce4ea2d71",
+        "src/tbdy_next/engineering/pipeline.py": "b42d2f62129c66fc18cda143a618d32ce4a14526",
+        "src/tbdy_next/engineering/second_order_basis.py": "097e9630a93bbdf072dc01c56968cbc22c545bc0",
+        "src/tbdy_next/engineering/wall_pressure_shell.py": "31bbcb725e22789e1e85fa336aa5a199d5133b7d",
+        "src/tbdy_next/engineering/wall_shell_section.py": "ef1a66c25098421fb5f99435e6ee2b77b6268193",
+        "src/tbdy_next/engineering/wall_support_edge.py": "e1b24330afb74f4e7d8ece73758dae098a1d61bb",
+        "src/tbdy_next/history_catalog.py": "15eb34228629c7abe03a15b9faa2ebc473cd5aca",
+        "src/tbdy_next/reporting.py": "c9fe235956676a3974d200cb21681ef6555aa106",
+        "src/tbdy_next/web.py": "3ad2bece6648b384dcfd82a01d88ade78e2f6e15",
+        "tests/test_support_bounds_g1.py": "07ecb436f6177bec4f34b52f12e32f82908a9c62",
+        "tests/test_wall_pressure_project.py": "9ce26436b2dcf34817292e21b7dd9eabc8277b27",
+        "tests/test_web.py": "00d516d1b5a9bce6c8b2c92bd8397dcb1cd8c16e"
+      },
+      "run_id": "RUN-e4f718bffb7d4814a6632c3c6c39e462",
+      "captured_at_utc": "2026-11-25T16:03:57.770554+00:00",
+      "source_collection_run": "RUN-3bb6a4d5d57c4af8af503a20c4d69bbd",
+      "comparison_run": "RUN-b7fa070c19ab4a74b29c9e89732b49db",
+      "input_sha256": "10b2a06edbc656bc6e8972ec542209f8dd904cc9ee088165ab3c92f87a043033",
+      "results_sha256": "02de6f021da55d9d01daa7d74224b4475b9670717af42fea8988b34b9d5251ce",
+      "snapshot_sha256": "e3d280531c21064b0696f2c3ef22db3c90e95aa7af1afb7964c3fff7673c2aa9",
+      "archived_snapshot_bytes_sha256": "e3091b65300e95c6a7804088de04c82a0a2f589114a37ef75f58e9a5e126338a",
+      "report_sha256": "791fac8299d657babf3b8a27bc5730a912809c6a8ef1cd8284565be5418aa57a",
+      "method": {
+        "configuration_file_count": 9,
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 182,
+        "package_sha256": "2cc6029d814f320eae5ab497f2df823fffcdfc6945f7a9be594effd35b60d704",
+        "python_implementation": "CPython",
+        "python_version": "3.12.10"
+      },
+      "same_method_resolution": {
+        "axes_compared": 146,
+        "mismatches": 0
+      },
+      "column_status_counts": {
+        "conditional": 65,
+        "failed": 4,
+        "hold": 18
+      },
+      "storeys": {
+        "+0.00": {
+          "conditional": 10,
+          "expected": 32,
+          "failed": 4,
+          "hold": 18
+        },
+        "+4.50": {
+          "conditional": 32,
+          "expected": 32,
+          "failed": 0,
+          "hold": 0
+        },
+        "+9.00": {
+          "conditional": 23,
+          "expected": 23,
+          "failed": 0,
+          "hold": 0
+        }
+      },
+      "held": {
+        "TS500_APPROXIMATE_METHOD_SLENDERNESS_LIMIT_EXCEEDED": 4,
+        "ETABS_WALL_COUPLED_COLUMN_MESH": 14
+      },
+      "calibrated_c29": {
+        "142": {
+          "unchanged": {
+            "stiffness_and_euler": true,
+            "magnified_selected_pmm": true,
+            "spectral_envelope_pmm_scenario": true,
+            "combination_scenarios": true
+          },
+          "k": {
+            "M2": 2.059751753394436,
+            "M3": 2.136764472987283
+          },
+          "static_pmm": 0.2954701269355598,
+          "spectral_pmm": 0.35390614507784507
+        },
+        "225": {
+          "unchanged": {
+            "stiffness_and_euler": true,
+            "magnified_selected_pmm": true,
+            "spectral_envelope_pmm_scenario": true,
+            "combination_scenarios": true
+          },
+          "k": {
+            "M2": 1.622653335114175,
+            "M3": 1.6458169575893096
+          },
+          "static_pmm": 0.21346890100317067,
+          "spectral_pmm": 0.3569079182765889
+        }
+      },
+      "foundation_failures": {
+        "C21": {
+          "gross_depth_sufficient": false,
+          "model_depth_mm": 600.0,
+          "required_mm": 800.0
+        },
+        "C22": {
+          "gross_depth_sufficient": false,
+          "model_depth_mm": 600.0,
+          "required_mm": 800.0
+        },
+        "C23": {
+          "gross_depth_sufficient": false,
+          "model_depth_mm": 600.0,
+          "required_mm": 800.0
+        },
+        "C24": {
+          "gross_depth_sufficient": false,
+          "model_depth_mm": 600.0,
+          "required_mm": 800.0
+        }
+      },
+      "mat_sway": {
+        "Y": {
+          "sigma_nk_min_kn": 162096.45494176762,
+          "sigma_nd_max_kn": 50287.92897216914,
+          "ratio": 0.31023460069027936,
+          "beta_s_max": 1.6758980182269483,
+          "using_local_Ec_max_ratio": 0.3174494871755292,
+          "using_local_Ec_beta_s_max": 1.702661884820439
+        },
+        "X": {
+          "sigma_nk_min_kn": 178892.51701532252,
+          "sigma_nd_max_kn": 50287.92897216914,
+          "ratio": 0.2811069451712274,
+          "beta_s_max": 1.5758926963108808,
+          "using_local_Ec_max_ratio": 0.2876444322700651,
+          "using_local_Ec_beta_s_max": 1.5972852844733756
+        }
+      },
+      "mat_compression_column_count": 32,
+      "mat_positive_euler_column_count": 18,
+      "euler_credit_for_wall_coupled_columns_and_shells": 0,
+      "mat_e_modulus_mpa": 34000,
+      "local_e_modulus_comparison_mpa": 33227.25929507375,
+      "finite_mat_sensitivity": {
+        "member_labels": [
+          "C1",
+          "C2",
+          "C5",
+          "C37"
+        ],
+        "lower_alpha": [
+          1,
+          10
+        ],
+        "hinge_slenderness": 106.56686529462769,
+        "static_rows_per_member_and_branch": 9,
+        "seismic_corners_per_member_and_branch": 192,
+        "max_static_utilization": 0.28910768108314827,
+        "max_spectral_corner_utilization": 0.5048860460345191,
+        "engineering_release": "NOT_READY",
+        "sha256": "f864f03c11852090c627e5e002d0489ecc3d195fe39a89b7cd0a049d69735648",
+        "same_cage_shear_and_confinement_in_sealed_run": {
+          "C1": {
+            "member_id": "235",
+            "selected_cage_sha256": "605a27fbf78c4147b022c4dcfc447b6e930ed82d042c9579d882d5293dc44076",
+            "confinement_status": "SCHEDULE_CALCULATED",
+            "shear": {
+              "max_ve_ts500_utilization": 0.48971963134277063,
+              "max_ve_zero_concrete_utilization": 0.6702270455494107,
+              "max_spectral_brittle_utilization": 0.28724588101422976,
+              "max_spectral_resistance_utilization": 0.5879784022710257
+            },
+            "joint_shear_utilization": 0.4376816515132116,
+            "sealed_r14_status": "R14_PARTIAL_OR_UNBOUND"
+          },
+          "C2": {
+            "member_id": "236",
+            "selected_cage_sha256": "c204d9cd258ae742a94dc0da7b53675f1984f7d040e61441ce90b4269c0c6bdd",
+            "confinement_status": "SCHEDULE_CALCULATED",
+            "shear": {
+              "max_ve_ts500_utilization": 0.5060533749290608,
+              "max_ve_zero_concrete_utilization": 0.6980444085540423,
+              "max_spectral_brittle_utilization": 0.29336449432297823,
+              "max_spectral_resistance_utilization": 0.5915408330355544
+            },
+            "joint_shear_utilization": 0.5362118811192662,
+            "sealed_r14_status": "R14_PARTIAL_OR_UNBOUND"
+          },
+          "C5": {
+            "member_id": "239",
+            "selected_cage_sha256": "69f2c8cece573bbefe56fc87b3887986b2aafde241d7d018617c5055ec9454b0",
+            "confinement_status": "SCHEDULE_CALCULATED",
+            "shear": {
+              "max_ve_ts500_utilization": 0.4757996477374894,
+              "max_ve_zero_concrete_utilization": 0.6474095710528598,
+              "max_spectral_brittle_utilization": 0.27702249962883074,
+              "max_spectral_resistance_utilization": 0.5685435878616112
+            },
+            "joint_shear_utilization": 0.42108708652692867,
+            "sealed_r14_status": "R14_PARTIAL_OR_UNBOUND"
+          },
+          "C37": {
+            "member_id": "240",
+            "selected_cage_sha256": "8f70bfa60c4862cc2146e287241f4782019010ac3ac0b5984f2713ce55b3f7cc",
+            "confinement_status": "SCHEDULE_CALCULATED",
+            "shear": {
+              "max_ve_ts500_utilization": 0.45657848481726276,
+              "max_ve_zero_concrete_utilization": 0.6167262893803589,
+              "max_spectral_brittle_utilization": 0.2661930138156877,
+              "max_spectral_resistance_utilization": 0.6086058599834093
+            },
+            "joint_shear_utilization": 0.445978934006353,
+            "sealed_r14_status": "R14_PARTIAL_OR_UNBOUND"
+          }
+        }
+      },
+      "coverage": {
+        "physical_wall_schedule": [
+          17,
+          30
+        ],
+        "approved_panels": 0,
+        "checks_before": [
+          57,
+          50,
+          32
+        ],
+        "checks_after": [
+          57,
+          50,
+          33
+        ],
+        "basement": {
+          "additional_static_cuts_evaluated": 8,
+          "additional_static_pressure_end_combinations": 44,
+          "assigned_cuts_evaluated": 52,
+          "assigned_cuts_expected": 78,
+          "assigned_pressure_end_combinations_evaluated": 286,
+          "assigned_pressure_end_combinations_expected": 442,
+          "assigned_pressure_panel_combinations_evaluated": 221,
+          "assigned_pressure_panel_combinations_expected": 221,
+          "balanced_interior_nodal_states": 770,
+          "checked_interior_nodal_states": 770,
+          "combined_membrane_checks": 972,
+          "independent_shell_body_reference_combinations": 78,
+          "initial_column_only_shortfalls": 0,
+          "native_edge_combinations": 330,
+          "physical_panels": 17,
+          "physical_pressure_ends_checked": 22,
+          "physical_pressure_ends_expected": 34,
+          "physical_pressure_ends_satisfied": 12,
+          "same_cage_plate_checks": 972,
+          "same_cage_pmm_cuts": 330,
+          "scheduled_panels": 5
+        },
+        "yP2_unique_interior_states": 140,
+        "yP2_max_component_residual_kn_or_knm": 5.732125885060668e-11,
+        "W29_dowel_ratios": {
+          "I": 0.794328372505553,
+          "J": 0.7325210875079738
+        },
+        "yP2_open": {
+          "W143": "PROPOSED_PRESSURE_BARS_CLASH",
+          "W50": "ALL_INCIDENT_PRESSURE_END_DETAILS_REQUIRED",
+          "W55": "DOWEL_OR_ANCHORAGE_LAYOUT_REQUIRED",
+          "W31": "DOWEL_OR_ANCHORAGE_LAYOUT_REQUIRED",
+          "W62": "DOWEL_OR_ANCHORAGE_LAYOUT_REQUIRED",
+          "W65": "DOWEL_OR_ANCHORAGE_LAYOUT_REQUIRED"
+        }
+      },
+      "g1": {
+        "contract_sha256": "a1e32f42e77bc32ee6bcf97277702c74623bb28022857a79148a8ec268bd54e3",
+        "contract_file_sha256": "8c5b53e01e9a7a3fe10e032a8c79a6601fbba4cea0d575e4a73e9a1cb34b7e1d",
+        "candidate_gaps": [
+          "GAP-001",
+          "GAP-002",
+          "GAP-003",
+          "GAP-004",
+          "GAP-007"
+        ],
+        "formal_closed": 0,
+        "supervisor_decision": "PENDING",
+        "standards": [
+          "TBDY 2018",
+          "TS 500:2000"
+        ],
+        "version": "23.2.0",
+        "unit_code": 6,
+        "selection_restoration_checks": 13,
+        "operator_counts": {
+          "Linear Add": 31,
+          "Envelope": 5
+        },
+        "signed_linear_add": {
+          "combinations": [
+            "Grav_TempNeg",
+            "Grav_TempPos",
+            "Grav_Ult"
+          ],
+          "cuts": 402,
+          "components": [
+            "P",
+            "V2",
+            "V3",
+            "T",
+            "M2",
+            "M3"
+          ],
+          "compared": 7236,
+          "matched": 7236,
+          "absolute_tolerance": "1/1000000000",
+          "relative_tolerance": "1/1000000000000",
+          "max_absolute_error": 7.12e-13,
+          "paired_fraction_rows_sha256": "e2c9d0a1cd8dd60e16ca0d5f27cbb0fccdfc959eb4de984be87efe0653cbc0a2"
+        },
+        "original_edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+        "solver_log_sha256": "1d2a38011092e04bd59f6da411e44fa775dc9b7b7b5ce0fcd9d71fb97539a6db",
+        "matched_pier_components": 11700,
+        "independent_original_generation_attestation": false
+      },
+      "live_print": {
+        "before_gateway_correction_ms": [
+          136.203,
+          12.412,
+          52.17,
+          43.911,
+          30.059,
+          31.311,
+          53.438,
+          16.935
+        ],
+        "after_gateway_correction_ms": [
+          69.193,
+          20.896,
+          33.107,
+          57.968,
+          39.504,
+          18.559,
+          19.98,
+          58.223
+        ],
+        "response_bytes": 8045505,
+        "pid": 31640,
+        "all_bodies_sha256": "791fac8299d657babf3b8a27bc5730a912809c6a8ef1cd8284565be5418aa57a",
+        "isolated_cold_http_ms": 38.753
+      },
+      "verification": {
+        "full_offline_invocations": 1,
+        "whole_building_invocations": 1,
+        "live_etabs_connections": 0,
+        "private_edb_solves": 0,
+        "python_discovered": 1789,
+        "python_skipped": 1,
+        "initial_failure_count": 7,
+        "initial_python_seconds": 408.382,
+        "corrected_named_cases": 7,
+        "corrective_recheck_passed": 8,
+        "gateway_identity_tests_passed": 2,
+        "node_files_passed": 12,
+        "golden_counts": {
+          "NUMERICAL_MATCH": 36,
+          "ENGINEERING_INTERPRETATION_DIFFERENCE": 4,
+          "INSUFFICIENT_SOURCE": 4
+        },
+        "golden_exit": 3,
+        "note": "The single full invocation stopped at the Python regression stage. All seven original failures passed named rechecks. Compilation, Node and golden stages completed separately. The gateway-only identity tests followed the sealed calculation."
+      },
+      "commands": [
+        ".venv/Scripts/python.exe -B tools/test_offline.py",
+        ".venv/Scripts/python.exe -X utf8 -B -m tbdy_next.cli run-pipeline --whole-building --case Modal --source .receipts/RUN-3bb6a4d5d57c4af8af503a20c4d69bbd/input.source --out .receipts",
+        "Get the stored printable HTML at port 8876 over eight independent HTTP connections. Time to final byte, then verify SHA-256."
+      ],
+      "private_evidence_sha256": {
+        ".receipts/verification/g1-20261125-acceptance.json": "da78653bf209897380b1c33ba771eee382d1d874f2fce988a7208a8c27cbfdca",
+        ".receipts/verification/g1-20261125-mat-corners.json": "ac5dce1e082d4fca35fb466166436edeb508fef04a3c65278eafbac7728f4bfb",
+        ".receipts/verification/g1-20261125-finite-mat-sensitivity.json": "195e363abb903cd823ec2ab95ea8d304c6685690d4f9915fe9ebdb9dd3cfcce4",
+        ".receipts/verification/g1-20261125-live-print.json": "cb441e7b676979b205d6ebf1c1ff718290586fc7bd530bb4e0cf10fe9dcae781",
+        ".receipts/verification/g1-20261125-live-print-restart.json": "2ef1c874312b5ac51531c17c9178d55b14068149b53e3a0c03dddfb778a7e059",
+        ".receipts/verification/g1-20261125-cold-print.json": "a207ca18d818e1f551d9b1c20a9a49b8f711dda8f74419e57c3be5fc1d5ab9d0",
+        ".receipts/verification/g1-20261125-final-tests.log": "9938bacbd65f3b5ac48cca1c74b1a6f3ab3363201ea18e3d6861e12b486cd64e",
+        ".receipts/verification/g1-20261125-targeted-recheck.log": "89c24eae15ae5276713f34d1344f931baae0114fc24a66be076e74daad91b823",
+        ".receipts/verification/g1-20261125-remaining-offline-stages.log": "014da3b07431af0f20b01825161465d0e1ebf4b1b9aeb11f9d4babf1bba40200",
+        ".receipts/verification/g1-20261125-final-pipeline.log": "e897f7c7cc8743832306b92f16ced58ca7eb22a5ec02883961c323b6b038114e",
+        ".receipts/verification/g1-20261125-audit.py": "2960f5d1088d051910de031b0bdaeac4c4fd6b404bf863f1c8ca9f194162d294",
+        ".receipts/verification/g1-20261125-mat-corners.py": "44102c8b90a034328901ee173c54253015b67cbd9541e5ccf5f42e564858de88",
+        ".receipts/verification/g1-20261125-finite-mat.py": "a5374477f4b043ff1591e02ab198fc44ed3d59d3dc8be2eca038eb31c4fb00da"
+      },
+      "limits": [
+        "Storey stability uses frame-column compression and native E1. The coupled global wall-frame critical load is unresolved.",
+        "The drawing schedule excludes all six yP2 panels. Source-bound equilibrium does not qualify a bar path.",
+        "A real mat hinge exceeds the TS 500 approximate slenderness limit in four independent columns. The finite interval is a separate calculation assumption."
+      ],
+      "formal_compliance": "NOT_PROVEN",
+      "engineering_release": "NOT_READY"
     }
   ],
   "new_record_template": {
@@ -12846,7 +13277,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-25T15:04:22+00:00",
+  "updated_at_utc": "2026-11-25T16:19:02+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -13721,6 +14152,29 @@
         "EV-ORIGINAL-ETABS-PROJECT-DEFAULTS-20261124"
       ],
       "engineering_release": "NOT_READY"
+    },
+    {
+      "status": "FIVE_SUPPORTED_YP1_PANELS_SCHEDULED_AND_WINDOWS_GATEWAY_VERIFIED",
+      "work_branch": "work/wall-membrane-and-gateway",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "5b407f5b1bf0c4cb908c0ccbcc9aa08d81e84057",
+      "calculation_implementation_commit": "950c7cfaacfa8cb7e935f09bcf013f065d58ed82",
+      "gateway_implementation_commit": "c21a8c4cfedd0a30d6eb063760591fec5b31113a",
+      "tested_git_subtrees": {
+        "src": "98a08210be3843105173cc724b0ef4842783087f",
+        "tests": "487f54b1167f0358a2bb10370a8cdc548441a0c1"
+      },
+      "production_run_id": "RUN-b7fa070c19ab4a74b29c9e89732b49db",
+      "results_sha256": "6daf6669f778b08119e2979a89efc7a8b91bba987fe8c0591b63b964cb19a3ba",
+      "evidence_refs": [
+        "EV-YP1-COMBINED-SHELL-AND-SUPPORT-SCHEDULE-20261125",
+        "EV-WINDOWS-EXCLUSIVE-GATEWAY-HISTORY-20261125"
+      ],
+      "engineering_release": "NOT_READY",
+      "tested_local_commits": [
+        "d64dde587e519bb859ea5c44f918714637de6dc4",
+        "79499ed0fbf459b7ca9db61f26e256f02d53705b"
+      ]
     }
   ],
   "remote_audit_correction_checkpoint": {
