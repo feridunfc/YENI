@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-24T19:33:36+00:00",
+  "updated_at_utc": "2026-11-25T15:04:22+00:00",
   "repository": "feridunfc/YENI",
-  "baseline_implementation_commit": "a58b22de1c7eed3d0080170daececd062622642b",
+  "baseline_implementation_commit": "c21a8c4cfedd0a30d6eb063760591fec5b31113a",
   "local_reconciled": true,
-  "scope_note": "The original basement satisfies both period ratios in §3.3.1.1(b). The three-sided return path is continuous only in the upper W22 band. Original 300/300 signed modal and 6/6 static wall-and-column cuts balance at three datums. The wall batch retains 390 assigned faces per reference check, 12/30 scheduled panels and four conditional rectangular stacks. yP1 has 300 two-way plate checks, 150 separate cut PMM bounds and six checked shared support layouts. Combined shell and interface demand remains open. The wall opening batch calculates 14 physical face-combination resultants and balances seven W22 free bodies. All 14 field controls exceed tolerance on one or more components.",
+  "scope_note": "The original basement meets both period ratios in §3.3.1.1(b). Only the upper W22 band has a continuous three-sided return. The original 300 signed modal and six static storey and direction checks balance across the three datums. Each wall reference covers 390 assigned faces. The proposed wall schedules now cover 17/30 panels, including 12 panels in four rectangular stacks and the five yP1 panels. Their selected grids pass 300 combined shell, 300 plate, 150 cut PMM and 150 edge checks on six support layouts. The W22 opening has 14 recovered face-combination resultants, seven balanced free bodies and zero of 14 field controls within tolerance.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -33,7 +33,7 @@
     "GAP-018",
     "GAP-006"
   ],
-  "active_task": "Use the confirmed original DD-2 profile and sealed yP1 two-way cage. Resolve combined membrane and plate actions at the same shell corners and verify native support-edge resultants on both sides of each wall-column joint. Keep 300 plate checks, 150 cut PMM bounds and six support layouts. Resume xP2 or the uncolumned yP2 end from its own existing work package.",
+  "active_task": "Prepare project-qualified source and combination contracts for GAP-001, 002, 003, 004 and 007. Calculate restraint envelopes for the 13 held mat-supported and 14 held wall-supported columns using the existing second-order owners. For the next wall schedule, develop and check a common wall-to-wall corner detail for the six yP2 panels. The W22 transfer and W32 load path remain separate.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -866,8 +866,8 @@
       "title": "Wall/pier factor and wall design",
       "status": "PARTIAL",
       "priority": "P1",
-      "achieved_scope": "Both ends of 12/30 physical wall objects have conditional rectangular boundary longitudinal and transverse designs in the building run. P2–P5 have continuous shared-edge stacks. Their critical zones are retained over all three storeys in the proposal, with 16 to 24 Ø14 per end, Ø10/80 hoops and crossties checked separately in both directions. The same twelve panels now have a calculated double-curtain web and fixed-axial biaxial capacities at both ends for all five native wall static assignments. All eight native wall seismic assignments have sufficient local in-plane shear bounds for both classifications under 7.6.6.3. The original eight native wall assignments now produce 192 conditional full-interval PMM, heightwise moment, shear and axial section designs. All 96 construction joint combinations and 96 floor moment-strength combinations under §7.6.6.2 satisfy their bounds. The engine also calculates the physical web crossties on all 12 panels. The saved workspace and printable report expose the same results. Five original basement panels in yP1 now carry selected two-face proposed grids, with 30/30 pier-end bounds, 150/150 net-web PMM checks and 75/75 horizontal pressure panel combinations. A single building action evaluates every pier and storey. The original has 390/390 net-area compression, reference web shear and rough-plane friction checks and 30 directional bending amplitudes. Ten yP1 wall ends now have a calculated proposed anchorage and pressure transfer. Original signed shell and column cuts balance six actions in each of 300/300 modal and 6/6 static storey cases. Six conditional wall shear and common-origin moment shares are calculated. W32/471 participates once in the foundation cut. The boundary calculation identifies 17 panels sharing elevations. Its former combined warning also covered a change of shell thickness. The same building run now solves both §3.3.1.1(b) ratios from the original stiffness, 1.026893 in X and 1.020456 in Y, and traces the enclosure across both physical basement bands. Original xP2 opening sections, signed C104 jamb actions, W22 pressure and self-weight, and seven equilibrated panel transfer results are available in the sealed wall batch. Five original yP1 panels have 300/300 two-way plate references, 150/150 proposed-cage pier-end PMM bounds, and ten straight pressure bar entries at six compatible support layouts.",
-      "blocker": "The project overturning decision needs §3.3.1.1(a) enclosure at the lower W22 opening, wall grouping and design eccentricity. W32/471 shares full edges with W31/470, W55/464 and W6/472. Its design load path needs qualification. xP2 has five to six constant-thickness panels across two elevation bands. yP2's end without a registered column needs a wall-to-wall transfer model. As-built reinforcement, interface conditions, combined local membrane and bending, shear and torsion, and native support-edge transfer remain open.",
+      "achieved_scope": "Both ends of 12/30 physical wall objects have conditional rectangular boundary longitudinal and transverse designs in the building run. P2–P5 have continuous shared-edge stacks. Their critical zones are retained over all three storeys in the proposal, with 16 to 24 Ø14 per end, Ø10/80 hoops and crossties checked separately in both directions. The same twelve panels now have a calculated double-curtain web and fixed-axial biaxial capacities at both ends for all five native wall static assignments. All eight native wall seismic assignments have sufficient local in-plane shear bounds for both classifications under 7.6.6.3. The original eight native wall assignments now produce 192 conditional full-interval PMM, heightwise moment, shear and axial section designs. All 96 construction joint combinations and 96 floor moment-strength combinations under §7.6.6.2 satisfy their bounds. The engine also calculates the physical web crossties on all 12 panels. The saved workspace and printable report expose the same results. Five original basement panels in yP1 now carry selected two-face proposed grids, with 30/30 pier-end bounds, 150/150 net-web PMM checks and 75/75 horizontal pressure panel combinations. A single building action evaluates every pier and storey. The original has 390/390 net-area compression, reference web shear and rough-plane friction checks and 30 directional bending amplitudes. Ten yP1 wall ends now have a calculated proposed anchorage and pressure transfer. Original signed shell and column cuts balance six actions in each of 300/300 modal and 6/6 static storey cases. Six conditional wall shear and common-origin moment shares are calculated. W32/471 participates once in the foundation cut. The boundary calculation identifies 17 panels sharing elevations. Its former combined warning also covered a change of shell thickness. The same building run now solves both §3.3.1.1(b) ratios from the original stiffness, 1.026893 in X and 1.020456 in Y, and traces the enclosure across both physical basement bands. Original xP2 opening sections, signed C104 jamb actions, W22 pressure and self-weight, and seven equilibrated panel transfer results are available in the sealed wall batch. Five yP1 panels add five proposed schedules for a total of 17/30. Their selected two-face cages satisfy 300/300 combined shell checks, 300/300 plate references, 150/150 pier-end PMM bounds and 150/150 edge checks. All 350 signed interior nodal states balance. Six support layouts fit, including the continuous W27–C221–W28 bar.",
+      "blocker": "The project overturning decision needs §3.3.1.1(a) enclosure at the lower W22 opening, wall grouping and design eccentricity. W32/471 shares full edges with W31/470, W55/464 and W6/472. Its design load path needs qualification. xP2 has five to six constant-thickness panels across two elevation bands. yP2's end without a registered column needs a wall-to-wall transfer model. W22 design-force accuracy and reinforcement continuity remain open. The yP1 details and design interface assumptions await project acceptance. As-built reinforcement has yet to be verified.",
       "closure_criteria": "Complete the real wall topology/forces, normative calculation, independent oracle and sealed-report slice.",
       "owner_paths": [
         "src/tbdy_next/wall_geometry.py",
@@ -909,7 +909,8 @@
         "EV-BASEMENT-PERIOD-PAIR-20261124",
         "EV-WALL-OPENING-SECTIONS-20261124",
         "EV-WALL-GOVERNING-DESIGN-VIEW-20261124",
-        "EV-YP1-TWO-WAY-SHELL-AND-SUPPORTS-20261124"
+        "EV-YP1-TWO-WAY-SHELL-AND-SUPPORTS-20261124",
+        "EV-YP1-COMBINED-SHELL-AND-SUPPORT-SCHEDULE-20261125"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -1132,6 +1133,21 @@
         "support_layouts": 6,
         "scheduled_physical_wall_panels": 12,
         "expected_physical_wall_panels": 30
+      },
+      "basement_combined_20261125": {
+        "evidence_ref": "EV-YP1-COMBINED-SHELL-AND-SUPPORT-SCHEDULE-20261125",
+        "run": "RUN-b7fa070c19ab4a74b29c9e89732b49db",
+        "corner_combination_states": 9360,
+        "combined_shell_checks": 300,
+        "plate_checks": 300,
+        "pier_end_pmm": 150,
+        "wall_column_edge_checks": 150,
+        "interior_static_states_balanced": 350,
+        "support_layouts": 6,
+        "c221_required_bond_mm": 739.0741869924502,
+        "scheduled_physical_wall_panels": 17,
+        "expected_physical_wall_panels": 30,
+        "project_approved_wall_panels": 0
       }
     },
     {

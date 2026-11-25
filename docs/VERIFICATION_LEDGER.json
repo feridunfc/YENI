@@ -1,7 +1,7 @@
 {
   "schema": "yeni.project-memory.verification-ledger.v2",
   "repository": "feridunfc/YENI",
-  "updated_on": "2026-11-24",
+  "updated_on": "2026-11-25",
   "purpose": "Durable evidence index. It is not a source receipt or formal engineering acceptance.",
   "workflow": {
     "primary_workspace": "LOCAL_CODEX",
@@ -19,27 +19,34 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "ORIGINAL_DD2_PHYSICAL_HEIGHT_AND_SPECTRUM_INPUT_REVIEW",
-    "work_branch": "work/project-input-review",
+    "status": "FIVE_SUPPORTED_YP1_PANELS_SCHEDULED_AND_WINDOWS_GATEWAY_VERIFIED",
+    "work_branch": "work/wall-membrane-and-gateway",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "04430aa07fbc776de46d2c59ec8e742dd0c18fdb",
+    "inspected_base_commit": "5b407f5b1bf0c4cb908c0ccbcc9aa08d81e84057",
+    "calculation_implementation_commit": "950c7cfaacfa8cb7e935f09bcf013f065d58ed82",
+    "gateway_implementation_commit": "c21a8c4cfedd0a30d6eb063760591fec5b31113a",
     "tested_git_subtrees": {
-      "src": "8aba1c1af34669a42876bc88ccc579713a615d46",
-      "tests": "c04ad5101838244186e4547087e528254ea279e4"
+      "src": "98a08210be3843105173cc724b0ef4842783087f",
+      "tests": "487f54b1167f0358a2bb10370a8cdc548441a0c1"
     },
-    "production_run_id": "RUN-22cf1ad131f94aba9a72c1d0ae96c5ed",
-    "results_sha256": "7fb03fc7ce768d382eb67afe7eaf67b3945a246ba15f9df0e21452fafb5c77af",
+    "production_run_id": "RUN-b7fa070c19ab4a74b29c9e89732b49db",
+    "results_sha256": "6daf6669f778b08119e2979a89efc7a8b91bba987fe8c0591b63b964cb19a3ba",
     "evidence_refs": [
-      "EV-ORIGINAL-DD2-PROJECT-INPUT-REVIEW-20261124"
+      "EV-YP1-COMBINED-SHELL-AND-SUPPORT-SCHEDULE-20261125",
+      "EV-WINDOWS-EXCLUSIVE-GATEWAY-HISTORY-20261125"
     ],
-    "engineering_release": "NOT_READY"
+    "engineering_release": "NOT_READY",
+    "tested_local_commits": [
+      "d64dde587e519bb859ea5c44f918714637de6dc4",
+      "79499ed0fbf459b7ca9db61f26e256f02d53705b"
+    ]
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
-    "commit_sha": "a58b22de1c7eed3d0080170daececd062622642b",
-    "git_tree_sha": "225112795659ce8e40ebf0f5d875ab0b0023f2e4",
-    "observed_on": "2026-11-24",
-    "scope": "Integrated native two-way pressure and support detail implementation. Subsequent evidence commit advances the branch."
+    "commit_sha": "c21a8c4cfedd0a30d6eb063760591fec5b31113a",
+    "git_tree_sha": "f194eeb1a9ce31f1b4319211c38942cdec10acdb",
+    "observed_on": "2026-11-25",
+    "scope": "Published Windows gateway and supported yP1 wall calculation. GitHub and the tested local commits have identical trees. The evidence-only handoff follows this commit."
   },
   "record_policy": {
     "append_new_ids": true,
@@ -12411,6 +12418,410 @@
         "The proposed coordinates check curtain bars and separate dowels against the selected column longitudinal bars and incident pressure bars. As-built steel, hoop/crosstie hook paths and placement tolerances require construction detail."
       ],
       "engineering_release": "NOT_READY"
+    },
+    {
+      "id": "EV-WINDOWS-EXCLUSIVE-GATEWAY-HISTORY-20261125",
+      "status": "VERIFIED_WINDOWS_LOOPBACK_HISTORY_AND_REPORT",
+      "implementation_commit": "c21a8c4cfedd0a30d6eb063760591fec5b31113a",
+      "code_git_tree": "f194eeb1a9ce31f1b4319211c38942cdec10acdb",
+      "live_port": 8876,
+      "live_process_id": 39000,
+      "live_code_commit": "d64dde587e519bb859ea5c44f918714637de6dc4",
+      "live_workspace_sha256": "46f680b423d8a35a558910e85b1ad1775c7db95c010e69473c407b5edd3be5b1",
+      "live_history": {
+        "rows_per_request": 20,
+        "first_request_before_startup_preload_ms": 1985.537,
+        "next_seven_ms": [
+          1.997,
+          2.469,
+          1.82,
+          1.464,
+          1.826,
+          17.184,
+          1.517
+        ],
+        "run_listed": true
+      },
+      "fresh_service_after_startup_change": {
+        "time": "2026-11-25T14:55:13.103527+00:00",
+        "method": "Production web.serve on an ephemeral Windows loopback port using the project receipt directory; the client observed listen readiness.",
+        "git": "79499ed0fbf459b7ca9db61f26e256f02d53705b",
+        "workspace_sha256": "46f680b423d8a35a558910e85b1ad1775c7db95c010e69473c407b5edd3be5b1",
+        "startup_ms": 2015.327,
+        "request_ms": [
+          17.694,
+          15.595,
+          1.319,
+          15.136,
+          15.784,
+          15.639,
+          15.729,
+          17.156
+        ],
+        "counts": [
+          20,
+          20,
+          20,
+          20,
+          20,
+          20,
+          20,
+          20
+        ],
+        "duplicate_bind_winerror": 10048
+      },
+      "live_printable_report": {
+        "run_id": "RUN-b7fa070c19ab4a74b29c9e89732b49db",
+        "url_path": "/report/print?run_id=RUN-b7fa070c19ab4a74b29c9e89732b49db",
+        "bytes": 7561460,
+        "sha256": "d3a113ac79ba8084ab15e725a161f8723fbc097b73162900079bbdbdde2cb082",
+        "disk_sha256": "344b45381fcb5ad53a3bd0af446e065e144b280e337d49182220a9475e42fedb",
+        "equal_after_normalizing_crlf": true,
+        "windows_file_crlf_count": 49
+      },
+      "cache_behavior": "Windows prepares the verified history before listening and invalidates cached rows on receipt directory or archive changes. File verification reuses the content hash with NTFS identity and change metadata and reads bytes where metadata is insufficient.",
+      "tests": [
+        "tests/test_verified_history_catalog.py",
+        "tests/test_vs20_column_ui.cjs through tests/test_vs26_design_ui.cjs"
+      ],
+      "private_measurements": [
+        ".receipts/verification/wall-audit-20261125/live-8876.json",
+        ".receipts/verification/wall-audit-20261125/history-startup.json",
+        ".receipts/verification/wall-audit-20261125/gateway-profile.json",
+        ".receipts/verification/wall-audit-20261125/live-workspace-8876.json"
+      ],
+      "engineering_release": "NOT_READY",
+      "tested_local_commit": "79499ed0fbf459b7ca9db61f26e256f02d53705b",
+      "verified_live_workspace": {
+        "run": "RUN-b7fa070c19ab4a74b29c9e89732b49db",
+        "workspace_sha256": "46f680b423d8a35a558910e85b1ad1775c7db95c010e69473c407b5edd3be5b1",
+        "live_asset_bytes_match_checkout": true,
+        "archive_response_bytes": 113189709,
+        "archive_response_sha256": "efa6c50983ccf1840357d7a86ac0e66150b2b8e8fa9c375f76f4d10edae4ddd1",
+        "scheduled_physical_panels": 17,
+        "physical_panels": 30,
+        "combined_checks": 300,
+        "edge_checks": 150,
+        "columns": {
+          "conditional": 42,
+          "failed": 4,
+          "hold": 41
+        }
+      },
+      "software_verification": {
+        "tested_src_git_tree": "98a08210be3843105173cc724b0ef4842783087f",
+        "tested_tests_git_tree": "487f54b1167f0358a2bb10370a8cdc548441a0c1",
+        "working_tree_at_start": "Committed implementation with unrelated untracked IDE/recipe files. Source and test trees are identical to the published commit.",
+        "windows_command": "python -X utf8 -B tools/test_offline.py",
+        "python_cases_run": 1785,
+        "python_passed": 1784,
+        "python_skipped": 1,
+        "skip_reason": "Windows disallowed creating a symlink for test_wrong_run_and_symlink_cannot_cross_source_boundary.",
+        "python_seconds": 359.876,
+        "javascript_files_passed": 12,
+        "golden": {
+          "numerical_match": 36,
+          "engineering_interpretation_difference": 4,
+          "insufficient_source": 4
+        },
+        "wheel_build_command": "python -m pip wheel --no-index --no-deps --no-build-isolation -w .receipts/verification/wall-audit-20261125/wheel-startup .",
+        "wheel_command": "python -X utf8 -B tools/test_installed_wheel.py .receipts/verification/wall-audit-20261125/wheel-startup",
+        "wheel_sha256": "03eaf0ee2608ae71ac8c6357ef5193853cac919704ffb0bb2b38e7903033dcfd",
+        "wheel_cases_passed": 531,
+        "wheel_seconds": 151.485,
+        "test_method": {
+          "python_implementation": "CPython",
+          "python_version": "3.12.10",
+          "package_sha256": "5f072d83c920ede96be139420127965e071779b98af8730396995a506643d596",
+          "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+          "file_count": 181,
+          "configuration_file_count": 9
+        },
+        "private_log_sha256": {
+          ".receipts/verification/wall-audit-20261125/windows-startup-final.log": "9bc382188820bcef79e26013ba53406a06740a298ee7497578095d596722696e",
+          ".receipts/verification/wall-audit-20261125/installed-startup-wheel.log": "b440ea2320fb6793a7d80f514e80fb02d495725785327eadf419c11cd1c2a369",
+          ".receipts/verification/wall-audit-20261125/wheel-startup-build.log": "75518dfc7c20bc156fa810c5cb5fad6fcfba232681b1d2cad8e87dd9cf4f4736"
+        }
+      }
+    },
+    {
+      "id": "EV-YP1-COMBINED-SHELL-AND-SUPPORT-SCHEDULE-20261125",
+      "status": "FIVE_SUPPORTED_YP1_PANELS_CONDITIONALLY_SCHEDULED",
+      "implementation_commit": "950c7cfaacfa8cb7e935f09bcf013f065d58ed82",
+      "code_git_tree": "6d8474dc8aa6b6cea346a1f3e8a2854f6f2e3fee",
+      "source_collection_run": "RUN-3bb6a4d5d57c4af8af503a20c4d69bbd",
+      "previous_detail_run": "RUN-b163fffecfb0459798ce21297826b8b2",
+      "run_id": "RUN-b7fa070c19ab4a74b29c9e89732b49db",
+      "captured_at_utc": "2026-11-25T14:45:10.997031+00:00",
+      "input_sha256": "10b2a06edbc656bc6e8972ec542209f8dd904cc9ee088165ab3c92f87a043033",
+      "parent_input_sha256": "703e202fc8b08f60043c571d9970945b6307e5cee99e8a45e6377c8446da56fc",
+      "original_edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+      "private_solved_edb_sha256": "317a70729bd6c160fcd1aa6a7803d781bc35f7d9a31aa6693680f6995161b38f",
+      "native_pressure_payload_sha256": "61be4b4f136fa0dbb9d91b916c95edf956e26739aa4eb139e00e9231ad4ef002",
+      "results_sha256": "6daf6669f778b08119e2979a89efc7a8b91bba987fe8c0591b63b964cb19a3ba",
+      "snapshot_sha256": "18102e66a7bf7740cd029153b5cf4bfbe0af45012fc4dcfb452ae9e8b5c2ca1e",
+      "archived_snapshot_bytes_sha256": "a43afd1fc049b4dc383a88eca3670224398b48f964e1a1443c3007577f11b627",
+      "report_sha256": "344b45381fcb5ad53a3bd0af446e065e144b280e337d49182220a9475e42fedb",
+      "method": {
+        "configuration_file_count": 9,
+        "configuration_sha256": "244536913d755dc77f372bd72f7a3f1f8ceb6d2f77837e3d73a98ab6d2c946a1",
+        "file_count": 181,
+        "package_sha256": "12855fbe9bbfee0cc80f95662f7106f7ecd55cdb7a8a5f357f6d9551150c2065",
+        "python_implementation": "CPython",
+        "python_version": "3.12.10"
+      },
+      "native_acquisition": {
+        "completed_original_cases": 15,
+        "components": [
+          "F11",
+          "F22",
+          "F12",
+          "M11",
+          "M22",
+          "M12",
+          "V13",
+          "V23"
+        ],
+        "physical_shell_objects": 18,
+        "shell_elements": 530,
+        "unaveraged_corners": 2120,
+        "boundary_nodes": 283,
+        "incident_area_objects": 34,
+        "incident_frame_objects": 40,
+        "actions_per_edge_state": 6,
+        "output_selection_restored": true,
+        "previous_etabs_file_units_lock_restored": true,
+        "original_edb_sha256_after": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15"
+      },
+      "original_controls": {
+        "rows": 1950,
+        "reported_rows": 2130,
+        "components": 11700,
+        "outside_tolerance": 0,
+        "maximum_difference": [
+          0.00010000000020227162,
+          0.00010000000111176632,
+          9.999999999621423e-05,
+          0.00010000000020227162,
+          0.00010000000000331966,
+          0.00010000000111176632
+        ],
+        "absolute_tolerance": 0.00021,
+        "relative_tolerance": 1e-07
+      },
+      "scope": {
+        "physical_wall_panels": 30,
+        "previously_scheduled": 12,
+        "currently_scheduled": 17,
+        "project_approved_wall_panels": 0,
+        "yp1_panels": 5,
+        "elements": 156,
+        "corners": 624,
+        "combinations": 15,
+        "signed_static": 7,
+        "spectral_bounds": 8,
+        "corner_combination_states": 9360,
+        "selected_cage_combined_checks": 300,
+        "selected_cage_plate_checks": 300,
+        "selected_cage_pmm_cuts": 150,
+        "edge_combinations": 150,
+        "balanced_signed_interior_states": 350,
+        "checked_signed_interior_states": 350,
+        "coordinated_column_layouts": 6,
+        "remaining_panels": {
+          "yP2": 6,
+          "xP2": 6,
+          "W32": 1
+        }
+      },
+      "proposed_curtains": {
+        "W27": {
+          "object": "443",
+          "horizontal_diameter_mm": 14,
+          "horizontal_pitch_mm": 49.568627450980394,
+          "nominal_cover_mm": 40.0,
+          "curtain_inset_mm": 9.666666670000012,
+          "vertical_diameter_mm": 12,
+          "vertical_pitch_mm": 100.0,
+          "steel_max": 0.7604262328986017,
+          "max_face_compression": 0.5193402457887213,
+          "max_core_shear": 0.5193402457887212,
+          "end_columns": [
+            "215",
+            "221"
+          ],
+          "end_anchorage": [
+            "STRAIGHT",
+            "STRAIGHT"
+          ]
+        },
+        "W28": {
+          "object": "460",
+          "horizontal_diameter_mm": 14,
+          "horizontal_pitch_mm": 49.568627450980394,
+          "nominal_cover_mm": 40.0,
+          "curtain_inset_mm": 9.666666670000012,
+          "vertical_diameter_mm": 22,
+          "vertical_pitch_mm": 199.99999999999997,
+          "steel_max": 0.7799313965855796,
+          "max_face_compression": 0.9377609163994107,
+          "max_core_shear": 0.9377609163994108,
+          "end_columns": [
+            "221",
+            "227"
+          ],
+          "end_anchorage": [
+            "STRAIGHT",
+            "STRAIGHT"
+          ]
+        },
+        "W29": {
+          "object": "461",
+          "horizontal_diameter_mm": 12,
+          "horizontal_pitch_mm": 49.568627450980394,
+          "nominal_cover_mm": 40.0,
+          "curtain_inset_mm": 11.666666670000012,
+          "vertical_diameter_mm": 12,
+          "vertical_pitch_mm": 99.99999999999949,
+          "steel_max": 0.7663160101037135,
+          "max_face_compression": 0.491605412302002,
+          "max_core_shear": 0.491605412302002,
+          "end_columns": [
+            "227",
+            "228"
+          ],
+          "end_anchorage": [
+            "STRAIGHT",
+            "STRAIGHT"
+          ]
+        },
+        "W30": {
+          "object": "463",
+          "horizontal_diameter_mm": 14,
+          "horizontal_pitch_mm": 99.13725490196079,
+          "nominal_cover_mm": 40.0,
+          "curtain_inset_mm": 9.666666670000012,
+          "vertical_diameter_mm": 16,
+          "vertical_pitch_mm": 199.9999999999999,
+          "steel_max": 0.7988724804747716,
+          "max_face_compression": 0.492295670174513,
+          "max_core_shear": 0.4922956701745128,
+          "end_columns": [
+            "228",
+            "233"
+          ],
+          "end_anchorage": [
+            "STRAIGHT",
+            "STRAIGHT"
+          ]
+        },
+        "W33": {
+          "object": "473",
+          "horizontal_diameter_mm": 14,
+          "horizontal_pitch_mm": 99.13725490196079,
+          "nominal_cover_mm": 40.0,
+          "curtain_inset_mm": 9.666666670000012,
+          "vertical_diameter_mm": 22,
+          "vertical_pitch_mm": 196.87500000000009,
+          "steel_max": 0.8241179971423888,
+          "max_face_compression": 0.9428376551403015,
+          "max_core_shear": 0.9428376551403014,
+          "end_columns": [
+            "233",
+            "241"
+          ],
+          "end_anchorage": [
+            "STRAIGHT",
+            "STRAIGHT"
+          ]
+        }
+      },
+      "steel_selection_limit": 0.85,
+      "maximum_aggregate_mm": 20.0,
+      "w28_vertical_plate": {
+        "combination": "Crack_SeisX_Soil",
+        "demand_knm_m": 152.5494740291304,
+        "resistance_knm_m": 250.9075066290606,
+        "utilization": 0.6079908731254429,
+        "previous_plate_only_utilization": 0.9972141323908722
+      },
+      "w28_core_shear": {
+        "combination": "Crack_SeisX_Soil",
+        "element": "460-19",
+        "point": "~5449",
+        "demand_kn_m": 126.92638150074947,
+        "resistance_kn_m": 135.3504707661425,
+        "utilization": 0.9377609163994108
+      },
+      "c221": {
+        "diameter_mm": 14,
+        "pitch_mm": 49.568627450980394,
+        "one_piece_length_mm": 11690.0,
+        "reversal_checks": 105,
+        "governing": {
+          "absolute_main_forces_kn_m": [
+            482.4239906756124,
+            853.0562685705886
+          ],
+          "available_bond_mm": 749.9999999999998,
+          "combination": "Crack_SeisY_Soil",
+          "point": "100",
+          "ratio": 0.9854322493232672,
+          "required_bond_mm": 739.0741869924502
+        }
+      },
+      "independent_arithmetic": {
+        "run": "RUN-b7fa070c19ab4a74b29c9e89732b49db",
+        "raw_native_file_sha256": "f4f7f212438243f530ffb0adf600437e9ad2ac6945c0cd810e3e6dda2eb276a9",
+        "panel_axes_checked": 156,
+        "corner_combination_states": 9360,
+        "combined_ratios": 300,
+        "max_absolute_ratio_difference": 3.3306690738754696e-16,
+        "plate_demands": 300,
+        "max_absolute_plate_demand_difference": 0.0,
+        "c221_development_rows": 105,
+        "max_absolute_bond_difference_mm": 0.0,
+        "method": "Signed-permutation projections from original native arrays; direct face-force bounds and compression eigenvalue; allocated face/core resistances; bond arithmetic on recorded edge demand, using the same project method."
+      },
+      "building": {
+        "columns": {
+          "conditional": 42,
+          "failed": 4,
+          "hold": 41
+        },
+        "beams": {
+          "CONDITIONAL_DESIGN_CALCULATED": 180
+        },
+        "full_check_populations": 32,
+        "partial_check_populations": 18,
+        "no_expected_population": 7,
+        "pmm_pier_storeys": 13,
+        "total_pier_storeys": 15
+      },
+      "commands": [
+        "python -X utf8 -B -m tbdy_next.cli run-pipeline --whole-building --case Modal --source .receipts/RUN-3bb6a4d5d57c4af8af503a20c4d69bbd/input.source --out .receipts",
+        "python -X utf8 -B .receipts/verification/wall-audit-20261125/check-native-ratios.py"
+      ],
+      "private_sources": [
+        ".receipts/wall-analysis-copies/5772c261eb4742d0b02ece35563a802f/pressure-pier-read.json",
+        ".receipts/RUN-b7fa070c19ab4a74b29c9e89732b49db/report.html",
+        ".receipts/verification/wall-audit-20261125/independent-result.json",
+        ".receipts/verification/wall-audit-20261125/final-pipeline.log"
+      ],
+      "limits": [
+        "The yP1 grids, reinforcement and support transfer are proposed project design details. Installation and interface condition require project acceptance.",
+        "Signed equilibrium covers interior edge nodes. Shared floor and mat endpoints use wall-side corner traction bounds. Spectral extrema are treated as component bounds.",
+        "The uncolumned yP2 end, xP2 opening and W32 load path are open. All 14 W22 field controls exceed tolerance on at least one component."
+      ],
+      "formal_compliance": "NOT_PROVEN",
+      "engineering_release": "NOT_READY",
+      "tested_local_commit": "d64dde587e519bb859ea5c44f918714637de6dc4",
+      "final_software_verification_ref": "EV-WINDOWS-EXCLUSIVE-GATEWAY-HISTORY-20261125",
+      "private_check_sha256": {
+        ".receipts/verification/wall-audit-20261125/final-pipeline.log": "5ee7d04cdc02d088b655bf992e851254e2b7aa9b7970387ec8a6731702f9b959",
+        ".receipts/verification/wall-audit-20261125/check-native-ratios.py": "89817f53420ab67f144981bbd9a7a44598204f2de96a73628f773dc684bce6ec",
+        ".receipts/verification/wall-audit-20261125/independent-result.json": "ad0c8f6b03466c23c9e172f90ade2c37fa60f6b0b8e1db29cdda0e5cc629fda7"
+      }
     }
   ],
   "new_record_template": {
@@ -12435,7 +12846,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-24T19:33:36+00:00",
+  "updated_at_utc": "2026-11-25T15:04:22+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
