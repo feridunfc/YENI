@@ -1,5 +1,5 @@
 """Conditional TS 500 frame restraint references from verified model geometry."""
-from math import fsum, isclose, isfinite, ulp
+from math import fsum, isclose, ulp
 
 from ..column_engine.ts500_column import (
     SWAY_PERMITTED, SWAY_PREVENTED, effective_length_factor, eq729_length_comparison,
@@ -121,13 +121,11 @@ def lower_support_factors(ends, *, storey_hinge=False):
         raise ValueError("LOWER_SUPPORT_IDENTITY_OR_HORIZONTAL_RESTRAINT_UNBOUND")
     alphas = (1.0, 10.0, None)
     mat = lower.get("mat_rotation_bound") or {}
-    if (not storey_hinge and lower.get("basis") == "MAT_ROTATIONAL_STIFFNESS_UNBOUND" and
-            mat.get("joint") == lower.get("joint_id") and mat.get("method") == "MONOLITHIC_FOOTPRINT_FREE_STRIPS_LINEAR_WINKLER" and
-            mat.get("k_theta_min_knm_rad", 0) > 0 and mat.get("column_ei_over_l_knm",0)>0 and
-            len(mat.get("leg_stiffness_knm_rad",[]))==2 and all(isfinite(v) and v>0 for v in mat["leg_stiffness_knm_rad"]) and
-            isclose(mat["k_theta_min_knm_rad"],fsum(mat["leg_stiffness_knm_rad"]),rel_tol=1e-12) and
-            isclose(mat.get("alpha_i_upper",0),4*mat["column_ei_over_l_knm"]/mat["k_theta_min_knm_rad"],rel_tol=1e-12)):
-        alphas = (1.0, max(10.0, mat["alpha_i_upper"]))
+    if not storey_hinge and lower.get("basis") == "MAT_ROTATIONAL_STIFFNESS_UNBOUND":
+        from .mat_rotational_stiffness import verified_mat_upper
+        alpha = verified_mat_upper(mat, lower.get("joint_id"))
+        if alpha is not None:
+            alphas = (1.0, max(10.0, alpha))
     return [{"alpha_i": a, "alpha_j": upper["alpha_web"],
              "k": effective_length_factor(alpha_i=a, alpha_j=upper["alpha_web"], sway=SWAY_PERMITTED)}
             for a in alphas]

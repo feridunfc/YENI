@@ -64,6 +64,21 @@ class SupportBoundsAndContract(unittest.TestCase):
         with self.assertRaises(ValueError):
             strip_rotational_stiffness(length,b,h,e,g,m,v,0.)
 
+    def test_paired_legs_balance_a_unit_couple_and_obey_soil_limit(self):
+        from tbdy_next.engineering.mat_rotational_stiffness import paired_strip_stiffness
+        left, right, half, width, ks = 1., 1.5, .4, .8, 14500.
+        mids = (-half - left / 2, half + right / 2)
+        centre = (left * mids[0] + right * mids[1]) / (left + right)
+        inertia = sum(length**3 / 12 + length * (mid - centre)**2
+                      for length, mid in zip((left, right), mids))
+        rigid = paired_strip_stiffness((left,right),width,.9,1e30,1e30,.25,1.,ks,half)
+        self.assertAlmostEqual(rigid, width * ks * inertia, places=7)
+        concrete = paired_strip_stiffness((left,right),width,.9,34e6,14e6,.25,1.,ks,half)
+        reflected = paired_strip_stiffness((right,left),width,.9,34e6,14e6,.25,1.,ks,half)
+        self.assertAlmostEqual(concrete, reflected, places=7)
+        self.assertGreater(concrete, 0.)
+        self.assertLess(concrete, rigid)
+
     def test_pin_credit_is_retained_in_storey_sum(self):
         from tbdy_next.engineering.column_effective_length import lower_support_factors
         mat = {"method":"MONOLITHIC_FOOTPRINT_FREE_STRIPS_LINEAR_WINKLER", "joint":"1",

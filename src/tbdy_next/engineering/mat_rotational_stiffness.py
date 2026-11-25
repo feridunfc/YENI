@@ -39,6 +39,67 @@ def strip_rotational_stiffness(length, width, thickness, elastic, shear, bending
     return 1/flexibility
 
 
+def paired_strip_stiffness(lengths, width, thickness, elastic, shear, bending_factor, shear_factor, subgrade, half_footprint):
+    """Unit rotation couple with self-balanced soil tractions across both exterior legs."""
+    left, right = map(_positive, lengths)
+    b, h, e, g, m, v, ks, a = map(_positive, (width, thickness, elastic, shear, bending_factor,
+                                             shear_factor, subgrade, half_footprint))
+    mid_left, mid_right = -a - left / 2, a + right / 2
+    centroid = (left * mid_left + right * mid_right) / (left + right)
+    inertia = sum(length**3 / 12 + length * (mid - centroid)**2
+                  for length, mid in ((left, mid_left), (right, mid_right)))
+    # The exterior line reactions have zero resultant and +1 moment about the footing.
+    # Apply -1 via a linear normal traction across its bonded, plane column footprint.
+    segments = ((left, (-a - left - centroid) / inertia, 1 / inertia, False),
+                (2 * a, 12 * a / (2 * a)**3, -12 / (2 * a)**3, True),
+                (right, (a - centroid) / inertia, 1 / inertia, False))
+    ei = e * m * b * h**3 / 12
+    ga = (5 / 6) * g * v * b * h
+    moment = force = compliance = 0.
+    for length, q0, slope, core in segments:
+        # Exact integrals: with affine q, shear is quadratic and bending moment is cubic.
+        def square_integral(coefficients):
+            return fsum(x * y * length**(i + j + 1) / (i + j + 1)
+                        for i, x in enumerate(coefficients) for j, y in enumerate(coefficients))
+        bend = square_integral((moment, force, q0 / 2, slope / 6)) / ei
+        transverse = square_integral((force, q0, slope / 2)) / ga
+        compliance += (2 if core else 1) * (bend + transverse)
+        if not core:
+            compliance += square_integral((q0, slope)) / (ks * b)
+        moment += force * length + q0 * length**2 / 2 + slope * length**3 / 6
+        force += q0 * length + slope * length**2 / 2
+    if abs(force) > 1e-8 or abs(moment) > 1e-8:
+        raise ValueError("Unbalanced paired strip")
+    return 1 / _positive(compliance)
+
+
+def verified_mat_upper(mat, joint):
+    """Recheck the energy-trial identity used to replace a released lower end."""
+    if (not joint or mat.get("joint") != joint
+            or mat.get("method") != "MONOLITHIC_FOOTPRINT_FREE_STRIPS_LINEAR_WINKLER"):
+        return None
+    try:
+        legs = mat["leg_stiffness_knm_rad"]
+        if len(legs) != 2:
+            return None
+        stiffness = fsum(_positive(value) for value in legs)
+        if "paired_strip_stiffness_knm_rad" in mat:
+            paired = paired_strip_stiffness(
+                mat["lengths_m"], mat["width_m"], mat["thickness_m"], mat["elastic_kn_m2"],
+                mat["shear_kn_m2"], mat["bending_modifier"], mat["shear_modifier"],
+                mat["subgrade_kn_m3"], mat["half_footprint_m"])
+            if not isclose(paired, _positive(mat["paired_strip_stiffness_knm_rad"]), rel_tol=1e-12):
+                return None
+            stiffness = max(stiffness, paired)
+        alpha = 4 * _positive(mat["column_ei_over_l_knm"]) / stiffness
+        if (isclose(stiffness, _positive(mat["k_theta_min_knm_rad"]), rel_tol=1e-12)
+                and isclose(alpha, _positive(mat["alpha_i_upper"]), rel_tol=1e-12)):
+            return alpha
+    except (ArithmeticError, KeyError, TypeError, ValueError):
+        pass
+    return None
+
+
 def _mat_rect(elements, coordinates):
     """A complete flat, rectangular, connected native mesh, including its perimeter."""
     edges = Counter()
@@ -180,6 +241,9 @@ def mat_rotation_bounds(source, physical, horizontal, frames, points, lengths, a
                     spans.append(min([sign*(edge-x[direction]), *neighbours])-depth/2)
                 terms = [strip_rotational_stiffness(l,width,mat["thickness"],mat["elastic"],mat["shear"],
                                 mat["bending_factor"],mat["shear_factor"],mat["subgrade"],footprint_half=depth/2) for l in spans]
+                paired = paired_strip_stiffness(spans, width, mat["thickness"], mat["elastic"], mat["shear"],
+                                              mat["bending_factor"], mat["shear_factor"], mat["subgrade"], depth / 2)
+                stiffness = max(fsum(terms), paired)
                 column = ec*width*depth**3/(12*_positive(lengths[uid]))
                 # A fixed far end gives 4EI/L. Using Ktheta/4 for the denominator
                 # upper-bounds the end-flexibility ratio of this member model.
@@ -189,8 +253,9 @@ def mat_rotation_bounds(source, physical, horizontal, frames, points, lengths, a
                     "spring_property":mat["spring"],"subgrade_kn_m3":mat["subgrade"],"width_m":width,
                     "axis":"XY"[direction],"lengths_m":spans,"elastic_kn_m2":mat["elastic"],"shear_kn_m2":mat["shear"],
                     "bending_modifier":mat["bending_factor"],"shear_modifier":mat["shear_factor"],
-                    "column_ei_over_l_knm":column, "leg_stiffness_knm_rad":terms, "k_theta_min_knm_rad":fsum(terms),
-                    "alpha_i_upper":4*column/fsum(terms), "footprint_model":"BONDED_FRAME_PLANE_SECTION_NORMAL_TRACTION_COUPLE",
+                    "column_ei_over_l_knm":column, "leg_stiffness_knm_rad":terms, "k_theta_min_knm_rad":stiffness,
+                    "paired_strip_stiffness_knm_rad":paired, "soil_trial":"SELF_BALANCED_ACROSS_BOTH_EXTERIOR_LEGS",
+                    "alpha_i_upper":4*column/stiffness, "footprint_model":"BONDED_FRAME_PLANE_SECTION_NORMAL_TRACTION_COUPLE",
                     "half_footprint_m":depth/2, "biaxial_core_compliance_factor":2.0,
                     "source_edb_sha256":source["analysis_archive"]["observed_edb_sha256"], "storey_euler_credit":False}
         except (KeyError, ValueError, TypeError, AttributeError, StopIteration, ArithmeticError):
