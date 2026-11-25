@@ -136,7 +136,12 @@ def propose_shell_detail(source, stages, geometry, panel, material, cover, aggre
     if field_cache is None:
         field_cache = {}
     grids = developed_entry_grids(profiles,geometry,panel,cover,material,policy,include_unanchored=combined)
+    grids = list(grids)
+    unavoidable = {s for s in ("I","J") if not any(e[s]["fits_column"] for _,e,_ in grids)}
     for h, ends, lane in grids:
+        if best_rank is not None and best_rank[0] == 1 and sum(not e["fits_column"] for e in ends.values()) >= best_rank[1]:
+            continue
+        transfer_cache = {}
         if main_pair and ((h["diameter_mm"],h["maximum_pitch_mm"]) != main_pair
                           or not all(e["fits_column"] for e in ends.values())):
             continue
@@ -170,8 +175,10 @@ def propose_shell_detail(source, stages, geometry, panel, material, cover, aggre
                                                  "reason":"COMBINED_CURTAIN_RESISTANCE_OR_RESERVE_EXCEEDED"}
                     continue
             for side, end in ends.items():
-                transfer = _transfer(panel, profiles[side], strip, material, policy, vertical_diameter=dia,
-                                     native_edge=edges[side] if combined else None)
+                if (side,dia) not in transfer_cache:
+                    transfer_cache[side,dia] = _transfer(panel, profiles[side], strip, material, policy, vertical_diameter=dia,
+                                                        native_edge=edges[side] if combined else None)
+                transfer = transfer_cache[side,dia]
                 end_ok = transfer["status"] != "HOLD" and end["fits_column"]
                 status = "CONDITIONAL_PRESSURE_END_DESIGN" if end_ok else "DOWEL_OR_ANCHORAGE_LAYOUT_REQUIRED"
                 if not end_ok:
@@ -200,7 +207,7 @@ def propose_shell_detail(source, stages, geometry, panel, material, cover, aggre
             else:
                 trial.update(status="PROPOSED_TWO_WAY_CURTAINS",support_scope="DEVELOPMENT_AND_ONE_WAY_DOWEL_REFERENCE",
                              open_input="COMBINED_SHELL_MEMBRANE_AND_BENDING_AND_NATIVE_INTERFACE_TRANSFER")
-            if rank[0]==0:
+            if rank[0]==0 or combined and rank==(1,len(unavoidable)):
                 return trial
             best_rank, best = rank, trial
     return best or {"status":"HOLD","reason":"NO_CURTAIN_AT_PROJECT_COVER_MEETS_BOTH_DIRECTIONS_AND_SUPPORTS"}

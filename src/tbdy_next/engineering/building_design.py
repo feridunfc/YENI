@@ -178,17 +178,22 @@ def building_results(source, stages, evidence):
     basement = pier_design["basement_coverage"]
     add("Multi-panel pier net-web P–M checks at native cuts", basement["assigned_cuts_expected"],
         basement["assigned_cuts_evaluated"], "Assigned wall combinations at two pier ends, concrete in columns reserved")
-    add("Multi-panel wall pressure-strip bending and cracking shear",
+    add(("Basement combined membrane, two-way bending and shear by panel and combination"
+         if basement["combined_membrane_checks"] else "Multi-panel wall pressure-strip bending and cracking shear"),
         basement["assigned_pressure_panel_combinations_expected"], basement["assigned_pressure_panel_combinations_evaluated"],
-        "Uniform normal load on horizontal strips between column axes")
+        (f"{basement['combined_membrane_checks']} membrane/plate and {basement['same_cage_plate_checks']} plate checks, "
+         f"including {basement['independent_shell_body_reference_combinations']} panel/combinations with a reference curtain"
+         if basement["combined_membrane_checks"] else "Uniform normal load on horizontal strips between column axes"))
     add("Multi-panel walls with a proposed web schedule", basement["physical_panels"], basement["scheduled_panels"],
         "Two curtains, physical vertical stations, horizontal layers and crossties")
-    add("Basement pressure bar development at supporting columns", basement["physical_pressure_ends_expected"],
+    add("Basement bar development and joint clearance at column and wall supports", basement["physical_pressure_ends_expected"],
         basement["physical_pressure_ends_checked"],
         f"{basement['physical_pressure_ends_satisfied']} ends satisfy the proposed pressure detail; "
         f"{basement['initial_column_only_shortfalls']} initial straight layouts exceed the column depth allowance")
-    add("Vertical wall-column interface under pressure", basement["assigned_pressure_end_combinations_expected"],
-        basement["assigned_pressure_end_combinations_evaluated"], "Perpendicular dowels under assigned normal pressure")
+    add("Basement edge shear friction and normal tension", basement["assigned_pressure_end_combinations_expected"],
+        basement["assigned_pressure_end_combinations_evaluated"], (f"{basement['native_edge_combinations']} native edge actions. "
+         f"{basement['balanced_interior_nodal_states']}/{basement['checked_interior_nodal_states']} signed interior nodal balances"
+         if basement["native_edge_combinations"] else "Perpendicular dowels under assigned normal pressure"))
     for name, population, reason in (
             ("Project-approved wall reinforcement", areas["wall"], "Project reinforcement approval and anchorage detailing"),
             ("Diaphragm collectors and chords", areas["diaphragm"], "Force path and design resistance required"),
@@ -201,6 +206,7 @@ def building_results(source, stages, evidence):
     wall_scope = wall_compression_scope(frames, (pier_design.get("batch") or {}).get("rows", []))
     return {"schema": "tbdy.next.building-results.v1", "checks": checks, "column_count": column_count,
             "frame_wall_compression_scope": wall_scope,
+            "frame_sway_bounds": {s:r["frame_sway_bound"] for s,r in frames.get("storeys",{}).items() if "frame_sway_bound" in r},
             "column_status_counts": dict(states), "columns": column_rows, "storeys": storeys,
             "beam_count": beam_count, "beam_status_counts": dict(beam_counts), "governing_beam": governing,
             "area_population": areas, "frame_confinement": detailing, "wall_boundaries": boundaries,

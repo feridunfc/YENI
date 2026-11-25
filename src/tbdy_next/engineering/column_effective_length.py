@@ -27,10 +27,13 @@ def _flanged_i(width, depth, thickness, length):
             + flange_width*thickness**3/12 + area_flange*(y_flange-center)**2)
 
 
-def reference_end_ratios(source, physical_members):
+def reference_end_ratios(source, physical_members, mat_supports=None):
     """Use axis lengths in I/L; keep the proof's face length for k*ln."""
     if not any(proven_clear_length_m(row, uid) for uid, row in physical_members.items()):
         return {}
+    if mat_supports is None:
+        from .column_mat_support import project_mat_horizontal_supports
+        mat_supports = project_mat_horizontal_supports(source, physical_members)
     frames, _, meta = build_frame_catalog(source)
     table = source["geometry_capture"]["tables"].get("FRAME_ASSIGNMENTS") or {}
     if table.get("field_metadata", {}).get("units_by_field", {}).get("Length") != "m":
@@ -50,11 +53,14 @@ def reference_end_ratios(source, physical_members):
             for side, face in proof.get("faces", {}).items():
                 if face.get("walls_below"):
                     ends[side] = {"basis": "WALL_BELOW_ROTATIONAL_STIFFNESS_UNBOUND",
-                                  "joint_id": face["joint_id"]}
+                                  "joint_id": face["joint_id"], "walls_below": face["walls_below"]}
                     continue
                 if not face["beams"]:
                     if any(s["type"] == "Mat" for s in face["slabs"]):
-                        ends[side] = {"basis": "MAT_ROTATIONAL_STIFFNESS_UNBOUND", "joint_id": face["joint_id"]}
+                        record = mat_supports.get(uid, {})
+                        ends[side] = {"basis": "MAT_ROTATIONAL_STIFFNESS_UNBOUND", "joint_id": face["joint_id"],
+                                      "horizontal_support": record.get("status") if record.get("base_joint_id")
+                                      == face["joint_id"] else None}
                     continue
                 terms = []
                 thickness = max((s["thickness_m"] for s in face["slabs"]), default=0)
@@ -97,16 +103,36 @@ def reference_end_ratios(source, physical_members):
     return result
 
 
-def resolve_adopted_frame_k(axis_basis, ends):
-    """Recompute an explicitly selected, fully bound two-frame-end reference.
+SUPPORT_ENVELOPE = "LOWER_SUPPORT_SWAY_ENVELOPE"
 
-    A mat/wall rotation is never substituted with a guessed fixed or hinged
-    end. Those conditional external restraint decisions use explicit adopted
-    K and a decision reference instead of this narrow source selection.
-    """
+
+def lower_support_factors(ends):
+    """TS 500 7.14–15. The finite flexible-end case and the single hinge are distinct."""
+    from .column_mat_support import BOUND
+    lower, upper = ends.get("I", {}), ends.get("J", {})
+    if not (upper.get("basis") == "FRAME_SECTION_REFERENCE" and (
+            lower.get("basis") == "MAT_ROTATIONAL_STIFFNESS_UNBOUND" and lower.get("horizontal_support") == BOUND
+            or lower.get("basis") == "WALL_BELOW_ROTATIONAL_STIFFNESS_UNBOUND" and lower.get("walls_below"))):
+        raise ValueError("LOWER_SUPPORT_IDENTITY_OR_HORIZONTAL_RESTRAINT_UNBOUND")
+    return [{"alpha_i": a, "alpha_j": upper["alpha_web"],
+             "k": effective_length_factor(alpha_i=a, alpha_j=upper["alpha_web"], sway=SWAY_PERMITTED)}
+            for a in (1.0, 10.0, None)]
+
+
+def resolve_adopted_frame_k(axis_basis, ends):
+    """Recompute a selected two-frame-end factor or lower-support envelope from current geometry."""
     selection = axis_basis.get("k_source")
     if selection is None:
         return axis_basis["k"], None
+    if selection["method"] == SUPPORT_ENVELOPE:
+        if axis_basis["sway"] != SWAY_PERMITTED or selection["section"] != "alpha_web":
+            raise ValueError("LOWER_SUPPORT_ENVELOPE_REQUIRES_SWAY_AND_WEB")
+        branches = lower_support_factors(ends or {})
+        k = max(r["k"] for r in branches)
+        if not isclose(k, axis_basis["k"], rel_tol=0, abs_tol=8*ulp(k)):
+            raise ValueError("ADOPTED_K_VALUE_CONFLICTS_WITH_CURRENT_SUPPORT_ENVELOPE")
+        return k, {"method": SUPPORT_ENVELOPE, "computed_k": k, "branches": branches, "ends": ends,
+                   "status": "CURRENT_SUPPORT_ENVELOPE_CONSUMED", "engineering_approval": "NOT_GRANTED"}
     if (set(ends or {}) != {"I", "J"}
             or any(ends[side].get("basis") != "FRAME_SECTION_REFERENCE" for side in ("I", "J"))):
         raise ValueError("ADOPTED_K_REQUIRES_TWO_BOUND_FRAME_END_RATIOS")

@@ -1211,7 +1211,7 @@ def _basement_pier_tables(piers):
             for side, edge in panel.get("native_support_edges", {}).items():
                 transfer = (proposal.get("ends", {}).get(side, {}).get("transfer") or {})
                 for cut in edge["cuts"]:
-                    edge_rows.append({"pier":name,"wall":panel["wall"],"end":side,"column":edge["column"],**cut,
+                    edge_rows.append({"pier":name,"wall":panel["wall"],"end":side,"column":edge["column"] or panel["support_sections"][side]["joint"],**cut,
                         "checks":f'{edge["balanced_static_interior"]}/{edge["checked_static_interior"]}',
                         "steel":transfer.get("steel_resistance_kn_m"),"concrete":transfer.get("concrete_limit_kn_m"),
                         "status":edge["status"]})
@@ -1222,7 +1222,7 @@ def _basement_pier_tables(piers):
                     bar = proposal.get("horizontal", {})
                     upright = proposal.get("vertical", {})
                     pmms = proposal.get("cut_pmm", [])
-                    alternatives.append({"wall":panel["wall"],"side":side,"column":end.get("column"),
+                    alternatives.append({"wall":panel["wall"],"side":side,"column":end.get("column") or end.get("joint"),
                         "h":bar.get("diameter_mm"),"hp":bar.get("pitch_mm"),"v":upright.get("diameter_mm"),
                         "vp":upright.get("pitch_mm"),"pmm_count":len(pmms),
                         "pmm":max((c["upper_utilization"] for c in pmms),default=None),
@@ -1234,10 +1234,10 @@ def _basement_pier_tables(piers):
             from .engineering.basement_pier_design import pressure_ends
             for side, end in pressure_ends(panel).items():
                 transfer = end["transfer"]
-                ends.append({"pier": name, "wall": panel["wall"], "side": side, "column": end["column"],
+                ends.append({"pier": name, "wall": panel["wall"], "side": side, "column": end["column"] or end.get("joint"),
                              "aggregate":end.get("maximum_aggregate_mm"), "clear":end.get("template_longitudinal_clearance_mm"),
                              "limit":end.get("entry_required_mm"),
-                             "diameter": h["diameter_mm"], "required": (end.get("hook") or {}).get("required_projection_mm",end["position_i_mm"]),
+                             "diameter": h["diameter_mm"], "required": (end.get("hook") or end).get("required_projection_mm",end["position_i_mm"]),
                              "available": end["column_available_mm"], "provided": end["specified_embedment_mm"],
                              "dowel": transfer.get("diameter_mm"), "pitch": transfer.get("pitch_mm"),
                              "reaction": transfer.get("peak_reaction_kn_m"), "resistance": transfer.get("resistance_kn_m"),
@@ -1556,6 +1556,8 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
     building_section = ""
     building = report.get("building_design")
     if building:
+        packet = building.get("g1_contract") or {}
+        review_rows = [{"gap":k, **v} for k,v in packet.get("gaps", {}).items()]
         floor_rows = [{"storey": story, **values} for story, values in building["storeys"].items()]
         building_section = (
             '<section><h2>Whole-building calculation</h2>'
@@ -1563,6 +1565,8 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
                       ("hold", "Open"), ("failed", "Numerical failures")), floor_rows)
             + _table((("name", "Calculation"), ("expected", "Expected"), ("evaluated", "Calculated"),
                       ("outcome", "Result or outstanding input")), building["checks"])
+            + ("<h3>G1 Supervisor closure candidates</h3>" + _table((("gap","GAP"),("closure_ready","Ready for review"),
+                ("supervisor_approval","Supervisor decision")), review_rows) if review_rows else "")
             + '<h3>Governing selected beam</h3>'
             + _table((("story", "Storey"), ("label", "Beam"), ("check", "Check"), ("full_ve_kn", "Ve (kN)"),
                       ("resistance_kn", "Resistance (kN)"), ("utilization", "Utilization")),

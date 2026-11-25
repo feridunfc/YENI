@@ -331,6 +331,24 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
             raise ReportUnavailable("Run changed during report verification")
         return raw
 
+    @lru_cache(maxsize=3)
+    def verified_print(run_id, key):
+        from .archive_blobs import _direct
+        from .history_catalog import recorded_print_hash
+        directory = output_root / run_id
+        path = directory / "report.html"
+        expected = recorded_print_hash(directory, key)
+        page = None
+        if path.is_file() and _direct(path) and path.stat().st_size <= 128*1024*1024:
+            page = path.read_bytes()
+        if page is not None and expected is not None and sha256(page).hexdigest() != expected:
+            page = page.replace(b"\r\n", b"\n")
+        if page is None or expected is None or sha256(page).hexdigest() != expected:
+            page = build_printable_html(build_complete_report(output_root, run_id)).encode("utf-8")
+        if key != verification_key(directory):
+            raise ReportUnavailable("Run changed during printable report verification")
+        return page
+
     class Handler(BaseHTTPRequestHandler):
         server_version = "TBDYNext/VS04-Partial"
 
@@ -398,7 +416,8 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                         self.reply(400, {"error": "VS06_SCENARIO_QUERY_INVALID"})
                         return
                     plain_export = url.path == "/api/export-checks" and not offered
-                    if not plain_export:
+                    plain_print = url.path == "/report/print" and not offered
+                    if not (plain_export or plain_print):
                         report = build_complete_report(output_root, ids[0])
                     if url.path == "/api/vs06-drift-scenario" or offered:
                         params = {k: v[0] for k, v in offered.items()}
@@ -413,7 +432,8 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                         mime = "application/json; charset=utf-8"
                         disposition = f'attachment; filename="TBDY_NEXT_{ids[0]}_all_checks.json"'
                     else:
-                        data = build_printable_html(report).encode("utf-8")
+                        data = (verified_print(ids[0], verification_key(output_root / ids[0])) if plain_print
+                                else build_printable_html(report).encode("utf-8"))
                         mime = "text/html; charset=utf-8"
                         disposition = f'inline; filename="TBDY_NEXT_{ids[0]}_report.html"'
                 except (ReportUnavailable, OSError, UnicodeError, TypeError, ValueError, KeyError) as exc:

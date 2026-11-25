@@ -104,9 +104,12 @@ def support_edge_actions(panel, geometry, raw, states, combinations):
                  abs(coords[nodes[0]][2]-geometry["bottom_m"])<=TOL and
                  abs(coords[nodes[-1]][2]-geometry["top_m"])<=TOL, "CONTINUOUS_VERTICAL_EDGE_REQUIRED")
         column = panel["column_"+side.lower()]
-        frame = raw["frames"].get(column) or {}
-        supported = {p for _,p in frame.get("corners",[])}
-        required(set(nodes)<=supported, "EXACT_SHARED_FRAME_EDGE_NODES_REQUIRED")
+        support = panel.get("support_sections", {}).get(side, {})
+        counterparts = ([("frames",column)] if column else
+                        [("areas",r["member"]) for r in support.get("incident_walls",[])])
+        required(counterparts and all(set(nodes) <= {p for _,p in raw[role].get(obj,{}).get("corners",[])}
+                 for role,obj in counterparts), "EXACT_SHARED_FRAME_EDGE_NODES_REQUIRED" if column else
+                 "EXACT_SHARED_WALL_EDGE_NODES_REQUIRED")
         nodeset=set(nodes)
         incident=_node_incidence(raw,nodeset,combinations)
         controls=[]
@@ -116,14 +119,14 @@ def support_edge_actions(panel, geometry, raw, states, combinations):
                     continue
                 actions=incident[node][name]
                 own=[f for role,obj,f in actions if role=="areas" and obj==uid]
-                opposite=[f for role,obj,f in actions if role=="frames" and obj==column]
+                opposite=[f for role,obj,f in actions if (role,obj) in counterparts]
                 required(own and opposite,"BOTH_NATIVE_SUPPORT_SIDES_REQUIRED")
                 residual=[fsum(f[i] for _,_,f in actions) for i in range(6)]
                 internal=node not in (nodes[0],nodes[-1])
                 limits=[max(.02,1e-6*fsum(abs(f[i]) for _,_,f in actions)) for i in range(6)]
                 controls.append({"combination":name,"point":node,"interior":internal,
                     "wall_kn_knm":[fsum(f[i] for f in own) for i in range(6)],
-                    "column_kn_knm":[fsum(f[i] for f in opposite) for i in range(6)],
+                    ("column_kn_knm" if column else "adjacent_walls_kn_knm"):[fsum(f[i] for f in opposite) for i in range(6)],
                     "all_incident_residual_kn_knm":residual,"limits_kn_knm":limits,
                     "balanced":all(abs(v)<=lim for v,lim in zip(residual,limits)) if internal else None})
         # Each field is already in the wall h,z frame. Positive Fhh is tension on either cut.
@@ -149,7 +152,7 @@ def support_edge_actions(panel, geometry, raw, states, combinations):
                          "max_native_shear_kn_m":max(r["native_shear_kn_m"] for r in candidates),
                          "basis":"NATIVE_COMPONENT_INTERVAL_BOUND" if combinations[name]["spectral"] else "SIGNED_STATIC"})
         middle=[r for r in controls if r["interior"]]
-        results[side]={"column":column,"nodes":nodes,"checked_static_interior":len(middle),
+        results[side]={"column":column,"counterparts":counterparts,"nodes":nodes,"checked_static_interior":len(middle),
                        "balanced_static_interior":sum(r["balanced"] for r in middle),
                        "native_joint_controls":controls,"cuts":cuts,
                        "status":"NATIVE_EDGE_CONTROL_SATISFIED" if middle and all(r["balanced"] for r in middle)

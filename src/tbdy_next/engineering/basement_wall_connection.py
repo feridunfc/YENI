@@ -26,6 +26,9 @@ def support_profiles(source, stages, panel):
     rows = _rows(capture["table_reads"], COLUMN_REINFORCING, {"Name","NumBars2Dir","NumBars3Dir"}, {})
     profiles = {}
     for side, support in panel["support_sections"].items():
+        if support.get("kind") == "WALL_JUNCTION":
+            profiles[side] = dict(support)
+            continue
         name, uid = support["section"], support["column"]
         members = [r for r in stages["column_pmm"]["members"] if r.get("member_id") == uid]
         required(len(members) == 1 and members[0].get("section") == name, "COLUMN_SECTION_IDENTITY_REQUIRED")
@@ -76,7 +79,7 @@ def _bar_clearance(profile, offset, diameter):
 
 def _entry_lanes(profiles, preferred):
     # Midpoints of neighbouring vertical bars maximise clearance inside each available lane.
-    occupied = sorted({abs(x) for profile in profiles for x in profile["bar_offsets"]})
+    occupied = sorted({abs(x) for profile in profiles for x in profile.get("bar_offsets", ())})
     mids = [(lo+hi)/2 for lo,hi in zip(occupied, occupied[1:]) if 0 < (lo+hi)/2 < preferred]
     return [preferred, *sorted(mids, reverse=True)]
 
@@ -132,6 +135,64 @@ def _hook_90(profile, side, offset, dia, required_mm, available, clear):
     return None
 
 
+def wall_return_anchor(profile, panel, side, diameter, offset, cover, clear_spacing, mat, aggregate):
+    """Full-yield TS 500 9.1.2(b) projections inside the as-modelled union at both face tracks."""
+    bond = tension_development(diameter, mat.fyd, mat.fck, mat.fcd, cover, clear_spacing)
+    projection = 5*ceil(.75*bond["position_i_mm"]/5)
+    depth = profile["depth_mm"]
+    dx,dy = panel["width_direction"]
+    across = (-dy,dx)
+    tracks = []
+    for face in (-1,1):
+        # The incoming shell ends at the centreline. A one-sided return provides
+        # its outer half thickness only on the side where it physically exists.
+        ahead = 0.
+        for leg in profile["incident_walls"]:
+            sx,sy = leg["direction"]
+            if leg["across"]:
+                inward = face*offset*(sx*across[0]+sy*across[1])
+                if inward >= cover+diameter/2 and inward+cover+diameter/2 <= leg["span_mm"]:
+                    ahead = max(ahead,leg["thickness_mm"]/2)
+            elif (sx*dx+sy*dy)*(1 if side=="J" else -1) > .999999 and offset+diameter/2+cover <= leg["thickness_mm"]/2:
+                ahead = max(ahead,leg["span_mm"])
+        tracks.append(depth/2+ahead-cover)
+    available = min(tracks)
+    limit = clear_limit(aggregate,diameter)
+    inside = 6*diameter
+    tail = 12*diameter
+    # A 180 degree hairpin crossing the two main tracks must also fit its mandrel
+    # and an uninterrupted concrete corridor over its entire transverse bend.
+    across_forward = max((leg["span_mm"] for leg in profile["incident_walls"] if not leg["across"]
+                          and (leg["direction"][0]*dx+leg["direction"][1]*dy)*(1 if side=="J" else -1)>.999999
+                          and offset+diameter/2+cover <= leg["thickness_mm"]/2), default=0.)
+    corner = min(max((leg["thickness_mm"]/2 for leg in profile["incident_walls"] if leg["across"]
+                      and sign*(leg["direction"][0]*across[0]+leg["direction"][1]*across[1])>.999999),default=0.)
+                 for sign in (-1,1))
+    u_available = depth/2+max(across_forward,corner)-cover
+    u_diameter = 2*offset-diameter
+    bridge = [leg["member"] for leg in profile["incident_walls"]]
+    radius = (inside+diameter)/2
+    hook_fits = (projection <= min(available,u_available) and projection >= radius+diameter/2
+                 and 2*(offset-radius-tail)-diameter >= limit)
+    hairpin_fits = (projection <= u_available and projection >= offset+diameter/2 and u_diameter >= inside)
+    straight_fits = bond["position_i_mm"] <= 500*panel["clear_length_m"]
+    fits = (hook_fits or hairpin_fits) and straight_fits and clear_spacing>=limit
+    shape = "RETURN_PAIRED_90" if hook_fits else "RETURN_U_HAIRPIN" if hairpin_fits else None
+    return {**bond,"column":None, "joint":profile["joint"], "column_role":"WALL_JUNCTION",
+            "anchorage_type":shape or "WALL_RETURN_90_OR_U", "return_shape":shape, "incident_walls":bridge, "nominal_cover_mm":cover,
+            "minimum_inside_bend_mm":inside, "hook_90_tail_mm":tail, "hairpin_inside_diameter_mm":u_diameter,
+            "required_projection_mm":.75*bond["position_i_mm"], "specified_embedment_mm":projection,
+            "available_by_face_mm":tracks,"column_available_mm":available,"column_depth_mm":depth,
+            "hairpin_available_mm":u_available,"hairpin_minimum_tail_mm":max(6*diameter,60.),
+            "standard_90_projection_fits":projection<=available, "standard_90_fits":hook_fits,
+            "hairpin_projection_and_bend_fit":hairpin_fits, "centreline_radius_mm":radius, "geometry_clear_limit_mm":limit,
+            "end_cover_mm":cover,"wall_side_available_mm":500*panel["clear_length_m"],
+            "wall_side_required_mm":bond["position_i_mm"],"margin_mm":available-projection,
+            "entry_required_mm":limit, "horizontal_clear_mm":clear_spacing, "horizontal_required_mm":limit,
+            "fits_column":fits,"reason":"RECEIVING_CAGE_LAYOUT_CHECK_REQUIRED" if fits else
+            "STANDARD_HOOK_PROJECTION_OUTSIDE_RECEIVING_WEB" if projection>available else "BEND_TAIL_OR_WALL_BOND_DOES_NOT_FIT"}
+
+
 def _development(profiles, geometry, panel, grid, mat, aggregate=DEFAULT_AGGREGATE_MM):
     dia, cover = grid["diameter_mm"], grid["cover_mm"]
     spacing = grid["pitch_mm"]-dia
@@ -139,6 +200,9 @@ def _development(profiles, geometry, panel, grid, mat, aggregate=DEFAULT_AGGREGA
     offset = 500*panel["thickness_m"]-cover-grid.get("curtain_inset_mm",0.)-1.5*dia
     ends = {}
     for side, prof in profiles.items():
+        if prof.get("kind") == "WALL_JUNCTION":
+            ends[side] = wall_return_anchor(prof,panel,side,dia,offset,cover,spacing,mat,aggregate)
+            continue
         end_cover = max(cover, prof["cover"])
         # Stop before the inside of the far hoop. This also keeps its outer cover clear.
         available = prof["depth_mm"]-end_cover-prof["tie"]
@@ -180,11 +244,17 @@ def _transfer(panel, profile, h, mat, policy, *, vertical_diameter=None, native_
     # Two dedicated deformed bars per level, perpendicular to the joint and symmetric
     # about the web mid-plane. No pressure-flexural steel is counted as a dowel.
     choices = sorted(((d,p) for d in (10,12,14,16,18,20,22,25) for p in (200,125,100,50)), key=lambda pair: pair[0]**2/pair[1])
+    if profile.get("kind") == "WALL_JUNCTION":
+        from .wall_membrane_design import SELECTION_LIMIT
+        required(native is not None, "NATIVE_WALL_RETURN_TRANSFER_REQUIRED")
+        return _return_transfer(panel,profile,h,mat,policy,peak,shear_peak,native,SELECTION_LIMIT,vertical_diameter)
     cover = max(h["cover_mm"],profile["cover"])
     column_limit = profile["depth_mm"]-cover-profile["tie"]
     wall_limit = panel["clear_length_m"]*500
     cap = .2*min(mat.fcd,profile["fcd"],25.)*thickness
     aggregate = policy["aggregate_mm"]
+    from .wall_membrane_design import SELECTION_LIMIT
+    selection_limit = SELECTION_LIMIT if native is not None else 1.
     for dia,pitch in choices:
         grid = level_grid(policy,dia,pitch,cover,dowel=True)
         if not grid:
@@ -209,7 +279,7 @@ def _transfer(panel, profile, h, mat, policy, *, vertical_diameter=None, native_
                        and 2*off-dia >= clear_limit(aggregate,dia)
                        and abs(curtain_offset-off)-(dia+h["diameter_mm"])/2 >= clear_limit(aggregate,dia,h["diameter_mm"])), None)
         steel_limit = .6*steel*mat.fyd/1000
-        if (peak <= steel_limit and shear_peak <= cap and wall_embed <= wall_limit and col_embed <= column_limit and offset is not None
+        if (peak <= selection_limit*steel_limit and shear_peak <= cap and wall_embed <= wall_limit and col_embed <= column_limit and offset is not None
                 and grid["clear_spacing_mm"] >= clear_limit(aggregate,dia)):
             clear = _bar_clearance(profile,offset,dia)
             break
@@ -229,6 +299,7 @@ def _transfer(panel, profile, h, mat, policy, *, vertical_diameter=None, native_
             "offset_each_side_mm":offset, "maximum_pitch_mm":pitch, "as_mm2_m":steel,
             "mu":.6, "steel_resistance_kn_m":.6*steel*mat.fyd/1000,
             "concrete_limit_kn_m":cap, "resistance_kn_m":resistance, "peak_reaction_kn_m":peak,
+            "steel_selection_limit":selection_limit, "steel_ratio":peak/steel_limit,
             "peak_ratio":max(r["upper_ratio"] for r in cuts), "force_margin_kn_m":min(steel_limit-peak,cap-shear_peak),
             "wall_required_mm":wall["position_i_mm"], "wall_embedment_mm":wall_embed, "wall_available_mm":wall_limit,
             "column_required_mm":column["position_i_mm"], "column_embedment_mm":col_embed, "column_available_mm":column_limit,
@@ -236,9 +307,45 @@ def _transfer(panel, profile, h, mat, policy, *, vertical_diameter=None, native_
             "pressure_only_normal_force_kn_m":None if native is not None else 0., "combinations":cuts}
 
 
+def _return_transfer(panel, profile, h, mat, policy, peak, shear_peak, cuts, reserve, vertical_diameter):
+    """Size independent dowels before testing their physical development in the return."""
+    side = next(s for s,v in panel["support_sections"].items() if v == profile)
+    cover = h["cover_mm"]
+    cap = .2*min(mat.fcd,25.)*panel["thickness_m"]*1000
+    aggregate = policy["aggregate_mm"]
+    curtain = panel["thickness_m"]*500-cover-h.get("curtain_inset_mm",0.)-1.5*h["diameter_mm"]
+    nearest = curtain-(h["diameter_mm"]+(vertical_diameter or 0))/2
+    best = None
+    for dia,pitch in sorted(((d,p) for d in (8,10,12,14,16,18,20,22,25) for p in (200,125,100,50)),key=lambda pair:pair[0]**2/pair[1]):
+        grid = level_grid(policy,dia,pitch,cover,dowel=True)
+        if not grid:
+            continue
+        offset = nearest - ((vertical_diameter or 0)+dia)/2 - clear_limit(aggregate,dia,vertical_diameter or dia)
+        if 2*offset-dia < clear_limit(aggregate,dia):
+            continue
+        resistance = .6*2*grid["guaranteed_bars_per_m"]*pi*dia**2/4*mat.fyd/1000
+        if peak>reserve*resistance or shear_peak>cap:
+            continue
+        anchor = wall_return_anchor(profile,panel,side,dia,offset,cover,grid["clear_spacing_mm"],mat,aggregate)
+        trial = {"status":"CONDITIONAL_PRESSURE_SHEAR_TRANSFER" if anchor["fits_column"] else "HOLD",
+                 "column_embedment_mm":anchor["specified_embedment_mm"], "reason":anchor["reason"],"diameter_mm":dia,"maximum_pitch_mm":pitch,**grid,"offset_each_side_mm":offset,
+                 "steel_resistance_kn_m":resistance,"concrete_limit_kn_m":cap,"steel_selection_limit":reserve,
+                 "peak_ratio":max(peak/resistance,shear_peak/cap),"anchor":anchor,"combinations":[{**r,
+                 "upper_ratio":max(r["equivalent_friction_demand_kn_m"]/resistance,r["max_native_shear_kn_m"]/cap)}
+                 for r in cuts]}
+        if anchor["fits_column"]:
+            return trial
+        if best is None or anchor["margin_mm"]>best["anchor"]["margin_mm"]:
+            best = trial
+    return best or {"status":"HOLD","reason":"NO_SEPARATE_RETURN_DOWEL_GRID_WITH_RESERVE",
+                    "peak_reaction_kn_m":peak,"native_peak_shear_kn_m":shear_peak,"concrete_limit_kn_m":cap}
+
+
 def developed_entry_grids(profiles, geometry, panel, cover, mat, policy, preferred_pair=None, *, include_unanchored=False):
     """Trial straight-bar grids at the actual levels and lanes inside both supporting cages."""
     options = set(CAGES) | {(d,p) for d in (12,14,16,18,20,22,25) for p in (40,50,60,75,80)}
+    if any(p.get("kind")=="WALL_JUNCTION" for p in profiles.values()):
+        options.update((d,p) for d in (8,10) for p in (40,50,60,75,100))
     thickness = 1000*panel["thickness_m"]
     inset = 0.
     aggregate = policy["aggregate_mm"]
@@ -253,6 +360,8 @@ def developed_entry_grids(profiles, geometry, panel, cover, mat, policy, preferr
         # A short straight embedment or a bend can clear a column bar before its
         # projected centreline. Include the exact straight-bar clearance boundaries.
         for profile in profiles.values():
+            if profile.get("kind") == "WALL_JUNCTION":
+                continue
             clearance = clear_limit(aggregate, dia, profile["bar_diameter"])+(dia+profile["bar_diameter"])/2
             for centre in profile["bar_offsets"]:
                 lanes.extend((abs(centre)-clearance, abs(centre)+clearance))

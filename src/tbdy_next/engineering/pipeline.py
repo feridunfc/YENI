@@ -16,6 +16,7 @@ comparison; historical numerical equivalence is not assumed.
 """
 from __future__ import annotations
 
+import json
 from collections import Counter
 from dataclasses import dataclass
 from math import isfinite
@@ -833,14 +834,18 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
         from .pipeline_snapshot import _digest
         stage = next(s for s in STAGES if s.key == "building-design")
         result = building_results(payload, out, out["report_evidence"])
+        from .g1_contract import g1_contract
+        base = result["wall_sections"]["batch"].get("modal_base", {}).get("basement_reference")
+        project_profile = project_seismic_profile(payload, physical_scope=physical_scope, basement=base, input_sha=input_sha)
+        result["g1_contract"] = g1_contract(payload, analysis_setup_reconciliation, pmm_scope, project_profile, input_sha)
         if not all(contract.accepts(result) for contract in stage.produces):
             raise ValueError("INVALID_STAGE_OUTPUT:building-design")
         out["building_design"] = result
         run.record(stage.key, {"schema": result["schema"], "results_sha256": _digest(result),
                                "column_count": result["column_count"], "beam_count": result["beam_count"]},
                    input_sha256=input_sha)
-        base = result["wall_sections"]["batch"].get("modal_base", {}).get("basement_reference")
-        project_profile = project_seismic_profile(payload, physical_scope=physical_scope, basement=base, input_sha=input_sha)
+        (run.root / "g1-contract.json").write_text(json.dumps(result["g1_contract"], ensure_ascii=False, indent=2),
+                                                   encoding="utf-8")
     out["report_evidence"]["seismic_project_profile"] = project_profile
     if profile_lineage is not None and scenario is None:
         out["report_evidence"]["design_scenario"] = profile_lineage
@@ -882,8 +887,14 @@ class EnginePipelineRunner:
                                      suite=suite or payload.get("building_design") is not None, catalog=self.catalog)
         if payload.get("building_design") is not None:
             from ..reporting import build_complete_report, build_printable_html
-            page = build_printable_html(build_complete_report(run.root.parent, run.run_id))
+            from ..history_catalog import recorded_print_hash, verification_key
+            from hashlib import sha256
+            key = verification_key(run.root)
+            page = build_printable_html(build_complete_report(run.root.parent, run.run_id)).encode("utf-8")
+            if key != verification_key(run.root):
+                raise ValueError("ARCHIVE_CHANGED_DURING_PRINT_RENDER")
             temporary = run.root / "report.html.tmp"
-            temporary.write_text(page, encoding="utf-8")
+            temporary.write_bytes(page)
             temporary.replace(run.root / "report.html")
+            recorded_print_hash(run.root, key, sha256(page).hexdigest())
         return stages

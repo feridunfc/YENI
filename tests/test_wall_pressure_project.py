@@ -39,6 +39,8 @@ class TestWallPressureProject(unittest.TestCase):
         result = _transfer(panel,profile,h,mat,policy,vertical_diameter=12,native_edge={"cuts":[cut]})
         self.assertEqual(result["status"],"CONDITIONAL_PRESSURE_SHEAR_TRANSFER")
         self.assertEqual(result["peak_reaction_kn_m"],130.)
+        self.assertLessEqual(result["steel_ratio"],result["steel_selection_limit"])
+        self.assertEqual(result["steel_selection_limit"],.85)
         self.assertAlmostEqual(result["peak_ratio"],max(130/result["steel_resistance_kn_m"],100/result["concrete_limit_kn_m"]))
         offset, dia = result["offset_each_side_mm"], result["diameter_mm"]
         self.assertLess(offset, 130.)

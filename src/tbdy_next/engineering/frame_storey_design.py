@@ -5,9 +5,10 @@ from math import fsum, isclose, isfinite
 from ..column_engine.beam_references import station_budget
 from ..column_engine.source_bank import native_frame_force_rows
 from ..column_engine.ts500_column import (
-    SWAY_PERMITTED, effective_length_factor, effective_stiffness_nmm2, euler_load_kn, rectangle_properties,
+    SWAY_PERMITTED, effective_length_factor, effective_stiffness_nmm2, euler_load_kn, moment_magnification_factors, rectangle_properties,
 )
 from .column_clear_length import proven_clear_length_m
+from .column_effective_length import SUPPORT_ENVELOPE, lower_support_factors
 from .column_pmm_section import MECHANICAL, _named_row, _rows
 from .frame_geometry import build_frame_catalog
 from .second_order_basis import (
@@ -89,12 +90,26 @@ def storey_compression(source, physical, groups):
     return {case: fsum(sums[case]) for case in sorted(names)}
 
 
+def _axis_restraint(ends, allow_wall_hinge):
+    lower, upper = ends.get("I", {}), ends.get("J", {})
+    if upper.get("basis") != "FRAME_SECTION_REFERENCE":
+        raise ValueError("UPPER_FRAME_END_UNBOUND")
+    if lower.get("basis") == "FRAME_SECTION_REFERENCE":
+        return effective_length_factor(alpha_i=lower["alpha_web"], alpha_j=upper["alpha_web"],
+                                       sway=SWAY_PERMITTED), "FRAME_END_RATIOS"
+    if lower.get("basis") == "WALL_BELOW_ROTATIONAL_STIFFNESS_UNBOUND" and not allow_wall_hinge:
+        raise ValueError("WALL_BELOW_ROTATIONAL_STIFFNESS_UNBOUND")
+    return max(r["k"] for r in lower_support_factors(ends)), SUPPORT_ENVELOPE
+
+
 def storey_critical_loads(source, storey, physical, ratios, *, allow_wall_hinge):
     """Compute directional Euler sums using the adopted frame-storey assumptions."""
     material_rows = _rows(source["column_axial"]["pmm_section_source"]["table_reads"],
                           MECHANICAL, {"Material"}, {"E1": "kN/m2"})
     loads = defaultdict(list)
     for uid, frame in storey.items():
+        if physical[uid].get("status") == "ETABS_WALL_COUPLED_COLUMN_MESH":
+            continue  # No Euler credit. Its full compressive demand enters storey_compression.
         length = proven_clear_length_m(physical[uid], uid)
         directions = lateral_directions(frame)
         require(length and directions, f"Storey contributor geometry is unresolved for {uid}")
@@ -104,14 +119,7 @@ def storey_critical_loads(source, storey, physical, ratios, *, allow_wall_hinge)
         for axis, direction in directions.items():
             ends = ratios.get(uid, {}).get(axis, {})
             require(set(ends) == {"I", "J"}, f"Missing storey frame ends for {uid}/{axis}")
-            supported_i = ends["I"]["basis"] == "FRAME_SECTION_REFERENCE" or (
-                allow_wall_hinge and ends["I"]["basis"] == "WALL_BELOW_ROTATIONAL_STIFFNESS_UNBOUND")
-            require(ends["J"]["basis"] == "FRAME_SECTION_REFERENCE" and supported_i,
-                    f"Unsupported frame-storey reference end for {uid}/{axis}")
-            # The sealed storey calculation assumes a hinge for a wall-supported lower end.
-            # A column using this assumption cannot enter the member design extension.
-            k = effective_length_factor(alpha_i=ends["I"].get("alpha_web"), alpha_j=ends["J"].get("alpha_web"),
-                                        sway=SWAY_PERMITTED)
+            k, _ = _axis_restraint(ends, allow_wall_hinge)
             inertia = section["i22_mm4"] if axis == "M2" else section["i33_mm4"]
             ei = effective_stiffness_nmm2(ec_mpa=modulus, ic_mm4=inertia, creep_ratio=1, method="TS500_7_21")
             loads[direction].append(euler_load_kn(effective_ei_nmm2=ei, effective_length_lk_mm=1000 * length * k))
@@ -147,36 +155,35 @@ def wall_compression_scope(frames, wall_rows):
     return output
 
 
-def _member_restraint_hold(uid, frame, physical, ratios):
+def _member_restraint_hold(uid, frame, physical, ratios, allow_wall_hinge):
     proof = physical.get(uid, {})
     if proven_clear_length_m(proof, uid) is None:
         return proof.get("status") or "PHYSICAL_COLUMN_FACES_UNAVAILABLE"
     if not lateral_directions(frame):
         return "HORIZONTAL_STORY_AXES_UNBOUND"
     for axis in ("M2", "M3"):
-        for side in ("I", "J"):
-            end = ratios.get(uid, {}).get(axis, {}).get(side, {})
-            if end.get("basis") != "FRAME_SECTION_REFERENCE":
-                return end.get("basis") or "FRAME_END_RESTRAINT_UNBOUND"
+        try:
+            _axis_restraint(ratios.get(uid, {}).get(axis, {}), allow_wall_hinge)
+        except (KeyError, ValueError) as exc:
+            return str(exc)
     return None
 
 
-def _member_basis(frame, ratios, gravity, totals):
+def _member_basis(frame, ratios, gravity, totals, allow_wall_hinge):
     axes = {}
     for axis, direction in lateral_directions(frame).items():
         ends = ratios[axis]
-        k = effective_length_factor(alpha_i=ends["I"]["alpha_web"], alpha_j=ends["J"]["alpha_web"],
-                                    sway=SWAY_PERMITTED)
+        k, method = _axis_restraint(ends, allow_wall_hinge)
         axes[axis] = {
-            "k": k, "k_source": {"method": "FRAME_END_RATIOS", "section": "alpha_web"},
+            "k": k, "k_source": {"method": method, "section": "alpha_web"},
             "sway": SWAY_PERMITTED, "creep_ratio_rm": 1.0, "ei_method": "TS500_7_21",
             "cm_policy": "UNITY", "eq729_length_reading": "EFFECTIVE_LENGTH",
-            "decision_reference": "Two model-derived frame ends, rectangular beam webs and sway permitted.",
+            "decision_reference": "Model-derived framing or a lower-support envelope, rectangular webs and sway permitted.",
             "story_aggregates": totals[direction],
         }
     return {"axes": axes, "combinations": sorted(totals["X"]),
             "applicability": AXIAL_IDEALIZATION_APPLICABILITY,
-            "decision_reference": "Prismatic frame member with two resolved framing ends per axis.",
+            "decision_reference": "Prismatic frame member with verified support identities on both axes.",
             "axial_idealization": {"method": AXIAL_IDEALIZATION_METHOD, "combinations": sorted(gravity),
                 "decision_reference": "Member maximum compression for factors and local compression for signed PMM."}}
 
@@ -233,6 +240,7 @@ def building_frame_basis(source, physical, ratios, pmm, scope):
             source_error = "FRAME_STOREY_ASSIGNED_CUT_POPULATION_INCOMPLETE"
         totals, nd = {}, {}
         layer = {uid: physical.get(uid, {}) for uid in rows}
+        allow_wall_hinge = story in policy["wall_hinge_aggregate_storeys"]
         if not source_error:
             try:
                 nd = storey_compression(source, layer, groups)
@@ -243,13 +251,25 @@ def building_frame_basis(source, physical, ratios, pmm, scope):
         if not source_error:
             try:
                 nk = storey_critical_loads(source, storey, layer, ratios,
-                                          allow_wall_hinge=story in policy["wall_hinge_aggregate_storeys"])
+                                          allow_wall_hinge=allow_wall_hinge)
                 require(set(nk) == {"X", "Y"} and all(isfinite(v) and v > 0 for v in nk.values()),
                         "FRAME_STOREY_STIFFNESS_UNSUPPORTED")
                 totals = {direction: {case: {"nd_kn": load, "nk_kn": nk[direction],
                           "reference": f"All {len(layer)} frame columns on {story}, {direction}, {case}."}
                           for case, load in nd.items()} for direction in ("X", "Y")}
                 record["critical_load_kn"] = nk
+                excluded = sorted(u for u, v in layer.items() if v.get("status") == "ETABS_WALL_COUPLED_COLUMN_MESH")
+                record["frame_sway_bound"] = {
+                    "scope": "FRAME_COLUMN_COMPRESSION_ONLY", "compression_members": sorted(layer),
+                    "euler_members": sorted(layer.keys()-set(excluded)), "zero_credit_columns": excluded,
+                    "wall_euler_credit_kn": 0., "wall_compression_in_numerator": False,
+                    "max_compression_case": max(nd, key=nd.get), "max_compression_kn": max(nd.values()),
+                    "minimum_critical_load_kn": nk,
+                    "max_load_ratio": {d: max(nd.values())/v for d, v in nk.items()},
+                    "max_beta_story": {d: moment_magnification_factors(nd_kn=0., nk_kn=v, sway=SWAY_PERMITTED,
+                        allow_noncompression=True, story_nd_kn=max(nd.values()), story_nk_kn=v)["beta_story"]
+                        for d,v in nk.items()},
+                }
             except (KeyError, TypeError, ValueError, ArithmeticError) as exc:
                 record["aggregate_hold"] = str(exc)
         else:
@@ -271,13 +291,13 @@ def building_frame_basis(source, physical, ratios, pmm, scope):
                 members[uid] = existing[uid]
                 row["basis"] = "EXPLICIT_MEMBER_BASIS"
                 continue
-            reason = source_error or _member_restraint_hold(uid, storey[uid], physical, ratios)
+            reason = source_error or _member_restraint_hold(uid, storey[uid], physical, ratios, allow_wall_hinge)
             if not reason and not totals:
                 reason = record["aggregate_hold"]
             if reason:
                 row.update(basis="HOLD", reason=reason)
                 continue
-            members[uid] = _member_basis(storey[uid], ratios[uid], groups["gravity"], totals)
+            members[uid] = _member_basis(storey[uid], ratios[uid], groups["gravity"], totals, allow_wall_hinge)
             row["basis"] = "ENGINE_FRAME_ENDS_AND_STOREY_LOADS"
     basis = None
     if members:

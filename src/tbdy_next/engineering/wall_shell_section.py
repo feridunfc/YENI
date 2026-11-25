@@ -14,9 +14,10 @@ def _basis(matrix, normal):
     # describe direction cosines by global rows, others by local rows.
     _global_force((0.0, 0.0, 1.0), matrix)  # orthonormal and right handed
     rows = [tuple(matrix[i : i + 3]) for i in (0, 3, 6)]
-    choices = {tuple(v) for v in (rows, list(zip(*rows))) if dist(v[2], normal) < 1e-7}
-    required(len(choices) == 1, "SHELL_LOCAL_BASIS_OR_FACE_ORIENTATION_UNRESOLVED")
-    return next(iter(choices))
+    choices = [tuple(v) for v in (rows, list(zip(*rows))) if dist(v[2], normal) < 1e-7]
+    required(choices and all(max(dist(a,b) for a,b in zip(choices[0],other)) < 1e-10
+                             for other in choices[1:]), "SHELL_LOCAL_BASIS_OR_FACE_ORIENTATION_UNRESOLVED")
+    return choices[0]
 
 
 def _traction(values, axes):

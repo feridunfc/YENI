@@ -245,19 +245,13 @@ def _adopted_calculation_context(uid, plan, local, reconciliation, evidence):
             selection, resolution = adopted.get("k_source"), values.get("k_source_resolution")
             k_matches = used_k == adopted["k"]
             if selection is not None:
-                resolution = resolution or {}
-                ends = resolution.get("ends") or {}
-                k_matches = (used_k is not None
-                    and abs(used_k - adopted["k"]) <= 8 * max(math.ulp(used_k), math.ulp(adopted["k"]))
-                    and resolution.get("status") == "CURRENT_FRAME_REFERENCE_CONSUMED"
-                    and resolution.get("engineering_approval") == "NOT_GRANTED"
-                    and resolution.get("method") == selection["method"] and resolution.get("section") == selection["section"]
-                    and resolution.get("sway") == adopted["sway"] and resolution.get("computed_k") == used_k
-                    and set(ends) == {"I", "J"}
-                    and all(ends[e].get("basis") == "FRAME_SECTION_REFERENCE" for e in ("I", "J"))
-                    and all(_finite_number(resolution.get(a)) is not None and resolution[a] >= 0
-                            and resolution[a] == ends[e].get(selection["section"])
-                            for a, e in (("alpha_i", "I"), ("alpha_j", "J"))))
+                from .column_effective_length import resolve_adopted_frame_k
+                _, verified_resolution = resolve_adopted_frame_k(adopted, (resolution or {}).get("ends"))
+                # Native doubles may travel through JSON and the stage boundary within the agreed
+                # machine budget. Every other proof field, including the individual branches, is exact.
+                k_matches = (used_k is not None and
+                             abs(used_k-adopted["k"]) <= 8*max(math.ulp(used_k),math.ulp(adopted["k"])) and
+                             resolution == {**verified_resolution, "computed_k":used_k})
             elif resolution is not None:
                 k_matches = False
             if (values.get("adopted_axis_basis") != adopted

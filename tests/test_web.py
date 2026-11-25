@@ -54,6 +54,29 @@ class TestLocalWeb(unittest.TestCase):
         self.assertIn(b'id="nav"', data)
         self.assertIn(b'/quick.js', data)
 
+    def test_print_bytes_follow_verified_archive_and_reject_modified_html(self):
+        from hashlib import sha256
+        from unittest.mock import patch
+        from tbdy_next.history_catalog import recorded_print_hash, verification_key
+        directory = Path(self.tmp.name) / ("RUN-"+"1"*32)
+        directory.mkdir()
+        source = directory / "input.source"
+        source.write_bytes(b"original")
+        page = b"<html>verified</html>"
+        (directory / "report.html").write_bytes(page)
+        recorded_print_hash(directory, verification_key(directory), sha256(page).hexdigest())
+        url = self.base + "/report/print?run_id=" + directory.name
+        with patch("tbdy_next.web.build_complete_report", side_effect=AssertionError("unexpected rebuild")):
+            with urlopen(url) as response:
+                self.assertEqual(response.read(), page)
+        source.write_bytes(b"altered input")
+        (directory / "report.html").write_bytes(b"<html>unverified</html>")
+        with patch("tbdy_next.web.build_complete_report", return_value={}) as rebuild, \
+             patch("tbdy_next.web.build_printable_html", return_value="<html>new verified</html>"):
+            with urlopen(url) as response:
+                self.assertEqual(response.read(), b"<html>new verified</html>")
+            rebuild.assert_called_once()
+
     def test_health_explicitly_not_ready(self):
         status, data, _ = self.request("/api/health")
         self.assertEqual(status, 200)

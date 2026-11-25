@@ -182,6 +182,52 @@ def panel_profile(context, columns, member_ids):
     return {"panels":panels,"bands":bands}
 
 
+def support_id(panel, side):
+    return panel.get("support_sections", {}).get(side, {}).get("support_id") or panel["column_"+side.lower()]
+
+
+def _wall_edge(context, uid, joint, opposite, direction, material):
+    xyz, walls, assignments, props = context[:4]
+    fields, inserts = context[-2:]
+    incident = []
+    for other, row in walls.items():
+        if other == uid:
+            continue
+        points = [row["UniquePt"+str(n)] for n in (1,2,3,4)]
+        for low, high, remote in ((points[0],points[3],points[1]),(points[1],points[2],points[0])):
+            if (low, high) != (joint, opposite):
+                continue
+            a, b = xyz[joint], xyz[remote]
+            length = dist(a[:2],b[:2])
+            prop = props[assignments[other]["SectProp"]]
+            thick = float(prop["Thickness"])
+            required(length>0 and close(a[2],b[2]) and thick>0 and prop["Material"] == material
+                     and inserts[other] and all(r["CardinalPt"]=="Middle" and _no_translation(r, fields)
+                     for r in inserts[other]), "WALL_RETURN_GEOMETRY_UNBOUND")
+            unit = [(b[k]-a[k])/length for k in (0,1)]
+            alignment = abs(sum(x*y for x,y in zip(direction,unit)))
+            required(close(alignment,0) or close(alignment,1), "ORTHOGONAL_RETURN_REQUIRED")
+            incident.append({"member":other,"wall":row["WallBay"],"across":close(alignment,0),
+                             "thickness_mm":thick*1000,"span_mm":length*1000,"direction":unit,"remote_joint":remote})
+    required(incident, "NATIVE_SHARED_VERTICAL_SUPPORT_REQUIRED")
+    depth = max((v["thickness_mm"] for v in incident if v["across"]), default=0.)
+    return {"kind":"WALL_JUNCTION","support_id":"joint "+joint,"column":None,"joint":joint,"upper_joint":opposite,
+            "material":material,"depth_mm":depth,"incident_walls":incident}
+
+
+def _link_panel(context, uid):
+    xyz, walls, assignments, props = context[:4]
+    row = walls[uid]
+    i,j,jt,it = [row["UniquePt"+str(k)] for k in (1,2,3,4)]
+    a,b = xyz[i],xyz[j]
+    length = dist(a[:2],b[:2])
+    direction = tuple((b[k]-a[k])/length for k in (0,1))
+    prop = props[assignments[uid]["SectProp"]]
+    return {"member":uid,"wall":row["WallBay"],"width_direction":direction,"joint_i":i,"joint_j":j,
+            "column_i":None,"column_j":None,"support_sections":{
+            side:_wall_edge(context,uid,pt,high,direction,prop["Material"]) for side,pt,high in (("I",i,it),("J",j,jt))}}
+
+
 def folded_section(source, bound, name, story, member_ids):
     context = _context(source)
     xyz, walls, assignments, props, shape, frames, angles, _, _, _, sf, shell_insert = context
@@ -205,31 +251,31 @@ def folded_section(source, bound, name, story, member_ids):
         required(a[:2] == upper_a[:2] and b[:2] == upper_b[:2] and a[2] == b[2] < upper_b[2] == upper_a[2],
                  "VERTICAL_RECTANGULAR_WALL_REQUIRED")
         rect = _bounds(a[:2], b[:2], thick)
-        required(len(supports[a[:2]]) == len(supports[b[:2]]) == 1,
-                 "EACH_PANEL_END_REQUIRES_ONE_REGISTERED_SUPPORT_COLUMN")
-        left, li, lt = supports[a[:2]][0]
-        right, ri, rt = supports[b[:2]][0]
-        required((li, lt, ri, rt) == (i, it, j, jt), "WALL_COLUMN_SHARED_END_JOINTS_REQUIRED")
         ends.update((i, j))
         length = dist(a[:2], b[:2])
         dx, dy = (b[0]-a[0])/length, (b[1]-a[1])/length
-        def reach(col):
+        support_sections = {}
+        for side, pt, high in (("I",i,it),("J",j,jt)):
+            candidates = supports[xyz[pt][:2]]
+            if not candidates:
+                support_sections[side] = _wall_edge(context, uid, pt, high, (dx,dy), prop["Material"])
+                continue
+            required(len(candidates)==1 and candidates[0][1:]==(pt,high), "WALL_COLUMN_SHARED_END_JOINTS_REQUIRED")
+            col = candidates[0][0]
             x0, x1, y0, y1 = footprints[col]
             required(abs(dy)*(x1-x0) + abs(dx)*(y1-y0) >= thick-1e-9, "COLUMN_MUST_COVER_WEB_THICKNESS")
-            return (abs(dx)*(x1-x0) + abs(dy)*(y1-y0))/2
-        l, r = reach(left), reach(right)
+            section_name = frames[col]["SectProp"]
+            angle = angles[col]["AxisAngle"]
+            support_sections[side] = {"column":col, "section":section_name, "material":shape[section_name]["Material"],
+                "depth_mm":1000*(abs(dx)*(x1-x0)+abs(dy)*(y1-y0)),
+                "axis_angle_deg":float(angle) if angle not in ("None",None,"") else 0.}
+        l, r = (support_sections[s]["depth_mm"]/2000 for s in ("I","J"))
+        left, right = (support_sections[s]["column"] for s in ("I","J"))
         clear_a, clear_b = (a[0]+dx*l, a[1]+dy*l), (b[0]-dx*r, b[1]-dy*r)
         required(length-l-r > 0, "NO_CLEAR_WALL_BETWEEN_COLUMN_FACES")
         clear_rect = _bounds(clear_a, clear_b, thick)
         required(all(_intersection(clear_rect, footprint) < 1e-9 for footprint in footprints.values()),
                  "ANOTHER_COLUMN_INTERSECTS_CLEAR_WEB")
-        support_sections = {}
-        for side, col, depth in (("I", left, 2*l), ("J", right, 2*r)):
-            section_name = frames[col]["SectProp"]
-            angle = angles[col]["AxisAngle"]
-            support_sections[side] = {"column": col, "section": section_name,
-                "material": shape[section_name].get("Material"), "depth_mm": depth*1000,
-                "axis_angle_deg": float(angle) if angle not in ("None", None, "") else 0.}
         panels.append({"member": uid, "wall": row["WallBay"], "joint_i": i, "joint_j": j, "column_i": left, "column_j": right,
             "support_sections": support_sections,
             "section_name": prop["Name"], "shell_model": prop.get("ModelType"), "span_m": length, "thickness_m": thick, "clear_length_m": length-l-r, "width_direction": [dx, dy],
@@ -237,10 +283,20 @@ def folded_section(source, bound, name, story, member_ids):
         strips.append(rect)
         strips_clear.append(clear_rect)
     # Two end points, no branch, and only one connected graph.
+    assigned = {uid for uids in bound["assignments"].values() for uid in uids}
+    links = {}
+    for p in panels:
+        for s in p["support_sections"].values():
+            for adj in s.get("incident_walls", []):
+                if adj["member"] not in assigned and adj["remote_joint"] in ends:
+                    links[adj["member"]] = tuple(sorted((s["joint"],adj["remote_joint"])))
+    graph = [(p["joint_i"],p["joint_j"]) for p in panels] + list(links.values())
+    for pair in links.values():
+        ends.update(pair)
     reached = {panels[0]["joint_i"]}
     for _ in panels:
-        for p in panels:
-            edge = {p["joint_i"], p["joint_j"]}
+        for pair in graph:
+            edge = set(pair)
             if edge & reached:
                 reached.update(edge)
     required(len(reached) == len(ends) and sorted(ends.values()) == [1,1]+[2]*(len(ends)-2),
@@ -274,9 +330,12 @@ def folded_section(source, bound, name, story, member_ids):
                  and close(float(native["Width"+key]), width, .00051)
                  and close(float(native["Thick"+key]), nominal/width, .000051), "NATIVE_PIER_FACE_PROPERTIES_DIFFER")
         face_origins[face] = [cx,cy,cz]
+    for panel in panels:
+        panel["folded_pier_length_m"] = width
     return {"panels": panels, "bottom_m":bottom, "top_m":top, "native_axes_2_xy":axes, "native_face_origins_m":face_origins,
             "nominal_area_m2": nominal, "shell_footprint_union_m2": _union(strips), "clear_web_area_m2":net_area,
             "net_centroid_xy_m":[fsum(p["clear_length_m"]*p["thickness_m"]*p["clear_centroid_xy_m"][k]
                                      for p in panels)/net_area for k in (0,1)],
-            "reserved_column_ids":sorted({p[key] for p in panels for key in ("column_i","column_j")}),
+            "connectivity_links":links, "transfer_panels":[_link_panel(context,uid) for uid in links],
+            "reserved_column_ids":sorted({p[key] for p in panels for key in ("column_i","column_j") if p[key]}),
             "material":native["Material"], "projected_length_m":width, "height_over_length":(top-bottom)/width}

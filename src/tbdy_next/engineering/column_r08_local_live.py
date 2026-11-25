@@ -939,7 +939,8 @@ def project_column_r08_local_live(
             raise ValueError("SECOND_ORDER_BASIS_MEMBER_OUTSIDE_PHYSICAL_ROSTER")
         basis_source_payload_sha256 = _digest(source)
     physical_lengths = ((r10_live or {}).get("physical_clear_lengths") or {}).get("per_member", {})
-    end_ratios = reference_end_ratios(source, physical_lengths)
+    mat_supports = project_mat_horizontal_supports(source, physical_lengths)
+    end_ratios = reference_end_ratios(source, physical_lengths, mat_supports)
     building_frames = None
     if source.get("building_design") is not None:
         from .design_scenario import _digest
@@ -953,7 +954,6 @@ def project_column_r08_local_live(
             building_frames = {"schema": "tbdy.next.building-frame-results.v1", "storeys": {},
                                "bound_columns": 0, "hold": str(exc)}
         basis_source_payload_sha256 = _digest(source)
-    mat_supports = project_mat_horizontal_supports(source, physical_lengths)
     transition = source.get("coupled_wall_transition")
     if transition is not None:
         from .coupled_wall_transition import normalize_transition, project_transition

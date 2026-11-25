@@ -1,8 +1,9 @@
 """Coordinate the proposed straight bars entering each basement column."""
 from collections import defaultdict
-from itertools import combinations
+from itertools import chain, combinations, product
 from math import ceil, floor, hypot
 
+from .basement_pier_geometry import support_id
 from .basement_wall_pressure import DEFAULT_AGGREGATE_MM, clear_limit, finite_grid
 
 
@@ -56,17 +57,32 @@ def _families(panel, side, end):
         for face in (-1,1):
             x, y = -ex*depth/2-face*dy*offset, -ey*depth/2+face*dx*offset
             x2, y2 = x+length*ex, y+length*ey
+            corner = end if role=="web" else dowels.get("anchor",{})
+            shape = corner.get("return_shape")
+            heights = [grid["first_station_mm"]+i*grid["pitch_mm"] for i in range(grid["layers"])]
+            if shape == "RETURN_U_HAIRPIN" and face==1:
+                # One closure connects both straight legs. The envelope of the bend
+                # includes its complete arc and both faces in the receiving web.
+                sx, sy = -2*dy*offset, 2*dx*offset
+                start = length-offset-grid["diameter_mm"]/2
+                xs=[x+start*ex,x2,x2-sx,x+start*ex-sx]
+                ys=[y+start*ey,y2,y2-sy,y+start*ey-sy]
+                yield {"member":panel["member"],"role":role+" bend","face":0,"horizontal":abs(ex)>.5,
+                       "bounds":(min(xs),max(xs),min(ys),max(ys)), "diameter":grid["diameter_mm"], "heights":heights}
             hook = end.get("hook") if role == "web" else None
             if hook:
                 # The bounding rectangle contains the complete arc and tail. A passing
                 # distance is a conservative lower bound for the curved bar.
                 shift = hook["centreline_radius_mm"] + hook["straight_tail_mm"]
                 x3, y3 = x2 - hook["lateral_turn"]*face*dy*shift, y2 + hook["lateral_turn"]*face*dx*shift
+            elif shape=="RETURN_PAIRED_90":
+                shift = corner["centreline_radius_mm"]+corner["hook_90_tail_mm"]
+                x3,y3 = x2+face*dy*shift,y2-face*dx*shift
             else:
                 x3, y3 = x2, y2
             yield {"member":panel["member"], "role":role, "face":face, "horizontal":abs(ex)>.5,
                    "bounds":(min(x,x2,x3),max(x,x2,x3),min(y,y2,y3),max(y,y2,y3)), "diameter":grid["diameter_mm"],
-                   "heights":[grid["first_station_mm"]+i*grid["pitch_mm"] for i in range(grid["layers"])]}
+                   "heights":heights}
 
 
 def _closest_levels(left, right):
@@ -123,14 +139,92 @@ def _through_families(families, proof):
     return rest
 
 
-def check_joint_layout(geometry, aggregate=DEFAULT_AGGREGATE_MM, through=None):
+def stagger_column_entries(geometry, designs, through, cover, aggregate):
+    """Translate actual bar elevations. Keep both face arms, diameters, pitch and guaranteed steel."""
+    panels = {p["member"]:p for p in geometry["panels"]}
+    joints = defaultdict(list)
+    for uid,p in panels.items():
+        for side in ("I","J"):
+            joints[support_id(p,side)].append((uid,side))
+
+    def layout_at(key, current):
+        copies = []
+        for uid,_ in joints[key]:
+            detail = current.get(uid) or {}
+            ends = {s:dict(e) for s,e in detail.get("ends",{}).items()}
+            copies.append({**panels[uid],"horizontal":detail.get("horizontal"),"vertical":detail.get("vertical"),
+                           "pressure_connections":{"ends":ends}})
+        return check_joint_layout({"panels":copies},aggregate,through,target=key)[0]["status"]
+
+    def options(uid):
+        detail = designs[uid]
+        yield detail
+        p = panels[uid]
+        if any(support_id(p,s) in through for s in ("I","J")):
+            return
+        policy = layout_policy(geometry,p,cover,aggregate)
+        phase = policy["phase"]+int(policy["inner"])
+        horizontal = detail["horizontal"]
+        # Independent wall and dowel grids may be staggered on the same construction module.
+        shifts = (0., .5, 1., 1.5, 2., 2.5, 3., 3.5)
+        seen = set()
+        for h_step, d_step in product(shifts, repeat=2):
+            h = level_grid({**policy,"phase":phase+h_step},horizontal["diameter_mm"],horizontal["maximum_pitch_mm"],cover)
+            if not h or h["pitch_mm"]!=horizontal["pitch_mm"] or h["minimum_in_any_full_metre"]<horizontal["guaranteed_bars_per_m"]:
+                continue
+            ends = {}
+            for side,e in detail["ends"].items():
+                bars = e["transfer"]
+                if e["status"]!="CONDITIONAL_PRESSURE_END_DESIGN":
+                    ends[side]=e
+                    continue
+                nominal = bars.get("maximum_pitch_mm")
+                if not nominal:
+                    break
+                g = level_grid({**policy,"dowel_phase":phase+d_step},bars["diameter_mm"],nominal,
+                               max(cover,e["end_cover_mm"]),dowel=True)
+                if not g or g["pitch_mm"]!=bars["pitch_mm"] or g["minimum_in_any_full_metre"]<bars["guaranteed_bars_per_m"]:
+                    break
+                ends[side]={**e,"transfer":{**bars,**g}}
+            if set(ends)!=set(detail["ends"]):
+                continue
+            identity = (h["first_station_mm"], *(e["transfer"].get("first_station_mm") for e in ends.values()))
+            if identity in seen:
+                continue
+            seen.add(identity)
+            v = detail["vertical"]
+            yield {**detail,"horizontal":{**horizontal,**h,"guaranteed_bars_per_m":horizontal["guaranteed_bars_per_m"]},
+                   "vertical":{**v,"crossties":v["stations_per_face"]*h["layers"]},"ends":ends}
+
+    ok = "PROPOSED_PRESSURE_BARS_FIT"
+    for key, incident in joints.items():
+        if key in through or len(incident)<2 or layout_at(key,designs)!="PROPOSED_PRESSURE_BARS_CLASH":
+            continue
+        uids = [uid for uid,_ in incident]
+        neighbours = {support_id(panels[uid],s) for uid in uids for s in ("I","J")}-{key}
+        protected = [k for k in neighbours if layout_at(k,designs)==ok]
+        # Try changing one entry first. Only explore pairs if neither single move resolves the clash.
+        choices = {u:list(options(u)) for u in uids}
+        singles = (((u,), (v,)) for u in uids for v in choices[u][1:])
+        pairs = ((pair, vals) for pair in combinations(uids,2) for vals in product(*(choices[u][1:] for u in pair)))
+        for ids, vals in chain(singles,pairs):
+            trial = dict(designs)
+            trial.update(zip(ids, vals))
+            if layout_at(key,trial)==ok and all(layout_at(k,trial)==ok for k in protected):
+                designs.update(zip(ids,vals))
+                break
+
+
+def check_joint_layout(geometry, aggregate=DEFAULT_AGGREGATE_MM, through=None, *, target=None):
     by_column = defaultdict(list)
     for panel in geometry["panels"]:
         for side in ("I","J"):
             end = panel.get("pressure_connections",{}).get("ends",{}).get(side)
-            by_column[panel["column_"+side.lower()]].append((panel,side,end))
+            by_column[support_id(panel,side)].append((panel,side,end))
     result = []
     for uid,incident in sorted(by_column.items()):
+        if target is not None and uid != target:
+            continue
         row = {"column":uid, "members":[p["member"] for p,_,_ in incident], "status":"HOLD"}
         result.append(row)
         if not all(end and end["status"]=="CONDITIONAL_PRESSURE_END_DESIGN" for _,_,end in incident):
@@ -140,6 +234,13 @@ def check_joint_layout(geometry, aggregate=DEFAULT_AGGREGATE_MM, through=None):
                     end["layout_status"] = row["reason"]
                     if end["status"] == "CONDITIONAL_PRESSURE_END_DESIGN":
                         end["status"] = "HOLD_INCIDENT_PRESSURE_END_DETAILS_REQUIRED"
+            continue
+        corners = [(p,s,e) for p,s,e in incident if e.get("joint")]
+        actual = {p["member"] for p,_,_ in incident}
+        if any(set(e["incident_walls"])-actual for _,_,e in corners):
+            row["reason"] = "RECEIVING_WALL_CURTAIN_LAYOUT_UNBOUND"
+            for _,_,end in incident:
+                end["layout_status"] = row["reason"]
             continue
         families = [bar for panel,side,end in incident for bar in _families(panel,side,end)]
         proof = (through or {}).get(uid)
@@ -151,7 +252,33 @@ def check_joint_layout(geometry, aggregate=DEFAULT_AGGREGATE_MM, through=None):
                 for _,_,end in incident:
                     end["bar_path"] = "UNSPLICED_THROUGH_COLUMN"
                     end["through_bar_length_mm"] = proof["one_piece_length_mm"]
-        checks = [_separation(a,b,aggregate) for a,b in combinations(families,2)]
+        checks = [_separation(a,b,aggregate) for a,b in combinations(families,2)
+                  if not (a["member"]==b["member"] and a["role"] != b["role"] and
+                          a["role"].removesuffix(" bend")==b["role"].removesuffix(" bend"))]
+        for panel,side,end in corners:
+            v = panel.get("vertical") or {}
+            if not v.get("stations_per_face"):
+                row["reason"] = "RECEIVING_WALL_VERTICAL_GRID_REQUIRED"
+                break
+            dx,dy = panel["width_direction"]
+            sense = 1 if side=="I" else -1
+            h = panel["horizontal"]
+            track = panel["thickness_m"]*500-h["cover_mm"]-h["curtain_inset_mm"]-2*h["diameter_mm"]-v["diameter_mm"]/2
+            for i in range(v["stations_per_face"]):
+                along = sense*(end["column_depth_mm"]/2+(i+.5)*v["pitch_mm"])
+                for f in (-1,1):
+                    x,y = along*dx-f*track*dy,along*dy+f*track*dx
+                    for bar in families:
+                        if bar["member"]==panel["member"] and bar["role"]=="web":
+                            continue  # Intended contact of the two perpendicular curtain grids.
+                        x0,x1,y0,y1 = bar["bounds"]
+                        space = hypot(max(0,x0-x,x-x1),max(0,y0-y,y-y1))-(v["diameter_mm"]+bar["diameter"])/2
+                        minimum = clear_limit(aggregate,v["diameter_mm"],bar["diameter"])
+                        checks.append({"members":[panel["member"],bar["member"]],"roles":["vertical",bar["role"]],
+                            "parallel":False,"clear_mm":space,"required_mm":minimum,"margin_mm":space-minimum,
+                            "fits":space>=minimum})
+        if row.get("reason"):
+            continue
         row.update(family_pairs=len(checks), minimum_parallel_clear_mm=min(q["clear_mm"] for q in checks if q["parallel"]),
                    governing=min(checks,key=lambda q:q["margin_mm"]),
                    status="PROPOSED_PRESSURE_BARS_FIT" if all(q["fits"] for q in checks) else "PROPOSED_PRESSURE_BARS_CLASH")

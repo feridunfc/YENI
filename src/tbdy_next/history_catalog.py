@@ -237,6 +237,25 @@ def verification_key(directory, paths=None):
     return sha256(json.dumps([(p.name, archive_file_hash(p)) for p in paths]).encode()).hexdigest()
 
 
+def recorded_print_hash(directory, key, digest=None):
+    """The workspace index binds verified report bytes to a run and its complete archive key."""
+    try:
+        if digest is None:
+            cache = directory.parent / ".history-catalog.sqlite3"
+            if not cache.is_file() or cache.is_symlink():
+                return None
+            with closing(sqlite3.connect(cache.resolve().as_uri() + "?mode=ro", uri=True, timeout=.1)) as db:
+                row = db.execute("SELECT html_sha256 FROM verified_prints WHERE run_id=? AND archive_key=?",
+                                 (directory.name,key)).fetchone()
+                return row[0] if row else None
+        with closing(_database(directory.parent)) as db, db:
+            db.execute("CREATE TABLE IF NOT EXISTS verified_prints (run_id TEXT PRIMARY KEY, archive_key TEXT, html_sha256 TEXT)")
+            db.execute("INSERT OR REPLACE INTO verified_prints VALUES (?,?,?)", (directory.name, key, digest))
+        return digest
+    except sqlite3.Error:
+        return None
+
+
 def _modal_key(directory):
     from .history import _read_receipt_file
     try:

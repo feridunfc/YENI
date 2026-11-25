@@ -165,8 +165,15 @@ def vertical_section(panel, horizontal, cover, material, diameter, pitch, *, agg
     actual_height = horizontal.get("physical_height_mm")
     required(actual_height and isfinite(actual_height) and actual_height > 0, "PHYSICAL_PANEL_HEIGHT_REQUIRED")
     dimensions = section_dimensions(1000*panel["span_m"], thick, actual_height)
+    # Native folded pier length classifies the physical wall. The unsupported
+    # limb length and its thickness still govern the actual web being detailed.
+    physical_length = panel.get("folded_pier_length_m",panel["span_m"])
+    dimensions.update(classification_length_mm=1000*physical_length,
+                      classification_length_over_thickness=1000*physical_length/thick)
+    if thick>=dimensions["required_thickness_mm"] and physical_length/panel["thickness_m"]>=7-1e-9:
+        dimensions["status"] = "DIMENSIONS_SATISFIED"
     required(dimensions["status"] == "DIMENSIONS_SATISFIED" and ties_per_m2 >= 4
-             and panel["span_m"]/panel["thickness_m"] >= 7-1e-9,
+             and physical_length/panel["thickness_m"] >= 7-1e-9,
              "TBDY_WALL_DIMENSIONS_OR_WEB_CROSSTIE_MINIMUM_UNSATISFIED")
     return Section(length,thick,bars,material), {"diameter_mm":diameter,"pitch_mm":spacing,
         "stations_per_face":count,"as_two_faces_mm2":2*count*area,"vertical_ratio":2*count*area/(length*thick),

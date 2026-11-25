@@ -141,7 +141,7 @@ def normalize_second_order_basis(raw: Any, *, source_data_sha256: str) -> dict[s
                           "story_aggregates": aggregates}
             if "k_source" in a:
                 k_source = _mapping(a["k_source"], {"method", "section"}, "k_source")
-                if (k_source["method"] != "FRAME_END_RATIOS" or not isinstance(k_source["section"], str)
+                if (k_source["method"] not in ("FRAME_END_RATIOS", "LOWER_SUPPORT_SWAY_ENVELOPE") or not isinstance(k_source["section"], str)
                         or k_source["section"] not in {"alpha_web", "alpha_flange_comparison"}):
                     raise ValueError("SECOND_ORDER_BASIS_K_SOURCE_UNSUPPORTED")
                 axes[axis]["k_source"] = dict(k_source)
