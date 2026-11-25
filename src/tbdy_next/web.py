@@ -381,7 +381,7 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                 self.reply(200, {"runs": quick_history(output_root, summary=bool(query)),
                                  "engineering_release": "NOT_READY"})
             elif url.path == "/api/modal-history":
-                self.reply(200, {"runs": history_view.read(), "engineering_release": "NOT_READY"})
+                self.reply(200, {"runs": self.read_history(), "engineering_release": "NOT_READY"})
             elif url.path in ("/api/export-checks", "/report/print",
                                 "/api/vs06-drift-scenario"):
                 query = parse_qs(url.query)
@@ -944,6 +944,7 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                 run.record("rejected", result, input_sha256=input_sha)
                 self.reply(422, {"run_id": run.run_id, "result": result})
 
+    Handler.read_history = staticmethod(history_view.read)
     Handler.close_history = staticmethod(history_view.close)
     return Handler
 
@@ -952,13 +953,18 @@ def serve(*, host: str = "127.0.0.1", port: int = 8765, output_root: Path = Path
           etabs_pid: int | None = None, allow_private_wall_analysis=False) -> None:
     if host not in ("127.0.0.1", "localhost", "::1"):
         raise ValueError("VS01 web UI accepts localhost only; use a trusted port forward in Codespaces")
-    with WorkspaceHTTPServer((host, port), make_handler(
-            Path(output_root), etabs_pid=etabs_pid, allow_private_wall_analysis=allow_private_wall_analysis)) as server:
-        target = f"PID {etabs_pid}" if etabs_pid is not None else "active instance"
-        print(f"TBDY Next Engine VS01: http://{host}:{server.server_port} | receipts: {output_root} "
-              f"| ETABS: {target}, connection sets {CAPTURE_UNIT_LABEL}",
-              flush=True)
+    handler = make_handler(Path(output_root), etabs_pid=etabs_pid,
+                           allow_private_wall_analysis=allow_private_wall_analysis)
+    with WorkspaceHTTPServer((host, port), handler, bind_and_activate=False) as server:
         try:
+            server.server_bind()
+            if os.name == "nt":
+                handler.read_history()
+            server.server_activate()
+            target = f"PID {etabs_pid}" if etabs_pid is not None else "active instance"
+            print(f"TBDY Next Engine VS01: http://{host}:{server.server_port} | receipts: {output_root} "
+                  f"| ETABS: {target}, connection sets {CAPTURE_UNIT_LABEL}",
+                  flush=True)
             server.serve_forever()
         finally:
-            server.RequestHandlerClass.close_history()
+            handler.close_history()
