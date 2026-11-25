@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-25T16:19:02+00:00",
+  "updated_at_utc": "2026-11-25T19:11:10+00:00",
   "repository": "feridunfc/YENI",
-  "baseline_implementation_commit": "4b62a73808040003a42c437d1614a1189230ff7e",
+  "baseline_implementation_commit": "ca1a0af8a090fb8fc809e30e53000e01047b21e1",
   "local_reconciled": true,
-  "scope_note": "The original basement meets both period ratios in §3.3.1.1(b). Only the upper W22 band has a continuous three-sided return. The original 300 signed modal and six static storey and direction checks balance across the three datums. Each wall reference covers 390 assigned faces. The proposed wall schedules now cover 17/30 panels, including 12 panels in four rectangular stacks and the five yP1 panels. Their selected grids pass 300 combined shell, 300 plate, 150 cut PMM and 150 edge checks on six support layouts. The W22 opening has 14 recovered face-combination resultants, seven balanced free bodies and zero of 14 field controls within tolerance. The current sealed run has 65 conditional columns, 18 holds and four failures. It evaluates all 221 assigned basement shell panel/combination pairs. Six yP2 proposals retain their unresolved end details.",
+  "scope_note": "The original basement meets both period ratios in §3.3.1.1(b). Only the upper W22 band has a continuous three-sided return. The original 300 signed modal and six static storey and direction checks balance across the three datums. Each wall reference covers 390 assigned faces. The sealed offline calculation RUN-80997c5fa229452c82948c781b44ae22 records 69 conditional columns, 14 held columns and four foundation failures, plus 21/30 proposed wall panels. W143, W50, W62 and W65 have complete local details. W55 and W31 remain held at the 400 mm W32 transfer into W6. The five archived G1 gaps are closed by the Supervisor. W22 still has seven balanced panel transfers and zero of 14 field controls within tolerance.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -23,11 +23,6 @@
     "preserve_verified_subscopes": true
   },
   "priority_focus": [
-    "GAP-001",
-    "GAP-002",
-    "GAP-003",
-    "GAP-004",
-    "GAP-007",
     "GAP-015",
     "GAP-011",
     "GAP-012",
@@ -38,7 +33,7 @@
     "GAP-018",
     "GAP-006"
   ],
-  "active_task": "Review the five scoped G1 candidates. Resolve the mat-restraint upper bound for four columns and develop a buildable joint detail for yP2. Retain the 14 coupled-column holds, four foundation failures, W22 opening transfer and W32 load-path work.",
+  "active_task": "Resolve the W31/W55 transfer into the W6 boundary cage, the 14 wall-coupled columns and the W22 transition. Retain the four C21–C24 foundation findings and the distinct GAP-015 and GAP-018 scopes.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -59,10 +54,12 @@
         "EV-ORIGINAL-ETABS-PROJECT-DEFAULTS-20261124",
         "EV-ORIGINAL-DD2-PROJECT-INPUT-REVIEW-20261124",
         "EV-YP1-TWO-WAY-SHELL-AND-SUPPORTS-20261124",
-        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
+        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125",
+        "EV-MAT-RETURN-G1-CLOSURE-20261125"
       ],
       "closure_evidence_refs": [
-        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
+        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125",
+        "EV-MAT-RETURN-G1-CLOSURE-20261125"
       ],
       "local_update_needed": false,
       "implementation_checkpoint_20261121": {
@@ -111,10 +108,12 @@
         "EV-LOCAL-SPECTRAL",
         "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
         "EV-LC-EQX-DESIGN-ROLE-CORRECTION-20261122",
-        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
+        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125",
+        "EV-MAT-RETURN-G1-CLOSURE-20261125"
       ],
       "closure_evidence_refs": [
-        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
+        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125",
+        "EV-MAT-RETURN-G1-CLOSURE-20261125"
       ],
       "local_update_needed": false,
       "implementation_checkpoint_20261121": {
@@ -168,10 +167,12 @@
         "EV-LOCAL-NATIVE",
         "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
         "EV-C29-R03-ORDER-AXIAL-BALANCE-20261121",
-        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
+        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125",
+        "EV-MAT-RETURN-G1-CLOSURE-20261125"
       ],
       "closure_evidence_refs": [
-        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
+        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125",
+        "EV-MAT-RETURN-G1-CLOSURE-20261125"
       ],
       "local_update_needed": false,
       "implementation_checkpoint_20261121": {
@@ -227,10 +228,12 @@
         "EV-LIVE-MODAL-ACCEPTANCE-TESTS",
         "EV-LIVE-MODAL-REPLAY-REPORT",
         "EV-S02-C29-SIGNED-STORY-BALANCE-20261122",
-        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
+        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125",
+        "EV-MAT-RETURN-G1-CLOSURE-20261125"
       ],
       "closure_evidence_refs": [
-        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
+        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125",
+        "EV-MAT-RETURN-G1-CLOSURE-20261125"
       ],
       "local_update_needed": false,
       "reference_requirements": [
@@ -414,10 +417,12 @@
         "EV-LOCAL-NATIVE",
         "EV-LOCAL-ORACLE",
         "EV-COLUMN-JOINT-SLICE-20261119",
-        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
+        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125",
+        "EV-MAT-RETURN-G1-CLOSURE-20261125"
       ],
       "closure_evidence_refs": [
-        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
+        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125",
+        "EV-MAT-RETURN-G1-CLOSURE-20261125"
       ],
       "local_update_needed": false,
       "supervisor_exit_recipe_20261121": {
@@ -478,7 +483,7 @@
       "title": "Global and local second-order effects",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Selected candidates can bind same-run R08 inputs; EI/Nk and second-order reference calculations exist. Same-run selected sections now carry both first-order and magnified design moments with the local/global factors and fixed-N radial reserve. R08 applies the existing minimum-eccentricity owner before local/global magnification for static and spectral-box references. Raw, floored and final moments are recorded and projected in the normal report. The two GOLDEN-01 theta scalars now call the existing global P-delta owner. R08 consumes the verified 4.45 m and 3.80 m C29 model clear lengths and the corresponding verified clear lengths of 57 more columns. R08 evaluates conditional TS 500 effective lengths and Euler loads at 59 columns using native directional framing. C29 has 36 aligned Eq. (7.29) comparisons across the stated scenarios. The accepted C29 base boundary at joint 934 restrains UX and UY, consistent with 14 sealed displacement rows. R08 and R14 now bind all 32 mat-connected column boundary conditions from 119 native point reads and R08 computes 64 same-case spectral endpoint differentials. The private ETABS copy supplied 2,784 paired signed end-moment comparisons across all 87 columns. 105 exceed the 5% TS 500 threshold across the six occupied story directions. The isolated ETABS mat gives finite two-axis rotational stiffness at joint 934. Actual floor strips and the mat probe support the two-axis C29 effective-length reference. Signed Eq. (7.23) inputs and column compression subtotals were verified for 24 story references. The 16 C29 Eq. (7.29) signed reference instances give the same branch for both length readings. The 48 signed story/axis references include all frame-column compression. The Rm=1 sensitivity calculation includes complete frame-column critical-load credit at +4.50 and +9.00 and 18 verified-span columns at +0.00. The selected-cage signed C29 PMM reference is evaluated at 48 native cuts. Eight assigned seismic combinations have 48 story-axis references and 1,752 magnified demand boxes for the 73 standalone columns under the Rm=1 sensitivity basis. R08 withholds isolated magnification for the 14 wall-coupled columns and preserves their native cut evidence. The first-order 50 and 25 mm matched-mesh runs show verified interior wall-frame force transfer and unresolved refinement sensitivity at C104. The C104 ideal gross coupled cross section changes geometry at -1.50 m. The existing runner now consumes an explicit, source-validated self-weight Nmax numerical idealization while preserving local N for eccentricity and selected-section PMM. A public two-column/four-beam fixture completes thirty signed cuts and sixteen unique interior-joint SCWB comparisons through conditional R14 closure; this is not original-building or normative acceptance. An independently checked normal-runner source exercises the source-bound revised TS 500 story factors, PMM, six-DOF field recovery, R14 and sealed HTML. The revised story producer now admits a separate same-generation modifier census for non-paired columns and filters Frame/Shell namespaces. A three-column manufactured normal-runner example consumes the additional contributor through actual EI/Nk, story magnification and selected-cage PMM; missing/stale contributors remain unresolved. On the live eight-part METHOD model, six native displacement components yield full-span peaks for both C29 members and three gravity cases each. All three native METHOD meshes now support full-span C29 recovery. The 4-to-8 comparison passes at both members for all three gravity cases. R08 v15 seals 12 adopted frame-column factors and 24 revised PMM sides at 18 physical case-cuts. The actual report reconstruction binds the existing GOLDEN-01 phi values and GOLDEN-02 numerical threshold change to the TS500 scalar owner using hash-bound drift, sum(N/L) and shear. The fixed 44-row bank now has 36 numerical matches, four interpretation differences and four insufficient-source rows. Full source populations and automatic sway assignment remain unqualified. C29's six signed first-order column-wall balances pass against independently calculated upper-body gravity and self-weight. All 267 physical contributor instances are present. The largest absolute residual is 0.000004916 kN. The conditional 12 factors and 24 PMM sides match the original-source replay. The sealed C104 R08 run computed 288 signed components on two meshes at four common faces and balanced all 12 thin free bodies. At the transition 16/72 components met the numerical mesh budget. W22 end-force redistribution dominates the upper-face LC_EQX M3 difference. C104 four-mesh first-order demand sensitivity and complete W22/W23 equilibrium are measured. The comparison supplies an explicit demand qualification boundary to the coupled second-order study. On the original +4.50 m storey, 12 new frame columns have 24 source-derived effective lengths, 72 signed TS 500 magnification factors, 108 signed selected-cage PMM results and 288 assigned spectral corner bounds. On the +9.00 m original storey all 23 frame contributors supply eleven case compression sums and directional critical loads, consumed by seven upper-storey member designs.",
+      "achieved_scope": "Selected candidates can bind same-run R08 inputs; EI/Nk and second-order reference calculations exist. Same-run selected sections now carry both first-order and magnified design moments with the local/global factors and fixed-N radial reserve. R08 applies the existing minimum-eccentricity owner before local/global magnification for static and spectral-box references. Raw, floored and final moments are recorded and projected in the normal report. The two GOLDEN-01 theta scalars now call the existing global P-delta owner. R08 consumes the verified 4.45 m and 3.80 m C29 model clear lengths and the corresponding verified clear lengths of 57 more columns. R08 evaluates conditional TS 500 effective lengths and Euler loads at 59 columns using native directional framing. C29 has 36 aligned Eq. (7.29) comparisons across the stated scenarios. The accepted C29 base boundary at joint 934 restrains UX and UY, consistent with 14 sealed displacement rows. R08 and R14 now bind all 32 mat-connected column boundary conditions from 119 native point reads and R08 computes 64 same-case spectral endpoint differentials. The private ETABS copy supplied 2,784 paired signed end-moment comparisons across all 87 columns. 105 exceed the 5% TS 500 threshold across the six occupied story directions. The isolated ETABS mat gives finite two-axis rotational stiffness at joint 934. Actual floor strips and the mat probe support the two-axis C29 effective-length reference. Signed Eq. (7.23) inputs and column compression subtotals were verified for 24 story references. The 16 C29 Eq. (7.29) signed reference instances give the same branch for both length readings. The 48 signed story/axis references include all frame-column compression. The Rm=1 sensitivity calculation includes complete frame-column critical-load credit at +4.50 and +9.00 and 18 verified-span columns at +0.00. The selected-cage signed C29 PMM reference is evaluated at 48 native cuts. Eight assigned seismic combinations have 48 story-axis references and 1,752 magnified demand boxes for the 73 standalone columns under the Rm=1 sensitivity basis. R08 withholds isolated magnification for the 14 wall-coupled columns and preserves their native cut evidence. The first-order 50 and 25 mm matched-mesh runs show verified interior wall-frame force transfer and unresolved refinement sensitivity at C104. The C104 ideal gross coupled cross section changes geometry at -1.50 m. The existing runner now consumes an explicit, source-validated self-weight Nmax numerical idealization while preserving local N for eccentricity and selected-section PMM. A public two-column/four-beam fixture completes thirty signed cuts and sixteen unique interior-joint SCWB comparisons through conditional R14 closure; this is not original-building or normative acceptance. An independently checked normal-runner source exercises the source-bound revised TS 500 story factors, PMM, six-DOF field recovery, R14 and sealed HTML. The revised story producer now admits a separate same-generation modifier census for non-paired columns and filters Frame/Shell namespaces. A three-column manufactured normal-runner example consumes the additional contributor through actual EI/Nk, story magnification and selected-cage PMM; missing/stale contributors remain unresolved. On the live eight-part METHOD model, six native displacement components yield full-span peaks for both C29 members and three gravity cases each. All three native METHOD meshes now support full-span C29 recovery. The 4-to-8 comparison passes at both members for all three gravity cases. R08 v15 seals 12 adopted frame-column factors and 24 revised PMM sides at 18 physical case-cuts. The actual report reconstruction binds the existing GOLDEN-01 phi values and GOLDEN-02 numerical threshold change to the TS500 scalar owner using hash-bound drift, sum(N/L) and shear. The fixed 44-row bank now has 36 numerical matches, four interpretation differences and four insufficient-source rows. Full source populations and automatic sway assignment remain unqualified. C29's six signed first-order column-wall balances pass against independently calculated upper-body gravity and self-weight. All 267 physical contributor instances are present. The largest absolute residual is 0.000004916 kN. The conditional 12 factors and 24 PMM sides match the original-source replay. The sealed C104 R08 run computed 288 signed components on two meshes at four common faces and balanced all 12 thin free bodies. At the transition 16/72 components met the numerical mesh budget. W22 end-force redistribution dominates the upper-face LC_EQX M3 difference. C104 four-mesh first-order demand sensitivity and complete W22/W23 equilibrium are measured. The comparison supplies an explicit demand qualification boundary to the coupled second-order study. On the original +4.50 m storey, 12 new frame columns have 24 source-derived effective lengths, 72 signed TS 500 magnification factors, 108 signed selected-cage PMM results and 288 assigned spectral corner bounds. On the +9.00 m original storey all 23 frame contributors supply eleven case compression sums and directional critical loads, consumed by seven upper-storey member designs. The four previously unresolved independent columns have finite two-axis raft-strip stiffness bounds and conditional R14 results. The storey denominator retains its hinge limit and zero wall credit.",
       "blocker": "Qualify the two-axis coupled wall-frame critical-load method or a justified direct second-order demand path for the 14 wall-coupled columns. Resolve participating sections, restraint, effective stiffness, creep and varying-axial TS 500 applicability. First-order vertical equilibrium is complete for the two native C29 cuts and three gravity cases.",
       "closure_criteria": "Independently verify both-axis clear/effective lengths and EI, prevent double counting, and prove consumption of the qualified demands.",
       "owner_paths": [
@@ -533,7 +538,8 @@
         "EV-C104-W22-W23-FOUR-MESH-20261122",
         "EV-FRAME-STORY-PLUS450-R14-20261122",
         "EV-ORIGINAL-FRAME-STORY-26-R14-20261122",
-        "EV-ORIGINAL-WHOLE-BUILDING-ENGINE-20261122"
+        "EV-ORIGINAL-WHOLE-BUILDING-ENGINE-20261122",
+        "EV-MAT-RETURN-G1-CLOSURE-20261125"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -745,7 +751,7 @@
       "title": "Reinforcement selection and detailing",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "87 same-run candidates on the verified live source: 32Phi16, As/Ac 1.0053%, Phi10/90 ties and three crossties per direction. Both confinement and shear reference branches verified; selected cages feed local R08/PMM and the recorded report. Original source preserved. The one-face independent C29 check rebuilt the recorded selected cage with the same 32 bar coordinates and transverse cover. Twelve new original-building columns reach conditional R14 with a selected 32Φ16 and Φ10/90 cage.",
+      "achieved_scope": "87 same-run candidates on the verified live source: 32Phi16, As/Ac 1.0053%, Phi10/90 ties and three crossties per direction. Both confinement and shear reference branches verified; selected cages feed local R08/PMM and the recorded report. Original source preserved. The one-face independent C29 check rebuilt the recorded selected cage with the same 32 bar coordinates and transverse cover. Twelve new original-building columns reach conditional R14 with a selected 32Φ16 and Φ10/90 cage. The two rectangular corners, intermediate column bonds, dedicated dowels and developed terminal starter support four additional yP2 panel schedules.",
       "blocker": "Candidates are not engineer-approved or as-built. Complete crosstie, anchorage and detailing acceptance remains open.",
       "closure_criteria": "Separately verify cage role, bar/leg geometry, cover, clear spacing, pitch, area and anchorage; retain actual-vs-proposed distinction.",
       "owner_paths": [
@@ -762,7 +768,8 @@
         "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122",
         "EV-FRAME-STORY-PLUS450-R14-20261122",
         "EV-ORIGINAL-FRAME-STORY-26-R14-20261122",
-        "EV-BUILDING-CONFINEMENT-20261122"
+        "EV-BUILDING-CONFINEMENT-20261122",
+        "EV-MAT-RETURN-G1-CLOSURE-20261125"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -913,7 +920,8 @@
         "EV-FRAME-STORY-PLUS450-R14-20261122",
         "EV-ORIGINAL-FRAME-STORY-26-R14-20261122",
         "EV-ORIGINAL-WHOLE-BUILDING-ENGINE-20261122",
-        "EV-BUILDING-CONFINEMENT-20261122"
+        "EV-BUILDING-CONFINEMENT-20261122",
+        "EV-MAT-RETURN-G1-CLOSURE-20261125"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -951,7 +959,7 @@
       "title": "Wall/pier factor and wall design",
       "status": "PARTIAL",
       "priority": "P1",
-      "achieved_scope": "Both ends of 12/30 physical wall objects have conditional rectangular boundary longitudinal and transverse designs in the building run. P2–P5 have continuous shared-edge stacks. Their critical zones are retained over all three storeys in the proposal, with 16 to 24 Ø14 per end, Ø10/80 hoops and crossties checked separately in both directions. The same twelve panels now have a calculated double-curtain web and fixed-axial biaxial capacities at both ends for all five native wall static assignments. All eight native wall seismic assignments have sufficient local in-plane shear bounds for both classifications under 7.6.6.3. The original eight native wall assignments now produce 192 conditional full-interval PMM, heightwise moment, shear and axial section designs. All 96 construction joint combinations and 96 floor moment-strength combinations under §7.6.6.2 satisfy their bounds. The engine also calculates the physical web crossties on all 12 panels. The saved workspace and printable report expose the same results. Five original basement panels in yP1 now carry selected two-face proposed grids, with 30/30 pier-end bounds, 150/150 net-web PMM checks and 75/75 horizontal pressure panel combinations. A single building action evaluates every pier and storey. The original has 390/390 net-area compression, reference web shear and rough-plane friction checks and 30 directional bending amplitudes. Ten yP1 wall ends now have a calculated proposed anchorage and pressure transfer. Original signed shell and column cuts balance six actions in each of 300/300 modal and 6/6 static storey cases. Six conditional wall shear and common-origin moment shares are calculated. W32/471 participates once in the foundation cut. The boundary calculation identifies 17 panels sharing elevations. Its former combined warning also covered a change of shell thickness. The same building run now solves both §3.3.1.1(b) ratios from the original stiffness, 1.026893 in X and 1.020456 in Y, and traces the enclosure across both physical basement bands. Original xP2 opening sections, signed C104 jamb actions, W22 pressure and self-weight, and seven equilibrated panel transfer results are available in the sealed wall batch. Five yP1 panels add five proposed schedules for a total of 17/30. Their selected two-face cages satisfy 300/300 combined shell checks, 300/300 plate references, 150/150 pier-end PMM bounds and 150/150 edge checks. All 350 signed interior nodal states balance. Six support layouts fit, including the continuous W27–C221–W28 bar.",
+      "achieved_scope": "Both ends of 12/30 physical wall objects have conditional rectangular boundary longitudinal and transverse designs in the building run. P2–P5 have continuous shared-edge stacks. Their critical zones are retained over all three storeys in the proposal, with 16 to 24 Ø14 per end, Ø10/80 hoops and crossties checked separately in both directions. The same twelve panels now have a calculated double-curtain web and fixed-axial biaxial capacities at both ends for all five native wall static assignments. All eight native wall seismic assignments have sufficient local in-plane shear bounds for both classifications under 7.6.6.3. The original eight native wall assignments now produce 192 conditional full-interval PMM, heightwise moment, shear and axial section designs. All 96 construction joint combinations and 96 floor moment-strength combinations under §7.6.6.2 satisfy their bounds. The engine also calculates the physical web crossties on all 12 panels. The saved workspace and printable report expose the same results. Five original basement panels in yP1 now carry selected two-face proposed grids, with 30/30 pier-end bounds, 150/150 net-web PMM checks and 75/75 horizontal pressure panel combinations. A single building action evaluates every pier and storey. The original has 390/390 net-area compression, reference web shear and rough-plane friction checks and 30 directional bending amplitudes. Ten yP1 wall ends now have a calculated proposed anchorage and pressure transfer. Original signed shell and column cuts balance six actions in each of 300/300 modal and 6/6 static storey cases. Six conditional wall shear and common-origin moment shares are calculated. W32/471 participates once in the foundation cut. The boundary calculation identifies 17 panels sharing elevations. Its former combined warning also covered a change of shell thickness. The same building run now solves both §3.3.1.1(b) ratios from the original stiffness, 1.026893 in X and 1.020456 in Y, and traces the enclosure across both physical basement bands. Original xP2 opening sections, signed C104 jamb actions, W22 pressure and self-weight, and seven equilibrated panel transfer results are available in the sealed wall batch. Five yP1 panels add five proposed schedules for a total of 17/30. Their selected two-face cages satisfy 300/300 combined shell checks, 300/300 plate references, 150/150 pier-end PMM bounds and 150/150 edge checks. All 350 signed interior nodal states balance. Six support layouts fit, including the continuous W27–C221–W28 bar. The closure run adds W143, W50, W62 and W65. The independently reconstructed W6 cage prevents the current W31 and W55 paths from being scheduled.",
       "blocker": "The project overturning decision needs §3.3.1.1(a) enclosure at the lower W22 opening, wall grouping and design eccentricity. W32/471 shares full edges with W31/470, W55/464 and W6/472. Its design load path needs qualification. xP2 has five to six constant-thickness panels across two elevation bands. yP2's end without a registered column needs a wall-to-wall transfer model. W22 design-force accuracy and reinforcement continuity remain open. The yP1 details and design interface assumptions await project acceptance. As-built reinforcement has yet to be verified.",
       "closure_criteria": "Complete the real wall topology/forces, normative calculation, independent oracle and sealed-report slice.",
       "owner_paths": [
@@ -995,7 +1003,8 @@
         "EV-WALL-OPENING-SECTIONS-20261124",
         "EV-WALL-GOVERNING-DESIGN-VIEW-20261124",
         "EV-YP1-TWO-WAY-SHELL-AND-SUPPORTS-20261124",
-        "EV-YP1-COMBINED-SHELL-AND-SUPPORT-SCHEDULE-20261125"
+        "EV-YP1-COMBINED-SHELL-AND-SUPPORT-SCHEDULE-20261125",
+        "EV-MAT-RETURN-G1-CLOSURE-20261125"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -1938,6 +1947,8 @@
       "GAP-015",
       "GAP-018"
     ],
-    "scope": "Original model and project-specific captured design book only"
+    "scope": "Original model and project-specific captured design book only",
+    "sealed_decision_run": "RUN-80997c5fa229452c82948c781b44ae22",
+    "implementation_evidence_ref": "EV-MAT-RETURN-G1-CLOSURE-20261125"
   }
 }

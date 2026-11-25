@@ -1,5 +1,9 @@
 # Local development and GitHub worker handoff
 
+## 25 November 2026 · Paired-strip calculation and Supervisor acceptance
+
+Use `RUN-80997c5fa229452c82948c781b44ae22` and ledger record `EV-MAT-RETURN-G1-CLOSURE-20261125` for the original archive. The implementation is `ca1a0af8a090fb8fc809e30e53000e01047b21e1`. The previous Supervisor comparison is `RUN-e4f718bffb7d4814a6632c3c6c39e462`, and the retained separate-strip trial is `RUN-4e83662fa0214d00b2b35a19a4c97979`. The base storey has 14 conditional, 14 wall-coupled and four failed columns. W55 and W31 require a new joint cage with full development, two-interface force transfer and clearance to W6. The closed G1 certificate covers five gaps. GAP-015, GAP-018 and project release retain their outstanding scopes. [Calculation and scope](../CURRENT_STATE.md) · [Commands, digests and verification](../VERIFICATION_LEDGER.json)
+
 ## 25 November 2026 · Current handoff
 
 Use `RUN-e4f718bffb7d4814a6632c3c6c39e462` for column, basement wall and G1 review. Its sealed source is `RUN-3bb6a4d5d57c4af8af503a20c4d69bbd/input.source`. Compare against `RUN-b7fa070c19ab4a74b29c9e89732b49db` for the previous 42-column, 17-wall schedule. Record `EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125` lists the engineering and gateway commits, source and output digests, test outcomes and eight measured live responses. [Current results](../CURRENT_STATE.md) · [Verification record](../VERIFICATION_LEDGER.json)

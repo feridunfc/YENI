@@ -19,20 +19,19 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "COLUMN_SUPPORT_AND_BASEMENT_JOINT_REVIEW_COMPLETE_G1_AWAITS_SUPERVISOR",
-    "work_branch": "work/column-bounds-wall-corners",
+    "status": "SCOPED_G1_CLOSED_MAT_AND_FOUR_YP2_SCHEDULES",
+    "work_branch": "work/mat-return-g1",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "53e2289f8832b30972ebe56779e4a2a0eb719a8e",
-    "calculation_implementation_commit": "4b62a73808040003a42c437d1614a1189230ff7e",
-    "gateway_implementation_commit": "2c083cef285682566e9fca346826197efd95d36c",
+    "inspected_base_commit": "a82917cba21586d5ef7735eb55837e1d4eef712d",
+    "calculation_implementation_commit": "ca1a0af8a090fb8fc809e30e53000e01047b21e1",
     "tested_git_subtrees": {
-      "src": "382c2a47a612622a64f5210afd788063b8ef8441",
-      "tests": "e3292c0bbf94aa47f3e43206e7ae2b225f15a837"
+      "src": "f48bbd91d0413e0365db55235d7ab0711ce2db96",
+      "tests": "ca4da4eeabc2bda939f85b9fe1c70a667ceb7389"
     },
-    "production_run_id": "RUN-e4f718bffb7d4814a6632c3c6c39e462",
-    "results_sha256": "02de6f021da55d9d01daa7d74224b4475b9670717af42fea8988b34b9d5251ce",
+    "production_run_id": "RUN-80997c5fa229452c82948c781b44ae22",
+    "results_sha256": "998c1098a8fdaab11a4789c30564dc8ab31dac949a59294377769b1d317d5565",
     "evidence_refs": [
-      "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
+      "EV-MAT-RETURN-G1-CLOSURE-20261125"
     ],
     "engineering_release": "NOT_READY"
   },
@@ -13253,6 +13252,1316 @@
       ],
       "formal_compliance": "NOT_PROVEN",
       "engineering_release": "NOT_READY"
+    },
+    {
+      "id": "EV-MAT-RETURN-G1-CLOSURE-20261125",
+      "status": "SUPERVISOR_ACCEPTED_FIVE_ARCHIVE_GAPS_ENGINEERING_RELEASE_NOT_READY",
+      "tested_base_commit": "a82917cba21586d5ef7735eb55837e1d4eef712d",
+      "implementation_commit": "ca1a0af8a090fb8fc809e30e53000e01047b21e1",
+      "implementation_tree": "18f22496ed34a32c12e420dd0869a395df90d967",
+      "tested_file_git_blobs": {
+        "src/tbdy_next/engineering/basement_joint_layout.py": "62381c7387eab5497b1d94fd6cf791d9b50c569a",
+        "src/tbdy_next/engineering/basement_pier_design.py": "016456c2e5c37fd482e18081644ea6eca356124e",
+        "src/tbdy_next/engineering/basement_pier_geometry.py": "bad9325e396766db53a167a3f8188fbee5a55238",
+        "src/tbdy_next/engineering/basement_wall_connection.py": "e91abd26d1d1b8b7669d0916020b32d68a77a791",
+        "src/tbdy_next/engineering/column_effective_length.py": "599261fda71cd16eace16367e53bad759d968244",
+        "src/tbdy_next/engineering/frame_storey_design.py": "4e85a844ffc9b9e1b70a492b3a43f795c3a844b8",
+        "src/tbdy_next/engineering/g1_contract.py": "6c0a0809da516571b4a8d3ab479de6dd58302d30",
+        "src/tbdy_next/engineering/mat_rotational_stiffness.py": "535c4274907b47dcf15e1ac7ff62fe20effc15e9",
+        "src/tbdy_next/engineering/wall_bar_paths.py": "dbaf3dd655e6fee337616c3c9b07bb311e79928e",
+        "src/tbdy_next/engineering/wall_bridge_layout.py": "354e81b3367428b80099a5074bf116f9595d7314",
+        "src/tbdy_next/engineering/wall_collinear_run.py": "92c21a361be795457afb1ad819adb96aa98ed820",
+        "src/tbdy_next/engineering/wall_return_layout.py": "f5cec0d33164a527d22f81ff533cf8a0064ae20b",
+        "src/tbdy_next/engineering/wall_support_edge.py": "f5d4b8e0c223ac8a98b9b7de332fc04d1062c39b",
+        "src/tbdy_next/reporting.py": "f556d2d926274d0d1f340cb9cfec98118251a3f8",
+        "tests/test_support_bounds_g1.py": "976cb51b193c0a13ea61ec812a18ce4c3fb95e28"
+      },
+      "run_id": "RUN-80997c5fa229452c82948c781b44ae22",
+      "captured_at_utc": "2026-11-25T19:10:26.939486+00:00",
+      "source_collection_run": "RUN-3bb6a4d5d57c4af8af503a20c4d69bbd",
+      "comparison_run": "RUN-e4f718bffb7d4814a6632c3c6c39e462",
+      "input_sha256": "10b2a06edbc656bc6e8972ec542209f8dd904cc9ee088165ab3c92f87a043033",
+      "results_sha256": "998c1098a8fdaab11a4789c30564dc8ab31dac949a59294377769b1d317d5565",
+      "snapshot_sha256": "e70c0555ff294274113f348857af013dc2005587a56f9c0449b24029ede97a28",
+      "report_sha256": "7dc34128d5af721bc657c292fdb2fab57e8d0a5a7cd8209c5844db609e34e1d8",
+      "method": "Ordinary whole-building pipeline from the sealed source; linear bilateral Winkler strips and a bonded affine column footprint. Two statically admissible work trials retain plate bending and transverse shear, with double core compliance. The paired trial balances both exterior soil tractions together using (x-xbar)/I and applies an opposing unit couple on the footprint. Adopt the larger certified stiffness lower bound. Independently trace the full bar development and each dedicated friction grid.",
+      "column_status_counts": {
+        "conditional": 69,
+        "failed": 4,
+        "hold": 14
+      },
+      "storeys": {
+        "+0.00": {
+          "conditional": 14,
+          "expected": 32,
+          "failed": 4,
+          "hold": 14
+        },
+        "+4.50": {
+          "conditional": 32,
+          "expected": 32,
+          "failed": 0,
+          "hold": 0
+        },
+        "+9.00": {
+          "conditional": 23,
+          "expected": 23,
+          "failed": 0,
+          "hold": 0
+        }
+      },
+      "mat_column_bounds": {
+        "C1": {
+          "column": "235",
+          "axes": {
+            "M2": {
+              "mat": "2",
+              "section": "Foundation_90cm",
+              "thickness_m": 0.9,
+              "leg_stiffness_knm_rad": [
+                26738.34657537462,
+                964.3682865988482
+              ],
+              "paired_strip_stiffness_knm_rad": 87461.12287957694,
+              "k_theta_min_knm_rad": 87461.12287957694,
+              "alpha_i_upper": 10.306123264729901,
+              "selected_k": 3.12251595369177,
+              "slenderness": 60.16796360652869
+            },
+            "M3": {
+              "mat": "2",
+              "section": "Foundation_90cm",
+              "thickness_m": 0.9,
+              "leg_stiffness_knm_rad": [
+                25652.41477478586,
+                25652.41477478586
+              ],
+              "paired_strip_stiffness_knm_rad": 235808.17899897796,
+              "k_theta_min_knm_rad": 235808.17899897796,
+              "alpha_i_upper": 3.8225354060874848,
+              "selected_k": 2.6850509701132688,
+              "slenderness": 51.73842230027467
+            }
+          }
+        },
+        "C2": {
+          "column": "236",
+          "axes": {
+            "M2": {
+              "mat": "2",
+              "section": "Foundation_90cm",
+              "thickness_m": 0.9,
+              "leg_stiffness_knm_rad": [
+                26738.34657537462,
+                964.3682865988482
+              ],
+              "paired_strip_stiffness_knm_rad": 87461.12287957694,
+              "k_theta_min_knm_rad": 87461.12287957694,
+              "alpha_i_upper": 10.306123264729901,
+              "selected_k": 3.12251595369177,
+              "slenderness": 60.16796360652869
+            },
+            "M3": {
+              "mat": "2",
+              "section": "Foundation_90cm",
+              "thickness_m": 0.9,
+              "leg_stiffness_knm_rad": [
+                25652.41477478586,
+                25652.41477478586
+              ],
+              "paired_strip_stiffness_knm_rad": 235808.17899897796,
+              "k_theta_min_knm_rad": 235808.17899897796,
+              "alpha_i_upper": 3.8225354060874848,
+              "selected_k": 2.5320631207037514,
+              "slenderness": 48.79048944996214
+            }
+          }
+        },
+        "C5": {
+          "column": "239",
+          "axes": {
+            "M2": {
+              "mat": "2",
+              "section": "Foundation_90cm",
+              "thickness_m": 0.9,
+              "leg_stiffness_knm_rad": [
+                26738.34657537462,
+                964.3682865988482
+              ],
+              "paired_strip_stiffness_knm_rad": 87461.12287957694,
+              "k_theta_min_knm_rad": 87461.12287957694,
+              "alpha_i_upper": 10.306123264729901,
+              "selected_k": 3.12251595369177,
+              "slenderness": 60.16796360652869
+            },
+            "M3": {
+              "mat": "2",
+              "section": "Foundation_90cm",
+              "thickness_m": 0.9,
+              "leg_stiffness_knm_rad": [
+                2633.083354374324,
+                25652.41477478586
+              ],
+              "paired_strip_stiffness_knm_rad": 113029.86378727849,
+              "k_theta_min_knm_rad": 113029.86378727849,
+              "alpha_i_upper": 7.9747518316487565,
+              "selected_k": 2.5408435445058486,
+              "slenderness": 48.959680008988705
+            }
+          }
+        },
+        "C37": {
+          "column": "240",
+          "axes": {
+            "M2": {
+              "mat": "2",
+              "section": "Foundation_90cm",
+              "thickness_m": 0.9,
+              "leg_stiffness_knm_rad": [
+                26738.34657537462,
+                964.3682865988482
+              ],
+              "paired_strip_stiffness_knm_rad": 87461.12287957694,
+              "k_theta_min_knm_rad": 87461.12287957694,
+              "alpha_i_upper": 10.306123264729901,
+              "selected_k": 3.12251595369177,
+              "slenderness": 60.16796360652869
+            },
+            "M3": {
+              "mat": "2",
+              "section": "Foundation_90cm",
+              "thickness_m": 0.9,
+              "leg_stiffness_knm_rad": [
+                25652.41477478586,
+                1282.4380356299914
+              ],
+              "paired_strip_stiffness_knm_rad": 92333.79141750252,
+              "k_theta_min_knm_rad": 92333.79141750252,
+              "alpha_i_upper": 9.762245213053655,
+              "selected_k": 2.5039367458591526,
+              "slenderness": 48.248520498279895
+            }
+          }
+        },
+        "C27": {
+          "column": "223",
+          "axes": {
+            "M2": {
+              "mat": "2",
+              "section": "Foundation_90cm",
+              "thickness_m": 0.9,
+              "leg_stiffness_knm_rad": [
+                964.3682865988537,
+                3232.2563916076006
+              ],
+              "paired_strip_stiffness_knm_rad": 32751.44362603193,
+              "k_theta_min_knm_rad": 32751.44362603193,
+              "alpha_i_upper": 27.52199639078376,
+              "selected_k": 3.6994353128364517,
+              "slenderness": 71.28466037276257
+            },
+            "M3": {
+              "mat": "2",
+              "section": "Foundation_90cm",
+              "thickness_m": 0.9,
+              "leg_stiffness_knm_rad": [
+                25652.41477478586,
+                25652.41477478586
+              ],
+              "paired_strip_stiffness_knm_rad": 235808.17899897796,
+              "k_theta_min_knm_rad": 235808.17899897796,
+              "alpha_i_upper": 3.8225354060874848,
+              "selected_k": 2.6850509701132688,
+              "slenderness": 51.73842230027467
+            }
+          }
+        },
+        "C28": {
+          "column": "224",
+          "axes": {
+            "M2": {
+              "mat": "2",
+              "section": "Foundation_90cm",
+              "thickness_m": 0.9,
+              "leg_stiffness_knm_rad": [
+                964.3682865988537,
+                3232.2563916076006
+              ],
+              "paired_strip_stiffness_knm_rad": 32751.44362603193,
+              "k_theta_min_knm_rad": 32751.44362603193,
+              "alpha_i_upper": 27.52199639078376,
+              "selected_k": 3.6994353128364517,
+              "slenderness": 71.28466037276257
+            },
+            "M3": {
+              "mat": "2",
+              "section": "Foundation_90cm",
+              "thickness_m": 0.9,
+              "leg_stiffness_knm_rad": [
+                25652.41477478586,
+                25652.41477478586
+              ],
+              "paired_strip_stiffness_knm_rad": 235808.17899897796,
+              "k_theta_min_knm_rad": 235808.17899897796,
+              "alpha_i_upper": 3.8225354060874848,
+              "selected_k": 2.6850509701132688,
+              "slenderness": 51.73842230027467
+            }
+          }
+        },
+        "C30": {
+          "column": "226",
+          "axes": {
+            "M2": {
+              "mat": "2",
+              "section": "Foundation_90cm",
+              "thickness_m": 0.9,
+              "leg_stiffness_knm_rad": [
+                964.3682865988537,
+                3232.2563916076006
+              ],
+              "paired_strip_stiffness_knm_rad": 32751.44362603193,
+              "k_theta_min_knm_rad": 32751.44362603193,
+              "alpha_i_upper": 27.52199639078376,
+              "selected_k": 3.6994353128364517,
+              "slenderness": 71.28466037276257
+            },
+            "M3": {
+              "mat": "2",
+              "section": "Foundation_90cm",
+              "thickness_m": 0.9,
+              "leg_stiffness_knm_rad": [
+                25652.41477478586,
+                25652.41477478586
+              ],
+              "paired_strip_stiffness_knm_rad": 235808.17899897796,
+              "k_theta_min_knm_rad": 235808.17899897796,
+              "alpha_i_upper": 3.8225354060874848,
+              "selected_k": 2.6850509701132688,
+              "slenderness": 51.73842230027467
+            }
+          }
+        },
+        "C78": {
+          "column": "238",
+          "axes": {
+            "M2": {
+              "mat": "2",
+              "section": "Foundation_90cm",
+              "thickness_m": 0.9,
+              "leg_stiffness_knm_rad": [
+                78428.21762321038,
+                964.3682865988482
+              ],
+              "paired_strip_stiffness_knm_rad": 93767.25452273233,
+              "k_theta_min_knm_rad": 93767.25452273233,
+              "alpha_i_upper": 9.613005284804224,
+              "selected_k": 2.8251507677236747,
+              "slenderness": 54.43801443972833
+            },
+            "M3": {
+              "mat": "2",
+              "section": "Foundation_90cm",
+              "thickness_m": 0.9,
+              "leg_stiffness_knm_rad": [
+                2111.646278107202,
+                2633.083354374324
+              ],
+              "paired_strip_stiffness_knm_rad": 39886.65752128735,
+              "k_theta_min_knm_rad": 39886.65752128735,
+              "alpha_i_upper": 22.598662542418925,
+              "selected_k": 3.3974344379603565,
+              "slenderness": 65.4653858139885
+            }
+          }
+        }
+      },
+      "first_sealed_trial": {
+        "run": "RUN-4e83662fa0214d00b2b35a19a4c97979",
+        "results_sha256": "cde29c7576e333de5d1e1328be5b16d02ee9fefbc7808c8a60e79bfad1a77b90",
+        "columns": {
+          "conditional": 65,
+          "failed": 4,
+          "hold": 18
+        },
+        "scheduled": 21
+      },
+      "mat_sway": {
+        "max_beta_story": {
+          "X": 1.5758926963108806,
+          "Y": 1.675898018226948
+        },
+        "max_load_ratio": {
+          "X": 0.2811069451712274,
+          "Y": 0.31023460069027936
+        },
+        "minimum_critical_load_kn": {
+          "X": 178892.51701532252,
+          "Y": 162096.45494176762
+        },
+        "max_compression_case": "Grav_Ult",
+        "max_compression_kn": 50287.92897216914,
+        "wall_compression_in_numerator": false,
+        "wall_euler_credit_kn": 0.0
+      },
+      "mat_compression_column_count": 32,
+      "mat_positive_euler_column_count": 18,
+      "held_column_reasons": {
+        "ETABS_WALL_COUPLED_COLUMN_MESH": 14
+      },
+      "calibrated_c29_numerics_unchanged": {
+        "142": {
+          "stiffness_and_euler": true,
+          "magnified_selected_pmm": true,
+          "spectral_envelope_pmm_scenario": true,
+          "combination_scenarios": true
+        },
+        "225": {
+          "stiffness_and_euler": true,
+          "magnified_selected_pmm": true,
+          "spectral_envelope_pmm_scenario": true,
+          "combination_scenarios": true
+        }
+      },
+      "foundation_failures": {
+        "C21": {
+          "gross_depth_sufficient": false,
+          "model_depth_mm": 600.0,
+          "required_mm": 800.0
+        },
+        "C22": {
+          "gross_depth_sufficient": false,
+          "model_depth_mm": 600.0,
+          "required_mm": 800.0
+        },
+        "C23": {
+          "gross_depth_sufficient": false,
+          "model_depth_mm": 600.0,
+          "required_mm": 800.0
+        },
+        "C24": {
+          "gross_depth_sufficient": false,
+          "model_depth_mm": 600.0,
+          "required_mm": 800.0
+        }
+      },
+      "coverage": {
+        "old": [
+          57,
+          50,
+          33
+        ],
+        "new": [
+          57,
+          50,
+          33
+        ],
+        "basement": {
+          "additional_static_cuts_evaluated": 8,
+          "additional_static_pressure_end_combinations": 44,
+          "assigned_cuts_evaluated": 52,
+          "assigned_cuts_expected": 78,
+          "assigned_pressure_end_combinations_evaluated": 286,
+          "assigned_pressure_end_combinations_expected": 442,
+          "assigned_pressure_panel_combinations_evaluated": 221,
+          "assigned_pressure_panel_combinations_expected": 221,
+          "balanced_interior_nodal_states": 770,
+          "checked_interior_nodal_states": 770,
+          "combined_membrane_checks": 972,
+          "independent_shell_body_reference_combinations": 78,
+          "initial_column_only_shortfalls": 0,
+          "native_edge_combinations": 330,
+          "physical_panels": 17,
+          "physical_pressure_ends_checked": 22,
+          "physical_pressure_ends_expected": 34,
+          "physical_pressure_ends_satisfied": 20,
+          "same_cage_plate_checks": 972,
+          "same_cage_pmm_cuts": 330,
+          "scheduled_panels": 9
+        }
+      },
+      "scheduled_physical_walls": 21,
+      "yP2_panel_status": {
+        "W143": {
+          "id": "442",
+          "status": "PRESSURE_PANEL_SCHEDULE_QUALIFIED",
+          "reason": null,
+          "combined": true,
+          "cut_pmm_count": 30,
+          "ends": {
+            "I": {
+              "support": "216",
+              "shape": "UNSPLICED_THROUGH_COLUMN",
+              "cover_mm": 40.0,
+              "available_by_face_mm": null,
+              "receivers": null,
+              "full_straight_bond_mm": null,
+              "provided_straight_mm": null,
+              "transfer_ratio": 0.2838348906686955,
+              "status": "CONDITIONAL_PRESSURE_END_DESIGN",
+              "layout": "PROPOSED_PRESSURE_BARS_FIT"
+            },
+            "J": {
+              "support": "210",
+              "shape": "STANDARD_90_DEGREE_HOOK",
+              "cover_mm": 40.0,
+              "available_by_face_mm": null,
+              "receivers": null,
+              "full_straight_bond_mm": null,
+              "provided_straight_mm": null,
+              "transfer_ratio": 0.8020905653311765,
+              "status": "CONDITIONAL_PRESSURE_END_DESIGN",
+              "layout": "PROPOSED_PRESSURE_BARS_FIT"
+            }
+          }
+        },
+        "W50": {
+          "id": "459",
+          "status": "PRESSURE_PANEL_SCHEDULE_QUALIFIED",
+          "reason": null,
+          "combined": true,
+          "cut_pmm_count": 30,
+          "ends": {
+            "I": {
+              "support": "222",
+              "shape": "UNSPLICED_THROUGH_COLUMN",
+              "cover_mm": 40.0,
+              "available_by_face_mm": null,
+              "receivers": null,
+              "full_straight_bond_mm": null,
+              "provided_straight_mm": null,
+              "transfer_ratio": 0.4156640622447066,
+              "status": "CONDITIONAL_PRESSURE_END_DESIGN",
+              "layout": "PROPOSED_PRESSURE_BARS_FIT"
+            },
+            "J": {
+              "support": "216",
+              "shape": "UNSPLICED_THROUGH_COLUMN",
+              "cover_mm": 40.0,
+              "available_by_face_mm": null,
+              "receivers": null,
+              "full_straight_bond_mm": null,
+              "provided_straight_mm": null,
+              "transfer_ratio": 0.5087186127898842,
+              "status": "CONDITIONAL_PRESSURE_END_DESIGN",
+              "layout": "PROPOSED_PRESSURE_BARS_FIT"
+            }
+          }
+        },
+        "W55": {
+          "id": "464",
+          "status": "PRESSURE_PANEL_DETAIL_OPEN",
+          "reason": "TRANSFER_BARS_INTERSECT_RECEIVING_BOUNDARY_CAGE",
+          "combined": true,
+          "cut_pmm_count": 30,
+          "ends": {
+            "I": {
+              "support": "949",
+              "shape": "CONTINUOUS_90_FULL_DEVELOPMENT_IN_RETURN",
+              "cover_mm": 40.0,
+              "available_by_face_mm": [
+                360.0,
+                360.0
+              ],
+              "receivers": [
+                "471",
+                "470"
+              ],
+              "full_straight_bond_mm": 846.6240882150009,
+              "provided_straight_mm": 850,
+              "transfer_ratio": 0.8146900348331986,
+              "status": "CONDITIONAL_PRESSURE_END_DESIGN",
+              "layout": "TRANSFER_BARS_INTERSECT_RECEIVING_BOUNDARY_CAGE"
+            },
+            "J": {
+              "support": "222",
+              "shape": "UNSPLICED_THROUGH_COLUMN",
+              "cover_mm": 40.0,
+              "available_by_face_mm": null,
+              "receivers": null,
+              "full_straight_bond_mm": null,
+              "provided_straight_mm": null,
+              "transfer_ratio": 0.4312120494697166,
+              "status": "CONDITIONAL_PRESSURE_END_DESIGN",
+              "layout": "PROPOSED_PRESSURE_BARS_FIT"
+            }
+          }
+        },
+        "W31": {
+          "id": "470",
+          "status": "PRESSURE_PANEL_DETAIL_OPEN",
+          "reason": "TRANSFER_BARS_INTERSECT_RECEIVING_BOUNDARY_CAGE",
+          "combined": true,
+          "cut_pmm_count": 30,
+          "ends": {
+            "I": {
+              "support": "947",
+              "shape": "CONTINUOUS_90_FULL_DEVELOPMENT_IN_RETURN",
+              "cover_mm": 40.0,
+              "available_by_face_mm": [
+                360.0,
+                360.0
+              ],
+              "receivers": [
+                "474"
+              ],
+              "full_straight_bond_mm": 529.1400551343755,
+              "provided_straight_mm": 530,
+              "transfer_ratio": 0.8261443062109739,
+              "status": "CONDITIONAL_PRESSURE_END_DESIGN",
+              "layout": "PROPOSED_PRESSURE_BARS_FIT"
+            },
+            "J": {
+              "support": "948",
+              "shape": "STRAIGHT_THROUGH_RECEIVING_WEB",
+              "cover_mm": 40.0,
+              "available_by_face_mm": [
+                4360.0000000000055,
+                4360.0000000000055
+              ],
+              "receivers": [
+                "471",
+                "472"
+              ],
+              "full_straight_bond_mm": 529.1400551343755,
+              "provided_straight_mm": 530,
+              "transfer_ratio": 0.7362552760657605,
+              "status": "CONDITIONAL_PRESSURE_END_DESIGN",
+              "layout": "TRANSFER_BARS_INTERSECT_RECEIVING_BOUNDARY_CAGE"
+            }
+          }
+        },
+        "W62": {
+          "id": "474",
+          "status": "PRESSURE_PANEL_SCHEDULE_QUALIFIED",
+          "reason": null,
+          "combined": true,
+          "cut_pmm_count": 30,
+          "ends": {
+            "I": {
+              "support": "953",
+              "shape": "CONTINUOUS_90_FULL_DEVELOPMENT_IN_RETURN",
+              "cover_mm": 40.0,
+              "available_by_face_mm": [
+                360.0,
+                360.0
+              ],
+              "receivers": [
+                "476"
+              ],
+              "full_straight_bond_mm": 634.9680661612507,
+              "provided_straight_mm": 635,
+              "transfer_ratio": 0.7819641631464622,
+              "status": "CONDITIONAL_PRESSURE_END_DESIGN",
+              "layout": "PROPOSED_PRESSURE_BARS_FIT"
+            },
+            "J": {
+              "support": "947",
+              "shape": "CONTINUOUS_90_FULL_DEVELOPMENT_IN_RETURN",
+              "cover_mm": 40.0,
+              "available_by_face_mm": [
+                360.0,
+                360.0
+              ],
+              "receivers": [
+                "470"
+              ],
+              "full_straight_bond_mm": 634.9680661612507,
+              "provided_straight_mm": 635,
+              "transfer_ratio": 0.805670305554551,
+              "status": "CONDITIONAL_PRESSURE_END_DESIGN",
+              "layout": "PROPOSED_PRESSURE_BARS_FIT"
+            }
+          }
+        },
+        "W65": {
+          "id": "476",
+          "status": "PRESSURE_PANEL_SCHEDULE_QUALIFIED",
+          "reason": null,
+          "combined": true,
+          "cut_pmm_count": 30,
+          "ends": {
+            "I": {
+              "support": "234",
+              "shape": "STRAIGHT",
+              "cover_mm": 40.0,
+              "available_by_face_mm": null,
+              "receivers": null,
+              "full_straight_bond_mm": null,
+              "provided_straight_mm": null,
+              "transfer_ratio": 0.8037648809196831,
+              "status": "CONDITIONAL_PRESSURE_END_DESIGN",
+              "layout": "PROPOSED_PRESSURE_BARS_FIT"
+            },
+            "J": {
+              "support": "953",
+              "shape": "CONTINUOUS_90_FULL_DEVELOPMENT_IN_RETURN",
+              "cover_mm": 40.0,
+              "available_by_face_mm": [
+                360.0,
+                360.0
+              ],
+              "receivers": [
+                "474"
+              ],
+              "full_straight_bond_mm": 634.9680661612507,
+              "provided_straight_mm": 635,
+              "transfer_ratio": 0.7967130800936875,
+              "status": "CONDITIONAL_PRESSURE_END_DESIGN",
+              "layout": "PROPOSED_PRESSURE_BARS_FIT"
+            }
+          }
+        }
+      },
+      "yP2_joint_details": {
+        "210": {
+          "status": "PROPOSED_PRESSURE_BARS_FIT",
+          "reason": null,
+          "governing": {
+            "clear_mm": 9.972894179849305,
+            "faces": [
+              -1,
+              1
+            ],
+            "fits": true,
+            "levels_above_base_mm": [
+              4161.196078431373,
+              4185.980392156863
+            ],
+            "margin_mm": 9.972894179849305,
+            "members": [
+              "442",
+              "442"
+            ],
+            "parallel": false,
+            "required_mm": 0.0,
+            "roles": [
+              "web",
+              "web"
+            ]
+          },
+          "continuous_web_bond_ratio": null,
+          "dedicated_dowels_ratio": null,
+          "issued_spans": null,
+          "straight_starters": null,
+          "piece_lengths_by_face_mm": null
+        },
+        "216": {
+          "status": "PROPOSED_PRESSURE_BARS_FIT",
+          "reason": null,
+          "governing": {
+            "clear_mm": 70.58333332999999,
+            "faces": [
+              -1,
+              -1
+            ],
+            "fits": true,
+            "levels_above_base_mm": [
+              96.56862745098039,
+              96.56862745098039
+            ],
+            "margin_mm": 43.91666666333332,
+            "members": [
+              "442 + 459",
+              "442 + 459"
+            ],
+            "parallel": true,
+            "required_mm": 26.666666666666668,
+            "roles": [
+              "continuous web",
+              "continuous dowel"
+            ]
+          },
+          "continuous_web_bond_ratio": 0.44225978266945737,
+          "dedicated_dowels_ratio": 0.7600428738867305,
+          "issued_spans": [
+            "442",
+            "459"
+          ],
+          "straight_starters": [
+            {
+              "available_mm": 3300.0000000000005,
+              "from": "FAR_COLUMN_FACE",
+              "full_bond_mm": 846.6240882150009,
+              "member": "464",
+              "straight_starter_mm": 850,
+              "through_column": "222"
+            }
+          ],
+          "piece_lengths_by_face_mm": [
+            12700.96459430051,
+            12750.96459430051
+          ]
+        },
+        "222": {
+          "status": "PROPOSED_PRESSURE_BARS_FIT",
+          "reason": null,
+          "governing": {
+            "clear_mm": 70.58333332999999,
+            "faces": [
+              -1,
+              -1
+            ],
+            "fits": true,
+            "levels_above_base_mm": [
+              96.56862745098039,
+              96.56862745098039
+            ],
+            "margin_mm": 43.91666666333332,
+            "members": [
+              "459 + 464",
+              "459 + 464"
+            ],
+            "parallel": true,
+            "required_mm": 26.666666666666668,
+            "roles": [
+              "continuous web",
+              "continuous dowel"
+            ]
+          },
+          "continuous_web_bond_ratio": 0.44540925332518977,
+          "dedicated_dowels_ratio": 0.8468761117144231,
+          "issued_spans": [
+            "442",
+            "459"
+          ],
+          "straight_starters": [
+            {
+              "available_mm": 3300.0000000000005,
+              "from": "FAR_COLUMN_FACE",
+              "full_bond_mm": 846.6240882150009,
+              "member": "464",
+              "straight_starter_mm": 850,
+              "through_column": "222"
+            }
+          ],
+          "piece_lengths_by_face_mm": [
+            12700.96459430051,
+            12750.96459430051
+          ]
+        },
+        "234": {
+          "status": "PROPOSED_PRESSURE_BARS_FIT",
+          "reason": null,
+          "governing": {
+            "clear_mm": 73.5,
+            "faces": [
+              -1,
+              1
+            ],
+            "fits": true,
+            "levels_above_base_mm": [
+              71.7843137254902,
+              71.7843137254902
+            ],
+            "margin_mm": 46.83333333333333,
+            "members": [
+              "476",
+              "476"
+            ],
+            "parallel": true,
+            "required_mm": 26.666666666666668,
+            "roles": [
+              "dowel",
+              "dowel"
+            ]
+          },
+          "continuous_web_bond_ratio": null,
+          "dedicated_dowels_ratio": null,
+          "issued_spans": null,
+          "straight_starters": null,
+          "piece_lengths_by_face_mm": null
+        },
+        "joint 947": {
+          "status": "PROPOSED_PRESSURE_BARS_FIT",
+          "reason": null,
+          "governing": {
+            "clear_mm": 26.66666666666667,
+            "fits": true,
+            "margin_mm": 3.552713678800501e-15,
+            "members": [
+              "474",
+              "474"
+            ],
+            "parallel": false,
+            "required_mm": 26.666666666666668,
+            "roles": [
+              "vertical",
+              "dowel"
+            ]
+          },
+          "continuous_web_bond_ratio": null,
+          "dedicated_dowels_ratio": null,
+          "issued_spans": null,
+          "straight_starters": null,
+          "piece_lengths_by_face_mm": null
+        },
+        "joint 948": {
+          "status": "HOLD",
+          "reason": "TRANSFER_BARS_INTERSECT_RECEIVING_BOUNDARY_CAGE",
+          "governing": null,
+          "continuous_web_bond_ratio": null,
+          "dedicated_dowels_ratio": null,
+          "issued_spans": null,
+          "straight_starters": null,
+          "piece_lengths_by_face_mm": null
+        },
+        "joint 949": {
+          "status": "HOLD",
+          "reason": "TRANSFER_BARS_INTERSECT_RECEIVING_BOUNDARY_CAGE",
+          "governing": null,
+          "continuous_web_bond_ratio": null,
+          "dedicated_dowels_ratio": null,
+          "issued_spans": null,
+          "straight_starters": null,
+          "piece_lengths_by_face_mm": null
+        },
+        "joint 953": {
+          "status": "PROPOSED_PRESSURE_BARS_FIT",
+          "reason": null,
+          "governing": {
+            "clear_mm": 26.66666666666667,
+            "fits": true,
+            "margin_mm": 3.552713678800501e-15,
+            "members": [
+              "474",
+              "474"
+            ],
+            "parallel": false,
+            "required_mm": 26.666666666666668,
+            "roles": [
+              "vertical",
+              "dowel"
+            ]
+          },
+          "continuous_web_bond_ratio": null,
+          "dedicated_dowels_ratio": null,
+          "issued_spans": null,
+          "straight_starters": null,
+          "piece_lengths_by_face_mm": null
+        }
+      },
+      "transfer_bridge": {
+        "both_cut_friction_ratio": 1.9891605433117066,
+        "both_cut_upper_kn_m": 1173.7500385483545,
+        "bridge_curtains": {
+          "governing": {
+            "action": "Horizontal steel",
+            "combination": "Crack_SeisX",
+            "concrete_face_mm": 132.0,
+            "core_mm": 136.0,
+            "demand_kn_m": 534.6602450117825,
+            "element": "471-6",
+            "local_3_face": -1,
+            "membrane_intervals_kn_m": [
+              [
+                -520.2175925055026,
+                531.5522029392964
+              ],
+              [
+                -807.2316438439899,
+                363.93717630853916
+              ],
+              [
+                -276.2256602431867,
+                149.90748301314864
+              ]
+            ],
+            "moment_intervals_knm_m": [
+              [
+                2.63713956613413,
+                30.372886328902233
+              ],
+              [
+                -14.918939886660159,
+                4.960871954866556
+              ],
+              [
+                -4.6738256678027374,
+                6.233779005628057
+              ]
+            ],
+            "point": "741",
+            "resistance_kn_m": 648.8071784587615,
+            "transverse_intervals_kn_m": [
+              [
+                -12.914722863562453,
+                5.103049537621076
+              ],
+              [
+                -7.928326323841539,
+                18.981629777785933
+              ]
+            ],
+            "utilization": 0.8240664757776963
+          },
+          "horizontal_diameter_mm": 10,
+          "horizontal_member": "470",
+          "membrane_and_plate_satisfied": true,
+          "vertical_diameter_mm": 12,
+          "vertical_pitch_mm": 80.00000000000114,
+          "vertical_stations_per_face": 5
+        },
+        "dedicated_resistance_kn_m": 590.0730549351264,
+        "friction_selection_limit": 0.85,
+        "hoop_synchronized_dowel_trials": [
+          {
+            "bond_mm": 740.7960771881259,
+            "both_cut_ratio": 1.2178533938643101,
+            "largest_developed_diameter_mm": 14,
+            "pitch_mm": 79.23076923076923,
+            "upper_steel_resistance_kn_m": 963.7859897273731
+          },
+          {
+            "bond_mm": 740.7960771881259,
+            "both_cut_ratio": 1.2178533938643101,
+            "largest_developed_diameter_mm": 14,
+            "pitch_mm": 80,
+            "upper_steel_resistance_kn_m": 963.7859897273731
+          }
+        ],
+        "length_mm": 400.0000000000057,
+        "link": "471",
+        "mutual_governing": {
+          "clear_mm": -14.0,
+          "faces": [
+            -1,
+            1
+          ],
+          "fits": false,
+          "levels_above_base_mm": [
+            71.7843137254902,
+            71.7843137254902
+          ],
+          "margin_mm": -14.0,
+          "members": [
+            "470",
+            "464"
+          ],
+          "parallel": false,
+          "required_mm": 0.0,
+          "roles": [
+            "dowel",
+            "web"
+          ]
+        },
+        "native_link_edges": [
+          "I",
+          "J"
+        ],
+        "reason": "TRANSFER_BARS_INTERSECT_RECEIVING_BOUNDARY_CAGE",
+        "receiving_clearance_by_member": {
+          "464": {
+            "clear_mm": -12.333333336666684,
+            "face": 1,
+            "margin_mm": -39.000000003333355,
+            "member": "464",
+            "receiving_bar_xy_mm": [
+              57.0,
+              -143.0
+            ],
+            "receiving_diameter_mm": 14.0,
+            "required_mm": 26.666666666666668,
+            "role": "dowel"
+          },
+          "470": {
+            "clear_mm": -10.0,
+            "face": -1,
+            "margin_mm": -36.66666666666667,
+            "member": "470",
+            "receiving_bar_xy_mm": [
+              514.3333333333333,
+              -143.0
+            ],
+            "receiving_diameter_mm": 14.0,
+            "required_mm": 26.666666666666668,
+            "role": "web"
+          }
+        },
+        "receiving_hoop_phase_trials": [
+          {
+            "best_centre_gap_mm": 2.704374057315164,
+            "hoop_pitch_mm": 79.23076923076923,
+            "touching_centre_distance_mm": 10.0
+          },
+          {
+            "best_centre_gap_mm": 0.47058823529437177,
+            "hoop_pitch_mm": 80,
+            "touching_centre_distance_mm": 10.0
+          }
+        ],
+        "receiving_panel": "472",
+        "receiving_pier": "P2",
+        "receiving_vertical_bar_count": 68,
+        "receiving_vertical_governing": {
+          "clear_mm": -12.333333336666684,
+          "face": 1,
+          "margin_mm": -39.000000003333355,
+          "member": "464",
+          "receiving_bar_xy_mm": [
+            57.0,
+            -143.0
+          ],
+          "receiving_diameter_mm": 14.0,
+          "required_mm": 26.666666666666668,
+          "role": "dowel"
+        },
+        "shared_joints": [
+          "948",
+          "949"
+        ],
+        "status": "HOLD"
+      },
+      "W29_dowel_ratios": {
+        "I": 0.794328372505553,
+        "J": 0.7325210875079738
+      },
+      "g1_supervisor_decision": {
+        "accepted": "070ac74e3b57f7f3b77f8327d0e218aa3b5f09af7766a9f23939ec64868468f2",
+        "reviewed": "a1e32f42e77bc32ee6bcf97277702c74623bb28022857a79148a8ec268bd54e3",
+        "decision": "SUPERVISOR_ACCEPTED",
+        "gaps": {
+          "GAP-001": {
+            "closure_ready": true,
+            "supervisor_approval": "ACCEPTED",
+            "status": "CLOSED",
+            "closure_evidence_refs": [
+              "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
+            ]
+          },
+          "GAP-002": {
+            "closure_ready": true,
+            "supervisor_approval": "ACCEPTED",
+            "status": "CLOSED",
+            "closure_evidence_refs": [
+              "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
+            ]
+          },
+          "GAP-003": {
+            "closure_ready": true,
+            "supervisor_approval": "ACCEPTED",
+            "status": "CLOSED",
+            "closure_evidence_refs": [
+              "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
+            ]
+          },
+          "GAP-004": {
+            "closure_ready": true,
+            "supervisor_approval": "ACCEPTED",
+            "status": "CLOSED",
+            "closure_evidence_refs": [
+              "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
+            ]
+          },
+          "GAP-007": {
+            "closure_ready": true,
+            "supervisor_approval": "ACCEPTED",
+            "status": "CLOSED",
+            "closure_evidence_refs": [
+              "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
+            ]
+          }
+        }
+      },
+      "scope_exclusions": [
+        "GAP-015",
+        "GAP-018"
+      ],
+      "verification": {
+        "initial": {
+          "arguments": [
+            "tools/test_offline.py"
+          ],
+          "exit_code": 1,
+          "start_utc": "2026-11-25T17:30:37.495154+00:00",
+          "end_utc": "2026-11-25T17:37:06.856984+00:00",
+          "seconds": 389.36413439991884
+        },
+        "initial_python": "1794 run, 187 errors and one skipped in the restricted localhost environment",
+        "loopback_diagnosis": "Windows socket error 10013; the identical failing UI history test passed after granting the session network access.",
+        "focused": "31 related tests passed in 0.063 s on the final implementation",
+        "full_invocations": 2,
+        "final_python_count": 1795,
+        "final_python_result": "OK (skipped=1)",
+        "javascript_suites": [
+          "tests\\test_engine_console_ui.cjs",
+          "tests\\test_vs07_ui_state.cjs",
+          "tests\\test_vs11_column_ui.cjs",
+          "tests\\test_vs20_column_ui.cjs",
+          "tests\\test_vs21_column_ui.cjs",
+          "tests\\test_vs22_column_ui.cjs",
+          "tests\\test_vs23_column_ui.cjs",
+          "tests\\test_vs24_column_ui.cjs",
+          "tests\\test_vs26_column_ui.cjs",
+          "tests\\test_vs26_design_ui.cjs",
+          "tests\\test_wall_workbench.cjs",
+          "tests\\test_workspace_candidates.cjs"
+        ],
+        "software_regressions_pass": true,
+        "final_exit_code": 0,
+        "whole_building_invocations": 2,
+        "initial_whole_building": {
+          "arguments": [
+            "-m",
+            "tbdy_next.cli",
+            "run-pipeline",
+            "--whole-building",
+            "--case",
+            "Modal",
+            "--source",
+            ".receipts/RUN-3bb6a4d5d57c4af8af503a20c4d69bbd/input.source",
+            "--out",
+            ".receipts"
+          ],
+          "exit_code": 0,
+          "start_utc": "2026-11-25T18:24:06.095376+00:00",
+          "end_utc": "2026-11-25T18:37:48.248924+00:00",
+          "seconds": 822.1092524999985
+        },
+        "whole_building": {
+          "arguments": [
+            "-m",
+            "tbdy_next.cli",
+            "run-pipeline",
+            "--whole-building",
+            "--case",
+            "Modal",
+            "--source",
+            ".receipts/RUN-3bb6a4d5d57c4af8af503a20c4d69bbd/input.source",
+            "--out",
+            ".receipts"
+          ],
+          "exit_code": 0,
+          "start_utc": "2026-11-25T18:55:42.961161+00:00",
+          "end_utc": "2026-11-25T19:10:43.402462+00:00",
+          "seconds": 900.3975875000469
+        },
+        "repeat_authorization": "The user explicitly authorized one additional sealed whole-building calculation and full test run after the Windows localhost denial and first raft-strip result.",
+        "authorized_retry": {
+          "arguments": [
+            "tools/test_offline.py"
+          ],
+          "exit_code": 0,
+          "start_utc": "2026-11-25T18:45:45.171829+00:00",
+          "end_utc": "2026-11-25T18:55:26.010529+00:00",
+          "seconds": 580.8059351000702
+        },
+        "golden_regression": {
+          "golden_record_count": 44,
+          "classification_counts": {
+            "NUMERICAL_MATCH": 36,
+            "ENGINEERING_INTERPRETATION_DIFFERENCE": 4,
+            "INSUFFICIENT_SOURCE": 4
+          },
+          "acceptance_eligible": false,
+          "engineering_release": "NOT_READY"
+        },
+        "skip_reasons": [
+          "test_wrong_run_and_symlink_cannot_cross_source_boundary (test_vs11_column_bank.ColumnStoreTests.test_wrong_run_and_symlink_cannot_cross_source_boundary) ... skipped 'OS disallows creating symlinks'"
+        ]
+      },
+      "live_print": {
+        "run": "RUN-80997c5fa229452c82948c781b44ae22",
+        "host": "127.0.0.1:8876",
+        "route": "/report/print?run_id=RUN-80997c5fa229452c82948c781b44ae22",
+        "disk_sha256": "7dc34128d5af721bc657c292fdb2fab57e8d0a5a7cd8209c5844db609e34e1d8",
+        "ms": [
+          66.325,
+          11.981,
+          32.552,
+          30.706,
+          25.536
+        ],
+        "response_sha256": [
+          "7dc34128d5af721bc657c292fdb2fab57e8d0a5a7cd8209c5844db609e34e1d8",
+          "7dc34128d5af721bc657c292fdb2fab57e8d0a5a7cd8209c5844db609e34e1d8",
+          "7dc34128d5af721bc657c292fdb2fab57e8d0a5a7cd8209c5844db609e34e1d8",
+          "7dc34128d5af721bc657c292fdb2fab57e8d0a5a7cd8209c5844db609e34e1d8",
+          "7dc34128d5af721bc657c292fdb2fab57e8d0a5a7cd8209c5844db609e34e1d8"
+        ],
+        "status": [
+          200,
+          200,
+          200,
+          200,
+          200
+        ],
+        "serving_git_head": "8637fc7f78bd7e4f4cd2ac1a8e417962237557eb",
+        "health_ms": 40.727199986577034,
+        "bytes": 8076931,
+        "all_bytes_match_disk": true,
+        "all_below_100_ms": true
+      },
+      "first_sealed_trial_print": {
+        "run": "RUN-4e83662fa0214d00b2b35a19a4c97979",
+        "host": "127.0.0.1:8876",
+        "route": "/report/print?run_id=RUN-4e83662fa0214d00b2b35a19a4c97979",
+        "disk_sha256": "bd8ae4d0c1e690cbf00c9f90256e8559016226a8df498535076dcea4c2b4e80c",
+        "ms": [
+          137.443,
+          13.68,
+          19.45,
+          22.989,
+          15.888
+        ],
+        "response_sha256": [
+          "bd8ae4d0c1e690cbf00c9f90256e8559016226a8df498535076dcea4c2b4e80c",
+          "bd8ae4d0c1e690cbf00c9f90256e8559016226a8df498535076dcea4c2b4e80c",
+          "bd8ae4d0c1e690cbf00c9f90256e8559016226a8df498535076dcea4c2b4e80c",
+          "bd8ae4d0c1e690cbf00c9f90256e8559016226a8df498535076dcea4c2b4e80c",
+          "bd8ae4d0c1e690cbf00c9f90256e8559016226a8df498535076dcea4c2b4e80c"
+        ],
+        "status": [
+          200,
+          200,
+          200,
+          200,
+          200
+        ],
+        "serving_git_head": "8637fc7f78bd7e4f4cd2ac1a8e417962237557eb",
+        "health_ms": 112.22050001379102,
+        "bytes": 8049471,
+        "all_bytes_match_disk": true,
+        "all_below_100_ms": false
+      },
+      "commands": {
+        "software": [
+          "tools/test_offline.py"
+        ],
+        "offline_building": [
+          "-m",
+          "tbdy_next.cli",
+          "run-pipeline",
+          "--whole-building",
+          "--case",
+          "Modal",
+          "--source",
+          ".receipts/RUN-3bb6a4d5d57c4af8af503a20c4d69bbd/input.source",
+          "--out",
+          ".receipts"
+        ],
+        "private_audit": "g1-closure-20261125-acceptance-final.py"
+      },
+      "private_evidence_sha256": {
+        ".receipts/verification/g1-closure-20261125-acceptance-final.json": "37356755cd2fb47aefdcb9fa37c0c88945f7d7a7c9b76986cc93042d9a9c0d82",
+        ".receipts/verification/g1-closure-20261125-acceptance-final.py": "98d4c9bf59695fd53a2bec0db96bb6d89fa87295f5274076d4aa30daa2f54831",
+        ".receipts/verification/g1-closure-20261125-acceptance.json": "2ea59c2c534a487d87db836004ea38c45354dc8a2c76e736e27997f1ea6479b1",
+        ".receipts/verification/g1-closure-20261125-acceptance.py": "fa249b55ef187f95a8dd3f2ba4114f3b0a990510a4403d726f4ed3c6597b9320",
+        ".receipts/verification/g1-closure-20261125-focused-final.log": "55e003010e106b3d9077bba7f834ad828fe592598853e28756863cee42ca4d7e",
+        ".receipts/verification/g1-closure-20261125-focused.log": "d16c18020d4a39f40b7509085e2ec102566068e91534828f587b5c65273c8508",
+        ".receipts/verification/g1-closure-20261125-offline-retry.json": "f8dcb8896233b9186ea4d6b33a49079360e4a5564792ffbcb981a2e852bbbedc",
+        ".receipts/verification/g1-closure-20261125-offline-retry.log": "01befb6d85e4e6db6e4adbeca84aa229b90ac62b69eae7a009251b1e94be4b22",
+        ".receipts/verification/g1-closure-20261125-offline.json": "012e268b0471c0437a57b1ceb0c77f4da8d6d151ae5c877cfd1f2870bf4d7f0c",
+        ".receipts/verification/g1-closure-20261125-offline.log": "aeb7050bdc68f257a5dc8e5687c2a2a6760789bbac593b3a27288c350b9508af",
+        ".receipts/verification/g1-closure-20261125-print-final.json": "29c9d7ff422cea2ee92e47725109d89b89c47b0d83a8707c93b1437a0045170f",
+        ".receipts/verification/g1-closure-20261125-print.json": "41eaedc23150fa052739eb32345450de6af0c9639bd2964fba9aba7b46d91d3a",
+        ".receipts/verification/g1-closure-20261125-whole-final.json": "e1cd297981a1f4b48eb2d3cabb4edc5dad1998781e648b05ead24e0aac54196d",
+        ".receipts/verification/g1-closure-20261125-whole-final.log": "036ae273a34f99abe4a3c12b3397f0802a2a97980153eb68583873bc4482c49b",
+        ".receipts/verification/g1-closure-20261125-whole.json": "5f35826e5400bebfc63f9e6f1d8bca8a5bb662516ddedd1218194c87c6be9634",
+        ".receipts/verification/g1-closure-20261125-whole.log": "2594c574c05e805b9514373f1ad54e34aedd3b4b90971ed445b9395674866a2c"
+      },
+      "formal_compliance": "FAIL",
+      "engineering_release": "NOT_READY"
     }
   ],
   "new_record_template": {
@@ -13277,7 +14586,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-25T16:19:02+00:00",
+  "updated_at_utc": "2026-11-25T19:11:10+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -14175,6 +15484,24 @@
         "d64dde587e519bb859ea5c44f918714637de6dc4",
         "79499ed0fbf459b7ca9db61f26e256f02d53705b"
       ]
+    },
+    {
+      "status": "COLUMN_SUPPORT_AND_BASEMENT_JOINT_REVIEW_COMPLETE_G1_AWAITS_SUPERVISOR",
+      "work_branch": "work/column-bounds-wall-corners",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "53e2289f8832b30972ebe56779e4a2a0eb719a8e",
+      "calculation_implementation_commit": "4b62a73808040003a42c437d1614a1189230ff7e",
+      "gateway_implementation_commit": "2c083cef285682566e9fca346826197efd95d36c",
+      "tested_git_subtrees": {
+        "src": "382c2a47a612622a64f5210afd788063b8ef8441",
+        "tests": "e3292c0bbf94aa47f3e43206e7ae2b225f15a837"
+      },
+      "production_run_id": "RUN-e4f718bffb7d4814a6632c3c6c39e462",
+      "results_sha256": "02de6f021da55d9d01daa7d74224b4475b9670717af42fea8988b34b9d5251ce",
+      "evidence_refs": [
+        "EV-COLUMN-BOUNDS-WALL-EDGES-G1-20261125"
+      ],
+      "engineering_release": "NOT_READY"
     }
   ],
   "remote_audit_correction_checkpoint": {
