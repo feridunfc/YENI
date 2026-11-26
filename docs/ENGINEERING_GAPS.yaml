@@ -1,7 +1,7 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-26T14:43:29.061821+00:00",
+  "updated_at_utc": "2026-11-26T17:25:16.348170+00:00",
   "repository": "feridunfc/YENI",
   "baseline_implementation_commit": "b220e5a9c3aa5658be47b9d24565d5f05554d021",
   "local_reconciled": true,
@@ -31,7 +31,7 @@
     "GAP-018",
     "GAP-006"
   ],
-  "active_task": "Supervisor review of the two G2 candidates. The serial W32 bridge requires a coordinated W55 anchorage and curtain layout that meets the original cover, clearance and selection reserve.",
+  "active_task": "Review the scoped GAP-010 section evidence. GAP-008 needs generation- and cut-identified native data. The W55 return, remote through-bars and W32 crossties need a compatible full detail.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -450,8 +450,8 @@
       "title": "Design demand in the same generation",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Parent/scenario/result identities, native case GUIDs and exact cut/side/step lineage are retained. Six native C29 first-order story cuts bind every column and wall on the same upper face and generation.",
-      "blocker": "Full analysis-generation proof and applicable seismic design policy are not approved.",
+      "achieved_scope": "Parent/scenario/result identities, native case GUIDs and exact cut/side/step lineage are retained. Six native C29 first-order story cuts bind every column and wall on the same upper face and generation. The original native G1 case GUID and cut census covers 957 column pairs, 180 beams, 390 assigned pier faces and 221 basement panel pairs.",
+      "blocker": "The 221 basement panel and combination pairs come from a separate input-identical analysis. Native beam design summaries lack element/side and step identity and matching frame-force arrays for nine consumed design combinations.",
       "closure_criteria": "Bind every consumed design vector to the same generation/cut/step/role without equating similar case names or load patterns.",
       "owner_paths": [
         "src/tbdy_next/engineering/design_scenario.py",
@@ -461,7 +461,8 @@
         "EV-D1",
         "EV-D3B-REPLAY",
         "EV-LOCAL-SPECTRAL",
-        "EV-S02-C29-SIGNED-STORY-BALANCE-20261122"
+        "EV-S02-C29-SIGNED-STORY-BALANCE-20261122",
+        "EV-G2-SUPERVISOR-G3-20261126"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -473,6 +474,21 @@
           "S01",
           "S02",
           "S05"
+        ]
+      },
+      "closure_ready": false,
+      "supervisor_decision": "PENDING",
+      "closure_candidate": {
+        "run_id": "RUN-9774f9667d324227b7d7392fdc5f4283",
+        "contract": "g3-contract.json",
+        "verification": "g3-verification.json",
+        "contract_sha256": "2727582aef200cae2b052a20a707b53b36d87e8c5c25dcc8e3e7cc9327d38d32",
+        "verification_sha256": "0c59c8a96cbd559b8a1fd5c173cb838dec9519234fc2481d5a84c7298856c3fc",
+        "supervisor_approval": "PENDING",
+        "evidence_ref": "EV-G2-SUPERVISOR-G3-20261126",
+        "unresolved": [
+          "BASEMENT_SHELL_VECTORS_FROM_SEPARATE_CONTROLLED_SOLVE",
+          "NATIVE_BEAM_DESIGN_SUMMARY_LACKS_MATCHING_CUT_STEP_FORCE_VECTORS"
         ]
       }
     },
@@ -700,8 +716,8 @@
       "title": "Independent PMM capacity acceptance",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "PMM solver and required-cut checks remain active; latest plain replay evaluates 1206 signed-static station rows with zero observed exceedances. The selected-cage run returns a verified governing static station for 87/87 members, with fixed-N radial capacity and signed reserve at each of 1,206 cuts. An independent fixed-N section integration checks the original governing C29 Grav_Ult selected-cage face of column 142. It gives 1450.877041 kN m radial capacity and utilization 0.176473078. The fixed-N independent check covers all 24 selected-C29 gravity faces on 18 physical case-cuts with a maximum capacity difference of 0.000471272 kN·m. The new cohort governing signed face C23/136 was integrated independently at its local compression and actual cage. Radial resistance agrees within 0.000233 kN·m.",
-      "blocker": "Full normative load/cut/axis/cage scope and independent complete-design oracle acceptance remain open.",
+      "achieved_scope": "PMM solver and required-cut checks remain active; latest plain replay evaluates 1206 signed-static station rows with zero observed exceedances. The selected-cage run returns a verified governing static station for 87/87 members, with fixed-N radial capacity and signed reserve at each of 1,206 cuts. An independent fixed-N section integration checks the original governing C29 Grav_Ult selected-cage face of column 142. It gives 1450.877041 kN m radial capacity and utilization 0.176473078. The fixed-N independent check covers all 24 selected-C29 gravity faces on 18 physical case-cuts with a maximum capacity difference of 0.000471272 kN·m. The new cohort governing signed face C23/136 was integrated independently at its local compression and actual cage. Radial resistance agrees within 0.000233 kN·m. The independent fixed-axial section integration verifies 69 governing static cuts, 69 spectral envelope corners, 138 axial limits and 720 signed zero-axial section capacities on 360 beam ends.",
+      "blocker": "Supervisor review of the independent selected-section comparison is pending for the stated frame scope.",
       "closure_criteria": "Use independent capacity solutions and normative prerequisite evidence with explicit source identities and tolerances.",
       "owner_paths": [
         "src/tbdy_next/column_engine/section_capacity.py",
@@ -716,7 +732,8 @@
         "EV-S06-C29-24-FACES-20261122",
         "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122",
         "EV-FRAME-STORY-PLUS450-R14-20261122",
-        "EV-ORIGINAL-FRAME-STORY-26-R14-20261122"
+        "EV-ORIGINAL-FRAME-STORY-26-R14-20261122",
+        "EV-G2-SUPERVISOR-G3-20261126"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -742,6 +759,18 @@
         "plan": "docs/supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json",
         "note": "Preserve the completed C29 24-face selected-cage capacity subscope. Next independent domains are axial limits, other member/section types and full-design evidence; do not reassign the former remaining 23 faces.",
         "status_changed": false
+      },
+      "closure_ready": true,
+      "supervisor_decision": "PENDING",
+      "closure_candidate": {
+        "run_id": "RUN-9774f9667d324227b7d7392fdc5f4283",
+        "contract": "g3-contract.json",
+        "verification": "g3-verification.json",
+        "contract_sha256": "2727582aef200cae2b052a20a707b53b36d87e8c5c25dcc8e3e7cc9327d38d32",
+        "verification_sha256": "0c59c8a96cbd559b8a1fd5c173cb838dec9519234fc2481d5a84c7298856c3fc",
+        "supervisor_approval": "PENDING",
+        "evidence_ref": "EV-G2-SUPERVISOR-G3-20261126",
+        "unresolved": []
       }
     },
     {
@@ -899,7 +928,7 @@
         "contract_sha256": "d4b45b5d6126c733d63f5f8d068429a8a482d267078c1459ad47eb8bb45cf274",
         "verification": "g2-verification.json",
         "evidence_ref": "EV-G2-FRAME-SERIAL-BRIDGE",
-        "supervisor_approval": "PENDING",
+        "supervisor_approval": "ACCEPTED",
         "verification_sha256": "7c07d570f3c9168b38412b1bc5ebb3501dc71de16a36c985ec10b44891d1afa4",
         "run_id": "RUN-3328af801a9e4f19a83665f9533e9dee"
       },
@@ -1372,7 +1401,7 @@
         "contract_sha256": "d4b45b5d6126c733d63f5f8d068429a8a482d267078c1459ad47eb8bb45cf274",
         "verification": "g2-verification.json",
         "evidence_ref": "EV-G2-FRAME-SERIAL-BRIDGE",
-        "supervisor_approval": "PENDING",
+        "supervisor_approval": "ACCEPTED",
         "verification_sha256": "7c07d570f3c9168b38412b1bc5ebb3501dc71de16a36c985ec10b44891d1afa4",
         "run_id": "RUN-3328af801a9e4f19a83665f9533e9dee"
       },
@@ -2015,5 +2044,41 @@
     ],
     "decision": "SUPERVISOR_ACCEPTED",
     "engineering_release": "NOT_READY"
+  },
+  "g3_supervisor_packet_20261126": {
+    "run": "RUN-9774f9667d324227b7d7392fdc5f4283",
+    "gaps": {
+      "GAP-008": {
+        "status": "PARTIAL",
+        "closure_ready": false,
+        "supervisor_approval": "PENDING",
+        "unresolved": [
+          "BASEMENT_SHELL_VECTORS_FROM_SEPARATE_CONTROLLED_SOLVE",
+          "NATIVE_BEAM_DESIGN_SUMMARY_LACKS_MATCHING_CUT_STEP_FORCE_VECTORS"
+        ]
+      },
+      "GAP-010": {
+        "status": "PARTIAL",
+        "closure_ready": true,
+        "supervisor_approval": "PENDING",
+        "unresolved": []
+      }
+    },
+    "contract_sha256": "2727582aef200cae2b052a20a707b53b36d87e8c5c25dcc8e3e7cc9327d38d32",
+    "verification_sha256": "0c59c8a96cbd559b8a1fd5c173cb838dec9519234fc2481d5a84c7298856c3fc",
+    "evidence_ref": "EV-G2-SUPERVISOR-G3-20261126",
+    "separate_gaps": [
+      "GAP-015",
+      "GAP-018"
+    ],
+    "closed_gaps": [
+      "GAP-001",
+      "GAP-002",
+      "GAP-003",
+      "GAP-004",
+      "GAP-007",
+      "GAP-013",
+      "GAP-016"
+    ]
   }
 }

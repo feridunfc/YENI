@@ -19,22 +19,16 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "G2_READY_FOR_SUPERVISOR_REVIEW_BRIDGE_HOLD",
-    "work_branch": "work/bridge-g2",
+    "status": "G2_ACCEPTED_G3_SCOPED_CANDIDATE_BRIDGE_HOLD",
+    "work_branch": "work/coordinated-p2-g3",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "2d45d54d96574ba7a414b97768b92ee53c9c0b32",
-    "calculation_implementation_commit": "e01063dc987c553224889282b57dfd81eafe7162",
-    "software_implementation_commit": "b220e5a9c3aa5658be47b9d24565d5f05554d021",
-    "tested_git_subtrees": {
-      "src": "6edcb6861ed389078a3f0e4518cb4c061c34336c",
-      "tests": "d223e4fe16cf47aff8a1457b7436eaf15ef912e6",
-      "tools": "fdd5906b37257128462153bd92a36c29125da40e"
-    },
-    "production_run_id": "RUN-3328af801a9e4f19a83665f9533e9dee",
-    "results_sha256": "599ddcd042bdd052bda602984e7ea886ce767db513b76715489df2cf925e5c8f",
-    "snapshot_sha256": "5108ee856e1169e20e96e3ba9db1f07f84bf32e657db1acf9a0607535d42052e",
-    "scope": "One original archive run, reproducible signed feedback examples, C29 and golden evidence, and a held synchronized bridge trial.",
-    "verification": "EV-G2-FRAME-SERIAL-BRIDGE",
+    "inspected_base_commit": "6f432ab6f759d608a985e769cf3f5e427121da64",
+    "calculation_implementation_commit": "acf7fcc8057a204067f71457c8dce8dee7419924",
+    "production_run_id": "RUN-9774f9667d324227b7d7392fdc5f4283",
+    "results_sha256": "8b8ae89059ea3aa2f99673e2ba39c0d3314ae01c18dd1c087ab4a051147b2645",
+    "snapshot_sha256": "67ea09d5b0391b5f5009d11fe51758fc401c09a00892eab2f0e220e05ca58700",
+    "scope": "G2 Supervisor acceptance, offline P2 boundary redesign, same-element W32 check, G3 demand census and independent capacities.",
+    "verification": "EV-G2-SUPERVISOR-G3-20261126",
     "engineering_release": "NOT_READY"
   },
   "last_observed_remote_implementation": {
@@ -5967,7 +5961,11 @@
         "python_skipped": 1,
         "javascript_test_files_passed": 11,
         "golden_gate_exit_code": 3,
-        "golden_numerical_insufficient_interpretation": [33, 7, 4],
+        "golden_numerical_insufficient_interpretation": [
+          33,
+          7,
+          4
+        ],
         "original_member_combination_instances": 957,
         "c29_signed_static_cuts": 18,
         "c29_spectral_case_cuts": 48,
@@ -5983,7 +5981,10 @@
       "id": "EV-C29-R03-ORDER-AXIAL-BALANCE-20261121",
       "observed_at": "2026-11-21",
       "status": "ORIGINAL_C29_ARCHIVE_ORDER_AND_GRAVITY_BALANCE_CONSUMED",
-      "gap_ids": ["GAP-003", "GAP-009"],
+      "gap_ids": [
+        "GAP-003",
+        "GAP-009"
+      ],
       "baseline": "5f7a3aa6f23cd92a2c667a523cf40ab4215530ee",
       "local_implementation_commit": "9901b34d267896025cf8691f49490397eefc66a2",
       "published_implementation_commit": "990bd48f6a0f753028ad9283a49a09b1c08b80c9",
@@ -6009,7 +6010,10 @@
       "scoped_column_roles": 6,
       "gravity_balanced_intervals": 12,
       "factored_gravity_gradient_kn_per_m": 22.393386624,
-      "grav_ult_axial_change_kn_by_member": {"225": 99.65057047679966, "142": 85.09486917120012},
+      "grav_ult_axial_change_kn_by_member": {
+        "225": 99.65057047679966,
+        "142": 85.09486917120012
+      },
       "r14_numerically_closed_columns": 0,
       "r14_expected_columns": 87,
       "software_regression": {
@@ -6018,7 +6022,11 @@
         "python_tests": 1642,
         "python_skipped": 1,
         "javascript_test_files_passed": 11,
-        "golden_numerical_insufficient_interpretation": [33, 7, 4],
+        "golden_numerical_insufficient_interpretation": [
+          33,
+          7,
+          4
+        ],
         "log_private": ".receipts/verification/c29-r03-scope-20261121/offline-tests-network.log",
         "log_sha256": "aa57fa1c17a81abb26319937d9734dc6434d4ce1ea7e6d5217790741fea0b676"
       },
@@ -6030,7 +6038,9 @@
       "id": "EV-C29-PAIRED-GRAVITY-20261121",
       "observed_at": "2026-11-21",
       "status": "ETABS_PAIRED_GRAVITY_COMPARISON_CONSUMED",
-      "gap_ids": ["GAP-009"],
+      "gap_ids": [
+        "GAP-009"
+      ],
       "baseline": "1676af97f35a0b3903c7570d8fd459a04bfeab83",
       "local_implementation_commit": "fcf55f392037adeadafada288e994eb23b59bec0",
       "published_implementation_commit": "931ddd537b75e944ef05f17c6b3ad381fe6965bc",
@@ -6057,9 +6067,12 @@
       "comparison_csv_sha256": "07f3f48ee9a046187cde1bfdccf24e4c79e7e5353eb74e376fbc3de8b5195a0e",
       "native_cases_finished": 6,
       "first_order_control_matched_cuts": 18,
-      "maximum_control_force_residual_kn": 7.106382327037863e-8,
-      "maximum_control_moment_residual_knm": 3.8558106041364226e-8,
-      "reference_elastic_ei_nmm2": {"ETABS": 812373333333333.2, "TS500": 226831423454370.16},
+      "maximum_control_force_residual_kn": 7.106382327037863e-08,
+      "maximum_control_moment_residual_knm": 3.8558106041364226e-08,
+      "reference_elastic_ei_nmm2": {
+        "ETABS": 812373333333333.2,
+        "TS500": 226831423454370.16
+      },
       "r14_numerically_closed_columns": 0,
       "r14_expected_columns": 87,
       "tests": {
@@ -6068,7 +6081,11 @@
         "python_tests": 1644,
         "python_skipped": 1,
         "javascript_test_files_passed": 11,
-        "golden_numerical_insufficient_interpretation": [33, 7, 4],
+        "golden_numerical_insufficient_interpretation": [
+          33,
+          7,
+          4
+        ],
         "log_private": ".receipts/R08_C29_GRAVITY_PAIR/offline-tests.log",
         "log_sha256": "8c1c53d8abdbe39fb9e3fbcca4ed9c2720c18e9a09ddc4af6a159e954f597f96"
       },
@@ -6081,7 +6098,9 @@
       "id": "EV-C29-MATCHED-EI-REFINEMENT-20261121",
       "observed_at": "2026-11-21",
       "status": "MATCHED_EI_GRAVITY_18_SOLUTIONS",
-      "gap_ids": ["GAP-009"],
+      "gap_ids": [
+        "GAP-009"
+      ],
       "baseline": "4aaaf6de5b3263c088635d3febfabe878c0d2f89",
       "local_implementation_commit": "4a0b1c6cfe952cc59ada5d32588b84db056d8909",
       "published_implementation_commit": "18d3da93b6396faea9f0eb62ab2671081edd060b",
@@ -6108,16 +6127,29 @@
       "private_summary": ".receipts/R08_C29_EI_MESH/verification.json",
       "native_cases_finished": 18,
       "matched_original_control_cuts": 18,
-      "refined_cut_counts_each_member": [30, 60, 120],
+      "refined_cut_counts_each_member": [
+        30,
+        60,
+        120
+      ],
       "refined_pmm_failed_cuts": 0,
       "refined_pmm_unresolved_cuts": 0,
       "matched_ei_nmm2_each_axis": 226831423454370.16,
       "revised_object_modifier_each_axis": 0.2792206663451577,
-      "governing_eight_part_pmm_grav_ult_at_i_face": {"225": 0.11845476844843528, "142": 0.169610765223168},
+      "governing_eight_part_pmm_grav_ult_at_i_face": {
+        "225": 0.11845476844843528,
+        "142": 0.169610765223168
+      },
       "mesh_convergence_status_each_member": "OUTSIDE_NUMERICAL_TOLERANCE",
       "four_to_eight_part_grav_ult_peak_node_chord_bow_mm": {
-        "225": [0.9911565578637125, 1.0203768762083902],
-        "142": [0.5430083274539975, 0.5692911903273933]
+        "225": [
+          0.9911565578637125,
+          1.0203768762083902
+        ],
+        "142": [
+          0.5430083274539975,
+          0.5692911903273933
+        ]
       },
       "revised_ts500_status": "REVISED_TS500_STORY_BASIS_UNAVAILABLE",
       "r14_numerically_closed_columns": 0,
@@ -6131,7 +6163,11 @@
         "python_tests": 1646,
         "python_skipped": 1,
         "javascript_test_files_passed": 11,
-        "golden_numerical_insufficient_interpretation": [33, 7, 4],
+        "golden_numerical_insufficient_interpretation": [
+          33,
+          7,
+          4
+        ],
         "log_private": ".receipts/R08_C29_EI_MESH/offline.log",
         "log_sha256": "cad3ce095d1fc7ae30d80d9001a155dd531a4af61b07bed25627fb30e8e7d1a9"
       },
@@ -6217,10 +6253,15 @@
       "id": "EV-C29-SELF-WEIGHT-NMAX-LOCAL-20261121",
       "observed_at": "2026-11-21",
       "status": "ORIGINAL_SOURCE_R14_CONDITIONAL_NUMERICAL_CLOSURE",
-      "gap_ids": ["GAP-009"],
+      "gap_ids": [
+        "GAP-009"
+      ],
       "implementation_commit": "6464d4d7a8f31e331c46e6e6736a8f574118efbd",
       "verified_implementation_tree_sha": "995d25a49b3d069ea16ac8dd06efaa93fcd26dde",
-      "parent_evidence": ["EV-VARIABLE-AXIAL-NUMERICAL-SLICE-20261121", "EV-C29-MATCHED-EI-REFINEMENT-20261121"],
+      "parent_evidence": [
+        "EV-VARIABLE-AXIAL-NUMERICAL-SLICE-20261121",
+        "EV-C29-MATCHED-EI-REFINEMENT-20261121"
+      ],
       "parent_run_id": "RUN-464231f1e18f465f88da868f7306a753",
       "parent_run_path_private": ".receipts/R08_C29_EI_MESH/live-replay/RUN-464231f1e18f465f88da868f7306a753",
       "verified_run_id": "RUN-be9d8258796f4dfca1a3609453e94e53",
@@ -6236,17 +6277,41 @@
         "python -X utf8 -B .receipts/c29-self-weight-nmax/verify.py",
         "python -X utf8 -B tools/test_offline.py"
       ],
-      "member_ids": ["225", "142"],
-      "signed_case_cuts": {"expected": 18, "evaluated": 18},
+      "member_ids": [
+        "225",
+        "142"
+      ],
+      "signed_case_cuts": {
+        "expected": 18,
+        "evaluated": 18
+      },
       "maximum_primitive_superposition_residual_kn": 5.084e-13,
-      "grav_ult_nmax_kn": {"225": 3240.4657836269826, "142": 2158.045264325103},
-      "static_pmm_max_utilization": {"225": 0.21346890100317067, "142": 0.2954701269355598},
-      "spectral_pmm_max_bounding_utilization": {"225": 0.3569079182765889, "142": 0.35390614507784507},
-      "capacity_shear_ts500_utilization": {"225": 0.5386019571834569, "142": 0.5783017413770299},
+      "grav_ult_nmax_kn": {
+        "225": 3240.4657836269826,
+        "142": 2158.045264325103
+      },
+      "static_pmm_max_utilization": {
+        "225": 0.21346890100317067,
+        "142": 0.2954701269355598
+      },
+      "spectral_pmm_max_bounding_utilization": {
+        "225": 0.3569079182765889,
+        "142": 0.35390614507784507
+      },
+      "capacity_shear_ts500_utilization": {
+        "225": 0.5386019571834569,
+        "142": 0.5783017413770299
+      },
       "connected_beams_with_design_shear": 8,
       "joint_40": {
-        "X": {"seismic_interval_checks": 16, "minimum_sampled_normalized_scwb_ratio": 2.1879439308413313},
-        "Y": {"seismic_interval_checks": 16, "minimum_sampled_normalized_scwb_ratio": 3.26383295035283}
+        "X": {
+          "seismic_interval_checks": 16,
+          "minimum_sampled_normalized_scwb_ratio": 2.1879439308413313
+        },
+        "Y": {
+          "seismic_interval_checks": 16,
+          "minimum_sampled_normalized_scwb_ratio": 3.26383295035283
+        }
       },
       "r14_previous_numerically_closed_columns": 0,
       "r14_conditionally_numerically_closed_columns": 2,
@@ -6257,7 +6322,11 @@
         "python_tests": 1671,
         "python_skipped": 1,
         "javascript_test_files_passed": 11,
-        "golden_numerical_insufficient_interpretation": [33, 7, 4],
+        "golden_numerical_insufficient_interpretation": [
+          33,
+          7,
+          4
+        ],
         "log_private": ".receipts/c29-self-weight-nmax/offline.log",
         "log_sha256": "faf4b520793f342270a7be078825612e06d199e86f1f98e29ca426758a7e2127"
       },
@@ -6272,12 +6341,17 @@
       "id": "EV-C29-COMMON-CUT-COMPARISON-20261121",
       "observed_at": "2026-11-21",
       "status": "COMMON_CUT_AND_JOINT_COMPARISON_CONSUMED",
-      "gap_ids": ["GAP-009"],
+      "gap_ids": [
+        "GAP-009"
+      ],
       "baseline": "ffc852b8cf072350a168a1347f4872ac5cab5aed",
       "local_implementation_commit": "ca69cfa859e8f1dcd0af9cb19a6371ae7821f310",
       "published_implementation_commit": "4b5dedeb007b3381d756715a509a8a32e124d9c0",
       "verified_implementation_tree_sha": "949661d701e9b74e31b01a4dcb5f7193890c25b4",
-      "reference_evidence": ["EV-C29-SELF-WEIGHT-NMAX-LOCAL-20261121", "EV-C29-MATCHED-EI-REFINEMENT-20261121"],
+      "reference_evidence": [
+        "EV-C29-SELF-WEIGHT-NMAX-LOCAL-20261121",
+        "EV-C29-MATCHED-EI-REFINEMENT-20261121"
+      ],
       "independent_audit": {
         "run_id": "RUN-83284d14d2dc414ab6f55e4b5a7de789",
         "comparison": "IDENTICAL",
@@ -6299,11 +6373,18 @@
         "python -X utf8 -B .receipts/c29-common-cut-method/verify.py",
         "python -X utf8 -B tools/test_offline.py"
       ],
-      "physical_case_cuts": {"expected": 18, "matched": 18, "distinct_native_sides_on_finest_mesh": 24},
+      "physical_case_cuts": {
+        "expected": 18,
+        "matched": 18,
+        "distinct_native_sides_on_finest_mesh": 24
+      },
       "common_node_deformation": {
         "method": "MATCHED_NATIVE_JOINTS_RELATIVE_TO_ORIGINAL_NODE_CHORD",
         "absolute_tolerance_mm": 0.01,
-        "four_to_eight_max_difference_mm": {"225": 4.722377174145617e-06, "142": 8.035826765051811e-07},
+        "four_to_eight_max_difference_mm": {
+          "225": 4.722377174145617e-06,
+          "142": 8.035826765051811e-07
+        },
         "status_each_member": "WITHIN_TOLERANCE"
       },
       "full_span_peak_status": "UNVERIFIED_BETWEEN_NATIVE_JOINTS",
@@ -6320,7 +6401,11 @@
         "python_tests": 1671,
         "python_skipped": 1,
         "javascript_test_files_passed": 11,
-        "golden_numerical_insufficient_interpretation": [33, 7, 4],
+        "golden_numerical_insufficient_interpretation": [
+          33,
+          7,
+          4
+        ],
         "log_private": ".receipts/c29-common-cut-method/offline-retry.log",
         "log_sha256": "93b37e1f2e5d29006c9a0122a43f599de0d4a7d1f095876211c484418e7a087d",
         "initial_run": "One Windows localhost body-upload test encountered WinError 10053. It then passed in isolation and in the complete retry.",
@@ -11825,9 +11910,18 @@
       "unique_pier_storey_groups_including_unassigned": 16,
       "overview_check_cells": 80,
       "numerical_results_with_governing_operands": {
-        "net_area_axial": 15, "design_shear": 12, "horizontal_joint": 12, "pmm": 13, "wall_beam": 12
+        "net_area_axial": 15,
+        "design_shear": 12,
+        "horizontal_joint": 12,
+        "pmm": 13,
+        "wall_beam": 12
       },
-      "open_cells_by_group": {"xP2": 4, "yP1": 3, "yP2": 4, "unassigned_W32": 5},
+      "open_cells_by_group": {
+        "xP2": 4,
+        "yP1": 3,
+        "yP2": 4,
+        "unassigned_W32": 5
+      },
       "engineering_release": "NOT_READY"
     },
     {
@@ -15224,6 +15318,552 @@
         "new_edb_solves": 0,
         "whole_building_invocations": 1
       }
+    },
+    {
+      "id": "EV-G2-SUPERVISOR-G3-20261126",
+      "status": "G2_ACCEPTED_G3_SCOPED_CANDIDATE_BRIDGE_HOLD",
+      "implementation_commit": "acf7fcc8057a204067f71457c8dce8dee7419924",
+      "implementation_tree": "ebaa2a7f6449bee5d6e0ba2a8518ccef38580c59",
+      "source_collection_run": "RUN-3bb6a4d5d57c4af8af503a20c4d69bbd",
+      "run_id": "RUN-9774f9667d324227b7d7392fdc5f4283",
+      "input_sha256": "10b2a06edbc656bc6e8972ec542209f8dd904cc9ee088165ab3c92f87a043033",
+      "captured_at_utc": "2026-11-26T17:23:41.545305+00:00",
+      "snapshot_sha256": "67ea09d5b0391b5f5009d11fe51758fc401c09a00892eab2f0e220e05ca58700",
+      "results_sha256": "8b8ae89059ea3aa2f99673e2ba39c0d3314ae01c18dd1c087ab4a051147b2645",
+      "report_sha256": "be074352e76e4fc4ed12b5dc42f4ce99c2bc16211cd1bbd3f69bb9dbbcc53da5",
+      "report_bytes": 8078146,
+      "calculation_command": [
+        "-m",
+        "tbdy_next.cli",
+        "run-pipeline",
+        "--whole-building",
+        "--case",
+        "Modal",
+        "--source",
+        ".receipts/RUN-3bb6a4d5d57c4af8af503a20c4d69bbd/input.source",
+        "--out",
+        ".receipts"
+      ],
+      "column_status_counts": {
+        "conditional": 69,
+        "failed": 4,
+        "hold": 14
+      },
+      "storeys": {
+        "+0.00": {
+          "conditional": 14,
+          "expected": 32,
+          "failed": 4,
+          "hold": 14
+        },
+        "+4.50": {
+          "conditional": 32,
+          "expected": 32,
+          "failed": 0,
+          "hold": 0
+        },
+        "+9.00": {
+          "conditional": 23,
+          "expected": 23,
+          "failed": 0,
+          "hold": 0
+        }
+      },
+      "failed_columns": [
+        {
+          "label": "C21",
+          "member": "217",
+          "failures": [
+            "COLUMN_CONFINEMENT:FOUNDATION_DEPTH_BELOW_CONTINUATION"
+          ]
+        },
+        {
+          "label": "C22",
+          "member": "218",
+          "failures": [
+            "COLUMN_CONFINEMENT:FOUNDATION_DEPTH_BELOW_CONTINUATION"
+          ]
+        },
+        {
+          "label": "C23",
+          "member": "219",
+          "failures": [
+            "COLUMN_CONFINEMENT:FOUNDATION_DEPTH_BELOW_CONTINUATION"
+          ]
+        },
+        {
+          "label": "C24",
+          "member": "220",
+          "failures": [
+            "COLUMN_CONFINEMENT:FOUNDATION_DEPTH_BELOW_CONTINUATION"
+          ]
+        }
+      ],
+      "foundation_continuation": {
+        "C21": {
+          "gross_depth_sufficient": false,
+          "model_depth_mm": 600.0,
+          "required_mm": 800.0
+        },
+        "C22": {
+          "gross_depth_sufficient": false,
+          "model_depth_mm": 600.0,
+          "required_mm": 800.0
+        },
+        "C23": {
+          "gross_depth_sufficient": false,
+          "model_depth_mm": 600.0,
+          "required_mm": 800.0
+        },
+        "C24": {
+          "gross_depth_sufficient": false,
+          "model_depth_mm": 600.0,
+          "required_mm": 800.0
+        }
+      },
+      "C29": {
+        "reference_sha256": "9ad3e6faa6cc6facb3aa5a6cc757e9e35b1b0704375ba2b806cb3e340a2c8bb1",
+        "independent_receipt_sha256": "3e5cd9361b889400502be143931eecb8fe56d1bef50e4c9be27aca8ad9280e3a",
+        "faces": 24,
+        "physical_combination_cuts": 18,
+        "model_sha256": "685f5f45e7448c8c471a2c041c65c681447cc02175846bbf82ae172139a8c283",
+        "maximum_difference_knm": 0.00047127115635703376,
+        "tolerance_knm": 0.01,
+        "scope": "Independent eight-element C29 section study and separate original-building calibration",
+        "original_edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+        "original_reference_results_sha256": "998c1098a8fdaab11a4789c30564dc8ab31dac949a59294377769b1d317d5565",
+        "original_calibration_sha256": {
+          "142": "97c070f420c0c76ec23e4b3c844da89953a94acd3a1178201941b65fd0d7311f",
+          "225": "c0d01a5b8e0f6c2bf77ec1a3f90697e5fa0600365f8cc42d989b68af4782b7c3"
+        }
+      },
+      "beam_status_counts": {
+        "CONDITIONAL_DESIGN_CALCULATED": 180
+      },
+      "wall_detail": {
+        "scope": "P2 receiving boundary and three-panel transfer trial",
+        "P2": {
+          "longitudinal_per_end": 10,
+          "longitudinal_diameter_mm": 22,
+          "tie_diameter_mm": 12,
+          "pitch_mm": 128.75,
+          "cover_mm": 40.0,
+          "hoops_in_basement": 40,
+          "largest_tie_line_gap_mm": 241.66666666666674,
+          "gravity_statuses": {
+            "GRAVITY_CUT_CALCULATED": 30
+          },
+          "seismic_sections": 48,
+          "construction_joint_statuses": {
+            "ROUGH_JOINT_BOUND_SATISFIED": 24
+          },
+          "strong_wall_statuses": {
+            "STRONG_WALL_BOUND_SATISFIED": 24
+          }
+        },
+        "physical_walls_scheduled": 21,
+        "physical_walls": 30,
+        "basement_proposed": 9,
+        "status": "HOLD",
+        "conditions": {
+          "all_pmm_sections": true,
+          "continuous_web_and_dowel_routes": false,
+          "developed_through_bars": true,
+          "differential_bond": true,
+          "independent_dowels": true,
+          "link_verticals_and_ties": false,
+          "remote_web_and_vertical_details": false,
+          "serial_friction": true,
+          "shell_reserve": true,
+          "straight_bar_clearances": true
+        },
+        "remote_details": {
+          "464": {
+            "existing_diameter_mm": 16,
+            "existing_pitch_mm": 49.568627450980394,
+            "joint": "931",
+            "proposed_diameter_mm": 25,
+            "same_verticals": false,
+            "same_web": false
+          },
+          "470": {
+            "existing_diameter_mm": 10,
+            "existing_pitch_mm": 49.568627450980394,
+            "joint": "947",
+            "proposed_diameter_mm": 14,
+            "same_verticals": false,
+            "same_web": false
+          }
+        },
+        "pmm": {
+          "464": {
+            "cuts": 30,
+            "satisfied": true
+          },
+          "470": {
+            "cuts": 30,
+            "satisfied": true
+          },
+          "471": {
+            "cuts": 15,
+            "satisfied": true
+          }
+        },
+        "combined_shell_utilizations": {
+          "464": 0.8340601079639294,
+          "470": 0.5962550379964294,
+          "471": 0.7137148985512131
+        },
+        "friction_ratios": {
+          "464": 0.7694829136559135,
+          "470": 0.3863730311715361
+        },
+        "W32_series": {
+          "friction_ratio": 0.5295710867208819,
+          "bond_ratio": 0.9807604590876913,
+          "available_bond_mm": 400.0000000000057,
+          "cases": 15,
+          "peak_differential_kn_per_m": 595.4587262706666
+        },
+        "W55_physical_route_census": {
+          "dowel_minus": {
+            "best": {
+              "boundary_hoop_clear_mm": 137.62922395375915,
+              "boundary_hoop_plan_gap_mm": 154.62922395375915,
+              "continuous_field_margin_mm": 25.841666666666242,
+              "full_straight_tail_mm": 1165,
+              "governing_field": {
+                "clear_mm": 25.841666666666242,
+                "faces": [
+                  -1,
+                  -1
+                ],
+                "fits": true,
+                "levels_above_base_mm": [
+                  4055.625,
+                  4099.466666666666
+                ],
+                "margin_mm": 25.841666666666242,
+                "members": [
+                  "464",
+                  "470"
+                ],
+                "parallel": false,
+                "required_mm": 0.0,
+                "roles": [
+                  "dowel",
+                  "web"
+                ]
+              },
+              "inside_bend_diameter_mm": 132.0,
+              "link_vertical_margin_mm": 0.6666666666656802,
+              "phase_mm": -64.375,
+              "receiving_members": [
+                "471",
+                "470"
+              ],
+              "receiving_vertical_margin_mm": 129.33333333333334,
+              "tail_track_mm": 15
+            },
+            "continuous_field_clear": 138,
+            "geometric_paths": 641,
+            "link_vertical_clear": 102,
+            "receiving_vertical_clear": 358
+          },
+          "dowel_plus": {
+            "best": {
+              "boundary_hoop_clear_mm": 47.375,
+              "boundary_hoop_plan_gap_mm": 0.0,
+              "continuous_field_margin_mm": -14.843167431673372,
+              "full_straight_tail_mm": 1165,
+              "governing_field": {
+                "clear_mm": 11.823499234993296,
+                "faces": [
+                  1,
+                  1
+                ],
+                "fits": false,
+                "levels_above_base_mm": [
+                  515.0,
+                  535.5333333333333
+                ],
+                "margin_mm": -14.843167431673372,
+                "members": [
+                  "464",
+                  "470"
+                ],
+                "parallel": true,
+                "required_mm": 26.666666666666668,
+                "roles": [
+                  "dowel",
+                  "web"
+                ]
+              },
+              "inside_bend_diameter_mm": 132.0,
+              "link_vertical_margin_mm": 134.000000000001,
+              "phase_mm": 0.0,
+              "receiving_members": [
+                "472"
+              ],
+              "receiving_vertical_margin_mm": 3.333333333333332,
+              "tail_track_mm": 70
+            },
+            "continuous_field_clear": 0,
+            "geometric_paths": 641,
+            "link_vertical_clear": 83,
+            "receiving_vertical_clear": 118
+          },
+          "web_minus": {
+            "best": {
+              "boundary_hoop_clear_mm": 168.07866358381722,
+              "boundary_hoop_plan_gap_mm": 186.57866358381722,
+              "continuous_field_margin_mm": 24.341666666666242,
+              "full_straight_tail_mm": 1325,
+              "governing_field": {
+                "clear_mm": 24.341666666666242,
+                "faces": [
+                  -1,
+                  -1
+                ],
+                "fits": true,
+                "levels_above_base_mm": [
+                  4055.625,
+                  4099.466666666666
+                ],
+                "margin_mm": 24.341666666666242,
+                "members": [
+                  "464",
+                  "470"
+                ],
+                "parallel": false,
+                "required_mm": 0.0,
+                "roles": [
+                  "web",
+                  "web"
+                ]
+              },
+              "inside_bend_diameter_mm": 150.0,
+              "link_vertical_margin_mm": 3.8333333333361743,
+              "phase_mm": -64.375,
+              "receiving_members": [
+                "471",
+                "470"
+              ],
+              "receiving_vertical_margin_mm": 159.83333333333334,
+              "tail_track_mm": 15
+            },
+            "continuous_field_clear": 42,
+            "geometric_paths": 325,
+            "link_vertical_clear": 52,
+            "receiving_vertical_clear": 198
+          },
+          "web_plus": {
+            "best": {
+              "boundary_hoop_clear_mm": 45.875,
+              "boundary_hoop_plan_gap_mm": 0.0,
+              "continuous_field_margin_mm": -16.379815543371738,
+              "full_straight_tail_mm": 1325,
+              "governing_field": {
+                "clear_mm": 10.28685112329493,
+                "faces": [
+                  1,
+                  1
+                ],
+                "fits": false,
+                "levels_above_base_mm": [
+                  515.0,
+                  535.5333333333333
+                ],
+                "margin_mm": -16.379815543371738,
+                "members": [
+                  "464",
+                  "470"
+                ],
+                "parallel": true,
+                "required_mm": 26.666666666666668,
+                "roles": [
+                  "web",
+                  "web"
+                ]
+              },
+              "inside_bend_diameter_mm": 150.0,
+              "link_vertical_margin_mm": 164.500000000001,
+              "phase_mm": 0.0,
+              "receiving_members": [
+                "472"
+              ],
+              "receiving_vertical_margin_mm": 16.833333333333332,
+              "tail_track_mm": 70
+            },
+            "continuous_field_clear": 0,
+            "geometric_paths": 325,
+            "link_vertical_clear": 43,
+            "receiving_vertical_clear": 68
+          }
+        },
+        "fully_compatible_W55_paths": false
+      },
+      "G1": "070ac74e3b57f7f3b77f8327d0e218aa3b5f09af7766a9f23939ec64868468f2",
+      "G2": {
+        "decision": "SUPERVISOR_ACCEPTED",
+        "contract_sha256": "b742bfb9f35c6d35da3fbc9e7fd2f36347d8394a096251ca2283ba8afe7b7cbb",
+        "verification_sha256": "74c8e8b461b0e765bbad2ba23724b883d3511a99f6da849f9e953b664d769727",
+        "supervisor_acceptance": {
+          "reviewed_run": "RUN-3328af801a9e4f19a83665f9533e9dee",
+          "reviewed_contract_sha256": "d4b45b5d6126c733d63f5f8d068429a8a482d267078c1459ad47eb8bb45cf274",
+          "reviewed_verification_sha256": "7c07d570f3c9168b38412b1bc5ebb3501dc71de16a36c985ec10b44891d1afa4",
+          "scope": "Signed two-storey feedback, independent C29 section study and frozen 44 report rows",
+          "separate_gaps": [
+            "GAP-018"
+          ],
+          "original_project_approval": "NOT_GRANTED"
+        },
+        "checked_scope": [
+          "GAP-013",
+          "GAP-016"
+        ]
+      },
+      "G3": {
+        "decision": "SUPERVISOR_REVIEW",
+        "contract_sha256": "2727582aef200cae2b052a20a707b53b36d87e8c5c25dcc8e3e7cc9327d38d32",
+        "verification_sha256": "0c59c8a96cbd559b8a1fd5c173cb838dec9519234fc2481d5a84c7298856c3fc",
+        "evidence_sha256": {
+          "generation": "9955a02c2a5ebc32dc58cdfc378ce9fd25868774ac3b5e46e6b6e459178a1bff",
+          "sections": "1d803add53b1edf7c65e988482c05439564ec112b10b14bf97a25bebe0e0f190"
+        },
+        "gaps": {
+          "GAP-008": {
+            "status": "PARTIAL",
+            "closure_ready": false,
+            "supervisor_approval": "PENDING",
+            "unresolved": [
+              "BASEMENT_SHELL_VECTORS_FROM_SEPARATE_CONTROLLED_SOLVE",
+              "NATIVE_BEAM_DESIGN_SUMMARY_LACKS_MATCHING_CUT_STEP_FORCE_VECTORS"
+            ]
+          },
+          "GAP-010": {
+            "status": "PARTIAL",
+            "closure_ready": true,
+            "supervisor_approval": "PENDING",
+            "unresolved": []
+          }
+        },
+        "separate_gaps": [
+          "GAP-015",
+          "GAP-018"
+        ],
+        "generation": {
+          "frame_force_sources": {
+            "columns": {
+              "members": 87,
+              "member_combination_pairs": 957,
+              "native_vectors": 7638,
+              "manifest_sha256": "eb65f1b2f1d4d03bd6361be7856f6fb585d77717d229caa45ee0b9408ae23f7c"
+            },
+            "beams": {
+              "members": 180,
+              "member_combination_pairs": 1980,
+              "native_vectors": 93841,
+              "manifest_sha256": "22cea962924916dc8903cfcdaed85716ca21e157ed5ab70be77b1bf589434efc"
+            }
+          },
+          "native_case_guids": {
+            "EDZ": "53a953f6-1eb6-40d0-be26-88bb0c536307",
+            "LC_DDL": "5c7ca34a-26a6-494f-a09e-9017d5763435",
+            "LC_DL": "c03c637d-d808-4e5c-9099-4a7e62bf1fd6",
+            "LC_EQX": "49ed7818-7c8d-4f79-bdbf-6c2e8051a4c6",
+            "LC_EQY": "158ec4ea-1da1-4057-a633-fa86a4407d1b",
+            "LC_H": "9864b990-a6aa-41e4-9cfb-b5a7046c4991",
+            "LC_HE": "9b9a9f6b-c45a-4de7-a5de-abd122f8100b",
+            "LC_LL": "ee1d1132-d5b4-49de-ac3e-47ae78b4c12d",
+            "LC_S": "57298cbc-eda3-48d2-a408-85ed94f1a9b2",
+            "LC_SDL": "07389c04-f5e8-4c39-bb02-f76522d1b7dd",
+            "LC_T": "622e0e05-de31-4925-b25a-e5abecb7e754",
+            "LC_WDL": "72f2622c-a391-435f-aca1-cddb06b6b8ff",
+            "Modal": "2b58e021-fb48-426d-8288-7141337168ce",
+            "RSX": "62d9bdfb-79c2-487b-aae5-8e37958cf499",
+            "RSY": "f27d4e76-33ff-4c2b-a412-66c78ca63d93"
+          },
+          "recipe_manifest_sha256": "0c462502caa8b46c046594220481fdbeca65ec16f6cc197943c858bde3ce3e87",
+          "original_edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+          "solver_log_sha256": "1d2a38011092e04bd59f6da411e44fa775dc9b7b7b5ce0fcd9d71fb97539a6db",
+          "controlled_copy_sha256": "317a70729bd6c160fcd1aa6a7803d781bc35f7d9a31aa6693680f6995161b38f",
+          "shell_solution_role": "INPUT_IDENTICAL_PRIVATE_REANALYSIS",
+          "physical_walls": 30,
+          "assigned_pier_faces": 390,
+          "face_manifest_sha256": "ad6d508b6fdfc691928616618c2a94b61bb71cae9861b527fd40286794156101",
+          "basement_panel_pairs": 221,
+          "additional_shell_members": [
+            "471"
+          ],
+          "shell_manifest_sha256": "10ee438295da40ce64f94ac6c103d8763b14701277708052328d8d472bc3c291",
+          "beam_design_rows": 4939,
+          "beam_design_manifest_sha256": "e3fdf2e29b83f8bdbc3c429590970617d421512ba801afdb471d877c7e12fdc7",
+          "design_combinations_without_same_case_beam_force_arrays": [
+            "Crack_SeisX",
+            "Crack_SeisX_Soil",
+            "Crack_SeisX_Up",
+            "Crack_SeisX_UpSoil",
+            "Crack_SeisY",
+            "Crack_SeisY_Soil",
+            "Crack_SeisY_Up",
+            "Crack_SeisY_UpSoil",
+            "WGHT"
+          ],
+          "design_summary_has_native_element_side_and_step": false,
+          "native_pier_control_components": 11700,
+          "original_generation_independently_verified": false
+        },
+        "independent_section_verification": {
+          "input_basis_sha256": "dfd040250935a59bacec3d4e3f5c511048855836a1db1df55ca06769c95af91a",
+          "reference_sha256": "08dfc3af3f0a6dbf8becbc1a2a1d7c72d70679f48420f2f4e51df596c4764e31",
+          "independent_methods_sha256": {
+            "tests/g2_section_oracle.py": "a6465437d7155bf0d87db646a46f6ac48572d019edd8136e86114701379764d4",
+            "tools/verify_g3_sections.py": "3998dea73b52284046a88f378651a44f4c4b53b4cd20cee1bc795f1b4e1a79ed"
+          },
+          "columns": 69,
+          "static_sections": 69,
+          "spectral_governing_corners": 69,
+          "axial_limits": 138,
+          "beams": 180,
+          "physical_beam_ends": 360,
+          "signed_beam_capacities": 720,
+          "maximum_residuals": {
+            "column_capacity_knm": 0.000283974884609961,
+            "beam_capacity_knm": 0.00029301041973894826,
+            "axial_limit_kn": 0.0
+          },
+          "capacity_tolerance_knm": 0.01,
+          "axial_limit_tolerance_kn": 1e-07,
+          "scope": "Selected independent columns and zero-axial selected beam end sections"
+        }
+      },
+      "formal_closed_gap_ids": [
+        "GAP-001",
+        "GAP-002",
+        "GAP-003",
+        "GAP-004",
+        "GAP-007",
+        "GAP-013",
+        "GAP-016"
+      ],
+      "engineering_release": "NOT_READY",
+      "formal_compliance": "NOT_PROVEN",
+      "software": {
+        "full_suite_command": "python -B tools/test_offline.py",
+        "log_sha256": "c9726a6c7327be0938c3ff7e78070c57385f942b4af71788d6561d6751826ba3",
+        "log": ".receipts/verification/g3-offline.log",
+        "python_discovered": 1807,
+        "python_seconds": 4607.617,
+        "result": "OK (skipped=1)",
+        "javascript_suites": 12,
+        "exit_code": 0
+      },
+      "independent_replays": [
+        "python -B tools/verify_g3_contract.py .receipts/RUN-9774f9667d324227b7d7392fdc5f4283",
+        "python -B tools/verify_g3_sections.py .receipts/RUN-9774f9667d324227b7d7392fdc5f4283"
+      ],
+      "live_measurement_log": ".receipts/verification/g3-live-8876.json"
     }
   ],
   "new_record_template": {
@@ -15248,7 +15888,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-26T14:43:29.061821+00:00",
+  "updated_at_utc": "2026-11-26T17:25:16.348170+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -16180,6 +16820,25 @@
       "evidence_refs": [
         "EV-MAT-RETURN-G1-CLOSURE-20261125"
       ],
+      "engineering_release": "NOT_READY"
+    },
+    {
+      "status": "G2_READY_FOR_SUPERVISOR_REVIEW_BRIDGE_HOLD",
+      "work_branch": "work/bridge-g2",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "2d45d54d96574ba7a414b97768b92ee53c9c0b32",
+      "calculation_implementation_commit": "e01063dc987c553224889282b57dfd81eafe7162",
+      "software_implementation_commit": "b220e5a9c3aa5658be47b9d24565d5f05554d021",
+      "tested_git_subtrees": {
+        "src": "6edcb6861ed389078a3f0e4518cb4c061c34336c",
+        "tests": "d223e4fe16cf47aff8a1457b7436eaf15ef912e6",
+        "tools": "fdd5906b37257128462153bd92a36c29125da40e"
+      },
+      "production_run_id": "RUN-3328af801a9e4f19a83665f9533e9dee",
+      "results_sha256": "599ddcd042bdd052bda602984e7ea886ce767db513b76715489df2cf925e5c8f",
+      "snapshot_sha256": "5108ee856e1169e20e96e3ba9db1f07f84bf32e657db1acf9a0607535d42052e",
+      "scope": "One original archive run, reproducible signed feedback examples, C29 and golden evidence, and a held synchronized bridge trial.",
+      "verification": "EV-G2-FRAME-SERIAL-BRIDGE",
       "engineering_release": "NOT_READY"
     }
   ],

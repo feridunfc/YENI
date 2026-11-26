@@ -1,6 +1,23 @@
 # Original building calculation and local handoff
 
-## Serial transfer and G2 Supervisor candidates
+## G2 approval, P2 boundary and G3 review
+
+The Supervisor accepted GAP-013 and GAP-016 for the exact G2 contract `d4b45b5d6126c733d63f5f8d068429a8a482d267078c1459ad47eb8bb45cf274` and verification `7c07d570f3c9168b38412b1bc5ebb3501dc71de16a36c985ec10b44891d1afa4` in `RUN-3328af801a9e4f19a83665f9533e9dee`. The accepted G2 contract is `b742bfb9f35c6d35da3fbc9e7fd2f36347d8394a096251ca2283ba8afe7b7cbb`. Together with G1, seven of the 18 GAPs are closed. GAP-018 remains `PARTIAL` and the original building release is `NOT_READY`. [Engineering GAP registry](ENGINEERING_GAPS.yaml)
+
+The single original-building replay `RUN-9774f9667d324227b7d7392fdc5f4283` used the sealed source from `RUN-3bb6a4d5d57c4af8af503a20c4d69bbd` at implementation `acf7fcc8057a204067f71457c8dce8dee7419924`. It records 69 conditional columns, the four C21–C24 foundation confinement failures, 14 wall-coupled holds and 180 conditional beams. The schedule contains 21 of 30 panels. [Verification ledger, EV-G2-SUPERVISOR-G3-20261126](VERIFICATION_LEDGER.json)
+
+| Physical check | Archived result |
+| --- | --- |
+| P2 end cage | 10 Ø22 per end, Ø12 closed ties, 40 mm cover and 40 bays at 128.75 mm in the basement. The largest tie-line spacing is 241.67 mm. All 30 gravity and 48 seismic sections, 24 construction joints and 24 strong-wall checks pass under the adopted project assumptions. |
+| W31, W32 and W55 | All 30, 15 and 30 PMM boxes pass respectively. The governing combined-shell utilizations are 0.5963, 0.7137 and 0.8341. W55 dedicated dowel utilization is 0.7695. |
+| W32 physical transfer | Matching opposing corner tractions by native element, elevation, combination and nodal tributary gives 0.5296 maximum serial friction utilization. The 400 mm development check gives 0.9808 across 15 combinations. |
+| W55 return and remote connections | Across both receiving arms, the best positive-face covered web and dowel paths leave 10.29 mm and 11.82 mm against 26.67 mm required at the controlling parallel bars. The opposite-face paths have admissible options. The alternative changes the registered web/vertical details at nodes 947 and 931. An eight-family placement, compatible remote transitions and W32 crossties still require verification. |
+
+GAP-010 is `PARTIAL` and ready for Supervisor review within the independent-frame scope. Integration of the original 69 selected column cages covers 69 governing static cuts, 69 governing spectral box corners and 138 axial limits. Independent equilibrium of 360 physical beam ends compares 720 signed capacities. Maximum absolute moment residuals are 0.000284 kN·m for columns and 0.000293 kN·m for beams against a 0.010 kN·m tolerance. GAP-008 is `PARTIAL` and its closure candidate remains blocked. The 221 basement panel combinations come from an input-identical private solver run. The original beam design summary lacks native element/side and step identities, and nine consumed design combinations lack matching beam force arrays. Both findings and their native censuses are archived in `g3-contract.json`. Its digest is `2727582aef200cae2b052a20a707b53b36d87e8c5c25dcc8e3e7cc9327d38d32`, and the verification digest is `0c59c8a96cbd559b8a1fd5c173cb838dec9519234fc2481d5a84c7298856c3fc`. [Independent replay commands and hashes](VERIFICATION_LEDGER.json)
+
+The full offline regression command completed in one pass with 1,806 Python passes and one Windows symlink test skipped and 12 JavaScript suites. The printable report contains 8,078,146 bytes with SHA-256 `be074352e76e4fc4ed12b5dc42f4ce99c2bc16211cd1bbd3f69bb9dbbcc53da5`. The live HTTP check records its results in `.receipts/verification/g3-live-8876.json` and identifies the served commit. [Residual and population checks](VERIFICATION_LEDGER.json)
+
+## Previous checkpoint for serial transfer and G2 Supervisor candidates
 
 The archived whole-building run `RUN-3328af801a9e4f19a83665f9533e9dee` schedules **21 of 30 wall panels**, including 12 rectangular pier panels and nine basement panels. W55, W31 and W32 are held at the shared transfer. The run records 69 conditional column designs, 14 wall-coupled holds, the four C21–C24 foundation failures (600 mm available, 800 mm required) and 180 conditional beam designs. The two calibrated C29 members reproduce the original reference. Five of 18 GAPs are closed. Overall release is `NOT_READY`. [Verification ledger, EV-G2-FRAME-SERIAL-BRIDGE](VERIFICATION_LEDGER.json)
 
