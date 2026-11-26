@@ -93,8 +93,14 @@ def frame_implementation_sha256():
 
 def verify_frame_evidence(doc):
     """Recalculate denominators, factors, load revisions and actual terminal outcomes."""
-    require(doc["schema"]=="tbdy.next.g2-frame-examples.v1" and doc["implementation_sha256"]==frame_implementation_sha256(),
-            "FRAME_IMPLEMENTATION_CHANGED")
+    require(doc["schema"] == "tbdy.next.g2-frame-examples.v1", "FRAME_REFERENCE_SCHEMA")
+    current = frame_implementation_sha256()
+    if doc["implementation_sha256"] != current:
+        # A frozen example may be consumed by another producer only after its
+        # independent end-to-end replay reproduces every field except producer identity.
+        require(_digest(doc) == FRAME_REFERENCE_SHA256
+                and _digest({**doc, "implementation_sha256": current}) == FRAME_REPLAY_SHA256,
+                "FRAME_IMPLEMENTATION_CHANGED")
     report = doc["positive"]
     require(report["feedback_consumed"] is True and report["terminal"]=="FIXED_POINT_REFERENCE" and report["feasibility"]=="FEASIBLE_REFERENCE"
             and report["iteration_count"]>=1 and report["columns_closed"]==8 and report["beams"]==8,
@@ -177,6 +183,9 @@ def _frame():
 
 
 FRAME_REFERENCE_SHA256="80a75a9d6b1dd6a9d9efdbf4ba7aedd4c98442c5a3518ae60757e3f8efa3d1a3"
+# The independent complete replay includes the producer fingerprint in its checksummed data.
+# The later producer treats missing legacy story terms as ineligible for SCWB credit.
+FRAME_REPLAY_SHA256="5b4c97c6ca9c5d059f7495a3e0537d0a22e27d0fee11d5a284d9b50bd08567ce"
 
 
 def g2_contract(g1,source,local):

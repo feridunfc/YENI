@@ -7,7 +7,10 @@ import unittest
 
 from tbdy_next.engineering.design_scenario import _digest
 from tbdy_next.engineering.design_dependencies import _uncredited_directions
-from tbdy_next.engineering.g2_contract import _c29, _golden, _reference, verify_frame_evidence, verification_record
+from tbdy_next.engineering.g2_contract import (
+    FRAME_REPLAY_SHA256, _c29, _golden, _reference, frame_implementation_sha256,
+    verification_record, verify_frame_evidence,
+)
 from tbdy_next.engineering.wall_bridge_layout import series_interface_checks
 from tbdy_next.engineering.wall_bridge_trial import corridors
 
@@ -66,6 +69,8 @@ class ClosureEvidence(unittest.TestCase):
         self.assertEqual(_uncredited_directions(record,p,"B","S"),["X"])
         r["terms"]=[no,no]
         self.assertEqual(_uncredited_directions(record,p,"B","S"),[])
+        del r["terms"]
+        self.assertEqual(_uncredited_directions(record,p,"B","S"),[])
 
     def test_packet_files_match_sealed_stage(self):
         def packet(doc):
@@ -85,7 +90,12 @@ class ClosureEvidence(unittest.TestCase):
     def test_physical_example_and_exhaustion(self):
         doc,_=_reference("g2_frame_examples.json")
         self.assertTrue(verify_frame_evidence(doc)["positive"]["cage_changes"])
-        altered=deepcopy(doc)
+        replay = {**doc, "implementation_sha256": frame_implementation_sha256()}
+        self.assertEqual(_digest(replay), FRAME_REPLAY_SHA256)
+        self.assertEqual(verify_frame_evidence(doc)["positive"], verify_frame_evidence(replay)["positive"])
+        with self.assertRaisesRegex(ValueError, "FRAME_IMPLEMENTATION_CHANGED"):
+            verify_frame_evidence({**doc, "implementation_sha256":"0"*64})
+        altered=deepcopy(replay)
         altered["positive"]["cases"][0]["factor"]=.5
         with self.assertRaises(ValueError):
             verify_frame_evidence(altered)

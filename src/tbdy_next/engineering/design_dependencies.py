@@ -420,21 +420,23 @@ def _uncredited_directions(feedback, plan, member, story):
     Credit is withheld in every assigned case. A sampled failure is not used
     as a favourable axial-force or end-capacity qualification.
     """
-    qualification=feedback.get("final_qualification") or {}
-    names=set(feedback.get("required_seismic_combinations") or ())
-    roster=set(plan["story_columns"][story])
-    directions=[]
-    for direction in ("X","Y"):
-        cases=[r for r in qualification.get("cases",()) if r["story"]==story and r["direction"]==direction]
-        if not names or len(cases)!=len(names) or {r["combination"] for r in cases}!=names:
+    qualification = feedback.get("final_qualification") or {}
+    names = set(feedback.get("required_seismic_combinations") or ())
+    roster = set((plan.get("story_columns") or {}).get(story, ()))
+    directions = []
+    for direction in ("X", "Y"):
+        cases = [row for row in qualification.get("cases", ()) if
+                 row.get("story") == story and row.get("direction") == direction]
+        if not names or not roster or len(cases) != len(names) or {row.get("combination") for row in cases} != names:
             continue
-        for r in cases:
-            terms=r["terms"]
-            selected=[t for t in terms if t["member_id"]==member]
-            if (r["status"]!="QUALIFIED_REFERENCE" or not .7<=r["alpha"]<=1
-                    or len(terms)!=len(roster) or {t["member_id"] for t in terms}!=roster
-                    or len(selected)!=1 or selected[0]["numerator_eligible"] is not False
-                    or selected[0]["amplification_eligible"] is not False):
+        for row in cases:
+            terms = row.get("terms") or ()
+            alpha = row.get("alpha")
+            selected = [term for term in terms if term.get("member_id") == member]
+            if (row.get("status") != "QUALIFIED_REFERENCE" or type(alpha) not in (int, float) or not .7 <= alpha <= 1.
+                    or len(terms) != len(roster) or {term.get("member_id") for term in terms} != roster
+                    or len(selected) != 1 or selected[0].get("numerator_eligible") is not False
+                    or selected[0].get("amplification_eligible") is not False):
                 break
         else:
             directions.append(direction)
