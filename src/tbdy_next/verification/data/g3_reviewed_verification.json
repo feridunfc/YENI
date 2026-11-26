@@ -1,0 +1,32 @@
+{
+  "schema": "tbdy.next.g3-verification.v1",
+  "files_sha256": {
+    "g1-contract.json": "bb5950a4fa25d82b2025c941a16afb4d439fba9c56934bb5715468dc4f8ea0df",
+    "g2-contract.json": "668938bfeba85c07191ad5664f84c67a937f825fdd197118893b7f2446b8f7c1",
+    "g3-contract.json": "f7e94d439d0b1518b08bc1547715714854b24baf3185628d062070a94a7fe429"
+  },
+  "input_sha256": "10b2a06edbc656bc6e8972ec542209f8dd904cc9ee088165ab3c92f87a043033",
+  "contract_sha256": "2727582aef200cae2b052a20a707b53b36d87e8c5c25dcc8e3e7cc9327d38d32",
+  "gaps": {
+    "GAP-008": {
+      "status": "PARTIAL",
+      "closure_ready": false,
+      "supervisor_approval": "PENDING",
+      "unresolved": [
+        "BASEMENT_SHELL_VECTORS_FROM_SEPARATE_CONTROLLED_SOLVE",
+        "NATIVE_BEAM_DESIGN_SUMMARY_LACKS_MATCHING_CUT_STEP_FORCE_VECTORS"
+      ]
+    },
+    "GAP-010": {
+      "status": "PARTIAL",
+      "closure_ready": true,
+      "supervisor_approval": "PENDING",
+      "unresolved": []
+    }
+  },
+  "evidence_sha256": {
+    "generation": "9955a02c2a5ebc32dc58cdfc378ce9fd25868774ac3b5e46e6b6e459178a1bff",
+    "sections": "1d803add53b1edf7c65e988482c05439564ec112b10b14bf97a25bebe0e0f190"
+  },
+  "verification_sha256": "0c59c8a96cbd559b8a1fd5c173cb838dec9519234fc2481d5a84c7298856c3fc"
+}

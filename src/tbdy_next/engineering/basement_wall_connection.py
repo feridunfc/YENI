@@ -195,7 +195,7 @@ def _forward_length(leg, direction):
     return leg["span_mm"], [leg["member"]]
 
 
-def wall_return_anchor(profile, panel, side, diameter, offset, cover, clear_spacing, mat, aggregate, *, tail_track=None, face_lanes=None):
+def wall_return_anchor(profile, panel, side, diameter, offset, cover, clear_spacing, mat, aggregate, *, tail_track=None, face_lanes=None, continuous_leg=False, bend_factor=3.5, selected_face=None):
     """Dimension a continuous bar. Its full straight development starts after the bend."""
     from .wall_bar_paths import bent_path, straight_path
     bond = tension_development(diameter, mat.fyd, mat.fck, mat.fcd, cover, clear_spacing)
@@ -206,14 +206,16 @@ def wall_return_anchor(profile, panel, side, diameter, offset, cover, clear_spac
     sense = 1 if side=="J" else -1
     t = (sense*dx,sense*dy)
     n = (-dy,dx)
-    radius = 3.5*diameter
+    required(isfinite(bend_factor) and bend_factor>=3.5 and selected_face in (None,-1,1), "RETURN_MANDREL_OR_FACE_INVALID")
+    radius = bend_factor*diameter
+    faces = (-1,1) if selected_face is None else (selected_face,)
     limit = clear_limit(aggregate,diameter)
     legs = profile["incident_walls"]
     across = [r for r in legs if r["across"]]
     full = profile.get("full_corner_square") or len({tuple(l["direction"]) for l in across})==2
     tracks = [depth/2+max((leg["thickness_mm"]/2 for leg in across if full or
              face*sum(a*b for a,b in zip(n,leg["direction"]))>1-1e-8),default=0.)-cover for face in (-1,1)]
-    own = 500*panel["clear_length_m"]
+    own = (1000 if continuous_leg else 500)*panel["clear_length_m"]
     shape, paths, members = None, [], []
     straight = [(l,*_forward_length(l,t)) for l in legs if not l["across"] and
                 offset+diameter/2+cover <= l["thickness_mm"]/2+1e-6]
@@ -239,7 +241,7 @@ def wall_return_anchor(profile, panel, side, diameter, offset, cover, clear_spac
             if offset<=0 or (face_lanes is None and (2*track-diameter<limit or track+diameter/2+cover>width/2)):
                 continue
             trial = []
-            for face in (-1,1):
+            for face in faces:
                 u = face*offset*sum(a*b for a,b in zip(n,r))
                 dest = face_lanes[face] if face_lanes is not None else (-track if u>0 else track)
                 if abs(dest)+diameter/2+cover>width/2:
@@ -252,7 +254,7 @@ def wall_return_anchor(profile, panel, side, diameter, offset, cover, clear_spac
                     break
                 start = [-depth/2*t[i]+face*offset*n[i] for i in (0,1)]
                 trial.append(bent_path(face,start,t,r,run,radius,tail))
-            if len(trial)==2:
+            if len(trial)==len(faces):
                 paths, members = trial, route
                 shape = "CONTINUOUS_90_FULL_DEVELOPMENT_IN_RETURN"
                 projection = depth/2+(max(face_lanes.values()) if face_lanes is not None else track)+diameter/2

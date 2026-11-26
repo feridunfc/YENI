@@ -8,7 +8,34 @@ from .g3_capacity import compare_reference, section_inputs
 from .g3_demands import demand_census
 
 
-def g3_contract(source, stages, building):
+ACCEPTED_RUN = "RUN-9774f9667d324227b7d7392fdc5f4283"
+ACCEPTED_G3 = "2727582aef200cae2b052a20a707b53b36d87e8c5c25dcc8e3e7cc9327d38d32"
+ACCEPTED_VERIFICATION = "0c59c8a96cbd559b8a1fd5c173cb838dec9519234fc2481d5a84c7298856c3fc"
+
+
+def supervisor_decision(packet):
+    """Apply the approval for the independent sections in the reviewed two-gap packet."""
+    if packet["contract_sha256"] != ACCEPTED_G3:
+        return packet
+    verification, _ = _reference("g3_reviewed_verification.json")
+    require(_digest({k:v for k,v in packet.items() if k!="contract_sha256"}) == ACCEPTED_G3
+            and _digest({k:v for k,v in verification.items() if k!="verification_sha256"})
+                == verification["verification_sha256"] == ACCEPTED_VERIFICATION
+            and verification["contract_sha256"] == ACCEPTED_G3 and verification["input_sha256"] == packet["input_sha256"]
+            and verification["gaps"] == packet["gaps"] and packet["gaps"]["GAP-010"]["closure_ready"] is True
+            and verification["evidence_sha256"] == {k:_digest(v) for k,v in packet["evidence"].items()},
+            "G3_REVIEWED_SECTION_VERIFICATION_MISMATCH")
+    decision = {"reviewed_run":ACCEPTED_RUN,"reviewed_contract_sha256":ACCEPTED_G3,
+                "reviewed_verification_sha256":ACCEPTED_VERIFICATION,"accepted_gaps":["GAP-010"],
+                "scope":"69 independent conditional column cages and 180 selected zero-axial beam sections",
+                "separate_gaps":["GAP-006","GAP-009","GAP-012","GAP-018"],"original_project_approval":"NOT_GRANTED"}
+    result = {k:v for k,v in packet.items() if k!="contract_sha256"}
+    result.update(decision="SUPERVISOR_ACCEPTED_SCOPED",supervisor_acceptance=decision,
+                  gaps={**packet["gaps"],"GAP-010":{**packet["gaps"]["GAP-010"],"status":"CLOSED","supervisor_approval":"ACCEPTED"}})
+    return {**result,"contract_sha256":_digest(result)}
+
+
+def g3_contract(source, stages, building, *, apply_review=True):
     g1, g2 = (building[k+"_contract"] for k in ("g1","g2"))
     base = {"schema":"tbdy.next.g3-contract.v1","input_sha256":g1.get("input_sha256"),
             "g1_contract_sha256":g1["contract_sha256"],"g2_contract_sha256":g2["contract_sha256"],
@@ -39,7 +66,8 @@ def g3_contract(source, stages, building):
         except (KeyError,IndexError,ValueError,TypeError,ArithmeticError,OSError) as exc:
             issues.append(str(exc))
         base["gaps"][gap] = {"status":"PARTIAL","closure_ready":not issues,"supervisor_approval":"PENDING","unresolved":issues}
-    return {**base,"contract_sha256":_digest(base)}
+    candidate = {**base,"contract_sha256":_digest(base)}
+    return supervisor_decision(candidate) if apply_review else candidate
 
 
 def g3_verification(directory, building, input_sha):

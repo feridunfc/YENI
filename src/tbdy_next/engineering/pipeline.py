@@ -604,6 +604,11 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
     profile_lineage = scenario
     if scenario and not any(payload.get(key) is not None for key in POLICIES):
         scenario = None
+    from .g4_population import freeze_population
+    frozen_population = None
+    if payload.get("building_design") is not None:
+        frozen_population = freeze_population(payload, input_sha)
+        (run.root/"g4-expected.json").write_text(json.dumps(frozen_population,ensure_ascii=False),encoding="utf-8")
     out: dict[str, Any] = {
         "result": calculate_modal(payload, case=case, run=run, input_sha=input_sha, receipt_schema=SCHEMA),
     }
@@ -842,19 +847,23 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
         result["g2_contract"] = g2_contract(result["g1_contract"],payload,out["r08_local_slenderness"])
         from .g3_contract import g3_contract, g3_verification
         result["g3_contract"] = g3_contract(payload, out, result)
+        from .g4_contract import g4_contract, g4_verification
+        result["g4_contract"] = g4_contract(payload, out, result, frozen_population)
         if not all(contract.accepts(result) for contract in stage.produces):
             raise ValueError("INVALID_STAGE_OUTPUT:building-design")
         out["building_design"] = result
         run.record(stage.key, {"schema": result["schema"], "results_sha256": _digest(result),
                                "column_count": result["column_count"], "beam_count": result["beam_count"]},
                    input_sha256=input_sha)
-        for group in ("g1","g2","g3"):
+        for group in ("g1","g2","g3","g4"):
             (run.root / (group+"-contract.json")).write_text(json.dumps(result[group+"_contract"], ensure_ascii=False, indent=2),
                                                              encoding="utf-8")
         verification=verification_record(run.root,result,input_sha)
         (run.root / "g2-verification.json").write_text(json.dumps(verification,ensure_ascii=False,indent=2),encoding="utf-8")
         g3_record = g3_verification(run.root, result, input_sha)
         (run.root / "g3-verification.json").write_text(json.dumps(g3_record, ensure_ascii=False, indent=2), encoding="utf-8")
+        g4_record = g4_verification(run.root, result, input_sha)
+        (run.root/"g4-verification.json").write_text(json.dumps(g4_record,ensure_ascii=False,indent=2),encoding="utf-8")
     out["report_evidence"]["seismic_project_profile"] = project_profile
     if profile_lineage is not None and scenario is None:
         out["report_evidence"]["design_scenario"] = profile_lineage

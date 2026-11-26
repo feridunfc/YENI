@@ -17,7 +17,7 @@ def verify(directory):
     digest = sha256(raw).hexdigest()
     stages = read_snapshot(directory,input_sha=digest)["results"]
     building = stages["building_design"]
-    require(g3_contract(json.loads(raw),stages,building) == building["g3_contract"],"G3_REPLAY_MISMATCH")
+    require(g3_contract(json.loads(raw),stages,building,apply_review="supervisor_acceptance" in building["g3_contract"]) == building["g3_contract"],"G3_REPLAY_MISMATCH")
     result = g3_verification(directory,building,digest)
     require(result == json.loads((directory/"g3-verification.json").read_bytes()),"G3_VERIFICATION_MISMATCH")
     return result

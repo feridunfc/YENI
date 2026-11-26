@@ -27,7 +27,8 @@ def hoop_plan_gap(points, errors, direction, end_width, wall_width, cover):
 
 
 def route_search(panel,side,straight_families,xyz,layout,material,cover,aggregate,height,pitch,tie,verticals,
-                 direction_pier, end_width):
+                 direction_pier, end_width, *, fixed_web_census=False):
+    from .basement_joint_layout import _closest_levels
     from .wall_bridge_coordinated import _receiving_clearance, window_grid
     from .basement_wall_connection import tension_development
     support = panel["support_sections"][side]
@@ -53,9 +54,10 @@ def route_search(panel,side,straight_families,xyz,layout,material,cover,aggregat
                 if min(segment_distance(a,b,corner,q) for q in rays)<radius+error-1.e-8:
                     return False
         return True
+    hoop_levels=[(k+.5)*pitch for k in range(ceil(height/pitch-1.e-9))]
     options={}
     census={}
-    for role,face in product(("web","dowel"),(-1,1)):
+    for role,face in product(("web",) if fixed_web_census else ("web","dowel"),(-1,1)):
         grid=layout[role]
         dia=grid["diameter_mm"]
         band=pitch/2-clear_limit(aggregate,dia,tie)-(dia+tie)/2
@@ -105,11 +107,14 @@ def route_search(panel,side,straight_families,xyz,layout,material,cover,aggregat
                     continue
                 limits["link_vertical_clear"]+=1
                 plan_gap = hoop_plan_gap(pts,err,direction_pier,end_width,width,cover)
-                for phase in (-pitch/2,-pitch/3,-band+.1,-band/2,0.,band/2,band-.1,pitch/3,pitch/2):
-                    hoop_clear = hypot(plan_gap,pitch/2-abs(phase))-(dia+tie)/2
+                fixed=grid.get("fixed_levels_by_face",{}).get(face)
+                phases=(None,) if fixed else (-pitch/2,-pitch/3,-band+.1,-band/2,0.,band/2,band-.1,pitch/3,pitch/2)
+                for phase in phases:
+                    dz=_closest_levels(fixed,hoop_levels)[0] if fixed else pitch/2-abs(phase)
+                    hoop_clear = hypot(plan_gap,dz)-(dia+tie)/2
                     if hoop_clear < clear_limit(aggregate,dia,tie):
                         continue
-                    alt=window_grid(height,pitch,[phase],dia,cover,aggregate)
+                    alt={**grid,"levels_mm":fixed} if fixed else window_grid(height,pitch,[phase],dia,cover,aggregate)
                     if alt["guaranteed_bars_per_m"]<grid["guaranteed_bars_per_m"]:
                         continue
                     current={**fam,"heights":alt["levels_mm"]}
@@ -128,6 +133,8 @@ def route_search(panel,side,straight_families,xyz,layout,material,cover,aggregat
         key=role+("_minus" if face<0 else "_plus")
         census[key]={**limits,"best":best}
         options[key]=survivors
+    if fixed_web_census:
+        return census
     def match(keys,chosen):
         if not keys:
             return chosen

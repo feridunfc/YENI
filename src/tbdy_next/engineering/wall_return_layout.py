@@ -10,12 +10,13 @@ from .wall_bar_paths import point_distance, segment_distance
 
 def vertical_margin(bar,panel,side,end,aggregate):
     """Shortest distance to an actual receiving vertical bar anywhere along the return."""
-    if bar["member"]==panel["member"] and bar["role"]=="web":
+    if bar["member"]==panel["member"] and (bar["role"]=="web" or panel.get("shared_web_tracks")):
         return float("inf")
     h,v = panel["horizontal"],panel["vertical"]
     dx,dy = panel["width_direction"]
     step = 1 if side=="I" else -1
     track = panel["thickness_m"]*500-h["cover_mm"]-h["curtain_inset_mm"]-2*h["diameter_mm"]-v["diameter_mm"]/2
+    track = v.get("track_mm",track)
     minimum = clear_limit(aggregate,v["diameter_mm"],bar["diameter"])
     radius = (bar["diameter"]+v["diameter_mm"])/2
     bounds=bar["bounds"]
@@ -26,7 +27,7 @@ def vertical_margin(bar,panel,side,end,aggregate):
     tie_radii=(bar["diameter"]+tie_dia)/2
     for i in range(v["stations_per_face"]):
         along=step*(end["column_depth_mm"]/2+(i+.5)*v["pitch_mm"])
-        if dz<=tie_radii:
+        if dz<=tie_radii and not panel.get("dimensioned_corner_crossties"):
             # Reserve the whole plan envelope of both 135-degree hooks at this level.
             # Their inward tails and mandrels fit inside this rectangle.
             reach=3.5*tie_dia+max(10*tie_dia,80.)
@@ -106,7 +107,7 @@ def coordinate_return_tracks(geometry,designs,mat,aggregate):
                 end["transfer"]=bars
 
 
-def _coordinate_corner(incident,mat,aggregate):
+def _coordinate_corner(incident,mat,aggregate, *, census=None, bend_factors=(3.5,)):
     options={}
     for index,(p,side,end) in enumerate(incident):
         for role in ("web","dowel"):
@@ -125,18 +126,23 @@ def _coordinate_corner(incident,mat,aggregate):
                 options[key]=[]
                 minimum=(clear_limit(aggregate,d["diameter_mm"])+d["diameter_mm"])/2
                 entries=[offset]
-                if role=="dowel":
+                if role=="dowel" and not p.get("shared_web_tracks"):
                     entries.extend(v for v in (60.,minimum+1.) if minimum<=v<offset-1e-6)
                 for entry in entries:
-                    for lane in sorted(range(-145,146,5),key=lambda t:abs(t-(60 if face>0 else -60))):
+                    lanes=sorted(range(-145,146,5),key=lambda t:abs(t-(60 if face>0 else -60)))
+                    for factor,lane in product(bend_factors,lanes):
                         updated=wall_return_anchor(profile,p,side,d["diameter_mm"],entry,h["cover_mm"],
-                                 d["pitch_mm"]-d["diameter_mm"],mat,aggregate,face_lanes={face:lane,-face:-lane})
+                                 d.get("neighbour_clear_mm",d["pitch_mm"]-d["diameter_mm"]),mat,aggregate,
+                                 face_lanes={face:lane,-face:-lane},continuous_leg=bool(p.get("shared_web_tracks")),
+                                 bend_factor=factor,selected_face=face if census is not None else None)
                         if not updated["fits_column"]:
                             continue
                         trial={**end,**updated} if role=="web" else {**end,"transfer":{**dowel,"offset_each_side_mm":entry,"anchor":updated}}
                         bar=next(f for f in _families(p,side,trial) if f["role"]==role and f["face"]==face)
                         if all(vertical_margin(bar,other,s,e,aggregate)>=-1e-8 for other,s,e in incident):
-                            options[key].append(((entry,lane),bar,next(row for row in updated["bar_paths"] if row["face"]==face)))
+                            options[key].append(((entry,lane,factor),bar,next(row for row in updated["bar_paths"] if row["face"]==face)))
+                if census is not None:
+                    census[f"{p['member']}:{role}:{face}"] = len(options[key])
                 if not options[key]:
                     return
     # Forward checking rejects an offset as soon as a remaining bar has no feasible route.
@@ -165,6 +171,8 @@ def _coordinate_corner(incident,mat,aggregate):
             for role,anchor in (("web",end),("dowel",end["transfer"]["anchor"])):
                 chosen=[solution[i,role,f] for f in (-1,1)]
                 anchor["bar_paths"]=[row[2] for row in chosen]
+                if census is not None:
+                    anchor["inside_diameters_by_face_mm"]=[(2*row[0][2]-1)*row[1]["diameter"] for row in chosen]
                 anchor["receiving_track_coordinates_mm"]=[row[0][1] for row in chosen]
                 diameter=chosen[0][1]["diameter"]
                 projection=anchor["column_depth_mm"]/2+max(row[0][1] for row in chosen)+diameter/2

@@ -382,7 +382,7 @@ def _design(result, source, stages, bound, scope, *, boundaries=None):
             capacity = capacities[0 if check["action"] == "Bending" else 1]
             check.update(proposed_resistance=capacity, proposed_ratio=check["demand"]/capacity)
     from .wall_bridge_layout import bridge_checks
-    bridge=bridge_checks(geom,designs,boundaries,source,mat,aggregate,{**corner_fields,**link_states},result["cuts"]) if combined else {}
+    bridge=bridge_checks(geom,designs,boundaries,source,mat,aggregate,{**corner_fields,**link_states},result["cuts"],stages=stages) if combined else {}
     result["two_way_support_layouts"] = check_joint_layout({"panels":shell_panels,"bridge_checks":bridge},aggregate,through)
     result["pressure_joint_layouts"] = [] if combined else check_joint_layout(geom,aggregate)
     if combined:

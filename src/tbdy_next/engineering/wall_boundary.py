@@ -171,8 +171,9 @@ def _bridge_interface(ids, rows, verified, coords):
 
 def coordinated_boundary(section, material, fck, height, aggregate):
     from .basement_wall_pressure import clear_limit
-    # Two uninterrupted 14 mm bars per face can traverse one receiving hoop bay.
-    bar = 14
+    # Reserve one central passage between the two outer rows for the adjoining return.
+    pair = (16, 18)
+    tie = 14
     for diameter in (20,22):
         minima = _section_minima(section["length_mm"],section["thickness_mm"],diameter)
         proposed = {**section,"section_minima":minima,"adopted_constant_detail":minima["critical"]}
@@ -180,12 +181,12 @@ def coordinated_boundary(section, material, fck, height, aggregate):
         if end["provided_as_per_end_mm2"] > end["maximum_unspliced_as_per_end_mm2"]:
             continue
         try:
-            cage = _boundary_cage(proposed,fck,material,tie=12)
+            cage = _boundary_cage(proposed,fck,material,tie=tie)
         except ValueError:
             continue
         pitch = height/ceil(height/cage["spacing_mm"])
-        room = pitch-cage["tie_diameter_mm"]-2*bar-2*clear_limit(aggregate,bar,12)
-        if room >= clear_limit(aggregate,bar):
+        room = pitch-tie-sum(pair)-sum(clear_limit(aggregate,d,tie) for d in pair)
+        if cage["longitudinal_grid_u_v"][1] == 2 and room >= clear_limit(aggregate,*pair):
             return proposed,cage
     raise ValueError("COORDINATED_BOUNDARY_HOOP_WINDOW_INFEASIBLE")
 

@@ -113,7 +113,7 @@ def _translated(family,x,y):
     return {**family,"segments":segments,"bounds":(u+x,v+x,w+y,z+y)}
 
 
-def bridge_checks(geometry,designs,boundaries,source,material,aggregate,states,cuts=()):
+def bridge_checks(geometry,designs,boundaries,source,material,aggregate,states,cuts=(),*,stages=None):
     """Keep any unbound joint out of the schedule, even if the short shell balances."""
     panels={p["member"]:p for p in geometry["panels"]}
     result={}
@@ -153,8 +153,17 @@ def bridge_checks(geometry,designs,boundaries,source,material,aggregate,states,c
                 raise ValueError("BRIDGE_RECEIVING_SECTION_IDENTITY_REQUIRED")
             if pier["transverse_cage"].get("coordinated_interface"):
                 from .wall_bridge_coordinated import coordinated_trial
+                options = {}
+                if pier["transverse_cage"]["longitudinal_grid_u_v"][1] == 2:
+                    from .wall_bridge_channel import channel_trial
+                    coordinated_trial = channel_trial
+                    options = {"neighbours":panels,"designs":designs}
+                    if stages:
+                        from .basement_wall_connection import support_profiles
+                        options["remote_profile"]=support_profiles(source,stages,turn)["J" if fs=="I" else "I"]
                 receipt["coordinated_trial"] = coordinated_trial(straight,turn,link,ns,fs,section,pier,states,
-                    material,aggregate,sd["horizontal"]["cover_mm"],(geometry["top_m"]-geometry["bottom_m"])*1000,cuts)
+                    material,aggregate,sd["horizontal"]["cover_mm"],(geometry["top_m"]-geometry["bottom_m"])*1000,cuts,
+                    **options)
             from .wall_bridge_trial import synchronous_trial
             try:
                 receipt["synchronized_trial"] = synchronous_trial(straight,turn,link,ns,fs,section,pier,states,

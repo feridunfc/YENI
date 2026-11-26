@@ -133,3 +133,53 @@ def demand_census(source, stages, building):
         "design_summary_has_native_element_side_and_step": {"Elm","ElmSta","StepType","StepNum"} <= fields,
         "native_pier_control_components":gen["pier_controls"]["components"],
         "original_generation_independently_verified":gen["analysis_generation_independently_verified"]}
+
+def consumed_force_audit(source, stages, building):
+    """G4 accepts an input-identical, control-matched shell solve for this scope."""
+    from math import isclose
+    from .beam_r10_live import AREA_FIELDS, _beam_design_rows_by_member
+    from .g1_contract import ACCEPTED_CONTRACT
+
+    g1 = building["g1_contract"]
+    require(g1["supervisor_acceptance"]["reviewed_contract_sha256"]==ACCEPTED_CONTRACT,"G4_REVIEWED_GENERATION_REQUIRED")
+    audit=demand_census(source,stages,building)
+    gen=g1["generation"]
+    controls=gen["pier_controls"]
+    shell=source["pier_section_forces"]["read"]["pressure_shells"]
+    require(shell["model_sha256"]==gen["original_edb_sha256"]==source["analysis_archive"]["observed_edb_sha256"]
+            and shell["solved_sha256"]==gen["solved_copy_sha256"] and shell["selection_restored"] is True
+            and shell["units"]==6 and shell["components"]==["F11","F22","F12","M11","M22","M12","V13","V23"]
+            and shell["solution_role"]=="INPUT_IDENTICAL_PRIVATE_REANALYSIS"
+            and shell["payload_sha256"]==gen["pressure_capture_sha256"] and gen["frame_control_matched"] is True
+            and controls["outside_tolerance"]==0 and controls["components"]==11700,"G4_SHELL_CONTROL_CHAIN")
+    raw=source["column_axial"]["r10_source"]
+    seeds,error=_beam_design_rows_by_member(raw)
+    native=raw["beam_force_source"]["rowsets"]
+    gravity=set(g1["load_book"]["calculation_roles"]["gravity"])
+    comparisons=[]
+    require(not error and set(seeds)==set(native),"G4_BEAM_SELECTION_SEEDS")
+    for beam in sorted(stages["beam_r10"]["beams"],key=lambda b:b["member_id"]):
+        uid=beam["member_id"]
+        vectors=[r for r in native_frame_force_rows(native[uid],uid) if r[4] in gravity]
+        require({r[4] for r in vectors}==gravity,"G4_MISSING_NATIVE_GRAVITY_CASE")
+        governing=max(vectors,key=lambda r:abs(r[8]))
+        for field in ("shear_ve","engineer_shear_ve"):
+            reported=beam[field]["gravity_shear_vdy_kn"]
+            require(isclose(reported,abs(governing[8]),rel_tol=1.e-12,abs_tol=1.e-9),"G4_NATIVE_VDY_CONSUMER_MISMATCH")
+        comparisons.append([uid,list(governing[:7]),governing[8],len(seeds[uid])])
+    require(len(comparisons)==len(native)==180 and sum(row[-1] for row in comparisons)==audit["beam_design_rows"]
+            and [audit["frame_force_sources"][key]["native_vectors"] for key in ("columns","beams")]==[7638,93841],
+            "G4_CONSUMED_VECTOR_DENOMINATORS")
+    return {"generation_scope":"ORIGINAL_NATIVE_FRAME_AND_PIER_FORCES_WITH_CONTROL_MATCHED_SHELL_COPY",
+            "original_edb_sha256":gen["original_edb_sha256"],"solver_log_sha256":gen["solver_log_sha256"],
+            "case_guids":audit["native_case_guids"],"recipe_manifest_sha256":audit["recipe_manifest_sha256"],
+            "frames":audit["frame_force_sources"],"pier_faces":audit["assigned_pier_faces"],
+            "pier_sha256":audit["face_manifest_sha256"],"shell_pairs":audit["basement_panel_pairs"],
+            "shell_manifest_sha256":audit["shell_manifest_sha256"],"shell_solved_sha256":shell["solved_sha256"],
+            "shell_capture_sha256":shell["payload_sha256"],"shell_solver_invocation":"SEPARATE_INPUT_IDENTICAL",
+            "pier_control_components":controls["components"],"pier_controls_outside_tolerance":controls["outside_tolerance"],
+            "beam_force_reader":"Results.FrameForce","beam_consumer_check":"gravity V2 to both R10 Ve calculations",
+            "consumer_rows_sha256":_digest(comparisons),"beam_selection_seed_table":{"record_count":audit["beam_design_rows"],
+                "role":"REINFORCEMENT_SELECTION_INPUT","longitudinal_fields":sorted(AREA_FIELDS),
+                "sha256":audit["beam_design_manifest_sha256"],"reviewed_under":["GAP-011","GAP-012"]},
+            "excluded":["GAP-015","GAP-018","IDENTICAL_SOLVER_INVOCATION_FOR_SHELLS"]}

@@ -714,10 +714,10 @@
     {
       "id": "GAP-010",
       "title": "Independent PMM capacity acceptance",
-      "status": "PARTIAL",
+      "status": "CLOSED",
       "priority": "P0",
       "achieved_scope": "PMM solver and required-cut checks remain active; latest plain replay evaluates 1206 signed-static station rows with zero observed exceedances. The selected-cage run returns a verified governing static station for 87/87 members, with fixed-N radial capacity and signed reserve at each of 1,206 cuts. An independent fixed-N section integration checks the original governing C29 Grav_Ult selected-cage face of column 142. It gives 1450.877041 kN m radial capacity and utilization 0.176473078. The fixed-N independent check covers all 24 selected-C29 gravity faces on 18 physical case-cuts with a maximum capacity difference of 0.000471272 kN·m. The new cohort governing signed face C23/136 was integrated independently at its local compression and actual cage. Radial resistance agrees within 0.000233 kN·m. The independent fixed-axial section integration verifies 69 governing static cuts, 69 spectral envelope corners, 138 axial limits and 720 signed zero-axial section capacities on 360 beam ends.",
-      "blocker": "Supervisor review of the independent selected-section comparison is pending for the stated frame scope.",
+      "blocker": null,
       "closure_criteria": "Use independent capacity solutions and normative prerequisite evidence with explicit source identities and tolerances.",
       "owner_paths": [
         "src/tbdy_next/column_engine/section_capacity.py",
@@ -733,9 +733,12 @@
         "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122",
         "EV-FRAME-STORY-PLUS450-R14-20261122",
         "EV-ORIGINAL-FRAME-STORY-26-R14-20261122",
-        "EV-G2-SUPERVISOR-G3-20261126"
+        "EV-G2-SUPERVISOR-G3-20261126",
+        "EV-G3-ACCEPTANCE-CENTRAL-CHANNEL-G4"
       ],
-      "closure_evidence_refs": [],
+      "closure_evidence_refs": [
+        "EV-G3-ACCEPTANCE-CENTRAL-CHANNEL-G4"
+      ],
       "local_update_needed": false,
       "supervisor_exit_recipe_20261121": {
         "evidence_ref": "EV-SUPERVISOR-SYSTEM-AUDIT-20261121",
@@ -761,16 +764,32 @@
         "status_changed": false
       },
       "closure_ready": true,
-      "supervisor_decision": "PENDING",
+      "supervisor_decision": "ACCEPTED",
       "closure_candidate": {
         "run_id": "RUN-9774f9667d324227b7d7392fdc5f4283",
         "contract": "g3-contract.json",
         "verification": "g3-verification.json",
         "contract_sha256": "2727582aef200cae2b052a20a707b53b36d87e8c5c25dcc8e3e7cc9327d38d32",
         "verification_sha256": "0c59c8a96cbd559b8a1fd5c173cb838dec9519234fc2481d5a84c7298856c3fc",
-        "supervisor_approval": "PENDING",
+        "supervisor_approval": "ACCEPTED",
         "evidence_ref": "EV-G2-SUPERVISOR-G3-20261126",
         "unresolved": []
+      },
+      "supervisor_acceptance": {
+        "reviewed_run": "RUN-9774f9667d324227b7d7392fdc5f4283",
+        "reviewed_contract_sha256": "2727582aef200cae2b052a20a707b53b36d87e8c5c25dcc8e3e7cc9327d38d32",
+        "reviewed_verification_sha256": "0c59c8a96cbd559b8a1fd5c173cb838dec9519234fc2481d5a84c7298856c3fc",
+        "accepted_gaps": [
+          "GAP-010"
+        ],
+        "scope": "69 independent conditional column cages and 180 selected zero-axial beam sections",
+        "separate_gaps": [
+          "GAP-006",
+          "GAP-009",
+          "GAP-012",
+          "GAP-018"
+        ],
+        "original_project_approval": "NOT_GRANTED"
       }
     },
     {
@@ -2080,5 +2099,23 @@
       "GAP-013",
       "GAP-016"
     ]
+  },
+  "g3_section_supervisor_acceptance": {
+    "reviewed_run": "RUN-9774f9667d324227b7d7392fdc5f4283",
+    "reviewed_contract_sha256": "2727582aef200cae2b052a20a707b53b36d87e8c5c25dcc8e3e7cc9327d38d32",
+    "reviewed_verification_sha256": "0c59c8a96cbd559b8a1fd5c173cb838dec9519234fc2481d5a84c7298856c3fc",
+    "accepted_gaps": [
+      "GAP-010"
+    ],
+    "scope": "69 independent conditional column cages and 180 selected zero-axial beam sections",
+    "separate_gaps": [
+      "GAP-006",
+      "GAP-009",
+      "GAP-012",
+      "GAP-018"
+    ],
+    "original_project_approval": "NOT_GRANTED",
+    "accepted_contract_sha256": "f5353e755cd327262e227063c257f1f31d61d3fa9c38564d54c67af51558fc91",
+    "evidence_ref": "EV-G3-ACCEPTANCE-CENTRAL-CHANNEL-G4"
   }
 }
