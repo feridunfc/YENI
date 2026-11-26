@@ -1187,7 +1187,7 @@ def _basement_pier_tables(piers):
         return ""
     inventory, cuts, layouts, pressure, ends, shells, alternatives = [], [], [], [], [], [], []
     membrane, edge_rows, through_bars = [], [], []
-    returns, bridge_rows, starters = [], [], []
+    returns, bridge_rows, bridge_series, bridge_phases, starters = [], [], [], [], []
     for pier in groups:
         name = pier["pier"]
         geom = pier.get("geometry", {})
@@ -1195,6 +1195,19 @@ def _basement_pier_tables(piers):
         for layout in pier.get("two_way_support_layouts", []):
             transfer = layout.get("transfer_connection") or {}
             if transfer and layout["column"] == "joint " + transfer["shared_joints"][0]:
+                trial = transfer.get("synchronized_trial", {})
+                for case in trial.get("series_interface_checks", {}).get("combinations", []):
+                    bridge_series.append({**case,"link":transfer["link"]})
+                for phase in trial.get("phase_trials", []):
+                    hoop = phase.get("boundary_hoop_checks") or []
+                    bridge_phases.append({"link":transfer["link"],"pitch":trial["hoop_pitch_mm"],
+                        "straight":"all" if phase["straight_phase"] is None else phase["straight_phase"],
+                        "turn":"all" if phase["turn_phase"] is None else phase["turn_phase"],
+                        "paths":phase["checked_bar_paths"],"clear":min((r["clear_lower_mm"] for r in hoop),default=None),
+                        "dowel":phase["W55_dowel_ratio"],"limit":trial["selection_limit"],
+                        "mutual":(phase.get("mutual_governing") or {}).get("margin_mm"),
+                        "vertical":(phase.get("link_vertical_governing") or {}).get("margin_mm"),
+                        "ties":(phase.get("link_crosstie_governing") or {}).get("surface_separation_mm")})
                 for member, clearance in transfer.get("receiving_clearance_by_member", {}).items():
                     bridge_rows.append({**clearance, "member": member, "link": transfer["link"],
                                         "receiving": transfer["receiving_panel"], "status": transfer["status"]})
@@ -1308,6 +1321,18 @@ def _basement_pier_tables(piers):
          _table((("wall","Wall"),("joint","Joint"),("shape","Bar shape"),("receivers","Receiving shell IDs"),
                  ("cover","Cover (mm)"),("required","Full bond length (mm)"),("tail","Straight length provided (mm)"),
                  ("status","End result")), returns) + "</details>" if returns else ""),
+        ("<details><summary>Serial interface friction and differential bond by combination</summary>" +
+         _table((("link","Link"),("combination","Combination"),("i_kn_m","I (kN/m)"),("j_kn_m","J (kN/m)"),
+                 ("series_demand_kn_m","Serial demand (kN/m)"),("friction_ratio","Friction ratio"),
+                 ("face_envelope_difference_kn_m","Difference of face peaks (kN/m)"),
+                 ("tension_difference_upper_equivalent_kn_m","Same-height difference bound (kN/m)"),
+                 ("bond_required_mm","Required bond (mm)"),("bond_ratio","Bond ratio")), bridge_series)
+         + "</details>" if bridge_series else ""),
+        ("<details><summary>Hoop-synchronized transfer reinforcement trials</summary>" +
+         _table((("link","Link"),("pitch","Hoop pitch (mm)"),("straight","W31 phase"),("turn","W55 phase"),
+                 ("paths","Bar paths"),("clear","Hoop clearance (mm)"),("dowel","W55 dowel ratio"),
+                 ("limit","Selection limit"),("mutual","Mutual margin (mm)"),("vertical","Link vertical margin (mm)"),
+                 ("ties","Crosstie separation (mm)")), bridge_phases) + "</details>" if bridge_phases else ""),
         ("<details><summary>Transfer panel and receiving boundary cage</summary>" +
          _table((("member","Incident shell"),("link","Transfer shell"),("receiving","Receiving shell"),
                  ("role","Bar"),("clear_mm","Clearance (mm)"),("required_mm","Required (mm)"),
@@ -1595,6 +1620,9 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
                 ("supervisor_approval","Supervisor decision")), review_rows)) if packet.get("supervisor_acceptance")
                else ("<h3>G1 Supervisor closure candidates</h3>" + _table((("gap","GAP"),("closure_ready","Ready for review"),
                 ("supervisor_approval","Supervisor decision")), review_rows) if review_rows else ""))
+            + (("<h3>G2 Supervisor review</h3>" + _table((("gap","GAP"),("status","Project status"),
+                 ("closure_ready","Ready for review")), [{"gap":k,**v} for k,v in building["g2_contract"]["gaps"].items()]))
+               if building.get("g2_contract") else "")
             + '<h3>Governing selected beam</h3>'
             + _table((("story", "Storey"), ("label", "Beam"), ("check", "Check"), ("full_ve_kn", "Ve (kN)"),
                       ("resistance_kn", "Resistance (kN)"), ("utilization", "Utilization")),

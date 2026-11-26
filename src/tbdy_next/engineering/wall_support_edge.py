@@ -33,6 +33,10 @@ def _node_incidence(edge, selected, combinations):
     return terms
 
 
+def _absolute_lower(interval):
+    return max(0., interval[0], -interval[1])
+
+
 def _nodal_tractions(raw, uid, nodes, coords, direction, combinations):
     """Independent per-metre bound at interior nodes from wall-side native nodal actions."""
     item = raw["areas"][uid]
@@ -65,6 +69,9 @@ def _nodal_tractions(raw, uid, nodes, coords, direction, combinations):
             ranges[name].append({"point":p,"element":" + ".join(e for _,e in index[p]),
                 "normal_tension_kn_m":n,"native_shear_kn_m":shear,"equivalent_friction_demand_kn_m":shear+.6*n,
                 "traction_source":"WALL_SIDE_NODAL_TRIBUTARY_ABSOLUTE_NORMAL","tributary_height_m":length,
+                # The nodal normal has no oriented tensile sign. It increases the upper
+                # bound but supplies no guaranteed positive tension for a bond difference.
+                "equivalent_friction_lower_kn_m":hypot(*map(_absolute_lower,components[1:])),
                 "normal_vertical_transverse_kn_m":components})
     return ranges
 
@@ -101,7 +108,7 @@ def edge_bar_forces(states, nodes, arm_mm):
     return forces
 
 
-def support_edge_actions(panel, geometry, raw, states, combinations):
+def support_edge_actions(panel, geometry, raw, states, combinations, *, record_transfer_intervals=False):
     """Use line tractions for design. Endpoint nodal forces also contain floor or mat actions."""
     uid = panel["member"]
     edges = raw["boundaries"][uid]
@@ -156,7 +163,8 @@ def support_edge_actions(panel, geometry, raw, states, combinations):
                 shear=hypot(max(map(abs,membrane[2])),max(map(abs,plate[3])))
                 candidates.append({"element":elm,"point":pt,"normal_tension_kn_m":normal,
                     "native_shear_kn_m":shear,"equivalent_friction_demand_kn_m":shear+.6*normal,
-                    "traction_source":"UNAVERAGED_EDGE_CORNER_FIELD"})
+                    "traction_source":"UNAVERAGED_EDGE_CORNER_FIELD",
+                    "equivalent_friction_lower_kn_m":hypot(_absolute_lower(membrane[2]),_absolute_lower(plate[3])) + .6*max(0.,membrane[0][0])})
             required(candidates and {r["point"] for r in candidates}==nodeset,"ALL_EDGE_FIELD_CORNERS_REQUIRED")
             field_governing=max(candidates,key=lambda r:r["equivalent_friction_demand_kn_m"])
             candidates.extend(nodal[name])
@@ -165,6 +173,14 @@ def support_edge_actions(panel, geometry, raw, states, combinations):
                          "nodal_bound_kn_m":max((v["equivalent_friction_demand_kn_m"] for v in nodal[name]),default=None),
                          "max_native_shear_kn_m":max(r["native_shear_kn_m"] for r in candidates),
                          "basis":"NATIVE_COMPONENT_INTERVAL_BOUND" if combinations[name]["spectral"] else "SIGNED_STATIC"})
+            if record_transfer_intervals:
+                vertical = []
+                for node in nodes:
+                    sample = [c for c in candidates if c["point"] == node]
+                    vertical.append({"z_m":coords[node][2], "node":node,
+                        "lower_kn_m":min(c["equivalent_friction_lower_kn_m"] for c in sample),
+                        "upper_kn_m":max(c["equivalent_friction_demand_kn_m"] for c in sample)})
+                cuts[-1]["tension_intervals"] = vertical
         middle=[r for r in controls if r["interior"]]
         results[side]={"column":column,"counterparts":counterparts,"nodes":nodes,"checked_static_interior":len(middle),
                        "balanced_static_interior":sum(r["balanced"] for r in middle),

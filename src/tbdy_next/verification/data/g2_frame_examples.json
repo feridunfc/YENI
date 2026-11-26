@@ -1,0 +1,854 @@
+{
+  "implementation_sha256": "f9c12562344226284375ce524a42e05dee6382d29b42619f5499d4f5c1fdc545",
+  "independent_methods_sha256": {
+    "tests/g2_frame_fixture.py": "f38ac8ba53f2fad25b21585fcb8edc7552295bf004057db1c8d01c1cc088ad08",
+    "tests/g2_section_oracle.py": "a6465437d7155bf0d87db646a46f6ac48572d019edd8136e86114701379764d4",
+    "tests/vertical_slice_fixture.py": "7c79af05371c8c0e1599e79736ae6dea88fb834628457921127ff77e85a96e71",
+    "tools/verify_g2_frame.py": "f4b2bfae84e0a490bbeb6f692f3a6e4656dc814282755ec8725a217067ae1c35"
+  },
+  "negative": {
+    "failures": {
+      "failure_codes": [
+        "C10:NO_FEASIBLE_CANDIDATE"
+      ],
+      "member_id": "C10",
+      "no_feasible_candidate_member_ids": [
+        "C10"
+      ],
+      "reason_codes": [
+        "C20:I:JOINT_PHYSICAL_SCOPE_UNRESOLVED",
+        "C20:SELECTED_CAPACITY_SHEAR_UNRESOLVED"
+      ],
+      "reselect_member_ids": [],
+      "scope": "SUPPORTED_CANDIDATE_FAMILY_AND_CURRENT_DEMAND_CONSTRAINTS",
+      "status": "NO_FEASIBLE_CANDIDATE"
+    },
+    "feasibility": "NO_FEASIBLE_CANDIDATE",
+    "feedback_consumed": false,
+    "iteration_count": 1,
+    "maximum_factor_applied": 1.1881864730308984,
+    "policy_sha256": "86c62d7e9aedd00ad5c4f660f40793fd2356280916392732b988413787688a0b",
+    "source_sha256": "cf740c25d0786ae9afc1f0e3cbfa62f5a922840baa8e01cbebe483e0355b4805",
+    "terminal": "NO_FEASIBLE_CANDIDATE",
+    "unresolved_count": 8
+  },
+  "positive": {
+    "beams": 8,
+    "cage_changes": [
+      {
+        "axis": "M3",
+        "combination": "G-EX",
+        "factor": 1.1150020030758658,
+        "id": "C10",
+        "joint_ties_satisfied": true,
+        "maximum_joint_ratio": 0.4608725560815419,
+        "maximum_pmm_ratio": 0.9945526536687763,
+        "maximum_ve_ratio": 0.8552141150678092,
+        "original_cage": [
+          9,
+          9,
+          16
+        ],
+        "original_moment_knm": 1286.4832053519617,
+        "r14": "R14_NUMERICALLY_CLOSED_WITH_OPEN_SOURCE_GATES",
+        "revised_cage": [
+          11,
+          11,
+          16
+        ],
+        "revised_moment_knm": 1434.4313508908976,
+        "station_m": 0.0
+      },
+      {
+        "axis": "M3",
+        "combination": "G-EX",
+        "factor": 1.1150020030758658,
+        "id": "C11",
+        "joint_ties_satisfied": true,
+        "maximum_joint_ratio": 0.4608725560815419,
+        "maximum_pmm_ratio": 0.9916584348801637,
+        "maximum_ve_ratio": 0.817480739327005,
+        "original_cage": [
+          9,
+          9,
+          16
+        ],
+        "original_moment_knm": 1286.4832053519617,
+        "r14": "R14_NUMERICALLY_CLOSED_WITH_OPEN_SOURCE_GATES",
+        "revised_cage": [
+          7,
+          12,
+          16
+        ],
+        "revised_moment_knm": 1434.4313508908976,
+        "station_m": 0.0
+      },
+      {
+        "axis": "M2",
+        "combination": "G-EY",
+        "factor": 1.115002003075866,
+        "id": "C12",
+        "joint_ties_satisfied": true,
+        "maximum_joint_ratio": 0.4608725560815419,
+        "maximum_pmm_ratio": 0.9916584348801633,
+        "maximum_ve_ratio": 0.8174807393270049,
+        "original_cage": [
+          9,
+          9,
+          16
+        ],
+        "original_moment_knm": -1286.4832053519608,
+        "r14": "R14_NUMERICALLY_CLOSED_WITH_OPEN_SOURCE_GATES",
+        "revised_cage": [
+          12,
+          7,
+          16
+        ],
+        "revised_moment_knm": -1434.431350890897,
+        "station_m": 0.0
+      }
+    ],
+    "cases": [
+      {
+        "alpha": 0.8968593753566191,
+        "combination": "G+EX",
+        "direction": "X",
+        "factor": 1.1150020030758658,
+        "members": [
+          {
+            "credited": true,
+            "id": "C10",
+            "minimum_joint_ratio": 1.660094618879703,
+            "native_earthquake_shear_kn": 475.88937025255603,
+            "reference_earthquake_shear_kn": 475.88937025255603
+          },
+          {
+            "credited": true,
+            "id": "C11",
+            "minimum_joint_ratio": 1.8800153533265114,
+            "native_earthquake_shear_kn": 475.889370252556,
+            "reference_earthquake_shear_kn": 475.889370252556
+          },
+          {
+            "credited": true,
+            "id": "C12",
+            "minimum_joint_ratio": 1.949563614135945,
+            "native_earthquake_shear_kn": 438.35329129764784,
+            "reference_earthquake_shear_kn": 438.35329129764784
+          },
+          {
+            "credited": false,
+            "id": "C13",
+            "minimum_joint_ratio": 0.7376200246060116,
+            "native_earthquake_shear_kn": 159.8679681972407,
+            "reference_earthquake_shear_kn": 159.8679681972407
+          }
+        ],
+        "story": "S1"
+      },
+      {
+        "alpha": 0.8968593753566189,
+        "combination": "G+EX",
+        "direction": "Y",
+        "factor": 1.115002003075866,
+        "members": [
+          {
+            "credited": true,
+            "id": "C10",
+            "minimum_joint_ratio": 1.660094618879702,
+            "native_earthquake_shear_kn": 142.76681107576673,
+            "reference_earthquake_shear_kn": 142.76681107576673
+          },
+          {
+            "credited": true,
+            "id": "C11",
+            "minimum_joint_ratio": 2.0871389589767397,
+            "native_earthquake_shear_kn": 131.50598738929426,
+            "reference_earthquake_shear_kn": 131.50598738929426
+          },
+          {
+            "credited": true,
+            "id": "C12",
+            "minimum_joint_ratio": 1.7493600059195709,
+            "native_earthquake_shear_kn": 142.7668110757667,
+            "reference_earthquake_shear_kn": 142.7668110757667
+          },
+          {
+            "credited": false,
+            "id": "C13",
+            "minimum_joint_ratio": 0.7376200246060116,
+            "native_earthquake_shear_kn": 47.960390459172196,
+            "reference_earthquake_shear_kn": 47.960390459172196
+          }
+        ],
+        "story": "S1"
+      },
+      {
+        "alpha": 0.8968593753566189,
+        "combination": "G+EY",
+        "direction": "X",
+        "factor": 1.115002003075866,
+        "members": [
+          {
+            "credited": true,
+            "id": "C10",
+            "minimum_joint_ratio": 1.6600946188797032,
+            "native_earthquake_shear_kn": 142.7668110757668,
+            "reference_earthquake_shear_kn": 142.7668110757668
+          },
+          {
+            "credited": true,
+            "id": "C11",
+            "minimum_joint_ratio": 1.7493600059195709,
+            "native_earthquake_shear_kn": 142.76681107576678,
+            "reference_earthquake_shear_kn": 142.76681107576678
+          },
+          {
+            "credited": true,
+            "id": "C12",
+            "minimum_joint_ratio": 2.0871389589767406,
+            "native_earthquake_shear_kn": 131.50598738929435,
+            "reference_earthquake_shear_kn": 131.50598738929435
+          },
+          {
+            "credited": false,
+            "id": "C13",
+            "minimum_joint_ratio": 0.7376200246060116,
+            "native_earthquake_shear_kn": 47.96039045917221,
+            "reference_earthquake_shear_kn": 47.96039045917221
+          }
+        ],
+        "story": "S1"
+      },
+      {
+        "alpha": 0.8968593753566189,
+        "combination": "G+EY",
+        "direction": "Y",
+        "factor": 1.115002003075866,
+        "members": [
+          {
+            "credited": true,
+            "id": "C10",
+            "minimum_joint_ratio": 1.660094618879702,
+            "native_earthquake_shear_kn": 475.8893702525558,
+            "reference_earthquake_shear_kn": 475.8893702525558
+          },
+          {
+            "credited": true,
+            "id": "C11",
+            "minimum_joint_ratio": 1.9495636141359451,
+            "native_earthquake_shear_kn": 438.35329129764756,
+            "reference_earthquake_shear_kn": 438.35329129764756
+          },
+          {
+            "credited": true,
+            "id": "C12",
+            "minimum_joint_ratio": 1.8800153533265114,
+            "native_earthquake_shear_kn": 475.8893702525557,
+            "reference_earthquake_shear_kn": 475.8893702525557
+          },
+          {
+            "credited": false,
+            "id": "C13",
+            "minimum_joint_ratio": 0.7376200246060116,
+            "native_earthquake_shear_kn": 159.86796819724066,
+            "reference_earthquake_shear_kn": 159.86796819724066
+          }
+        ],
+        "story": "S1"
+      },
+      {
+        "alpha": 0.8968593753566191,
+        "combination": "G-EX",
+        "direction": "X",
+        "factor": 1.1150020030758658,
+        "members": [
+          {
+            "credited": true,
+            "id": "C10",
+            "minimum_joint_ratio": 1.9481612217776976,
+            "native_earthquake_shear_kn": -475.88937025255603,
+            "reference_earthquake_shear_kn": -475.88937025255603
+          },
+          {
+            "credited": true,
+            "id": "C11",
+            "minimum_joint_ratio": 1.6871961813540906,
+            "native_earthquake_shear_kn": -475.889370252556,
+            "reference_earthquake_shear_kn": -475.889370252556
+          },
+          {
+            "credited": true,
+            "id": "C12",
+            "minimum_joint_ratio": 2.036203736791321,
+            "native_earthquake_shear_kn": -438.35329129764784,
+            "reference_earthquake_shear_kn": -438.35329129764784
+          },
+          {
+            "credited": false,
+            "id": "C13",
+            "minimum_joint_ratio": 0.6663960988410607,
+            "native_earthquake_shear_kn": -159.8679681972407,
+            "reference_earthquake_shear_kn": -159.8679681972407
+          }
+        ],
+        "story": "S1"
+      },
+      {
+        "alpha": 0.8968593753566189,
+        "combination": "G-EX",
+        "direction": "Y",
+        "factor": 1.115002003075866,
+        "members": [
+          {
+            "credited": true,
+            "id": "C10",
+            "minimum_joint_ratio": 1.9481612217776971,
+            "native_earthquake_shear_kn": -142.76681107576673,
+            "reference_earthquake_shear_kn": -142.76681107576673
+          },
+          {
+            "credited": true,
+            "id": "C11",
+            "minimum_joint_ratio": 1.8830051504778105,
+            "native_earthquake_shear_kn": -131.50598738929426,
+            "reference_earthquake_shear_kn": -131.50598738929426
+          },
+          {
+            "credited": true,
+            "id": "C12",
+            "minimum_joint_ratio": 1.83246529309759,
+            "native_earthquake_shear_kn": -142.7668110757667,
+            "reference_earthquake_shear_kn": -142.7668110757667
+          },
+          {
+            "credited": false,
+            "id": "C13",
+            "minimum_joint_ratio": 0.6663960988410607,
+            "native_earthquake_shear_kn": -47.960390459172196,
+            "reference_earthquake_shear_kn": -47.960390459172196
+          }
+        ],
+        "story": "S1"
+      },
+      {
+        "alpha": 0.8968593753566189,
+        "combination": "G-EY",
+        "direction": "X",
+        "factor": 1.115002003075866,
+        "members": [
+          {
+            "credited": true,
+            "id": "C10",
+            "minimum_joint_ratio": 1.9481612217776976,
+            "native_earthquake_shear_kn": -142.7668110757668,
+            "reference_earthquake_shear_kn": -142.7668110757668
+          },
+          {
+            "credited": true,
+            "id": "C11",
+            "minimum_joint_ratio": 1.83246529309759,
+            "native_earthquake_shear_kn": -142.76681107576678,
+            "reference_earthquake_shear_kn": -142.76681107576678
+          },
+          {
+            "credited": true,
+            "id": "C12",
+            "minimum_joint_ratio": 1.8830051504778103,
+            "native_earthquake_shear_kn": -131.50598738929435,
+            "reference_earthquake_shear_kn": -131.50598738929435
+          },
+          {
+            "credited": false,
+            "id": "C13",
+            "minimum_joint_ratio": 0.6663960988410607,
+            "native_earthquake_shear_kn": -47.96039045917221,
+            "reference_earthquake_shear_kn": -47.96039045917221
+          }
+        ],
+        "story": "S1"
+      },
+      {
+        "alpha": 0.8968593753566189,
+        "combination": "G-EY",
+        "direction": "Y",
+        "factor": 1.115002003075866,
+        "members": [
+          {
+            "credited": true,
+            "id": "C10",
+            "minimum_joint_ratio": 1.9481612217776971,
+            "native_earthquake_shear_kn": -475.8893702525558,
+            "reference_earthquake_shear_kn": -475.8893702525558
+          },
+          {
+            "credited": true,
+            "id": "C11",
+            "minimum_joint_ratio": 2.036203736791321,
+            "native_earthquake_shear_kn": -438.35329129764756,
+            "reference_earthquake_shear_kn": -438.35329129764756
+          },
+          {
+            "credited": true,
+            "id": "C12",
+            "minimum_joint_ratio": 1.6871961813540906,
+            "native_earthquake_shear_kn": -475.8893702525557,
+            "reference_earthquake_shear_kn": -475.8893702525557
+          },
+          {
+            "credited": false,
+            "id": "C13",
+            "minimum_joint_ratio": 0.6663960988410607,
+            "native_earthquake_shear_kn": -159.86796819724066,
+            "reference_earthquake_shear_kn": -159.86796819724066
+          }
+        ],
+        "story": "S1"
+      },
+      {
+        "alpha": 0.8416187380497095,
+        "combination": "G+EX",
+        "direction": "X",
+        "factor": 1.1881864730308984,
+        "members": [
+          {
+            "credited": true,
+            "id": "C20",
+            "minimum_joint_ratio": 1.2398463012959906,
+            "native_earthquake_shear_kn": 282.2452203782387,
+            "reference_earthquake_shear_kn": 282.2452203782387
+          },
+          {
+            "credited": true,
+            "id": "C21",
+            "minimum_joint_ratio": 1.3935507217295378,
+            "native_earthquake_shear_kn": 282.2452203782386,
+            "reference_earthquake_shear_kn": 282.2452203782386
+          },
+          {
+            "credited": true,
+            "id": "C22",
+            "minimum_joint_ratio": 1.3134788166362585,
+            "native_earthquake_shear_kn": 218.21498562975296,
+            "reference_earthquake_shear_kn": 218.21498562975296
+          },
+          {
+            "credited": false,
+            "id": "C23",
+            "minimum_joint_ratio": 0.5198402306376492,
+            "native_earthquake_shear_kn": 147.29457361377024,
+            "reference_earthquake_shear_kn": 147.29457361377024
+          }
+        ],
+        "story": "S2"
+      },
+      {
+        "alpha": 0.8416187380497095,
+        "combination": "G+EX",
+        "direction": "Y",
+        "factor": 1.1881864730308984,
+        "members": [
+          {
+            "credited": true,
+            "id": "C20",
+            "minimum_joint_ratio": 1.2398463012959897,
+            "native_earthquake_shear_kn": 84.67356611347158,
+            "reference_earthquake_shear_kn": 84.67356611347158
+          },
+          {
+            "credited": true,
+            "id": "C21",
+            "minimum_joint_ratio": 1.393550721729538,
+            "native_earthquake_shear_kn": 65.46449568892585,
+            "reference_earthquake_shear_kn": 65.46449568892585
+          },
+          {
+            "credited": true,
+            "id": "C22",
+            "minimum_joint_ratio": 1.3134788166362588,
+            "native_earthquake_shear_kn": 84.67356611347157,
+            "reference_earthquake_shear_kn": 84.67356611347157
+          },
+          {
+            "credited": false,
+            "id": "C23",
+            "minimum_joint_ratio": 0.5198402306376492,
+            "native_earthquake_shear_kn": 44.18837208413106,
+            "reference_earthquake_shear_kn": 44.18837208413106
+          }
+        ],
+        "story": "S2"
+      },
+      {
+        "alpha": 0.8416187380497095,
+        "combination": "G+EY",
+        "direction": "X",
+        "factor": 1.1881864730308984,
+        "members": [
+          {
+            "credited": true,
+            "id": "C20",
+            "minimum_joint_ratio": 1.2398463012959906,
+            "native_earthquake_shear_kn": 84.67356611347161,
+            "reference_earthquake_shear_kn": 84.67356611347161
+          },
+          {
+            "credited": true,
+            "id": "C21",
+            "minimum_joint_ratio": 1.3134788166362585,
+            "native_earthquake_shear_kn": 84.67356611347158,
+            "reference_earthquake_shear_kn": 84.67356611347158
+          },
+          {
+            "credited": true,
+            "id": "C22",
+            "minimum_joint_ratio": 1.3935507217295378,
+            "native_earthquake_shear_kn": 65.46449568892588,
+            "reference_earthquake_shear_kn": 65.46449568892588
+          },
+          {
+            "credited": false,
+            "id": "C23",
+            "minimum_joint_ratio": 0.5198402306376492,
+            "native_earthquake_shear_kn": 44.18837208413107,
+            "reference_earthquake_shear_kn": 44.18837208413107
+          }
+        ],
+        "story": "S2"
+      },
+      {
+        "alpha": 0.8416187380497097,
+        "combination": "G+EY",
+        "direction": "Y",
+        "factor": 1.1881864730308984,
+        "members": [
+          {
+            "credited": true,
+            "id": "C20",
+            "minimum_joint_ratio": 1.2398463012959897,
+            "native_earthquake_shear_kn": 282.2452203782386,
+            "reference_earthquake_shear_kn": 282.2452203782386
+          },
+          {
+            "credited": true,
+            "id": "C21",
+            "minimum_joint_ratio": 1.3134788166362588,
+            "native_earthquake_shear_kn": 218.21498562975285,
+            "reference_earthquake_shear_kn": 218.21498562975285
+          },
+          {
+            "credited": true,
+            "id": "C22",
+            "minimum_joint_ratio": 1.393550721729538,
+            "native_earthquake_shear_kn": 282.24522037823857,
+            "reference_earthquake_shear_kn": 282.24522037823857
+          },
+          {
+            "credited": false,
+            "id": "C23",
+            "minimum_joint_ratio": 0.5198402306376492,
+            "native_earthquake_shear_kn": 147.2945736137702,
+            "reference_earthquake_shear_kn": 147.2945736137702
+          }
+        ],
+        "story": "S2"
+      },
+      {
+        "alpha": 0.8416187380497095,
+        "combination": "G-EX",
+        "direction": "X",
+        "factor": 1.1881864730308984,
+        "members": [
+          {
+            "credited": true,
+            "id": "C20",
+            "minimum_joint_ratio": 1.4256697909067866,
+            "native_earthquake_shear_kn": -282.2452203782387,
+            "reference_earthquake_shear_kn": -282.2452203782387
+          },
+          {
+            "credited": true,
+            "id": "C21",
+            "minimum_joint_ratio": 1.2777609945039312,
+            "native_earthquake_shear_kn": -282.2452203782386,
+            "reference_earthquake_shear_kn": -282.2452203782386
+          },
+          {
+            "credited": true,
+            "id": "C22",
+            "minimum_joint_ratio": 1.36207525036669,
+            "native_earthquake_shear_kn": -218.21498562975296,
+            "reference_earthquake_shear_kn": -218.21498562975296
+          },
+          {
+            "credited": false,
+            "id": "C23",
+            "minimum_joint_ratio": 0.45708008911083986,
+            "native_earthquake_shear_kn": -147.29457361377024,
+            "reference_earthquake_shear_kn": -147.29457361377024
+          }
+        ],
+        "story": "S2"
+      },
+      {
+        "alpha": 0.8416187380497095,
+        "combination": "G-EX",
+        "direction": "Y",
+        "factor": 1.1881864730308984,
+        "members": [
+          {
+            "credited": true,
+            "id": "C20",
+            "minimum_joint_ratio": 1.4256697909067861,
+            "native_earthquake_shear_kn": -84.67356611347158,
+            "reference_earthquake_shear_kn": -84.67356611347158
+          },
+          {
+            "credited": true,
+            "id": "C21",
+            "minimum_joint_ratio": 1.277760994503931,
+            "native_earthquake_shear_kn": -65.46449568892585,
+            "reference_earthquake_shear_kn": -65.46449568892585
+          },
+          {
+            "credited": true,
+            "id": "C22",
+            "minimum_joint_ratio": 1.3620752503666897,
+            "native_earthquake_shear_kn": -84.67356611347157,
+            "reference_earthquake_shear_kn": -84.67356611347157
+          },
+          {
+            "credited": false,
+            "id": "C23",
+            "minimum_joint_ratio": 0.45708008911083986,
+            "native_earthquake_shear_kn": -44.18837208413106,
+            "reference_earthquake_shear_kn": -44.18837208413106
+          }
+        ],
+        "story": "S2"
+      },
+      {
+        "alpha": 0.8416187380497095,
+        "combination": "G-EY",
+        "direction": "X",
+        "factor": 1.1881864730308984,
+        "members": [
+          {
+            "credited": true,
+            "id": "C20",
+            "minimum_joint_ratio": 1.4256697909067866,
+            "native_earthquake_shear_kn": -84.67356611347161,
+            "reference_earthquake_shear_kn": -84.67356611347161
+          },
+          {
+            "credited": true,
+            "id": "C21",
+            "minimum_joint_ratio": 1.36207525036669,
+            "native_earthquake_shear_kn": -84.67356611347158,
+            "reference_earthquake_shear_kn": -84.67356611347158
+          },
+          {
+            "credited": true,
+            "id": "C22",
+            "minimum_joint_ratio": 1.2777609945039308,
+            "native_earthquake_shear_kn": -65.46449568892588,
+            "reference_earthquake_shear_kn": -65.46449568892588
+          },
+          {
+            "credited": false,
+            "id": "C23",
+            "minimum_joint_ratio": 0.45708008911083986,
+            "native_earthquake_shear_kn": -44.18837208413107,
+            "reference_earthquake_shear_kn": -44.18837208413107
+          }
+        ],
+        "story": "S2"
+      },
+      {
+        "alpha": 0.8416187380497097,
+        "combination": "G-EY",
+        "direction": "Y",
+        "factor": 1.1881864730308984,
+        "members": [
+          {
+            "credited": true,
+            "id": "C20",
+            "minimum_joint_ratio": 1.4256697909067861,
+            "native_earthquake_shear_kn": -282.2452203782386,
+            "reference_earthquake_shear_kn": -282.2452203782386
+          },
+          {
+            "credited": true,
+            "id": "C21",
+            "minimum_joint_ratio": 1.3620752503666897,
+            "native_earthquake_shear_kn": -218.21498562975285,
+            "reference_earthquake_shear_kn": -218.21498562975285
+          },
+          {
+            "credited": true,
+            "id": "C22",
+            "minimum_joint_ratio": 1.277760994503931,
+            "native_earthquake_shear_kn": -282.24522037823857,
+            "reference_earthquake_shear_kn": -282.24522037823857
+          },
+          {
+            "credited": false,
+            "id": "C23",
+            "minimum_joint_ratio": 0.4570800891108397,
+            "native_earthquake_shear_kn": -147.2945736137702,
+            "reference_earthquake_shear_kn": -147.2945736137702
+          }
+        ],
+        "story": "S2"
+      }
+    ],
+    "checked_beam_faces": 16,
+    "columns_closed": 8,
+    "equilibrium": [
+      {
+        "axis": "X",
+        "condensation_displacement_error_m": 5.204170427930421e-18,
+        "floor_displacements_m": [
+          0.007353480929735585,
+          0.014310953843893406
+        ],
+        "floor_loads_kn": [
+          620.0,
+          930.0
+        ],
+        "gross_floor_displacements_m": [
+          0.0043329693618377385,
+          0.007876783040280786
+        ],
+        "maximum_floor_balance_residual_kn": 1.3642420526593924e-12,
+        "maximum_rotation_equilibrium_residual_knm": 5.684341886080801e-13,
+        "non_sway_indices": {
+          "S1": 0.011414811759680066,
+          "S2": 0.007779877699090919
+        },
+        "storey_shear_residuals_kn": [
+          4.547473508864641e-13,
+          4.547473508864641e-13
+        ]
+      },
+      {
+        "axis": "Y",
+        "condensation_displacement_error_m": 2.6020852139652106e-18,
+        "floor_displacements_m": [
+          0.007353480929735582,
+          0.0143109538438934
+        ],
+        "floor_loads_kn": [
+          620.0,
+          930.0
+        ],
+        "gross_floor_displacements_m": [
+          0.004332969361837738,
+          0.007876783040280784
+        ],
+        "maximum_floor_balance_residual_kn": 3.410605131648481e-13,
+        "maximum_rotation_equilibrium_residual_knm": 7.389644451905042e-13,
+        "non_sway_indices": {
+          "S1": 0.011414811759680064,
+          "S2": 0.007779877699090917
+        },
+        "storey_shear_residuals_kn": [
+          2.2737367544323206e-13,
+          2.2737367544323206e-13
+        ]
+      }
+    ],
+    "expected_cuts": 120,
+    "feasibility": "FEASIBLE_REFERENCE",
+    "feedback_consumed": true,
+    "independent_sections": {
+      "C10": {
+        "axial_residual_n": 9.313225746154785e-09,
+        "capacity_knm": 1518.9928030842564,
+        "combination": "G+EX",
+        "difference_knm": 3.158914660161827e-05,
+        "perpendicular_residual_nmm": 2.9206275939941406e-06,
+        "production_knm": 1518.9927714951098,
+        "station_m": 0.0,
+        "utilization": 0.9945526329859464
+      },
+      "C11": {
+        "axial_residual_n": 7.916241884231567e-09,
+        "capacity_knm": 1520.8219172887107,
+        "combination": "G-EX",
+        "difference_knm": 1.6657327250868548e-07,
+        "perpendicular_residual_nmm": 2.7418136596679688e-06,
+        "production_knm": 1520.821917455284,
+        "station_m": 0.0,
+        "utilization": 0.9916584349887785
+      },
+      "C12": {
+        "axial_residual_n": 3.259629011154175e-09,
+        "capacity_knm": 1520.821917288711,
+        "combination": "G-EY",
+        "difference_knm": 1.6657304513501003e-07,
+        "perpendicular_residual_nmm": 1.2516975402832031e-06,
+        "production_knm": 1520.821917455284,
+        "station_m": 0.0,
+        "utilization": 0.991658434988778
+      },
+      "C13": {
+        "axial_residual_n": 2.3283064365386963e-09,
+        "capacity_knm": 495.53732544423013,
+        "combination": "G-EX",
+        "difference_knm": 0.00010997835499892972,
+        "perpendicular_residual_nmm": 4.76837158203125e-07,
+        "production_knm": 495.53721546587514,
+        "station_m": 0.0,
+        "utilization": 0.8003910338224155
+      },
+      "C20": {
+        "axial_residual_n": 1.862645149230957e-09,
+        "capacity_knm": 1173.3579142591777,
+        "combination": "G+EX",
+        "difference_knm": 5.599490032182075e-05,
+        "perpendicular_residual_nmm": 5.543231964111328e-06,
+        "production_knm": 1173.3578582642774,
+        "station_m": 0.0,
+        "utilization": 0.5673159299475307
+      },
+      "C21": {
+        "axial_residual_n": 2.561137080192566e-09,
+        "capacity_knm": 1211.192826507047,
+        "combination": "G-EX",
+        "difference_knm": 8.352319014193199e-05,
+        "perpendicular_residual_nmm": 2.5033950805664062e-06,
+        "production_knm": 1211.192910030237,
+        "station_m": 0.0,
+        "utilization": 0.538708452256639
+      },
+      "C22": {
+        "axial_residual_n": 3.725290298461914e-09,
+        "capacity_knm": 1211.1928265070462,
+        "combination": "G-EY",
+        "difference_knm": 8.352319105142669e-05,
+        "perpendicular_residual_nmm": 5.960464477539063e-08,
+        "production_knm": 1211.1929100302373,
+        "station_m": 0.0,
+        "utilization": 0.5387084522566392
+      },
+      "C23": {
+        "axial_residual_n": 2.6775524020195007e-09,
+        "capacity_knm": 423.99099778218596,
+        "combination": "G-EX",
+        "difference_knm": 4.453944563920231e-05,
+        "perpendicular_residual_nmm": 8.940696716308594e-08,
+        "production_knm": 423.9909532427403,
+        "station_m": 0.0,
+        "utilization": 0.8174266005142715
+      }
+    },
+    "iteration_count": 2,
+    "maximum_signed_beam_ratio": 0.8616424238244795,
+    "observed_cuts": 120,
+    "policy_sha256": "4fd303266e62f246dbec63289d261fca99ec1a77a9767cd353f43b6796b90e10",
+    "source_sha256": "cf740c25d0786ae9afc1f0e3cbfa62f5a922840baa8e01cbebe483e0355b4805",
+    "terminal": "FIXED_POINT_REFERENCE"
+  },
+  "schema": "tbdy.next.g2-frame-examples.v1"
+}

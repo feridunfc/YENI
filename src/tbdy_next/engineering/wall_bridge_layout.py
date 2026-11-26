@@ -1,6 +1,6 @@
 """Check the short native transfer panel and its neighbour's selected boundary cage."""
 from itertools import combinations
-from math import ceil, hypot
+from math import ceil, hypot, isfinite
 
 
 def best_hoop_phase_gap(heights, spacing, height):
@@ -18,13 +18,73 @@ from .wall_bar_paths import point_distance
 from .wall_membrane_design import check_curtains
 
 
+def series_interface_checks(edges, resistance, development, length, selection_limit):
+    """One unspliced dowel field crosses two serial planes. Units are kN/m and mm.
+
+    The recorded face actions are upper envelopes. Their difference is useful for
+    detailing, but it need not bound the tension jump at one height or spectral step.
+    Without a paired lower bound the two nonnegative tensions range from zero
+    to the corresponding face demand. The friction coefficient is already present
+    in both the equivalent demand and resistance and cancels in the stress ratio.
+    """
+    if not all(isfinite(v) and v > 0 for v in (resistance, development, length, selection_limit)):
+        raise ValueError("BRIDGE_POSITIVE_STEEL_AND_BOND_REQUIRED")
+    native = [{row["combination"]: row
+               for row in edges[side]["cuts"]} for side in ("I", "J")]
+    if (not native[0] or native[0].keys() != native[1].keys()
+            or any(len(by_case) != len(edges[side]["cuts"])
+                   for side, by_case in zip(("I", "J"), native))):
+        raise ValueError("BRIDGE_CUT_POPULATION_MISMATCH")
+    bond_capacity = resistance * min(1., length / development)
+    rows = []
+    for name in sorted(native[0]):
+        left_row, right_row = (side[name] for side in native)
+        left, right = (row["equivalent_friction_demand_kn_m"] for row in (left_row, right_row))
+        if not all(isfinite(v) and v >= 0 for v in (left, right)):
+            raise ValueError("BRIDGE_FORCE_ENVELOPE_INVALID")
+        peak = max(left, right)
+        jump = peak
+        controlling = None
+        intervals = [row.get("tension_intervals") for row in (left_row,right_row)]
+        if any(grid is not None for grid in intervals):
+            if not all(isinstance(grid,list) and len(grid)>=2 for grid in intervals):
+                raise ValueError("BRIDGE_EDGE_HEIGHT_INTERVALS_INCOMPLETE")
+            z = [[point["z_m"] for point in grid] for grid in intervals]
+            if (any(not isfinite(v) for grid in z for v in grid)
+                    or any(sorted(set(grid)) != grid for grid in z)
+                    or len(z[0]) != len(z[1]) or any(abs(a-b)>1e-8 for a,b in zip(*z))):
+                raise ValueError("BRIDGE_EDGES_REQUIRE_COMMON_PHYSICAL_HEIGHTS")
+            for grid, face_peak in zip(intervals,(left,right)):
+                if (any(not (isfinite(p["lower_kn_m"]) and isfinite(p["upper_kn_m"])
+                             and 0 <= p["lower_kn_m"] <= p["upper_kn_m"]+1e-9) for p in grid)
+                        or abs(max(p["upper_kn_m"] for p in grid)-face_peak)>1e-8):
+                    raise ValueError("BRIDGE_EDGE_HEIGHT_FORCE_INVALID")
+            differences = [(max(b["upper_kn_m"]-a["lower_kn_m"], a["upper_kn_m"]-b["lower_kn_m"]),
+                            a["z_m"],a["node"],b["node"]) for a,b in zip(*intervals)]
+            jump, elevation, node_i, node_j = max(differences)
+            controlling = {"elevation_m":elevation,"node_i":node_i,"node_j":node_j}
+        rows.append({"combination": name, "i_kn_m": left, "j_kn_m": right,
+                     "series_demand_kn_m": peak, "friction_ratio": peak / resistance,
+                     "face_envelope_difference_kn_m": abs(right - left),
+                     "tension_difference_upper_equivalent_kn_m": jump, "governing_height":controlling,
+                     "bond_required_mm": development * jump / resistance,
+                     "bond_ratio": jump / bond_capacity})
+    return {"basis": "SAME_COMBINATION_SERIAL_CUTS_NONNEGATIVE_TENSION_INTERVAL",
+            "available_bond_mm": length, "yield_development_mm": development,
+            "equivalent_bond_resistance_kn_m": bond_capacity, "combinations": rows,
+            "peak_friction_ratio": max(row["friction_ratio"] for row in rows),
+            "peak_bond_ratio": max(row["bond_ratio"] for row in rows),
+            "friction_satisfied": all(row["friction_ratio"] <= selection_limit for row in rows),
+            "bond_satisfied": all(row["bond_ratio"] <= 1 for row in rows)}
+
+
 def _translated(family,x,y):
     segments=[((a[0]+x,a[1]+y),(b[0]+x,b[1]+y),err) for a,b,err in _segments(family)]
     u,v,w,z=family["bounds"]
     return {**family,"segments":segments,"bounds":(u+x,v+x,w+y,z+y)}
 
 
-def bridge_checks(geometry,designs,boundaries,source,material,aggregate,states):
+def bridge_checks(geometry,designs,boundaries,source,material,aggregate,states,cuts=()):
     """Keep any unbound joint out of the schedule, even if the short shell balances."""
     panels={p["member"]:p for p in geometry["panels"]}
     result={}
@@ -62,6 +122,12 @@ def bridge_checks(geometry,designs,boundaries,source,material,aggregate,states):
             if (abs(section.t2-foreign["span_mm"])>1e-4 or abs(section.t3-foreign["thickness_mm"])>1e-4
                     or abs(sum(a*b for a,b in zip(straight["width_direction"],direction)))<1-1e-8):
                 raise ValueError("BRIDGE_RECEIVING_SECTION_IDENTITY_REQUIRED")
+            from .wall_bridge_trial import synchronous_trial
+            try:
+                receipt["synchronized_trial"] = synchronous_trial(straight,turn,link,ns,fs,section,pier,states,
+                    material,aggregate,sd["horizontal"]["cover_mm"], (geometry["top_m"]-geometry["bottom_m"])*1000,cuts)
+            except (KeyError,ValueError,TypeError,IndexError,StopIteration) as exc:
+                receipt["synchronized_trial"] = {"status":"UNRESOLVED","reason":str(exc)}
             collected=[]
             for p,side,d,xy in ((straight,ns,sd,near_xy),(turn,fs,td,(0.,0.))):
                 for f in _families({**p,"horizontal":d["horizontal"]},side,d["ends"][side]):
@@ -127,13 +193,12 @@ def bridge_checks(geometry,designs,boundaries,source,material,aggregate,states):
             # against both native cuts and full tension development past the remote interface.
             transfer=sd["ends"][ns]["transfer"]
             cap=transfer["steel_resistance_kn_m"]
-            native=[{r["combination"]:r for r in link["native_support_edges"][side]["cuts"]} for side in ("I","J")]
-            if not native[0] or native[0].keys()!=native[1].keys():
-                raise ValueError("BRIDGE_CUT_POPULATION_MISMATCH")
-            ratio=max(sum(side[name]["equivalent_friction_demand_kn_m"] for side in native)/cap for name in native[0])
-            peak = max(sum(side[name]["equivalent_friction_demand_kn_m"] for side in native) for name in native[0])
-            receipt.update(both_cut_friction_ratio=ratio, both_cut_upper_kn_m=peak, dedicated_resistance_kn_m=cap,
-                           friction_selection_limit=transfer["steel_selection_limit"])
+            series = series_interface_checks(link["native_support_edges"], cap, anchors[1]["position_i_mm"],
+                                             length, transfer["steel_selection_limit"])
+            ratio = series["peak_friction_ratio"]
+            peak = max(row["series_demand_kn_m"] for row in series["combinations"])
+            receipt.update(series_interface_checks=series, both_cut_friction_ratio=ratio, both_cut_upper_kn_m=peak,
+                           dedicated_resistance_kn_m=cap, friction_selection_limit=transfer["steel_selection_limit"])
             # Also bound a regular one-level-per-hoop detail, using the largest catalogue dowel
             # that could develop inside the incident half-span, even before checking its track.
             from math import floor
@@ -156,7 +221,7 @@ def bridge_checks(geometry,designs,boundaries,source,material,aggregate,states):
                 raise ValueError("TRANSFER_BARS_INTERSECT_RECEIVING_BOUNDARY_CAGE")
             if not shell["satisfied"] or not all(q["fits"] for q in checks):
                 raise ValueError("TRANSFER_SHELL_OR_MUTUAL_BAR_LAYOUT_UNSATISFIED")
-            if ratio>transfer["steel_selection_limit"] or any(a["specified_embedment_mm"]-length<a["position_i_mm"] for a in anchors):
+            if not series["friction_satisfied"] or not series["bond_satisfied"] or any(a["specified_embedment_mm"]-length<a["position_i_mm"] for a in anchors):
                 raise ValueError("BRIDGE_FRICTION_OR_TERMINAL_BOND_UNSATISFIED")
             # Reserve all possible hook projections inside each complete transverse cage
             # at its specified layers. This is a conservative clearance certificate.

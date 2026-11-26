@@ -1,0 +1,736 @@
+{
+  "faces": [
+    {
+      "cage_sha256": "d08d71ebca5001c7b7998e35b8c060107084cbae5b578cf0d2baa21faaefb856",
+      "design_moments_knm": [
+        -137.84968635007547,
+        136.85640407393612
+      ],
+      "identity": {
+        "combination": "Grav_Ult",
+        "element": "225-1",
+        "member": "225",
+        "native_first_case": "C29G_U_F",
+        "physical_cut": "I",
+        "side": "UPPER",
+        "station_m": 0.0
+      },
+      "independent_capacity_knm": 1518.172459866234,
+      "independent_utilization": 0.1279484474218286,
+      "metrics": {
+        "capacity_difference_knm": 0.00047127115635703376,
+        "capacity_difference_relative": 3.1041994405997285e-07,
+        "last_spatial_change_knm": 0.001411240637253286,
+        "opposite_ray_symmetry_knm": 4.547473508864641e-13,
+        "perpendicular_residual_nmm": 1.9431114196777344e-05,
+        "same_grid_angular_root_change_knm": 6.821210263296962e-13,
+        "signed_axial_residual_n": 9.96515154838562e-08
+      },
+      "n_kn": 3260.3491023672977,
+      "reference_capacity_knm": 1518.1729311373904,
+      "reference_utilization": 0.1279484077040787
+    },
+    {
+      "cage_sha256": "d08d71ebca5001c7b7998e35b8c060107084cbae5b578cf0d2baa21faaefb856",
+      "design_moments_knm": [
+        -135.74304079563154,
+        -134.76493805124696
+      ],
+      "identity": {
+        "combination": "Grav_Ult",
+        "element": "225-4",
+        "member": "225",
+        "native_first_case": "C29G_U_F",
+        "physical_cut": "MID",
+        "side": "LOWER",
+        "station_m": 2.225
+      },
+      "independent_capacity_knm": 1513.7775577160412,
+      "independent_utilization": 0.1263589063095715,
+      "metrics": {
+        "capacity_difference_knm": 0.0004690866878718225,
+        "capacity_difference_relative": 3.0987811922636164e-07,
+        "last_spatial_change_knm": 0.001390254427178661,
+        "opposite_ray_symmetry_knm": 6.821210263296962e-13,
+        "perpendicular_residual_nmm": 2.9802322387695312e-05,
+        "same_grid_angular_root_change_knm": 6.821210263296962e-13,
+        "signed_axial_residual_n": 9.918585419654846e-08
+      },
+      "n_kn": 3210.5238171287465,
+      "reference_capacity_knm": 1513.778026802729,
+      "reference_utilization": 0.12635886715371128
+    },
+    {
+      "cage_sha256": "d08d71ebca5001c7b7998e35b8c060107084cbae5b578cf0d2baa21faaefb856",
+      "design_moments_knm": [
+        -135.74304079563598,
+        -134.76493805125136
+      ],
+      "identity": {
+        "combination": "Grav_Ult",
+        "element": "225-5",
+        "member": "225",
+        "native_first_case": "C29G_U_F",
+        "physical_cut": "MID",
+        "side": "UPPER",
+        "station_m": 2.225
+      },
+      "independent_capacity_knm": 1513.777557716054,
+      "independent_utilization": 0.12635890630957458,
+      "metrics": {
+        "capacity_difference_knm": 0.0004690866849159647,
+        "capacity_difference_relative": 3.098781172737234e-07,
+        "last_spatial_change_knm": 0.00139025442649654,
+        "opposite_ray_symmetry_knm": 2.2737367544323206e-13,
+        "perpendicular_residual_nmm": 2.956390380859375e-05,
+        "same_grid_angular_root_change_knm": 1.3415046851150692e-11,
+        "signed_axial_residual_n": 9.96515154838562e-08
+      },
+      "n_kn": 3210.523817128851,
+      "reference_capacity_knm": 1513.7780268027389,
+      "reference_utilization": 0.12635886715371458
+    },
+    {
+      "cage_sha256": "d08d71ebca5001c7b7998e35b8c060107084cbae5b578cf0d2baa21faaefb856",
+      "design_moments_knm": [
+        -133.63639524119512,
+        -132.67347202856527
+      ],
+      "identity": {
+        "combination": "Grav_Ult",
+        "element": "225-8",
+        "member": "225",
+        "native_first_case": "C29G_U_F",
+        "physical_cut": "J",
+        "side": "INTERIOR",
+        "station_m": 4.45
+      },
+      "independent_capacity_knm": 1509.3400789717275,
+      "independent_utilization": 0.1247636279212734,
+      "metrics": {
+        "capacity_difference_knm": 0.0004610656260410906,
+        "capacity_difference_relative": 3.0547488377253817e-07,
+        "last_spatial_change_knm": 0.0013694660981400375,
+        "opposite_ray_symmetry_knm": 0.0,
+        "perpendicular_residual_nmm": 5.233287811279297e-05,
+        "same_grid_angular_root_change_knm": 6.821210263296962e-13,
+        "signed_axial_residual_n": 9.918585419654846e-08
+      },
+      "n_kn": 3160.6985318903726,
+      "reference_capacity_knm": 1509.3405400373535,
+      "reference_utilization": 0.12476358980911867
+    },
+    {
+      "cage_sha256": "d08d71ebca5001c7b7998e35b8c060107084cbae5b578cf0d2baa21faaefb856",
+      "design_moments_knm": [
+        -98.47670868683502,
+        -97.95169874245161
+      ],
+      "identity": {
+        "combination": "Grav_TempNeg",
+        "element": "225-1",
+        "member": "225",
+        "native_first_case": "C29G_TN_F",
+        "physical_cut": "I",
+        "side": "UPPER",
+        "station_m": 0.0
+      },
+      "independent_capacity_knm": 1426.7903843125796,
+      "independent_utilization": 0.09734881630552472,
+      "metrics": {
+        "capacity_difference_knm": 0.0002690442722723674,
+        "capacity_difference_relative": 1.8856604620963777e-07,
+        "last_spatial_change_knm": 0.0010583903051610832,
+        "opposite_ray_symmetry_knm": 4.547473508864641e-13,
+        "perpendicular_residual_nmm": 4.2557716369628906e-05,
+        "same_grid_angular_root_change_knm": 6.821210263296962e-13,
+        "signed_axial_residual_n": 9.96515154838562e-08
+      },
+      "n_kn": 2377.358196865098,
+      "reference_capacity_knm": 1426.7906533568519,
+      "reference_utilization": 0.09734879794884332
+    },
+    {
+      "cage_sha256": "d08d71ebca5001c7b7998e35b8c060107084cbae5b578cf0d2baa21faaefb856",
+      "design_moments_knm": [
+        -97.00249424573637,
+        -96.4853437967814
+      ],
+      "identity": {
+        "combination": "Grav_TempNeg",
+        "element": "225-4",
+        "member": "225",
+        "native_first_case": "C29G_TN_F",
+        "physical_cut": "MID",
+        "side": "LOWER",
+        "station_m": 2.225
+      },
+      "independent_capacity_knm": 1422.4626294587565,
+      "independent_utilization": 0.09618323055705241,
+      "metrics": {
+        "capacity_difference_knm": 0.00026961340176967497,
+        "capacity_difference_relative": 1.895398480660114e-07,
+        "last_spatial_change_knm": 0.0010440962978464086,
+        "opposite_ray_symmetry_knm": 0.0,
+        "perpendicular_residual_nmm": 9.775161743164062e-06,
+        "same_grid_angular_root_change_knm": 4.547473508864641e-13,
+        "signed_axial_residual_n": 9.96515154838562e-08
+      },
+      "n_kn": 2341.7687074089854,
+      "reference_capacity_knm": 1422.4628990721583,
+      "reference_utilization": 0.0961832123264975
+    },
+    {
+      "cage_sha256": "d08d71ebca5001c7b7998e35b8c060107084cbae5b578cf0d2baa21faaefb856",
+      "design_moments_knm": [
+        -97.00249424573724,
+        -96.48534379678225
+      ],
+      "identity": {
+        "combination": "Grav_TempNeg",
+        "element": "225-5",
+        "member": "225",
+        "native_first_case": "C29G_TN_F",
+        "physical_cut": "MID",
+        "side": "UPPER",
+        "station_m": 2.225
+      },
+      "independent_capacity_knm": 1422.4626294587565,
+      "independent_utilization": 0.09618323055705327,
+      "metrics": {
+        "capacity_difference_knm": 0.0002696134049529064,
+        "capacity_difference_relative": 1.895398503038419e-07,
+        "last_spatial_change_knm": 0.0010440962980737822,
+        "opposite_ray_symmetry_knm": 0.0,
+        "perpendicular_residual_nmm": 9.655952453613281e-06,
+        "same_grid_angular_root_change_knm": 4.547473508864641e-13,
+        "signed_axial_residual_n": 9.96515154838562e-08
+      },
+      "n_kn": 2341.7687074090063,
+      "reference_capacity_knm": 1422.4628990721615,
+      "reference_utilization": 0.09618321232649815
+    },
+    {
+      "cage_sha256": "d08d71ebca5001c7b7998e35b8c060107084cbae5b578cf0d2baa21faaefb856",
+      "design_moments_knm": [
+        -95.5282798046428,
+        -95.01898885111622
+      ],
+      "identity": {
+        "combination": "Grav_TempNeg",
+        "element": "225-8",
+        "member": "225",
+        "native_first_case": "C29G_TN_F",
+        "physical_cut": "J",
+        "side": "INTERIOR",
+        "station_m": 4.45
+      },
+      "independent_capacity_knm": 1418.1077497133547,
+      "independent_utilization": 0.09501234803515664,
+      "metrics": {
+        "capacity_difference_knm": 0.00028095759830648603,
+        "capacity_difference_relative": 1.9812143520092463e-07,
+        "last_spatial_change_knm": 0.0010293548607478442,
+        "opposite_ray_symmetry_knm": 0.0,
+        "perpendicular_residual_nmm": 1.4066696166992188e-05,
+        "same_grid_angular_root_change_knm": 4.547473508864641e-13,
+        "signed_axial_residual_n": 9.918585419654846e-08
+      },
+      "n_kn": 2306.1792179529957,
+      "reference_capacity_knm": 1418.108030670953,
+      "reference_utilization": 0.09501232921117388
+    },
+    {
+      "cage_sha256": "d08d71ebca5001c7b7998e35b8c060107084cbae5b578cf0d2baa21faaefb856",
+      "design_moments_knm": [
+        -96.73933714824285,
+        96.26587490708692
+      ],
+      "identity": {
+        "combination": "Grav_TempPos",
+        "element": "225-1",
+        "member": "225",
+        "native_first_case": "C29G_TP_F",
+        "physical_cut": "I",
+        "side": "UPPER",
+        "station_m": 0.0
+      },
+      "independent_capacity_knm": 1423.0663878098455,
+      "independent_utilization": 0.09590255665708025,
+      "metrics": {
+        "capacity_difference_knm": 0.00026888062325269857,
+        "capacity_difference_relative": 1.8894450375080553e-07,
+        "last_spatial_change_knm": 0.0010456821282787132,
+        "opposite_ray_symmetry_knm": 1.7053025658242404e-11,
+        "perpendicular_residual_nmm": 9.632110595703125e-05,
+        "same_grid_angular_root_change_knm": 1.6825651982799172e-11,
+        "signed_axial_residual_n": 9.96515154838562e-08
+      },
+      "n_kn": 2346.7244747644,
+      "reference_capacity_knm": 1423.0666566904688,
+      "reference_utilization": 0.09590253853681928
+    },
+    {
+      "cage_sha256": "d08d71ebca5001c7b7998e35b8c060107084cbae5b578cf0d2baa21faaefb856",
+      "design_moments_knm": [
+        -95.27222686050074,
+        -94.80594495926997
+      ],
+      "identity": {
+        "combination": "Grav_TempPos",
+        "element": "225-4",
+        "member": "225",
+        "native_first_case": "C29G_TP_F",
+        "physical_cut": "MID",
+        "side": "LOWER",
+        "station_m": 2.225
+      },
+      "independent_capacity_knm": 1418.7157022035426,
+      "independent_utilization": 0.09473777476915503,
+      "metrics": {
+        "capacity_difference_knm": 0.00027884586029358616,
+        "capacity_difference_relative": 1.965480505036167e-07,
+        "last_spatial_change_knm": 0.0010311817864021577,
+        "opposite_ray_symmetry_knm": 0.0,
+        "perpendicular_residual_nmm": 3.8623809814453125e-05,
+        "same_grid_angular_root_change_knm": 0.0,
+        "signed_axial_residual_n": 9.96515154838562e-08
+      },
+      "n_kn": 2311.1349853083457,
+      "reference_capacity_knm": 1418.715981049403,
+      "reference_utilization": 0.09473775614863009
+    },
+    {
+      "cage_sha256": "d08d71ebca5001c7b7998e35b8c060107084cbae5b578cf0d2baa21faaefb856",
+      "design_moments_knm": [
+        -95.2722268605004,
+        -94.80594495926961
+      ],
+      "identity": {
+        "combination": "Grav_TempPos",
+        "element": "225-5",
+        "member": "225",
+        "native_first_case": "C29G_TP_F",
+        "physical_cut": "MID",
+        "side": "UPPER",
+        "station_m": 2.225
+      },
+      "independent_capacity_knm": 1418.7157022035426,
+      "independent_utilization": 0.09473777476915468,
+      "metrics": {
+        "capacity_difference_knm": 0.00027884585961146513,
+        "capacity_difference_relative": 1.9654805002281511e-07,
+        "last_spatial_change_knm": 0.0010311817866295314,
+        "opposite_ray_symmetry_knm": 0.0,
+        "perpendicular_residual_nmm": 3.8743019104003906e-05,
+        "same_grid_angular_root_change_knm": 0.0,
+        "signed_axial_residual_n": 9.918585419654846e-08
+      },
+      "n_kn": 2311.1349853083375,
+      "reference_capacity_knm": 1418.7159810494022,
+      "reference_utilization": 0.0947377561486298
+    },
+    {
+      "cage_sha256": "d08d71ebca5001c7b7998e35b8c060107084cbae5b578cf0d2baa21faaefb856",
+      "design_moments_knm": [
+        -93.80511657276008,
+        -93.34601501145444
+      ],
+      "identity": {
+        "combination": "Grav_TempPos",
+        "element": "225-8",
+        "member": "225",
+        "native_first_case": "C29G_TP_F",
+        "physical_cut": "J",
+        "side": "INTERIOR",
+        "station_m": 4.45
+      },
+      "independent_capacity_knm": 1414.3322109520432,
+      "independent_utilization": 0.09356799725352129,
+      "metrics": {
+        "capacity_difference_knm": 0.0002953084085675073,
+        "capacity_difference_relative": 2.0879701715144327e-07,
+        "last_spatial_change_knm": 0.0010136402765965613,
+        "opposite_ray_symmetry_knm": 0.0,
+        "perpendicular_residual_nmm": 4.9233436584472656e-05,
+        "same_grid_angular_root_change_knm": 4.547473508864641e-13,
+        "signed_axial_residual_n": 9.96515154838562e-08
+      },
+      "n_kn": 2275.545495852327,
+      "reference_capacity_knm": 1414.3325062604517,
+      "reference_utilization": 0.09356797771680256
+    },
+    {
+      "cage_sha256": "3742ec3ca9b3279292c723588734dd95ccce3bca960b1e20f7302ae33a1576ca",
+      "design_moments_knm": [
+        240.56604162576903,
+        87.66321064811387
+      ],
+      "identity": {
+        "combination": "Grav_Ult",
+        "element": "142-1",
+        "member": "142",
+        "native_first_case": "C29G_U_F",
+        "physical_cut": "I",
+        "side": "UPPER",
+        "station_m": 0.0
+      },
+      "independent_capacity_knm": 1450.8770407730078,
+      "independent_utilization": 0.1764730777126651,
+      "metrics": {
+        "capacity_difference_knm": 0.00041621060290708556,
+        "capacity_difference_relative": 2.8686819889833546e-07,
+        "last_spatial_change_knm": 0.001037618798591211,
+        "opposite_ray_symmetry_knm": 2.2737367544323206e-13,
+        "perpendicular_residual_nmm": 4.380941390991211e-05,
+        "same_grid_angular_root_change_knm": 2.955857780762017e-11,
+        "signed_axial_residual_n": 9.96515154838562e-08
+      },
+      "n_kn": 2159.888730635459,
+      "reference_capacity_knm": 1450.8774569836107,
+      "reference_utilization": 0.17647302708815113
+    },
+    {
+      "cage_sha256": "3742ec3ca9b3279292c723588734dd95ccce3bca960b1e20f7302ae33a1576ca",
+      "design_moments_knm": [
+        85.80519555545617,
+        85.93634172764216
+      ],
+      "identity": {
+        "combination": "Grav_Ult",
+        "element": "142-4",
+        "member": "142",
+        "native_first_case": "C29G_U_F",
+        "physical_cut": "MID",
+        "side": "LOWER",
+        "station_m": 1.9
+      },
+      "independent_capacity_knm": 1394.4797145240784,
+      "independent_utilization": 0.0870859860968764,
+      "metrics": {
+        "capacity_difference_knm": 0.00023806053104635794,
+        "capacity_difference_relative": 1.7071635243312234e-07,
+        "last_spatial_change_knm": 0.000961146592771911,
+        "opposite_ray_symmetry_knm": 2.2737367544323206e-13,
+        "perpendicular_residual_nmm": 2.0265579223632812e-05,
+        "same_grid_angular_root_change_knm": 1.7962520360015333e-11,
+        "signed_axial_residual_n": 9.872019290924072e-08
+      },
+      "n_kn": 2117.3412960498913,
+      "reference_capacity_knm": 1394.4799525846095,
+      "reference_utilization": 0.0870859712298745
+    },
+    {
+      "cage_sha256": "3742ec3ca9b3279292c723588734dd95ccce3bca960b1e20f7302ae33a1576ca",
+      "design_moments_knm": [
+        85.80519555545817,
+        85.93634172764416
+      ],
+      "identity": {
+        "combination": "Grav_Ult",
+        "element": "142-5",
+        "member": "142",
+        "native_first_case": "C29G_U_F",
+        "physical_cut": "MID",
+        "side": "UPPER",
+        "station_m": 1.9
+      },
+      "independent_capacity_knm": 1394.479714524097,
+      "independent_utilization": 0.08708598609687727,
+      "metrics": {
+        "capacity_difference_knm": 0.00023806051899555314,
+        "capacity_difference_relative": 1.7071634379133019e-07,
+        "last_spatial_change_knm": 0.0009611466114165523,
+        "opposite_ray_symmetry_knm": 6.821210263296962e-13,
+        "perpendicular_residual_nmm": 2.0503997802734375e-05,
+        "same_grid_angular_root_change_knm": 9.094947017729282e-13,
+        "signed_axial_residual_n": 9.96515154838562e-08
+      },
+      "n_kn": 2117.341296049941,
+      "reference_capacity_knm": 1394.479952584616,
+      "reference_utilization": 0.08708597122987613
+    },
+    {
+      "cage_sha256": "3742ec3ca9b3279292c723588734dd95ccce3bca960b1e20f7302ae33a1576ca",
+      "design_moments_knm": [
+        -106.6315364284787,
+        -84.20947280716891
+      ],
+      "identity": {
+        "combination": "Grav_Ult",
+        "element": "142-8",
+        "member": "142",
+        "native_first_case": "C29G_U_F",
+        "physical_cut": "J",
+        "side": "INTERIOR",
+        "station_m": 3.8
+      },
+      "independent_capacity_knm": 1392.210450478829,
+      "independent_utilization": 0.09759528499540554,
+      "metrics": {
+        "capacity_difference_knm": 0.00029283137723723485,
+        "capacity_difference_relative": 2.1033552473598995e-07,
+        "last_spatial_change_knm": 0.0011685550293805136,
+        "opposite_ray_symmetry_knm": 9.094947017729282e-13,
+        "perpendicular_residual_nmm": 2.2530555725097656e-05,
+        "same_grid_angular_root_change_knm": 2.9558577807620168e-12,
+        "signed_axial_residual_n": 9.988434612751007e-08
+      },
+      "n_kn": 2074.793861464286,
+      "reference_capacity_knm": 1392.2107433102062,
+      "reference_utilization": 0.09759526446765006
+    },
+    {
+      "cage_sha256": "3742ec3ca9b3279292c723588734dd95ccce3bca960b1e20f7302ae33a1576ca",
+      "design_moments_knm": [
+        171.9539797882576,
+        63.07701747319874
+      ],
+      "identity": {
+        "combination": "Grav_TempNeg",
+        "element": "142-1",
+        "member": "142",
+        "native_first_case": "C29G_TN_F",
+        "physical_cut": "I",
+        "side": "UPPER",
+        "station_m": 0.0
+      },
+      "independent_capacity_knm": 1344.6329799949979,
+      "independent_utilization": 0.13621417894279045,
+      "metrics": {
+        "capacity_difference_knm": 0.0001789246914540854,
+        "capacity_difference_relative": 1.3306580331384792e-07,
+        "last_spatial_change_knm": 0.0008514057808497455,
+        "opposite_ray_symmetry_knm": 1.3642420526593924e-12,
+        "perpendicular_residual_nmm": 5.424022674560547e-05,
+        "same_grid_angular_root_change_knm": 3.433342499192804e-11,
+        "signed_axial_residual_n": 9.988434612751007e-08
+      },
+      "n_kn": 1571.3533183509135,
+      "reference_capacity_knm": 1344.6331589196893,
+      "reference_utilization": 0.1362141608173413
+    },
+    {
+      "cage_sha256": "3742ec3ca9b3279292c723588734dd95ccce3bca960b1e20f7302ae33a1576ca",
+      "design_moments_knm": [
+        61.78911288015769,
+        61.85706574503399
+      ],
+      "identity": {
+        "combination": "Grav_TempNeg",
+        "element": "142-4",
+        "member": "142",
+        "native_first_case": "C29G_TN_F",
+        "physical_cut": "MID",
+        "side": "LOWER",
+        "station_m": 1.9
+      },
+      "independent_capacity_knm": 1307.7325126893168,
+      "independent_utilization": 0.06685699386444043,
+      "metrics": {
+        "capacity_difference_knm": 0.00019813963899650844,
+        "capacity_difference_relative": 1.5151386621728699e-07,
+        "last_spatial_change_knm": 0.0007667595693874318,
+        "opposite_ray_symmetry_knm": 2.2737367544323206e-13,
+        "perpendicular_residual_nmm": 2.384185791015625e-05,
+        "same_grid_angular_root_change_knm": 6.821210263296962e-13,
+        "signed_axial_residual_n": 9.872019290924072e-08
+      },
+      "n_kn": 1540.9622936469614,
+      "reference_capacity_knm": 1307.7327108289558,
+      "reference_utilization": 0.0668569837346788
+    },
+    {
+      "cage_sha256": "3742ec3ca9b3279292c723588734dd95ccce3bca960b1e20f7302ae33a1576ca",
+      "design_moments_knm": [
+        61.78911288015911,
+        61.85706574503542
+      ],
+      "identity": {
+        "combination": "Grav_TempNeg",
+        "element": "142-5",
+        "member": "142",
+        "native_first_case": "C29G_TN_F",
+        "physical_cut": "MID",
+        "side": "UPPER",
+        "station_m": 1.9
+      },
+      "independent_capacity_knm": 1307.7325126893168,
+      "independent_utilization": 0.06685699386444197,
+      "metrics": {
+        "capacity_difference_knm": 0.00019813964422610297,
+        "capacity_difference_relative": 1.5151387021626453e-07,
+        "last_spatial_change_knm": 0.0007667595693874318,
+        "opposite_ray_symmetry_knm": 2.2737367544323206e-13,
+        "perpendicular_residual_nmm": 2.384185791015625e-05,
+        "same_grid_angular_root_change_knm": 6.821210263296962e-13,
+        "signed_axial_residual_n": 9.848736226558685e-08
+      },
+      "n_kn": 1540.9622936469968,
+      "reference_capacity_knm": 1307.732710828961,
+      "reference_utilization": 0.06685698373468008
+    },
+    {
+      "cage_sha256": "3742ec3ca9b3279292c723588734dd95ccce3bca960b1e20f7302ae33a1576ca",
+      "design_moments_knm": [
+        -77.00152186314988,
+        -60.63711401686542
+      ],
+      "identity": {
+        "combination": "Grav_TempNeg",
+        "element": "142-8",
+        "member": "142",
+        "native_first_case": "C29G_TN_F",
+        "physical_cut": "J",
+        "side": "INTERIOR",
+        "station_m": 3.8
+      },
+      "independent_capacity_knm": 1306.025754804509,
+      "independent_utilization": 0.07504498479819938,
+      "metrics": {
+        "capacity_difference_knm": 0.00018079318078889628,
+        "capacity_difference_relative": 1.3843000805811568e-07,
+        "last_spatial_change_knm": 0.0009347846012133232,
+        "opposite_ray_symmetry_knm": 0.0,
+        "perpendicular_residual_nmm": 2.8133392333984375e-05,
+        "same_grid_angular_root_change_knm": 1.318767317570746e-11,
+        "signed_axial_residual_n": 9.988434612751007e-08
+      },
+      "n_kn": 1510.5712689429138,
+      "reference_capacity_knm": 1306.0259355976898,
+      "reference_utilization": 0.07504497440972152
+    },
+    {
+      "cage_sha256": "3742ec3ca9b3279292c723588734dd95ccce3bca960b1e20f7302ae33a1576ca",
+      "design_moments_knm": [
+        173.63502604464475,
+        62.53409342949693
+      ],
+      "identity": {
+        "combination": "Grav_TempPos",
+        "element": "142-1",
+        "member": "142",
+        "native_first_case": "C29G_TP_F",
+        "physical_cut": "I",
+        "side": "UPPER",
+        "station_m": 0.0
+      },
+      "independent_capacity_knm": 1342.5676748588467,
+      "independent_utilization": 0.13746236420989963,
+      "metrics": {
+        "capacity_difference_knm": 0.0001901676710076572,
+        "capacity_difference_relative": 1.4164473615186752e-07,
+        "last_spatial_change_knm": 0.0008377967105843709,
+        "opposite_ray_symmetry_knm": 4.547473508864641e-13,
+        "perpendicular_residual_nmm": 3.30805778503418e-05,
+        "same_grid_angular_root_change_knm": 2.3646862246096134e-11,
+        "signed_axial_residual_n": 9.988434612751007e-08
+      },
+      "n_kn": 1558.2096854626725,
+      "reference_capacity_knm": 1342.5678650265177,
+      "reference_utilization": 0.1374623447390793
+    },
+    {
+      "cage_sha256": "3742ec3ca9b3279292c723588734dd95ccce3bca960b1e20f7302ae33a1576ca",
+      "design_moments_knm": [
+        61.2476627546189,
+        61.31444039051009
+      ],
+      "identity": {
+        "combination": "Grav_TempPos",
+        "element": "142-4",
+        "member": "142",
+        "native_first_case": "C29G_TP_F",
+        "physical_cut": "MID",
+        "side": "LOWER",
+        "station_m": 1.9
+      },
+      "independent_capacity_knm": 1305.6958117686124,
+      "independent_utilization": 0.06637419399895743,
+      "metrics": {
+        "capacity_difference_knm": 0.00018476489299246168,
+        "capacity_difference_relative": 1.4150682355080686e-07,
+        "last_spatial_change_knm": 0.0007626715896549285,
+        "opposite_ray_symmetry_knm": 0.0,
+        "perpendicular_residual_nmm": 5.7578086853027344e-05,
+        "same_grid_angular_root_change_knm": 6.821210263296962e-13,
+        "signed_axial_residual_n": 9.918585419654846e-08
+      },
+      "n_kn": 1527.8186607587495,
+      "reference_capacity_knm": 1305.6959965335054,
+      "reference_utilization": 0.06637418460655607
+    },
+    {
+      "cage_sha256": "3742ec3ca9b3279292c723588734dd95ccce3bca960b1e20f7302ae33a1576ca",
+      "design_moments_knm": [
+        61.24766275461916,
+        61.31444039051035
+      ],
+      "identity": {
+        "combination": "Grav_TempPos",
+        "element": "142-5",
+        "member": "142",
+        "native_first_case": "C29G_TP_F",
+        "physical_cut": "MID",
+        "side": "UPPER",
+        "station_m": 1.9
+      },
+      "independent_capacity_knm": 1305.6958117686124,
+      "independent_utilization": 0.06637419399895772,
+      "metrics": {
+        "capacity_difference_knm": 0.00018476489435670373,
+        "capacity_difference_relative": 1.4150682459564569e-07,
+        "last_spatial_change_knm": 0.0007626715898823022,
+        "opposite_ray_symmetry_knm": 0.0,
+        "perpendicular_residual_nmm": 5.745887756347656e-05,
+        "same_grid_angular_root_change_knm": 4.547473508864641e-13,
+        "signed_axial_residual_n": 9.988434612751007e-08
+      },
+      "n_kn": 1527.8186607587559,
+      "reference_capacity_knm": 1305.6959965335068,
+      "reference_utilization": 0.0663741846065563
+    },
+    {
+      "cage_sha256": "3742ec3ca9b3279292c723588734dd95ccce3bca960b1e20f7302ae33a1576ca",
+      "design_moments_knm": [
+        -76.21017084300621,
+        -60.09478735151767
+      ],
+      "identity": {
+        "combination": "Grav_TempPos",
+        "element": "142-8",
+        "member": "142",
+        "native_first_case": "C29G_TP_F",
+        "physical_cut": "J",
+        "side": "INTERIOR",
+        "station_m": 3.8
+      },
+      "independent_capacity_knm": 1303.815270201476,
+      "independent_utilization": 0.07443804324695312,
+      "metrics": {
+        "capacity_difference_knm": 0.00020772800030499639,
+        "capacity_difference_relative": 1.5932315869948004e-07,
+        "last_spatial_change_knm": 0.0009294835103901278,
+        "opposite_ray_symmetry_knm": 2.2737367544323206e-13,
+        "perpendicular_residual_nmm": 2.7894973754882812e-05,
+        "same_grid_angular_root_change_knm": 1.3415046851150692e-11,
+        "signed_axial_residual_n": 9.988434612751007e-08
+      },
+      "n_kn": 1497.4276360546874,
+      "reference_capacity_knm": 1303.8154779294764,
+      "reference_utilization": 0.07443803138724894
+    }
+  ],
+  "independent_receipt_sha256": "3e5cd9361b889400502be143931eecb8fe56d1bef50e4c9be27aca8ad9280e3a",
+  "model_sha256": "685f5f45e7448c8c471a2c041c65c681447cc02175846bbf82ae172139a8c283",
+  "schema": "tbdy.next.g2-c29-independent-reference.v1",
+  "tolerances": {
+    "capacity_difference_knm": 0.01,
+    "capacity_difference_relative": 1e-05,
+    "last_spatial_change_knm": 0.01,
+    "opposite_ray_symmetry_knm": 1e-06,
+    "perpendicular_residual_nmm": 0.001,
+    "same_grid_angular_root_change_knm": 1e-06,
+    "signed_axial_residual_n": 0.001
+  }
+}

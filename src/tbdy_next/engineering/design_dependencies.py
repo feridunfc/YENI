@@ -396,6 +396,8 @@ an explicit open dependency rather than pretending the original Ve is revised.
                             and member.get("candidate_revision_sha256") == selected.get("candidate_sha256") else None),
                         "reference_ve_is_revised_design_demand": False,
                         "alpha_feedback_consumed": feedback_consumed,
+                        **({"signed_alpha_uncredited_directions": _uncredited_directions(feedback, plan, uid, story)}
+                           if feedback_consumed else {}),
                         "alpha_feedback_not_required": alpha_not_required}
         if (shear and selected.get("status") == "SAME_RUN_CANDIDATE_BOUND"
                 and member.get("candidate_revision_sha256") == selected.get("candidate_sha256")
@@ -410,6 +412,33 @@ an explicit open dependency rather than pretending the original Ve is revised.
               "engineering_release": "NOT_READY"}
     result["ledger_sha256"] = _digest(result)
     return result
+
+
+def _uncredited_directions(feedback, plan, member, story):
+    """A failing joint may use 7.3.6 only after a complete signed fixed point.
+
+    Credit is withheld in every assigned case. A sampled failure is not used
+    as a favourable axial-force or end-capacity qualification.
+    """
+    qualification=feedback.get("final_qualification") or {}
+    names=set(feedback.get("required_seismic_combinations") or ())
+    roster=set(plan["story_columns"][story])
+    directions=[]
+    for direction in ("X","Y"):
+        cases=[r for r in qualification.get("cases",()) if r["story"]==story and r["direction"]==direction]
+        if not names or len(cases)!=len(names) or {r["combination"] for r in cases}!=names:
+            continue
+        for r in cases:
+            terms=r["terms"]
+            selected=[t for t in terms if t["member_id"]==member]
+            if (r["status"]!="QUALIFIED_REFERENCE" or not .7<=r["alpha"]<=1
+                    or len(terms)!=len(roster) or {t["member_id"] for t in terms}!=roster
+                    or len(selected)!=1 or selected[0]["numerator_eligible"] is not False
+                    or selected[0]["amplification_eligible"] is not False):
+                break
+        else:
+            directions.append(direction)
+    return directions
 
 
 def validate_revision_evidence(ledger: Mapping[str, Any]) -> None:

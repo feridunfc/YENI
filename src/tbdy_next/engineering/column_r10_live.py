@@ -1590,6 +1590,7 @@ def _attach_r13_joint_shear_and_transverse(
     transverse_by_uid: Mapping[str, Mapping[str, Any]],
     beam_sel_active: bool,
     col_sel_active: bool,
+    alpha_revision_sha256: str | None = None,
 ) -> None:
     """Attach R13 TBDY 7.5.2.1 joint shear Ve and 7.5.2.3 joint transverse checks when selected."""
     if not beam_sel_active and not col_sel_active:
@@ -1735,11 +1736,15 @@ def _attach_r13_joint_shear_and_transverse(
                         v_kol_kn = min(c["deduction_kn"] for c in column_shear_cases)
                         v_kol_basis = "MIN_UPPER_LOWER_COLUMN_SHEAR"
 
+                    if alpha_revision_sha256 and not roof_boundary and not topology_issues and len(upper_cols)==len(lower_cols)==1:
+                        v_kol_kn = 0.  # A revised column shear cannot increase a favourable deduction.
+                        v_kol_basis = "CONSERVATIVE_ZERO_VKOL_AFTER_ALPHA"
                     ve_a = joint_shear_equilibrium_kn(beam_tension_kn=sway_a_t, column_shear_deduction_kn=v_kol_kn)
                     ve_b = joint_shear_equilibrium_kn(beam_tension_kn=sway_b_t, column_shear_deduction_kn=v_kol_kn)
                     ve_gov = max(ve_a, ve_b)
                     lim_kn = float(calc["geometric_limit_kn"])
                     axis_entry["joint_shear_ve"] = {
+                        **({"alpha_revision_sha256":alpha_revision_sha256} if alpha_revision_sha256 else {}),
                         "code_ref": "TBDY 7.5.2.1 / Eq. 7.11",
                         "sway_a_tension_kn": sway_a_t,
                         "sway_b_tension_kn": sway_b_t,
@@ -2285,6 +2290,7 @@ def project_column_r10_live(
             beam_by_id=beam_by_id, force_rowsets=force_rowsets, axial=axial,
             eng_col_selections=eng_col_selections, transverse_by_uid=transverse_by_uid,
             beam_sel_active=beam_sel_active, col_sel_active=col_sel_active,
+            alpha_revision_sha256=demand_revision["sha256"] if demand_revision else None,
         )
 
     # R11: Story alpha_i & demand feedback (TBDY 7.3.6.1 / 7.3.6.2)
@@ -2312,8 +2318,17 @@ def project_column_r10_live(
     if demand_revision is not None:
         for uid in affected:
             if uid in per_member:
-                per_member[uid]["alpha_joint_recheck_basis"] = "ORIGINAL_EQUILIBRIUM_VKOL_NOT_AMPLIFIED_SUBTRACTION"
-                per_member[uid]["alpha_joint_recheck_open_gate"] = "JOINT_EQUILIBRIUM_AFTER_ALPHA_REVIEW_REQUIRED"
+                ends = per_member[uid].get("member_joint_ends") or []
+                applicable = [a for end in ends for a in end.get("axes",()) if a.get("calculation") is not None]
+                revision_id = demand_revision["sha256"]
+                verified = len(ends)==2 and bool(applicable) and all(
+                    (a.get("joint_shear_ve") or {}).get("alpha_revision_sha256")==revision_id
+                    and a["joint_shear_ve"].get("within_geometric_limit") is True
+                    and a["joint_shear_ve"].get("v_kol_used_kn")==0.
+                    and (a.get("joint_transverse_7_5_2_3") or {}).get("all_references_met") is True for a in applicable)
+                per_member[uid]["alpha_joint_recheck_basis"] = "RECOMPUTED_BEAM_TENSIONS_ZERO_COLUMN_DEDUCTION_AND_SELECTED_LOWER_TIES"
+                if not verified:
+                    per_member[uid]["alpha_joint_recheck_open_gate"] = "JOINT_EQUILIBRIUM_AFTER_ALPHA_REVIEW_REQUIRED"
     if selected_cages_out is not None:
         for uid, section in eng_col_sections.items():
             selection = eng_col_selections.get(uid)

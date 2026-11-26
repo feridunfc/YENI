@@ -321,7 +321,7 @@ def _design(result, source, stages, bound, scope, *, boundaries=None):
                 required(set(map(tuple,field["corners"])) == {(elm,p) for elm,pts in mesh[link["member"]].items()
                          for p in pts}, "LINK_SHELL_CUT_POPULATION_DIFFERS")
                 states = link_states[link["member"]] = corner_states(link,field,combos)
-                link["native_support_edges"] = support_edge_actions(link,geom,read["edge_actions"],states,combos)
+                link["native_support_edges"] = support_edge_actions(link,geom,read["edge_actions"],states,combos, record_transfer_intervals=True)
                 link["edge_balance_verified"] = all(e["status"]=="NATIVE_EDGE_CONTROL_SATISFIED"
                                                      for e in link["native_support_edges"].values())
             except (KeyError,TypeError,ValueError) as exc:
@@ -382,7 +382,7 @@ def _design(result, source, stages, bound, scope, *, boundaries=None):
             capacity = capacities[0 if check["action"] == "Bending" else 1]
             check.update(proposed_resistance=capacity, proposed_ratio=check["demand"]/capacity)
     from .wall_bridge_layout import bridge_checks
-    bridge=bridge_checks(geom,designs,boundaries,source,mat,aggregate,link_states) if combined else {}
+    bridge=bridge_checks(geom,designs,boundaries,source,mat,aggregate,{**corner_fields,**link_states},result["cuts"]) if combined else {}
     result["two_way_support_layouts"] = check_joint_layout({"panels":shell_panels,"bridge_checks":bridge},aggregate,through)
     result["pressure_joint_layouts"] = [] if combined else check_joint_layout(geom,aggregate)
     if combined:

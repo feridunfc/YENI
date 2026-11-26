@@ -835,17 +835,22 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
         stage = next(s for s in STAGES if s.key == "building-design")
         result = building_results(payload, out, out["report_evidence"])
         from .g1_contract import g1_contract
+        from .g2_contract import g2_contract, verification_record
         base = result["wall_sections"]["batch"].get("modal_base", {}).get("basement_reference")
         project_profile = project_seismic_profile(payload, physical_scope=physical_scope, basement=base, input_sha=input_sha)
         result["g1_contract"] = g1_contract(payload, analysis_setup_reconciliation, pmm_scope, project_profile, input_sha)
+        result["g2_contract"] = g2_contract(result["g1_contract"],payload,out["r08_local_slenderness"])
         if not all(contract.accepts(result) for contract in stage.produces):
             raise ValueError("INVALID_STAGE_OUTPUT:building-design")
         out["building_design"] = result
         run.record(stage.key, {"schema": result["schema"], "results_sha256": _digest(result),
                                "column_count": result["column_count"], "beam_count": result["beam_count"]},
                    input_sha256=input_sha)
-        (run.root / "g1-contract.json").write_text(json.dumps(result["g1_contract"], ensure_ascii=False, indent=2),
-                                                   encoding="utf-8")
+        for group in ("g1","g2"):
+            (run.root / (group+"-contract.json")).write_text(json.dumps(result[group+"_contract"], ensure_ascii=False, indent=2),
+                                                             encoding="utf-8")
+        verification=verification_record(run.root,result,input_sha)
+        (run.root / "g2-verification.json").write_text(json.dumps(verification,ensure_ascii=False,indent=2),encoding="utf-8")
     out["report_evidence"]["seismic_project_profile"] = project_profile
     if profile_lineage is not None and scenario is None:
         out["report_evidence"]["design_scenario"] = profile_lineage

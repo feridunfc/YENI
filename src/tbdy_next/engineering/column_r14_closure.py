@@ -431,6 +431,7 @@ def _evaluate_single_r14_column(
     low_axial_joints = set()
     interval_directions = {}
     unresolved_seismic_nd = False
+    uncredited = set((dependency_row or {}).get("signed_alpha_uncredited_directions",())) if alpha_consumed else set()
     for j in scwb_joints:
         exception = j.get("low_axial_exception") or {}
         if exception.get("exempt") is True:
@@ -441,7 +442,8 @@ def _evaluate_single_r14_column(
             interval_directions[j["joint_id"], j["direction"]] = ratio
             scwb_ratios.append(ratio)
             continue
-        elif exception.get("status") in ("LOW_AXIAL_LIMIT_EXCEEDED", "UNRESOLVED"):
+        elif (j.get("direction") not in uncredited and
+              exception.get("status") in ("LOW_AXIAL_LIMIT_EXCEEDED", "UNRESOLVED")):
             unresolved_seismic_nd = True
         blk = j.get("engineer_selected_scwb") or j
         sat = blk.get("reference_satisfied" if "engineer_selected_scwb" in j else "scenario_reference_satisfied")
@@ -449,6 +451,8 @@ def _evaluate_single_r14_column(
         if rat is not None:
             scwb_ratios.append(float(rat))
         if sat is False:
+            if j.get("direction") in uncredited:
+                continue  # The signed fixed point carries this column at its original design demand.
             scwb_unsat = True
         elif sat is None:
             scwb_unbound = True
@@ -459,7 +463,7 @@ def _evaluate_single_r14_column(
     if unresolved_seismic_nd:
         open_gates.append("SCWB_SEISMIC_GOVERNING_ND_UNQUALIFIED")
     scwb_satisfied = (not scwb_unsat and not scwb_unbound) if scwb_joints else None
-    if (low_axial_joints or unresolved_seismic_nd) and not scwb_unsat:
+    if (low_axial_joints or unresolved_seismic_nd or uncredited) and not scwb_unsat:
         scwb_satisfied = None
     if scwb_unbound and any(any(f is not None for f in (e.get("faces") or {}).values()) for e in det.get("member_joint_ends") or ()):
         open_gates.append("SCWB_JOINT_CAPACITIES_UNBOUND")

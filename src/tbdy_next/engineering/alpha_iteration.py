@@ -50,6 +50,26 @@ def _earthquake_shear_provenance(source, names, plan):
     return earthquake_partition(source, names, plan)
 
 
+def _fixed_unframed_foot(source, r10, dependencies, uid, point):
+    """Eq. 7.3 has zero beam moment sum at an independently bound fixed footing."""
+    from ..etabs_geometry import POINT_RESTRAINT_SCHEMA
+    joint = (dependencies.get("joints") or {}).get(point,{})
+    feature = (source.get("column_axial") or {}).get("r10_source") or {}
+    support = feature.get("point_restraints") or {}
+    record = (support.get("observations") or {}).get(point,{})
+    physical = (((r10 or {}).get("physical_clear_lengths") or {}).get("per_member") or {}).get(uid) or {}
+    faces = (physical.get("faces") or {}).get("I",{})
+    return (joint.get("execution_allowed") is True and joint.get("column_ids")==[uid]
+            and joint.get("beam_ends")==[] and faces.get("joint_id")==point and faces.get("beams")==[]
+            and any(s.get("type")=="Mat" for s in faces.get("slabs",()))
+            and feature.get("model_locked_before") is True and feature.get("model_locked_after") is True
+            and feature.get("units_before")==feature.get("units_after")==6
+            and support.get("schema")==POINT_RESTRAINT_SCHEMA and support.get("point_ids",[]).count(point)==1
+            and point not in (support.get("errors") or {}) and record.get("advanced_axes") is False
+            and isinstance(record.get("local_dof"),list) and len(record["local_dof"])==6
+            and all(v is True for v in record["local_dof"]))
+
+
 def qualify_story_alpha(source, axial, scope, dependencies, r10):
     """Compute alpha using original forces at one physically common bottom cut.
 
@@ -136,6 +156,12 @@ SCWB is still a selected-candidate reference, not engineering approval.
                         for end in ("I", "J"):
                             js = [j for j in details.get(uid, {}).get("scwb_joints", ())
                                   if j.get("target_end") == end and j.get("direction") == direction]
+                            if (not js and end == "I"
+                                    and _fixed_unframed_foot(source,r10,dependencies,uid,frame["point_i"])):
+                                checks.append(True)
+                                end_joints[end] = {"joint_id":frame["point_i"],"target_end":end,
+                                                   "basis":"FIXED_MAT_FOOT_NO_INCIDENT_BEAM_ZERO_BEAM_SUM"}
+                                continue
                             if len(js) != 1:
                                 raise ValueError("ALPHA_TWO_END_SCWB_OR_EXEMPTION_UNVERIFIED")
                             end_joints[end] = js[0]
@@ -159,6 +185,7 @@ SCWB is still a selected-candidate reference, not engineering approval.
                         ratio_satisfied = all(v is True for v in checks)
                         credit_used = bool(credit["eligible"] and not ratio_satisfied)
                         terms.append({"member_id": uid, "source_cut": cut, "shear_kn": shear,
+                                      "end_bases":{e:j.get("basis","SELECTED_JOINT_CASES") for e,j in end_joints.items()},
                                       "two_end_scwb_satisfied": ratio_satisfied,
                                       "numerator_eligible": ratio_satisfied or credit_used,
                                       "amplification_eligible": ratio_satisfied,
@@ -433,7 +460,9 @@ def _joint_feasibility(uid, detail, state):
                     or len(cases) != len(required) or {c.get("combination") for c in cases} != set(required)):
                 blocked.append(code + "JOINT_SHEAR_SOURCE_SCOPE_UNRESOLVED"); continue
             basis = shear.get("v_kol_basis")
-            conservative = basis == "CONSERVATIVE_ZERO_VKOL_INCOMPLETE_SEISMIC_SHEAR" and len(upper) == 1
+            conservative = len(upper) == 1 and (basis == "CONSERVATIVE_ZERO_VKOL_INCOMPLETE_SEISMIC_SHEAR"
+                or (basis == "CONSERVATIVE_ZERO_VKOL_AFTER_ALPHA" and (state.get("revision") or {}).get("sha256")
+                    and shear.get("alpha_revision_sha256")==state["revision"]["sha256"]))
             bound = basis == "MIN_UPPER_LOWER_COLUMN_SHEAR" and len(upper) == 1
             roof = basis == "ROOF_JOINT_NO_UPPER_COLUMN_VKOL_ZERO" and not upper
             if (shear.get("v_kol_applicability") != "CONDITIONAL_NONNEGATIVE_DEDUCTION_FOR_QUALIFIED_SWAY_MECHANISM"
@@ -661,7 +690,16 @@ def run_alpha_design_iteration(*, source, geometry, axial, pmm, extra, scope, de
             source, geometry, axial, pmm, global_pdelta, r10_live=next_r10, selected_cages=new_cages,
             **({"configured_cut_scope": scope} if source.get("building_design") is not None else {}),
             dependency_plan=plan, demand_revision=owner_revision, previous_result=state["r08"], recompute_member_ids=changed)
+        def layout(collection, uid):
+            cage=collection.get(uid)
+            if cage is None:
+                return None
+            row=cage.selection.get("selected") or {}
+            dimensions=("num_bars_2_dir","num_bars_3_dir","diameter_mm")
+            return [row[key] for key in dimensions] if all(row.get(key) is not None for key in dimensions) else None
+        changes={u:{"before":layout(state["cages"],u),"after":layout(new_cages,u)} for u in changed}
         actions = {**next_r10.get("alpha_recalculation", {}), "r08_member_ids": changed,
+                   "selected_layout_changes":{u:r for u,r in changes.items() if r["before"]!=r["after"]},
                    "beam_owner_reexecuted": False,
                    "second_order_constraint_count": sum(map(len, more_m.values())),
                    "capacity_shear_constraint_count": sum(map(len, more_v.values()))}
