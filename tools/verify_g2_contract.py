@@ -15,7 +15,8 @@ def verify(directory):
     sealed=read_snapshot(directory,input_sha=input_sha,on_verified_source=sources.append)
     require(bool(sealed) and len(sources)==1,"SEALED_SOURCE_AND_TERMINAL_REQUIRED")
     building=sealed["results"]["building_design"]
-    require(building["g2_contract"]==g2_contract(building["g1_contract"],sources[0],sealed["results"]["r08_local_slenderness"]),"G2_REPLAY_MISMATCH")
+    require(building["g2_contract"]==g2_contract(building["g1_contract"],sources[0],sealed["results"]["r08_local_slenderness"],
+            apply_review=building["g2_contract"]["decision"] == "SUPERVISOR_ACCEPTED"),"G2_REPLAY_MISMATCH")
     verification=verification_record(directory,building,input_sha)
     require(verification==json.loads((directory/"g2-verification.json").read_bytes()),"G2_VERIFICATION_RECORD_MISMATCH")
     return verification

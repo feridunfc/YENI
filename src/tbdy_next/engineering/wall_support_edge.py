@@ -179,7 +179,10 @@ def support_edge_actions(panel, geometry, raw, states, combinations, *, record_t
                     sample = [c for c in candidates if c["point"] == node]
                     vertical.append({"z_m":coords[node][2], "node":node,
                         "lower_kn_m":min(c["equivalent_friction_lower_kn_m"] for c in sample),
-                        "upper_kn_m":max(c["equivalent_friction_demand_kn_m"] for c in sample)})
+                        "upper_kn_m":max(c["equivalent_friction_demand_kn_m"] for c in sample),
+                        "element_intervals":{c["traction_source"]+"|"+c["element"]:
+                            [c["equivalent_friction_lower_kn_m"], c["equivalent_friction_demand_kn_m"]]
+                            for c in sample}})
                 cuts[-1]["tension_intervals"] = vertical
         middle=[r for r in controls if r["interior"]]
         results[side]={"column":column,"counterparts":counterparts,"nodes":nodes,"checked_static_interior":len(middle),

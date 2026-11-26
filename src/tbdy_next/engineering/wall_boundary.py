@@ -14,19 +14,19 @@ from .confinement_regions import _hook
 from .rebar_selection import _min_crosstie_legs_for_face
 
 
-def _section_minima(length, thickness):
+def _section_minima(length, thickness, diameter=14):
     area = length * thickness
-    bar_area = pi * 14 ** 2 / 4
+    bar_area = pi * diameter ** 2 / 4
     result = {}
     for zone, width, ratio in (("critical", max(0.2 * length, 2 * thickness), 0.002),
                                ("above_critical", max(0.1 * length, thickness), 0.001)):
-        required = max(4 * bar_area, ratio * area)
+        required = max(4 * pi * 14**2 / 4, ratio * area)
         # Symmetric two-face proposal, using the clause's reference bar size.
-        bars = 2 * ceil(required / (2 * bar_area))
+        bars = max(4, 2 * ceil(required / (2 * bar_area)))
         result[zone] = {"end_width_mm": width, "minimum_as_per_end_mm2": required,
-                        "bars_per_end": bars, "diameter_mm": 14, "provided_as_per_end_mm2": bars * bar_area,
+                        "bars_per_end": bars, "diameter_mm": diameter, "provided_as_per_end_mm2": bars * bar_area,
                         "maximum_unspliced_as_per_end_mm2": 0.03 * width * thickness,
-                        "pitch_limit_mm": min(150, 6 * 14, thickness / 3) if zone == "critical"
+                        "pitch_limit_mm": min(150, 6 * diameter, thickness / 3) if zone == "critical"
                         else min(thickness, 200)}
     return result
 
@@ -52,10 +52,10 @@ def _catalog_proposal(source):
     return None
 
 
-def _boundary_cage(section, fck, material):
+def _boundary_cage(section, fck, material, tie=10):
     detail = section["adopted_constant_detail"]
     u, v = detail["end_width_mm"], section["thickness_mm"]
-    cover, tie, long_d = material["cover_mm"], 10, detail["diameter_mm"]
+    cover, long_d = material["cover_mm"], detail["diameter_mm"]
     spacing = 10 * floor(detail["pitch_limit_mm"] / 10)
     if spacing < 50 or min(u, v) <= 2 * (cover + tie + long_d / 2):
         raise ValueError("BOUNDARY_HOOP_OR_LONGITUDINAL_CAGE_DOES_NOT_FIT")
@@ -144,6 +144,52 @@ def _stack(panels):
 _ASSIGN = re.compile(r'^\s*AREAASSIGN\s+"([^"]+)"\s+"([^"]+)"\s+(.*)$')
 
 
+def _bridge_interface(ids, rows, verified, coords):
+    """Identify the short unassigned continuation and the transverse wall on the same full edge."""
+    for uid in ids:
+        pts = verified[uid]["point_ids"]
+        for end in (set((pts[0],pts[3])),set((pts[1],pts[2]))):
+            adjacent = [key for key,wall in verified.items() if key != uid and key in rows
+                        and end <= set(wall.get("point_ids",()))]
+            if len(adjacent) != 2:
+                continue
+            links = [key for key in adjacent if not rows[key].get("pier")]
+            if len(links) != 1:
+                continue
+            link = links[0]
+            turn, = set(adjacent)-{link}
+            if not rows[turn].get("pier"):
+                continue
+            def axis(key):
+                a,b = (coords[q] for q in verified[key]["point_ids"][:2])
+                return (float(b["X"])-float(a["X"]),float(b["Y"])-float(a["Y"]))
+            a,b,c = map(axis,(uid,link,turn))
+            if (abs(a[0]*b[1]-a[1]*b[0]) < 1.e-8 and abs(a[0]*c[0]+a[1]*c[1]) < 1.e-8
+                    and 0 < float(verified[link]["panel_length_m"]) <= float(verified[uid]["thickness_mm"])/1000+1.e-8):
+                return {"receiving_member":uid,"transfer_member":link,"transverse_member":turn,"edge_nodes":sorted(end)}
+
+
+def coordinated_boundary(section, material, fck, height, aggregate):
+    from .basement_wall_pressure import clear_limit
+    # Two uninterrupted 14 mm bars per face can traverse one receiving hoop bay.
+    bar = 14
+    for diameter in (20,22):
+        minima = _section_minima(section["length_mm"],section["thickness_mm"],diameter)
+        proposed = {**section,"section_minima":minima,"adopted_constant_detail":minima["critical"]}
+        end = minima["critical"]
+        if end["provided_as_per_end_mm2"] > end["maximum_unspliced_as_per_end_mm2"]:
+            continue
+        try:
+            cage = _boundary_cage(proposed,fck,material,tie=12)
+        except ValueError:
+            continue
+        pitch = height/ceil(height/cage["spacing_mm"])
+        room = pitch-cage["tie_diameter_mm"]-2*bar-2*clear_limit(aggregate,bar,12)
+        if room >= clear_limit(aggregate,bar):
+            return proposed,cage
+    raise ValueError("COORDINATED_BOUNDARY_HOOP_WINDOW_INFEASIBLE")
+
+
 def wall_boundaries(source, stages, evidence, wall_inventory):
     rows = {uid: {"member_id": uid, "label": obj["Label"], "story": obj["Story"], "status": "HOLD",
                   "reason": "PIER_ASSIGNMENT_AND_RECONCILED_RECTANGULAR_PANEL_REQUIRED"}
@@ -213,7 +259,14 @@ def wall_boundaries(source, stages, evidence, wall_inventory):
         cage = {"status": "HOLD", "reason": "UNIQUE_SOURCE_CONCRETE_AND_CATALOG_PROPOSAL_REQUIRED"}
         if material and strengths.get(concrete):
             try:
-                cage = {**_boundary_cage(section, strengths[concrete], material), "concrete": concrete}
+                cage = _boundary_cage(section, strengths[concrete], material)
+                interface = _bridge_interface(ids, rows, verified, coords)
+                if interface:
+                    panel = next(w for w in panels if set(interface["edge_nodes"]) <= set(w["lower_edge"]+w["upper_edge"]))
+                    proposed, selected = coordinated_boundary(section, material, strengths[concrete],
+                        1000*(panel["top_z_m"]-panel["bottom_z_m"]),source["building_design"]["maximum_aggregate_mm"])
+                    section,cage = proposed,{**selected,"coordinated_interface":interface}
+                cage = {**cage, "concrete":concrete}
             except ValueError as exc:
                 cage = {"status": "HOLD", "reason": str(exc)}
         result["piers"].append({"pier": name, "member_ids": ids, **section, "transverse_cage": cage})

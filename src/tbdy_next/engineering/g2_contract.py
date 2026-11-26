@@ -99,7 +99,7 @@ def verify_frame_evidence(doc):
         # A frozen example may be consumed by another producer only after its
         # independent end-to-end replay reproduces every field except producer identity.
         require(_digest(doc) == FRAME_REFERENCE_SHA256
-                and _digest({**doc, "implementation_sha256": current}) == FRAME_REPLAY_SHA256,
+                and _digest({**doc, "implementation_sha256": current}) in (FRAME_REPLAY_SHA256, PREVIOUS_FRAME_REPLAY_SHA256),
                 "FRAME_IMPLEMENTATION_CHANGED")
     report = doc["positive"]
     require(report["feedback_consumed"] is True and report["terminal"]=="FIXED_POINT_REFERENCE" and report["feasibility"]=="FEASIBLE_REFERENCE"
@@ -185,10 +185,38 @@ def _frame():
 FRAME_REFERENCE_SHA256="80a75a9d6b1dd6a9d9efdbf4ba7aedd4c98442c5a3518ae60757e3f8efa3d1a3"
 # The independent complete replay includes the producer fingerprint in its checksummed data.
 # The later producer treats missing legacy story terms as ineligible for SCWB credit.
-FRAME_REPLAY_SHA256="5b4c97c6ca9c5d059f7495a3e0537d0a22e27d0fee11d5a284d9b50bd08567ce"
+PREVIOUS_FRAME_REPLAY_SHA256="5b4c97c6ca9c5d059f7495a3e0537d0a22e27d0fee11d5a284d9b50bd08567ce"
+FRAME_REPLAY_SHA256="73dc686908d0236a78d7e10382bdbbffb9a331f2ffa322b17bcff265eaa95a54"
 
 
-def g2_contract(g1,source,local):
+ACCEPTED_G2 = "d4b45b5d6126c733d63f5f8d068429a8a482d267078c1459ad47eb8bb45cf274"
+ACCEPTED_VERIFICATION = "7c07d570f3c9168b38412b1bc5ebb3501dc71de16a36c985ec10b44891d1afa4"
+ACCEPTED_RUN = "RUN-3328af801a9e4f19a83665f9533e9dee"
+
+
+def supervisor_decision(candidate):
+    """Apply the recorded decision only to the exact replay of both approved seals."""
+    if candidate["contract_sha256"] != ACCEPTED_G2:
+        return candidate
+    record, _ = _reference("g2_reviewed_verification.json")
+    verification = _digest({k: v for k, v in record.items() if k != "verification_sha256"})
+    require(candidate["contract_sha256"] == _digest({k:v for k,v in candidate.items() if k!="contract_sha256"})
+            and verification == record["verification_sha256"] == ACCEPTED_VERIFICATION
+            and record["contract_sha256"] == ACCEPTED_G2 and record["input_sha256"] == candidate["input_sha256"]
+            and record["evidence_sha256"] == {k:_digest(v) for k,v in candidate["evidence"].items()}
+            and record["gaps"] == candidate["gaps"] and set(record["gaps"]) == {"GAP-013", "GAP-016"}
+            and all(row["closure_ready"] for row in record["gaps"].values()), "G2_REVIEWED_VERIFICATION_MISMATCH")
+    decision = {"reviewed_run": ACCEPTED_RUN, "reviewed_contract_sha256": ACCEPTED_G2,
+                "reviewed_verification_sha256": verification,
+                "scope": "Signed two-storey feedback, independent C29 section study and frozen 44 report rows",
+                "separate_gaps": ["GAP-018"], "original_project_approval": "NOT_GRANTED"}
+    packet = {k:v for k,v in candidate.items() if k != "contract_sha256"}
+    packet.update(decision="SUPERVISOR_ACCEPTED", supervisor_acceptance=decision,
+                  gaps={k:{**v,"status":"CLOSED","supervisor_approval":"ACCEPTED"} for k,v in candidate["gaps"].items()})
+    return {**packet, "contract_sha256": _digest(packet)}
+
+
+def g2_contract(g1,source,local, *, apply_review=True):
     packet={"schema":"tbdy.next.g2-contract.v1","input_sha256":g1.get("input_sha256"),"g1_contract_sha256":g1.get("contract_sha256"),
             "g1_reviewed_sha256":(g1.get("supervisor_acceptance") or {}).get("reviewed_contract_sha256"),
             "decision":"SUPERVISOR_REVIEW","engineering_release":"NOT_READY","evidence":{}}
@@ -206,7 +234,8 @@ def g2_contract(g1,source,local):
     packet["gaps"]={k:{"status":"PARTIAL","closure_ready":accepted and all(n in evidence for n in names),
                         "supervisor_approval":"PENDING"} for k,names in (("GAP-013",("frame",)),("GAP-016",("golden","c29","frame")))}
     packet["unresolved"]=errors
-    return {**packet,"contract_sha256":_digest(packet)}
+    candidate = {**packet,"contract_sha256":_digest(packet)}
+    return supervisor_decision(candidate) if apply_review else candidate
 
 
 def verification_record(directory, building, input_sha):

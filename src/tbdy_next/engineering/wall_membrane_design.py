@@ -82,8 +82,10 @@ def layer_demands(groups, arm_mm, thickness, fcd_cracked, shear_strength):
     return out
 
 
-def check_curtains(states, cache, thickness, horizontal, vertical, material, offset):
-    vertical_offset = offset-(horizontal["diameter_mm"]+vertical["diameter_mm"])/2
+def check_curtains(states, cache, thickness, horizontal, vertical, material, offset, *, vertical_offset_mm=None):
+    vertical_offset = offset-(horizontal["diameter_mm"]+vertical["diameter_mm"])/2 if vertical_offset_mm is None else vertical_offset_mm
+    if vertical_offset_mm is not None:
+        required(0 < vertical_offset <= (thickness-vertical["diameter_mm"])/2, "VERTICAL_CURTAIN_OUTSIDE_SECTION")
     arm = 2*min(offset, vertical_offset)
     required(0 < arm < thickness, "SANDWICH_REINFORCEMENT_ARM_INVALID")
     # The equivalent ties at the inner arm can be distributed to actual symmetric

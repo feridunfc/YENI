@@ -1,0 +1,27 @@
+{
+  "contract_sha256": "d4b45b5d6126c733d63f5f8d068429a8a482d267078c1459ad47eb8bb45cf274",
+  "evidence_sha256": {
+    "c29": "25c4cca6fb77bac273b48156cf27a9dc8c72de5c6c7cad5ec1f1a5c4f3bb4dcd",
+    "frame": "70a22ee15a3fc98af08899884a64717a90428fbf28ac3ac3d257739df76d5b08",
+    "golden": "79c366915b684780aac294792dafe54414f0cc42fde2fe32ff53b70e556d50e0"
+  },
+  "files_sha256": {
+    "g1-contract.json": "bb5950a4fa25d82b2025c941a16afb4d439fba9c56934bb5715468dc4f8ea0df",
+    "g2-contract.json": "d6b0f2ea1e4d455a37eaf2f0024ce3221f57c5a4114c714d339b617f0a39cc83"
+  },
+  "gaps": {
+    "GAP-013": {
+      "closure_ready": true,
+      "status": "PARTIAL",
+      "supervisor_approval": "PENDING"
+    },
+    "GAP-016": {
+      "closure_ready": true,
+      "status": "PARTIAL",
+      "supervisor_approval": "PENDING"
+    }
+  },
+  "input_sha256": "10b2a06edbc656bc6e8972ec542209f8dd904cc9ee088165ab3c92f87a043033",
+  "schema": "tbdy.next.g2-verification.v1",
+  "verification_sha256": "7c07d570f3c9168b38412b1bc5ebb3501dc71de16a36c985ec10b44891d1afa4"
+}

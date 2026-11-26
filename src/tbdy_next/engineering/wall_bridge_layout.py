@@ -61,8 +61,37 @@ def series_interface_checks(edges, resistance, development, length, selection_li
                     raise ValueError("BRIDGE_EDGE_HEIGHT_FORCE_INVALID")
             differences = [(max(b["upper_kn_m"]-a["lower_kn_m"], a["upper_kn_m"]-b["lower_kn_m"]),
                             a["z_m"],a["node"],b["node"]) for a,b in zip(*intervals)]
-            jump, elevation, node_i, node_j = max(differences)
-            controlling = {"elevation_m":elevation,"node_i":node_i,"node_j":node_j}
+            physical = any("element_intervals" in point for grid in intervals for point in grid)
+            if physical:
+                # Compare like sections of the same physical element. For a maximum
+                # over matching traction definitions, |max a - max b| <= max |a-b|.
+                differences = []
+                for a,b in zip(*intervals):
+                    aa,bb = a.get("element_intervals",{}),b.get("element_intervals",{})
+                    if not aa or aa.keys() != bb.keys():
+                        raise ValueError("BRIDGE_OPPOSITE_PHYSICAL_ELEMENT_OR_NODAL_SLICE_MISSING")
+                    for bands,point in ((aa,a),(bb,b)):
+                        if (not all(isinstance(band,(list,tuple)) and len(band)==2 for band in bands.values())
+                                or abs(max(band[1] for band in bands.values())-point["upper_kn_m"])>1.e-8
+                                or abs(min(band[0] for band in bands.values())-point["lower_kn_m"])>1.e-8):
+                            raise ValueError("BRIDGE_ELEMENT_INTERVAL_POPULATION_MISMATCH")
+                    for key,left_band in aa.items():
+                        right_band = bb[key]
+                        if not all(len(band) == 2 and all(isfinite(v) for v in band)
+                                   and 0 <= band[0] <= band[1]+1.e-8
+                                   for band in (left_band,right_band)):
+                            raise ValueError("BRIDGE_ELEMENT_TRACTION_INTERVAL_INVALID")
+                        if any(band[0] < point["lower_kn_m"]-1.e-8 or band[1] > point["upper_kn_m"]+1.e-8
+                               for band,point in ((left_band,a),(right_band,b))):
+                            raise ValueError("BRIDGE_ELEMENT_INTERVAL_OUTSIDE_NODAL_BOUNDS")
+                        diff = max(right_band[1]-left_band[0],left_band[1]-right_band[0])
+                        differences.append((diff,a["z_m"],a["node"],b["node"],key))
+                jump,elevation,node_i,node_j,element = max(differences)
+                controlling = {"elevation_m":elevation,"node_i":node_i,"node_j":node_j,
+                               "traction_and_element":element,"matched_slices":len(differences)}
+            else:
+                jump, elevation, node_i, node_j = max(differences)
+                controlling = {"elevation_m":elevation,"node_i":node_i,"node_j":node_j}
         rows.append({"combination": name, "i_kn_m": left, "j_kn_m": right,
                      "series_demand_kn_m": peak, "friction_ratio": peak / resistance,
                      "face_envelope_difference_kn_m": abs(right - left),
@@ -122,6 +151,10 @@ def bridge_checks(geometry,designs,boundaries,source,material,aggregate,states,c
             if (abs(section.t2-foreign["span_mm"])>1e-4 or abs(section.t3-foreign["thickness_mm"])>1e-4
                     or abs(sum(a*b for a,b in zip(straight["width_direction"],direction)))<1-1e-8):
                 raise ValueError("BRIDGE_RECEIVING_SECTION_IDENTITY_REQUIRED")
+            if pier["transverse_cage"].get("coordinated_interface"):
+                from .wall_bridge_coordinated import coordinated_trial
+                receipt["coordinated_trial"] = coordinated_trial(straight,turn,link,ns,fs,section,pier,states,
+                    material,aggregate,sd["horizontal"]["cover_mm"],(geometry["top_m"]-geometry["bottom_m"])*1000,cuts)
             from .wall_bridge_trial import synchronous_trial
             try:
                 receipt["synchronized_trial"] = synchronous_trial(straight,turn,link,ns,fs,section,pier,states,
@@ -267,6 +300,10 @@ def bridge_checks(geometry,designs,boundaries,source,material,aggregate,states,c
             receipt.update(status="TRANSFER_CAGE_LAYOUT_VERIFIED",boundary_hoop_checks=hk,bridge_crosstie_checks=tied)
         except (KeyError,ValueError,TypeError,IndexError,StopIteration) as exc:
             receipt["reason"]=str(exc)
+            trial = receipt.get("coordinated_trial",{})
+            if trial.get("unresolved"):
+                receipt["existing_layout_reason"] = str(exc)
+                receipt["reason"] = "COORDINATED_BRIDGE_LAYOUT_UNRESOLVED: " + ", ".join(trial["unresolved"])
         for joint in joints:
             result["joint "+joint]=receipt
     return result
