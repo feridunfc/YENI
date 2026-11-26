@@ -1,9 +1,9 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-25T19:11:10+00:00",
+  "updated_at_utc": "2026-11-26T14:43:29.061821+00:00",
   "repository": "feridunfc/YENI",
-  "baseline_implementation_commit": "ca1a0af8a090fb8fc809e30e53000e01047b21e1",
+  "baseline_implementation_commit": "b220e5a9c3aa5658be47b9d24565d5f05554d021",
   "local_reconciled": true,
   "scope_note": "The original basement meets both period ratios in §3.3.1.1(b). Only the upper W22 band has a continuous three-sided return. The original 300 signed modal and six static storey and direction checks balance across the three datums. Each wall reference covers 390 assigned faces. The sealed offline calculation RUN-80997c5fa229452c82948c781b44ae22 records 69 conditional columns, 14 held columns and four foundation failures, plus 21/30 proposed wall panels. W143, W50, W62 and W65 have complete local details. W55 and W31 remain held at the 400 mm W32 transfer into W6. The five archived G1 gaps are closed by the Supervisor. W22 still has seven balanced panel transfers and zero of 14 field controls within tolerance.",
   "status_policy": {
@@ -33,7 +33,7 @@
     "GAP-018",
     "GAP-006"
   ],
-  "active_task": "Resolve the W31/W55 transfer into the W6 boundary cage, the 14 wall-coupled columns and the W22 transition. Retain the four C21–C24 foundation findings and the distinct GAP-015 and GAP-018 scopes.",
+  "active_task": "Supervisor review of the two G2 candidates. The serial W32 bridge requires a coordinated W55 anchorage and curtain layout that meets the original cover, clearance and selection reserve.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -838,8 +838,8 @@
       "title": "SCWB and alpha demand feedback",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Bounded signed-reference iteration, mixed signed E partition and scalar spectral replay exist. R10 applies the two-column low-axial exception at qualified ends. On the original 52 two-column joints, 47 qualify and five exceed a seismic threshold. The report records each end and R14 distinguishes exempt joints from actual moment-ratio satisfaction. The supported signed alpha consumer now admits qualified per-column low-N numerator credit, using the existing all-cut axial maxima and both configured-end records. Credit to Vis and eligibility for demand amplification are recorded separately. The independent 60/20/20 consumer example gives alpha=0.8 and amplifies only the actual two-end SCWB column; its SCWB flags are explicit contract fixtures, not a completed actual-owner building slice. The original fresh selected scenario now resolves both global directions for all five non-exempt joints through continuous principal-plane resistance lower bounds over all assigned axial intervals. Both rotations in eight combinations give 160/160 sufficient comparisons. The minimum lower ratio is 2.7298857767624676. The low-axial exemption accounts for the other 47 physical joints. Terminal feasibility preserves a proven joint failure beside an exhausted cage. All 348 directional column ends in the assigned scenario are resolved. The top-level alternative is not required. R14 projects the actual continuous interval ratio for each of the five non-exempt joints. On the full +4.50/X supplemental static reference 32/32 columns qualify for low-axial credit. Vis and Vik both equal 2361.123671142073 kN and the unit factor reproduces all 32 signed shears. Of the 48 physical joint–directions for the twelve new frame designs, 40 satisfy the low-axial exemption and eight satisfy the interval check.",
-      "blocker": "The selected original scenario requires zero design iterations. A full independent physical example that actually calls for amplification below alpha=1 and changes downstream design is still needed for the broader feedback gap. Selected cages and the beam N=0 scenario bound the result.",
+      "achieved_scope": "Bounded signed-reference iteration, mixed signed E partition and scalar spectral replay exist. R10 applies the two-column low-axial exception at qualified ends. On the original 52 two-column joints, 47 qualify and five exceed a seismic threshold. The report records each end and R14 distinguishes exempt joints from actual moment-ratio satisfaction. The supported signed alpha consumer now admits qualified per-column low-N numerator credit, using the existing all-cut axial maxima and both configured-end records. Credit to Vis and eligibility for demand amplification are recorded separately. The independent 60/20/20 consumer example gives alpha=0.8 and amplifies only the actual two-end SCWB column; its SCWB flags are explicit contract fixtures, not a completed actual-owner building slice. The original fresh selected scenario now resolves both global directions for all five non-exempt joints through continuous principal-plane resistance lower bounds over all assigned axial intervals. Both rotations in eight combinations give 160/160 sufficient comparisons. The minimum lower ratio is 2.7298857767624676. The low-axial exemption accounts for the other 47 physical joints. Terminal feasibility preserves a proven joint failure beside an exhausted cage. All 348 directional column ends in the assigned scenario are resolved. The top-level alternative is not required. R14 projects the actual continuous interval ratio for each of the five non-exempt joints. On the full +4.50/X supplemental static reference 32/32 columns qualify for low-axial credit. Vis and Vik both equal 2361.123671142073 kN and the unit factor reproduces all 32 signed shears. Of the 48 physical joint–directions for the twelve new frame designs, 40 satisfy the low-axial exemption and eight satisfy the interval check. A complete two-storey rigid-floor frame now runs through the production pipeline. All 16 signed storey/direction/combination records use the four physical columns. Three cages change. Eight governing biaxial sections have independent fixed-compression integration. All eight columns reach conditional R14 closure. A second run with a restricted cage catalogue exhausts after demand feedback.",
+      "blocker": "Supervisor review of the signed static two-storey example is pending. Spectral simultaneity and project design approval retain their separate scope.",
       "closure_criteria": "Prove alpha-to-demand-to-cage-to-PMM/shear/joint feedback at the same story/cut with all neighbors in an independent complete example, including correct nonconvergence states.",
       "owner_paths": [
         "src/tbdy_next/engineering/column_r10_live.py",
@@ -865,7 +865,8 @@
         "EV-STORY-STATIC-APPLICABILITY-20261120",
         "EV-VERTICAL-SLICE-ADOPTED-BASIS-20261121",
         "EV-FRAME-STORY-PLUS450-R14-20261122",
-        "EV-ORIGINAL-FRAME-STORY-26-R14-20261122"
+        "EV-ORIGINAL-FRAME-STORY-26-R14-20261122",
+        "EV-G2-FRAME-SERIAL-BRIDGE"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -890,6 +891,16 @@
           "S08",
           "S10"
         ]
+      },
+      "closure_ready": true,
+      "closure_candidate": {
+        "contract": "g2-contract.json",
+        "contract_sha256": "d4b45b5d6126c733d63f5f8d068429a8a482d267078c1459ad47eb8bb45cf274",
+        "verification": "g2-verification.json",
+        "evidence_ref": "EV-G2-FRAME-SERIAL-BRIDGE",
+        "supervisor_approval": "PENDING",
+        "verification_sha256": "7c07d570f3c9168b38412b1bc5ebb3501dc71de16a36c985ec10b44891d1afa4",
+        "run_id": "RUN-3328af801a9e4f19a83665f9533e9dee"
       }
     },
     {
@@ -1249,8 +1260,8 @@
       "title": "Golden coverage and complete independent example",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Historical 467-fixture bank, 10 alpha targets and 115776 separate-bank scalar comparisons are retained; new same-source oracle matches 38592 native comparisons and 45024 derived values. A separate source-binding audit matches 1600 native modal fields and 200 periods; this is not a new building arithmetic oracle. Separate recipe intake reproduced 333 frozen assertions, 1294 assertions in one proportional-modal synthetic chain, and three current-owner primitive values. The fixed 44-ID report comparison now has 36 numerical matches, four insufficient-source records and four engineering-interpretation differences. Three real GOLDEN-01/02 phi records now call the production TS500 scalar with hash-bound inputs, in addition to the preceding 13 owner bindings. Source IDs, expected values and tolerances are preserved. Independent actual-report reconstruction covers 54 DOCX story Q/beta-s rows, 864 column k rows, all 124 column critical-end bindings, 172 PDF theta rows and 12 PDF capacity-shear arithmetic cases; raw private sources and unresolved wall transformations remain separate. Public normal-pipeline one- and two-story synthetic fixtures execute actual selection, second order, PMM, shear and joint owners through sealed R14/report results. One original C29 selected-cage fixed-N PMM face has a numerical comparison with independently integrated capacity. The fixed-N independent check covers all 24 selected-C29 gravity faces on 18 physical case-cuts with a maximum capacity difference of 0.000471272 kN·m.",
-      "blocker": "The four insufficient-source rows are the PMM, capacity-shear, GOLDEN-03 and GOLDEN-04 report gates. Four adopted second-order factors retain their length/maximum-product interpretation differences: all 36 printed GOLDEN-02 rows match the product but none trigger that branch using displayed lk. Numerical phi matches do not qualify complete story populations, stiffness, load combinations or automatic engineering sway assignment. A complete independently validated actual-owner alpha-below-one building example remains open.",
+      "achieved_scope": "Historical 467-fixture bank, 10 alpha targets and 115776 separate-bank scalar comparisons are retained; new same-source oracle matches 38592 native comparisons and 45024 derived values. A separate source-binding audit matches 1600 native modal fields and 200 periods; this is not a new building arithmetic oracle. Separate recipe intake reproduced 333 frozen assertions, 1294 assertions in one proportional-modal synthetic chain, and three current-owner primitive values. The fixed 44-ID report comparison now has 36 numerical matches, four insufficient-source records and four engineering-interpretation differences. Three real GOLDEN-01/02 phi records now call the production TS500 scalar with hash-bound inputs, in addition to the preceding 13 owner bindings. Source IDs, expected values and tolerances are preserved. Independent actual-report reconstruction covers 54 DOCX story Q/beta-s rows, 864 column k rows, all 124 column critical-end bindings, 172 PDF theta rows and 12 PDF capacity-shear arithmetic cases; raw private sources and unresolved wall transformations remain separate. Public normal-pipeline one- and two-story synthetic fixtures execute actual selection, second order, PMM, shear and joint owners through sealed R14/report results. One original C29 selected-cage fixed-N PMM face has a numerical comparison with independently integrated capacity. The fixed-N independent check covers all 24 selected-C29 gravity faces on 18 physical case-cuts with a maximum capacity difference of 0.000471272 kN·m. The G2 packet seals the two physical frame runs, the 24 independently integrated C29 faces on the eight-element study, the separate original-building C29 calibration hashes and the 44 frozen golden records. Four source-limited rows and four documented Eq. 7.29 interpretation differences keep their original classes.",
+      "blocker": "Supervisor review of the bounded example and documented golden classifications is pending. The four historical entries with insufficient source have no numerical comparison.",
       "closure_criteria": "Run the production owner on a complete independent example with inputs, intermediate values, tolerances, identities and a sealed result chain.",
       "owner_paths": [
         "src/tbdy_next/verification/golden_gate.py",
@@ -1275,7 +1286,8 @@
         "EV-REPORT-SWAY-RECONSTRUCTION-20261121",
         "EV-S06-C29-FIXED-N-ONE-FACE-20261122",
         "EV-S06-C29-24-FACES-20261122",
-        "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122"
+        "EV-SUPERVISOR-C104-MILESTONE-REVIEW-20261122",
+        "EV-G2-FRAME-SERIAL-BRIDGE"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -1338,6 +1350,16 @@
         "plan": "docs/supervisor/c104_review_20261122/W22_TRANSFER_PLAN.json",
         "note": "Preserve 24/24 C29 face verification and the unchanged 44-record golden classification. The dated earlier one-face task is superseded for current assignments; broader independent/full-building examples remain open.",
         "status_changed": false
+      },
+      "closure_ready": true,
+      "closure_candidate": {
+        "contract": "g2-contract.json",
+        "contract_sha256": "d4b45b5d6126c733d63f5f8d068429a8a482d267078c1459ad47eb8bb45cf274",
+        "verification": "g2-verification.json",
+        "evidence_ref": "EV-G2-FRAME-SERIAL-BRIDGE",
+        "supervisor_approval": "PENDING",
+        "verification_sha256": "7c07d570f3c9168b38412b1bc5ebb3501dc71de16a36c985ec10b44891d1afa4",
+        "run_id": "RUN-3328af801a9e4f19a83665f9533e9dee"
       }
     },
     {
