@@ -19,21 +19,21 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "G4_ACCEPTED_G5_READY_REMOTE_CORNER_947_VERIFIED",
-    "work_branch": "work/g5-remote-ends",
+    "status": "G5_ACCEPTED_12_GAPS_CLOSED_NODE_931_SCHEDULE_24_OF_30",
+    "work_branch": "work/phase1-g5-closure-931",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "c51a2d22a37a67dbe3ca8c8795955a606275463b",
-    "calculation_implementation_commit": "26242c07e756f22704e7052c2822371248a780ac",
+    "inspected_base_commit": "bb5f1186ee2b81e1653c1c74a1097112f852e460",
+    "calculation_implementation_commit": "ddf365a720dc334bb0c9eb1648317091cf889552",
     "tested_git_subtrees": {
-      "src": "60083aea6feba25a0932c55522f19b38fadefa24",
-      "tests": "3636d935c50e38f61df4f6c99b274ea29dd12639",
+      "src": "7188d57e36cd2a510fc845993c3158222f5db3ec",
+      "tests": "f77bf21924172bfe1e7d9c0908f9d8c997047bff",
       "tools": "5471e42c7883e9cc8e80ae50848d966881c99757"
     },
-    "production_run_id": "RUN-149e783beb584ebc9242542da7c6b903",
-    "results_sha256": "9ff876290a0c5f767c304d49b1a84f0e0e9669010c15b3946abcf60dc385569f",
-    "snapshot_sha256": "4b789e786f5ce29e9e093d878e729295d6ad0c74ddb878eccced029cce5f69be",
-    "scope": "Scoped G4 formal closure (10/18 GAPs), verified remote corner 947 and zoned transition 931, and G5 frame-shear and pipeline Supervisor candidates.",
-    "verification": "EV-G5-PIPELINE-FRAME-SPLICE-20261127",
+    "production_run_id": "RUN-17d09f80ae484ae58e5228c424e606e0",
+    "results_sha256": "5ba6ff4f8a76428affe32a9c068379091a56fd83d9b30dc73b6b7f4f78d1699a",
+    "snapshot_sha256": "b9958d9b01f2eadce7bf7261829849844d145cf3047b75ef197e7a4f4f572067",
+    "scope": "Scoped G5 formal closure (12/18 GAPs), verified 13/13 coordinated W31/W32/W55/W6 channel and 11/11 3D knuckle/lap checks at node 931 (88,860 segments, zero clashes), advancing wall schedule from 21/30 to 24/30.",
+    "verification": "EV-G5-ACCEPTANCE-931-SCHEDULE-24-20261127",
     "engineering_release": "NOT_READY"
   },
   "last_observed_remote_implementation": {
@@ -16357,6 +16357,134 @@
         "javascript_suites": 12,
         "exit_code": 0
       }
+    },
+    {
+      "id": "EV-G5-ACCEPTANCE-931-SCHEDULE-24-20261127",
+      "observed_at": "2026-11-27T14:15:00+00:00",
+      "implementation_commit": "ddf365a720dc334bb0c9eb1648317091cf889552",
+      "tested_git_subtrees": {
+        "src": "7188d57e36cd2a510fc845993c3158222f5db3ec",
+        "tests": "f77bf21924172bfe1e7d9c0908f9d8c997047bff",
+        "tools": "5471e42c7883e9cc8e80ae50848d966881c99757"
+      },
+      "status": "SCOPED_G5_CLOSED_12_GAPS_NODE_931_VERIFIED_24_OF_30_WALLS",
+      "production_run_id": "RUN-17d09f80ae484ae58e5228c424e606e0",
+      "input_sha256": "10b2a06edbc656bc6e8972ec542209f8dd904cc9ee088165ab3c92f87a043033",
+      "snapshot_sha256": "b9958d9b01f2eadce7bf7261829849844d145cf3047b75ef197e7a4f4f572067",
+      "results_sha256": "5ba6ff4f8a76428affe32a9c068379091a56fd83d9b30dc73b6b7f4f78d1699a",
+      "report_sha256": "d770fcfb92cf69da60442e4c20039e91e33b06907fa83f96a11563b5f1d923bd",
+      "report_bytes": 8086113,
+      "live_etabs_calls": 0,
+      "building_outcomes": {
+        "columns_conditional": 69,
+        "columns_failed_foundation_confinement": 4,
+        "columns_held_wall_coupled": 14,
+        "columns_by_storey": {
+          "+9.00": [23, 23],
+          "+4.50": [32, 32],
+          "+0.00": [14, 32]
+        },
+        "beams_conditional": 180,
+        "walls_scheduled": [24, 30],
+        "basement_multipanel_walls_scheduled": [11, 17],
+        "basement_pressure_ends_satisfied": [22, 22],
+        "c29_independent_faces": [24, 24]
+      },
+      "remote_endpoints": {
+        "joint_947": {
+          "complete_corner": true
+        },
+        "joint_931": {
+          "zoned_checks_satisfied": [11, 11],
+          "outside_verticals_by_face": {
+            "-1": 23,
+            "1": 22
+          },
+          "regional_shell_corners": [2880, 2880],
+          "knuckle_clamps": {
+            "K1": {
+              "rods_mm": 22.0,
+              "ties_mm": 12.0,
+              "tie_count": 102,
+              "tie_utilization": 0.6824,
+              "rod_moment_utilization": 0.5089,
+              "rod_shear_utilization": 0.2174
+            },
+            "K23": {
+              "rods_mm": 28.0,
+              "ties_mm": 14.0,
+              "tie_count": 70,
+              "tie_utilization": 0.6667,
+              "rod_moment_utilization": 0.4506,
+              "rod_shear_utilization": 0.1589
+            },
+            "K4": {
+              "rods_mm": 28.0,
+              "ties_mm": 14.0,
+              "tie_count": 80,
+              "tie_utilization": 0.4129,
+              "rod_moment_utilization": 0.5724,
+              "rod_shear_utilization": 0.1917
+            }
+          },
+          "regional_cage_3d_audit": {
+            "segment_count": 88860,
+            "candidate_pairs_tested": 17991,
+            "cover_violations": 0,
+            "interfering_pairs": 0,
+            "satisfied": true
+          },
+          "unresolved": []
+        },
+        "coordinated_channel_checks_satisfied": [13, 13]
+      },
+      "G4": {
+        "reviewed_contract_sha256": "c135f6d62d0d3293386409392d2e42278a894d78328dca25536112832bd41973",
+        "current_contract_sha256": "56e35ff53450476f30a4477a12960d4ac3c148f7ff6b8e71e2103cecd7c382c9",
+        "current_verification_sha256": "5d6380df5c0fa9ec9064518dc99e38831065b410751a8e357cef23730d84134d",
+        "expected_population_sha256": "2242b7244486b5d6e90e8ac2d1715d90cf8116700efd7d37ba8c9b8d76dd3731"
+      },
+      "G5": {
+        "reviewed_contract_sha256": "9c2920861318bd8088aeaf63c2c57c1fa27e0900b16f87055035b207a0f1fbad",
+        "reviewed_verification_sha256": "82ed1f2b1f7b91a8dd7a379df59f1dff05cfcd4221c63e9b533eee3d43a341a1",
+        "accepted_contract_sha256": "5ccb9b2ac837d4ed21d8475b75f00a82f2549d71c99bffe3c410cefbb34ec1b3",
+        "accepted_verification_sha256": "b485e0a68d13d2cebaaa212a6cf51ff82a40081163de18d18a2fbeb67fc6f839",
+        "evidence_sha256": {
+          "frame_shear": "f95e13c77892d3a568443e907bbfeeb413acd6cd5b7c4f10215cd0392f8aaa9e",
+          "pipeline": "b002555e4939a0afc65708d806da874a358a7bb55728f34e5f9c4c8d44513662"
+        },
+        "closed_gaps_in_packet": [
+          "GAP-014",
+          "GAP-017"
+        ]
+      },
+      "formal_closed_gap_ids": [
+        "GAP-001",
+        "GAP-002",
+        "GAP-003",
+        "GAP-004",
+        "GAP-005",
+        "GAP-007",
+        "GAP-008",
+        "GAP-010",
+        "GAP-013",
+        "GAP-014",
+        "GAP-016",
+        "GAP-017"
+      ],
+      "engineering_release": "NOT_READY",
+      "formal_compliance": "NOT_PROVEN",
+      "independent_replays": [
+        "python -X utf8 -B tools/verify_g5_contract.py .receipts/RUN-17d09f80ae484ae58e5228c424e606e0"
+      ],
+      "software": {
+        "full_suite_command": "python -X utf8 -B tools/test_offline.py",
+        "python_discovered": 1822,
+        "python_seconds": 369.963,
+        "result": "OK (skipped=1)",
+        "javascript_suites": 12,
+        "exit_code": 0
+      }
     }
   ],
   "new_record_template": {
@@ -17376,6 +17504,24 @@
       "snapshot_sha256": "4b789e786f5ce29e9e093d878e729295d6ad0c74ddb878eccced029cce5f69be",
       "scope": "Scoped G4 formal closure (10/18 GAPs), verified remote corner 947 and zoned transition 931, and G5 frame-shear and pipeline Supervisor candidates.",
       "verification": "EV-G5-PIPELINE-FRAME-SPLICE-20261127",
+      "engineering_release": "NOT_READY"
+    },
+    {
+      "status": "G5_ACCEPTED_12_GAPS_CLOSED_NODE_931_SCHEDULE_24_OF_30",
+      "work_branch": "work/phase1-g5-closure-931",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "bb5f1186ee2b81e1653c1c74a1097112f852e460",
+      "calculation_implementation_commit": "ddf365a720dc334bb0c9eb1648317091cf889552",
+      "tested_git_subtrees": {
+        "src": "7188d57e36cd2a510fc845993c3158222f5db3ec",
+        "tests": "f77bf21924172bfe1e7d9c0908f9d8c997047bff",
+        "tools": "5471e42c7883e9cc8e80ae50848d966881c99757"
+      },
+      "production_run_id": "RUN-17d09f80ae484ae58e5228c424e606e0",
+      "results_sha256": "5ba6ff4f8a76428affe32a9c068379091a56fd83d9b30dc73b6b7f4f78d1699a",
+      "snapshot_sha256": "b9958d9b01f2eadce7bf7261829849844d145cf3047b75ef197e7a4f4f572067",
+      "scope": "Scoped G5 formal closure (12/18 GAPs), verified 13/13 coordinated W31/W32/W55/W6 channel and 11/11 3D knuckle/lap checks at node 931 (88,860 segments, zero clashes), advancing wall schedule from 21/30 to 24/30.",
+      "verification": "EV-G5-ACCEPTANCE-931-SCHEDULE-24-20261127",
       "engineering_release": "NOT_READY"
     }
   ],
