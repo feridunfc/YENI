@@ -118,13 +118,15 @@ def propose_shell_detail(source, stages, geometry, panel, material, cover, aggre
     web_cuts = [(c["face"],c["combination"],d) for c in cuts for d in c.get("web_demands",[])
                 if d["member"] == panel["member"]]
     cases = {r["combination"] for r in rows}
-    required(len(web_cuts) == 2*len(cases) and {(f,n) for f,n,_ in web_cuts}
-             == {(f,n) for f in ("Top","Bottom") for n in cases}, "SHELL_DETAIL_PIER_CUT_POPULATION_MISMATCH")
+    expected_faces = tuple(f for f in ("Top","Bottom")
+                           if not geometry.get("face_sections") or panel["member"] in geometry["face_sections"][f]["members"])
+    required(len(web_cuts) == len(expected_faces)*len(cases) and {(f,n) for f,n,_ in web_cuts}
+             == {(f,n) for f in expected_faces for n in cases}, "SHELL_DETAIL_PIER_CUT_POPULATION_MISMATCH")
     combined = states is not None
     required(not combined or (set(states)==cases and edges is not None), "NATIVE_EDGE_AND_MEMBRANE_INPUT_REQUIRED")
     profiles = support_profiles(source, stages, panel)
     policy = layout_policy(geometry, panel, cover, aggregate)
-    if policy["inner"]:
+    if policy["inner"] and not (combined and panel.get("collinear_run") and abs(panel["width_direction"][0]) > .5):
         policy = {**policy, "phase":policy["phase"]+1}
     if combined:
         # Collinear neighbours use opposite elevation phases for their independent
@@ -143,71 +145,77 @@ def propose_shell_detail(source, stages, geometry, panel, material, cover, aggre
             continue
         transfer_cache = {}
         if main_pair and ((h["diameter_mm"],h["maximum_pitch_mm"]) != main_pair
-                          or not all(e["fits_column"] for e in ends.values())):
+                          or any(not e["fits_column"] for s,e in ends.items() if s not in unavoidable)):
             continue
         hcap = layer_resistance(t,lane,h["diameter_mm"],h["guaranteed_bars_per_m"],material)
         if demands["Horizontal","Bending"] > limit*hcap[0] or demands["Horizontal","Transverse shear"] > hcap[1]:
             continue
         strip = h if combined else {**h, "cuts":panel["horizontal"]["cuts"]}
-        for dia, pitch in CAGES:
-            if 2*pi*dia**2/4 < .0025*pitch*t:
-                continue
-            try:
-                section, v = vertical_section(panel,h,cover,material,dia,pitch,aggregate=aggregate)
-            except ValueError as exc:
-                if str(exc) == "VERTICAL_WEB_GRID_DOES_NOT_FIT":
+        placements = (False, True) if combined and h.get("curtain_inset_mm", 0.) > 1e-6 else (False,)
+        for exterior in placements:
+            if exterior and best_rank is not None and best_rank <= (1, len(unavoidable)):
+                break
+            for dia, pitch in CAGES:
+                if 2*pi*dia**2/4 < .0025*pitch*t:
                     continue
-                raise
-            depth = lane-(h["diameter_mm"]+dia)/2
-            vcap = layer_resistance(t,depth,dia,floor(1000/v["pitch_mm"]+1e-9),material)
-            if demands["Vertical","Bending"] > limit*vcap[0] or demands["Vertical","Transverse shear"] > vcap[1]:
-                continue
-            trial = {"maximum_aggregate_mm":aggregate,"horizontal":h,"vertical":v,
-                     "resistances":{"Horizontal":hcap,"Vertical":vcap},"cut_pmm":[],"ends":{}}
-            conditions = []
-            if combined:
-                check = check_curtains(states,field_cache,t,h,v,material,lane)
-                trial["membrane_and_plate"] = check
-                if not check["satisfied"]:
-                    rank = (3,max(check["governing"]["utilization"], check["steel_max"]/limit))
-                    if best_rank is None or rank < best_rank:
-                        best_rank, best = rank, {**trial,"status":"UNQUALIFIED_CURTAIN_TRIAL",
-                                                 "reason":"COMBINED_CURTAIN_RESISTANCE_OR_RESERVE_EXCEEDED"}
+                try:
+                    section, v = vertical_section(panel,h,cover,material,dia,pitch,aggregate=aggregate,exterior=exterior)
+                except ValueError as exc:
+                    if str(exc) == "VERTICAL_WEB_GRID_DOES_NOT_FIT":
+                        continue
+                    raise
+                depth = v["offset_mm"] if exterior else lane-(h["diameter_mm"]+dia)/2
+                vcap = layer_resistance(t,depth,dia,floor(1000/v["pitch_mm"]+1e-9),material)
+                if demands["Vertical","Bending"] > limit*vcap[0] or demands["Vertical","Transverse shear"] > vcap[1]:
                     continue
-            for side, end in ends.items():
-                if (side,dia) not in transfer_cache:
-                    transfer_cache[side,dia] = _transfer(panel, profiles[side], strip, material, policy, vertical_diameter=dia,
-                                                        native_edge=edges[side] if combined else None)
-                transfer = transfer_cache[side,dia]
-                end_ok = transfer["status"] != "HOLD" and end["fits_column"]
-                status = "CONDITIONAL_PRESSURE_END_DESIGN" if end_ok else "DOWEL_OR_ANCHORAGE_LAYOUT_REQUIRED"
-                if not end_ok:
-                    conditions.append(status)
-                trial["ends"][side] = {**end, "transfer":transfer,"status":status}
-            rank = (1,len(conditions)) if conditions else (0,0)
-            if (main_pair and conditions) or (best_rank is not None and rank >= best_rank):
-                continue
-            interval = SectionInterval(section)
-            for face, name, demand in web_cuts:
-                pmm = interval.assess(demand["nd_kn"],demand["m2_upper_knm"],demand["m3_upper_knm"])
-                if pmm["status"] != "PMM_BOX_SATISFIED":
-                    break
-                trial["cut_pmm"].append({"face":face,"combination":name,"upper_utilization":pmm["upper_utilization"]})
-            if len(trial["cut_pmm"]) != len(web_cuts):
-                if combined and (best_rank is None or best_rank[0]>2):
-                    best_rank, best = (2,-len(trial["cut_pmm"])), {**trial,"status":"UNQUALIFIED_CURTAIN_TRIAL",
-                                                               "reason":"SAME_CURTAIN_PIER_PMM_NOT_ESTABLISHED"}
-                continue
-            if combined:
-                edge_ok = all(e["status"]=="NATIVE_EDGE_CONTROL_SATISFIED" for e in edges.values())
-                if not edge_ok:
-                    conditions.append("NATIVE_EDGE_EQUILIBRIUM_UNRESOLVED")
-                trial.update(status="UNQUALIFIED_CURTAIN_TRIAL" if conditions else "PROPOSED_COMBINED_CURTAINS",
-                             support_scope="NATIVE_EDGE_FRICTION_AND_ANCHORED_TENSION",open_input=", ".join(dict.fromkeys(conditions)))
-            else:
-                trial.update(status="PROPOSED_TWO_WAY_CURTAINS",support_scope="DEVELOPMENT_AND_ONE_WAY_DOWEL_REFERENCE",
-                             open_input="COMBINED_SHELL_MEMBRANE_AND_BENDING_AND_NATIVE_INTERFACE_TRANSFER")
-            if rank[0]==0 or combined and rank==(1,len(unavoidable)):
-                return trial
-            best_rank, best = rank, trial
+                trial = {"maximum_aggregate_mm":aggregate,"horizontal":h,"vertical":v,
+                         "resistances":{"Horizontal":hcap,"Vertical":vcap},"cut_pmm":[],"ends":{}}
+                conditions = []
+                if combined:
+                    check = check_curtains(states,field_cache,t,h,v,material,lane,
+                                           vertical_offset_mm=depth if exterior else None)
+                    trial["membrane_and_plate"] = check
+                    if not check["satisfied"]:
+                        rank = (3,max(check["governing"]["utilization"], check["steel_max"]/limit))
+                        if best_rank is None or rank < best_rank:
+                            best_rank, best = rank, {**trial,"status":"UNQUALIFIED_CURTAIN_TRIAL",
+                                                     "reason":"COMBINED_CURTAIN_RESISTANCE_OR_RESERVE_EXCEEDED"}
+                        continue
+                for side, end in ends.items():
+                    if (side,dia,exterior) not in transfer_cache:
+                        transfer_cache[side,dia,exterior] = _transfer(
+                            panel, profiles[side], strip, material, policy, vertical_diameter=dia,
+                            native_edge=edges[side] if combined else None, exterior_vertical=exterior)
+                    transfer = transfer_cache[side,dia,exterior]
+                    end_ok = transfer["status"] != "HOLD" and end["fits_column"]
+                    status = "CONDITIONAL_PRESSURE_END_DESIGN" if end_ok else "DOWEL_OR_ANCHORAGE_LAYOUT_REQUIRED"
+                    if not end_ok:
+                        conditions.append(status)
+                    trial["ends"][side] = {**end, "transfer":transfer,"status":status}
+                rank = (1,len(conditions)) if conditions else (0,0)
+                if (main_pair and len(conditions) > len(unavoidable)) or (best_rank is not None and rank >= best_rank):
+                    continue
+                interval = SectionInterval(section)
+                for face, name, demand in web_cuts:
+                    pmm = interval.assess(demand["nd_kn"],demand["m2_upper_knm"],demand["m3_upper_knm"])
+                    if pmm["status"] != "PMM_BOX_SATISFIED":
+                        break
+                    trial["cut_pmm"].append({"face":face,"combination":name,"upper_utilization":pmm["upper_utilization"]})
+                if len(trial["cut_pmm"]) != len(web_cuts):
+                    if combined and (best_rank is None or best_rank[0]>2):
+                        best_rank, best = (2,-len(trial["cut_pmm"])), {**trial,"status":"UNQUALIFIED_CURTAIN_TRIAL",
+                                                                   "reason":"SAME_CURTAIN_PIER_PMM_NOT_ESTABLISHED"}
+                    continue
+                if combined:
+                    edge_ok = all(e["status"]=="NATIVE_EDGE_CONTROL_SATISFIED" for e in edges.values())
+                    if not edge_ok:
+                        conditions.append("NATIVE_EDGE_EQUILIBRIUM_UNRESOLVED")
+                    trial.update(status="UNQUALIFIED_CURTAIN_TRIAL" if conditions else "PROPOSED_COMBINED_CURTAINS",
+                                 support_scope="NATIVE_EDGE_FRICTION_AND_ANCHORED_TENSION",open_input=", ".join(dict.fromkeys(conditions)))
+                else:
+                    trial.update(status="PROPOSED_TWO_WAY_CURTAINS",support_scope="DEVELOPMENT_AND_ONE_WAY_DOWEL_REFERENCE",
+                                 open_input="COMBINED_SHELL_MEMBRANE_AND_BENDING_AND_NATIVE_INTERFACE_TRANSFER")
+                if rank[0]==0 or combined and rank==(1,len(unavoidable)):
+                    return trial
+                best_rank, best = rank, trial
     return best or {"status":"HOLD","reason":"NO_CURTAIN_AT_PROJECT_COVER_MEETS_BOTH_DIRECTIONS_AND_SUPPORTS"}

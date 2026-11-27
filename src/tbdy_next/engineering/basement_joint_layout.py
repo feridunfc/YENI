@@ -16,16 +16,22 @@ def layout_policy(geometry, panel, cover, aggregate=DEFAULT_AGGREGATE_MM):
     shorter = any(joints & {p["joint_i"], p["joint_j"]} and p["span_m"] > panel["span_m"]+1e-8
                   and abs(sum(a*b for a,b in zip(direction,p["width_direction"]))) > 1-1e-9
                   for p in geometry["panels"])
-    height = (geometry["top_m"]-geometry["bottom_m"])*1000
+    pier_height = (geometry["top_m"]-geometry["bottom_m"])*1000
+    height = (panel.get("top_m",geometry["top_m"])-panel.get("bottom_m",geometry["bottom_m"]))*1000
+    base_offset = max(0., (panel.get("bottom_m",geometry["bottom_m"])-geometry["bottom_m"])*1000)
     # Keep all panels on one elevation lattice. Choose its densest feasible catalogue spacing.
-    pitch = 40 if finite_grid(height,14,40,cover)["clear_spacing_mm"] >= clear_limit(aggregate,14) else 50
-    fine = finite_grid(height,14,pitch,cover)
-    return {"aggregate_mm":aggregate, "height":height, "module":fine["pitch_mm"], "start":fine["first_and_last_offset_mm"],
-            "phase":.5 if abs(direction[0]) > .5 else 0., "inner":shorter}
+    pitch = 40 if finite_grid(pier_height,14,40,cover)["clear_spacing_mm"] >= clear_limit(aggregate,14) else 50
+    fine = finite_grid(pier_height,14,pitch,cover)
+    out = {"aggregate_mm":aggregate, "height":height, "module":fine["pitch_mm"], "start":fine["first_and_last_offset_mm"],
+           "phase":.5 if abs(direction[0]) > .5 else 0., "inner":shorter}
+    if base_offset > 1e-7:
+        out["base_offset_mm"] = base_offset
+    return out
 
 
 def level_grid(policy, diameter, nominal, cover, *, dowel=False, minimum_per_m=None):
     module, height = policy["module"], policy["height"]
+    base = policy.get("base_offset_mm", 0.)
     edge = cover+diameter/2
     required_count = 1000//nominal if minimum_per_m is None else minimum_per_m
     for stride in range(min(4,floor(nominal/module+1e-9)),0,-1):
@@ -34,15 +40,18 @@ def level_grid(policy, diameter, nominal, cover, *, dowel=False, minimum_per_m=N
             continue
         offset = (policy.get("dowel_phase",policy["phase"]+(stride//2 if policy["inner"] else 0.))
                   if dowel else policy["phase"])
-        seed = policy["start"] + offset*module
+        seed = policy["start"] + offset*module - base
         first = seed + ceil((edge-seed)/spacing-1e-10)*spacing
         count = 1+floor((height-edge-first)/spacing+1e-10)
         last = height-first-(count-1)*spacing
         minimum = min(floor(1000/spacing+1e-10), 1+floor((1000-max(first,last))/spacing+1e-10), count)
         if minimum >= required_count and min(first,last) >= edge-1e-7:
-            return {"layers":count,"pitch_mm":spacing,"first_station_mm":first,"last_cover_to_center_mm":last,
+            grid = {"layers":count,"pitch_mm":spacing,"first_station_mm":first,"last_cover_to_center_mm":last,
                     "clear_spacing_mm":spacing-diameter,"minimum_in_any_full_metre":minimum,
                     "guaranteed_bars_per_m":required_count}
+            if base > 1e-7:
+                grid["base_offset_mm"] = base
+            return grid
     return {}
 
 
@@ -62,7 +71,8 @@ def _families(panel, side, end):
             corner = end if role=="web" else dowels.get("anchor",{})
             shape = corner.get("return_shape")
             levels = grid.get("opposite_face_levels",grid) if face==1 else grid
-            heights = [levels["first_station_mm"]+i*levels["pitch_mm"] for i in range(levels["layers"])]
+            base = levels.get("base_offset_mm", grid.get("base_offset_mm", 0.))
+            heights = [base+levels["first_station_mm"]+i*levels["pitch_mm"] for i in range(levels["layers"])]
             hook = end.get("hook") if role=="web" else dowels.get("hook")
             path = next((p for p in corner.get("bar_paths",()) if p["face"]==face),None)
             if hook and hook.get("local_paths"):
@@ -308,7 +318,8 @@ def check_joint_layout(geometry, aggregate=DEFAULT_AGGREGATE_MM, through=None, *
             continue
         row = {"column":uid, "members":[p["member"] for p,_,_ in incident], "status":"HOLD"}
         result.append(row)
-        if not all(end and end["status"]=="CONDITIONAL_PRESSURE_END_DESIGN" for _,_,end in incident):
+        if not all(end and end["status"] in ("CONDITIONAL_PRESSURE_END_DESIGN", "HOLD_INCIDENT_PRESSURE_END_DETAILS_REQUIRED")
+                   for _,_,end in incident):
             row["reason"] = "ALL_INCIDENT_PRESSURE_END_DETAILS_REQUIRED"
             for _, _, end in incident:
                 if end:

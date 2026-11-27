@@ -65,7 +65,14 @@ def _cut(geometry, bound, name, story, face, combo, spec):
         bounds = {"Min":vector,"Max":vector}
         mode = "SIGNED_STATIC"
     origin = geometry["native_face_origins_m"][face]
-    terms, inertia = _section_terms(geometry, origin)
+    sec_geom = geometry
+    if geometry.get("stepped") and face in geometry.get("face_sections", {}):
+        fsec = geometry["face_sections"][face]
+        sec_geom = {**geometry,
+                    "panels": [p for p in geometry["panels"] if p["member"] in fsec["members"]],
+                    "clear_web_area_m2": fsec["clear_web_area_m2"],
+                    "net_centroid_xy_m": fsec["net_centroid_xy_m"]}
+    terms, inertia = _section_terms(sec_geom, origin)
     lo = -bounds["Max"]["P"] - DISPLAY_KN
     hi = -bounds["Min"]["P"] + DISPLAY_KN
     # Source centroid is rounded per global coordinate. Both moment signs are enclosed,
@@ -125,12 +132,15 @@ def _through_bar_proof(incident, designs, states, mat, *, run=False):
     (a,side_a),(b,side_b) = incident
     steel, lengths, ends, actions, outer = [], [], [], [], []
     for (panel,side),detail in zip(incident,designs):
-        if detail.get("status") != "PROPOSED_COMBINED_CURTAINS":
+        if detail.get("status") != "PROPOSED_COMBINED_CURTAINS" and not (
+                run and detail.get("status") == "UNQUALIFIED_CURTAIN_TRIAL"
+                and (detail.get("membrane_and_plate") or {}).get("satisfied") and detail.get("cut_pmm")):
             return None
         end = detail["ends"][side]
         far_side = "J" if side=="I" else "I"
         far = detail["ends"][far_side]
-        if not end["fits_column"] or not far["fits_column"] or (not run and any(e["anchorage_type"]!="STRAIGHT" for e in (end,far))):
+        far_ok = far["fits_column"] or (run and far.get("column_role") == "STEPPED_WALL_SEAM")
+        if not end["fits_column"] or not far_ok or (not run and any(e["anchorage_type"]!="STRAIGHT" for e in (end,far))):
             return None
         h=detail["horizontal"]
         steel.append(h["guaranteed_bars_per_m"]*pi*h["diameter_mm"]**2/4*mat.fyd/1000)
@@ -371,7 +381,9 @@ def _design(result, source, stages, bound, scope, *, boundaries=None):
         if detail["status"] == "HOLD":
             continue
         shadow.update(horizontal=detail["horizontal"],vertical=detail["vertical"], pressure_connections={"ends":detail["ends"]})
-        if combined and len(detail["cut_pmm"]) == result["expected_cut_combinations"]:
+        expected_cuts = sum(any(d["member"] == panel["member"] for d in cut.get("web_demands", ()))
+                            for cut in result["cuts"])
+        if combined and expected_cuts and len(detail["cut_pmm"]) == expected_cuts:
             pmm = {(r["face"],r["combination"]):r["upper_utilization"] for r in detail["cut_pmm"]}
             for cut in result["cuts"]:
                 for item in cut.get("web_demands",[]):
@@ -382,7 +394,7 @@ def _design(result, source, stages, bound, scope, *, boundaries=None):
             capacity = capacities[0 if check["action"] == "Bending" else 1]
             check.update(proposed_resistance=capacity, proposed_ratio=check["demand"]/capacity)
     from .wall_bridge_layout import bridge_checks
-    if combined:
+    if combined and geom.get("connectivity_links"):
         check_joint_layout({"panels":shell_panels},aggregate,through)
     bridge=bridge_checks(geom,designs,boundaries,source,mat,aggregate,{**corner_fields,**link_states},result["cuts"],stages=stages) if combined else {}
     result["two_way_support_layouts"] = check_joint_layout({"panels":shell_panels,"bridge_checks":bridge},aggregate,through)
@@ -463,6 +475,57 @@ def _body_references(source, stages, row, bound, scope):
             row["body_references"][uid] = {"status":"HOLD","reason":str(exc)}
 
 
+def _verify_cross_pier_supports(results):
+    """Verify 3D bar clearance at columns shared by multiple basement piers against scheduled peers."""
+    def shadow_copy(panel, copy_ends=False):
+        detail = ((panel.get("two_way_shell") or {}).get("proposed_detail")) or {}
+        ends = detail.get("ends") or {}
+        return {**panel, "horizontal": detail.get("horizontal"), "vertical": detail.get("vertical"),
+                "pressure_connections": {"ends": {k: dict(v) for k, v in ends.items()} if copy_ends else ends}}
+
+    by_col = defaultdict(list)
+    initially_scheduled = set()
+    for row in results:
+        geom = row.get("geometry") or {}
+        for panel in geom.get("panels", ()):
+            if panel.get("schedule_status") == "PRESSURE_PANEL_SCHEDULE_QUALIFIED":
+                initially_scheduled.add(id(panel))
+            detail = ((panel.get("two_way_shell") or {}).get("proposed_detail")) or {}
+            if not detail or detail.get("status") == "HOLD":
+                continue
+            for side in ("I", "J"):
+                if panel.get("column_" + side.lower()):
+                    by_col[support_id(panel, side)].append((row, panel, side))
+    for row in results:
+        geom = row.get("geometry") or {}
+        layouts = row.get("two_way_support_layouts") or []
+        if not geom or not layouts:
+            continue
+        aggregate = row.get("maximum_aggregate_mm", DEFAULT_AGGREGATE_MM)
+        through = {r["column"]: r["continuous_web"] for r in layouts if r.get("continuous_web")}
+        by_support = {r["column"]: r for r in layouts}
+        changed = False
+        for col, entries in sorted(by_col.items()):
+            own = [p for r, p, _ in entries if r is row]
+            peers = [p for r, p, _ in entries if r is not row and id(p) in initially_scheduled]
+            if not own or not peers or col not in by_support:
+                continue
+            check = check_joint_layout(
+                {"panels": [*(shadow_copy(p, copy_ends=False) for p in own),
+                            *(shadow_copy(p, copy_ends=True) for p in peers)]},
+                aggregate, through, target=col)[0]
+            check["cross_pier_members"] = sorted(check["members"])
+            by_support[col].update(check)
+            changed = True
+        if changed:
+            for panel in geom.get("panels", ()):
+                if panel.get("schedule_status") != "PRESSURE_PANEL_SCHEDULE_QUALIFIED":
+                    continue
+                supports = [by_support[support_id(panel, side)] for side in ("I", "J")]
+                if not all(r["status"] == "PROPOSED_PRESSURE_BARS_FIT" for r in supports):
+                    panel.update(schedule_status="PRESSURE_PANEL_DETAIL_OPEN", reason="CROSS_PIER_COLUMN_BARS_CLASH")
+
+
 def basement_piers(source, stages, bounds, bound, scope):
     groups = defaultdict(list)
     for row in bounds["walls"]:
@@ -481,11 +544,12 @@ def basement_piers(source, stages, bounds, bound, scope):
             _design(row,source,stages,bound,scope,boundaries=bounds)
         except (KeyError, TypeError, ValueError, IndexError) as exc:
             row["reason"] = str(exc)
-            if str(exc)=="WALL_BASE_OR_TOP_CHANGES_WITHIN_PIER" and bound.get("kind")==ORIGINAL:
+            if str(exc) in ("WALL_BASE_OR_TOP_CHANGES_WITHIN_PIER", "SINGLE_BASEMENT_ENDING_AT_PROJECT_ZERO_REQUIRED") and bound.get("kind")==ORIGINAL:
                 try:
                     _body_references(source, stages, row, bound, scope)
                 except (ValueError, TypeError, KeyError) as missing:
                     row["body_reference_hold"] = str(missing)
+    _verify_cross_pier_supports(results)
     return results
 
 

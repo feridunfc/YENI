@@ -26,7 +26,7 @@ def support_profiles(source, stages, panel):
     rows = _rows(capture["table_reads"], COLUMN_REINFORCING, {"Name","NumBars2Dir","NumBars3Dir"}, {})
     profiles = {}
     for side, support in panel["support_sections"].items():
-        if support.get("kind") == "WALL_JUNCTION":
+        if support.get("kind") in ("WALL_JUNCTION", "STEPPED_WALL_SEAM"):
             profiles[side] = dict(support)
             continue
         name, uid = support["section"], support["column"]
@@ -283,6 +283,18 @@ def _development(profiles, geometry, panel, grid, mat, aggregate=DEFAULT_AGGREGA
         if prof.get("kind") == "WALL_JUNCTION":
             ends[side] = wall_return_anchor(prof,panel,side,dia,offset,cover,spacing,mat,aggregate)
             continue
+        if prof.get("kind") == "STEPPED_WALL_SEAM":
+            limit = clear_limit(aggregate, dia)
+            ends[side] = {**wall, "column":None, "joint":prof["joint"], "column_role":"STEPPED_WALL_SEAM",
+                "anchorage_type":"STEPPED_OPENING_SEAM_UNRESOLVED", "return_shape":None, "bar_paths":[],
+                "receiving_members":[], "incident_walls":[r["member"] for r in prof["incident_walls"]],
+                "nominal_cover_mm":cover, "column_available_mm":0., "column_depth_mm":0.,
+                "specified_embedment_mm":0., "end_cover_mm":cover, "wall_side_available_mm":500*panel["clear_length_m"],
+                "wall_side_required_mm":wall["position_i_mm"], "margin_mm":-wall["position_i_mm"],
+                "template_longitudinal_clearance_mm":None, "entry_required_mm":limit, "maximum_aggregate_mm":aggregate,
+                "horizontal_clear_mm":spacing, "horizontal_required_mm":limit, "fits_column":False,
+                "reason":"CONFORMING_SEAM_AND_OPENING_BOUNDARY_DETAIL_REQUIRED"}
+            continue
         end_cover = max(cover, prof["cover"])
         # Stop before the inside of the far hoop. This also keeps its outer cover clear.
         available = prof["depth_mm"]-end_cover-prof["tie"]
@@ -312,7 +324,7 @@ def _development(profiles, geometry, panel, grid, mat, aggregate=DEFAULT_AGGREGA
     return ends
 
 
-def _transfer(panel, profile, h, mat, policy, *, vertical_diameter=None, native_edge=None):
+def _transfer(panel, profile, h, mat, policy, *, vertical_diameter=None, native_edge=None, exterior_vertical=False):
     thickness = panel["thickness_m"]*1000
     native = native_edge.get("cuts") if native_edge is not None else None
     if native is None:
@@ -323,11 +335,36 @@ def _transfer(panel, profile, h, mat, policy, *, vertical_diameter=None, native_
         shear_peak = max(r["max_native_shear_kn_m"] for r in native)
     # Two dedicated deformed bars per level, perpendicular to the joint and symmetric
     # about the web mid-plane. No pressure-flexural steel is counted as a dowel.
-    choices = sorted(((d,p) for d in (10,12,14,16,18,20,22,25) for p in (200,125,100,50)), key=lambda pair: pair[0]**2/pair[1])
+    choices = sorted(((d,p) for d in (10,12,14,16,18,20,22,25) for p in (200,125,100,60,50)), key=lambda pair: pair[0]**2/pair[1])
     if profile.get("kind") == "WALL_JUNCTION":
         from .wall_membrane_design import SELECTION_LIMIT
         required(native is not None, "NATIVE_WALL_RETURN_TRANSFER_REQUIRED")
         return _return_transfer(panel,profile,h,mat,policy,peak,shear_peak,native,SELECTION_LIMIT,vertical_diameter)
+    if profile.get("kind") == "STEPPED_WALL_SEAM":
+        from .wall_membrane_design import SELECTION_LIMIT
+        required(native is not None, "NATIVE_WALL_RETURN_TRANSFER_REQUIRED")
+        cap = .2*min(mat.fcd,25.)*thickness
+        for dia,pitch in choices:
+            grid = level_grid(policy,dia,pitch,h["cover_mm"],dowel=True)
+            if not grid:
+                continue
+            steel_area = 2*grid["guaranteed_bars_per_m"]*pi*dia**2/4
+            resistance = .6*steel_area*mat.fyd/1000
+            if peak <= SELECTION_LIMIT*resistance and shear_peak <= cap:
+                return {"status":"HOLD", "reason":"STEPPED_OPENING_SEAM_TRANSFER_DETAIL_REQUIRED",
+                        "diameter_mm":dia, "maximum_pitch_mm":pitch, **grid, "bars_per_layer":2,
+                        "offset_each_side_mm":0., "as_mm2_m":steel_area, "mu":.6,
+                        "steel_resistance_kn_m":resistance, "concrete_limit_kn_m":cap,
+                        "resistance_kn_m":min(resistance,cap), "peak_reaction_kn_m":peak,
+                        "steel_selection_limit":SELECTION_LIMIT, "steel_ratio":peak/resistance,
+                        "peak_ratio":max(peak/resistance,shear_peak/cap),
+                        "column_embedment_mm":0., "wall_embedment_mm":0., "basis":"SAME_CORNER_NATIVE_EDGE",
+                        "combinations":[{**r, "reaction_kn_m":r["equivalent_friction_demand_kn_m"],
+                            "upper_ratio":max(r["equivalent_friction_demand_kn_m"]/resistance,r["max_native_shear_kn_m"]/cap)}
+                            for r in native]}
+        return {"status":"HOLD", "reason":"STEPPED_OPENING_SEAM_TRANSFER_DETAIL_REQUIRED",
+                "peak_reaction_kn_m":peak, "native_peak_shear_kn_m":shear_peak, "concrete_limit_kn_m":cap,
+                "combinations":[{**r, "reaction_kn_m":r["equivalent_friction_demand_kn_m"], "upper_ratio":None} for r in native]}
     cover = max(h["cover_mm"],profile["cover"])
     column_limit = profile["depth_mm"]-cover-profile["tie"]
     wall_limit = panel["clear_length_m"]*500
@@ -351,7 +388,8 @@ def _transfer(panel, profile, h, mat, policy, *, vertical_diameter=None, native_
         if vertical_diameter is not None:
             # Keep dedicated dowels between the actual face curtains.
             lanes = _entry_lanes([profile], curtain_offset)
-            vertical_axis = curtain_offset-(h["diameter_mm"]+vertical_diameter)/2
+            sign = 1 if exterior_vertical else -1
+            vertical_axis = curtain_offset+sign*(h["diameter_mm"]+vertical_diameter)/2
             lanes = [off for off in lanes if off <= curtain_offset and abs(off-vertical_axis)-(dia+vertical_diameter)/2
                      >= clear_limit(aggregate,dia,vertical_diameter)]
         offset = next((off for off in lanes
@@ -424,7 +462,7 @@ def _return_transfer(panel, profile, h, mat, policy, peak, shear_peak, cuts, res
 def developed_entry_grids(profiles, geometry, panel, cover, mat, policy, preferred_pair=None, *, include_unanchored=False):
     """Trial straight-bar grids at the actual levels and lanes inside both supporting cages."""
     options = set(CAGES) | {(d,p) for d in (12,14,16,18,20,22,25) for p in (40,50,60,75,80)}
-    if any(p.get("kind")=="WALL_JUNCTION" for p in profiles.values()):
+    if any(p.get("kind") in ("WALL_JUNCTION", "STEPPED_WALL_SEAM") for p in profiles.values()):
         options.update((d,p) for d in (8,10) for p in (40,50,60,75,100))
     thickness = 1000*panel["thickness_m"]
     inset = 0.
@@ -440,7 +478,7 @@ def developed_entry_grids(profiles, geometry, panel, cover, mat, policy, preferr
         # A short straight embedment or a bend can clear a column bar before its
         # projected centreline. Include the exact straight-bar clearance boundaries.
         for profile in profiles.values():
-            if profile.get("kind") == "WALL_JUNCTION":
+            if profile.get("kind") in ("WALL_JUNCTION", "STEPPED_WALL_SEAM"):
                 continue
             clearance = clear_limit(aggregate, dia, profile["bar_diameter"])+(dia+profile["bar_diameter"])/2
             for centre in profile["bar_offsets"]:
@@ -456,7 +494,7 @@ def developed_entry_grids(profiles, geometry, panel, cover, mat, policy, preferr
             if include_unanchored or all(end["fits_column"] for end in ends.values()):
                 yield grid, ends, lane
             if (include_unanchored and (panel.get("collinear_run") or any(v.get("kind")=="WALL_JUNCTION" for v in profiles.values()))
-                    and any(not ends[k]["fits_column"] for k,v in profiles.items() if v.get("kind")!="WALL_JUNCTION")):
+                    and any(not ends[k]["fits_column"] for k,v in profiles.items() if v.get("kind") not in ("WALL_JUNCTION", "STEPPED_WALL_SEAM"))):
                 other=level_grid({**policy,"phase":policy["phase"]+.5},dia,pitch,cover)
                 if (other and other["pitch_mm"]==grid["pitch_mm"] and
                         other["minimum_in_any_full_metre"]>=grid["guaranteed_bars_per_m"]):

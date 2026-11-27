@@ -149,13 +149,16 @@ def panel_pressure_design(panel, combos, cover, mat, height, *, candidates=CAGES
                      for name,q in pressures.items()]}
 
 
-def vertical_section(panel, horizontal, cover, material, diameter, pitch, *, aggregate=DEFAULT_AGGREGATE_MM):
+def vertical_section(panel, horizontal, cover, material, diameter, pitch, *, aggregate=DEFAULT_AGGREGATE_MM, exterior=False):
     length, thick = 1000*panel["clear_length_m"], 1000*panel["thickness_m"]
     count = max(2, ceil(length/pitch-1e-12))
     spacing = length/count
-    offset = thick/2 - cover - horizontal.get("curtain_inset_mm",0.) - 2*horizontal["diameter_mm"] - diameter/2
+    h_lane = thick/2 - cover - horizontal.get("curtain_inset_mm",0.) - 1.5*horizontal["diameter_mm"]
+    offset = (h_lane + (horizontal["diameter_mm"] + diameter)/2 if exterior
+              else thick/2 - cover - horizontal.get("curtain_inset_mm",0.) - 2*horizontal["diameter_mm"] - diameter/2)
     area = pi*diameter**2/4
     required(min(spacing-diameter, 2*offset-diameter) >= clear_limit(aggregate, diameter)
+             and offset + diameter/2 + cover <= thick/2 + 1e-7
              and spacing/2 >= diameter/2 and 2*area/(spacing*thick) >= .0025,
              "VERTICAL_WEB_GRID_DOES_NOT_FIT")
     bars = tuple(Bar((2*i-count+1)*spacing/2, sign*offset, area) for i in range(count) for sign in (-1,1))
@@ -175,7 +178,10 @@ def vertical_section(panel, horizontal, cover, material, diameter, pitch, *, agg
     required(dimensions["status"] == "DIMENSIONS_SATISFIED" and ties_per_m2 >= 4
              and physical_length/panel["thickness_m"] >= 7-1e-9,
              "TBDY_WALL_DIMENSIONS_OR_WEB_CROSSTIE_MINIMUM_UNSATISFIED")
-    return Section(length,thick,bars,material), {"diameter_mm":diameter,"pitch_mm":spacing,
+    out = {"diameter_mm":diameter,"pitch_mm":spacing,
         "stations_per_face":count,"as_two_faces_mm2":2*count*area,"vertical_ratio":2*count*area/(length*thick),
         "dimensions": dimensions, "crosstie_diameter_mm":horizontal["diameter_mm"], "crossties":count*horizontal["layers"],
         "min_crossties_full_m2":ties_per_m2, "steel_role":"PROPOSED_WEB_BETWEEN_COLUMN_FACES"}
+    if exterior:
+        out.update(offset_mm=offset, curtain_position="EXTERIOR_OUTSIDE_HORIZONTAL")
+    return Section(length,thick,bars,material), out

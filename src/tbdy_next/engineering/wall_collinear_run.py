@@ -16,8 +16,10 @@ def _shared_dowels(incident,details,profiles,geometry,mat,aggregate):
     if not loads[0] or loads[0].keys()!=loads[1].keys():
         return None
     policy=layout_policy(geometry,a,details[0]["horizontal"]["cover_mm"],aggregate)
+    if abs(a["width_direction"][0]) > .5:
+        policy={**policy,"dowel_phase":policy["phase"]}
     cover=max(profiles[p["member"]][side]["cover"] for p,side in incident)
-    for dia,pitch in sorted(((d,p) for d in (10,12,14,16,18,20) for p in (50,100,125,200)),key=lambda x:x[0]**2/x[1]):
+    for dia,pitch in sorted(((d,p) for d in (10,12,14,16,18,20) for p in (50,60,100,125,200)),key=lambda x:x[0]**2/x[1]):
         grid=level_grid(policy,dia,pitch,cover,dowel=True)
         if not grid:
             continue
@@ -27,20 +29,21 @@ def _shared_dowels(incident,details,profiles,geometry,mat,aggregate):
         if max(demand.values())>SELECTION_LIMIT*steel:
             continue
         rows=[]
+        common_off=min(d["ends"][s]["transfer"]["offset_each_side_mm"] for (_,s),d in zip(incident,details))
         for (p,side),detail,actions in zip(incident,details,loads):
             e=detail["ends"][side]
             column=profiles[p["member"]][side]
             h,v=detail["horizontal"],detail["vertical"]
             main=500*p["thickness_m"]-h["cover_mm"]-h["curtain_inset_mm"]-1.5*h["diameter_mm"]
-            vertical=main-(h["diameter_mm"]+v["diameter_mm"])/2
-            off=e["transfer"]["offset_each_side_mm"]
+            vertical=v.get("offset_mm", main-(h["diameter_mm"]+v["diameter_mm"])/2)
+            off=common_off
             required=tension_development(dia,mat.fyd,mat.fck,mat.fcd,cover,grid["clear_spacing_mm"])["position_i_mm"]
             embed=5*ceil(required/5)
             cap=e["transfer"]["concrete_limit_kn_m"]
             clearance=_bar_clearance(column,off,dia)
             if (clearance<clear_limit(aggregate,dia,column["bar_diameter"]) or 2*off-dia<clear_limit(aggregate,dia)
-                or vertical-off-(dia+v["diameter_mm"])/2<clear_limit(aggregate,dia,v["diameter_mm"])
-                or main-off-(dia+h["diameter_mm"])/2<clear_limit(aggregate,dia,h["diameter_mm"])
+                or abs(vertical-off)-(dia+v["diameter_mm"])/2<clear_limit(aggregate,dia,v["diameter_mm"])
+                or abs(main-off)-(dia+h["diameter_mm"])/2<clear_limit(aggregate,dia,h["diameter_mm"])
                 or embed>500*p["clear_length_m"] or max(r["max_native_shear_kn_m"] for r in actions.values())>cap):
                 break
             cuts=[{**r,"reaction_kn_m":r["equivalent_friction_demand_kn_m"],
@@ -142,8 +145,13 @@ def coordinate_run(geometry,states,designs,mat,aggregate,redesign,source,stages)
             h=d.get("horizontal",{})
             if (h.get("diameter_mm"),h.get("maximum_pitch_mm"))!=pair:
                 d=redesign(p,pair)
+            shared_sides=[s for s in ("I","J") if p["column_"+s.lower()] in interior]
             if d.get("status")!="PROPOSED_COMBINED_CURTAINS":
-                break
+                if not (len(shared_sides)==1 and d.get("status")=="UNQUALIFIED_CURTAIN_TRIAL"
+                        and (d.get("membrane_and_plate") or {}).get("satisfied") and d.get("cut_pmm")
+                        and d.get("ends",{}).get(shared_sides[0],{}).get("status")=="CONDITIONAL_PRESSURE_END_DESIGN"
+                        and p["native_support_edges"][shared_sides[0]]["status"]=="NATIVE_EDGE_CONTROL_SATISFIED"):
+                    break
             trials[uid]={**d,"ends":{s:dict(e) for s,e in d["ends"].items()}}
         if len(trials)!=len(panels):
             continue

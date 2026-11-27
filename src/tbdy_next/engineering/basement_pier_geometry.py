@@ -228,6 +228,41 @@ def _link_panel(context, uid):
             side:_wall_edge(context,uid,pt,high,direction,prop["Material"]) for side,pt,high in (("I",i,it),("J",j,jt))}}
 
 
+def _stepped_wall_seam(context, uid, joint, opposite, direction, material, member_ids):
+    xyz, walls, assignments, props = context[:4]
+    fields, inserts = context[-2:]
+    z0, z1 = sorted((xyz[joint][2], xyz[opposite][2]))
+    xy = xyz[joint][:2]
+    incident = []
+    for other in member_ids:
+        if other == uid:
+            continue
+        row = walls[other]
+        points = [row["UniquePt"+str(n)] for n in (1,2,3,4)]
+        for low, high, remote in ((points[0],points[3],points[1]),(points[1],points[2],points[0])):
+            if dist(xyz[low][:2], xy) > 1e-7 or dist(xyz[high][:2], xy) > 1e-7:
+                continue
+            oz0, oz1 = sorted((xyz[low][2], xyz[high][2]))
+            if min(z1, oz1) - max(z0, oz0) <= 1e-7 or not ({joint, opposite} & {low, high}):
+                continue
+            a, b = xyz[low], xyz[remote]
+            length = dist(a[:2], b[:2])
+            prop = props[assignments[other]["SectProp"]]
+            thick = float(prop["Thickness"])
+            required(length > 0 and close(a[2], b[2]) and thick > 0 and prop["Material"] == material
+                     and inserts[other] and all(r["CardinalPt"] == "Middle" and _no_translation(r, fields)
+                     for r in inserts[other]), "WALL_RETURN_GEOMETRY_UNBOUND")
+            unit = [(b[k]-a[k])/length for k in (0, 1)]
+            alignment = abs(sum(x*y for x, y in zip(direction, unit)))
+            required(close(alignment, 0) or close(alignment, 1), "ORTHOGONAL_RETURN_REQUIRED")
+            incident.append({"member":other, "wall":row["WallBay"], "across":close(alignment, 0),
+                             "thickness_mm":thick*1000, "span_mm":length*1000, "direction":unit, "remote_joint":remote,
+                             "overlap_z_m":[max(z0, oz0), min(z1, oz1)]})
+    required(incident, "NATIVE_SHARED_VERTICAL_SUPPORT_REQUIRED")
+    return {"kind":"STEPPED_WALL_SEAM", "support_id":"seam "+joint, "column":None, "joint":joint,
+            "upper_joint":opposite, "material":material, "depth_mm":0., "incident_walls":incident}
+
+
 def folded_section(source, bound, name, story, member_ids):
     context = _context(source)
     xyz, walls, assignments, props, shape, frames, angles, _, _, _, sf, shell_insert = context
@@ -235,9 +270,12 @@ def folded_section(source, bound, name, story, member_ids):
     required(bool(re.search(r'^\s*UNITS\s+"KN"\s+"M"\s+"C"\s*$', bound["deck"], re.M)), "ARCHIVED_DECK_UNITS_REQUIRED")
     footprints, supports = _column_footprints(context, story)
     levels = {(xyz[walls[uid]["UniquePt1"]][2], xyz[walls[uid]["UniquePt4"]][2]) for uid in member_ids}
-    required(len(levels) == 1, "WALL_BASE_OR_TOP_CHANGES_WITHIN_PIER")
-    bottom, top = levels.pop()
-    required(bottom < 0 and close(top, 0.), "SINGLE_BASEMENT_ENDING_AT_PROJECT_ZERO_REQUIRED")
+    stepped = len(levels) > 1
+    bottom = min(lo for lo, _ in levels)
+    top = max(hi for _, hi in levels)
+    required(bottom < 0 and close(top, 0.)
+             and all(bottom-1e-7 <= lo < hi <= top+1e-7 for lo, hi in levels),
+             "SINGLE_BASEMENT_ENDING_AT_PROJECT_ZERO_REQUIRED")
     panels, strips, strips_clear, ends = [], [], [], Counter()
     for uid in member_ids:
         row = walls[uid]
@@ -258,9 +296,18 @@ def folded_section(source, bound, name, story, member_ids):
         for side, pt, high in (("I",i,it),("J",j,jt)):
             candidates = supports[xyz[pt][:2]]
             if not candidates:
-                support_sections[side] = _wall_edge(context, uid, pt, high, (dx,dy), prop["Material"])
+                try:
+                    support_sections[side] = _wall_edge(context, uid, pt, high, (dx,dy), prop["Material"])
+                except ValueError as exc:
+                    if not stepped or str(exc) != "NATIVE_SHARED_VERTICAL_SUPPORT_REQUIRED":
+                        raise
+                    support_sections[side] = _stepped_wall_seam(context, uid, pt, high, (dx,dy), prop["Material"], member_ids)
                 continue
-            required(len(candidates)==1 and candidates[0][1:]==(pt,high), "WALL_COLUMN_SHARED_END_JOINTS_REQUIRED")
+            shared_full = len(candidates) == 1 and candidates[0][1:] == (pt, high)
+            shared_stepped = (stepped and len(candidates) == 1
+                              and xyz[candidates[0][1]][2]-1e-7 <= a[2] < upper_a[2] <= xyz[candidates[0][2]][2]+1e-7
+                              and (pt == candidates[0][1] or high == candidates[0][2]))
+            required(shared_full or shared_stepped, "WALL_COLUMN_SHARED_END_JOINTS_REQUIRED")
             col = candidates[0][0]
             x0, x1, y0, y1 = footprints[col]
             required(abs(dy)*(x1-x0) + abs(dx)*(y1-y0) >= thick-1e-9, "COLUMN_MUST_COVER_WEB_THICKNESS")
@@ -276,7 +323,9 @@ def folded_section(source, bound, name, story, member_ids):
         clear_rect = _bounds(clear_a, clear_b, thick)
         required(all(_intersection(clear_rect, footprint) < 1e-9 for footprint in footprints.values()),
                  "ANOTHER_COLUMN_INTERSECTS_CLEAR_WEB")
-        panels.append({"member": uid, "wall": row["WallBay"], "joint_i": i, "joint_j": j, "column_i": left, "column_j": right,
+        panels.append({"member": uid, "wall": row["WallBay"], "joint_i": i, "joint_j": j,
+            "upper_joint_i": it, "upper_joint_j": jt, "bottom_m": a[2], "top_m": upper_a[2],
+            "column_i": left, "column_j": right,
             "support_sections": support_sections,
             "section_name": prop["Name"], "shell_model": prop.get("ModelType"), "span_m": length, "thickness_m": thick, "clear_length_m": length-l-r, "width_direction": [dx, dy],
             "clear_centroid_xy_m": [(u+v)/2 for u,v in zip(clear_a, clear_b)], "clear_bounds_xy_m": list(clear_rect)})
@@ -290,16 +339,23 @@ def folded_section(source, bound, name, story, member_ids):
             for adj in s.get("incident_walls", []):
                 if adj["member"] not in assigned and adj["remote_joint"] in ends:
                     links[adj["member"]] = tuple(sorted((s["joint"],adj["remote_joint"])))
-    graph = [(p["joint_i"],p["joint_j"]) for p in panels] + list(links.values())
-    for pair in links.values():
-        ends.update(pair)
-    reached = {panels[0]["joint_i"]}
+    canon = {}
+    for node in ends:
+        key = (round(xyz[node][0], 6), round(xyz[node][1], 6)) if stepped else node
+        canon[node] = canon.setdefault(key, node)
+    plan_ends = Counter()
+    for p in panels:
+        plan_ends.update((canon[p["joint_i"]], canon[p["joint_j"]]))
+    graph = [(canon[p["joint_i"]], canon[p["joint_j"]]) for p in panels] + [(canon[u], canon[v]) for u, v in links.values()]
+    for u, v in links.values():
+        plan_ends.update((canon[u], canon[v]))
+    reached = {canon[panels[0]["joint_i"]]}
     for _ in panels:
         for pair in graph:
             edge = set(pair)
             if edge & reached:
                 reached.update(edge)
-    required(len(reached) == len(ends) and sorted(ends.values()) == [1,1]+[2]*(len(ends)-2),
+    required(len(reached) == len(plan_ends) and sorted(plan_ends.values()) == [1,1]+[2]*(len(plan_ends)-2),
              "CONTINUOUS_NONBRANCHING_WALL_PLAN_REQUIRED")
     nominal = sum(p["span_m"]*p["thickness_m"] for p in panels)
     net_area = sum(p["clear_length_m"]*p["thickness_m"] for p in panels)
@@ -320,16 +376,27 @@ def folded_section(source, bound, name, story, member_ids):
     positions = [xyz[node] for node in ends]
     width = max(x*axes[0]+y*axes[1] for x,y,z in positions) - min(x*axes[0]+y*axes[1] for x,y,z in positions)
     required(width > 0, "NATIVE_PIER_PROJECTED_LENGTH_UNRESOLVED")
-    nominal_cg = [fsum(p["span_m"]*p["thickness_m"]*(xyz[p["joint_i"]][k]+xyz[p["joint_j"]][k])/2
-                        for p in panels)/nominal for k in (0,1)]
-    face_origins = {}
+    face_origins, face_sections = {}, {}
     for face, key, z in (("Bottom","Bot",bottom),("Top","Top",top)):
+        active = [p for p in panels if (p["bottom_m"]-1e-7 <= z < p["top_m"]-1e-7 if face == "Bottom"
+                                        else p["bottom_m"]+1e-7 < z <= p["top_m"]+1e-7)]
+        required(bool(active), "POSITIVE_NET_WALL_CUT_AREA_REQUIRED")
+        active_pos = [xyz[node] for p in active for node in (p["joint_i"], p["joint_j"])]
+        active_width = max(x*axes[0]+y*axes[1] for x,y,_ in active_pos) - min(x*axes[0]+y*axes[1] for x,y,_ in active_pos)
+        active_nom = fsum(p["span_m"]*p["thickness_m"] for p in active)
+        active_cg = [fsum(p["span_m"]*p["thickness_m"]*(xyz[p["joint_i"]][k]+xyz[p["joint_j"]][k])/2
+                          for p in active)/active_nom for k in (0,1)]
+        active_net = fsum(p["clear_length_m"]*p["thickness_m"] for p in active)
         cx, cy, cz = (float(native["CG"+key+k]) for k in "XYZ")
         # The source table rounds these fields to the displayed millimetre or better.
-        required(close(cx, nominal_cg[0], .00051) and close(cy, nominal_cg[1], .00051) and close(cz, z, .00051)
-                 and close(float(native["Width"+key]), width, .00051)
-                 and close(float(native["Thick"+key]), nominal/width, .000051), "NATIVE_PIER_FACE_PROPERTIES_DIFFER")
+        required(close(cx, active_cg[0], .00051) and close(cy, active_cg[1], .00051) and close(cz, z, .00051)
+                 and close(float(native["Width"+key]), active_width, .00051)
+                 and close(float(native["Thick"+key]), active_nom/active_width, .000051), "NATIVE_PIER_FACE_PROPERTIES_DIFFER")
         face_origins[face] = [cx,cy,cz]
+        face_sections[face] = {"members": [p["member"] for p in active], "nominal_area_m2": active_nom,
+            "clear_web_area_m2": active_net,
+            "net_centroid_xy_m": [fsum(p["clear_length_m"]*p["thickness_m"]*p["clear_centroid_xy_m"][k]
+                                       for p in active)/active_net for k in (0,1)]}
     for panel in panels:
         panel["folded_pier_length_m"] = width
     transfer = {uid:_link_panel(context,uid) for uid in links}
@@ -344,7 +411,8 @@ def folded_section(source, bound, name, story, member_ids):
                 if link:
                     remote = next(e for e in link["support_sections"].values() if e["joint"]==leg["remote_joint"])
                     leg["continuations"] = remote["incident_walls"]
-    return {"panels": panels, "bottom_m":bottom, "top_m":top, "native_axes_2_xy":axes, "native_face_origins_m":face_origins,
+    return {"panels": panels, "bottom_m":bottom, "top_m":top, "stepped": stepped, "face_sections": face_sections,
+            "native_axes_2_xy":axes, "native_face_origins_m":face_origins,
             "nominal_area_m2": nominal, "shell_footprint_union_m2": _union(strips), "clear_web_area_m2":net_area,
             "net_centroid_xy_m":[fsum(p["clear_length_m"]*p["thickness_m"]*p["clear_centroid_xy_m"][k]
                                      for p in panels)/net_area for k in (0,1)],

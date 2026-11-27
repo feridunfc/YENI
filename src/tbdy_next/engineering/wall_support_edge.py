@@ -120,16 +120,19 @@ def support_edge_actions(panel, geometry, raw, states, combinations, *, record_t
         x = extreme(along.values())
         segments = [e for e in edges if all(abs(along[p]-x)<=TOL for p in e)]
         nodes = sorted({p for e in segments for p in e},key=lambda p:coords[p][2])
+        p_bottom = panel.get("bottom_m", geometry["bottom_m"])
+        p_top = panel.get("top_m", geometry["top_m"])
         required(len(nodes)>1 and {tuple(sorted(e)) for e in segments} ==
                  {tuple(sorted(e)) for e in zip(nodes,nodes[1:])} and
-                 abs(coords[nodes[0]][2]-geometry["bottom_m"])<=TOL and
-                 abs(coords[nodes[-1]][2]-geometry["top_m"])<=TOL, "CONTINUOUS_VERTICAL_EDGE_REQUIRED")
+                 abs(coords[nodes[0]][2]-p_bottom)<=TOL and
+                 abs(coords[nodes[-1]][2]-p_top)<=TOL, "CONTINUOUS_VERTICAL_EDGE_REQUIRED")
         column = panel["column_"+side.lower()]
         support = panel.get("support_sections", {}).get(side, {})
+        stepped_seam = support.get("kind") == "STEPPED_WALL_SEAM"
         counterparts = ([("frames",column)] if column else
                         [("areas",r["member"]) for r in support.get("incident_walls",[])])
-        required(counterparts and all(set(nodes) <= {p for _,p in raw[role].get(obj,{}).get("corners",[])}
-                 for role,obj in counterparts), "EXACT_SHARED_FRAME_EDGE_NODES_REQUIRED" if column else
+        required(counterparts and (stepped_seam or all(set(nodes) <= {p for _,p in raw[role].get(obj,{}).get("corners",[])}
+                 for role,obj in counterparts)), "EXACT_SHARED_FRAME_EDGE_NODES_REQUIRED" if column else
                  "EXACT_SHARED_WALL_EDGE_NODES_REQUIRED")
         nodeset=set(nodes)
         incident=_node_incidence(raw,nodeset,combinations)
@@ -141,7 +144,7 @@ def support_edge_actions(panel, geometry, raw, states, combinations, *, record_t
                 actions=incident[node][name]
                 own=[f for role,obj,f in actions if role=="areas" and obj==uid]
                 opposite=[f for role,obj,f in actions if (role,obj) in counterparts]
-                required(own and opposite,"BOTH_NATIVE_SUPPORT_SIDES_REQUIRED")
+                required(own and (stepped_seam or opposite),"BOTH_NATIVE_SUPPORT_SIDES_REQUIRED")
                 residual=[fsum(f[i] for _,_,f in actions) for i in range(6)]
                 internal=node not in (nodes[0],nodes[-1])
                 limits=[max(.02,1e-6*fsum(abs(f[i]) for _,_,f in actions)) for i in range(6)]
@@ -188,7 +191,8 @@ def support_edge_actions(panel, geometry, raw, states, combinations, *, record_t
         results[side]={"column":column,"counterparts":counterparts,"nodes":nodes,"checked_static_interior":len(middle),
                        "balanced_static_interior":sum(r["balanced"] for r in middle),
                        "native_joint_controls":controls,"cuts":cuts,
-                       "status":"NATIVE_EDGE_CONTROL_SATISFIED" if middle and all(r["balanced"] for r in middle)
+                       "status":"NATIVE_EDGE_CONTROL_SATISFIED" if not stepped_seam and middle and all(r["balanced"] for r in middle)
+                                else "STEPPED_SEAM_MESH_MISMATCH" if stepped_seam
                                 else "NATIVE_EDGE_EQUILIBRIUM_UNRESOLVED",
                        "endpoint_scope":"BOTTOM_AND_TOP_INCLUDE_FLOOR_OR_MAT_ACTIONS; LINE_TRACTIONS_RETAINED"}
     return results
