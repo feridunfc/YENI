@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-27T04:33:37.973364+00:00",
+  "updated_at_utc": "2026-11-27T06:40:00+00:00",
   "repository": "feridunfc/YENI",
-  "baseline_implementation_commit": "b220e5a9c3aa5658be47b9d24565d5f05554d021",
+  "baseline_implementation_commit": "26242c07e756f22704e7052c2822371248a780ac",
   "local_reconciled": true,
-  "scope_note": "The original building retains 69 conditional columns, four C21–C24 foundation confinement failures, 14 wall-coupled holds and 180 conditional beams. The registered schedule qualifies 21 of 30 walls. Ten GAPs have scoped Supervisor acceptance including the G4 check inventory and force provenance. W22 has seven balanced panel transfers and zero of 14 field controls within tolerance.",
+  "scope_note": "The original building retains 69 conditional columns, four C21–C24 foundation confinement failures, 14 wall-coupled holds and 180 conditional beams. The registered schedule qualifies 21 of 30 walls. Ten GAPs have scoped Supervisor acceptance including the G4 check inventory and force provenance. Joint 947 (W31/W62) satisfies corner development, crosstie density and parallel dowel clearance; joint 931 (W55/C222) satisfies eight of ten regional splice checks while retaining TBDY 7.6.4 vertical-curtain enclosure and simultaneous crank-hook plane geometry. GAP-014 and GAP-017 are G5 closure-ready Supervisor candidates.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -31,7 +31,7 @@
     "GAP-018",
     "GAP-006"
   ],
-  "active_task": "Verify remote wall endpoints 947 and 931 and audit the G5 frame shear and sealed pipeline scopes.",
+  "active_task": "Review scoped G5 Supervisor candidates (GAP-014 and GAP-017) and evaluate an inner-horizontal-curtain / staggered crank-tie detail at joint 931.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -886,7 +886,8 @@
         "EV-FRAME-STORY-PLUS450-R14-20261122",
         "EV-ORIGINAL-FRAME-STORY-26-R14-20261122",
         "EV-BUILDING-CONFINEMENT-20261122",
-        "EV-MAT-RETURN-G1-CLOSURE-20261125"
+        "EV-MAT-RETURN-G1-CLOSURE-20261125",
+        "EV-G5-PIPELINE-FRAME-SPLICE-20261127"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -1039,8 +1040,8 @@
       "title": "Capacity shear, ties and joint panel",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Existing Ve owner can reevaluate revised Vd and retain revision lineage. The worked roof joint sizes its tie pitch from the lower-column Ash/s and actual proposed legs; 252/272 returned joint axes have sizing inputs. The adjacent interior joint also has a conservative demand upper bound. Joint deductions retain expected cases including zero/small shears; missing endpoints/cases use an explicit conditional zero bound. Lower confinement maps by physical axis and coordinate-based topology. R14 distinguishes an exceeded unresolved bound from a proven demand failure. Initial and revised Ve now both retain the original/revised Vd lower bound and its native governing-cut witness. The signed alpha terminal check consumes expected joint-panel and physically mapped tie outcomes. A qualified passing zero bound remains admissible as a reference; exceeded unresolved bounds require refinement, while bound panel/tie failures return JOINT_DESIGN_FAILURE. Both selected C29 segments now complete the 32 assigned spectral member/case/axis checks. All 1,392 building checks pass the full moment bound, ordinary lower floor, applicable conservative resistance and Eq. (7.7) brittle limit. Native D controls corroborate every scalar shear extremum. C29 uses model support faces in the 32 assigned shear rows, and the computed Ve and Ve/Vr agree with the preceding run. Fifty-nine columns use individual matched faces and cuts. The twelve new frame designs have 72/72 gravity and 192/192 seismic case–axis shear outcomes and 48/48 passing joint panel bounds with transverse reinforcement. The two-storey extension adds 12 R14 designs with 72 gravity and 192 seismic case–axis shear evaluations and 48 panel checks including 14 roof directions.",
-      "blocker": "Wall-interrupted clear spans, anchorage geometry and full detailing acceptance remain open. The assigned capacity shear uses full end moments.",
+      "achieved_scope": "Existing Ve owner can reevaluate revised Vd and retain revision lineage. The worked roof joint sizes its tie pitch from the lower-column Ash/s and actual proposed legs; 252/272 returned joint axes have sizing inputs. The adjacent interior joint also has a conservative demand upper bound. Joint deductions retain expected cases including zero/small shears; missing endpoints/cases use an explicit conditional zero bound. Lower confinement maps by physical axis and coordinate-based topology. R14 distinguishes an exceeded unresolved bound from a proven demand failure. Initial and revised Ve now both retain the original/revised Vd lower bound and its native governing-cut witness. The signed alpha terminal check consumes expected joint-panel and physically mapped tie outcomes. A qualified passing zero bound remains admissible as a reference; exceeded unresolved bounds require refinement, while bound panel/tie failures return JOINT_DESIGN_FAILURE. Both selected C29 segments now complete the 32 assigned spectral member/case/axis checks. All 1,392 building checks pass the full moment bound, ordinary lower floor, applicable conservative resistance and Eq. (7.7) brittle limit. Native D controls corroborate every scalar shear extremum. C29 uses model support faces in the 32 assigned shear rows, and the computed Ve and Ve/Vr agree with the preceding run. Fifty-nine columns use individual matched faces and cuts. The twelve new frame designs have 72/72 gravity and 192/192 seismic case–axis shear outcomes and 48/48 passing joint panel bounds with transverse reinforcement. The two-storey extension adds 12 R14 designs with 72 gravity and 192 seismic case–axis shear evaluations and 48 panel checks including 14 roof directions. Independent G5 verification audits 69 conditional columns, 180 beams, 414 static axis-cases, 1,104 spectral axis-cases, 232 framed joint-panel axes and the four C21–C24 foundation confinement failures with zero discrepancies.",
+      "blocker": "Scoped Supervisor acceptance pending for the independent frame scope; wall-coupled spans remain under GAP-006 and GAP-009.",
       "closure_criteria": "Independently accept capacity shear, brittle limits, transverse reinforcement and panel/anchorage for every face/sign/cage.",
       "owner_paths": [
         "src/tbdy_next/engineering/column_r10_live.py",
@@ -1063,7 +1064,8 @@
         "EV-ORIGINAL-FRAME-STORY-26-R14-20261122",
         "EV-ORIGINAL-WHOLE-BUILDING-ENGINE-20261122",
         "EV-BUILDING-CONFINEMENT-20261122",
-        "EV-MAT-RETURN-G1-CLOSURE-20261125"
+        "EV-MAT-RETURN-G1-CLOSURE-20261125",
+        "EV-G5-PIPELINE-FRAME-SPLICE-20261127"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -1094,6 +1096,18 @@
         "evidence_ref": "EV-BUILDING-CONFINEMENT-20261122",
         "outcome": "For C21–C24 at +0.00 m the modelled 600 mm foundation gross depth is less than the required 800 mm confinement continuation. R14 now records four numerical failures. The selected C29/225 and 142 schedules contain 50 and 43 tie stations.",
         "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md"
+      },
+      "closure_ready": true,
+      "supervisor_decision": "PENDING",
+      "closure_candidate": {
+        "run_id": "RUN-149e783beb584ebc9242542da7c6b903",
+        "contract": "g5-contract.json",
+        "verification": "g5-verification.json",
+        "contract_sha256": "9c2920861318bd8088aeaf63c2c57c1fa27e0900b16f87055035b207a0f1fbad",
+        "verification_sha256": "82ed1f2b1f7b91a8dd7a379df59f1dff05cfcd4221c63e9b533eee3d43a341a1",
+        "supervisor_approval": "PENDING",
+        "evidence_ref": "EV-G5-PIPELINE-FRAME-SPLICE-20261127",
+        "unresolved": []
       }
     },
     {
@@ -1101,8 +1115,8 @@
       "title": "Wall/pier factor and wall design",
       "status": "PARTIAL",
       "priority": "P1",
-      "achieved_scope": "Both ends of 12/30 physical wall objects have conditional rectangular boundary longitudinal and transverse designs in the building run. P2–P5 have continuous shared-edge stacks. Their critical zones are retained over all three storeys in the proposal, with 16 to 24 Ø14 per end, Ø10/80 hoops and crossties checked separately in both directions. The same twelve panels now have a calculated double-curtain web and fixed-axial biaxial capacities at both ends for all five native wall static assignments. All eight native wall seismic assignments have sufficient local in-plane shear bounds for both classifications under 7.6.6.3. The original eight native wall assignments now produce 192 conditional full-interval PMM, heightwise moment, shear and axial section designs. All 96 construction joint combinations and 96 floor moment-strength combinations under §7.6.6.2 satisfy their bounds. The engine also calculates the physical web crossties on all 12 panels. The saved workspace and printable report expose the same results. Five original basement panels in yP1 now carry selected two-face proposed grids, with 30/30 pier-end bounds, 150/150 net-web PMM checks and 75/75 horizontal pressure panel combinations. A single building action evaluates every pier and storey. The original has 390/390 net-area compression, reference web shear and rough-plane friction checks and 30 directional bending amplitudes. Ten yP1 wall ends now have a calculated proposed anchorage and pressure transfer. Original signed shell and column cuts balance six actions in each of 300/300 modal and 6/6 static storey cases. Six conditional wall shear and common-origin moment shares are calculated. W32/471 participates once in the foundation cut. The boundary calculation identifies 17 panels sharing elevations. Its former combined warning also covered a change of shell thickness. The same building run now solves both §3.3.1.1(b) ratios from the original stiffness, 1.026893 in X and 1.020456 in Y, and traces the enclosure across both physical basement bands. Original xP2 opening sections, signed C104 jamb actions, W22 pressure and self-weight, and seven equilibrated panel transfer results are available in the sealed wall batch. Five yP1 panels add five proposed schedules for a total of 17/30. Their selected two-face cages satisfy 300/300 combined shell checks, 300/300 plate references, 150/150 pier-end PMM bounds and 150/150 edge checks. All 350 signed interior nodal states balance. Six support layouts fit, including the continuous W27–C221–W28 bar. The closure run adds W143, W50, W62 and W65. The independently reconstructed W6 cage prevents the current W31 and W55 paths from being scheduled.",
-      "blocker": "The project overturning decision needs §3.3.1.1(a) enclosure at the lower W22 opening, wall grouping and design eccentricity. W32/471 shares full edges with W31/470, W55/464 and W6/472. Its design load path needs qualification. xP2 has five to six constant-thickness panels across two elevation bands. yP2's end without a registered column needs a wall-to-wall transfer model. W22 design-force accuracy and reinforcement continuity remain open. The yP1 details and design interface assumptions await project acceptance. As-built reinforcement has yet to be verified.",
+      "achieved_scope": "Both ends of 12/30 physical wall objects have conditional rectangular boundary longitudinal and transverse designs in the building run. P2–P5 have continuous shared-edge stacks. Their critical zones are retained over all three storeys in the proposal, with 16 to 24 Ø14 per end, Ø10/80 hoops and crossties checked separately in both directions. The same twelve panels now have a calculated double-curtain web and fixed-axial biaxial capacities at both ends for all five native wall static assignments. All eight native wall seismic assignments have sufficient local in-plane shear bounds for both classifications under 7.6.6.3. The original eight native wall assignments now produce 192 conditional full-interval PMM, heightwise moment, shear and axial section designs. All 96 construction joint combinations and 96 floor moment-strength combinations under §7.6.6.2 satisfy their bounds. The engine also calculates the physical web crossties on all 12 panels. The saved workspace and printable report expose the same results. Five original basement panels in yP1 now carry selected two-face proposed grids, with 30/30 pier-end bounds, 150/150 net-web PMM checks and 75/75 horizontal pressure panel combinations. A single building action evaluates every pier and storey. The original has 390/390 net-area compression, reference web shear and rough-plane friction checks and 30 directional bending amplitudes. Ten yP1 wall ends now have a calculated proposed anchorage and pressure transfer. Original signed shell and column cuts balance six actions in each of 300/300 modal and 6/6 static storey cases. Six conditional wall shear and common-origin moment shares are calculated. W32/471 participates once in the foundation cut. The boundary calculation identifies 17 panels sharing elevations. Its former combined warning also covered a change of shell thickness. The same building run now solves both §3.3.1.1(b) ratios from the original stiffness, 1.026893 in X and 1.020456 in Y, and traces the enclosure across both physical basement bands. Original xP2 opening sections, signed C104 jamb actions, W22 pressure and self-weight, and seven equilibrated panel transfer results are available in the sealed wall batch. Five yP1 panels add five proposed schedules for a total of 17/30. Their selected two-face cages satisfy 300/300 combined shell checks, 300/300 plate references, 150/150 pier-end PMM bounds and 150/150 edge checks. All 350 signed interior nodal states balance. Six support layouts fit, including the continuous W27–C221–W28 bar. The closure run adds W143, W50, W62 and W65 for 21/30. On the W31–W32–W55–W6 channel transfer, 12 of 13 coordinated checks pass including complete corner 947 (W31/W62) and eight of ten zoned splice checks at column 222 (node 931).",
+      "blocker": "The project overturning decision needs §3.3.1.1(a) enclosure at the lower W22 opening, wall grouping and design eccentricity. At node 931 (W55/C222) straight horizontal lap enclosure inside vertical curtains under TBDY §7.6.4 and simultaneous common-plane crank tie geometry remain open, holding W31, W32 and W55. xP2 has five to six constant-thickness panels across two elevation bands. W22 design-force accuracy and reinforcement continuity remain open. The yP1/yP2 details and design interface assumptions await project acceptance. As-built reinforcement has yet to be verified.",
       "closure_criteria": "Complete the real wall topology/forces, normative calculation, independent oracle and sealed-report slice.",
       "owner_paths": [
         "src/tbdy_next/wall_geometry.py",
@@ -1146,7 +1160,8 @@
         "EV-WALL-GOVERNING-DESIGN-VIEW-20261124",
         "EV-YP1-TWO-WAY-SHELL-AND-SUPPORTS-20261124",
         "EV-YP1-COMBINED-SHELL-AND-SUPPORT-SCHEDULE-20261125",
-        "EV-MAT-RETURN-G1-CLOSURE-20261125"
+        "EV-MAT-RETURN-G1-CLOSURE-20261125",
+        "EV-G5-PIPELINE-FRAME-SPLICE-20261127"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -1512,8 +1527,8 @@
       "title": "One pipeline, dependency graph and sealed reports",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "One runner and finalized v2 remain; current same-source stage repeats 16/16 IDENTICAL, and report projection makes zero calls with 21 entry points disabled. Web and CLI now share scenario preparation and original-parent verification, with complete sealed-result equality checks. Normal single/all-column reports project governing PMM cuts and joint shear/tie details without calculation. The logical baseline is included in CI filters. All declared method versions are exported even when a stage has no consumes contract. New legacy-policy selections are prepared through the single scenario owner; an unprepared direct-run selection is rejected before calculation receipts. New raw/floored/final moment and alpha-population report fields are sealed-result projections. Numeric receipt ordinals support 99/100/101 across history, snapshot, CLI, web and column store. The new six-row report reads the sealed force balance and its signed residuals. History and export retain byte identity for indexed reads and the same sealed yP1 case/corner results feed 7.22 and print.",
-      "blocker": "General catalog-wide topological execution and the remaining unimplemented engineering families require additional owners and physical check-instance coverage.",
+      "achieved_scope": "One runner and finalized v2 remain; current same-source stage repeats 16/16 IDENTICAL, and report projection makes zero calls with 21 entry points disabled. Web and CLI now share scenario preparation and original-parent verification, with complete sealed-result equality checks. Normal single/all-column reports project governing PMM cuts and joint shear/tie details without calculation. The logical baseline is included in CI filters. All declared method versions are exported even when a stage has no consumes contract. New legacy-policy selections are prepared through the single scenario owner; an unprepared direct-run selection is rejected before calculation receipts. New raw/floored/final moment and alpha-population report fields are sealed-result projections. Numeric receipt ordinals support 99/100/101 across history, snapshot, CLI, web and column store. The new six-row report reads the sealed force balance and its signed residuals. History and export retain byte identity for indexed reads and the same sealed yP1 case/corner results feed 7.22 and print. G5 verifies the 16-stage BuildingStageGraph with 64 fault-injection probes across four failure causes, exact CLI == HTTP stage projection over 57 families / 7,439 expected instances, and zero calculator calls across HTTP export and print.",
+      "blocker": "Scoped Supervisor acceptance pending for the 16-stage runner and 57-family inventory; unimplemented design families remain under their respective GAPs.",
       "closure_criteria": "Execute one registry with typed dependencies and complete expected scope; block missing upstreams and project the same sealed result in UI/CLI/report.",
       "owner_paths": [
         "src/tbdy_next/engineering/pipeline.py",
@@ -1532,7 +1547,8 @@
         "EV-S02-C29-SIGNED-STORY-BALANCE-20261122",
         "EV-WINDOWS-S00-S02-20261122",
         "EV-ORIGINAL-WHOLE-BUILDING-ENGINE-20261122",
-        "EV-YP1-TWO-WAY-SHELL-AND-SUPPORTS-20261124"
+        "EV-YP1-TWO-WAY-SHELL-AND-SUPPORTS-20261124",
+        "EV-G5-PIPELINE-FRAME-SPLICE-20261127"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -1553,7 +1569,19 @@
           "S10"
         ]
       },
-      "whole_building_engine_update": "Whole-building CLI and HTTP call the existing runner. It freezes the original census, executes available owners through R14 and generates the printable report from the sealed numerical result. All 16 stage payloads match on the real source."
+      "whole_building_engine_update": "Whole-building CLI and HTTP call the existing runner. It freezes the original census, executes available owners through R14 and generates the printable report from the sealed numerical result. All 16 stage payloads match on the real source.",
+      "closure_ready": true,
+      "supervisor_decision": "PENDING",
+      "closure_candidate": {
+        "run_id": "RUN-149e783beb584ebc9242542da7c6b903",
+        "contract": "g5-contract.json",
+        "verification": "g5-verification.json",
+        "contract_sha256": "9c2920861318bd8088aeaf63c2c57c1fa27e0900b16f87055035b207a0f1fbad",
+        "verification_sha256": "82ed1f2b1f7b91a8dd7a379df59f1dff05cfcd4221c63e9b533eee3d43a341a1",
+        "supervisor_approval": "PENDING",
+        "evidence_ref": "EV-G5-PIPELINE-FRAME-SPLICE-20261127",
+        "unresolved": []
+      }
     },
     {
       "id": "GAP-018",
@@ -2247,5 +2275,50 @@
     "original_project_approval": "NOT_GRANTED",
     "accepted_contract_sha256": "46d6cc235b9d57c964c1a1e569aceca733431e3e555c7485d145384716088aab",
     "evidence_ref": "EV-G4-SUPERVISOR-G5"
+  },
+  "g5_supervisor_packet": {
+    "run": "RUN-149e783beb584ebc9242542da7c6b903",
+    "evidence_ref": "EV-G5-PIPELINE-FRAME-SPLICE-20261127",
+    "gaps": {
+      "GAP-014": {
+        "status": "PARTIAL",
+        "closure_ready": true,
+        "unresolved": [],
+        "supervisor_approval": "PENDING"
+      },
+      "GAP-017": {
+        "status": "PARTIAL",
+        "closure_ready": true,
+        "unresolved": [],
+        "supervisor_approval": "PENDING"
+      }
+    },
+    "contract_sha256": "9c2920861318bd8088aeaf63c2c57c1fa27e0900b16f87055035b207a0f1fbad",
+    "verification_sha256": "82ed1f2b1f7b91a8dd7a379df59f1dff05cfcd4221c63e9b533eee3d43a341a1",
+    "evidence_sha256": {
+      "frame_shear": "f95e13c77892d3a568443e907bbfeeb413acd6cd5b7c4f10215cd0392f8aaa9e",
+      "pipeline": "fcee5daa1180d5dfca5e42f5e3254162f67f9d310c30d9b1c895778573ff5234"
+    },
+    "closed_gaps": [
+      "GAP-001",
+      "GAP-002",
+      "GAP-003",
+      "GAP-004",
+      "GAP-005",
+      "GAP-007",
+      "GAP-008",
+      "GAP-010",
+      "GAP-013",
+      "GAP-016"
+    ],
+    "separate_gaps": [
+      "GAP-006",
+      "GAP-009",
+      "GAP-011",
+      "GAP-012",
+      "GAP-015",
+      "GAP-018"
+    ],
+    "engineering_release": "NOT_READY"
   }
 }

@@ -19,16 +19,21 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "G3_SECTION_ACCEPTED_G4_READY_BRIDGE_HOLD",
-    "work_branch": "work/g4-central-channel",
+    "status": "G4_ACCEPTED_G5_READY_REMOTE_CORNER_947_VERIFIED",
+    "work_branch": "work/g5-remote-ends",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "d964ef2ca305772dcc95799d5bac7d094220a999",
-    "calculation_implementation_commit": "81fddbc743a60759e6dd98ff24973a6f94f43480",
-    "production_run_id": "RUN-1d1f7079ce98462eb1e58b557e9daafa",
-    "results_sha256": "15edce42f2a8e8912514e1ebf23cd404a81502104f95ffd4102951d96e3447e3",
-    "snapshot_sha256": "c18c27ce72d081bf27fc48cba1092540d5caa58a3666d846526fe29c1e40d23f",
-    "scope": "Scoped GAP-010 acceptance, finite bridge details and G4 demand and population candidates.",
-    "verification": "EV-G3-ACCEPTANCE-CENTRAL-CHANNEL-G4",
+    "inspected_base_commit": "c51a2d22a37a67dbe3ca8c8795955a606275463b",
+    "calculation_implementation_commit": "26242c07e756f22704e7052c2822371248a780ac",
+    "tested_git_subtrees": {
+      "src": "60083aea6feba25a0932c55522f19b38fadefa24",
+      "tests": "3636d935c50e38f61df4f6c99b274ea29dd12639",
+      "tools": "5471e42c7883e9cc8e80ae50848d966881c99757"
+    },
+    "production_run_id": "RUN-149e783beb584ebc9242542da7c6b903",
+    "results_sha256": "9ff876290a0c5f767c304d49b1a84f0e0e9669010c15b3946abcf60dc385569f",
+    "snapshot_sha256": "4b789e786f5ce29e9e093d878e729295d6ad0c74ddb878eccced029cce5f69be",
+    "scope": "Scoped G4 formal closure (10/18 GAPs), verified remote corner 947 and zoned transition 931, and G5 frame-shear and pipeline Supervisor candidates.",
+    "verification": "EV-G5-PIPELINE-FRAME-SPLICE-20261127",
     "engineering_release": "NOT_READY"
   },
   "last_observed_remote_implementation": {
@@ -16245,6 +16250,113 @@
         "GAP-018"
       ],
       "engineering_release": "NOT_READY"
+    },
+    {
+      "id": "EV-G5-PIPELINE-FRAME-SPLICE-20261127",
+      "observed_at": "2026-11-27T06:40:00+00:00",
+      "implementation_commit": "26242c07e756f22704e7052c2822371248a780ac",
+      "tested_git_subtrees": {
+        "src": "60083aea6feba25a0932c55522f19b38fadefa24",
+        "tests": "3636d935c50e38f61df4f6c99b274ea29dd12639",
+        "tools": "5471e42c7883e9cc8e80ae50848d966881c99757"
+      },
+      "status": "SCOPED_G4_CLOSED_G5_CANDIDATES_SEALED_REMOTE_CORNER_947_VERIFIED",
+      "production_run_id": "RUN-149e783beb584ebc9242542da7c6b903",
+      "input_sha256": "10b2a06edbc656bc6e8972ec542209f8dd904cc9ee088165ab3c92f87a043033",
+      "snapshot_sha256": "4b789e786f5ce29e9e093d878e729295d6ad0c74ddb878eccced029cce5f69be",
+      "results_sha256": "9ff876290a0c5f767c304d49b1a84f0e0e9669010c15b3946abcf60dc385569f",
+      "report_sha256": "14cc1586d927298b95fbf02c815ccdad5839d3c60f22877dc4ec2d13c86ce3f7",
+      "report_bytes": 8088101,
+      "live_etabs_calls": 0,
+      "building_outcomes": {
+        "columns_conditional": 69,
+        "columns_failed_foundation_confinement": 4,
+        "columns_held_wall_coupled": 14,
+        "columns_by_storey": {
+          "+9.00": [23, 23],
+          "+4.50": [32, 32],
+          "+0.00": [14, 32]
+        },
+        "beams_conditional": 180,
+        "walls_scheduled": [21, 30],
+        "c29_independent_faces": [24, 24],
+        "g2_two_storey_independent_replay_sha256": "6555482b15b1a2038f53f696d41f1289cf2cdf6db97929825b422a8a44e2cb22"
+      },
+      "remote_endpoints": {
+        "joint_947": {
+          "complete_corner": true,
+          "web_development_mm": [952.452099241876, 1499.9999999999886],
+          "dowel_development_mm": [846.6240882150009, 1499.9999999999886],
+          "w31_crosstie_density_per_m2": [17.0, 16.530612244897963],
+          "overlap_clear_mm": [30.183333333333167, 26.666666666666668]
+        },
+        "joint_931": {
+          "zoned_checks_satisfied": [8, 10],
+          "regional_shell_corners": 2880,
+          "regional_shell_corner_proof_sha256": "2fc4bbfa73b93c8a107ed7c351db2fbfaec30f9b2791783d72f7d8576c5f5a14",
+          "crank_bar_bends_balanced": 138,
+          "unresolved": [
+            "STRAIGHT_LAP_INSIDE_VERTICAL_CURTAIN_TBDY_7_6_4",
+            "SIMULTANEOUS_CRANK_HOOK_GEOMETRY"
+          ]
+        },
+        "coordinated_channel_checks_satisfied": [12, 13]
+      },
+      "G5": {
+        "contract_sha256": "9c2920861318bd8088aeaf63c2c57c1fa27e0900b16f87055035b207a0f1fbad",
+        "verification_sha256": "82ed1f2b1f7b91a8dd7a379df59f1dff05cfcd4221c63e9b533eee3d43a341a1",
+        "evidence_sha256": {
+          "frame_shear": "f95e13c77892d3a568443e907bbfeeb413acd6cd5b7c4f10215cd0392f8aaa9e",
+          "pipeline": "fcee5daa1180d5dfca5e42f5e3254162f67f9d310c30d9b1c895778573ff5234"
+        },
+        "closure_ready_gaps": [
+          "GAP-014",
+          "GAP-017"
+        ],
+        "frame_shear_totals": {
+          "beams": 180,
+          "conditional_columns": 69,
+          "foundation_failures": 4,
+          "joint_axes": 232,
+          "spectral_axis_cases": 1104,
+          "static_axis_cases": 414
+        },
+        "pipeline_probes": {
+          "stages": 16,
+          "fault_injections": 64,
+          "expected_families": 57,
+          "expected_instances": 7439,
+          "report_calculator_calls": 0
+        }
+      },
+      "formal_closed_gap_ids": [
+        "GAP-001",
+        "GAP-002",
+        "GAP-003",
+        "GAP-004",
+        "GAP-005",
+        "GAP-007",
+        "GAP-008",
+        "GAP-010",
+        "GAP-013",
+        "GAP-016"
+      ],
+      "engineering_release": "NOT_READY",
+      "formal_compliance": "NOT_PROVEN",
+      "independent_replays": [
+        "python -X utf8 -B tools/verify_g5_contract.py .receipts/RUN-149e783beb584ebc9242542da7c6b903"
+      ],
+      "live_measurement_log": ".receipts/verification/g5-live-8876.json",
+      "software": {
+        "full_suite_command": "python -X utf8 -B tools/test_offline.py",
+        "log": ".receipts/verification/g5-offline.log",
+        "log_sha256": "a29f35e1aa499ef833e8b6038b0e21f4da6d0e0e259456a263223aba79fbbfd3",
+        "python_discovered": 1819,
+        "python_seconds": 412.372,
+        "result": "OK (skipped=1)",
+        "javascript_suites": 12,
+        "exit_code": 0
+      }
     }
   ],
   "new_record_template": {
@@ -16269,7 +16381,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-27T04:33:37.973364+00:00",
+  "updated_at_utc": "2026-11-27T06:40:00+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -17233,6 +17345,37 @@
       "snapshot_sha256": "67ea09d5b0391b5f5009d11fe51758fc401c09a00892eab2f0e220e05ca58700",
       "scope": "G2 Supervisor acceptance, offline P2 boundary redesign, same-element W32 check, G3 demand census and independent capacities.",
       "verification": "EV-G2-SUPERVISOR-G3-20261126",
+      "engineering_release": "NOT_READY"
+    },
+    {
+      "status": "G3_SECTION_ACCEPTED_G4_READY_BRIDGE_HOLD",
+      "work_branch": "work/g4-central-channel",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "d964ef2ca305772dcc95799d5bac7d094220a999",
+      "calculation_implementation_commit": "81fddbc743a60759e6dd98ff24973a6f94f43480",
+      "production_run_id": "RUN-1d1f7079ce98462eb1e58b557e9daafa",
+      "results_sha256": "15edce42f2a8e8912514e1ebf23cd404a81502104f95ffd4102951d96e3447e3",
+      "snapshot_sha256": "c18c27ce72d081bf27fc48cba1092540d5caa58a3666d846526fe29c1e40d23f",
+      "scope": "Scoped GAP-010 acceptance, finite bridge details and G4 demand and population candidates.",
+      "verification": "EV-G3-ACCEPTANCE-CENTRAL-CHANNEL-G4",
+      "engineering_release": "NOT_READY"
+    },
+    {
+      "status": "G4_ACCEPTED_G5_READY_REMOTE_CORNER_947_VERIFIED",
+      "work_branch": "work/g5-remote-ends",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "c51a2d22a37a67dbe3ca8c8795955a606275463b",
+      "calculation_implementation_commit": "26242c07e756f22704e7052c2822371248a780ac",
+      "tested_git_subtrees": {
+        "src": "60083aea6feba25a0932c55522f19b38fadefa24",
+        "tests": "3636d935c50e38f61df4f6c99b274ea29dd12639",
+        "tools": "5471e42c7883e9cc8e80ae50848d966881c99757"
+      },
+      "production_run_id": "RUN-149e783beb584ebc9242542da7c6b903",
+      "results_sha256": "9ff876290a0c5f767c304d49b1a84f0e0e9669010c15b3946abcf60dc385569f",
+      "snapshot_sha256": "4b789e786f5ce29e9e093d878e729295d6ad0c74ddb878eccced029cce5f69be",
+      "scope": "Scoped G4 formal closure (10/18 GAPs), verified remote corner 947 and zoned transition 931, and G5 frame-shear and pipeline Supervisor candidates.",
+      "verification": "EV-G5-PIPELINE-FRAME-SPLICE-20261127",
       "engineering_release": "NOT_READY"
     }
   ],
