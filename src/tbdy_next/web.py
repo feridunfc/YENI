@@ -829,6 +829,18 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                     length = -1
                 if length != 0 or self.headers.get("Transfer-Encoding"):
                     self.reply(400, {"status": "REJECTED", "reason": "LIVE_REQUEST_MUST_HAVE_NO_BODY"})
+                    # A Windows socket closed with unread incoming bytes may reset
+                    # before the peer can read the rejection. Drain a small framed
+                    # body after sending the response. Capture is never dispatched.
+                    if 0 < length <= 8192 and not self.headers.get("Transfer-Encoding"):
+                        timeout = self.connection.gettimeout()
+                        try:
+                            self.connection.settimeout(.5)
+                            self.rfile.read(length)
+                        except OSError:
+                            pass
+                        finally:
+                            self.connection.settimeout(timeout)
                     return
                 query = parse_qs(url.query)
                 session_only = url.path == "/api/etabs-session"

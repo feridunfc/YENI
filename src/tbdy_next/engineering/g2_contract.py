@@ -99,7 +99,8 @@ def verify_frame_evidence(doc):
         # A frozen example may be consumed by another producer only after its
         # independent end-to-end replay reproduces every field except producer identity.
         require(_digest(doc) == FRAME_REFERENCE_SHA256
-                and _digest({**doc, "implementation_sha256": current}) in (FRAME_REPLAY_SHA256, G3_FRAME_REPLAY_SHA256, PREVIOUS_FRAME_REPLAY_SHA256),
+                and _digest({**doc, "implementation_sha256": current}) in (
+                    FRAME_REPLAY_SHA256, G4_FRAME_REPLAY_SHA256, G3_FRAME_REPLAY_SHA256, PREVIOUS_FRAME_REPLAY_SHA256),
                 "FRAME_IMPLEMENTATION_CHANGED")
     report = doc["positive"]
     require(report["feedback_consumed"] is True and report["terminal"]=="FIXED_POINT_REFERENCE" and report["feasibility"]=="FEASIBLE_REFERENCE"
@@ -187,7 +188,10 @@ FRAME_REFERENCE_SHA256="80a75a9d6b1dd6a9d9efdbf4ba7aedd4c98442c5a3518ae60757e3f8
 # The later producer treats missing legacy story terms as ineligible for SCWB credit.
 PREVIOUS_FRAME_REPLAY_SHA256="5b4c97c6ca9c5d059f7495a3e0537d0a22e27d0fee11d5a284d9b50bd08567ce"
 G3_FRAME_REPLAY_SHA256="73dc686908d0236a78d7e10382bdbbffb9a331f2ffa322b17bcff265eaa95a54"
-FRAME_REPLAY_SHA256="21d0633569e536ee981aa657cd563a2eb370c3bb0918aa02c0844ee25fb99a65"
+G4_FRAME_REPLAY_SHA256="21d0633569e536ee981aa657cd563a2eb370c3bb0918aa02c0844ee25fb99a65"
+# Both two-storey examples were rerun with the compiled receipt graph. Every
+# field of the independent evidence except producer identity was reproduced.
+FRAME_REPLAY_SHA256="cbcbec7aed8b97e974837278dd6dfd54695037ec2eea968990d90a3cc760216a"
 
 
 ACCEPTED_G2 = "d4b45b5d6126c733d63f5f8d068429a8a482d267078c1459ad47eb8bb45cf274"

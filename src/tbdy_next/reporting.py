@@ -1188,6 +1188,7 @@ def _basement_pier_tables(piers):
     inventory, cuts, layouts, pressure, ends, shells, alternatives = [], [], [], [], [], [], []
     membrane, edge_rows, through_bars = [], [], []
     returns, bridge_rows, bridge_series, bridge_phases, starters = [], [], [], [], []
+    remote_walls = []
     for pier in groups:
         name = pier["pier"]
         geom = pier.get("geometry", {})
@@ -1195,6 +1196,28 @@ def _basement_pier_tables(piers):
         for layout in pier.get("two_way_support_layouts", []):
             transfer = layout.get("transfer_connection") or {}
             if transfer and layout["column"] == "joint " + transfer["shared_joints"][0]:
+                channel = transfer.get("coordinated_trial") or {}
+                remote = channel.get("remote_endpoint_comparisons") or {}
+                column = remote.get("column") or {}
+                lap = column.get("zoned_transition") or {}
+                if lap:
+                    corner = remote["corner"]
+                    overlap = remote.get("overlap") or {}
+                    shell = lap["regional_shell"]
+                    ties = lap["crank_tie_equilibrium"]
+                    rows = [
+                        (corner["joint"],"Corner and crosstie clear distance (mm)",overlap.get("clear_mm"),
+                         overlap.get("required_mm"),channel["checks"]["remote_corner_and_overlap"]),
+                        (column["joint"],"Regional shell corners within selection limit",
+                         sum(r["satisfied"] for r in shell["stations"]),shell["corner_count"],shell["satisfied"]),
+                        (column["joint"],"Outward bends with individually balanced transverse ties",
+                         ties["balanced_hook_pairs"],ties["bar_count"],not ties["unbraced"]),
+                        (column["joint"],"Intersections in simultaneous bend-tie layout",
+                         ties["common_plane_assembly"]["interfering_pairs"],0,ties["common_plane_assembly"]["satisfied"])]
+                    for face, val in sorted(lap["straight_lap_enclosure"].items()):
+                        rows.append((column["joint"],"Longitudinal bars enclosing straight lap, face "+face,
+                                     val["installed_outside_verticals"],val["minimum_count"],val["satisfied"]))
+                    remote_walls.extend(dict(zip(("joint","check","observed","criterion","satisfied"),row)) for row in rows)
                 trial = transfer.get("synchronized_trial", {})
                 for case in trial.get("series_interface_checks", {}).get("combinations", []):
                     bridge_series.append({**case,"link":transfer["link"]})
@@ -1337,6 +1360,9 @@ def _basement_pier_tables(piers):
          _table((("member","Incident shell"),("link","Transfer shell"),("receiving","Receiving shell"),
                  ("role","Bar"),("clear_mm","Clearance (mm)"),("required_mm","Required (mm)"),
                  ("status","Joint result")), bridge_rows) + "</details>" if bridge_rows else ""),
+        ("<details><summary>Bridge continuity at the remote wall ends</summary>" +
+         _table((("joint","Joint"),("check","Check"),("observed","Observed"),("criterion","Required"),
+                 ("satisfied","Satisfied")),remote_walls) + "</details>" if remote_walls else ""),
         ("<details><summary>Developed terminations of scheduled spans</summary>" +
          _table((("member","Receiving shell"),("through_column","Column"),("full_bond_mm","Full bond (mm)"),
                  ("straight_starter_mm","Starter beyond column face (mm)"),("available_mm","Available (mm)")),
