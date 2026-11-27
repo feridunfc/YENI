@@ -201,11 +201,13 @@ def channel_trial(straight, turn, link, ns, fs, section, pier, states, material,
                         r["satisfied"] for r in lap["straight_lap_enclosure"].values()),
                     "CRANK_TRANSVERSE_FORCE_EQUILIBRIUM":lap["crank_tie_equilibrium"]["directionally_admissible"],
                     "CRANK_HOOK_PAIRS_AT_RETAINED_LEVELS":not lap["crank_tie_equilibrium"]["unbraced"],
-                    "SIMULTANEOUS_CRANK_HOOK_GEOMETRY":lap["crank_tie_equilibrium"]["common_plane_assembly"]["satisfied"]}
+                    "SIMULTANEOUS_CRANK_HOOK_GEOMETRY":lap["crank_tie_equilibrium"]["common_plane_assembly"]["satisfied"],
+                    "COMPLETE_REGIONAL_CAGE_INTERSECTION":lap["regional_cage_audit"]["satisfied"]}
             remote["column"]["zoned_transition_checks"]=checks
             open_items=[name for name,ok in checks.items() if not ok]
-            # Directional admissibility alone cannot qualify undimensioned hooks.
-            remote["column"]["unresolved"]=open_items or ["COMPLETE_REGIONAL_CAGE_INTERSECTION_AUDIT_REQUIRED"]
+            remote["column"]["unresolved"]=open_items
+            if not open_items:
+                remote["column"]["status"]="VERIFIED_DEVELOPMENT_AND_LAYOUT"
             result["sections"][turn["member"]]=regional_section
             result["checks"]["pmm"]=all(item["satisfied"] for item in result["sections"].values())
             result["checks"]["shell_and_shared_friction"]=(lap["regional_shell"]["satisfied"] and

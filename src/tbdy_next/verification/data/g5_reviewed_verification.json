@@ -1,0 +1,34 @@
+{
+  "contract_sha256": "9c2920861318bd8088aeaf63c2c57c1fa27e0900b16f87055035b207a0f1fbad",
+  "evidence_sha256": {
+    "frame_shear": "f95e13c77892d3a568443e907bbfeeb413acd6cd5b7c4f10215cd0392f8aaa9e",
+    "pipeline": "fcee5daa1180d5dfca5e42f5e3254162f67f9d310c30d9b1c895778573ff5234"
+  },
+  "files_sha256": {
+    "cli-stage-projection.json": "43ea2f5e6a25af24301491cce0cc2e3da175546227e0b9ae6fd996284394913e",
+    "g4-contract.json": "0116e1b5b34c41240838c6c77eef591e7f2477be3c9c86efa0d9e63fe0a4cb5f",
+    "g4-expected.json": "298f2162c3856a6e87af7098d8dcbba18bf4307df27f790f0d2d98b601da178d",
+    "g4-verification.json": "4236ee633c5d5c5cfe869664b23bf6501d17a062ce1b4b0661959c34ed6c8f85",
+    "g5-contract.json": "87c896ede92314359065907e0e0c2694db71a695868d2438f1b5cb073d28396c",
+    "report.html": "14cc1586d927298b95fbf02c815ccdad5839d3c60f22877dc4ec2d13c86ce3f7"
+  },
+  "gaps": {
+    "GAP-014": {
+      "closure_ready": true,
+      "status": "PARTIAL",
+      "supervisor_approval": "PENDING",
+      "unresolved": []
+    },
+    "GAP-017": {
+      "closure_ready": true,
+      "status": "PARTIAL",
+      "supervisor_approval": "PENDING",
+      "unresolved": []
+    }
+  },
+  "input_sha256": "10b2a06edbc656bc6e8972ec542209f8dd904cc9ee088165ab3c92f87a043033",
+  "results_sha256": "9ff876290a0c5f767c304d49b1a84f0e0e9669010c15b3946abcf60dc385569f",
+  "schema": "tbdy.next.g5-verification.v1",
+  "snapshot_sha256": "4b789e786f5ce29e9e093d878e729295d6ad0c74ddb878eccced029cce5f69be",
+  "verification_sha256": "82ed1f2b1f7b91a8dd7a379df59f1dff05cfcd4221c63e9b533eee3d43a341a1"
+}

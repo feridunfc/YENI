@@ -327,6 +327,12 @@ def check_joint_layout(geometry, aggregate=DEFAULT_AGGREGATE_MM, through=None, *
                 for _,_,end in incident:
                     end["layout_status"] = row["reason"]
                 continue
+            trial = bridge.get("coordinated_trial") or {}
+            if trial.get("status") == "COMPLETE_LAYOUT":
+                row.update(status="PROPOSED_PRESSURE_BARS_FIT", governing=trial["mutual_clearance"], coordinated_layout=True)
+                for _,_,end in incident:
+                    end["layout_status"] = "PROPOSED_PRESSURE_BARS_FIT"
+                continue
         families = [bar for panel,side,end in incident for bar in _families(panel,side,end)]
         proof = (through or {}).get(uid)
         if proof:

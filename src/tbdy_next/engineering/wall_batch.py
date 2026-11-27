@@ -131,6 +131,9 @@ def wall_batch(source, stages, boundaries, sections, bound, scope):
         if c.get("combination"):
             combos.setdefault(c["combination"], "AMPLIFIED_CONTROL")
     groups = {(p["pier"], p["story"]): p for p in sections["basement_piers"]}
+    transfer_scheduled = {tp["member"] for p in sections["basement_piers"]
+                          for tp in (p.get("geometry") or {}).get("transfer_panels", ())
+                          if tp.get("schedule_status") == "PRESSURE_PANEL_SCHEDULE_QUALIFIED"}
     try:
         context = _context(source)
     except (KeyError, ValueError, TypeError):
@@ -162,6 +165,8 @@ def wall_batch(source, stages, boundaries, sections, bound, scope):
         except (KeyError, TypeError, ValueError) as exc:
             row["reason"] = str(exc)
             row["design"] = _design_summary(row, sections, groups.get((pier,story)))
+            if not pier and transfer_scheduled:
+                row["design"]["scheduled_panels"] = sum(m in transfer_scheduled for m in ids)
             continue
         try:
             if context is None:
@@ -248,7 +253,7 @@ def wall_batch(source, stages, boundaries, sections, bound, scope):
               "design_shear_storeys": sum(d["shear"] is not None for d in design),
               "design_friction_storeys": sum(d["horizontal_joint"] is not None for d in design),
               "design_pmm_storeys": sum(d["pmm"] is not None for d in design),
-              "scheduled_panels": sum(d["scheduled_panels"] for d in design),
+              "scheduled_panels": sum(r["design"]["scheduled_panels"] for r in rows),
               "complete_rectangular_stacks": sections["conditional_piers"]}
     transitions = [t for row in rows for t in row.get("transitions", ())]
     counts.update(transition_planes_expected=sum(max(0,len(r.get("physical_profile",{}).get("bands",()))-1) for r in rows),

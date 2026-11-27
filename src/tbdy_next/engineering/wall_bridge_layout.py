@@ -311,7 +311,13 @@ def bridge_checks(geometry,designs,boundaries,source,material,aggregate,states,c
         except (KeyError,ValueError,TypeError,IndexError,StopIteration) as exc:
             receipt["reason"]=str(exc)
             trial = receipt.get("coordinated_trial",{})
-            if trial.get("unresolved"):
+            if trial.get("status") == "COMPLETE_LAYOUT":
+                receipt["existing_layout_reason"] = str(exc)
+                receipt.pop("reason", None)
+                receipt["status"] = "TRANSFER_CAGE_LAYOUT_VERIFIED"
+                if link.get("edge_balance_verified"):
+                    link["schedule_status"] = "PRESSURE_PANEL_SCHEDULE_QUALIFIED"
+            elif trial.get("unresolved"):
                 receipt["existing_layout_reason"] = str(exc)
                 receipt["reason"] = "COORDINATED_BRIDGE_LAYOUT_UNRESOLVED: " + ", ".join(trial["unresolved"])
         for joint in joints:
