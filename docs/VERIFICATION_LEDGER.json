@@ -1,7 +1,7 @@
 {
   "schema": "yeni.project-memory.verification-ledger.v2",
   "repository": "feridunfc/YENI",
-  "updated_on": "2026-11-26",
+  "updated_on": "2026-11-27",
   "purpose": "Durable evidence index. It is not a source receipt or formal engineering acceptance.",
   "workflow": {
     "primary_workspace": "LOCAL_CODEX",
@@ -19,16 +19,16 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "G2_ACCEPTED_G3_SCOPED_CANDIDATE_BRIDGE_HOLD",
-    "work_branch": "work/coordinated-p2-g3",
+    "status": "G3_SECTION_ACCEPTED_G4_READY_BRIDGE_HOLD",
+    "work_branch": "work/g4-central-channel",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "6f432ab6f759d608a985e769cf3f5e427121da64",
-    "calculation_implementation_commit": "acf7fcc8057a204067f71457c8dce8dee7419924",
-    "production_run_id": "RUN-9774f9667d324227b7d7392fdc5f4283",
-    "results_sha256": "8b8ae89059ea3aa2f99673e2ba39c0d3314ae01c18dd1c087ab4a051147b2645",
-    "snapshot_sha256": "67ea09d5b0391b5f5009d11fe51758fc401c09a00892eab2f0e220e05ca58700",
-    "scope": "G2 Supervisor acceptance, offline P2 boundary redesign, same-element W32 check, G3 demand census and independent capacities.",
-    "verification": "EV-G2-SUPERVISOR-G3-20261126",
+    "inspected_base_commit": "d964ef2ca305772dcc95799d5bac7d094220a999",
+    "calculation_implementation_commit": "81fddbc743a60759e6dd98ff24973a6f94f43480",
+    "production_run_id": "RUN-1d1f7079ce98462eb1e58b557e9daafa",
+    "results_sha256": "15edce42f2a8e8912514e1ebf23cd404a81502104f95ffd4102951d96e3447e3",
+    "snapshot_sha256": "c18c27ce72d081bf27fc48cba1092540d5caa58a3666d846526fe29c1e40d23f",
+    "scope": "Scoped GAP-010 acceptance, finite bridge details and G4 demand and population candidates.",
+    "verification": "EV-G3-ACCEPTANCE-CENTRAL-CHANNEL-G4",
     "engineering_release": "NOT_READY"
   },
   "last_observed_remote_implementation": {
@@ -15864,6 +15864,366 @@
         "python -B tools/verify_g3_sections.py .receipts/RUN-9774f9667d324227b7d7392fdc5f4283"
       ],
       "live_measurement_log": ".receipts/verification/g3-live-8876.json"
+    },
+    {
+      "id": "EV-G3-ACCEPTANCE-CENTRAL-CHANNEL-G4",
+      "status": "G3_SECTION_ACCEPTED_G4_READY_BRIDGE_HOLD",
+      "implementation_commit": "81fddbc743a60759e6dd98ff24973a6f94f43480",
+      "implementation_tree": "d076da169dba9e8e35b631a5a3554620b0073177",
+      "source_collection_run": "RUN-3bb6a4d5d57c4af8af503a20c4d69bbd",
+      "run_id": "RUN-1d1f7079ce98462eb1e58b557e9daafa",
+      "input_sha256": "10b2a06edbc656bc6e8972ec542209f8dd904cc9ee088165ab3c92f87a043033",
+      "captured_at_utc": "2026-11-27T04:32:12.458617+00:00",
+      "snapshot_sha256": "c18c27ce72d081bf27fc48cba1092540d5caa58a3666d846526fe29c1e40d23f",
+      "results_sha256": "15edce42f2a8e8912514e1ebf23cd404a81502104f95ffd4102951d96e3447e3",
+      "report_sha256": "6b23b8baea7f1865ad02e4cdc536ebeaf0b40d999bd13720dfdbbdd0fb6041ea",
+      "report_bytes": 8086031,
+      "calculation_command": "python -X utf8 -B -m tbdy_next.cli run-pipeline --whole-building --case Modal --source .receipts/RUN-3bb6a4d5d57c4af8af503a20c4d69bbd/input.source --out .receipts",
+      "column_status_counts": {
+        "conditional": 69,
+        "failed": 4,
+        "hold": 14
+      },
+      "storeys": {
+        "+0.00": {
+          "conditional": 14,
+          "expected": 32,
+          "failed": 4,
+          "hold": 14
+        },
+        "+4.50": {
+          "conditional": 32,
+          "expected": 32,
+          "failed": 0,
+          "hold": 0
+        },
+        "+9.00": {
+          "conditional": 23,
+          "expected": 23,
+          "failed": 0,
+          "hold": 0
+        }
+      },
+      "failed_columns": {
+        "C21": "217",
+        "C22": "218",
+        "C23": "219",
+        "C24": "220"
+      },
+      "foundation_continuation": {
+        "C21": {
+          "gross_depth_sufficient": false,
+          "model_depth_mm": 600.0,
+          "required_mm": 800.0
+        },
+        "C22": {
+          "gross_depth_sufficient": false,
+          "model_depth_mm": 600.0,
+          "required_mm": 800.0
+        },
+        "C23": {
+          "gross_depth_sufficient": false,
+          "model_depth_mm": 600.0,
+          "required_mm": 800.0
+        },
+        "C24": {
+          "gross_depth_sufficient": false,
+          "model_depth_mm": 600.0,
+          "required_mm": 800.0
+        }
+      },
+      "C29": {
+        "reference_sha256": "9ad3e6faa6cc6facb3aa5a6cc757e9e35b1b0704375ba2b806cb3e340a2c8bb1",
+        "independent_receipt_sha256": "3e5cd9361b889400502be143931eecb8fe56d1bef50e4c9be27aca8ad9280e3a",
+        "faces": 24,
+        "physical_combination_cuts": 18,
+        "model_sha256": "685f5f45e7448c8c471a2c041c65c681447cc02175846bbf82ae172139a8c283",
+        "maximum_difference_knm": 0.00047127115635703376,
+        "tolerance_knm": 0.01,
+        "scope": "Independent eight-element C29 section study and separate original-building calibration",
+        "original_edb_sha256": "0ce0e970988def9776f9d4804b8897f6e08d6ac3e4937aa72ebec941314cfb15",
+        "original_reference_results_sha256": "998c1098a8fdaab11a4789c30564dc8ab31dac949a59294377769b1d317d5565",
+        "original_calibration_sha256": {
+          "142": "97c070f420c0c76ec23e4b3c844da89953a94acd3a1178201941b65fd0d7311f",
+          "225": "c0d01a5b8e0f6c2bf77ec1a3f90697e5fa0600365f8cc42d989b68af4782b7c3"
+        }
+      },
+      "beam_status_counts": {
+        "CONDITIONAL_DESIGN_CALCULATED": 180
+      },
+      "wall_detail": {
+        "scheduled": 21,
+        "expected": 30,
+        "status": "HOLD",
+        "checks": {
+          "combined_bond": true,
+          "concrete_interface_and_equilibrium": true,
+          "eight_routes": true,
+          "friction_differential_bond": true,
+          "incoming_turn_friction": true,
+          "link_crossties": true,
+          "mutual_clearance": true,
+          "pmm": true,
+          "receiving_clearance": true,
+          "remote_column": false,
+          "remote_corner_and_overlap": false,
+          "serial_friction": true,
+          "shell_and_shared_friction": true
+        },
+        "open": [
+          "remote_corner_and_overlap",
+          "remote_column"
+        ],
+        "boundary": {
+          "longitudinal_mm": 22,
+          "bars_per_end": 10,
+          "tie_mm": 14,
+          "cover_mm": 40.0,
+          "bays": 40,
+          "spacing_mm": 128.75,
+          "grid": [
+            5,
+            2
+          ],
+          "checks": {
+            "gravity_rows": {
+              "GRAVITY_CUT_CALCULATED": 30
+            },
+            "seismic_sections": {
+              "SECTION_BOUND_SATISFIED": 48
+            },
+            "construction_joints": {
+              "ROUGH_JOINT_BOUND_SATISFIED": 24
+            },
+            "strong_wall_connections": {
+              "STRONG_WALL_BOUND_SATISFIED": 24
+            }
+          }
+        },
+        "tracks_mm": [
+          -88,
+          88
+        ],
+        "diameters_mm": [
+          18,
+          16
+        ],
+        "clear_to_hoop_mm": 26.725,
+        "highest_combined_steel_ratio": 0.7928698599500831,
+        "shell": {
+          "464": 0.8340601079639294,
+          "470": 0.8113972557921255,
+          "471": 0.7517420761985337
+        },
+        "series_friction": 0.35791701033549267,
+        "series_bond": 0.8522470196210284,
+        "bond_concrete_ratio": 0.7517420761985337,
+        "link_ties_per_m2": 52.499999999999254,
+        "link_ties_required_per_m2": 22.5,
+        "equilibrium": [
+          {
+            "balanced": 35,
+            "concrete_limit_kn_m": 1866.666666666667,
+            "member": "470",
+            "peak_concrete_ratio": 0.14992099472335427,
+            "side": "I",
+            "static_checks": 35,
+            "status": "NATIVE_EDGE_CONTROL_SATISFIED"
+          },
+          {
+            "balanced": 35,
+            "concrete_limit_kn_m": 1866.666666666667,
+            "member": "470",
+            "peak_concrete_ratio": 0.15347344169699031,
+            "side": "J",
+            "static_checks": 35,
+            "status": "NATIVE_EDGE_CONTROL_SATISFIED"
+          },
+          {
+            "balanced": 35,
+            "concrete_limit_kn_m": 1866.666666666667,
+            "member": "464",
+            "peak_concrete_ratio": 0.21547277601554532,
+            "side": "I",
+            "static_checks": 35,
+            "status": "NATIVE_EDGE_CONTROL_SATISFIED"
+          },
+          {
+            "balanced": 35,
+            "concrete_limit_kn_m": 1866.6666666666667,
+            "member": "464",
+            "peak_concrete_ratio": 0.22953025282590128,
+            "side": "J",
+            "static_checks": 35,
+            "status": "NATIVE_EDGE_CONTROL_SATISFIED"
+          },
+          {
+            "balanced": 35,
+            "concrete_limit_kn_m": 1866.666666666667,
+            "member": "471",
+            "peak_concrete_ratio": 0.22592580470431825,
+            "side": "I",
+            "static_checks": 35,
+            "status": "NATIVE_EDGE_CONTROL_SATISFIED"
+          },
+          {
+            "balanced": 35,
+            "concrete_limit_kn_m": 1866.666666666667,
+            "member": "471",
+            "peak_concrete_ratio": 0.19173462917900685,
+            "side": "J",
+            "static_checks": 35,
+            "status": "NATIVE_EDGE_CONTROL_SATISFIED"
+          }
+        ],
+        "joint_947": {
+          "qualified": false,
+          "crossties": {
+            "470": {
+              "satisfied": false,
+              "density_per_m2": null,
+              "required_per_m2": null,
+              "search_ceiling_reached": true
+            },
+            "474": {
+              "satisfied": true,
+              "density_per_m2": 26.0,
+              "required_per_m2": 10.0,
+              "search_ceiling_reached": null
+            }
+          }
+        },
+        "joint_931": {
+          "column": "222",
+          "diameter_mm": 25,
+          "required_hook_mm": 995,
+          "available_mm": 750.0000000000007,
+          "lap_faces_clear_mm": [
+            -1.6557595459883494,
+            -1.6091074598741102
+          ],
+          "required_parallel_clear_mm": 26.666666666666668,
+          "inner_trial_mm": 81,
+          "inner_ratio": 1.2704705485150483,
+          "registered_bar_counts": {
+            "-1": 101,
+            "1": 102
+          },
+          "registered_face_routes": {
+            "web_minus": 0,
+            "web_plus": 0
+          },
+          "hook_catalogue": {
+            "12": [
+              2,
+              14
+            ],
+            "14": [
+              2,
+              7
+            ],
+            "16": [
+              2,
+              3
+            ],
+            "18": [
+              0,
+              0
+            ],
+            "20": [
+              0,
+              0
+            ],
+            "22": [
+              0,
+              0
+            ],
+            "25": [
+              0,
+              0
+            ]
+          }
+        }
+      },
+      "G1": "070ac74e3b57f7f3b77f8327d0e218aa3b5f09af7766a9f23939ec64868468f2",
+      "G2": "b742bfb9f35c6d35da3fbc9e7fd2f36347d8394a096251ca2283ba8afe7b7cbb",
+      "G3": {
+        "contract_sha256": "f5353e755cd327262e227063c257f1f31d61d3fa9c38564d54c67af51558fc91",
+        "approval": {
+          "reviewed_run": "RUN-9774f9667d324227b7d7392fdc5f4283",
+          "reviewed_contract_sha256": "2727582aef200cae2b052a20a707b53b36d87e8c5c25dcc8e3e7cc9327d38d32",
+          "reviewed_verification_sha256": "0c59c8a96cbd559b8a1fd5c173cb838dec9519234fc2481d5a84c7298856c3fc",
+          "accepted_gaps": [
+            "GAP-010"
+          ],
+          "scope": "69 independent conditional column cages and 180 selected zero-axial beam sections",
+          "separate_gaps": [
+            "GAP-006",
+            "GAP-009",
+            "GAP-012",
+            "GAP-018"
+          ],
+          "original_project_approval": "NOT_GRANTED"
+        }
+      },
+      "G4": {
+        "contract_sha256": "c135f6d62d0d3293386409392d2e42278a894d78328dca25536112832bd41973",
+        "verification_sha256": "4782b5df5266df71d1c4c2f4b89e3b7fd35b946185d79851a6e7b09c09f61bb8",
+        "population_sha256": "2242b7244486b5d6e90e8ac2d1715d90cf8116700efd7d37ba8c9b8d76dd3731",
+        "families": 57,
+        "frozen_instances": 7439,
+        "coupling_roles": {
+          "NO_TWO_DIRECT_WALL_SUPPORTS": 176,
+          "WALL_TO_WALL_ROLE_REVIEW": 4
+        },
+        "open_transition_members": [
+          "211"
+        ],
+        "frames": {
+          "columns": {
+            "members": 87,
+            "member_combination_pairs": 957,
+            "native_vectors": 7638,
+            "manifest_sha256": "eb65f1b2f1d4d03bd6361be7856f6fb585d77717d229caa45ee0b9408ae23f7c"
+          },
+          "beams": {
+            "members": 180,
+            "member_combination_pairs": 1980,
+            "native_vectors": 93841,
+            "manifest_sha256": "22cea962924916dc8903cfcdaed85716ca21e157ed5ab70be77b1bf589434efc"
+          }
+        },
+        "seed_rows": 4939,
+        "pier_faces": 390,
+        "shell_pairs": 221,
+        "pier_controls": 11700
+      },
+      "formal_closed_gap_ids": [
+        "GAP-001",
+        "GAP-002",
+        "GAP-003",
+        "GAP-004",
+        "GAP-007",
+        "GAP-010",
+        "GAP-013",
+        "GAP-016"
+      ],
+      "engineering_release": "NOT_READY",
+      "formal_compliance": "NOT_PROVEN",
+      "independent_replays": [
+        "python -X utf8 -B tools/verify_g4_contract.py .receipts/RUN-1d1f7079ce98462eb1e58b557e9daafa"
+      ],
+      "live_measurement_log": ".receipts/verification/g4-live-8876.json",
+      "software": {
+        "full_suite_command": "python -X utf8 -B tools/test_offline.py",
+        "log": ".receipts/verification/g4-offline.log",
+        "log_sha256": "5128413ec4b3a4632a169c05d466f5f4c6cd5ad5ada80fd3adf066b8c05a7d2a",
+        "python_discovered": 1813,
+        "python_seconds": 36040.637,
+        "result": "OK (skipped=1)",
+        "javascript_suites": 12,
+        "exit_code": 0
+      }
     }
   ],
   "new_record_template": {
@@ -15888,7 +16248,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-26T17:25:16.348170+00:00",
+  "updated_at_utc": "2026-11-27T04:33:37.973364+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -16839,6 +17199,19 @@
       "snapshot_sha256": "5108ee856e1169e20e96e3ba9db1f07f84bf32e657db1acf9a0607535d42052e",
       "scope": "One original archive run, reproducible signed feedback examples, C29 and golden evidence, and a held synchronized bridge trial.",
       "verification": "EV-G2-FRAME-SERIAL-BRIDGE",
+      "engineering_release": "NOT_READY"
+    },
+    {
+      "status": "G2_ACCEPTED_G3_SCOPED_CANDIDATE_BRIDGE_HOLD",
+      "work_branch": "work/coordinated-p2-g3",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "6f432ab6f759d608a985e769cf3f5e427121da64",
+      "calculation_implementation_commit": "acf7fcc8057a204067f71457c8dce8dee7419924",
+      "production_run_id": "RUN-9774f9667d324227b7d7392fdc5f4283",
+      "results_sha256": "8b8ae89059ea3aa2f99673e2ba39c0d3314ae01c18dd1c087ab4a051147b2645",
+      "snapshot_sha256": "67ea09d5b0391b5f5009d11fe51758fc401c09a00892eab2f0e220e05ca58700",
+      "scope": "G2 Supervisor acceptance, offline P2 boundary redesign, same-element W32 check, G3 demand census and independent capacities.",
+      "verification": "EV-G2-SUPERVISOR-G3-20261126",
       "engineering_release": "NOT_READY"
     }
   ],

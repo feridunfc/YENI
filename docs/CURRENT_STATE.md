@@ -1,5 +1,20 @@
 # Original building calculation and local handoff
 
+## GAP-010 acceptance, central channel and G4 review
+
+The Supervisor closed GAP-010 on the exact G3 contract `2727582aef200cae2b052a20a707b53b36d87e8c5c25dcc8e3e7cc9327d38d32` and verification `0c59c8a96cbd559b8a1fd5c173cb838dec9519234fc2481d5a84c7298856c3fc`. Eight of 18 GAPs are closed. The decision covers the independent column sections and zero-axial beam end capacities. GAP-006/009 retain the 14 wall-coupled columns. GAP-012 retains the beam axial and torsion extensions. GAP-018 and the project release remain open. [GAP registry](ENGINEERING_GAPS.yaml)
+
+The single archived-source run `RUN-1d1f7079ce98462eb1e58b557e9daafa` used implementation `81fddbc743a60759e6dd98ff24973a6f94f43480`. It records 69 conditional columns, four C21–C24 confinement failures (600 mm available against 800 mm required), 14 wall-coupled holds, 180 conditional beams and 21/30 scheduled walls. The reviewed C29 calibration and all 24 independent section comparisons reproduce the accepted record. [Verification ledger](VERIFICATION_LEDGER.json)
+
+| Central-channel check | Sealed result |
+| --- | --- |
+| P2/W6 | 10 Ø22 bars per end, Ø14 hoops, 40 mm cover and 40 bays at 128.75 mm. All 30 gravity sections, 48 seismic sections, 24 joints and 24 strong-wall checks satisfy the adopted limits. |
+| W31–W32 shared bars | Ø18 and Ø16 on each ±88 mm track. Combined shell tension and friction reach 0.7929 against 0.85. Serial friction and differential bond reach 0.3579 and 0.8522. W32 has 52.5 verified ties/m² against 22.5 required. |
+| W55 at node 931 | The Ø25 web requires a 995 mm hook projection inside a 750 mm entrance. The proposed lap intersects the registered Ø16 through-bars on both faces. Moving the uniform trial to ±81 mm gives 1.270 governing shell utilization. |
+| W31/W62 at node 947 | Horizontal returns and W62 crossties fit. The bounded search left the W31 crosstie arrangement open when combined with W55. All three bridge panels remain on hold. |
+
+G4 freezes 7,439 instances for 57 families. The force provenance covers 7,638 column and 93,841 beam vectors, 390 pier faces and 221 basement shell pairs. The input-identical shell solve matches 11,700 pier controls. The 4,939 design summary rows supply reinforcement selection seeds. GAP-005 and GAP-008 are `PARTIAL` with `closure_ready: true`. The G4 contract digest is `c135f6d62d0d3293386409392d2e42278a894d78328dca25536112832bd41973` and its verification digest is `4782b5df5266df71d1c4c2f4b89e3b7fd35b946185d79851a6e7b09c09f61bb8`. Replay the private package with `python tools/verify_g4_contract.py .receipts/RUN-1d1f7079ce98462eb1e58b557e9daafa`. [Evidence and hashes](VERIFICATION_LEDGER.json)
+
 ## G2 approval, P2 boundary and G3 review
 
 The Supervisor accepted GAP-013 and GAP-016 for the exact G2 contract `d4b45b5d6126c733d63f5f8d068429a8a482d267078c1459ad47eb8bb45cf274` and verification `7c07d570f3c9168b38412b1bc5ebb3501dc71de16a36c985ec10b44891d1afa4` in `RUN-3328af801a9e4f19a83665f9533e9dee`. The accepted G2 contract is `b742bfb9f35c6d35da3fbc9e7fd2f36347d8394a096251ca2283ba8afe7b7cbb`. Together with G1, seven of the 18 GAPs are closed. GAP-018 remains `PARTIAL` and the original building release is `NOT_READY`. [Engineering GAP registry](ENGINEERING_GAPS.yaml)

@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-26T17:25:16.348170+00:00",
+  "updated_at_utc": "2026-11-27T04:33:37.973364+00:00",
   "repository": "feridunfc/YENI",
   "baseline_implementation_commit": "b220e5a9c3aa5658be47b9d24565d5f05554d021",
   "local_reconciled": true,
-  "scope_note": "The original basement meets both period ratios in §3.3.1.1(b). Only the upper W22 band has a continuous three-sided return. The original 300 signed modal and six static storey and direction checks balance across the three datums. Each wall reference covers 390 assigned faces. The sealed offline calculation RUN-80997c5fa229452c82948c781b44ae22 records 69 conditional columns, 14 held columns and four foundation failures, plus 21/30 proposed wall panels. W143, W50, W62 and W65 have complete local details. W55 and W31 remain held at the 400 mm W32 transfer into W6. The five archived G1 gaps are closed by the Supervisor. W22 still has seven balanced panel transfers and zero of 14 field controls within tolerance.",
+  "scope_note": "The original building retains 69 conditional columns, four C21–C24 foundation confinement failures, 14 wall-coupled holds and 180 conditional beams. The registered schedule qualifies 21 of 30 walls. G1, G2 and the independent G3 section scope have eight Supervisor-closed GAPs. The G4 demand and population candidates await review. W22 has seven balanced panel transfers and zero of 14 field controls within tolerance.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -31,7 +31,7 @@
     "GAP-018",
     "GAP-006"
   ],
-  "active_task": "Review the scoped GAP-010 section evidence. GAP-008 needs generation- and cut-identified native data. The W55 return, remote through-bars and W32 crossties need a compatible full detail.",
+  "active_task": "Supervisor review of the two G4 candidates and coordinate the W55 entrance at node 931 with the W31/W62 crossties at node 947.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -269,8 +269,8 @@
       "title": "Complete expected check population",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "87 columns / 957 design pairs and expected supporting cut/mode populations remain in their ledgers. Fresh sources with embedded selection policies now enter the same prepared-scenario member/cut dependency checks as explicit selection. Missing native Vd combinations and element-side cuts remain in the capacity-shear result rather than disappearing from its maximum. Global R08 preserves the known single-tower story-direction census on a translated datum and subsequent numerical input failure.",
-      "blocker": "A general ExpectedCheckInstance census and execution for every check family remain open.",
+      "achieved_scope": "Before the first modal or member calculation the source census freezes all 57 building rules and 7,439 physical instances. The replay matches every available family denominator and evaluation count. The dispositions name the open slab, mat, punching, diaphragm, torsion and C104 checks and retain four wall-to-wall beam role reviews.",
+      "blocker": "Scoped Supervisor acceptance pending.",
       "closure_criteria": "Freeze each rule population at the correct grain before calculation; account for missing data and proven exceptions explicitly.",
       "owner_paths": [
         "src/tbdy_next/engineering/pipeline.py",
@@ -284,7 +284,8 @@
         "EV-AUDIT-FIXES-20261120",
         "EV-S00-NATIVE-C29-IMPACT-20261122",
         "EV-WINDOWS-S00-S02-20261122",
-        "EV-ORIGINAL-WHOLE-BUILDING-ENGINE-20261122"
+        "EV-ORIGINAL-WHOLE-BUILDING-ENGINE-20261122",
+        "EV-G3-ACCEPTANCE-CENTRAL-CHANNEL-G4"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -306,7 +307,19 @@
           "S10"
         ]
       },
-      "whole_building_engine_update": "The original frame and area inventories supply physical denominators. The report retains every held column and counts unsupported slab, mat, wall and diaphragm families. Coupling-beam applicability remains unclassified."
+      "whole_building_engine_update": "The original frame and area inventories supply physical denominators. The report retains every held column and counts unsupported slab, mat, wall and diaphragm families. Coupling-beam applicability remains unclassified.",
+      "closure_ready": true,
+      "supervisor_decision": "PENDING",
+      "closure_candidate": {
+        "run_id": "RUN-1d1f7079ce98462eb1e58b557e9daafa",
+        "contract": "g4-contract.json",
+        "verification": "g4-verification.json",
+        "contract_sha256": "c135f6d62d0d3293386409392d2e42278a894d78328dca25536112832bd41973",
+        "verification_sha256": "4782b5df5266df71d1c4c2f4b89e3b7fd35b946185d79851a6e7b09c09f61bb8",
+        "supervisor_approval": "PENDING",
+        "evidence_ref": "EV-G3-ACCEPTANCE-CENTRAL-CHANNEL-G4",
+        "unresolved": []
+      }
     },
     {
       "id": "GAP-006",
@@ -450,8 +463,8 @@
       "title": "Design demand in the same generation",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "Parent/scenario/result identities, native case GUIDs and exact cut/side/step lineage are retained. Six native C29 first-order story cuts bind every column and wall on the same upper face and generation. The original native G1 case GUID and cut census covers 957 column pairs, 180 beams, 390 assigned pier faces and 221 basement panel pairs.",
-      "blocker": "The 221 basement panel and combination pairs come from a separate input-identical analysis. Native beam design summaries lack element/side and step identity and matching frame-force arrays for nine consumed design combinations.",
+      "achieved_scope": "The EDB, solver log, native case GUIDs, combination operators and physical element, cut and step keys bind 7,638 column vectors, 93,841 beam vectors and 390 assigned pier faces. The 221 basement shell pairs use the input-identical private solve matched by 11,700 pier controls. The 4,939 beam design summary rows supply reinforcement selection seeds. Both beam shear consumers reproduce the native gravity V2 on all 180 members.",
+      "blocker": "Scoped Supervisor acceptance pending.",
       "closure_criteria": "Bind every consumed design vector to the same generation/cut/step/role without equating similar case names or load patterns.",
       "owner_paths": [
         "src/tbdy_next/engineering/design_scenario.py",
@@ -462,7 +475,8 @@
         "EV-D3B-REPLAY",
         "EV-LOCAL-SPECTRAL",
         "EV-S02-C29-SIGNED-STORY-BALANCE-20261122",
-        "EV-G2-SUPERVISOR-G3-20261126"
+        "EV-G2-SUPERVISOR-G3-20261126",
+        "EV-G3-ACCEPTANCE-CENTRAL-CHANNEL-G4"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -476,20 +490,17 @@
           "S05"
         ]
       },
-      "closure_ready": false,
+      "closure_ready": true,
       "supervisor_decision": "PENDING",
       "closure_candidate": {
-        "run_id": "RUN-9774f9667d324227b7d7392fdc5f4283",
-        "contract": "g3-contract.json",
-        "verification": "g3-verification.json",
-        "contract_sha256": "2727582aef200cae2b052a20a707b53b36d87e8c5c25dcc8e3e7cc9327d38d32",
-        "verification_sha256": "0c59c8a96cbd559b8a1fd5c173cb838dec9519234fc2481d5a84c7298856c3fc",
+        "run_id": "RUN-1d1f7079ce98462eb1e58b557e9daafa",
+        "contract": "g4-contract.json",
+        "verification": "g4-verification.json",
+        "contract_sha256": "c135f6d62d0d3293386409392d2e42278a894d78328dca25536112832bd41973",
+        "verification_sha256": "4782b5df5266df71d1c4c2f4b89e3b7fd35b946185d79851a6e7b09c09f61bb8",
         "supervisor_approval": "PENDING",
-        "evidence_ref": "EV-G2-SUPERVISOR-G3-20261126",
-        "unresolved": [
-          "BASEMENT_SHELL_VECTORS_FROM_SEPARATE_CONTROLLED_SOLVE",
-          "NATIVE_BEAM_DESIGN_SUMMARY_LACKS_MATCHING_CUT_STEP_FORCE_VECTORS"
-        ]
+        "evidence_ref": "EV-G3-ACCEPTANCE-CENTRAL-CHANNEL-G4",
+        "unresolved": []
       }
     },
     {
@@ -2117,5 +2128,37 @@
     "original_project_approval": "NOT_GRANTED",
     "accepted_contract_sha256": "f5353e755cd327262e227063c257f1f31d61d3fa9c38564d54c67af51558fc91",
     "evidence_ref": "EV-G3-ACCEPTANCE-CENTRAL-CHANNEL-G4"
+  },
+  "g4_supervisor_packet": {
+    "run": "RUN-1d1f7079ce98462eb1e58b557e9daafa",
+    "evidence_ref": "EV-G3-ACCEPTANCE-CENTRAL-CHANNEL-G4",
+    "gaps": {
+      "GAP-008": {
+        "status": "PARTIAL",
+        "closure_ready": true,
+        "unresolved": [],
+        "supervisor_approval": "PENDING"
+      },
+      "GAP-005": {
+        "status": "PARTIAL",
+        "closure_ready": true,
+        "unresolved": [],
+        "supervisor_approval": "PENDING"
+      }
+    },
+    "contract_sha256": "c135f6d62d0d3293386409392d2e42278a894d78328dca25536112832bd41973",
+    "verification_sha256": "4782b5df5266df71d1c4c2f4b89e3b7fd35b946185d79851a6e7b09c09f61bb8",
+    "population_sha256": "2242b7244486b5d6e90e8ac2d1715d90cf8116700efd7d37ba8c9b8d76dd3731",
+    "closed_gaps": [
+      "GAP-001",
+      "GAP-002",
+      "GAP-003",
+      "GAP-004",
+      "GAP-007",
+      "GAP-010",
+      "GAP-013",
+      "GAP-016"
+    ],
+    "engineering_release": "NOT_READY"
   }
 }
