@@ -146,14 +146,6 @@ def column_end(turn,side,layout,selection,material,cover,aggregate,states):
                 row["rephased_lap"]={"maximum_nearest_level_distance_mm":upper_z,
                     "best_possible_surface_clear_upper_mm":hypot(dx,upper_z)-radius,
                     "required_track_separation_mm":needed,"nearest_inner_track_mm":inner}
-                if inner>0:
-                    from .wall_membrane_design import check_curtains
-                    # Trial the inner, separated straight lap as a uniform full-wall continuation.
-                    # Recheck native shell corners using the actual shorter effective arm.
-                    shell=check_curtains(states,{},1000*turn["thickness_m"],grid,existing["vertical"],
-                                         material,inner,vertical_offset_mm=old_track-(old["diameter_mm"]+
-                                         existing["vertical"]["diameter_mm"])/2)
-                    row["rephased_lap"]["inner_track_governing"]=shell["governing"]
             required_clear=clear_limit(aggregate,dia,old["diameter_mm"])
             at_clear=tension_development(dia,material.fyd,material.fck,material.fcd,cover,required_clear)["position_i_mm"]
             row["lap"]={"existing_diameter_mm":old["diameter_mm"],"existing_track_mm":old_track,
@@ -189,7 +181,7 @@ def column_hook_options(profile,panel,side,material,cover,aggregate):
     width=1000*panel["thickness_m"]
     available=profile["depth_mm"]-max(cover,profile["cover"])-profile["tie"]
     result=[]
-    for diameter in (12,14,16,18,20,22,25):
+    for diameter in (12,14,16,18,20,22,24,25):
         clearance=clear_limit(aggregate,diameter,profile["bar_diameter"])
         # This is the favourable unsplit length. A crowded lap requires a longer bar.
         bond=tension_development(diameter,material.fyd,material.fck,material.fcd,cover,2*diameter)["position_i_mm"]

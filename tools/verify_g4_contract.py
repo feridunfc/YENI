@@ -20,7 +20,8 @@ def verify(directory):
     building=stages["building_design"]
     frozen=freeze_population(source,digest)
     require(frozen==json.loads((directory/"g4-expected.json").read_bytes()),"G4_PREFROZEN_INSTANCE_REPLAY")
-    require(g4_contract(source,stages,building,frozen)==building["g4_contract"],"G4_OUTCOME_REPLAY")
+    reviewed = "supervisor_acceptance" in building["g4_contract"]
+    require(g4_contract(source,stages,building,frozen,apply_review=reviewed)==building["g4_contract"],"G4_OUTCOME_REPLAY")
     result=g4_verification(directory,building,digest)
     require(result==json.loads((directory/"g4-verification.json").read_bytes()),"G4_VERIFICATION_CHANGED")
     return result

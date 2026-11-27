@@ -16224,6 +16224,27 @@
         "javascript_suites": 12,
         "exit_code": 0
       }
+    },
+    {
+      "id": "EV-G4-SUPERVISOR-G5",
+      "status": "SUPERVISOR_ACCEPTED_SCOPED",
+      "reviewed_run": "RUN-1d1f7079ce98462eb1e58b557e9daafa",
+      "contract_sha256": "c135f6d62d0d3293386409392d2e42278a894d78328dca25536112832bd41973",
+      "verification_sha256": "4782b5df5266df71d1c4c2f4b89e3b7fd35b946185d79851a6e7b09c09f61bb8",
+      "expected_population_sha256": "2242b7244486b5d6e90e8ac2d1715d90cf8116700efd7d37ba8c9b8d76dd3731",
+      "families": 57,
+      "expected_instances": 7439,
+      "gaps": [
+        "GAP-005",
+        "GAP-008"
+      ],
+      "separate_gaps": [
+        "GAP-011",
+        "GAP-012",
+        "GAP-015",
+        "GAP-018"
+      ],
+      "engineering_release": "NOT_READY"
     }
   ],
   "new_record_template": {

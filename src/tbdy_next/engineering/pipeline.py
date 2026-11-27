@@ -608,29 +608,38 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
     frozen_population = None
     if payload.get("building_design") is not None:
         frozen_population = freeze_population(payload, input_sha)
+        from .g4_contract import ACCEPTED_POPULATION
+        if frozen_population["population_sha256"] == ACCEPTED_POPULATION:
+            from .building_stage_graph import BuildingStageGraph
+            run.stage_graph = BuildingStageGraph(stage_registry(), input_sha)
         (run.root/"g4-expected.json").write_text(json.dumps(frozen_population,ensure_ascii=False),encoding="utf-8")
+    def evaluate(receipt, owner, *args, **kwargs):
+        if run.stage_graph is not None:
+            run.stage_graph.before(receipt)
+        return owner(*args, **kwargs)
+
     out: dict[str, Any] = {
         "result": calculate_modal(payload, case=case, run=run, input_sha=input_sha, receipt_schema=SCHEMA),
     }
     geometry = extra = None
     if suite:
-        geometry = evaluate_geometry_capture(payload.get("geometry_capture"))
+        geometry = evaluate("quick-geometry", evaluate_geometry_capture, payload.get("geometry_capture"))
         run.record("quick-geometry", geometry, input_sha256=input_sha)
         if "next_capture" in payload:
-            extra = evaluate_next_capture(payload["next_capture"], payload.get("geometry_capture"))
+            extra = evaluate("quick-extra", evaluate_next_capture, payload["next_capture"], payload.get("geometry_capture"))
             run.record("quick-extra", extra, input_sha256=input_sha)
     out.update(geometry=geometry, extra=extra)
 
     vs04 = vs04_numerics = vs04_readiness = vs04_pipeline = None
     if "analysis_sources" in payload:
-        vs04 = review_analysis_sources(payload["analysis_sources"])
+        vs04 = evaluate("vs04-schema", review_analysis_sources, payload["analysis_sources"])
         run.record("vs04-schema", vs04, input_sha256=input_sha)
-        vs04_numerics = evaluate_analysis_numerics(payload["analysis_sources"])
+        vs04_numerics = evaluate("vs04-numerics", evaluate_analysis_numerics, payload["analysis_sources"])
         run.record("vs04-numerics", vs04_numerics, input_sha256=input_sha)
-        vs04_readiness = review_normative_readiness(payload["analysis_sources"])
+        vs04_readiness = evaluate("vs04-readiness", review_normative_readiness, payload["analysis_sources"])
         run.record("vs04-readiness", vs04_readiness, input_sha256=input_sha)
         if payload["analysis_sources"].get("pipeline_stage_required") is True:
-            vs04_pipeline = evaluate_single_run_source_pipeline(payload)
+            vs04_pipeline = evaluate("vs04-pipeline", evaluate_single_run_source_pipeline, payload)
             run.record("vs04-pipeline", vs04_pipeline, input_sha256=input_sha)
     out.update(vs04=vs04, vs04_numerics=vs04_numerics, vs04_readiness=vs04_readiness,
                vs04_pipeline=vs04_pipeline)
@@ -638,14 +647,14 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
     story_drift = None
     if "vs05_delta_source" in payload or "vs05_delta_capture_error" in payload:
         from ..story_drift_binding import bind_story_drift
-        story_drift = bind_story_drift(payload.get("vs05_delta_source"),
+        story_drift = evaluate("vs05-story-drift", bind_story_drift, payload.get("vs05_delta_source"),
                                        capture_error=payload.get("vs05_delta_capture_error"))
         run.record("vs05-story-drift", story_drift, input_sha256=input_sha)
     analysis_setup = None
     analysis_setup_reconciliation = None
     if "vs04_basis_probe" in payload:
         from .analysis_setup import STAGE, bind_analysis_setup, project_analysis_setup_reconciliation
-        analysis_setup = bind_analysis_setup(payload)
+        analysis_setup = evaluate(STAGE, bind_analysis_setup, payload)
         run.record(STAGE, analysis_setup, input_sha256=input_sha)
         analysis_setup_reconciliation = project_analysis_setup_reconciliation(analysis_setup, payload)
     column_axial = column_pmm = column_gates = beam_r10 = r10_live = axial_ledger = pmm_scope = None
@@ -653,7 +662,7 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
     if "column_axial" in payload:
         from .column_axial import STAGE as AXIAL_STAGE
 
-        column_axial, axial_ledger = _run_column_axial(payload, geometry, extra, analysis_setup, input_sha=input_sha)
+        column_axial, axial_ledger = evaluate(AXIAL_STAGE, _run_column_axial, payload, geometry, extra, analysis_setup, input_sha=input_sha)
         run.record(AXIAL_STAGE, column_axial, input_sha256=input_sha)
         feature = payload["column_axial"]
         request = feature.get("request") if isinstance(feature, Mapping) else None
@@ -661,7 +670,7 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
         if isinstance(pmm_target, str) and pmm_target:
             from .column_pmm import STAGE as PMM_STAGE
 
-            column_pmm, pmm_scope = _run_column_pmm(
+            column_pmm, pmm_scope = evaluate(PMM_STAGE, _run_column_pmm,
                 payload, geometry, column_axial, axial_ledger, target=pmm_target, input_sha=input_sha,
             )
             if column_pmm is not None:
@@ -745,7 +754,7 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
     if "r08_second_order_source" in payload or "r08_second_order_capture_error" in payload:
         from ..story_second_order import bind_story_second_order, scope_story_second_order
 
-        declared_second_order = bind_story_second_order(
+        declared_second_order = evaluate("r08-second-order", bind_story_second_order,
             payload.get("r08_second_order_source"),
             capture_error=payload.get("r08_second_order_capture_error"), project_profile=project_profile)
         run.record("r08-second-order", declared_second_order, input_sha256=input_sha)
@@ -838,7 +847,7 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
         from .building_design import building_results
         from .pipeline_snapshot import _digest
         stage = next(s for s in STAGES if s.key == "building-design")
-        result = building_results(payload, out, out["report_evidence"])
+        result = evaluate(stage.key, building_results, payload, out, out["report_evidence"])
         from .g1_contract import g1_contract
         from .g2_contract import g2_contract, verification_record
         base = result["wall_sections"]["batch"].get("modal_base", {}).get("basement_reference")
@@ -878,6 +887,8 @@ def run_source_pipeline(payload: Mapping[str, Any], *, case: str, run: ReceiptRu
         "engineering_release": "NOT_READY", "engine_snapshot": snapshot,
     }, input_sha256=input_sha)
     out["engine_snapshot"] = snapshot
+    if run.stage_graph is not None:
+        out["stage_projection"] = run.stage_graph.projection(out["building_design"])
     from ..history_catalog import record_listing
     record_listing(run, meta.get("model_filename"), case, (out.get("column_pmm") or {}).get("member_id"), suite,
                    modal_result=out["result"], source_rows=payload["table"]["row_count"])

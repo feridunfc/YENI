@@ -1,0 +1,32 @@
+{
+  "schema": "tbdy.next.g4-verification.v1",
+  "input_sha256": "10b2a06edbc656bc6e8972ec542209f8dd904cc9ee088165ab3c92f87a043033",
+  "files_sha256": {
+    "g1-contract.json": "bb5950a4fa25d82b2025c941a16afb4d439fba9c56934bb5715468dc4f8ea0df",
+    "g2-contract.json": "668938bfeba85c07191ad5664f84c67a937f825fdd197118893b7f2446b8f7c1",
+    "g3-contract.json": "eb74c3a1a0a9682dd5e11562fc42a519a9d47aa1ae2dc6311af68e602e9b4c16",
+    "g3-verification.json": "189cb993f752c401e5283c728e719852280e17eb8946604b2b423e22aa7021af",
+    "g4-expected.json": "298f2162c3856a6e87af7098d8dcbba18bf4307df27f790f0d2d98b601da178d",
+    "g4-contract.json": "a54bad1af8e2fd5526ad3653ccc5f79ff62282eeca43438e39ddedda0e10e43a"
+  },
+  "contract_sha256": "c135f6d62d0d3293386409392d2e42278a894d78328dca25536112832bd41973",
+  "gaps": {
+    "GAP-008": {
+      "status": "PARTIAL",
+      "closure_ready": true,
+      "unresolved": [],
+      "supervisor_approval": "PENDING"
+    },
+    "GAP-005": {
+      "status": "PARTIAL",
+      "closure_ready": true,
+      "unresolved": [],
+      "supervisor_approval": "PENDING"
+    }
+  },
+  "evidence_sha256": {
+    "consumed_demands": "b35c6929675d77d88b5d86c78ae6fd0520c89f82e83547977d07fa28ba5369d4",
+    "accounting": "190eafcc493d2fae33a21da142c1d36fe11c438629f1c57b4a5ef1b5cd79aab6"
+  },
+  "verification_sha256": "4782b5df5266df71d1c4c2f4b89e3b7fd35b946185d79851a6e7b09c09f61bb8"
+}

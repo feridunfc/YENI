@@ -157,7 +157,8 @@ def bridge_checks(geometry,designs,boundaries,source,material,aggregate,states,c
                 if pier["transverse_cage"]["longitudinal_grid_u_v"][1] == 2:
                     from .wall_bridge_channel import channel_trial
                     coordinated_trial = channel_trial
-                    options = {"neighbours":panels,"designs":designs}
+                    from .wall_transition import mesh_geometry
+                    options = {"neighbours":panels,"designs":designs,"coordinates":mesh_geometry(source)[0]}
                     if stages:
                         from .basement_wall_connection import support_profiles
                         options["remote_profile"]=support_profiles(source,stages,turn)["J" if fs=="I" else "I"]

@@ -73,6 +73,7 @@ def _execute_and_reply_live_payload(
     pier_forces: Mapping[str, Any] | None = None,
     wall_hinge_aggregate_storeys: list[str] | None = None,
     maximum_aggregate_mm: float | None = None,
+    verified_run_id: str | None = None,
 ) -> None:
     from .engineering.design_scenario import prepare_pipeline_source
 
@@ -93,6 +94,26 @@ def _execute_and_reply_live_payload(
         return
     raw, payload = prepared.raw, prepared.payload
     input_sha = sha256(raw).hexdigest()
+    if verified_run_id is not None:
+        try:
+            if (not whole_building or not isinstance(verified_run_id,str)
+                    or _RUN_ID_PATTERN.fullmatch(verified_run_id) is None):
+                raise ValueError("EXACT_VERIFIED_BUILDING_RUN_REQUIRED")
+            from .engineering.building_stage_graph import verified_projection
+            directory = output_root / verified_run_id
+            from .archive_blobs import _direct
+            if not _direct(directory) or not directory.is_dir():
+                raise ValueError("VERIFIED_BUILDING_RUN_UNAVAILABLE")
+            projection = verified_projection(directory, input_sha, case)
+            from .engineering.pipeline_snapshot import _digest
+            projection["runner_arguments"]={"case":case,"suite":suite,"input_sha256":input_sha,
+                                            "prepared_payload_sha256":_digest(payload)}
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            handler.reply(422, {"status":"REJECTED","reason":str(exc)})
+            return
+        handler.reply(200, {"run_id":verified_run_id,"stage_projection":projection,
+                            "source":"VERIFIED_SAME_METHOD_ARCHIVE","engineering_release":"NOT_READY"})
+        return
     run = ReceiptRun(output_root)
     run.archive_input(raw, expected_sha256=input_sha)
     prepared.archive_parent(run.root)
@@ -119,6 +140,7 @@ def _execute_and_reply_live_payload(
             "run_id": run.run_id, "result": result,
             "seismic_project_profile": stages["report_evidence"].get("seismic_project_profile"),
             "engine_snapshot": stages["engine_snapshot"],
+            **({"stage_projection":stages["stage_projection"]} if "stage_projection" in stages else {}),
             **({"building_design": stages["building_design"]} if stages.get("building_design") is not None else {}),
             "model_name": ntpath.basename(str(meta.get("model_filename", ""))),
             "case_row_count": meta.get("case_row_count"),
@@ -704,6 +726,12 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                     body = json.loads(self.rfile.read(length).decode("utf-8")) if length > 0 else {}
                     if not isinstance(body, dict):
                         raise ValueError("JSON_OBJECT_REQUIRED")
+                    if "verified_run_id" in body and (url.path!="/api/apply-rebar-selection" or
+                            body.get("whole_building") is not True or
+                            not isinstance(body["verified_run_id"], str) or
+                            _RUN_ID_PATTERN.fullmatch(body["verified_run_id"]) is None or
+                            set(body)!={"base_run_id","whole_building","verified_run_id"} or url.query):
+                        raise ValueError("VERIFIED_ARCHIVE_REPLAY_REQUIRES_EXACT_SOURCE_AND_RUN")
                     q = parse_qs(url.query)
                     base_run_id = body.get("base_run_id") or (q.get("base_run_id") or [""])[0]
                     if not isinstance(base_run_id, str) or _RUN_ID_PATTERN.fullmatch(base_run_id) is None:
@@ -775,6 +803,7 @@ def make_handler(output_root: Path, *, live_capture=None, etabs_pid: int | None 
                     return
                 _execute_and_reply_live_payload(
                     self, output_root, base_report["source_snapshot"], case, suite=True,
+                    verified_run_id=body.get("verified_run_id"),
                     source_raw=source_raw, source_directory=source_directory,
                     selection_overrides=selection_overrides if url.path == "/api/apply-rebar-selection" else None,
                     project_parameters=body.get("project_parameters"), confirm_project_profile=body.get("confirm_project_profile"),

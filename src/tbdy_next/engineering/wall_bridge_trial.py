@@ -67,7 +67,7 @@ def link_clearances(families, straight_id, length, vertical_pitch, horizontal_tr
             "link_vertical_governing":minimum_vertical,"link_crosstie_governing":minimum_tie}
 
 
-def cut_section_checks(panel, link_id, cuts, states, mat, diameter, nominal_pitch, offset, aggregate):
+def cut_section_checks(panel, link_id, cuts, states, mat, diameter, nominal_pitch, offset, aggregate, *, offsets=None):
     """Check the actual vertical steel against assigned pier cuts or native shell-field bounds."""
     from ..column_engine.section_capacity import Bar, Section
     from ..column_engine.section_interval import SectionInterval
@@ -78,7 +78,11 @@ def cut_section_checks(panel, link_id, cuts, states, mat, diameter, nominal_pitc
     if min(2*offset-diameter,spacing-diameter)<clear_limit(aggregate,diameter):
         return {"satisfied":False,"reason":"VERTICAL_REINFORCEMENT_CLEARANCE","offset_mm":offset}
     area=pi*diameter**2/4
-    bars=tuple(Bar((2*i-count+1)*spacing/2,sign*offset,area) for i in range(count) for sign in (-1,1))
+    offsets=[offset]*count if offsets is None else offsets
+    if (len(offsets)!=count or list(offsets)!=list(reversed(offsets)) or min(offsets)!=offset
+            or max(offsets)+diameter/2>thickness/2):
+        raise ValueError("WALL_SECTION_REQUIRES_REAL_MIRRORED_VERTICALS")
+    bars=tuple(Bar((2*i-count+1)*spacing/2,sign*x,area) for i,x in enumerate(offsets) for sign in (-1,1))
     owner=SectionInterval(Section(1000*length,thickness,bars,mat))
     demands=[]
     if panel["member"]==link_id:

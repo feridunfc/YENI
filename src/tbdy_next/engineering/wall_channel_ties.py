@@ -121,7 +121,7 @@ def link_ties(families,continuous,verts,d,n,length,width,height,track,vertical_d
                 continue
             levels=f["heights"]=allowed
             result.append((f,{"station_mm":u,"hook_angle_deg":135,"inside_diameter_mm":2*radius-diameter,
-                "tail_mm":tail,"diameter_mm":diameter,"points_mm":ends,"levels_mm":levels,
+                "tail_mm":tail,"diameter_mm":diameter,"points_mm":ends,"levels_mm":levels,"grid_parity":parity,
                 "minimum_unrelated_margin_mm":min(c["margin_mm"] for c in checks)}))
         constraints.append(best)
         return result
@@ -168,13 +168,15 @@ def link_ties(families,continuous,verts,d,n,length,width,height,track,vertical_d
     optimistic=certify(union) if all(choices) else None
     # Adjacent stations may interleave occupied tie levels. Crop only the
     # conflicting levels of a real hook and recheck the installed metre census.
-    def interleave():
+    def interleave(phase=None):
         indices=list(range(count))
         for order in (indices,indices[::-1],indices[::2]+indices[1::2]):
             installed={}
             for index in order:
                 best=None
                 for f,row in choices[index]:
+                    if phase is not None and row["grid_parity"] != (index+phase)%2:
+                        continue
                     levels=f["heights"]
                     for other,_ in installed.values():
                         candidate={**f,"heights":levels}
@@ -195,10 +197,11 @@ def link_ties(families,continuous,verts,d,n,length,width,height,track,vertical_d
                 chosen=[installed[i] for i in indices]
                 out=certify(chosen)
                 if out and all(_separation(a[0],b[0],aggregate)["fits"] for i,a in enumerate(chosen) for b in chosen[:i]):
-                    return {**out,"placement":"STATION_SPECIFIC_VERIFIED_TIE_LEVELS"}
+                    return {**out,"placement":"STATION_SPECIFIC_VERIFIED_TIE_LEVELS" if phase is None else
+                            "ALTERNATING_STATION_GRID_PHASE","first_station_parity":phase}
     selected=None
     if optimistic:
-        selected=search(0,[]) or interleave()
+        selected=interleave(0) or interleave(1) or interleave() or search(0,[])
     return selected or {"satisfied":False,"search_nodes":tested,
         "search_ceiling_reached":tested>=2048,
         "admissible_paths_by_station":[len(v) for v in choices],"best_clearance_by_station":constraints,"reason":"CROSSTIE_HOOK_OR_DENSITY"}

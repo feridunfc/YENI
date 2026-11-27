@@ -37,6 +37,7 @@ class ReceiptRun:
         self._counter = 0
         self.listing_steps = []
         self.modal_timestamp = None
+        self.stage_graph = None
 
     def archive_input(self, payload: bytes, *, expected_sha256: str) -> Path:
         """Keep original uploaded input locally; never commit it to the public repo."""
@@ -48,7 +49,8 @@ class ReceiptRun:
 
     def record(self, stage: str, payload: Mapping[str, Any], *, input_sha256: str,
                receipt_schema: str | None = None) -> Path:
-        self._counter += 1
+        if self.stage_graph is not None:
+            self.stage_graph.validate(stage, payload, input_sha256)
         record = {
             "run_id": self.run_id,
             "stage": stage,
@@ -65,9 +67,12 @@ class ReceiptRun:
                 digest = sha256(body).hexdigest()
                 store_archive(self.root / "engine-results.payload", body, digest=digest)
                 record["payload"] = {"archived_payload_sha256": digest}
-        target = self.root / f"{self._counter:02d}-{stage.lower()}.json"
+        target = self.root / f"{self._counter+1:02d}-{stage.lower()}.json"
         with target.open("x", encoding="utf-8") as stream:
             stream.write(json.dumps(record, indent=2, sort_keys=True, ensure_ascii=False) + "\n")
+        self._counter += 1
+        if self.stage_graph is not None:
+            self.stage_graph.accepted(stage, payload)
         self.listing_steps.append({"stage": stage, "status": payload.get("status"), "receipt_sha256": record["receipt_sha256"]})
         if stage == "modal":
             self.modal_timestamp = record["captured_at_utc"]

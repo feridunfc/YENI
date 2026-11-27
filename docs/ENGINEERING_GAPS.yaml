@@ -5,7 +5,7 @@
   "repository": "feridunfc/YENI",
   "baseline_implementation_commit": "b220e5a9c3aa5658be47b9d24565d5f05554d021",
   "local_reconciled": true,
-  "scope_note": "The original building retains 69 conditional columns, four C21–C24 foundation confinement failures, 14 wall-coupled holds and 180 conditional beams. The registered schedule qualifies 21 of 30 walls. G1, G2 and the independent G3 section scope have eight Supervisor-closed GAPs. The G4 demand and population candidates await review. W22 has seven balanced panel transfers and zero of 14 field controls within tolerance.",
+  "scope_note": "The original building retains 69 conditional columns, four C21–C24 foundation confinement failures, 14 wall-coupled holds and 180 conditional beams. The registered schedule qualifies 21 of 30 walls. Ten GAPs have scoped Supervisor acceptance including the G4 check inventory and force provenance. W22 has seven balanced panel transfers and zero of 14 field controls within tolerance.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -31,7 +31,7 @@
     "GAP-018",
     "GAP-006"
   ],
-  "active_task": "Supervisor review of the two G4 candidates and coordinate the W55 entrance at node 931 with the W31/W62 crossties at node 947.",
+  "active_task": "Verify remote wall endpoints 947 and 931 and audit the G5 frame shear and sealed pipeline scopes.",
   "gaps": [
     {
       "id": "GAP-001",
@@ -267,10 +267,10 @@
     {
       "id": "GAP-005",
       "title": "Complete expected check population",
-      "status": "PARTIAL",
+      "status": "CLOSED",
       "priority": "P0",
       "achieved_scope": "Before the first modal or member calculation the source census freezes all 57 building rules and 7,439 physical instances. The replay matches every available family denominator and evaluation count. The dispositions name the open slab, mat, punching, diaphragm, torsion and C104 checks and retain four wall-to-wall beam role reviews.",
-      "blocker": "Scoped Supervisor acceptance pending.",
+      "blocker": null,
       "closure_criteria": "Freeze each rule population at the correct grain before calculation; account for missing data and proven exceptions explicitly.",
       "owner_paths": [
         "src/tbdy_next/engineering/pipeline.py",
@@ -285,9 +285,12 @@
         "EV-S00-NATIVE-C29-IMPACT-20261122",
         "EV-WINDOWS-S00-S02-20261122",
         "EV-ORIGINAL-WHOLE-BUILDING-ENGINE-20261122",
-        "EV-G3-ACCEPTANCE-CENTRAL-CHANNEL-G4"
+        "EV-G3-ACCEPTANCE-CENTRAL-CHANNEL-G4",
+        "EV-G4-SUPERVISOR-G5"
       ],
-      "closure_evidence_refs": [],
+      "closure_evidence_refs": [
+        "EV-G4-SUPERVISOR-G5"
+      ],
       "local_update_needed": false,
       "reference_requirements": [
         {
@@ -309,7 +312,7 @@
       },
       "whole_building_engine_update": "The original frame and area inventories supply physical denominators. The report retains every held column and counts unsupported slab, mat, wall and diaphragm families. Coupling-beam applicability remains unclassified.",
       "closure_ready": true,
-      "supervisor_decision": "PENDING",
+      "supervisor_decision": "ACCEPTED",
       "closure_candidate": {
         "run_id": "RUN-1d1f7079ce98462eb1e58b557e9daafa",
         "contract": "g4-contract.json",
@@ -319,6 +322,33 @@
         "supervisor_approval": "PENDING",
         "evidence_ref": "EV-G3-ACCEPTANCE-CENTRAL-CHANNEL-G4",
         "unresolved": []
+      },
+      "supervisor_acceptance": {
+        "reviewed_run": "RUN-1d1f7079ce98462eb1e58b557e9daafa",
+        "reviewed_contract_sha256": "c135f6d62d0d3293386409392d2e42278a894d78328dca25536112832bd41973",
+        "reviewed_verification_sha256": "4782b5df5266df71d1c4c2f4b89e3b7fd35b946185d79851a6e7b09c09f61bb8",
+        "accepted_gaps": [
+          "GAP-005",
+          "GAP-008"
+        ],
+        "scope": "Frozen check identities and consumed demand provenance for the reviewed original input",
+        "expected_population_sha256": "2242b7244486b5d6e90e8ac2d1715d90cf8116700efd7d37ba8c9b8d76dd3731",
+        "current_outcomes_identical_to_review": true,
+        "separate_gaps": [
+          "GAP-011",
+          "GAP-012",
+          "GAP-015",
+          "GAP-018"
+        ],
+        "open_design_families": [
+          "slabs",
+          "mats",
+          "punching",
+          "C104"
+        ],
+        "original_project_approval": "NOT_GRANTED",
+        "accepted_contract_sha256": "46d6cc235b9d57c964c1a1e569aceca733431e3e555c7485d145384716088aab",
+        "evidence_ref": "EV-G4-SUPERVISOR-G5"
       }
     },
     {
@@ -461,10 +491,10 @@
     {
       "id": "GAP-008",
       "title": "Design demand in the same generation",
-      "status": "PARTIAL",
+      "status": "CLOSED",
       "priority": "P0",
       "achieved_scope": "The EDB, solver log, native case GUIDs, combination operators and physical element, cut and step keys bind 7,638 column vectors, 93,841 beam vectors and 390 assigned pier faces. The 221 basement shell pairs use the input-identical private solve matched by 11,700 pier controls. The 4,939 beam design summary rows supply reinforcement selection seeds. Both beam shear consumers reproduce the native gravity V2 on all 180 members.",
-      "blocker": "Scoped Supervisor acceptance pending.",
+      "blocker": null,
       "closure_criteria": "Bind every consumed design vector to the same generation/cut/step/role without equating similar case names or load patterns.",
       "owner_paths": [
         "src/tbdy_next/engineering/design_scenario.py",
@@ -476,9 +506,12 @@
         "EV-LOCAL-SPECTRAL",
         "EV-S02-C29-SIGNED-STORY-BALANCE-20261122",
         "EV-G2-SUPERVISOR-G3-20261126",
-        "EV-G3-ACCEPTANCE-CENTRAL-CHANNEL-G4"
+        "EV-G3-ACCEPTANCE-CENTRAL-CHANNEL-G4",
+        "EV-G4-SUPERVISOR-G5"
       ],
-      "closure_evidence_refs": [],
+      "closure_evidence_refs": [
+        "EV-G4-SUPERVISOR-G5"
+      ],
       "local_update_needed": false,
       "supervisor_exit_recipe_20261121": {
         "evidence_ref": "EV-SUPERVISOR-SYSTEM-AUDIT-20261121",
@@ -491,7 +524,7 @@
         ]
       },
       "closure_ready": true,
-      "supervisor_decision": "PENDING",
+      "supervisor_decision": "ACCEPTED",
       "closure_candidate": {
         "run_id": "RUN-1d1f7079ce98462eb1e58b557e9daafa",
         "contract": "g4-contract.json",
@@ -501,6 +534,33 @@
         "supervisor_approval": "PENDING",
         "evidence_ref": "EV-G3-ACCEPTANCE-CENTRAL-CHANNEL-G4",
         "unresolved": []
+      },
+      "supervisor_acceptance": {
+        "reviewed_run": "RUN-1d1f7079ce98462eb1e58b557e9daafa",
+        "reviewed_contract_sha256": "c135f6d62d0d3293386409392d2e42278a894d78328dca25536112832bd41973",
+        "reviewed_verification_sha256": "4782b5df5266df71d1c4c2f4b89e3b7fd35b946185d79851a6e7b09c09f61bb8",
+        "accepted_gaps": [
+          "GAP-005",
+          "GAP-008"
+        ],
+        "scope": "Frozen check identities and consumed demand provenance for the reviewed original input",
+        "expected_population_sha256": "2242b7244486b5d6e90e8ac2d1715d90cf8116700efd7d37ba8c9b8d76dd3731",
+        "current_outcomes_identical_to_review": true,
+        "separate_gaps": [
+          "GAP-011",
+          "GAP-012",
+          "GAP-015",
+          "GAP-018"
+        ],
+        "open_design_families": [
+          "slabs",
+          "mats",
+          "punching",
+          "C104"
+        ],
+        "original_project_approval": "NOT_GRANTED",
+        "accepted_contract_sha256": "46d6cc235b9d57c964c1a1e569aceca733431e3e555c7485d145384716088aab",
+        "evidence_ref": "EV-G4-SUPERVISOR-G5"
       }
     },
     {
@@ -2160,5 +2220,32 @@
       "GAP-016"
     ],
     "engineering_release": "NOT_READY"
+  },
+  "g4_supervisor_acceptance": {
+    "reviewed_run": "RUN-1d1f7079ce98462eb1e58b557e9daafa",
+    "reviewed_contract_sha256": "c135f6d62d0d3293386409392d2e42278a894d78328dca25536112832bd41973",
+    "reviewed_verification_sha256": "4782b5df5266df71d1c4c2f4b89e3b7fd35b946185d79851a6e7b09c09f61bb8",
+    "accepted_gaps": [
+      "GAP-005",
+      "GAP-008"
+    ],
+    "scope": "Frozen check identities and consumed demand provenance for the reviewed original input",
+    "expected_population_sha256": "2242b7244486b5d6e90e8ac2d1715d90cf8116700efd7d37ba8c9b8d76dd3731",
+    "current_outcomes_identical_to_review": true,
+    "separate_gaps": [
+      "GAP-011",
+      "GAP-012",
+      "GAP-015",
+      "GAP-018"
+    ],
+    "open_design_families": [
+      "slabs",
+      "mats",
+      "punching",
+      "C104"
+    ],
+    "original_project_approval": "NOT_GRANTED",
+    "accepted_contract_sha256": "46d6cc235b9d57c964c1a1e569aceca733431e3e555c7485d145384716088aab",
+    "evidence_ref": "EV-G4-SUPERVISOR-G5"
   }
 }

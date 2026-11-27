@@ -96,6 +96,9 @@ def _run_pipeline_replay(args) -> int:
     run.archive_input(raw, expected_sha256=input_sha)
     prepared.archive_parent(run.root)
     suite = "geometry_capture" in payload or "analysis_sources" in payload
+    from .pipeline_snapshot import _digest
+    runner_arguments={"case":args.case,"suite":suite,"input_sha256":input_sha,
+                      "prepared_payload_sha256":_digest(payload)} if getattr(args,"whole_building",False) else None
     stages = EnginePipelineRunner().run(payload, case=args.case, run=run, input_sha=input_sha, suite=suite)
     summary = {"run_dir": str(run.root), "input_sha256": input_sha,
                "engine_snapshot": stages["engine_snapshot"],
@@ -106,6 +109,10 @@ def _run_pipeline_replay(args) -> int:
                "r08_local_slenderness": (stages.get("r08_local_slenderness") or {}).get("status"),
                "engineering_release": "NOT_READY", "engineering_verdict": "NOT_PROVEN"}
     summary["seismic_project_profile"] = stages["report_evidence"].get("seismic_project_profile")
+    if "stage_projection" in stages:
+        stages["stage_projection"]["runner_arguments"]=runner_arguments
+        summary["stage_projection"] = stages["stage_projection"]
+        _write_new(run.root / "cli-stage-projection.json", stages["stage_projection"])
     if getattr(args, "confirm_project_profile", None) is not None:
         from .seismic_input_review import require_reviewable
         require_reviewable(summary["seismic_project_profile"], args.confirm_project_profile)
