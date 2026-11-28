@@ -1,7 +1,7 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-28T09:55:00+00:00",
+  "updated_at_utc": "2026-11-28T18:10:00+00:00",
   "repository": "feridunfc/YENI",
   "baseline_implementation_commit": "b02f3b8f39a84e346c2258d5f0cbc70a67c68575",
   "local_reconciled": true,
@@ -624,7 +624,8 @@
         "EV-FRAME-STORY-PLUS450-R14-20261122",
         "EV-ORIGINAL-FRAME-STORY-26-R14-20261122",
         "EV-ORIGINAL-WHOLE-BUILDING-ENGINE-20261122",
-        "EV-MAT-RETURN-G1-CLOSURE-20261125"
+        "EV-MAT-RETURN-G1-CLOSURE-20261125",
+        "EV-GAP009-AUDIT-DEFECT-PROBE-20261128"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -780,7 +781,27 @@
         "document": "docs/engineering/C104_ASSIGNED_DEMAND_AND_W23_20261122.md",
         "status_changed": false
       },
-      "whole_building_engine_update": "R08 derives first-order storey inputs and eligible member end ratios across all three original storeys. The 42 conditional designs have 378 signed and 1,008 spectral case-cuts. The 45 member holds retain the specific boundary or coupled-model requirement."
+      "whole_building_engine_update": "R08 derives first-order storey inputs and eligible member end ratios across all three original storeys. The 42 conditional designs have 378 signed and 1,008 spectral case-cuts. The 45 member holds retain the specific boundary or coupled-model requirement.",
+      "contract_defect_probe_20261128": {
+        "evidence_ref": "EV-GAP009-AUDIT-DEFECT-PROBE-20261128",
+        "probe": "docs/supervisor/audit_20261121/reproduce_engineering_findings.py",
+        "probe_output": ".receipts/verification/gap009-defect-probe-20261128.json",
+        "probe_output_sha256": "33c1de14b5d48c6dffffaf6cef67fc6b50db36702411fc928348a13ed3d02a0a",
+        "implementation_commit": "080f21aef3ca2341a3661a457df7f108830f6405",
+        "defect_reproduced": {
+          "conditional_known_imbalance": false,
+          "global_theta_vertical_origin": false,
+          "global_theta_product_adapter": false,
+          "global_theta_product_adapter_scope_lost": false
+        },
+        "known_imbalance_after": {
+          "full_status": "REVISED_STORY_BASIS_INCOMPLETE",
+          "conditional_status": "REVISED_CONDITIONAL_FRAME_BASIS_INCOMPLETE",
+          "conditional_story_inputs_available": false
+        },
+        "note": "The two contract defects recorded by the 2026-11-21 Supervisor audit (conditional frame basis consuming a proven free-body imbalance; rejection of negative global elevations with loss of expected story-direction scope) no longer reproduce on the current implementation. A +100 kN independent load perturbation now propagates STORY_FRAME_BASIS_BLOCKED_BY_EQUILIBRIUM and withholds conditional story inputs; a -10 m datum translation leaves theta unchanged and preserves the expected story-direction denominator. This removes a code-defect blocker only; the coupled wall-frame method and 14 wall-coupled columns remain open.",
+        "status_changed": false
+      }
     },
     {
       "id": "GAP-010",

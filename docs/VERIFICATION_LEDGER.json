@@ -16968,6 +16968,43 @@
         "javascript_suites": 12,
         "exit_code": 0
       }
+    },
+    {
+      "id": "EV-GAP009-AUDIT-DEFECT-PROBE-20261128",
+      "observed_at": "2026-11-28T18:10:00+00:00",
+      "implementation_commit": "080f21aef3ca2341a3661a457df7f108830f6405",
+      "status": "SUPERVISOR_AUDIT_CODE_DEFECTS_NOT_REPRODUCED",
+      "scope": "Re-execution of the 2026-11-21 Supervisor audit probe (existing contract fixtures, actual production owners, no live ETABS, no full regression).",
+      "commands": [
+        "python -X utf8 -B docs/supervisor/audit_20261121/reproduce_engineering_findings.py --repo . --output .receipts/verification/gap009-defect-probe-20261128.json"
+      ],
+      "exit_code": 0,
+      "defect_reproduced": {
+        "conditional_known_imbalance": false,
+        "global_theta_vertical_origin": false,
+        "global_theta_product_adapter": false,
+        "global_theta_product_adapter_scope_lost": false
+      },
+      "log_path_private": ".receipts/verification/gap009-defect-probe-20261128.json",
+      "log_sha256": "33c1de14b5d48c6dffffaf6cef67fc6b50db36702411fc928348a13ed3d02a0a",
+      "file_sha256": {
+        "src/tbdy_next/engineering/gravity_story_basis.py": "ba108e4180c76a694f7e1de0d4f526ef90a1824258fa5233ed741bdff77f53f2",
+        "src/tbdy_next/engineering/gravity_pair_refinement.py": "e7efcc31ac1a915e6a26d841476ade37041a2fc7cbae478f4cf13d0bf06c0509",
+        "src/tbdy_next/engineering/story_pdelta.py": "14a64914d1f30e1332a6f2733b29aee9afa8d124f836665d38fd74d4191cf29c",
+        "src/tbdy_next/story_second_order.py": "362a09b15cb8f805cfcfe993e2c5e849aa92486a7d274756f009cc6fdbb11c3e",
+        "tests/test_gravity_story_basis.py": "d24e3ca9a3dd5285d1854aa18ae368b55c3f3dd5cc16bb00db439db7506c8976",
+        "tests/test_engine_r08_story.py": "15a75a7c74dae428587c2abce6a608885bc9f4d23a7f08b45ae348652776a688",
+        "tests/test_r08_story_second_order.py": "bc97d27a8e5bac5c7fe7e15cc339d3b8f5c2a857e0f1327b690d50c7a3b22f41"
+      },
+      "archive_source_finding": {
+        "input_sha256": "10b2a06edbc656bc6e8972ec542209f8dd904cc9ee088165ab3c92f87a043033",
+        "row_tables": 129,
+        "area_shell_force_tables": 0,
+        "soil_pressure_or_joint_reaction_tables": 0,
+        "consequence": "Slab flexure/punching (84 slabs) and mat contact/RC design families cannot be evaluated from the archived source; a new same-generation ETABS capture of area shell forces and soil/joint reactions is required."
+      },
+      "gap_status_changed": false,
+      "engineering_release_granted": false
     }
   ],
   "new_record_template": {
@@ -16992,7 +17029,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-28T09:55:00+00:00",
+  "updated_at_utc": "2026-11-28T18:10:00+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",

@@ -1,5 +1,11 @@
 # Original building calculation and local handoff
 
+## 28 November 2026 · GAP-009 audit defect re-check and archive scope for slabs/mats
+
+The 2026-11-21 Supervisor audit probe was re-executed on `080f21aef3ca2341a3661a457df7f108830f6405` with existing contract fixtures and the actual production owners. Neither recorded contract defect reproduces: a +100 kN independent load perturbation now returns `STORY_FRAME_BASIS_BLOCKED_BY_EQUILIBRIUM` and withholds conditional story inputs, and a −10 m datum translation leaves θ unchanged without losing the expected story-direction denominator (probe output `33c1de14b5d48c6dffffaf6cef67fc6b50db36702411fc928348a13ed3d02a0a`). The owner tests pass (8 + 10 + 11). GAP-009 stays `PARTIAL` for the coupled wall-frame method and the 14 wall-coupled columns.
+
+The archived source (`10b2a06e…`, 129 row tables) contains no area-shell force, soil-pressure or joint-reaction tables. The slab flexure/punching (84 slabs) and mat design families therefore cannot be evaluated offline. They need a new same-generation ETABS capture. [Verification ledger, EV-GAP009-AUDIT-DEFECT-PROBE-20261128](VERIFICATION_LEDGER.json)
+
 ## Faz 3 · Coupling-beam qualification (4/4), 180-beam independent N–M3/torsion/360-end audit, C29 3D joint takeoff and G6 Supervisor candidates
 
 Twelve of 18 GAPs remain formally closed (`GAP-001`, `GAP-002`, `GAP-003`, `GAP-004`, `GAP-005`, `GAP-007`, `GAP-008`, `GAP-010`, `GAP-013`, `GAP-014`, `GAP-016`, `GAP-017`) under scoped Supervisor acceptance (`G1`–`G5`). `GAP-011` and `GAP-012` remain `PARTIAL` (`closure_ready: true`, `supervisor_approval: "PENDING"`) with zero unresolved items inside the scoped `G6` Supervisor candidate packet, while `GAP-006`, `GAP-009`, `GAP-015`, `GAP-018` and overall project release (`NOT_READY`) remain explicitly separate. [GAP registry](ENGINEERING_GAPS.yaml)
