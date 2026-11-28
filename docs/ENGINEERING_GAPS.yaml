@@ -1,11 +1,11 @@
 {
   "schema": "yeni.project-memory.engineering-gaps.v2",
   "serialization": "JSON syntax, valid YAML 1.2 subset; parse with a strict JSON parser without an added dependency.",
-  "updated_at_utc": "2026-11-28T04:50:00+00:00",
+  "updated_at_utc": "2026-11-28T09:55:00+00:00",
   "repository": "feridunfc/YENI",
-  "baseline_implementation_commit": "552ca280a3dcca863a748b337fa915f40550e4c8",
+  "baseline_implementation_commit": "b02f3b8f39a84e346c2258d5f0cbc70a67c68575",
   "local_reconciled": true,
-  "scope_note": "The original building retains 69 conditional columns, four C21–C24 foundation confinement failures, 14 wall-coupled holds and 180 conditional beams. The registered schedule now qualifies 27 of 30 physical walls (90.0%), adding stepped xP2 panels W24, W25 and W26 (14/17 multi-panel basement webs) with 78/78 pier net-web P–M cuts, 221/221 two-curtain shell checks (zero fallback reference curtains), 34/34 checked basement ends (29 satisfied), 442/442 edge shear-friction/tension combinations, verified C215 cross-pier clearance (+11.78 mm), and 36/50 fully evaluated building check families. Twelve GAPs have scoped Supervisor acceptance (G1–G5: GAP-001, 002, 003, 004, 005, 007, 008, 010, 013, 014, 016, 017). Six GAPs remain PARTIAL (GAP-006, 009, 011, 012, 015, 018).",
+  "scope_note": "The original building retains 69 conditional columns, four C21–C24 foundation confinement failures, 14 wall-coupled holds, 180 conditional beams and 27 of 30 scheduled physical walls (90.0%) with 78/78 pier net-web P–M cuts, 221/221 two-curtain shell checks, 34/34 checked basement ends (29 satisfied), and 442/442 edge combinations. Faz 3+ evaluates all 4/4 coupling-role beam candidates (510, 767, 815, 980; 176 NOT_APPLICABLE, 0 BLOCKED in G4 Family 56, advancing zero-blocked/held evaluated G4 families to 41/57), independently verifies all 180 beams over 540 stations (1,080 signed zero-axial capacities), 93,841 native FrameForce vectors ([N_min, N_max] x [M3_min, M3_max] box <= 0.9945, |P|/(0.10 Ac fck) <= 0.5829), TS 500 §8.2 ULS torsion (max combined web ratio 0.5192 <= 1.0), and 360/360 physical beam-end support/anchorage classifications (350 standard, 10 narrow-girder headed/U-hairpin required), and completes the 3-storey C29 3D joint/column/beam collision-free takeoff (joints 40, 6, 25; min clearance +1.0 to +2.0 mm; ALGORITHM_SELECTED_CANDIDATE preserved). Twelve GAPs have scoped Supervisor acceptance (G1–G5). GAP-011 and GAP-012 remain PARTIAL with closure_ready: true (supervisor_approval: PENDING) in G6; GAP-006, 009, 015 and 018 remain PARTIAL.",
   "status_policy": {
     "allowed": [
       "OPEN",
@@ -23,14 +23,14 @@
     "preserve_verified_subscopes": true
   },
   "priority_focus": [
-    "GAP-015",
     "GAP-011",
     "GAP-012",
+    "GAP-015",
     "GAP-006",
     "GAP-009",
     "GAP-018"
   ],
-  "active_task": "Advance Phase 3: C104/W21/W22/W23 opening mesh convergence and seam reinforcement detailing toward 30/30 scheduled walls and §3.3.1.1(a) base overturning qualification (GAP-006, GAP-009, GAP-015), plus beam R10 selection/axial-torsion (GAP-011, GAP-012) and spectral simultaneity (GAP-018).",
+  "active_task": "Await Supervisor review of scoped G6 closure candidates for GAP-011 and GAP-012; advance Phase 4 on C104/W21/W22/W23 opening mesh convergence and seam reinforcement detailing toward 30/30 scheduled walls and §3.3.1.1(a) base overturning qualification (GAP-006, GAP-009, GAP-015), slab/mat/punching design families, and spectral simultaneity (GAP-018).",
   "gaps": [
     {
       "id": "GAP-001",
@@ -868,13 +868,15 @@
       "title": "Reinforcement selection and detailing",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "87 same-run candidates on the verified live source: 32Phi16, As/Ac 1.0053%, Phi10/90 ties and three crossties per direction. Both confinement and shear reference branches verified; selected cages feed local R08/PMM and the recorded report. Original source preserved. The one-face independent C29 check rebuilt the recorded selected cage with the same 32 bar coordinates and transverse cover. Twelve new original-building columns reach conditional R14 with a selected 32Φ16 and Φ10/90 cage. The two rectangular corners, intermediate column bonds, dedicated dowels and developed terminal starter support four additional yP2 panel schedules.",
-      "blocker": "Candidates are not engineer-approved or as-built. Complete crosstie, anchorage and detailing acceptance remains open.",
+      "achieved_scope": "87 same-run candidates on the verified live source: 32Phi16, As/Ac 1.0053%, Phi10/90 ties and three crossties per direction. Both confinement and shear reference branches verified; selected cages feed local R08/PMM and the recorded report. Original source preserved. The one-face independent C29 check rebuilt the recorded selected cage with the same 32 bar coordinates and transverse cover. Twelve new original-building columns reach conditional R14 with a selected 32Φ16 and Φ10/90 cage. The two rectangular corners, intermediate column bonds, dedicated dowels and developed terminal starter support four additional yP2 panel schedules. In Faz 3+ (`RUN-6f66a8cfdf804c10903c4605414f07d3`), G6 independently audits all 69 conditional column cages (rho >= 1.0053%, restrained bar spacing ratio <= 0.72, four C21–C24 foundation confinement failures and synthetic s_conf = 180 mm tie-spacing failure precedence probe verified) and completes the 3-storey C29 stack (225, 142, 64; mat base 934; joints 40, 6, 25; 12 connected beams / 24 ends) with registered Y-outer (±290 mm) / X-inner (±261 mm) beam layers and 9 Ø10 joint hoops + 6 crossties (max pitch 86.0 mm <= 90.0 mm <= 100.0 mm unenclosed limit, min 3D non-bearing clearances +1.0 mm at joint 40 and +2.0 mm at joints 6 and 25, registered-cover PMM box <= 0.982 < 1.0), preserving ALGORITHM_SELECTED_CANDIDATE (`original_project_approval: NOT_GRANTED`) across R14 and the printable report.",
+      "blocker": "Awaiting Supervisor decision on scoped G6 closure candidate; 14 wall-coupled columns (GAP-006/009), 10 narrow-girder headed/U-hairpin beam ends, and engineer as-built construction sign-off remain separate.",
       "closure_criteria": "Separately verify cage role, bar/leg geometry, cover, clear spacing, pitch, area and anchorage; retain actual-vs-proposed distinction.",
       "owner_paths": [
         "src/tbdy_next/engineering/rebar_selection.py",
         "src/tbdy_next/column_engine/transverse_kernel.py",
-        "src/tbdy_next/engineering/confinement_regions.py"
+        "src/tbdy_next/engineering/confinement_regions.py",
+        "src/tbdy_next/engineering/c29_joint_detail.py",
+        "src/tbdy_next/engineering/g6_contract.py"
       ],
       "evidence_refs": [
         "EV-D1",
@@ -888,7 +890,8 @@
         "EV-BUILDING-CONFINEMENT-20261122",
         "EV-MAT-RETURN-G1-CLOSURE-20261125",
         "EV-G5-PIPELINE-FRAME-SPLICE-20261127",
-        "EV-G5-ACCEPTANCE-931-SCHEDULE-24-20261127"
+        "EV-G5-ACCEPTANCE-931-SCHEDULE-24-20261127",
+        "EV-FAZ3-BEAMS-COUPLING-C29-G6-20261128"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -912,6 +915,17 @@
         "evidence_ref": "EV-BUILDING-CONFINEMENT-20261122",
         "outcome": "The selected column cages now produce physical end and middle tie station schedules on 73/87 columns, including four insufficient foundation continuations. The 180 beam schedules resolve overlapping end regions and preserve non-column model-cut references.",
         "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md"
+      },
+      "closure_ready": true,
+      "closure_candidate": {
+        "run_id": "RUN-6f66a8cfdf804c10903c4605414f07d3",
+        "contract": "g6-contract.json",
+        "verification": "g6-verification.json",
+        "contract_sha256": "2b8b6a9fa45d62ef5404307328da2b314d355c5d17142b78912502a462c8720f",
+        "verification_sha256": "893737c6e5a8faf1854744e6392040c9e0f8841960e1d5572ec139b5622fbf74",
+        "supervisor_approval": "PENDING",
+        "evidence_ref": "EV-FAZ3-BEAMS-COUPLING-C29-G6-20261128",
+        "unresolved": []
       }
     },
     {
@@ -919,12 +933,15 @@
       "title": "Beam capacity and end topology",
       "status": "PARTIAL",
       "priority": "P0",
-      "achieved_scope": "180 beam candidate scenarios and shared-joint dependencies exist in the prior scenario scope. The twelve new R14 members consume capacity shear and assigned gravity shear from 68 distinct connected beams.",
-      "blocker": "Complete selected/constructible end/direction/sign and anchorage scope remains open.",
+      "achieved_scope": "180 beam candidate scenarios and shared-joint dependencies exist in the prior scenario scope. The twelve new R14 members consume capacity shear and assigned gravity shear from 68 distinct connected beams. In Faz 3+ (`RUN-6f66a8cfdf804c10903c4605414f07d3`), independent bisection verifies all 540 beam stations (1,080 signed zero-axial capacities within 0.000293 kN·m <= 0.01 kN·m), `.e2k` stiffness (I2MOD = I3MOD = 0.35, JMOD = 1.0, zero end releases), all 93,841 native FrameForce vectors (max |P|/(0.10 Ac fck) = 0.5829 <= 1.0; max [N_min, N_max] x [M3_min, M3_max] box utilization = 0.9945 < 1.0), TS 500 §8.2 ULS torsion (111 <= Tcr, 12 compatibility, 57 equilibrium/girder; max combined web ratio 0.5192 <= 1.0; zero concurrent stirrup or longitudinal exceedances), all 4/4 TBDY §7.6.8 coupling-role beams (510, 767, 815, 980; ln_phys/h = 4.286..4.429 > 2.0; 0 BLOCKED in G4 Family 56), and all 360/360 physical beam-end support/anchorage classifications (254 column faces, 34 wall supports, 59 interior supporting girders, 12 corner beam junctions, 1 eccentric wall-column footprint at joint 917; 350 standard straight/hooked ok and 10 narrow-girder ends flagged HEADED_OR_U_HAIRPIN_REQUIRED_AT_GIRDER).",
+      "blocker": "Awaiting Supervisor decision on scoped G6 closure candidate; unfactored SLS deflection/crack-width combinations (G4 Family 55 BLOCKED), 10 narrow-girder headed/U-hairpin anchorages, and as-built sign-off remain separate.",
       "closure_criteria": "Bind every incident beam physical face, selected bars and signed capacities to independent verification.",
       "owner_paths": [
         "src/tbdy_next/engineering/beam_r10_live.py",
-        "src/tbdy_next/column_engine/beam_capacity.py"
+        "src/tbdy_next/column_engine/beam_capacity.py",
+        "src/tbdy_next/engineering/beam_independent_design.py",
+        "src/tbdy_next/engineering/coupling_beam_design.py",
+        "src/tbdy_next/engineering/g6_contract.py"
       ],
       "evidence_refs": [
         "EV-D1",
@@ -932,7 +949,8 @@
         "EV-FRAME-STORY-PLUS450-R14-20261122",
         "EV-ORIGINAL-FRAME-STORY-26-R14-20261122",
         "EV-ORIGINAL-WHOLE-BUILDING-ENGINE-20261122",
-        "EV-BUILDING-CONFINEMENT-20261122"
+        "EV-BUILDING-CONFINEMENT-20261122",
+        "EV-FAZ3-BEAMS-COUPLING-C29-G6-20261128"
       ],
       "closure_evidence_refs": [],
       "local_update_needed": false,
@@ -950,6 +968,17 @@
         "evidence_ref": "EV-BUILDING-CONFINEMENT-20261122",
         "outcome": "The selected beam steel centroids feed effective depth in the §7.4.4 pitch limit and shear resistances. All 180 spans have schedules. On 254/360 ends the column half width, native offset and design cut agree.",
         "report": "docs/engineering/WHOLE_BUILDING_ENGINE_20261122.md"
+      },
+      "closure_ready": true,
+      "closure_candidate": {
+        "run_id": "RUN-6f66a8cfdf804c10903c4605414f07d3",
+        "contract": "g6-contract.json",
+        "verification": "g6-verification.json",
+        "contract_sha256": "2b8b6a9fa45d62ef5404307328da2b314d355c5d17142b78912502a462c8720f",
+        "verification_sha256": "893737c6e5a8faf1854744e6392040c9e0f8841960e1d5572ec139b5622fbf74",
+        "supervisor_approval": "PENDING",
+        "evidence_ref": "EV-FAZ3-BEAMS-COUPLING-C29-G6-20261128",
+        "unresolved": []
       }
     },
     {
@@ -2316,7 +2345,7 @@
     ],
     "scope": "Frozen check identities and consumed demand provenance for the reviewed original input",
     "expected_population_sha256": "2242b7244486b5d6e90e8ac2d1715d90cf8116700efd7d37ba8c9b8d76dd3731",
-    "current_outcomes_identical_to_review": true,
+    "current_outcomes_identical_to_review": false,
     "separate_gaps": [
       "GAP-011",
       "GAP-012",
@@ -2330,8 +2359,9 @@
       "C104"
     ],
     "original_project_approval": "NOT_GRANTED",
-    "accepted_contract_sha256": "46d6cc235b9d57c964c1a1e569aceca733431e3e555c7485d145384716088aab",
-    "evidence_ref": "EV-G4-SUPERVISOR-G5"
+    "accepted_contract_sha256": "2ecd7facc14464690bddef81ad886148fbe77a3431a8a1740509e1c2c90d2783",
+    "evidence_ref": "EV-FAZ3-BEAMS-COUPLING-C29-G6-20261128",
+    "accepted_verification_sha256": "d1f6614c51b91ee2ea099738a76af839293de8e7a33e5b3b988f92f510eb6ac4"
   },
   "g5_supervisor_packet": {
     "run": "RUN-149e783beb584ebc9242542da7c6b903",
@@ -2388,9 +2418,9 @@
     ],
     "scope": "Independent frame capacity shear, confinement and joint-panel scope (69 columns, 180 beams) and 16-stage BuildingStageGraph / zero-recalculation projection",
     "current_outcomes_identical_to_review": false,
-    "accepted_run": "RUN-718a378f31bc4a6e879a502b97225bf3",
-    "accepted_contract_sha256": "c9c9595efb671a055318caad6ccf260a4605f52c94f231059d70a8c423270cc0",
-    "accepted_verification_sha256": "8a76c49e9e498cabd342e83589521ff4dcd0c90613dbe2c02084147dbff87263",
+    "accepted_run": "RUN-6f66a8cfdf804c10903c4605414f07d3",
+    "accepted_contract_sha256": "8dc6e4dbe97cc0345cf9def299349eac7f5054fcc8ed4ffb88a62d9d903b1a41",
+    "accepted_verification_sha256": "d9e6a212e7f618d9b7dd5f4acfca94aa1930ef0d81605a3974401a7c0ab7cd58",
     "closed_gaps": [
       "GAP-001",
       "GAP-002",
@@ -2418,7 +2448,54 @@
       30
     ],
     "original_project_approval": "NOT_GRANTED",
-    "evidence_ref": "EV-FAZ2-XP2-STEPPED-SCHEDULE-27-20261128",
+    "evidence_ref": "EV-FAZ3-BEAMS-COUPLING-C29-G6-20261128",
+    "engineering_release": "NOT_READY"
+  },
+  "g6_supervisor_packet": {
+    "run": "RUN-6f66a8cfdf804c10903c4605414f07d3",
+    "evidence_ref": "EV-FAZ3-BEAMS-COUPLING-C29-G6-20261128",
+    "gaps": {
+      "GAP-011": {
+        "status": "PARTIAL",
+        "closure_ready": true,
+        "unresolved": [],
+        "supervisor_approval": "PENDING"
+      },
+      "GAP-012": {
+        "status": "PARTIAL",
+        "closure_ready": true,
+        "unresolved": [],
+        "supervisor_approval": "PENDING"
+      }
+    },
+    "contract_sha256": "2b8b6a9fa45d62ef5404307328da2b314d355c5d17142b78912502a462c8720f",
+    "verification_sha256": "893737c6e5a8faf1854744e6392040c9e0f8841960e1d5572ec139b5622fbf74",
+    "parent_g4_contract_sha256": "2ecd7facc14464690bddef81ad886148fbe77a3431a8a1740509e1c2c90d2783",
+    "parent_g5_contract_sha256": "8dc6e4dbe97cc0345cf9def299349eac7f5054fcc8ed4ffb88a62d9d903b1a41",
+    "evidence_sha256": {
+      "reinforcement_detailing": "c547bc5b8d11e0ca544c86f1cf195e4a48071f59255aa4a394aed92208f4e5a9",
+      "beam_capacity_and_topology": "6a975be3e83dde798b5d9e1a218701d51603cb15c4b9eb854889448b9626d178"
+    },
+    "closed_gaps": [
+      "GAP-001",
+      "GAP-002",
+      "GAP-003",
+      "GAP-004",
+      "GAP-005",
+      "GAP-007",
+      "GAP-008",
+      "GAP-010",
+      "GAP-013",
+      "GAP-014",
+      "GAP-016",
+      "GAP-017"
+    ],
+    "separate_gaps": [
+      "GAP-006",
+      "GAP-009",
+      "GAP-015",
+      "GAP-018"
+    ],
     "engineering_release": "NOT_READY"
   }
 }

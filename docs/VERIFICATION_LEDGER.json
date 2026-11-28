@@ -19,29 +19,29 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "FAZ2_XP2_STEPPED_CUTS_78_OF_78_SCHEDULE_27_OF_30",
-    "work_branch": "work/phase2-xp2-walls",
+    "status": "FAZ3_COUPLING_4_OF_4_BEAMS_180_C29_3D_G6_CANDIDATE",
+    "work_branch": "work/phase3-beams-coupling-g6",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "d76943ce564296c7e9fb5c11864a33535c378dc2",
-    "calculation_implementation_commit": "552ca280a3dcca863a748b337fa915f40550e4c8",
+    "inspected_base_commit": "b1020c80824c16b8a82fec752cb485b15ac06a7c",
+    "calculation_implementation_commit": "b02f3b8f39a84e346c2258d5f0cbc70a67c68575",
     "tested_git_subtrees": {
-      "src": "9890a3de71d9770310c7642dbeaeb967f0155399",
-      "tests": "cc39a81610ffe677c3bdad01749dfe644dc2b16f",
-      "tools": "5471e42c7883e9cc8e80ae50848d966881c99757"
+      "src": "8ff6816afaa7c8b75e5e68456998c6caf8abafb8",
+      "tests": "5cb119ca71d1c368b2b50c981da1f50de1596415",
+      "tools": "b0383602bc920e8d9d69dea4be1cff3c95d8dce5"
     },
-    "production_run_id": "RUN-718a378f31bc4a6e879a502b97225bf3",
-    "results_sha256": "a7e5fae25931180fb283c64f15f85df9de0b536dd8c5ead7cdb7d3f0dcb2e9aa",
-    "snapshot_sha256": "197cdc20feab64a57cad378d9f1455815d42ec56f67fe8ee24429ed9eb84f9fb",
-    "scope": "Stepped basement pier xP2 net-web PMM cuts (30/30 on xP2, 78/78 building-wide), two-curtain shell designs on all six xP2 panels (zero reference fallbacks, 34/34 ends checked, 442/442 edge combinations), verified cross-pier 3D joint clearance at column 215 (+11.78 mm), and continuous W24–W25–W26 run with 635 mm starter into W23, advancing scheduled walls from 24/30 to 27/30 (90.0%) and fully evaluated check families from 33/50 to 36/50 while preserving 12/18 closed GAPs (G1–G5).",
-    "verification": "EV-FAZ2-XP2-STEPPED-SCHEDULE-27-20261128",
+    "production_run_id": "RUN-6f66a8cfdf804c10903c4605414f07d3",
+    "results_sha256": "a36e5ea2a166414ae9b61529ca711141433a0fa096f2993fd15f36a70d9f9c94",
+    "snapshot_sha256": "a2d8e5361e291fd4b053599eb1c1854e553f7c21717c0c21cd2845dcb018587c",
+    "scope": "TBDY §7.6.8 qualification of all 4/4 coupling-role beam candidates (510, 767, 815, 980; 0 BLOCKED in G4 Family 56), independent 180-beam N–M3 interval box (93,841 FrameForce vectors), TS 500 §8.2 ULS torsion, and 360/360 physical beam-end support/anchorage classification, 3-storey C29 3D collision-free joint takeoff (joints 40, 6, 25), and scoped G6 Supervisor closure candidates for GAP-011 and GAP-012 while preserving 12/18 closed GAPs (G1–G5) and 27/30 scheduled walls.",
+    "verification": "EV-FAZ3-BEAMS-COUPLING-C29-G6-20261128",
     "engineering_release": "NOT_READY"
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
-    "commit_sha": "d76943ce564296c7e9fb5c11864a33535c378dc2",
-    "git_tree_sha": "87ca2629bd256ed5c9e4eadbd402ee916fec7c5f",
-    "observed_on": "2026-11-27",
-    "scope": "Published Faz 1 G5 closure (12/18 GAPs) and 24/30 wall schedule baseline prior to Faz 2 fast-forward."
+    "commit_sha": "b1020c80824c16b8a82fec752cb485b15ac06a7c",
+    "git_tree_sha": "ab692373495de5df447b9d18b95a4284d39c6c8e",
+    "observed_on": "2026-11-28",
+    "scope": "Published Faz 2 stepped xP2 (78/78 pier cuts) and 27/30 scheduled walls baseline prior to Faz 3+ fast-forward."
   },
   "record_policy": {
     "append_new_ids": true,
@@ -16757,6 +16757,217 @@
         "javascript_suites": 12,
         "exit_code": 0
       }
+    },
+    {
+      "id": "EV-FAZ3-BEAMS-COUPLING-C29-G6-20261128",
+      "observed_at": "2026-11-28T09:55:00+00:00",
+      "implementation_commit": "b02f3b8f39a84e346c2258d5f0cbc70a67c68575",
+      "tested_git_subtrees": {
+        "src": "8ff6816afaa7c8b75e5e68456998c6caf8abafb8",
+        "tests": "5cb119ca71d1c368b2b50c981da1f50de1596415",
+        "tools": "b0383602bc920e8d9d69dea4be1cff3c95d8dce5"
+      },
+      "status": "FAZ3_COUPLING_BEAMS_180_INDEPENDENT_C29_3D_G6_READY_FOR_SUPERVISOR",
+      "production_run_id": "RUN-6f66a8cfdf804c10903c4605414f07d3",
+      "input_sha256": "10b2a06edbc656bc6e8972ec542209f8dd904cc9ee088165ab3c92f87a043033",
+      "snapshot_sha256": "a2d8e5361e291fd4b053599eb1c1854e553f7c21717c0c21cd2845dcb018587c",
+      "results_sha256": "a36e5ea2a166414ae9b61529ca711141433a0fa096f2993fd15f36a70d9f9c94",
+      "report_sha256": "c1ff4573f25f39cab2d8e386fdac602e315c6fc8de1c6f8bdaf6d6bd8f310a3b",
+      "report_bytes": 8470781,
+      "live_etabs_calls": 0,
+      "building_outcomes": {
+        "columns_conditional": 69,
+        "columns_failed_foundation_confinement": 4,
+        "columns_held_wall_coupled": 14,
+        "columns_by_storey": {
+          "+9.00": [
+            23,
+            23
+          ],
+          "+4.50": [
+            32,
+            32
+          ],
+          "+0.00": [
+            14,
+            32
+          ]
+        },
+        "beams_conditional": 180,
+        "coupling_role_beams_evaluated": [
+          4,
+          4
+        ],
+        "walls_scheduled": [
+          27,
+          30
+        ],
+        "basement_multipanel_walls_scheduled": [
+          14,
+          17
+        ],
+        "basement_pier_net_web_cuts": [
+          78,
+          78
+        ],
+        "basement_pressure_ends_checked": [
+          34,
+          34
+        ],
+        "basement_pressure_ends_satisfied": [
+          29,
+          34
+        ],
+        "basement_edge_combinations_evaluated": [
+          442,
+          442
+        ],
+        "fully_evaluated_integer_denominator_families": [
+          36,
+          50
+        ],
+        "zero_blocked_held_evaluated_g4_families": [
+          41,
+          57
+        ],
+        "c29_independent_faces": [
+          24,
+          24
+        ]
+      },
+      "faz3_beam_and_c29": {
+        "coupling_beams_qualified": [
+          "510",
+          "767",
+          "815",
+          "980"
+        ],
+        "coupling_beams_not_applicable": 176,
+        "coupling_beams_blocked": 0,
+        "stations_independently_integrated": 540,
+        "signed_zero_axial_capacities_verified": 1080,
+        "max_independent_capacity_residual_knm": 0.0002930104238316744,
+        "native_beam_vectors_checked": 93841,
+        "max_axial_over_0_10_ac_fck": 0.5828571281332021,
+        "max_axial_interval_box_utilization": 0.9945040835685405,
+        "max_combined_shear_torsion_web_ratio": 0.5191760641529417,
+        "torsion_regime_counts": {
+          "BELOW_CRACKING_TORQUE": 111,
+          "COMPATIBILITY_MONOLITHIC": 12,
+          "EQUILIBRIUM_GIRDER_CANDIDATE": 57
+        },
+        "physical_beam_ends_classified": 360,
+        "beam_end_support_counts": {
+          "COLUMN_FACE": 254,
+          "WALL_SUPPORT": 34,
+          "SUPPORTING_GIRDER_INTERIOR": 59,
+          "BEAM_CORNER_JUNCTION": 12,
+          "ECCENTRIC_WALL_COLUMN_FOOTPRINT": 1
+        },
+        "standard_anchorage_ends": 350,
+        "headed_or_u_hairpin_girder_ends": 10,
+        "c29_3d_joints": {
+          "40": {
+            "min_3d_clearance_mm": 1.0,
+            "hoop_stations": 9,
+            "max_pitch_mm": 86.0
+          },
+          "6": {
+            "min_3d_clearance_mm": 2.0,
+            "hoop_stations": 9,
+            "max_pitch_mm": 86.0
+          },
+          "25": {
+            "min_3d_clearance_mm": 2.0,
+            "hoop_stations": 9,
+            "max_pitch_mm": 86.0
+          }
+        },
+        "c29_connected_beams": [
+          "788",
+          "789",
+          "778",
+          "791",
+          "541",
+          "542",
+          "533",
+          "545",
+          "361",
+          "362",
+          "354",
+          "364"
+        ],
+        "candidate_role_preserved": true,
+        "tie_spacing_failure_precedence_verified": true
+      },
+      "G2_frame_replay": {
+        "output_path": ".receipts/verification/faz3-g2-frame.json",
+        "sha256": "6555482b15b1a2038f53f696d41f1289cf2cdf6db97929825b422a8a44e2cb22"
+      },
+      "G4": {
+        "reviewed_contract_sha256": "c135f6d62d0d3293386409392d2e42278a894d78328dca25536112832bd41973",
+        "current_contract_sha256": "2ecd7facc14464690bddef81ad886148fbe77a3431a8a1740509e1c2c90d2783",
+        "current_verification_sha256": "d1f6614c51b91ee2ea099738a76af839293de8e7a33e5b3b988f92f510eb6ac4",
+        "expected_population_sha256": "2242b7244486b5d6e90e8ac2d1715d90cf8116700efd7d37ba8c9b8d76dd3731"
+      },
+      "G5": {
+        "reviewed_contract_sha256": "9c2920861318bd8088aeaf63c2c57c1fa27e0900b16f87055035b207a0f1fbad",
+        "reviewed_verification_sha256": "82ed1f2b1f7b91a8dd7a379df59f1dff05cfcd4221c63e9b533eee3d43a341a1",
+        "accepted_contract_sha256": "8dc6e4dbe97cc0345cf9def299349eac7f5054fcc8ed4ffb88a62d9d903b1a41",
+        "accepted_verification_sha256": "d9e6a212e7f618d9b7dd5f4acfca94aa1930ef0d81605a3974401a7c0ab7cd58",
+        "evidence_sha256": {
+          "frame_shear": "f95e13c77892d3a568443e907bbfeeb413acd6cd5b7c4f10215cd0392f8aaa9e",
+          "pipeline": "00cfc16b93aac24da7b1dc7f75ccecab92d701f2b230c80e903ac960fb601eae"
+        },
+        "closed_gaps_in_packet": [
+          "GAP-014",
+          "GAP-017"
+        ]
+      },
+      "G6": {
+        "candidate_contract_sha256": "2b8b6a9fa45d62ef5404307328da2b314d355c5d17142b78912502a462c8720f",
+        "candidate_verification_sha256": "893737c6e5a8faf1854744e6392040c9e0f8841960e1d5572ec139b5622fbf74",
+        "replay_output_path": ".receipts/verification/faz3-g6-replay.json",
+        "evidence_sha256": {
+          "reinforcement_detailing": "c547bc5b8d11e0ca544c86f1cf195e4a48071f59255aa4a394aed92208f4e5a9",
+          "beam_capacity_and_topology": "6a975be3e83dde798b5d9e1a218701d51603cb15c4b9eb854889448b9626d178"
+        },
+        "candidate_gaps_in_packet": [
+          "GAP-011",
+          "GAP-012"
+        ],
+        "supervisor_approval": "PENDING"
+      },
+      "formal_closed_gap_ids": [
+        "GAP-001",
+        "GAP-002",
+        "GAP-003",
+        "GAP-004",
+        "GAP-005",
+        "GAP-007",
+        "GAP-008",
+        "GAP-010",
+        "GAP-013",
+        "GAP-014",
+        "GAP-016",
+        "GAP-017"
+      ],
+      "engineering_release": "NOT_READY",
+      "formal_compliance": "NOT_PROVEN",
+      "independent_replays": [
+        "python -X utf8 -B tools/verify_g6_contract.py .receipts/RUN-6f66a8cfdf804c10903c4605414f07d3",
+        "python -X utf8 -B tools/verify_g5_contract.py .receipts/RUN-6f66a8cfdf804c10903c4605414f07d3"
+      ],
+      "software": {
+        "full_suite_command": "python -X utf8 -B tools/test_offline.py",
+        "log_path": ".receipts/verification/faz3-offline.log",
+        "log_sha256": "a8aec61fd9e336622d24c4ec937dd91c7c55ef1beab479b01e41c62e50067074",
+        "python_discovered": 1829,
+        "python_seconds": 853.918,
+        "result": "OK (skipped=1)",
+        "javascript_suites": 12,
+        "exit_code": 0
+      }
     }
   ],
   "new_record_template": {
@@ -16781,7 +16992,7 @@
     "engineering_release_granted": false,
     "supersedes": null
   },
-  "updated_at_utc": "2026-11-27T06:40:00+00:00",
+  "updated_at_utc": "2026-11-28T09:55:00+00:00",
   "imported_context": {
     "zip_name": "YENI_LOCAL_CODEX_CONTEXT_20261117.zip",
     "zip_sha256": "e9ba4d9e22bfb8a63c01ebf71b2d363558dba52bd08f632b631d0d4b4eec3d87",
@@ -17812,6 +18023,24 @@
       "snapshot_sha256": "197cdc20feab64a57cad378d9f1455815d42ec56f67fe8ee24429ed9eb84f9fb",
       "scope": "Stepped basement pier xP2 net-web PMM cuts (30/30 on xP2, 78/78 building-wide), two-curtain shell designs on all six xP2 panels (zero reference fallbacks, 34/34 ends checked, 442/442 edge combinations), verified cross-pier 3D joint clearance at column 215 (+11.78 mm), and continuous W24–W25–W26 run with 635 mm starter into W23, advancing scheduled walls from 24/30 to 27/30 (90.0%) and fully evaluated check families from 33/50 to 36/50 while preserving 12/18 closed GAPs (G1–G5).",
       "verification": "EV-FAZ2-XP2-STEPPED-SCHEDULE-27-20261128",
+      "engineering_release": "NOT_READY"
+    },
+    {
+      "status": "FAZ3_COUPLING_4_OF_4_BEAMS_180_C29_3D_G6_CANDIDATE",
+      "work_branch": "work/phase3-beams-coupling-g6",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "b1020c80824c16b8a82fec752cb485b15ac06a7c",
+      "calculation_implementation_commit": "b02f3b8f39a84e346c2258d5f0cbc70a67c68575",
+      "tested_git_subtrees": {
+        "src": "8ff6816afaa7c8b75e5e68456998c6caf8abafb8",
+        "tests": "5cb119ca71d1c368b2b50c981da1f50de1596415",
+        "tools": "b0383602bc920e8d9d69dea4be1cff3c95d8dce5"
+      },
+      "production_run_id": "RUN-6f66a8cfdf804c10903c4605414f07d3",
+      "results_sha256": "a36e5ea2a166414ae9b61529ca711141433a0fa096f2993fd15f36a70d9f9c94",
+      "snapshot_sha256": "a2d8e5361e291fd4b053599eb1c1854e553f7c21717c0c21cd2845dcb018587c",
+      "scope": "TBDY §7.6.8 qualification of all 4/4 coupling-role beam candidates (510, 767, 815, 980; 0 BLOCKED in G4 Family 56), independent 180-beam N–M3 interval box (93,841 FrameForce vectors), TS 500 §8.2 ULS torsion, and 360/360 physical beam-end support/anchorage classification, 3-storey C29 3D collision-free joint takeoff (joints 40, 6, 25), and scoped G6 Supervisor closure candidates for GAP-011 and GAP-012 while preserving 12/18 closed GAPs (G1–G5) and 27/30 scheduled walls.",
+      "verification": "EV-FAZ3-BEAMS-COUPLING-C29-G6-20261128",
       "engineering_release": "NOT_READY"
     }
   ],
