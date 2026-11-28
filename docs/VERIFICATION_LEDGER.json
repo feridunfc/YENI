@@ -1,7 +1,7 @@
 {
   "schema": "yeni.project-memory.verification-ledger.v2",
   "repository": "feridunfc/YENI",
-  "updated_on": "2026-11-27",
+  "updated_on": "2026-11-28",
   "purpose": "Durable evidence index. It is not a source receipt or formal engineering acceptance.",
   "workflow": {
     "primary_workspace": "LOCAL_CODEX",
@@ -19,29 +19,29 @@
     "sync_execution": "Explicit milestone command, not a background job or schedule."
   },
   "local_checkpoint": {
-    "status": "G5_ACCEPTED_12_GAPS_CLOSED_NODE_931_SCHEDULE_24_OF_30",
-    "work_branch": "work/phase1-g5-closure-931",
+    "status": "FAZ2_XP2_STEPPED_CUTS_78_OF_78_SCHEDULE_27_OF_30",
+    "work_branch": "work/phase2-xp2-walls",
     "integration_base_branch": "baseline/local_import",
-    "inspected_base_commit": "bb5f1186ee2b81e1653c1c74a1097112f852e460",
-    "calculation_implementation_commit": "ddf365a720dc334bb0c9eb1648317091cf889552",
+    "inspected_base_commit": "d76943ce564296c7e9fb5c11864a33535c378dc2",
+    "calculation_implementation_commit": "552ca280a3dcca863a748b337fa915f40550e4c8",
     "tested_git_subtrees": {
-      "src": "7188d57e36cd2a510fc845993c3158222f5db3ec",
-      "tests": "f77bf21924172bfe1e7d9c0908f9d8c997047bff",
+      "src": "9890a3de71d9770310c7642dbeaeb967f0155399",
+      "tests": "cc39a81610ffe677c3bdad01749dfe644dc2b16f",
       "tools": "5471e42c7883e9cc8e80ae50848d966881c99757"
     },
-    "production_run_id": "RUN-17d09f80ae484ae58e5228c424e606e0",
-    "results_sha256": "5ba6ff4f8a76428affe32a9c068379091a56fd83d9b30dc73b6b7f4f78d1699a",
-    "snapshot_sha256": "b9958d9b01f2eadce7bf7261829849844d145cf3047b75ef197e7a4f4f572067",
-    "scope": "Scoped G5 formal closure (12/18 GAPs), verified 13/13 coordinated W31/W32/W55/W6 channel and 11/11 3D knuckle/lap checks at node 931 (88,860 segments, zero clashes), advancing wall schedule from 21/30 to 24/30.",
-    "verification": "EV-G5-ACCEPTANCE-931-SCHEDULE-24-20261127",
+    "production_run_id": "RUN-718a378f31bc4a6e879a502b97225bf3",
+    "results_sha256": "a7e5fae25931180fb283c64f15f85df9de0b536dd8c5ead7cdb7d3f0dcb2e9aa",
+    "snapshot_sha256": "197cdc20feab64a57cad378d9f1455815d42ec56f67fe8ee24429ed9eb84f9fb",
+    "scope": "Stepped basement pier xP2 net-web PMM cuts (30/30 on xP2, 78/78 building-wide), two-curtain shell designs on all six xP2 panels (zero reference fallbacks, 34/34 ends checked, 442/442 edge combinations), verified cross-pier 3D joint clearance at column 215 (+11.78 mm), and continuous W24–W25–W26 run with 635 mm starter into W23, advancing scheduled walls from 24/30 to 27/30 (90.0%) and fully evaluated check families from 33/50 to 36/50 while preserving 12/18 closed GAPs (G1–G5).",
+    "verification": "EV-FAZ2-XP2-STEPPED-SCHEDULE-27-20261128",
     "engineering_release": "NOT_READY"
   },
   "last_observed_remote_implementation": {
     "branch": "baseline/local_import",
-    "commit_sha": "c21a8c4cfedd0a30d6eb063760591fec5b31113a",
-    "git_tree_sha": "f194eeb1a9ce31f1b4319211c38942cdec10acdb",
-    "observed_on": "2026-11-25",
-    "scope": "Published Windows gateway and supported yP1 wall calculation. GitHub and the tested local commits have identical trees. The evidence-only handoff follows this commit."
+    "commit_sha": "d76943ce564296c7e9fb5c11864a33535c378dc2",
+    "git_tree_sha": "87ca2629bd256ed5c9e4eadbd402ee916fec7c5f",
+    "observed_on": "2026-11-27",
+    "scope": "Published Faz 1 G5 closure (12/18 GAPs) and 24/30 wall schedule baseline prior to Faz 2 fast-forward."
   },
   "record_policy": {
     "append_new_ids": true,
@@ -16273,25 +16273,55 @@
         "columns_failed_foundation_confinement": 4,
         "columns_held_wall_coupled": 14,
         "columns_by_storey": {
-          "+9.00": [23, 23],
-          "+4.50": [32, 32],
-          "+0.00": [14, 32]
+          "+9.00": [
+            23,
+            23
+          ],
+          "+4.50": [
+            32,
+            32
+          ],
+          "+0.00": [
+            14,
+            32
+          ]
         },
         "beams_conditional": 180,
-        "walls_scheduled": [21, 30],
-        "c29_independent_faces": [24, 24],
+        "walls_scheduled": [
+          21,
+          30
+        ],
+        "c29_independent_faces": [
+          24,
+          24
+        ],
         "g2_two_storey_independent_replay_sha256": "6555482b15b1a2038f53f696d41f1289cf2cdf6db97929825b422a8a44e2cb22"
       },
       "remote_endpoints": {
         "joint_947": {
           "complete_corner": true,
-          "web_development_mm": [952.452099241876, 1499.9999999999886],
-          "dowel_development_mm": [846.6240882150009, 1499.9999999999886],
-          "w31_crosstie_density_per_m2": [17.0, 16.530612244897963],
-          "overlap_clear_mm": [30.183333333333167, 26.666666666666668]
+          "web_development_mm": [
+            952.452099241876,
+            1499.9999999999886
+          ],
+          "dowel_development_mm": [
+            846.6240882150009,
+            1499.9999999999886
+          ],
+          "w31_crosstie_density_per_m2": [
+            17.0,
+            16.530612244897963
+          ],
+          "overlap_clear_mm": [
+            30.183333333333167,
+            26.666666666666668
+          ]
         },
         "joint_931": {
-          "zoned_checks_satisfied": [8, 10],
+          "zoned_checks_satisfied": [
+            8,
+            10
+          ],
           "regional_shell_corners": 2880,
           "regional_shell_corner_proof_sha256": "2fc4bbfa73b93c8a107ed7c351db2fbfaec30f9b2791783d72f7d8576c5f5a14",
           "crank_bar_bends_balanced": 138,
@@ -16300,7 +16330,10 @@
             "SIMULTANEOUS_CRANK_HOOK_GEOMETRY"
           ]
         },
-        "coordinated_channel_checks_satisfied": [12, 13]
+        "coordinated_channel_checks_satisfied": [
+          12,
+          13
+        ]
       },
       "G5": {
         "contract_sha256": "9c2920861318bd8088aeaf63c2c57c1fa27e0900b16f87055035b207a0f1fbad",
@@ -16380,27 +16413,54 @@
         "columns_failed_foundation_confinement": 4,
         "columns_held_wall_coupled": 14,
         "columns_by_storey": {
-          "+9.00": [23, 23],
-          "+4.50": [32, 32],
-          "+0.00": [14, 32]
+          "+9.00": [
+            23,
+            23
+          ],
+          "+4.50": [
+            32,
+            32
+          ],
+          "+0.00": [
+            14,
+            32
+          ]
         },
         "beams_conditional": 180,
-        "walls_scheduled": [24, 30],
-        "basement_multipanel_walls_scheduled": [11, 17],
-        "basement_pressure_ends_satisfied": [22, 22],
-        "c29_independent_faces": [24, 24]
+        "walls_scheduled": [
+          24,
+          30
+        ],
+        "basement_multipanel_walls_scheduled": [
+          11,
+          17
+        ],
+        "basement_pressure_ends_satisfied": [
+          22,
+          22
+        ],
+        "c29_independent_faces": [
+          24,
+          24
+        ]
       },
       "remote_endpoints": {
         "joint_947": {
           "complete_corner": true
         },
         "joint_931": {
-          "zoned_checks_satisfied": [11, 11],
+          "zoned_checks_satisfied": [
+            11,
+            11
+          ],
           "outside_verticals_by_face": {
             "-1": 23,
             "1": 22
           },
-          "regional_shell_corners": [2880, 2880],
+          "regional_shell_corners": [
+            2880,
+            2880
+          ],
           "knuckle_clamps": {
             "K1": {
               "rods_mm": 22.0,
@@ -16436,7 +16496,10 @@
           },
           "unresolved": []
         },
-        "coordinated_channel_checks_satisfied": [13, 13]
+        "coordinated_channel_checks_satisfied": [
+          13,
+          13
+        ]
       },
       "G4": {
         "reviewed_contract_sha256": "c135f6d62d0d3293386409392d2e42278a894d78328dca25536112832bd41973",
@@ -16481,6 +16544,215 @@
         "full_suite_command": "python -X utf8 -B tools/test_offline.py",
         "python_discovered": 1822,
         "python_seconds": 369.963,
+        "result": "OK (skipped=1)",
+        "javascript_suites": 12,
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "EV-FAZ2-XP2-STEPPED-SCHEDULE-27-20261128",
+      "observed_at": "2026-11-28T04:50:00+00:00",
+      "implementation_commit": "552ca280a3dcca863a748b337fa915f40550e4c8",
+      "tested_git_subtrees": {
+        "src": "9890a3de71d9770310c7642dbeaeb967f0155399",
+        "tests": "cc39a81610ffe677c3bdad01749dfe644dc2b16f",
+        "tools": "5471e42c7883e9cc8e80ae50848d966881c99757"
+      },
+      "status": "FAZ2_STEPPED_XP2_78_OF_78_CUTS_27_OF_30_WALLS_12_GAPS_CLOSED",
+      "production_run_id": "RUN-718a378f31bc4a6e879a502b97225bf3",
+      "input_sha256": "10b2a06edbc656bc6e8972ec542209f8dd904cc9ee088165ab3c92f87a043033",
+      "snapshot_sha256": "197cdc20feab64a57cad378d9f1455815d42ec56f67fe8ee24429ed9eb84f9fb",
+      "results_sha256": "a7e5fae25931180fb283c64f15f85df9de0b536dd8c5ead7cdb7d3f0dcb2e9aa",
+      "report_sha256": "ee8cc749afb74f8d047d06f25b7a21f1acb642ab1e00af9681b03be9ca529446",
+      "report_bytes": 8466879,
+      "live_etabs_calls": 0,
+      "building_outcomes": {
+        "columns_conditional": 69,
+        "columns_failed_foundation_confinement": 4,
+        "columns_held_wall_coupled": 14,
+        "columns_by_storey": {
+          "+9.00": [
+            23,
+            23
+          ],
+          "+4.50": [
+            32,
+            32
+          ],
+          "+0.00": [
+            14,
+            32
+          ]
+        },
+        "beams_conditional": 180,
+        "walls_scheduled": [
+          27,
+          30
+        ],
+        "basement_multipanel_walls_scheduled": [
+          14,
+          17
+        ],
+        "basement_pier_net_web_cuts": [
+          78,
+          78
+        ],
+        "basement_pressure_ends_checked": [
+          34,
+          34
+        ],
+        "basement_pressure_ends_satisfied": [
+          29,
+          34
+        ],
+        "basement_edge_combinations_evaluated": [
+          442,
+          442
+        ],
+        "fully_evaluated_check_families": [
+          36,
+          50
+        ],
+        "c29_independent_faces": [
+          24,
+          24
+        ]
+      },
+      "xp2_stepped_pier": {
+        "status": "CONDITIONAL_SAME_CURTAIN_NET_WEB_PMM",
+        "cuts_evaluated": [
+          30,
+          30
+        ],
+        "max_equilibrium_error": 5.548e-11,
+        "max_pmm_utilization": 0.790198,
+        "bottom_active_members": [
+          "436",
+          "438",
+          "439",
+          "440",
+          "441"
+        ],
+        "top_active_members": [
+          "436",
+          "437",
+          "438",
+          "439",
+          "440",
+          "441"
+        ],
+        "qualified_members": [
+          "439",
+          "440",
+          "441"
+        ],
+        "open_members": [
+          "436",
+          "437",
+          "438"
+        ],
+        "collinear_run": {
+          "members": [
+            "438",
+            "439",
+            "440",
+            "441"
+          ],
+          "scheduled_spans": [
+            "439",
+            "440",
+            "441"
+          ],
+          "one_piece_length_mm": 22270.0,
+          "starter_into_438_mm": 635,
+          "starter_available_mm": 1600.0,
+          "through_columns": {
+            "212": {
+              "bond_ratio": 0.341515,
+              "dowel_ratio": 0.709003,
+              "min_parallel_clear_mm": 71.5
+            },
+            "213": {
+              "bond_ratio": 0.318887,
+              "dowel_ratio": 0.842527,
+              "min_parallel_clear_mm": 69.5
+            },
+            "214": {
+              "bond_ratio": 0.355498,
+              "dowel_ratio": 0.802296,
+              "min_parallel_clear_mm": 69.5
+            }
+          }
+        },
+        "cross_pier_corners": {
+          "215": {
+            "members": [
+              "441",
+              "443"
+            ],
+            "status": "PROPOSED_PRESSURE_BARS_FIT",
+            "clear_mm": 11.784314
+          },
+          "210": {
+            "members": [
+              "436",
+              "442"
+            ],
+            "status": "PROPOSED_PRESSURE_BARS_CLASH",
+            "clear_mm": -15.0,
+            "yP2_442_preserved": true
+          }
+        }
+      },
+      "G2_frame_replay": {
+        "output_path": ".receipts/verification/faz2-g2-frame.json",
+        "sha256": "6555482b15b1a2038f53f696d41f1289cf2cdf6db97929825b422a8a44e2cb22"
+      },
+      "G4": {
+        "reviewed_contract_sha256": "c135f6d62d0d3293386409392d2e42278a894d78328dca25536112832bd41973",
+        "current_contract_sha256": "d77466487dd242f37829e44c7e97c812049a5106a58f722a32794308e3610d2b",
+        "current_verification_sha256": "b1fff7b22deebe5a6ecf67afd130a092ab5da9af99099b9448f9e27fb0b27177",
+        "expected_population_sha256": "2242b7244486b5d6e90e8ac2d1715d90cf8116700efd7d37ba8c9b8d76dd3731"
+      },
+      "G5": {
+        "reviewed_contract_sha256": "9c2920861318bd8088aeaf63c2c57c1fa27e0900b16f87055035b207a0f1fbad",
+        "reviewed_verification_sha256": "82ed1f2b1f7b91a8dd7a379df59f1dff05cfcd4221c63e9b533eee3d43a341a1",
+        "accepted_contract_sha256": "c9c9595efb671a055318caad6ccf260a4605f52c94f231059d70a8c423270cc0",
+        "accepted_verification_sha256": "8a76c49e9e498cabd342e83589521ff4dcd0c90613dbe2c02084147dbff87263",
+        "evidence_sha256": {
+          "frame_shear": "f95e13c77892d3a568443e907bbfeeb413acd6cd5b7c4f10215cd0392f8aaa9e",
+          "pipeline": "3329bed1f7af4da4515c40c72f069f31116c8956dd8149d9b9ad43a3ace64c4f"
+        },
+        "closed_gaps_in_packet": [
+          "GAP-014",
+          "GAP-017"
+        ]
+      },
+      "formal_closed_gap_ids": [
+        "GAP-001",
+        "GAP-002",
+        "GAP-003",
+        "GAP-004",
+        "GAP-005",
+        "GAP-007",
+        "GAP-008",
+        "GAP-010",
+        "GAP-013",
+        "GAP-014",
+        "GAP-016",
+        "GAP-017"
+      ],
+      "engineering_release": "NOT_READY",
+      "formal_compliance": "NOT_PROVEN",
+      "independent_replays": [
+        "python -X utf8 -B tools/verify_g5_contract.py .receipts/RUN-718a378f31bc4a6e879a502b97225bf3"
+      ],
+      "software": {
+        "full_suite_command": "python -X utf8 -B tools/test_offline.py",
+        "log_path": ".receipts/verification/faz2-offline.log",
+        "log_sha256": "9349421452fb778e8a83fb48aea8d2b9dbf773b59bccf0d5875f2f00b8319bd0",
+        "python_discovered": 1825,
+        "python_seconds": 525.876,
         "result": "OK (skipped=1)",
         "javascript_suites": 12,
         "exit_code": 0
@@ -17522,6 +17794,24 @@
       "snapshot_sha256": "b9958d9b01f2eadce7bf7261829849844d145cf3047b75ef197e7a4f4f572067",
       "scope": "Scoped G5 formal closure (12/18 GAPs), verified 13/13 coordinated W31/W32/W55/W6 channel and 11/11 3D knuckle/lap checks at node 931 (88,860 segments, zero clashes), advancing wall schedule from 21/30 to 24/30.",
       "verification": "EV-G5-ACCEPTANCE-931-SCHEDULE-24-20261127",
+      "engineering_release": "NOT_READY"
+    },
+    {
+      "status": "FAZ2_XP2_STEPPED_CUTS_78_OF_78_SCHEDULE_27_OF_30",
+      "work_branch": "work/phase2-xp2-walls",
+      "integration_base_branch": "baseline/local_import",
+      "inspected_base_commit": "d76943ce564296c7e9fb5c11864a33535c378dc2",
+      "calculation_implementation_commit": "552ca280a3dcca863a748b337fa915f40550e4c8",
+      "tested_git_subtrees": {
+        "src": "9890a3de71d9770310c7642dbeaeb967f0155399",
+        "tests": "cc39a81610ffe677c3bdad01749dfe644dc2b16f",
+        "tools": "5471e42c7883e9cc8e80ae50848d966881c99757"
+      },
+      "production_run_id": "RUN-718a378f31bc4a6e879a502b97225bf3",
+      "results_sha256": "a7e5fae25931180fb283c64f15f85df9de0b536dd8c5ead7cdb7d3f0dcb2e9aa",
+      "snapshot_sha256": "197cdc20feab64a57cad378d9f1455815d42ec56f67fe8ee24429ed9eb84f9fb",
+      "scope": "Stepped basement pier xP2 net-web PMM cuts (30/30 on xP2, 78/78 building-wide), two-curtain shell designs on all six xP2 panels (zero reference fallbacks, 34/34 ends checked, 442/442 edge combinations), verified cross-pier 3D joint clearance at column 215 (+11.78 mm), and continuous W24–W25–W26 run with 635 mm starter into W23, advancing scheduled walls from 24/30 to 27/30 (90.0%) and fully evaluated check families from 33/50 to 36/50 while preserving 12/18 closed GAPs (G1–G5).",
+      "verification": "EV-FAZ2-XP2-STEPPED-SCHEDULE-27-20261128",
       "engineering_release": "NOT_READY"
     }
   ],
