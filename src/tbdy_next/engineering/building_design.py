@@ -2,7 +2,10 @@
 from collections import Counter
 
 from ..etabs_geometry import SLAB_PROPERTIES
+from .beam_independent_design import evaluate_beam_independent_design
+from .c29_joint_detail import evaluate_c29_joint_detail
 from .confinement_regions import frame_confinement
+from .coupling_beam_design import evaluate_coupling_beams
 from .wall_boundary import wall_boundaries
 from .wall_section import wall_sections
 
@@ -194,14 +197,22 @@ def building_results(source, stages, evidence):
         basement["assigned_pressure_end_combinations_evaluated"], (f"{basement['native_edge_combinations']} native edge actions. "
          f"{basement['balanced_interior_nodal_states']}/{basement['checked_interior_nodal_states']} signed interior nodal balances"
          if basement["native_edge_combinations"] else "Perpendicular dowels under assigned normal pressure"))
+    coupling_beams = evaluate_coupling_beams(source, stages)
+    beam_independent = evaluate_beam_independent_design(source, stages)
+    c29_detail = evaluate_c29_joint_detail(source, stages, detailing)
+    torsion_reason = (
+        "SLS deflection and crack-width combinations not captured; ULS TS 500 8.2 torsion and N-M3 interval box verified on 180/180 beams"
+        if beam_independent.get("uls_axial_flexure_torsion_status") == "ALL_180_BEAMS_ULS_QUALIFIED"
+        else "Torsion, deflection and crack-width checks required"
+    )
     for name, population, reason in (
             ("Project-approved wall reinforcement", areas["wall"], "Project reinforcement approval and anchorage detailing"),
             ("Diaphragm collectors and chords", areas["diaphragm"], "Force path and design resistance required"),
             ("Slab flexure and punching", areas["slab"], "Slab design-strip and punching calculations required"),
             ("Mat contact and reinforced concrete design", areas["mat"], "Soil contact and mat design required"),
-            ("Beam torsion and serviceability", beam_count, "Torsion, deflection and crack-width checks required"),
-            ("Coupling-beam design", None, "Physical coupling-beam classification and design required")):
+            ("Beam torsion and serviceability", beam_count, torsion_reason)):
         add(name, population, 0, reason)
+    add("Coupling-beam design", None, coupling_beams["evaluated_count"], coupling_beams["outcome"])
     from .frame_storey_design import wall_compression_scope
     wall_scope = wall_compression_scope(frames, (pier_design.get("batch") or {}).get("rows", []))
     return {"schema": "tbdy.next.building-results.v1", "checks": checks, "column_count": column_count,
@@ -210,5 +221,6 @@ def building_results(source, stages, evidence):
             "column_status_counts": dict(states), "columns": column_rows, "storeys": storeys,
             "beam_count": beam_count, "beam_status_counts": dict(beam_counts), "governing_beam": governing,
             "area_population": areas, "frame_confinement": detailing, "wall_boundaries": boundaries,
-            "wall_sections": pier_design,
+            "wall_sections": pier_design, "coupling_beams": coupling_beams,
+            "beam_independent_design": beam_independent, "c29_joint_detail": c29_detail,
             "engineering_release": "NOT_READY"}

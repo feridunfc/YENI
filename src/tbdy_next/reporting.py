@@ -1627,6 +1627,63 @@ def _confinement_tables(building, wall_calculations=None):
     return "".join(section)
 
 
+def _faz3_beam_and_c29_tables(building: Mapping[str, Any]) -> str:
+    parts: list[str] = []
+    coup = building.get("coupling_beams") or {}
+    c_rows = [r for r in (coup.get("beams") or ()) if r.get("applicability") == "WALL_TO_WALL_ROLE_REVIEW"]
+    if c_rows:
+        parts.extend([
+            "<h3>Coupling-beam classification and TBDY 7.6.8 qualification</h3>",
+            _table((
+                ("story", "Storey"), ("label", "Beam"), ("member_id", "ETABS ID"),
+                ("structural_role", "Physical role"), ("physical_clear_span_mm", "Clear span ln (mm)"),
+                ("ln_over_h_physical", "ln / h"), ("ve_physical_kn", "Physical Ve (kN)"),
+                ("tbdy_7_6_8_1_shear_threshold_kn", "1.5 bw d fctd (kN)"),
+                ("vr_confinement_kn", "Vr conf (kN)"), ("status", "Result"),
+            ), c_rows),
+        ])
+    indep = building.get("beam_independent_design") or {}
+    if indep.get("beams"):
+        summary_row = [{
+            "beam_count": indep.get("beam_count"),
+            "vectors": indep.get("native_force_vectors_checked"),
+            "max_p_ratio": indep.get("max_axial_over_0_10_ac_fck"),
+            "max_n0": indep.get("max_n0_m3_utilization"),
+            "max_box": indep.get("max_axial_interval_box_utilization"),
+            "max_web_tau": indep.get("max_combined_shear_torsion_web_ratio"),
+            "uls_status": indep.get("uls_axial_flexure_torsion_status"),
+            "sls_status": indep.get("serviceability_status"),
+        }]
+        parts.extend([
+            "<h3>Independent beam axial-flexure, TS 500 8.2 torsion and 360-end topology</h3>",
+            _table((
+                ("beam_count", "Beams"), ("vectors", "FrameForce vectors"),
+                ("max_p_ratio", "Max |P| / (0.10 Ac fck)"), ("max_n0", "Max N=0 ratio"),
+                ("max_box", "Max [Nmin, Nmax] box ratio"), ("max_web_tau", "Max (V+T) web ratio"),
+                ("uls_status", "ULS outcome"), ("sls_status", "Serviceability scope"),
+            ), summary_row),
+        ])
+    c29 = building.get("c29_joint_detail") or {}
+    if c29.get("joints"):
+        j_rows = [{
+            **j,
+            "selection_role": c29.get("selection_role"),
+            "approval": c29.get("original_project_approval"),
+        } for j in c29["joints"]]
+        parts.extend([
+            "<h3>C29 three-storey 3D joint and reinforcement takeoff</h3>",
+            _table((
+                ("story", "Storey"), ("joint_id", "Joint"), ("column_id", "Column"),
+                ("enclosure", "Enclosure"), ("hoop_station_count", "Joint hoops"),
+                ("max_hoop_pitch_mm", "Max pitch (mm)"),
+                ("naive_2d_min_clearance_mm", "2D overlay min clear (mm)"),
+                ("registered_3d_min_clearance_mm", "3D registered min clear (mm)"),
+                ("selection_role", "Role"), ("approval", "Project approval"),
+            ), j_rows),
+        ])
+    return "".join(parts)
+
+
 def build_printable_html(report: Mapping[str, Any]) -> str:
     """Self-contained print-ready HTML. All five checks and every member row."""
     checks = report["checks"]
@@ -1653,6 +1710,7 @@ def build_printable_html(report: Mapping[str, Any]) -> str:
             + _table((("story", "Storey"), ("label", "Beam"), ("check", "Check"), ("full_ve_kn", "Ve (kN)"),
                       ("resistance_kn", "Resistance (kN)"), ("utilization", "Utilization")),
                      [building["governing_beam"]] if building["governing_beam"] else [])
+            + _faz3_beam_and_c29_tables(building)
             + _confinement_tables(building, report.get("wall_design_calculations"))
             + '<details><summary>Columns and reasons for a hold</summary>'
             + _table((("story", "Storey"), ("label", "Column"), ("member_id", "ETABS ID"), ("status", "Result"),

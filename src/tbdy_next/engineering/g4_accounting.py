@@ -150,8 +150,16 @@ def check_accounting(frozen, source, stages, building):
         require(summary[name]["evaluated"]==0,"G4_UNSUPPORTED_OWNER_HAS_RESULTS:"+name)
         for identity in frozen["grains"][grain]:
             record(index,identity,"BLOCKED",summary[name]["outcome"])
+    coupling_by_id={r["member_id"]:r for r in (building.get("coupling_beams") or {}).get("beams",())}
     for uid,r in frozen["coupling_beam_applicability"].items():
-        record(56,uid,"BLOCKED" if r["status"]=="WALL_TO_WALL_ROLE_REVIEW" else "NOT_APPLICABLE",r["status"])
+        if r["status"]!="WALL_TO_WALL_ROLE_REVIEW":
+            record(56,uid,"NOT_APPLICABLE",r["status"])
+        else:
+            cb=coupling_by_id.get(uid) or {}
+            st=cb.get("status","HOLD")
+            disp=("EVALUATED" if st=="TBDY_7_6_8_QUALIFIED_FRAME_BEAM_DESIGN"
+                  else "FAILED" if st=="NUMERICAL_EXCEEDANCE" else "BLOCKED")
+            record(56,uid,disp,st)
     ledger={}
     for i,(name,grain) in enumerate(FAMILIES):
         expected=frozen["grains"][grain]
